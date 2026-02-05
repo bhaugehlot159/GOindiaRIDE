@@ -1,3 +1,4 @@
+/* Reset */
 * {
     margin: 0;
     padding: 0;
@@ -5,49 +6,104 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
-body {
-    background-color: #f5f7fa;
-    color: #333;
-}
-
-/* HEADER */
+/* Header */
 .header {
+    background: #111;
+    color: white;
+    padding: 15px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 40px;
-    background-color: #0a2540;
 }
 
 .logo {
-    color: #ffffff;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
 }
 
 .nav a {
-    color: #ffffff;
-    text-decoration: none;
+    color: white;
     margin-left: 20px;
-    font-size: 16px;
+    text-decoration: none;
+    font-size: 15px;
 }
 
 .nav a:hover {
     text-decoration: underline;
 }
 
-/* HERO SECTION */
+/* Hero Section */
 .hero {
-    padding: 100px 40px;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+    background: #f5f5f5;
 }
 
 .hero h1 {
     font-size: 42px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .hero p {
     font-size: 18px;
     color: #555;
+}
+
+/* Booking Section */
+.booking {
+    padding: 50px 20px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.booking h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* Booking Form */
+.booking-form {
+    max-width: 700px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.booking-form input,
+.booking-form select {
+    padding: 12px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.booking-form button {
+    grid-column: span 2;
+    padding: 14px;
+    font-size: 16px;
+    background: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.booking-form button:hover {
+    background: #333;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .booking-form {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h1 {
+        font-size: 30px;
+    }
 }
