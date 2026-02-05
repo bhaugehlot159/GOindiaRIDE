@@ -178,12 +178,27 @@
   </div>
 
   <div id="ai" class="ai-section card">
-    <h3>AI Travel Assistant</h3>
-    <p>Ask our AI-powered assistant about routes, fares, cities, or travel tips in India.</p>
+  <h3>AI Travel Assistant</h3>
+  <p>Get smart route, fare and city suggestions instantly. Designed for international travelers.</p>
 
-    <div class="ai-box">
-      <input type="text" placeholder="Example: Best taxi from Delhi to Jaipur">
-    </div>
+  <div class="ai-box">
+    <input id="aiInput" type="text" placeholder="Ask AI about your trip in India...">
+  </div>
+
+  <div style="margin-top:15px;">
+    <button onclick="fillSuggestion('Best taxi from Delhi to Jaipur')" style="margin:5px;">Delhi → Jaipur Taxi</button>
+    <button onclick="fillSuggestion('Approx taxi fare in India')" style="margin:5px;">Taxi Fare in India</button>
+    <button onclick="fillSuggestion('Is taxi safe for foreigners in India')" style="margin:5px;">Is it safe?</button>
+  </div>
+
+  <p id="aiStatus" style="margin-top:15px;font-size:13px;color:#555;"></p>
+
+  <a href="#" onclick="sendAIToWhatsApp()" class="ai-whatsapp-btn">Ask AI on WhatsApp</a>
+
+  <p style="font-size:12px;color:#666;margin-top:10px;">
+    *AI suggestions are automated and advisory. Final booking is handled via WhatsApp support.
+  </p>
+</div>
 
     <a href="#" onclick="sendToWhatsApp()" class="ai-whatsapp-btn">Ask AI on WhatsApp</a>
 
@@ -214,14 +229,22 @@
 </footer>
 
 <script>
-function sendToWhatsApp() {
-  var msg = document.querySelector('.ai-box input').value;
-  if(msg.trim() === "") {
-    alert("Please type your question first");
+function sendWhatsApp() {
+  var input = document.getElementById("aiQuery");
+
+  if (!input || input.value.trim() === "") {
+    alert("Please enter your travel question");
     return;
   }
-  var phone = "918426891471";
-  var url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg);
+
+  var message =
+    "Hello GoIndiaRide AI 👋%0A%0A" +
+    "My travel query:%0A" +
+    input.value;
+
+  var phone = "918426891471"; // <-- यहाँ अपना WhatsApp number डालना
+  var url = "https://wa.me/" + phone + "?text=" + message;
+
   window.open(url, "_blank");
 }
 </script>
