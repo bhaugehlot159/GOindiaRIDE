@@ -128,3 +128,59 @@
   text-align: center;
   opacity: 0.85;
 }
+/* AI Travel Assistant Section */
+.ai-section {
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #ffffff;
+  padding: 50px 20px;
+  margin-top: 50px;
+  border-radius: 16px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.ai-section h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.ai-section p {
+  color: #cbd5f5;
+  line-height: 1.6;
+}
+
+.ai-box {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.ai-box input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+}
+
+.ai-box button {
+  background: #22c55e;
+  border: none;
+  padding: 14px 20px;
+  font-size: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.ai-box button:hover {
+  background: #16a34a;
+}
+
+.ai-note {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 10px;
+}
