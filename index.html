@@ -1,96 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>GoIndiaRide – Book Taxi in India</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GoIndiaRIDE – Book Taxi in India</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+    }
+
+    header {
+      background: #0f172a;
+      color: #fff;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    nav a {
+      color: #fff;
+      margin-left: 15px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .hero {
+      padding: 50px 20px;
+      background: linear-gradient(to right, #2563eb, #1e40af);
+      color: #fff;
+      text-align: center;
+    }
+
+    .hero h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .cta-btn {
+      margin-top: 20px;
+      display: inline-block;
+      background: #22c55e;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    section {
+      padding: 40px 20px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .ai-section {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 30px;
+    }
+
+    .ai-section h3 {
+      margin-top: 0;
+    }
+
+    .ai-box input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .ai-whatsapp-btn {
+      display: inline-block;
+      margin-top: 15px;
+      background: #25D366;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+      text-align: center;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    footer {
+      background: #0f172a;
+      color: #cbd5f5;
+      padding: 25px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media(max-width: 768px) {
+      .stats {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header class="header">
-    <div class="logo">GoIndiaRide</div>
-    <nav class="nav">
-        <a href="#">Home</a>
-        <a href="#">Book Ride</a>
-        <a href="#">Cities</a>
-        <a href="#">Contact</a>
-    </nav>
+<header>
+  <h1>GoIndiaRIDE</h1>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Book Ride</a>
+    <a href="#">Cities</a>
+    <a href="#">Contact</a>
+  </nav>
 </header>
 
-<section class="hero">
-    <h1>Book a Taxi Anywhere in India</h1>
-    <p>Trusted cab booking platform for international travelers</p>
-</section>
-    <section class="ai-chat">
-  <h2>🤖 Ask our AI Travel Assistant</h2>
-  <p>Get instant help for routes, pricing & bookings</p>
+<div class="hero">
+  <h2>Book a Taxi Anywhere in India</h2>
+  <p>Trusted by international travelers. Safe, verified drivers and transparent pricing. Book your ride easily via WhatsApp.</p>
+  <a class="cta-btn" href="#ai">Ask AI Assistant</a>
+</div>
 
-  <div class="chat-box">
-    <input type="text" placeholder="Type your travel question..." />
-    <button>Ask AI</button>
+<section>
+  <div class="card">
+    <h3>Book Your Taxi</h3>
+    <div class="form-group">
+      <input type="text" placeholder="Pickup Location">
+      <input type="text" placeholder="Drop Location">
+      <input type="date">
+      <input type="time">
+    </div>
+    <a class="cta-btn" href="https://wa.me/918248894171" target="_blank">Book via WhatsApp</a>
   </div>
 
-  <div class="chat-response">
-    AI is ready to assist you...
-  </div>
-</section>
-    <section class="booking">
-    <h2>Book Your Taxi</h2>
+  <div id="ai" class="ai-section card">
+    <h3>AI Travel Assistant</h3>
+    <p>Ask our AI-powered assistant about routes, fares, cities, or travel tips in India.</p>
 
-    <form class="booking-form">
-        <input type="text" placeholder="Pickup Location" required>
-        <input type="text" placeholder="Drop Location" required>
+    <div class="ai-box">
+      <input type="text" placeholder="Example: Best taxi from Delhi to Jaipur">
+    </div>
 
-        <input type="date" required>
-        <input type="time" required>
+    <a href="#" onclick="sendToWhatsApp()" class="ai-whatsapp-btn">Ask AI on WhatsApp</a>
 
-        <select required>
-            <option value="">Select Car Type</option>
-            <option>Sedan</option>
-            <option>SUV</option>
-            <option>Luxury</option>
-        </select>
-        <section class="ai-section">
-  <h2>AI Travel Assistant</h2>
-  <p>
-    Not sure which cab to book?  
-    Our AI assistant helps international travelers choose the best route,
-    car type, and timing instantly.
-  </p>
-
-  <div class="ai-box">
-    <input type="text" placeholder="Ask something like: Best taxi from Delhi to Agra">
-    <a
-  href="https://wa.me/918426891471?text=Hello%20AI%20Assistant,%20I%20am%20an%20international%20traveler.%20Please%20suggest%20the%20best%20cab%20type,%20route,%20and%20timing%20for%20my%20trip%20in%20India."
-  target="_blank"
-  class="ai-whatsapp-btn"
->
-  🤖 Ask AI
-</a>
+    <p style="font-size:12px;color:#666;margin-top:10px;">
+      *AI suggestions are advisory. Final booking handled via WhatsApp support.
+    </p>
   </div>
 
-  <p class="ai-note">
-    *AI suggestions are advisory. Final booking handled by our team.
-  </p>
-</section>
-        <section class="trust">
-  <h2>Trusted by International Travelers</h2>
-  <p>Serving customers from 25+ countries worldwide</p>
-
-  <div class="trust-logos">
-    <span>🇺🇸 USA</span>
-    <span>🇬🇧 UK</span>
-    <span>🇦🇺 Australia</span>
-    <span>🇩🇪 Germany</span>
-    <span>🇯🇵 Japan</span>
-    <span>🇫🇷 France</span>
+  <div class="stats">
+    <div class="stat-box">
+      <h2>25+</h2>
+      <p>Countries Served</p>
+    </div>
+    <div class="stat-box">
+      <h2>10,000+</h2>
+      <p>Rides Completed</p>
+    </div>
+    <div class="stat-box">
+      <h2>150+</h2>
+      <p>Cities Covered</p>
+    </div>
   </div>
 </section>
 
-        <button type="submit">Search Taxi</button>
-    </form>
-</section>
+<footer>
+  © 2026 GoIndiaRIDE. All rights reserved.<br>
+  This platform connects travelers with local drivers. Payments & bookings are handled via WhatsApp support.
+</footer>
+
 <script>
 function sendToWhatsApp() {
   var msg = document.querySelector('.ai-box input').value;
@@ -98,10 +220,11 @@ function sendToWhatsApp() {
     alert("Please type your question first");
     return;
   }
-  var phone = "918248894171"; // apna WhatsApp number
+  var phone = "918248894171";
   var url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg);
   window.open(url, "_blank");
 }
 </script>
+
 </body>
 </html>
