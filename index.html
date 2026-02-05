@@ -91,6 +91,17 @@
         <button type="submit">Search Taxi</button>
     </form>
 </section>
-
+<script>
+function sendToWhatsApp() {
+  var msg = document.querySelector('.ai-box input').value;
+  if(msg.trim() === "") {
+    alert("Please type your question first");
+    return;
+  }
+  var phone = "918248894171"; // apna WhatsApp number
+  var url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(msg);
+  window.open(url, "_blank");
+}
+</script>
 </body>
 </html>
