@@ -1,202 +1,160 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoIndiaRide – Book Taxi in India</title>  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+    }
 
-<title>Book Taxi in India | Safe & AI Assisted Travel – GoIndiaRide</title>
+    header {
+      background: #0f172a;
+      color: #fff;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-<meta name="description" content="Book safe taxi in India with AI-assisted travel help. Airport, city & outstation cabs via WhatsApp. Trusted by international travelers.">
-<meta name="keywords" content="book taxi in India, airport taxi India, safe taxi for foreigners, outstation cab India">
-<meta name="author" content="GoIndiaRide">
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
 
-<!-- Open Graph -->
-<meta property="og:title" content="Book Taxi in India – GoIndiaRide">
-<meta property="og:description" content="AI-assisted taxi booking in India via WhatsApp. Safe & reliable.">
-<meta property="og:url" content="https://bhaugehlot159.github.io/GOindiaRIDE/">
+    nav a {
+      color: #fff;
+      margin-left: 15px;
+      text-decoration: none;
+      font-size: 14px;
+    }
 
-<style>
-*{box-sizing:border-box}
-body{
-margin:0;
-font-family:Arial,Helvetica,sans-serif;
-background:#f4f6f8;
-color:#222;
-overflow-x:hidden;
-}
+    .hero {
+      padding: 50px 20px;
+      background: linear-gradient(to right, #2563eb, #1e40af);
+      color: #fff;
+      text-align: center;
+    }
 
-header{
-background:#0f172a;
-color:#fff;
-padding:15px 25px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+    .hero h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
 
-header h1{margin:0;font-size:22px}
-nav a{color:#fff;margin-left:15px;text-decoration:none}
+    .cta-btn {
+      margin-top: 20px;
+      display: inline-block;
+      background: #22c55e;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
 
-.hero{
-background:linear-gradient(to right,#2563eb,#1e40af);
-color:#fff;
-padding:60px 20px;
-text-align:center;
-}
+    section {
+      padding: 40px 20px;
+      max-width: 1100px;
+      margin: auto;
+    }
 
-.hero h2{font-size:32px}
-.hero p{max-width:700px;margin:auto}
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
 
-.cta-btn{
-display:inline-block;
-margin-top:20px;
-background:#22c55e;
-color:#fff;
-padding:14px 22px;
-border-radius:8px;
-text-decoration:none;
-font-weight:bold;
-}
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-section{
-max-width:1100px;
-margin:40px auto;
-padding:30px;
-background:#fff;
-border-radius:12px;
-box-shadow:0 6px 18px rgba(0,0,0,0.08);
-}
-
-h2{color:#0b5ed7}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:15px;
-}
-
-.box{
-background:#f9fafb;
-padding:15px;
-border-radius:8px;
-text-align:center;
-font-weight:500;
-}
-
-.card{
-margin-top:30px;
-padding:25px;
-border-radius:12px;
-background:#fff;
-box-shadow:0 4px 12px rgba(0,0,0,0.08);
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-.ai-btn{
-display:inline-block;
-margin-top:15px;
-background:#25D366;
-color:#fff;
-padding:12px 18px;
-border-radius:8px;
-text-decoration:none;
-font-weight:bold;
-}
-
-footer{
-background:#0f172a;
-color:#cbd5f5;
-text-align:center;
-padding:25px;
-font-size:13px;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<h1>GoIndiaRide</h1>
-<nav>
-<a href="#">Home</a>
-<a href="#">Book Ride</a>
-<a href="#">Cities</a>
-<a href="#">Contact</a>
-</nav>
-</header>
-
-<div class="hero">
-<h2>Book Taxi Anywhere in India</h2>
-<p>Safe, verified drivers • AI-assisted help • WhatsApp booking</p>
-<a href="#ai" class="cta-btn">Ask AI Assistant</a>
+    footer {
+      background: #0f172a;
+      color: #cbd5f5;
+      padding: 25px;
+      font-size: 13px;
+      text-align: center;
+    }
+  </style></head><body><header>
+  <h1>GoIndiaRide</h1>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#booking">Book Ride</a>
+    <a href="#">Cities</a>
+    <a href="#">Contact</a>
+  </nav>
+</header><div class="hero">
+  <h2>Book a Taxi Anywhere in India</h2>
+  <p>Type first letter and select city, district or tourist place instantly</p>
+</div><section id="booking">
+  <div class="card">
+    <h3>Book Your Taxi</h3><div class="form-group">
+  <!-- STEP 1 + STEP 2 : Autocomplete Inputs -->
+  <input list="locations" placeholder="Pickup Location">
+  <input list="locations" placeholder="Drop Location">
+  <input type="date">
+  <input type="time">
 </div>
 
-<section>
-<h2>Taxi Services Across India</h2>
-<div class="grid">
-<div class="box">Rajasthan</div>
-<div class="box">Uttar Pradesh</div>
-<div class="box">Maharashtra</div>
-<div class="box">Delhi NCR</div>
-<div class="box">Gujarat</div>
-<div class="box">Uttarakhand</div>
-</div>
-</section>
+<a class="cta-btn" href="https://wa.me/918426891471" target="_blank">
+  Book via WhatsApp
+</a>
 
-<section>
-<h2>Popular Tourist Destinations</h2>
-<ul>
-<li>Taj Mahal – Agra</li>
-<li>Jaipur City Palace</li>
-<li>Varanasi Ghats</li>
-<li>Goa Beaches</li>
-<li>Udaipur Lake Pichola</li>
-</ul>
-</section>
+<!-- STEP 3 : Locations Database -->
+<datalist id="locations">
+  <!-- Rajasthan -->
+  <option value="Jaipur">
+  <option value="Jodhpur">
+  <option value="Udaipur">
+  <option value="Ajmer">
+  <option value="Jaisalmer">
+  <option value="Bikaner">
 
-<section>
-<h2>Famous Religious Places</h2>
-<ul>
-<li>Kashi Vishwanath – Varanasi</li>
-<li>Ram Mandir – Ayodhya</li>
-<li>Mahakaleshwar – Ujjain</li>
-<li>Vaishno Devi – Jammu</li>
-<li>Tirupati Balaji – Andhra Pradesh</li>
-</ul>
-</section>
+  <!-- Uttar Pradesh -->
+  <option value="Agra">
+  <option value="Varanasi">
+  <option value="Ayodhya">
+  <option value="Mathura">
+  <option value="Lucknow">
 
-<section id="ai">
-<div class="card">
-<h2>🤖 AI Travel Assistant</h2>
-<p>Ask anything about routes, fares & taxi safety in India.</p>
+  <!-- Delhi NCR -->
+  <option value="Delhi">
+  <option value="Noida">
+  <option value="Gurgaon">
 
-<input id="aiQuery" placeholder="Example: Is taxi safe for foreigners in India?">
+  <!-- Maharashtra -->
+  <option value="Mumbai">
+  <option value="Pune">
+  <option value="Nagpur">
 
-<a href="#" class="ai-btn" onclick="sendWhatsApp()">Ask AI on WhatsApp</a>
-<p id="aiStatus" style="font-size:13px;color:#555;margin-top:10px"></p>
-</div>
-</section>
+  <!-- Gujarat -->
+  <option value="Ahmedabad">
+  <option value="Somnath">
+  <option value="Dwarka">
 
-<footer>
-© 2026 GoIndiaRide. All rights reserved.<br>
-Taxi booking & payments handled via WhatsApp support.
-</footer>
+  <!-- Uttarakhand -->
+  <option value="Haridwar">
+  <option value="Rishikesh">
+  <option value="Kedarnath">
+  <option value="Badrinath">
 
-<script>
-function sendWhatsApp(){
-var q=document.getElementById("aiQuery").value;
-if(q===""){alert("Please enter your question");return;}
-var url="https://wa.me/918426891471?text=Hello%20GoIndiaRide%20AI%20👋%0A%0A"+encodeURIComponent(q);
-window.open(url,"_blank");
-}
-</script>
+  <!-- Tourist Places -->
+  <option value="Taj Mahal">
+  <option value="Vaishno Devi">
+  <option value="Tirupati Balaji">
+</datalist>
 
-</body>
+  </div>
+</section><footer>
+  © 2026 GoIndiaRide. All rights reserved.<br>
+  Safe taxi booking with verified drivers via WhatsApp.
+</footer></body>
 </html>
