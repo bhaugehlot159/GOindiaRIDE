@@ -937,6 +937,40 @@ function payInternational(){
 window.open('https://www.paypal.com','_blank');
 }
 </script>
+<!-- AB: Multi-Language Support -->
+<section>
+  <h2>🌐 Multi-Language Support</h2>
+  <p>Select your preferred language to use GoIndiaRide easily</p>
 
+  <select id="langSelect"
+    onchange="changeLang()"
+    style="padding:12px;width:100%;max-width:320px;">
+    <option value="en">English</option>
+    <option value="hi">हिन्दी</option>
+    <option value="fr">Français</option>
+    <option value="es">Español</option>
+  </select>
+
+  <p id="langText"
+     style="margin-top:15px;font-size:18px;font-weight:bold;">
+    Book a taxi anywhere in India safely.
+  </p>
+</section>
+
+<script>
+function changeLang(){
+  var l = document.getElementById("langSelect").value;
+  var t = document.getElementById("langText");
+
+  if(l === "hi")
+    t.innerText = "भारत में कहीं भी सुरक्षित टैक्सी बुक करें";
+  else if(l === "fr")
+    t.innerText = "Réservez un taxi en Inde en toute sécurité";
+  else if(l === "es")
+    t.innerText = "Reserve un taxi en India de forma segura";
+  else
+    t.innerText = "Book a taxi anywhere in India safely.";
+}
+</script>
 </body>
 </html>
