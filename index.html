@@ -83,7 +83,22 @@
       font-size: 13px;
       text-align: center;
     }
-  </style></head><body><header>
+    .suggestions {
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:6px;
+      max-height:150px;
+      overflow-y:auto;
+      margin-bottom:10px;
+    }
+    .suggestions div {
+      padding:8px;
+      cursor:pointer;
+    }
+    .suggestions div:hover {
+      background:#f1f5f9;
+    }
+</style></head><body><header>
   <h1>GoIndiaRide</h1>
   <nav>
     <a href="#">Home</a>
@@ -97,8 +112,13 @@
 </div><section id="booking">
   <div class="card">
     <h3>Book Your Taxi</h3><div class="form-group">
-  <input list="locations" placeholder="Pickup Location">
-  <input list="locations" placeholder="Drop Location">
+  <!-- Advanced Autocomplete Inputs -->
+  <input type="text" id="pickup" placeholder="Pickup Location">
+  <div id="pickup-suggestions" class="suggestions"></div>
+
+  <input type="text" id="drop" placeholder="Drop Location">
+  <div id="drop-suggestions" class="suggestions"></div>
+
   <input type="date">
   <input type="time">
 </div>
@@ -201,5 +221,36 @@
 </section><footer>
   © 2026 GoIndiaRide. All rights reserved.<br>
   Verified drivers • All India coverage • WhatsApp booking support
-</footer></body>
+</footer><script>
+const locations = [
+  "Jaipur","Jodhpur","Udaipur","Ajmer","Jaisalmer","Bikaner",
+  "Agra","Varanasi","Ayodhya","Mathura","Lucknow",
+  "Delhi","Noida","Gurgaon",
+  "Mumbai","Pune","Nagpur",
+  "Ahmedabad","Somnath","Dwarka",
+  "Haridwar","Rishikesh","Kedarnath","Badrinath",
+  "Taj Mahal","Vaishno Devi","Tirupati Balaji"
+];
+
+function setupAutocomplete(inputId, boxId) {
+  const input = document.getElementById(inputId);
+  const box = document.getElementById(boxId);
+
+  input.addEventListener("input", () => {
+    box.innerHTML = "";
+    if (!input.value) return;
+    locations
+      .filter(l => l.toLowerCase().startsWith(input.value.toLowerCase()))
+      .forEach(l => {
+        const div = document.createElement("div");
+        div.textContent = l;
+        div.onclick = () => { input.value = l; box.innerHTML = ""; };
+        box.appendChild(div);
+      });
+  });
+}
+
+setupAutocomplete("pickup", "pickup-suggestions");
+setupAutocomplete("drop", "drop-suggestions");
+</script></body>
 </html>
