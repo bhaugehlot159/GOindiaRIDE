@@ -1,97 +1,14 @@
-/* ======================================
-   INDIA LOCATIONS DATA (FUTURE PROOF)
-   ====================================== */
+// ===============================
+// MAP LOCATIONS (Only Lat–Lng Data)
+// ===============================
 
-const locationsData = {
-  states: [
-    "Andhra Pradesh",
-    "Arunachal Pradesh",
-    "Assam",
-    "Bihar",
-    "Chhattisgarh",
-    "Goa",
-    "Gujarat",
-    "Haryana",
-    "Himachal Pradesh",
-    "Jharkhand",
-    "Karnataka",
-    "Kerala",
-    "Madhya Pradesh",
-    "Maharashtra",
-    "Manipur",
-    "Meghalaya",
-    "Mizoram",
-    "Nagaland",
-    "Odisha",
-    "Punjab",
-    "Rajasthan",
-    "Sikkim",
-    "Tamil Nadu",
-    "Telangana",
-    "Tripura",
-    "Uttar Pradesh",
-    "Uttarakhand",
-    "West Bengal",
-    "Delhi",
-    "Jammu and Kashmir",
-    "Ladakh",
-    "Puducherry",
-    "Chandigarh",
-    "Dadra and Nagar Haveli and Daman and Diu",
-    "Lakshadweep",
-    "Andaman and Nicobar Islands"
-  ],
-
-  rajasthan: {
-    districts: [
-      "Ajmer",
-      "Alwar",
-      "Balotra",
-      "Banswara",
-      "Baran",
-      "Barmer",
-      "Beawar",
-      "Bharatpur",
-      "Bhilwara",
-      "Bikaner",
-      "Bundi",
-      "Chittorgarh",
-      "Churu",
-      "Dausa",
-      "Deeg",
-      "Dholpur",
-      "Didwana-Kuchaman",
-      "Dungarpur",
-      "Gangapur City",
-      "Hanumangarh",
-      "Jaipur",
-      "Jaipur Rural",
-      "Jaisalmer",
-      "Jalore",
-      "Jhalawar",
-      "Jhunjhunu",
-      "Jodhpur",
-      "Jodhpur Rural",
-      "Karauli",
-      "Kekri",
-      "Khairthal-Tijara",
-      "Kota",
-      "Kotputli-Behror",
-      "Nagaur",
-      "Neem Ka Thana",
-      "Pali",
-      "Phalodi",
-      "Pratapgarh",
-      "Rajsamand",
-      "Salumbar",
-      "Sanchore",
-      "Sawai Madhopur",
-      "Shahpura",
-      "Sikar",
-      "Sirohi",
-      "Sri Ganganagar",
-      "Tonk",
-      "Udaipur"
-    ]
+const locations = [
+  {
+    name: "Dungarpur",
+    state: "Rajasthan",
+    lat: 23.8431,
+    lng: 73.7147
   }
-};
+
+  // आगे यहीं 50 districts add होंगे
+];
