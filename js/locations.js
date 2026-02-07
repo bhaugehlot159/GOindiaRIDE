@@ -1,65 +1,101 @@
-const locations = [
-  {
-    name: "Dungarpur",
-    state: "Rajasthan",
-    lat: 23.8431,
-    lng: 73.7147
-  }
-window.RajasthanData = window.RajasthanData || {};
+/* ======================================
+   INDIA LOCATIONS DATA (FUTURE PROOF)
+   ====================================== */
 
-window.RajasthanData["Dungarpur"] = [
-  {
-    name: "Beneshwar Dham",
-    lat: 23.6411,
-    lng: 73.6056
-  },
-  {
-    name: "Gaib Sagar Lake",
-    lat: 23.8451,
-    lng: 73.7147
-  },
-  {
-    name: "Juna Mahal (Dungarpur Palace)",
-    lat: 23.8459,
-    lng: 73.7155
-  },
-  {
-    name: "Udai Bilas Palace",
-    lat: 23.8472,
-    lng: 73.7163
-  },
-  {
-    name: "Dev Somnath Temple",
-    lat: 23.7685,
-    lng: 73.6028
-  }
-];
-window.RajasthanData = window.RajasthanData || {};
+const locationsData = {
+  states: [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Delhi",
+    "Jammu and Kashmir",
+    "Ladakh",
+    "Puducherry",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Lakshadweep",
+    "Andaman and Nicobar Islands"
+  ],
 
-window.RajasthanData["Banswara"] = [
-  {
-    name: "Tripura Sundari Temple (Talwara)",
-    lat: 23.5589,
-    lng: 74.4511
-  },
-  {
-    name: "Mahi Dam",
-    lat: 23.5456,
-    lng: 74.1739
-  },
-  {
-    name: "Kagdi Pick Up Weir",
-    lat: 23.5524,
-    lng: 74.4321
-  },
-  {
-    name: "Anand Sagar Lake",
-    lat: 23.5502,
-    lng: 74.4418
-  },
-  {
-    name: "Cheech Talai",
-    lat: 23.5631,
-    lng: 74.4703
+  rajasthan: {
+    districts: [
+      "Ajmer",
+      "Alwar",
+      "Balotra",
+      "Banswara",
+      "Baran",
+      "Barmer",
+      "Beawar",
+      "Bharatpur",
+      "Bhilwara",
+      "Bikaner",
+      "Bundi",
+      "Chittorgarh",
+      "Churu",
+      "Dausa",
+      "Deeg",
+      "Dholpur",
+      "Didwana-Kuchaman",
+      "Dungarpur",
+      "Gangapur City",
+      "Hanumangarh",
+      "Jaipur",
+      "Jaipur Rural",
+      "Jaisalmer",
+      "Jalore",
+      "Jhalawar",
+      "Jhunjhunu",
+      "Jodhpur",
+      "Jodhpur Rural",
+      "Karauli",
+      "Kekri",
+      "Khairthal-Tijara",
+      "Kota",
+      "Kotputli-Behror",
+      "Nagaur",
+      "Neem Ka Thana",
+      "Pali",
+      "Phalodi",
+      "Pratapgarh",
+      "Rajsamand",
+      "Salumbar",
+      "Sanchore",
+      "Sawai Madhopur",
+      "Shahpura",
+      "Sikar",
+      "Sirohi",
+      "Sri Ganganagar",
+      "Tonk",
+      "Udaipur"
+    ]
   }
+};
+window.LOCATIONS = [
+  ...locationsData.states,
+  ...locationsData.rajasthan.districts
 ];
