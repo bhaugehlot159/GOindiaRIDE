@@ -1,56 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>GoIndiaRide Map</title>
+  <title>GOindiaRIDE – Taxi Booking</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- LEAFLET CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <!-- ===== CSS FOLDER ===== -->
+  <link rel="stylesheet" href="style.css">
 
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    #map {
-      width: 100%;
-      height: 100vh;
-    }
+    body{margin:0;font-family:Arial;background:#f5f7fb}
+    header,section,footer{padding:20px}
+    header{background:#1e40af;color:#fff}
+    h1,h2{margin:0 0 10px}
+    .box{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}
+    input,select{width:100%;padding:10px;margin-top:8px}
+    ul#suggestions{list-style:none;padding:0;margin:0;border:1px solid #ccc}
+    ul#suggestions li{padding:8px;cursor:pointer;background:#fff}
+    ul#suggestions li:hover{background:#eef}
+    .btn{background:#25D366;color:#fff;padding:12px;text-align:center;
+         text-decoration:none;display:inline-block;border-radius:6px}
   </style>
 </head>
 
 <body>
 
-  <!-- MAP CONTAINER -->
-  <div id="map"></div>
+<!-- =================================================
+  HEADER FOLDER
+================================================== -->
+<header>
+  <h1>GOindiaRIDE</h1>
+  <p>All Rajasthan Taxi Booking</p>
+</header>
 
-  <!-- LEAFLET JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- =================================================
+  BOOKING FOLDER
+================================================== -->
+<section id="booking">
+  <div class="box">
+    <h2>Book Your Taxi</h2>
 
-  <script>
-    /* ===============================
-       MAP INITIALIZATION
-    =============================== */
-   var map = L.map('map').setView([26.5, 74.0], 7);
+    <label>Pickup / District</label>
+    <input type="text" id="placeInput" placeholder="District ka naam likhiye">
+    <ul id="suggestions"></ul>
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap"
-    }).addTo(map);
-    /* ===============================
-       ADD MARKERS
-    =============================== */
-    places.forEach(function(place) {
-      L.marker([place.lat, place.lng])
-        .addTo(map)
-        .bindPopup(place.name);
+    <label>Passengers</label>
+    <select>
+      <option>1–4</option>
+      <option>5–6</option>
+      <option>7–12</option>
+    </select>
+  </div>
+</section>
+
+<!-- =================================================
+  VEHICLE FOLDER
+================================================== -->
+<section id="vehicles">
+  <div class="box">
+    <h2>Available Vehicles</h2>
+    <ul>
+      <li>Swift Dzire</li>
+      <li>Ertiga</li>
+      <li>Innova Crysta</li>
+      <li>Tempo Traveller</li>
+    </ul>
+  </div>
+</section>
+
+<!-- =================================================
+  CONTACT / WHATSAPP FOLDER
+================================================== -->
+<section id="contact">
+  <div class="box">
+    <h2>Quick Booking</h2>
+    <a class="btn" href="https://wa.me/919999999999" target="_blank">
+      WhatsApp Booking
+    </a>
+  </div>
+</section>
+
+<!-- =================================================
+  FOOTER FOLDER
+================================================== -->
+<footer>
+  <p>© GOindiaRIDE – Rajasthan Taxi Service</p>
+</footer>
+
+<!-- =================================================
+  JS FOLDER (NO MAP, NO LOCATION)
+================================================== -->
+<script src="js/locations.js"></script>
+<script>
+/* AUTOCOMPLETE USING EXISTING DISTRICTS ONLY */
+
+const input = document.getElementById("placeInput");
+const suggestions = document.getElementById("suggestions");
+
+input.addEventListener("input", () => {
+  const value = input.value.toLowerCase();
+  suggestions.innerHTML = "";
+  if (!value) return;
+
+  LOCATIONS.districts
+    .filter(d => d.toLowerCase().startsWith(value))
+    .forEach(d => {
+      const li = document.createElement("li");
+      li.textContent = d;
+      li.onclick = () => {
+        input.value = d;
+        suggestions.innerHTML = "";
+      };
+      suggestions.appendChild(li);
     });
-  </script>
+});
+</script>
 
 </body>
 </html>
