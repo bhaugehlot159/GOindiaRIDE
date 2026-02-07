@@ -1,102 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <title>GoIndiaRide – International Taxi Booking</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Rajasthan Tour & Palace</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
 
-  <!-- Firebase -->
-  
-  <!-- 🔹 LANGUAGE SELECTOR -->
-<select id="langSelect" onchange="switchLang()" style="position:fixed;top:15px;right:15px;z-index:999;">
-  <option value="en">English</option>
-  <option value="hi">हिंदी</option>
-</select>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { height: 100vh; width: 100%; }
+  </style>
+</head>
 
-<!-- 🔹 HERO SECTION -->
-<div class="hero">
-  <h1>GoIndiaRide</h1>
-  <p>Premium Taxi Booking • India Wide • Trusted Drivers</p>
-</div>
+<body>
 
-<!-- 🔹 MAIN CONTENT START -->
-<main>
-<!-- 🔹 BOOKING SECTION -->
-<section id="booking">
-  <h2>Book Your Ride</h2>
+  <div id="map"></div>
 
-  <label for="pickup">Pickup Location</label>
-  <input type="text" id="pickup" placeholder="Enter pickup location">
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <label for="drop">Drop Location</label>
-  <input type="text" id="drop" placeholder="Enter drop location">
+  <!-- Data -->
+  <script src="js/locations.js"></script>
 
-  <label for="rideDate">Date</label>
-  <input type="date" id="rideDate">
-
-  <label for="rideTime">Time</label>
-  <input type="time" id="rideTime">
-
-  <label for="passengers">Passengers</label>
-  <input type="number" id="passengers" min="1" placeholder="Number of passengers">
-
-  <p>
-    Suggested Vehicle:
-    <strong id="vehicleSuggest">—</strong>
-  </p>
-
-  <button onclick="estimateFare()">Estimate Fare</button>
-
-  <p id="fareResult"></p>
-
-  <button onclick="sendBookingWhatsApp()">Book via WhatsApp</button>
-</section>
-<!-- 🔹 MAP & ROUTE SECTION -->
-<section id="mapSection">
-  <h2>Route & Distance</h2>
-
-  <div id="map" style="width:100%;height:400px;border-radius:16px;"></div>
-</section>
-<!-- 🔹 PAYMENT / ADVANCE SECTION -->
-<section id="payment">
-  <h2>Payment & Advance</h2>
-
-  <p>
-    Booking confirm karne ke liye advance payment required hai.
-    Remaining amount ride complete hone ke baad dena hoga.
-  </p>
-
-  <ul>
-    <li>India customers: UPI / Debit Card / Credit Card / Wallet</li>
-    <li>International customers: PayPal</li>
-  </ul>
-
-  <p>
-    Secure payment ke baad aapko WhatsApp aur screen par confirmation milega.
-  </p>
-</section>
-<!-- 🔹 FOOTER -->
-<footer style="text-align:center;padding:30px 15px;color:#64748b;">
-  <p>© 2026 GoIndiaRide. All Rights Reserved.</p>
-</footer>
-
-</main>
-
-<!-- 🔹 JS FILES -->
-<script src="js/booking.js"></script>
-<script src="js/vehicle.js"></script>
-<script src="js/whatsapp.js"></script>
-<script src="js/maps.js"></script>
-<script src="js/seo.js"></script>
-<script src="js/admin.js"></script>
-
-<!-- Google Maps -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+  <!-- Map Logic -->
+  <script src="js/map.js"></script>
 
 </body>
 </html>
-</head>
-<body>
