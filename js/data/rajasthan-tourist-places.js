@@ -1,18 +1,36 @@
+/* ======================================
+   RAJASTHAN TOURIST PLACES DATA
+   ====================================== */
+
 window.RajasthanTouristPlaces = {
 
-  Jaipur: {
-
-    forts_durg: [
-      "Amber Fort",
-      "Jaigarh Fort",
-      "Nahargarh Fort"
-    ],
-
-    temples_religious: [
-      "Govind Dev Ji Temple",
-      "Birla Mandir Jaipur"
+  Dungarpur: {
+    places: [
+      "Beneshwar Dham",
+      "Gaib Sagar Lake",
+      "Juna Mahal",
+      "Udai Bilas Palace",
+      "Dev Somnath Temple"
     ]
+  },
 
+  Banswara: {
+    places: [
+      "Tripura Sundari Temple",
+      "Mahi Dam",
+      "Kagdi Pick Up Weir",
+      "Anand Sagar Lake"
+    ]
+  },
+
+  Jaipur: {
+    places: [
+      "Amber Fort",
+      "Hawa Mahal",
+      "City Palace",
+      "Jantar Mantar",
+      "Birla Mandir"
+    ]
   }
 
 };
