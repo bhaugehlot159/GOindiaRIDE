@@ -1,41 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>GoIndiaRide Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Leaflet CSS (MOST IMPORTANT) -->
+  <!-- LEAFLET CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
   <style>
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
     }
+
     #map {
-      height: 100vh;
       width: 100%;
+      height: 100vh;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Map Container -->
+  <!-- MAP CONTAINER -->
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
+  <!-- LEAFLET JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Locations Data -->
-  <script src="js/locations.js"></script>
+  <script>
+    /* ===============================
+       MAP INITIALIZATION
+    =============================== */
+    var map = L.map("map").setView([23.84, 73.71], 8);
 
-  <!-- Map Logic -->
-  <script src="js/map.js"></script>
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    /* ===============================
+       RAJASTHAN → DUNGARPUR DATA
+    =============================== */
+    var places = [
+      {
+        name: "Beneshwar Dham",
+        lat: 23.6411,
+        lng: 73.6056
+      },
+      {
+        name: "Gaib Sagar Lake",
+        lat: 23.8451,
+        lng: 73.7147
+      },
+      {
+        name: "Juna Mahal (Dungarpur Palace)",
+        lat: 23.8459,
+        lng: 73.7155
+      },
+      {
+        name: "Udai Bilas Palace",
+        lat: 23.8472,
+        lng: 73.7163
+      }
+    ];
+
+    /* ===============================
+       ADD MARKERS
+    =============================== */
+    places.forEach(function(place) {
+      L.marker([place.lat, place.lng])
+        .addTo(map)
+        .bindPopup(place.name);
+    });
+  </script>
 
 </body>
 </html>
