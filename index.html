@@ -2,173 +2,70 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>GOindiaRIDE – Rajasthan Taxi Booking</title>
+  <title>GoIndiaRide – Rajasthan Taxi Service</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css">
-
-  <style>
-    body{
-      font-family: Arial, sans-serif;
-      margin:0;
-      padding:0;
-      background:#f7f7f7;
-    }
-    header{
-      background:#25D366;
-      color:#fff;
-      padding:15px;
-      text-align:center;
-    }
-    .container{
-      padding:15px;
-      max-width:500px;
-      margin:auto;
-    }
-    .box{
-      background:#fff;
-      padding:15px;
-      border-radius:8px;
-      margin-bottom:15px;
-    }
-    input{
-      width:100%;
-      padding:12px;
-      border:1px solid #ccc;
-      border-radius:6px;
-      font-size:16px;
-    }
-    ul{
-      list-style:none;
-      padding:0;
-      margin:5px 0 0 0;
-      border:1px solid #ddd;
-      border-radius:6px;
-      max-height:200px;
-      overflow-y:auto;
-      display:none;
-      background:#fff;
-    }
-    ul li{
-      padding:10px;
-      cursor:pointer;
-      border-bottom:1px solid #eee;
-    }
-    ul li:hover{
-      background:#f0f0f0;
-    }
-    .btn{
-      display:block;
-      text-align:center;
-      background:#25D366;
-      color:#fff;
-      padding:12px;
-      border-radius:6px;
-      text-decoration:none;
-      margin-top:10px;
-    }
-    footer{
-      text-align:center;
-      font-size:14px;
-      color:#666;
-      padding:10px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
-<header>
-  <h1>GOindiaRIDE</h1>
-  <p>All Rajasthan Taxi Booking</p>
-</header>
+  <!-- ================= HEADER ================= -->
+  <header>
+    <h1>GoIndiaRide</h1>
+    <p>Rajasthan Taxi & Travel Service</p>
+  </header>
 
-<!-- ================= BOOKING ================= -->
-<div class="container">
+  <!-- ================= BOOKING SECTION ================= -->
+  <section class="booking-section">
 
-  <div class="box">
-    <h3>Pickup District / Place</h3>
+    <label for="locationInput">Location चुनें</label>
 
-    <input 
-      type="text" 
-      id="locationInput" 
-      placeholder="District / Tourist Place type karein">
+    <input
+      type="text"
+      id="locationInput"
+      placeholder="State, District या Tourist Place लिखें"
+      autocomplete="off"
+    >
 
-    <ul id="suggestions"></ul>
-  </div>
+    <!-- AUTOCOMPLETE SUGGESTIONS -->
+    <ul id="suggestions" class="suggestions-box"></ul>
 
-  <div class="box">
-    <h3>Available Vehicles</h3>
-    <ul style="display:block;border:none">
+  </section>
+
+  <!-- ================= TOURIST PLACES OUTPUT ================= -->
+  <section id="placesSection" class="places-section">
+    <!-- JS से tourist places यहाँ आएंगे -->
+  </section>
+
+  <!-- ================= VEHICLES ================= -->
+  <section class="vehicles">
+    <h2>Available Vehicles</h2>
+    <ul>
       <li>Swift Dzire</li>
       <li>Ertiga</li>
       <li>Innova Crysta</li>
       <li>Tempo Traveller</li>
     </ul>
-  </div>
 
-  <a 
-    class="btn" 
-    href="https://wa.me/91XXXXXXXXXX" 
-    target="_blank">
-    WhatsApp Booking
-  </a>
+    <a
+      class="btn"
+      href="https://wa.me/91XXXXXXXXXX"
+      target="_blank">
+      WhatsApp Booking
+    </a>
+  </section>
 
-</div>
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    © GoIndiaRide – Rajasthan Taxi Service
+  </footer>
 
-<!-- ================= FOOTER ================= -->
-<footer>
-  © GOindiaRIDE – Rajasthan Taxi Service
-</footer>
-
-<!-- ================= JS FILES ================= -->
-<script src="js/locations.js"></script>
-
-<script>
-/*
-  locations.js में ऐसा data होना चाहिए:
-
-  const LOCATIONS = [
-    "Jaipur",
-    "Udaipur",
-    "Jodhpur",
-    "Ajmer",
-    "Pushkar",
-    ...
-  ];
-*/
-
-const input = document.getElementById("locationInput");
-const suggestionsBox = document.getElementById("suggestions");
-
-input.addEventListener("input", function () {
-  const value = this.value.toLowerCase();
-  suggestionsBox.innerHTML = "";
-
-  if (value.length < 1) {
-    suggestionsBox.style.display = "none";
-    return;
-  }
-
-  const filtered = LOCATIONS.filter(place =>
-    place.toLowerCase().includes(value)
-  );
-
-  filtered.forEach(place => {
-    const li = document.createElement("li");
-    li.textContent = place;
-    li.onclick = () => {
-      input.value = place;
-      suggestionsBox.style.display = "none";
-    };
-    suggestionsBox.appendChild(li);
-  });
-
-  suggestionsBox.style.display = filtered.length ? "block" : "none";
-});
-</script>
+  <!-- ================= JS FILES (ORDER IMPORTANT) ================= -->
+  <script src="js/locations.js"></script>
+  <script src="js/data/rajasthan-tourist-places.js"></script>
+  <script src="js/booking.js"></script>
 
 </body>
 </html>
