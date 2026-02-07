@@ -1,38 +1,21 @@
-/* ===============================
-   GOOGLE MAPS
-   =============================== */
+// Rajasthan center
+const map = L.map("map").setView([26.9124, 75.7873], 7);
 
-let map;
-let directionsService;
-let directionsRenderer;
+// OpenStreetMap layer
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap contributors"
+}).addTo(map);
 
-function initMap() {
-  const centerIndia = { lat: 22.9734, lng: 78.6569 };
+// Marker loop
+rajasthanData.forEach(districtData => {
+  districtData.places.forEach(place => {
 
-  map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 6,
-    center: centerIndia
+    const marker = L.marker([place.lat, place.lng]).addTo(map);
+
+    marker.bindPopup(`
+      <b>${place.name}</b><br/>
+      District: ${districtData.district}
+    `);
+
   });
-
-  directionsService = new google.maps.DirectionsService();
-  directionsRenderer = new google.maps.DirectionsRenderer();
-  directionsRenderer.setMap(map);
-}
-
-// Optional: draw route (future ready)
-function drawRoute(origin, destination) {
-  if (!directionsService || !directionsRenderer) return;
-
-  directionsService.route(
-    {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.DRIVING
-    },
-    (result, status) => {
-      if (status === "OK") {
-        directionsRenderer.setDirections(result);
-      }
-    }
-  );
-}
+});
