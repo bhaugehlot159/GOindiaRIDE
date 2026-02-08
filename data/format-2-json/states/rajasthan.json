@@ -1,0 +1,22 @@
+{
+  "_metadata": {
+    "state": "Rajasthan",
+    "totalDistricts": 33,
+    "totalAttractions": 1000,
+    "currency": "INR",
+    "language": "Hindi, Marwari"
+  },
+  "Jaipur": {
+    "forts": [
+      {
+        "id": "JP-F-001",
+        "name": "Amber Fort",
+        "rating": 4.7,
+        "lat": 26.9857,
+        "lng": 75.8513,
+        "entryFee": "₹500",
+        "description": "UNESCO World Heritage site"
+      }
+    ]
+  }
+}
