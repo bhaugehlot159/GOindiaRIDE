@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Dashboard - GO India RIDE</title>
-    <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -18,14 +17,18 @@
             background: #f5f5f5;
         }
 
+        /* Navbar */
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 1rem 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .navbar .container {
+        .navbar-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
@@ -34,7 +37,7 @@
             align-items: center;
         }
 
-        .navbar .logo {
+        .navbar-logo {
             font-size: 1.5rem;
             font-weight: bold;
             display: flex;
@@ -46,6 +49,23 @@
             display: flex;
             align-items: center;
             gap: 2rem;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
 
         .logout-btn {
@@ -63,76 +83,343 @@
             background: rgba(255,255,255,0.3);
         }
 
-        .dashboard-container {
-            padding: 2rem;
+        /* Container */
+        .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 2rem;
         }
 
-        .welcome-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 3rem 2rem;
+        /* Header Section */
+        .header-section {
+            background: white;
+            padding: 2rem;
             border-radius: 12px;
             margin-bottom: 2rem;
-            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .welcome-section h1 {
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-title h1 {
+            font-size: 2rem;
+            color: #333;
             margin-bottom: 0.5rem;
+        }
+
+        .header-title p {
+            color: #999;
         }
 
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .quick-action-btn i {
+            font-size: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .action-card {
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card h3 {
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-card .subtext {
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            min-width: 150px;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+            background: #f9f9f9;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Ride Cards */
+        .ride-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .ride-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ride-card.completed {
+            border-left-color: #4caf50;
+        }
+
+        .ride-card.cancelled {
+            border-left-color: #f44336;
+        }
+
+        .ride-info {
+            flex: 1;
+        }
+
+        .ride-route {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .ride-details {
+            display: flex;
+            gap: 2rem;
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .ride-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .ride-btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid #667eea;
+            background: none;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .ride-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .ride-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .ride-btn.primary:hover {
+            background: #764ba2;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .profile-info {
             background: white;
             padding: 2rem;
             border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .action-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-        }
-
-        .action-card i {
-            font-size: 2.5rem;
-            color: #667eea;
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
             margin-bottom: 1rem;
         }
 
-        .action-card h3 {
-            margin: 0.5rem 0;
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: bold;
             color: #333;
+            margin-bottom: 0.5rem;
         }
 
-        .action-card p {
-            color: #666;
+        .profile-detail {
+            margin: 1rem 0;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-detail label {
+            color: #999;
             font-size: 0.9rem;
         }
 
-        .trips-section {
+        .profile-detail value {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-top: 0.3rem;
+        }
+
+        .edit-profile-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .edit-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Wallet Section */
+        .wallet-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .wallet-balance {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .wallet-label {
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .wallet-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .wallet-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .wallet-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Ratings Section */
+        .ratings-section {
             background: white;
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .trips-section h2 {
-            margin-bottom: 1.5rem;
-            color: #333;
-        }
-
-        .trip-item {
+        .rating-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -140,29 +427,28 @@
             border-bottom: 1px solid #eee;
         }
 
-        .trip-item:last-child {
+        .rating-item:last-child {
             border-bottom: none;
         }
 
-        .trip-info {
+        .rating-info {
             flex: 1;
         }
 
-        .trip-route {
+        .rating-driver {
             font-weight: bold;
             color: #333;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
 
-        .trip-time {
+        .rating-date {
             color: #999;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
-        .trip-fare {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #4caf50;
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1rem;
         }
 
         .empty-state {
@@ -176,18 +462,156 @@
             margin-bottom: 1rem;
             opacity: 0.5;
         }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .form-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .form-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 0 1rem;
+            }
+
+            .navbar-right {
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .profile-section {
+                grid-template-columns: 1fr;
+            }
+
+            .ride-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .ride-details {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-buttons {
+                overflow-x: auto;
+            }
+
+            .tab-button {
+                min-width: 120px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- Navbar -->
     <nav class="navbar">
-        <div class="container">
-            <div class="logo">
+        <div class="navbar-container">
+            <div class="navbar-logo">
                 <i class="fas fa-taxi"></i>
-                GO India RIDE - Customer Portal
+                GO India RIDE
             </div>
             <div class="navbar-right">
-                <span id="userName" style="font-weight: bold;">Customer</span>
+                <div class="navbar-user">
+                    <div class="user-avatar" id="userAvatar">C</div>
+                    <span id="userName">Customer</span>
+                </div>
                 <button class="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                     Logout
@@ -196,119 +620,699 @@
         </div>
     </nav>
 
-    <div class="dashboard-container">
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <h1 id="welcomeMsg">Welcome to GO India RIDE!</h1>
-            <p>Your trusted ride-sharing platform across Rajasthan</p>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <div class="action-card" onclick="window.location.href='./booking.html'">
-                <i class="fas fa-plus-circle"></i>
-                <h3>Book a Ride</h3>
-                <p>Start a new journey</p>
-            </div>
-            <div class="action-card">
-                <i class="fas fa-history"></i>
-                <h3>Trip History</h3>
-                <p>View past rides</p>
-            </div>
-            <div class="action-card">
-                <i class="fas fa-wallet"></i>
-                <h3>Wallet</h3>
-                <p>Check balance</p>
-            </div>
-            <div class="action-card">
-                <i class="fas fa-cog"></i>
-                <h3>Settings</h3>
-                <p>Manage account</p>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-top">
+                <div class="header-title">
+                    <h1 id="welcomeMsg">Welcome to GO India RIDE</h1>
+                    <p>Manage your rides and account</p>
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="goToBooking()">
+                        <i class="fas fa-plus-circle"></i>
+                        Book Ride
+                    </button>
+                    <button class="quick-action-btn" onclick="openAddMoneyModal()">
+                        <i class="fas fa-wallet"></i>
+                        Add Money
+                    </button>
+                    <button class="quick-action-btn" onclick="switchTab('profile')">
+                        <i class="fas fa-user-circle"></i>
+                        Profile
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Recent Trips -->
-        <div class="trips-section">
-            <h2>Recent Trips</h2>
-            <div id="tripsList">
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>No trips yet. <a href="./booking.html" style="color: #667eea; cursor: pointer;">Book your first ride!</a></p>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Rides</h3>
+                <div class="value" id="totalRides">0</div>
+                <div class="subtext">All time rides</div>
+            </div>
+            <div class="stat-card">
+                <h3>Wallet Balance</h3>
+                <div class="value" id="walletBalance">₹0</div>
+                <div class="subtext">Available balance</div>
+            </div>
+            <div class="stat-card">
+                <h3>Average Rating</h3>
+                <div class="value" id="avgRating">5.0</div>
+                <div class="subtext" id="totalRatings">0 ratings</div>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="tabs">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('active')">
+                    <i class="fas fa-car"></i> Active Rides
+                </button>
+                <button class="tab-button" onclick="switchTab('history')">
+                    <i class="fas fa-history"></i> Ride History
+                </button>
+                <button class="tab-button" onclick="switchTab('profile')">
+                    <i class="fas fa-user"></i> Profile
+                </button>
+                <button class="tab-button" onclick="switchTab('wallet')">
+                    <i class="fas fa-wallet"></i> Wallet
+                </button>
+                <button class="tab-button" onclick="switchTab('ratings')">
+                    <i class="fas fa-star"></i> Ratings
+                </button>
+            </div>
+
+            <!-- Active Rides Tab -->
+            <div class="tab-content active" id="activeTab">
+                <div id="activeRidesList" class="ride-list">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No active rides. <a href="booking.html" style="color: #667eea; cursor: pointer;">Book a ride!</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ride History Tab -->
+            <div class="tab-content" id="historyTab">
+                <div id="rideHistoryList" class="ride-list">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No ride history yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div class="tab-content" id="profileTab">
+                <div class="profile-section">
+                    <div class="profile-info">
+                        <div class="profile-avatar" id="profileAvatar">C</div>
+                        <div class="profile-name" id="profileName">Customer Name</div>
+                        
+                        <div class="profile-detail">
+                            <label>Email</label>
+                            <value id="profileEmail">email@example.com</value>
+                        </div>
+
+                        <div class="profile-detail">
+                            <label>Mobile Number</label>
+                            <value id="profilePhone">9876543210</value>
+                        </div>
+
+                        <div class="profile-detail">
+                            <label>Member Since</label>
+                            <value id="profileMemberSince">Jan 2024</value>
+                        </div>
+
+                        <button class="edit-profile-btn" onclick="openEditProfileModal()">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </button>
+                    </div>
+
+                    <div class="profile-info">
+                        <h3 style="margin-bottom: 1.5rem;">Account Settings</h3>
+                        
+                        <div class="profile-detail">
+                            <label>
+                                <input type="checkbox" id="emailNotifications"> 
+                                Email Notifications
+                            </label>
+                        </div>
+
+                        <div class="profile-detail">
+                            <label>
+                                <input type="checkbox" id="smsNotifications"> 
+                                SMS Notifications
+                            </label>
+                        </div>
+
+                        <div class="profile-detail">
+                            <label>
+                                <input type="checkbox" id="whatsappNotifications" checked> 
+                                WhatsApp Notifications
+                            </label>
+                        </div>
+
+                        <button class="edit-profile-btn" onclick="changePassword()" style="margin-top: 2rem;">
+                            <i class="fas fa-lock"></i>
+                            Change Password
+                        </button>
+
+                        <button class="edit-profile-btn" style="background: #f44336; margin-top: 1rem;" onclick="deleteAccount()">
+                            <i class="fas fa-trash"></i>
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Tab -->
+            <div class="tab-content" id="walletTab">
+                <div class="wallet-card">
+                    <div class="wallet-label">Available Balance</div>
+                    <div class="wallet-balance" id="walletBalanceDisplay">₹0</div>
+                    <div class="wallet-actions">
+                        <button class="wallet-btn" onclick="openAddMoneyModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Money
+                        </button>
+                        <button class="wallet-btn" onclick="withdrawMoney()">
+                            <i class="fas fa-arrow-right"></i>
+                            Withdraw
+                        </button>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <h3 style="margin-bottom: 1.5rem;">Transaction History</h3>
+                    <div id="transactionList">
+                        <div class="empty-state">
+                            <i class="fas fa-list"></i>
+                            <p>No transactions yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ratings Tab -->
+            <div class="tab-content" id="ratingsTab">
+                <div class="ratings-section">
+                    <h3 style="margin-bottom: 1.5rem;">Your Ratings</h3>
+                    <div id="ratingsList">
+                        <div class="empty-state">
+                            <i class="fas fa-star"></i>
+                            <p>No ratings yet. Complete rides to get ratings!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="modal-close" onclick="closeEditProfileModal()">&times;</button>
+            </div>
+
+            <form onsubmit="saveProfile(event)">
+                <div class="form-group">
+                    <label for="editName">Full Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPhone">Phone</label>
+                    <input type="tel" id="editPhone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editCity">City</label>
+                    <input type="text" id="editCity">
+                </div>
+
+                <button type="submit" class="form-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div class="modal" id="addMoneyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Money to Wallet</h2>
+                <button class="modal-close" onclick="closeAddMoneyModal()">&times;</button>
+            </div>
+
+            <form onsubmit="addMoney(event)">
+                <div class="form-group">
+                    <label for="addAmount">Amount (₹)</label>
+                    <input type="number" id="addAmount" min="100" max="10000" placeholder="Min ₹100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" style="width: 100%; padding: 0.9rem; border: 2px solid #ddd; border-radius: 8px;">
+                        <option>Debit Card</option>
+                        <option>Credit Card</option>
+                        <option>UPI</option>
+                        <option>Net Banking</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="form-btn">Add Money</button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // ✅ CRITICAL: Check if user is logged in as CUSTOMER
+        // ============================================
+        // AUTHENTICATION CHECK
+        // ============================================
+
         function checkAuth() {
             const userRole = localStorage.getItem('userRole');
             const currentUser = localStorage.getItem('currentUser');
 
-            console.log('🔍 Auth Check:');
-            console.log('  userRole:', userRole);
-            console.log('  currentUser:', currentUser);
-
-            // ✅ If NOT customer, redirect away
             if (userRole !== 'customer' || !currentUser) {
-                console.log('❌ Not logged in as customer! Redirecting to login...');
-                alert('❌ Please login as Customer first!');
+                console.log('❌ Not authenticated as customer');
+                alert('Please login as customer first');
                 window.location.href = './login.html';
                 return null;
             }
 
-            console.log('✅ Customer verified!');
             return JSON.parse(currentUser);
         }
 
-        // Logout function
-        function logout() {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('currentDriver');
-            localStorage.removeItem('currentAdmin');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('rememberMe');
-            window.location.href = '../index.html';
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        let currentUser = null;
+
+        window.addEventListener('load', function() {
+            currentUser = checkAuth();
+            if (!currentUser) return;
+
+            loadDashboard();
+            loadRides();
+            loadProfile();
+            loadWallet();
+            loadRatings();
+        });
+
+        // ============================================
+        // LOAD DASHBOARD DATA
+        // ============================================
+
+        function loadDashboard() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
+
+            // Update stats
+            document.getElementById('totalRides').textContent = customerBookings.length;
+            document.getElementById('welcomeMsg').textContent = `Welcome, ${currentUser.fullname}!`;
+            document.getElementById('userName').textContent = currentUser.fullname;
+
+            // User avatar
+            const initials = currentUser.fullname.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.getElementById('userAvatar').textContent = initials;
+
+            // Wallet balance
+            const wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0 };
+            document.getElementById('walletBalance').textContent = `₹${wallet.balance}`;
+            document.getElementById('walletBalanceDisplay').textContent = `₹${wallet.balance}`;
+
+            // Average rating
+            const ratings = JSON.parse(localStorage.getItem(`ratings_${currentUser.id}`)) || [];
+            if (ratings.length > 0) {
+                const avgRating = (ratings.reduce((a, b) => a + b.rating, 0) / ratings.length).toFixed(1);
+                document.getElementById('avgRating').textContent = avgRating;
+                document.getElementById('totalRatings').textContent = `${ratings.length} ratings`;
+            }
         }
 
-        // Load dashboard
-        function loadDashboard() {
-            const user = checkAuth();
-            if (!user) return;
+        // ============================================
+        // LOAD RIDES
+        // ============================================
 
-            document.getElementById('userName').textContent = user.fullname || 'Customer';
-            document.getElementById('welcomeMsg').textContent = `Welcome, ${user.fullname}!`;
-
-            // Load trips
+        function loadRides() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-            const tripsList = document.getElementById('tripsList');
+            const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
 
-            if (bookings.length === 0) {
-                tripsList.innerHTML = `
+            const activeRides = customerBookings.filter(b => b.status === 'active' || b.status === 'scheduled');
+            const completedRides = customerBookings.filter(b => b.status === 'completed');
+
+            // Active Rides
+            const activeList = document.getElementById('activeRidesList');
+            if (activeRides.length === 0) {
+                activeList.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
-                        <p>No trips yet. <a href="./booking.html" style="color: #667eea; cursor: pointer;">Book your first ride!</a></p>
+                        <p>No active rides. <a href="./booking.html" style="color: #667eea; cursor: pointer;">Book a ride!</a></p>
                     </div>
                 `;
+            } else {
+                activeList.innerHTML = activeRides.map(ride => `
+                    <div class="ride-card">
+                        <div class="ride-info">
+                            <div class="ride-route">
+                                <i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}
+                            </div>
+                            <div class="ride-details">
+                                <span><i class="fas fa-calendar"></i> ${new Date(ride.createdAt).toLocaleDateString()}</span>
+                                <span><i class="fas fa-tag"></i> ${ride.rideType}</span>
+                                <span><i class="fas fa-money-bill"></i> ₹${ride.totalFare}</span>
+                            </div>
+                        </div>
+                        <div class="ride-actions">
+                            <button class="ride-btn primary" onclick="trackRide('${ride.id}')">
+                                <i class="fas fa-location-arrow"></i> Track
+                            </button>
+                            <button class="ride-btn" onclick="cancelRide('${ride.id}')">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Completed Rides
+            const historyList = document.getElementById('rideHistoryList');
+            if (completedRides.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No ride history yet</p>
+                    </div>
+                `;
+            } else {
+                historyList.innerHTML = completedRides.map(ride => `
+                    <div class="ride-card completed">
+                        <div class="ride-info">
+                            <div class="ride-route">
+                                <i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}
+                            </div>
+                            <div class="ride-details">
+                                <span><i class="fas fa-calendar"></i> ${new Date(ride.createdAt).toLocaleDateString()}</span>
+                                <span><i class="fas fa-clock"></i> ${ride.duration || '30 mins'}</span>
+                                <span><i class="fas fa-money-bill"></i> ₹${ride.totalFare}</span>
+                            </div>
+                        </div>
+                        <div class="ride-actions">
+                            <button class="ride-btn primary" onclick="rateRide('${ride.id}')">
+                                <i class="fas fa-star"></i> Rate
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ============================================
+        // LOAD PROFILE
+        // ============================================
+
+        function loadProfile() {
+            const initials = currentUser.fullname.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.getElementById('profileAvatar').textContent = initials;
+            document.getElementById('profileName').textContent = currentUser.fullname;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profilePhone').textContent = currentUser.phone;
+            
+            const joinDate = new Date(currentUser.createdAt);
+            document.getElementById('profileMemberSince').textContent = joinDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+
+            // Edit form
+            document.getElementById('editName').value = currentUser.fullname;
+            document.getElementById('editEmail').value = currentUser.email;
+            document.getElementById('editPhone').value = currentUser.phone;
+        }
+
+        // ============================================
+        // LOAD WALLET
+        // ============================================
+
+        function loadWallet() {
+            const wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { 
+                balance: 0, 
+                transactions: [] 
+            };
+
+            const transactionList = document.getElementById('transactionList');
+            if (wallet.transactions && wallet.transactions.length > 0) {
+                transactionList.innerHTML = wallet.transactions.map(tx => `
+                    <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: bold; color: #333;">${tx.type === 'credit' ? '+ Added' : '- Paid'} ₹${tx.amount}</div>
+                            <div style="color: #999; font-size: 0.85rem;">${new Date(tx.date).toLocaleDateString()}</div>
+                        </div>
+                        <div style="color: ${tx.type === 'credit' ? '#4caf50' : '#f44336'}; font-weight: bold;">
+                            ${tx.type === 'credit' ? '+' : '-'}₹${tx.amount}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                transactionList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-list"></i>
+                        <p>No transactions yet</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // LOAD RATINGS
+        // ============================================
+
+        function loadRatings() {
+            const ratings = JSON.parse(localStorage.getItem(`ratings_${currentUser.id}`)) || [];
+
+            const ratingsList = document.getElementById('ratingsList');
+            if (ratings.length === 0) {
+                ratingsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-star"></i>
+                        <p>No ratings yet. Complete rides to get ratings!</p>
+                    </div>
+                `;
+            } else {
+                ratingsList.innerHTML = ratings.map(r => `
+                    <div class="rating-item">
+                        <div class="rating-info">
+                            <div class="rating-driver">${r.driverName}</div>
+                            <div class="rating-date">${new Date(r.date).toLocaleDateString()}</div>
+                        </div>
+                        <div class="rating-stars">${'⭐'.repeat(r.rating)}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active from buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            // Add active to button
+            event.target.classList.add('active');
+        }
+
+        // ============================================
+        // PROFILE FUNCTIONS
+        // ============================================
+
+        function openEditProfileModal() {
+            document.getElementById('editProfileModal').classList.add('active');
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        }
+
+        function saveProfile(e) {
+            e.preventDefault();
+
+            currentUser.fullname = document.getElementById('editName').value;
+            currentUser.email = document.getElementById('editEmail').value;
+            currentUser.phone = document.getElementById('editPhone').value;
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            const idx = users.findIndex(u => u.id === currentUser.id);
+            if (idx !== -1) {
+                users[idx] = currentUser;
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+
+            loadProfile();
+            closeEditProfileModal();
+            alert('✅ Profile updated successfully!');
+        }
+
+        // ============================================
+        // WALLET FUNCTIONS
+        // ============================================
+
+        function openAddMoneyModal() {
+            document.getElementById('addMoneyModal').classList.add('active');
+        }
+
+        function closeAddMoneyModal() {
+            document.getElementById('addMoneyModal').classList.remove('active');
+        }
+
+        function addMoney(e) {
+            e.preventDefault();
+
+            const amount = parseInt(document.getElementById('addAmount').value);
+            const method = document.getElementById('paymentMethod').value;
+
+            let wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { 
+                balance: 0, 
+                transactions: [] 
+            };
+
+            wallet.balance += amount;
+            wallet.transactions = wallet.transactions || [];
+            wallet.transactions.unshift({
+                type: 'credit',
+                amount: amount,
+                method: method,
+                date: new Date().toISOString()
+            });
+
+            localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
+
+            loadDashboard();
+            loadWallet();
+            closeAddMoneyModal();
+            alert(`✅ ₹${amount} added to wallet!`);
+        }
+
+        function withdrawMoney() {
+            const amount = prompt('Enter amount to withdraw (₹):');
+            if (!amount) return;
+
+            let wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0 };
+
+            if (wallet.balance < amount) {
+                alert('❌ Insufficient balance');
                 return;
             }
 
-            tripsList.innerHTML = bookings.map(trip => `
-                <div class="trip-item">
-                    <div class="trip-info">
-                        <div class="trip-route">${trip.pickup} → ${trip.dropoff}</div>
-                        <div class="trip-time">${new Date(trip.createdAt || Date.now()).toLocaleString()}</div>
-                    </div>
-                    <div class="trip-fare">${trip.totalFare || '₹0'}</div>
-                </div>
-            `).join('');
+            wallet.balance -= amount;
+            wallet.transactions = wallet.transactions || [];
+            wallet.transactions.unshift({
+                type: 'debit',
+                amount: amount,
+                method: 'Bank Transfer',
+                date: new Date().toISOString()
+            });
+
+            localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
+
+            loadDashboard();
+            loadWallet();
+            alert(`✅ ₹${amount} withdrawal request submitted!`);
         }
 
-        // Initialize on page load
-        window.addEventListener('load', function() {
-            console.log('📱 Customer Dashboard loading...');
-            loadDashboard();
-        });
+        // ============================================
+        // RIDE FUNCTIONS
+        // ============================================
+
+        function trackRide(rideId) {
+            alert('🚗 Track feature coming soon!');
+        }
+
+        function cancelRide(rideId) {
+            if (confirm('Are you sure you want to cancel this ride?')) {
+                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const idx = bookings.findIndex(b => b.id === rideId);
+                if (idx !== -1) {
+                    bookings[idx].status = 'cancelled';
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                    loadRides();
+                    alert('✅ Ride cancelled');
+                }
+            }
+        }
+
+        function rateRide(rideId) {
+            const rating = prompt('Rate this ride (1-5 stars):');
+            if (rating && rating >= 1 && rating <= 5) {
+                let ratings = JSON.parse(localStorage.getItem(`ratings_${currentUser.id}`)) || [];
+                ratings.push({
+                    rideId: rideId,
+                    rating: parseInt(rating),
+                    driverName: 'Driver Name',
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem(`ratings_${currentUser.id}`, JSON.stringify(ratings));
+                loadDashboard();
+                loadRatings();
+                alert('�� Thanks for rating!');
+            }
+        }
+
+        // ============================================
+        // OTHER FUNCTIONS
+        // ============================================
+
+        function changePassword() {
+            const newPass = prompt('Enter new password:');
+            if (newPass && newPass.length >= 6) {
+                currentUser.password = newPass;
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                const idx = users.findIndex(u => u.id === currentUser.id);
+                if (idx !== -1) {
+                    users[idx] = currentUser;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                }
+                alert('✅ Password changed successfully!');
+            } else {
+                alert('❌ Password must be at least 6 characters');
+            }
+        }
+
+        function deleteAccount() {
+            if (confirm('Are you sure? This action cannot be undone!')) {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                users = users.filter(u => u.id !== currentUser.id);
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userRole');
+                alert('❌ Account deleted');
+                window.location.href = './login.html';
+            }
+        }
+
+        function goToBooking() {
+            window.location.href = './booking.html';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('currentDriver');
+                localStorage.removeItem('currentAdmin');
+                localStorage.removeItem('userRole');
+                window.location.href = './login.html';
+            }
+        }
+
+        window.onclick = (e) => {
+            if (e.target.id === 'editProfileModal') closeEditProfileModal();
+            if (e.target.id === 'addMoneyModal') closeAddMoneyModal();
+        }
+
+        console.log('🚀 Customer Dashboard loaded');
     </script>
 </body>
 </html>
