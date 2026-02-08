@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Ride - GO India RIDE</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        .booking-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .booking-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .booking-form h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .ride-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ride-type-card {
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .ride-type-card:hover, .ride-type-card.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .ride-type-card i {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .ride-type-card p {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .ride-type-card span {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .fare-estimation {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .fare-estimation h3 {
+            margin-bottom: 1rem;
+        }
+
+        .fare-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .fare-row.total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: none;
+            padding-top: 0.5rem;
+            color: #667eea;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        .book-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .booking-container {
+                grid-template-columns: 1fr;
+            }
+
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i> GO India RIDE
+            </div>
+            <div style="color: white;">
+                <span id="userDisplay"></span>
+                <a href="#" onclick="logout()" style="color: white; margin-left: 1rem;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="booking-container">
+        <!-- Booking Form -->
+        <div class="booking-form">
+            <h2><i class="fas fa-car"></i> Book Your Ride</h2>
+
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="pickup">Pickup Location</label>
+                    <input type="text" id="pickup" placeholder="Enter pickup location" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dropoff">Drop-off Location</label>
+                    <input type="text" id="dropoff" placeholder="Enter drop-off location" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Ride Type</label>
+                    <div class="ride-types">
+                        <div class="ride-type-card active" data-type="economy">
+                            <i class="fas fa-car"></i>
+                            <p>Economy</p>
+                            <span>₹5/km</span>
+                        </div>
+                        <div class="ride-type-card" data-type="premium">
+                            <i class="fas fa-crown"></i>
+                            <p>Premium</p>
+                            <span>₹8/km</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="rideDateTime">Ride Date & Time</label>
+                    <input type="datetime-local" id="rideDateTime">
+                </div>
+
+                <div class="fare-estimation" id="fareEstimation">
+                    <h3>Estimated Fare</h3>
+                    <div class="fare-row">
+                        <span>Base Fare:</span>
+                        <span>₹50</span>
+                    </div>
+                    <div class="fare-row">
+                        <span>Distance (0 km):</span>
+                        <span id="distanceFare">₹0</span>
+                    </div>
+                    <div class="fare-row">
+                        <span>Time (0 min):</span>
+                        <span id="timeFare">₹0</span>
+                    </div>
+                    <div class="fare-row total">
+                        <span>Total:</span>
+                        <span id="totalFare">₹50</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="book-btn">
+                    <i class="fas fa-check"></i> Confirm Booking
+                </button>
+            </form>
+        </div>
+
+        <!-- Map -->
+        <div id="map"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="../js/booking.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>
