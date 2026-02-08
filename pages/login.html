@@ -90,6 +90,36 @@
             flex-direction: column;
             justify-content: center;
             overflow-y: auto;
+            position: relative;
+        }
+
+        /* Admin Link - Top Right Corner */
+        .admin-portal-link {
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+            background: rgba(255, 87, 34, 0.9);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .admin-portal-link:hover {
+            background: rgba(255, 87, 34, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+        }
+
+        .admin-portal-link i {
+            font-size: 1rem;
         }
 
         .login-header {
@@ -108,11 +138,11 @@
             font-size: 0.95rem;
         }
 
-        /* Role Selection - 3 columns */
+        /* Role Selection - 2 columns only (Customer & Driver) */
         .role-selector {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
@@ -124,8 +154,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
-            padding: 1.2rem 0.8rem;
+            gap: 0.8rem;
+            padding: 1.5rem 1rem;
             border: 3px solid #ddd;
             border-radius: 12px;
             cursor: pointer;
@@ -147,7 +177,7 @@
         }
 
         .role-label i {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             color: #667eea;
         }
 
@@ -157,33 +187,12 @@
 
         .role-label span {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: #333;
         }
 
         .role-option:checked + .role-label span {
             color: #667eea;
-        }
-
-        /* Admin Badge */
-        .admin-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff5722;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .role-admin-wrapper {
-            position: relative;
         }
 
         /* Form Groups */
@@ -444,8 +453,16 @@
                 padding: 2rem 1.5rem;
             }
 
+            .admin-portal-link {
+                position: static;
+                margin-bottom: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+
             .role-selector {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
             }
 
             .form-options {
@@ -496,6 +513,12 @@
 
         <!-- Right Panel -->
         <div class="login-right">
+            <!-- Admin Portal Link - Top Right -->
+            <a class="admin-portal-link" onclick="toggleAdminLogin()">
+                <i class="fas fa-lock"></i>
+                Admin Portal
+            </a>
+
             <div class="login-header">
                 <h2>Welcome Back</h2>
                 <p>Sign in to your account</p>
@@ -513,8 +536,8 @@
                 <span id="successText">Login successful! Redirecting...</span>
             </div>
 
-            <!-- Role Selection - 3 options visible -->
-            <div class="role-selector">
+            <!-- Role Selection - ONLY Customer & Driver (2 columns) -->
+            <div class="role-selector" id="roleSelector">
                 <!-- Customer -->
                 <div>
                     <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked>
@@ -532,15 +555,16 @@
                         <span>Driver</span>
                     </label>
                 </div>
+            </div>
 
-                <!-- Admin - ALWAYS VISIBLE -->
-                <div class="role-admin-wrapper">
+            <!-- Admin Role (Hidden by default) -->
+            <div id="adminRoleContainer" style="display: none;">
+                <div class="role-selector">
                     <input type="radio" name="role" id="roleAdmin" value="admin" class="role-option">
                     <label for="roleAdmin" class="role-label">
                         <i class="fas fa-shield-alt"></i>
-                        <span>Admin</span>
+                        <span>Admin Portal</span>
                     </label>
-                    <div class="admin-badge">Admin</div>
                 </div>
             </div>
 
@@ -548,7 +572,7 @@
             <div class="demo-info">
                 <strong>📝 Demo Accounts:</strong>
                 Customer: <code>test@email.com</code> / <code>test123</code><br>
-                Admin: <code>admin@goindia.com</code> / <code>admin123</code>
+                <span id="adminDemoText" style="display: none;">Admin: <code>admin@goindia.com</code> / <code>admin123</code></span>
             </div>
 
             <!-- Login Form -->
@@ -622,6 +646,36 @@
         const successMessage = document.getElementById('successMessage');
         const loginBtnText = document.getElementById('loginBtnText');
         const rememberMe = document.getElementById('rememberMe');
+        const adminRoleContainer = document.getElementById('adminRoleContainer');
+        const adminDemoText = document.getElementById('adminDemoText');
+        const roleSelector = document.getElementById('roleSelector');
+
+        let adminModeActive = false;
+
+        // Toggle Admin Login
+        function toggleAdminLogin() {
+            adminModeActive = !adminModeActive;
+
+            if (adminModeActive) {
+                // Show Admin option
+                adminRoleContainer.style.display = 'block';
+                adminDemoText.style.display = 'inline';
+                roleSelector.style.gridTemplateColumns = '1fr';
+                roleSelector.style.display = 'none';
+                
+                // Check admin radio
+                document.getElementById('roleAdmin').checked = true;
+            } else {
+                // Hide Admin option
+                adminRoleContainer.style.display = 'none';
+                adminDemoText.style.display = 'none';
+                roleSelector.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                roleSelector.style.display = 'grid';
+                
+                // Check customer radio
+                document.getElementById('roleCustomer').checked = true;
+            }
+        }
 
         // Show Error
         function showError(message) {
@@ -742,7 +796,9 @@
                 const role = localStorage.getItem('savedRole');
                 
                 if (email) emailInput.value = email;
-                if (role) {
+                if (role === 'admin') {
+                    toggleAdminLogin();
+                } else if (role) {
                     document.querySelector(`input[name="role"][value="${role}"]`).checked = true;
                 }
                 
