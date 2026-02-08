@@ -101,7 +101,6 @@
             color: white;
             padding: 0.6rem 1.2rem;
             border-radius: 20px;
-            text-decoration: none;
             font-size: 0.85rem;
             font-weight: bold;
             cursor: pointer;
@@ -116,10 +115,6 @@
             background: rgba(255, 87, 34, 1);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
-        }
-
-        .admin-portal-link i {
-            font-size: 1rem;
         }
 
         .login-header {
@@ -199,6 +194,46 @@
             margin-bottom: 2rem;
         }
 
+        /* Login Method Selector */
+        .login-method-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .method-option {
+            display: none;
+        }
+
+        .method-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .method-option:checked + .method-label {
+            border-color: #667eea;
+            background: #f0f4ff;
+            color: #667eea;
+        }
+
+        .method-label:hover {
+            border-color: #667eea;
+        }
+
+        .method-label i {
+            font-size: 1.5rem;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -250,7 +285,6 @@
             padding-right: 2.8rem;
         }
 
-        /* Password Show/Hide Button */
         .password-toggle {
             position: absolute;
             right: 1rem;
@@ -360,10 +394,6 @@
         .error-message.show {
             display: block;
             animation: slideDown 0.3s ease;
-        }
-
-        .error-message i {
-            margin-right: 0.5rem;
         }
 
         .success-message {
@@ -527,6 +557,49 @@
             display: block;
         }
 
+        .otp-input {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .otp-input input {
+            width: 100%;
+            padding: 0.7rem;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .otp-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .otp-input input::-webkit-outer-spin-button,
+        .otp-input input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .otp-input input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .timer {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .login-container {
                 grid-template-columns: 1fr;
@@ -554,6 +627,10 @@
             }
 
             .role-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .login-method-selector {
                 grid-template-columns: 1fr 1fr;
             }
 
@@ -628,10 +705,10 @@
                 <span id="successText">Login successful! Redirecting...</span>
             </div>
 
-            <!-- Role Selection - Customer & Driver (2 columns) -->
+            <!-- Role Selection -->
             <div class="role-selector" id="roleSelector">
                 <div>
-                    <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked>
+                    <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked onchange="updateLoginMethod()">
                     <label for="roleCustomer" class="role-label">
                         <i class="fas fa-user"></i>
                         <span>Customer</span>
@@ -639,7 +716,7 @@
                 </div>
 
                 <div>
-                    <input type="radio" name="role" id="roleDriver" value="driver" class="role-option">
+                    <input type="radio" name="role" id="roleDriver" value="driver" class="role-option" onchange="updateLoginMethod()">
                     <label for="roleDriver" class="role-label">
                         <i class="fas fa-car"></i>
                         <span>Driver</span>
@@ -658,64 +735,175 @@
                 </div>
             </div>
 
+            <!-- Login Method Selector (For Customer & Driver) -->
+            <div class="login-method-selector" id="loginMethodSelector" style="display: none;">
+                <div>
+                    <input type="radio" name="loginMethod" id="methodMobile" value="mobile" class="method-option" checked>
+                    <label for="methodMobile" class="method-label">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Mobile + OTP</span>
+                    </label>
+                </div>
+
+                <div>
+                    <input type="radio" name="loginMethod" id="methodPassword" value="password" class="method-option">
+                    <label for="methodPassword" class="method-label">
+                        <i class="fas fa-lock"></i>
+                        <span>Email + Password</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Demo Info -->
             <div class="demo-info">
                 <strong>📝 Demo Accounts:</strong>
-                Customer: <code>test@email.com</code> / <code>test123</code><br>
-                Driver: <code>driver@email.com</code> / <code>driver123</code><br>
+                <span id="demoCustomer">Customer: <code>9876543210</code> / OTP: <code>123456</code><br>Email: <code>test@email.com</code> / Pass: <code>test123</code><br></span>
+                <span id="demoDriver" style="display: none;">Driver: <code>9876543211</code> / OTP: <code>123456</code><br>Email: <code>driver@email.com</code> / Pass: <code>driver123</code><br></span>
                 <span id="adminDemoText" style="display: none;">Admin: <code>admin@goindia.com</code> / <code>admin123</code></span>
             </div>
 
             <!-- Login Form -->
             <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-envelope"></i>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            placeholder="Enter your email"
-                            required
-                        >
+                <!-- Mobile OTP Method (Default) -->
+                <div id="mobileOtpMethod">
+                    <div class="form-group">
+                        <label for="phone">Mobile Number</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                name="phone" 
+                                placeholder="Enter 10 digit mobile number"
+                                maxlength="10"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-login" onclick="sendOTP()" style="margin-bottom: 1.5rem;">
+                        Send OTP
+                    </button>
+
+                    <div id="otpSection" style="display: none;">
+                        <div class="form-group">
+                            <label>Enter OTP</label>
+                            <div class="otp-input" id="otpInput">
+                                <input type="number" maxlength="1" placeholder="0" required>
+                                <input type="number" maxlength="1" placeholder="0" required>
+                                <input type="number" maxlength="1" placeholder="0" required>
+                                <input type="number" maxlength="1" placeholder="0" required>
+                                <input type="number" maxlength="1" placeholder="0" required>
+                                <input type="number" maxlength="1" placeholder="0" required>
+                            </div>
+                            <div class="timer" id="otpTimer"></div>
+                        </div>
+
+                        <div class="form-buttons">
+                            <button type="submit" class="btn-login">
+                                <span id="loginBtnText">Verify & Login</span>
+                            </button>
+                            <button type="button" class="btn-signup" onclick="resetOTP()">
+                                Back
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            placeholder="Enter your password"
-                            required
-                        >
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
-                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                <!-- Email Password Method -->
+                <div id="emailPasswordMethod" style="display: none;">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                placeholder="Enter your email"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                placeholder="Enter your password"
+                                required
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                                <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+                        <button type="button" class="forgot-password" onclick="openForgotPasswordModal()">
+                            Forgot password?
+                        </button>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-login">
+                            <span id="loginBtnText">Sign In</span>
+                        </button>
+                        <button type="button" class="btn-signup" onclick="goToSignup()">
+                            Sign Up
                         </button>
                     </div>
                 </div>
 
-                <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" id="rememberMe">
-                        <span>Remember me</span>
-                    </label>
-                    <button type="button" class="forgot-password" onclick="openForgotPasswordModal()">
-                        Forgot password?
-                    </button>
-                </div>
+                <!-- Admin Login (Email + Password) -->
+                <div id="adminLoginMethod" style="display: none;">
+                    <div class="form-group">
+                        <label for="adminEmail">Email Address</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input 
+                                type="email" 
+                                id="adminEmail" 
+                                name="adminEmail" 
+                                placeholder="Enter admin email"
+                                required
+                            >
+                        </div>
+                    </div>
 
-                <div class="form-buttons">
-                    <button type="submit" class="btn-login">
-                        <span id="loginBtnText">Sign In</span>
-                    </button>
-                    <button type="button" class="btn-signup" onclick="goToSignup()">
-                        Sign Up
-                    </button>
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="adminPassword" 
+                                name="adminPassword" 
+                                placeholder="Enter password"
+                                required
+                            >
+                            <button type="button" class="password-toggle" onclick="toggleAdminPasswordVisibility()">
+                                <i class="fas fa-eye" id="adminPasswordToggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn-login" onclick="loginAdmin()">
+                            <span id="adminLoginBtnText">Admin Login</span>
+                        </button>
+                        <button type="button" class="btn-signup" onclick="closeAdminPanel()">
+                            Back
+                        </button>
+                    </div>
                 </div>
             </form>
 
@@ -735,7 +923,7 @@
             </div>
 
             <div id="forgotStep1">
-                <p style="color: #666; margin-bottom: 1.5rem;">Enter your email address and we'll help you reset your password.</p>
+                <p style="color: #666; margin-bottom: 1.5rem;">Enter your email address to reset password.</p>
                 
                 <div class="modal-error" id="forgotError1"></div>
                 
@@ -753,9 +941,6 @@
                 </div>
 
                 <button class="btn-submit" onclick="sendResetEmail()">Send Reset Link</button>
-                <p style="text-align: center; color: #999; margin-top: 1rem; font-size: 0.9rem;">
-                    Remember your password? <a href="#" onclick="closeForgotPasswordModal(); return false;" style="color: #667eea; cursor: pointer;">Back to login</a>
-                </p>
             </div>
 
             <div id="forgotStep2" style="display: none;">
@@ -801,7 +986,7 @@
             <div id="forgotStep3" style="display: none; text-align: center;">
                 <i class="fas fa-check-circle" style="font-size: 3rem; color: #4caf50; margin-bottom: 1rem;"></i>
                 <h3 style="color: #333; margin-bottom: 0.5rem;">Password Reset Successful!</h3>
-                <p style="color: #666; margin-bottom: 1.5rem;">Your password has been updated. You can now login with your new password.</p>
+                <p style="color: #666; margin-bottom: 1.5rem;">Your password has been updated.</p>
                 <button class="btn-submit" onclick="closeForgotPasswordModal()">Back to Login</button>
             </div>
         </div>
@@ -809,7 +994,7 @@
 
     <script>
         // ============================================
-        // INITIALIZE DEMO DATA ON PAGE LOAD
+        // INITIALIZE DEMO DATA
         // ============================================
 
         function initializeDemoData() {
@@ -849,22 +1034,90 @@
                 console.log('✅ Demo driver account initialized');
             }
 
-            console.log('📊 Current Users:', JSON.parse(localStorage.getItem('users')));
-            console.log('📊 Current Drivers:', JSON.parse(localStorage.getItem('drivers')));
+            console.log('📊 Users:', JSON.parse(localStorage.getItem('users')));
+            console.log('📊 Drivers:', JSON.parse(localStorage.getItem('drivers')));
         }
 
-        // Initialize on page load
         window.addEventListener('load', function() {
             initializeDemoData();
         });
 
         // ============================================
-        // PASSWORD SHOW/HIDE FUNCTIONALITY
+        // LOGIN METHOD MANAGEMENT
+        // ============================================
+
+        function updateLoginMethod() {
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const loginMethodSelector = document.getElementById('loginMethodSelector');
+            const mobileOtpMethod = document.getElementById('mobileOtpMethod');
+            const emailPasswordMethod = document.getElementById('emailPasswordMethod');
+            const adminLoginMethod = document.getElementById('adminLoginMethod');
+            const demoCustomer = document.getElementById('demoCustomer');
+            const demoDriver = document.getElementById('demoDriver');
+
+            if (role === 'customer') {
+                loginMethodSelector.style.display = 'grid';
+                adminLoginMethod.style.display = 'none';
+                demoCustomer.style.display = 'block';
+                demoDriver.style.display = 'none';
+                updateSelectedLoginMethod();
+            } else if (role === 'driver') {
+                loginMethodSelector.style.display = 'grid';
+                adminLoginMethod.style.display = 'none';
+                demoCustomer.style.display = 'none';
+                demoDriver.style.display = 'block';
+                updateSelectedLoginMethod();
+            } else if (role === 'admin') {
+                loginMethodSelector.style.display = 'none';
+                mobileOtpMethod.style.display = 'none';
+                emailPasswordMethod.style.display = 'none';
+                adminLoginMethod.style.display = 'block';
+            }
+        }
+
+        function updateSelectedLoginMethod() {
+            const method = document.querySelector('input[name="loginMethod"]:checked').value;
+            const mobileOtpMethod = document.getElementById('mobileOtpMethod');
+            const emailPasswordMethod = document.getElementById('emailPasswordMethod');
+
+            if (method === 'mobile') {
+                mobileOtpMethod.style.display = 'block';
+                emailPasswordMethod.style.display = 'none';
+            } else {
+                mobileOtpMethod.style.display = 'none';
+                emailPasswordMethod.style.display = 'block';
+            }
+        }
+
+        // Listen for login method changes
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'loginMethod') {
+                updateSelectedLoginMethod();
+            }
+        });
+
+        // ============================================
+        // PASSWORD SHOW/HIDE
         // ============================================
 
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('passwordToggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function toggleAdminPasswordVisibility() {
+            const passwordInput = document.getElementById('adminPassword');
+            const toggleIcon = document.getElementById('adminPasswordToggleIcon');
 
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -894,198 +1147,309 @@
         }
 
         // ============================================
-        // MAIN LOGIN LOGIC - FULLY FIXED
+        // OTP FUNCTIONALITY
+        // ============================================
+
+        let otpTimer = null;
+        let otpResendTime = 0;
+
+        function sendOTP() {
+            const phone = document.getElementById('phone').value.trim();
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            if (!phone || phone.length !== 10) {
+                showError('❌ Please enter valid 10 digit mobile number');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+
+            let userExists = false;
+            if (role === 'customer') {
+                userExists = users.some(u => u.phone === phone);
+            } else if (role === 'driver') {
+                userExists = drivers.some(d => d.phone === phone);
+            }
+
+            if (!userExists) {
+                showError(`❌ Mobile number not found. Please signup first.`);
+                return;
+            }
+
+            // Show OTP section
+            document.getElementById('otpSection').style.display = 'block';
+            document.getElementById('phone').disabled = true;
+
+            // Generate mock OTP (123456 for demo)
+            localStorage.setItem('mockOTP', '123456');
+            localStorage.setItem('otpPhone', phone);
+
+            showSuccess('✅ OTP sent to your mobile (Demo OTP: 123456)');
+
+            // Start timer
+            startOTPTimer(180); // 3 minutes
+        }
+
+        function startOTPTimer(seconds) {
+            let remaining = seconds;
+            const timerElement = document.getElementById('otpTimer');
+
+            clearInterval(otpTimer);
+
+            otpTimer = setInterval(() => {
+                remaining--;
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                timerElement.textContent = `Expires in ${mins}:${secs.toString().padStart(2, '0')}`;
+
+                if (remaining <= 0) {
+                    clearInterval(otpTimer);
+                    timerElement.textContent = 'OTP Expired';
+                    resetOTP();
+                }
+            }, 1000);
+        }
+
+        function resetOTP() {
+            document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('phone').disabled = false;
+            document.getElementById('phone').value = '';
+            document.querySelectorAll('.otp-input input').forEach(input => input.value = '');
+            clearInterval(otpTimer);
+            localStorage.removeItem('mockOTP');
+            localStorage.removeItem('otpPhone');
+        }
+
+        // OTP input auto-focus
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('otp-input') || e.target.parentElement.classList.contains('otp-input')) {
+                const inputs = document.querySelectorAll('.otp-input input');
+                const index = Array.from(inputs).indexOf(e.target);
+
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else if (e.target.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            }
+        });
+
+        // ============================================
+        // LOGIN FORMS
         // ============================================
 
         const loginForm = document.getElementById('loginForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
         const successMessage = document.getElementById('successMessage');
-        const loginBtnText = document.getElementById('loginBtnText');
-        const rememberMe = document.getElementById('rememberMe');
-        const adminRoleContainer = document.getElementById('adminRoleContainer');
-        const adminDemoText = document.getElementById('adminDemoText');
-        const roleSelector = document.getElementById('roleSelector');
 
-        let adminModeActive = false;
-
-        // Toggle Admin Login
-        function toggleAdminLogin() {
-            adminModeActive = !adminModeActive;
-
-            if (adminModeActive) {
-                adminRoleContainer.style.display = 'block';
-                adminDemoText.style.display = 'inline';
-                roleSelector.style.display = 'none';
-                document.getElementById('roleAdmin').checked = true;
-            } else {
-                adminRoleContainer.style.display = 'none';
-                adminDemoText.style.display = 'none';
-                roleSelector.style.display = 'grid';
-                document.getElementById('roleCustomer').checked = true;
-            }
-        }
-
-        // Show Error
         function showError(message) {
             errorText.textContent = message;
             errorMessage.classList.add('show');
             setTimeout(() => errorMessage.classList.remove('show'), 5000);
         }
 
-        // Show Success
         function showSuccess(message) {
             document.getElementById('successText').textContent = message;
             successMessage.classList.add('show');
         }
 
-        // Go to Signup
         function goToSignup() {
             window.location.href = './signup.html';
         }
 
-        // LOGIN FORM SUBMISSION - COMPLETE & FIXED
+        // LOGIN FORM SUBMISSION
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            if (!emailInput.value.trim()) {
-                showError('❌ Please enter email');
-                return;
-            }
-
-            if (!passwordInput.value) {
-                showError('❌ Please enter password');
-                return;
-            }
-
             const role = document.querySelector('input[name="role"]:checked').value;
-            const email = emailInput.value.trim().toLowerCase();
-            const password = passwordInput.value;
+            const method = document.querySelector('input[name="loginMethod"]')?.value;
 
-            console.log('🔐 Login Attempt:');
-            console.log('  Role:', role);
-            console.log('  Email:', email);
-            console.log('  Password length:', password.length);
+            if (role === 'customer' || role === 'driver') {
+                if (method === 'mobile') {
+                    loginWithOTP();
+                } else {
+                    loginWithPassword();
+                }
+            }
+        });
 
-            loginForm.style.opacity = '0.6';
-            loginForm.style.pointerEvents = 'none';
-            loginBtnText.innerHTML = '<span class="spinner"></span>Signing in...';
+        function loginWithOTP() {
+            const otpInputs = document.querySelectorAll('.otp-input input');
+            const otp = Array.from(otpInputs).map(input => input.value).join('');
+            const phone = document.getElementById('phone').value.trim();
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            if (otp.length !== 6) {
+                showError('❌ Please enter valid 6 digit OTP');
+                return;
+            }
+
+            const mockOTP = localStorage.getItem('mockOTP');
+
+            if (otp !== mockOTP) {
+                showError('❌ Invalid OTP');
+                return;
+            }
+
+            // Find and login user
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+
+            let user = null;
+            let redirectUrl = '';
+
+            if (role === 'customer') {
+                user = users.find(u => u.phone === phone);
+                if (user) {
+                    redirectUrl = './customer-dashboard.html';
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    localStorage.setItem('userRole', 'customer');
+                    console.log('✅ CUSTOMER OTP LOGIN SUCCESS');
+                }
+            } else if (role === 'driver') {
+                user = drivers.find(d => d.phone === phone);
+                if (user) {
+                    redirectUrl = './driver-dashboard.html';
+                    localStorage.setItem('currentDriver', JSON.stringify(user));
+                    localStorage.setItem('userRole', 'driver');
+                    console.log('✅ DRIVER OTP LOGIN SUCCESS');
+                }
+            }
+
+            if (!user) {
+                showError(`❌ User not found`);
+                return;
+            }
+
+            showSuccess('✅ Login successful! Redirecting...');
+            localStorage.removeItem('mockOTP');
+            localStorage.removeItem('otpPhone');
 
             setTimeout(() => {
-                try {
-                    const users = JSON.parse(localStorage.getItem('users')) || [];
-                    const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-                    const admins = [
-                        {
-                            id: 'admin1',
-                            email: 'admin@goindia.com',
-                            password: 'admin123',
-                            name: 'Admin User',
-                            role: 'admin'
-                        }
-                    ];
-
-                    console.log('📊 Available Data:');
-                    console.log('  Users count:', users.length);
-                    console.log('  Drivers count:', drivers.length);
-
-                    let user = null;
-                    let redirectUrl = '';
-
-                    if (role === 'customer') {
-                        console.log('🔎 Searching in customers...');
-                        user = users.find(u => {
-                            const emailMatch = u.email === email;
-                            const passwordMatch = u.password === password;
-                            console.log(`    Checking ${u.email}: email=${emailMatch}, password=${passwordMatch}`);
-                            return emailMatch && passwordMatch;
-                        });
-                        if (user) {
-                            redirectUrl = './customer-dashboard.html';
-                            localStorage.setItem('currentUser', JSON.stringify(user));
-                            localStorage.setItem('userRole', 'customer');
-                            console.log('✅ CUSTOMER LOGIN SUCCESSFUL');
-                        }
-                    } else if (role === 'driver') {
-                        console.log('🔎 Searching in drivers...');
-                        user = drivers.find(d => {
-                            const emailMatch = d.email === email;
-                            const passwordMatch = d.password === password;
-                            console.log(`    Checking ${d.email}: email=${emailMatch}, password=${passwordMatch}`);
-                            return emailMatch && passwordMatch;
-                        });
-                        if (user) {
-                            redirectUrl = './driver-dashboard.html';
-                            localStorage.setItem('currentDriver', JSON.stringify(user));
-                            localStorage.setItem('userRole', 'driver');
-                            console.log('✅ DRIVER LOGIN SUCCESSFUL');
-                        }
-                    } else if (role === 'admin') {
-                        console.log('🔎 Searching in admins...');
-                        user = admins.find(a => a.email === email && a.password === password);
-                        if (user) {
-                            redirectUrl = './admin-dashboard.html';
-                            localStorage.setItem('currentAdmin', JSON.stringify(user));
-                            localStorage.setItem('userRole', 'admin');
-                            console.log('✅ ADMIN LOGIN SUCCESSFUL');
-                        }
-                    }
-
-                    if (!user) {
-                        loginForm.style.opacity = '1';
-                        loginForm.style.pointerEvents = 'auto';
-                        loginBtnText.textContent = 'Sign In';
-                        showError(`❌ Invalid email or password`);
-                        console.log('❌ LOGIN FAILED - Credentials not found');
-                        return;
-                    }
-
-                    if (rememberMe.checked) {
-                        localStorage.setItem('rememberMe', 'true');
-                        localStorage.setItem('savedEmail', email);
-                        localStorage.setItem('savedRole', role);
-                    }
-
-                    showSuccess('✅ Login successful! Redirecting...');
-
-                    setTimeout(() => {
-                        console.log('🚀 Redirecting to:', redirectUrl);
-                        window.location.href = redirectUrl;
-                    }, 1500);
-
-                } catch (error) {
-                    console.error('❌ Login error:', error);
-                    loginForm.style.opacity = '1';
-                    loginForm.style.pointerEvents = 'auto';
-                    loginBtnText.textContent = 'Sign In';
-                    showError('❌ An error occurred. Please try again.');
-                }
+                window.location.href = redirectUrl;
             }, 1500);
-        });
+        }
 
-        // Load saved data on page load
-        window.addEventListener('load', function() {
-            if (localStorage.getItem('rememberMe') === 'true') {
-                const email = localStorage.getItem('savedEmail');
-                const role = localStorage.getItem('savedRole');
-                
-                if (email) emailInput.value = email;
-                if (role === 'admin') {
-                    toggleAdminLogin();
-                } else if (role) {
-                    document.querySelector(`input[name="role"][value="${role}"]`).checked = true;
-                }
-                
-                rememberMe.checked = true;
+        function loginWithPassword() {
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            if (!email || !password) {
+                showError('❌ Please enter email and password');
+                return;
             }
 
-            console.log('✅ Login page fully initialized');
-        });
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+
+            let user = null;
+            let redirectUrl = '';
+
+            if (role === 'customer') {
+                user = users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    redirectUrl = './customer-dashboard.html';
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    localStorage.setItem('userRole', 'customer');
+                    console.log('✅ CUSTOMER PASSWORD LOGIN SUCCESS');
+                }
+            } else if (role === 'driver') {
+                user = drivers.find(d => d.email === email && d.password === password);
+                if (user) {
+                    redirectUrl = './driver-dashboard.html';
+                    localStorage.setItem('currentDriver', JSON.stringify(user));
+                    localStorage.setItem('userRole', 'driver');
+                    console.log('✅ DRIVER PASSWORD LOGIN SUCCESS');
+                }
+            }
+
+            if (!user) {
+                showError(`❌ Invalid email or password`);
+                return;
+            }
+
+            showSuccess('✅ Login successful! Redirecting...');
+
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 1500);
+        }
 
         // ============================================
-        // FORGOT PASSWORD MODAL LOGIC
+        // ADMIN LOGIN
+        // ============================================
+
+        function toggleAdminLogin() {
+            const adminRoleContainer = document.getElementById('adminRoleContainer');
+            const roleSelector = document.getElementById('roleSelector');
+            const adminDemoText = document.getElementById('adminDemoText');
+            const adminRoleChecked = document.getElementById('roleAdmin');
+
+            if (adminRoleContainer.style.display === 'none') {
+                adminRoleContainer.style.display = 'block';
+                roleSelector.style.display = 'none';
+                adminDemoText.style.display = 'inline';
+                adminRoleChecked.checked = true;
+                updateLoginMethod();
+            } else {
+                adminRoleContainer.style.display = 'none';
+                roleSelector.style.display = 'grid';
+                adminDemoText.style.display = 'none';
+                document.getElementById('roleCustomer').checked = true;
+                updateLoginMethod();
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminRoleContainer').style.display = 'none';
+            document.getElementById('roleSelector').style.display = 'grid';
+            document.getElementById('adminDemoText').style.display = 'none';
+            document.getElementById('roleCustomer').checked = true;
+            updateLoginMethod();
+        }
+
+        function loginAdmin() {
+            const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+            const password = document.getElementById('adminPassword').value;
+
+            if (!email || !password) {
+                showError('❌ Please enter email and password');
+                return;
+            }
+
+            const admins = [
+                {
+                    id: 'admin1',
+                    email: 'admin@goindia.com',
+                    password: 'admin123',
+                    name: 'Admin User',
+                    role: 'admin'
+                }
+            ];
+
+            const admin = admins.find(a => a.email === email && a.password === password);
+
+            if (!admin) {
+                showError('❌ Invalid admin credentials');
+                return;
+            }
+
+            localStorage.setItem('currentAdmin', JSON.stringify(admin));
+            localStorage.setItem('userRole', 'admin');
+            console.log('✅ ADMIN LOGIN SUCCESS');
+
+            showSuccess('✅ Admin login successful! Redirecting...');
+
+            setTimeout(() => {
+                window.location.href = './admin-dashboard.html';
+            }, 1500);
+        }
+
+        // ============================================
+        // FORGOT PASSWORD
         // ============================================
 
         function openForgotPasswordModal() {
@@ -1094,16 +1458,10 @@
             document.getElementById('forgotStep2').style.display = 'none';
             document.getElementById('forgotStep3').style.display = 'none';
             document.getElementById('forgotEmail').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-            document.getElementById('forgotError1').classList.remove('show');
-            document.getElementById('forgotError2').classList.remove('show');
-            console.log('🔓 Forgot password modal opened');
         }
 
         function closeForgotPasswordModal() {
             document.getElementById('forgotPasswordModal').classList.remove('active');
-            console.log('🔒 Forgot password modal closed');
         }
 
         function sendResetEmail() {
@@ -1111,7 +1469,7 @@
             const forgotError1 = document.getElementById('forgotError1');
 
             if (!email) {
-                forgotError1.textContent = '❌ Please enter your email address';
+                forgotError1.textContent = '❌ Please enter your email';
                 forgotError1.classList.add('show');
                 return;
             }
@@ -1123,16 +1481,13 @@
             const driverExists = drivers.find(d => d.email === email);
 
             if (!userExists && !driverExists) {
-                forgotError1.textContent = '❌ Email not found. Please check and try again.';
+                forgotError1.textContent = '❌ Email not found';
                 forgotError1.classList.add('show');
-                console.log('❌ Email not found:', email);
                 return;
             }
 
             localStorage.setItem('resetEmail', email);
             localStorage.setItem('resetUserType', userExists ? 'customer' : 'driver');
-
-            console.log('✅ Email verified:', email);
 
             document.getElementById('forgotStep1').style.display = 'none';
             document.getElementById('forgotStep2').style.display = 'block';
@@ -1144,12 +1499,6 @@
             const resetEmail = localStorage.getItem('resetEmail');
             const userType = localStorage.getItem('resetUserType');
             const forgotError2 = document.getElementById('forgotError2');
-
-            if (!newPassword) {
-                forgotError2.textContent = '❌ Please enter a new password';
-                forgotError2.classList.add('show');
-                return;
-            }
 
             if (newPassword.length < 6) {
                 forgotError2.textContent = '❌ Password must be at least 6 characters';
@@ -1163,40 +1512,30 @@
                 return;
             }
 
-            try {
-                if (userType === 'customer') {
-                    let users = JSON.parse(localStorage.getItem('users')) || [];
-                    const userIndex = users.findIndex(u => u.email === resetEmail);
-                    if (userIndex !== -1) {
-                        users[userIndex].password = newPassword;
-                        localStorage.setItem('users', JSON.stringify(users));
-                        console.log('✅ Customer password updated');
-                    }
-                } else if (userType === 'driver') {
-                    let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-                    const driverIndex = drivers.findIndex(d => d.email === resetEmail);
-                    if (driverIndex !== -1) {
-                        drivers[driverIndex].password = newPassword;
-                        localStorage.setItem('drivers', JSON.stringify(drivers));
-                        console.log('✅ Driver password updated');
-                    }
+            if (userType === 'customer') {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                const userIndex = users.findIndex(u => u.email === resetEmail);
+                if (userIndex !== -1) {
+                    users[userIndex].password = newPassword;
+                    localStorage.setItem('users', JSON.stringify(users));
                 }
-
-                localStorage.removeItem('resetEmail');
-                localStorage.removeItem('resetUserType');
-
-                document.getElementById('forgotStep2').style.display = 'none';
-                document.getElementById('forgotStep3').style.display = 'block';
-                console.log('✅ Password reset successful!');
-
-            } catch (error) {
-                console.error('Reset password error:', error);
-                forgotError2.textContent = '❌ An error occurred. Please try again.';
-                forgotError2.classList.add('show');
+            } else if (userType === 'driver') {
+                let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+                const driverIndex = drivers.findIndex(d => d.email === resetEmail);
+                if (driverIndex !== -1) {
+                    drivers[driverIndex].password = newPassword;
+                    localStorage.setItem('drivers', JSON.stringify(drivers));
+                }
             }
+
+            localStorage.removeItem('resetEmail');
+            localStorage.removeItem('resetUserType');
+
+            document.getElementById('forgotStep2').style.display = 'none';
+            document.getElementById('forgotStep3').style.display = 'block';
         }
 
-        // Close modal when clicking outside
+        // Close modal on outside click
         window.onclick = function(event) {
             const modal = document.getElementById('forgotPasswordModal');
             if (event.target === modal) {
@@ -1204,7 +1543,7 @@
             }
         }
 
-        console.log('🚀 Login page fully loaded and initialized');
+        console.log('🚀 Login page fully loaded');
     </script>
 </body>
 </html>
