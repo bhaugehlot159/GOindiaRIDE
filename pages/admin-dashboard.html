@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - GO India RIDE</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        
+        .admin-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* Sidebar */
+        .admin-sidebar {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 0;
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+        
+        .admin-logo {
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .admin-logo i { font-size: 1.5rem; }
+        
+        .admin-menu {
+            list-style: none;
+        }
+        
+        .admin-menu-item {
+            padding: 0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-menu-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 2rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .admin-menu-link:hover,
+        .admin-menu-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #00d4ff;
+            padding-left: 1.8rem;
+        }
+        
+        .admin-menu-link i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+        
+        .admin-menu-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            padding: 1rem 2rem 0.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        
+        /* Main Content */
+        .admin-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header h1 {
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-header h1 i {
+            color: #2a5298;
+            font-size: 1.8rem;
+        }
+        
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-user-name {
+            text-align: right;
+        }
+        
+        .admin-user-name strong {
+            display: block;
+            color: #333;
+        }
+        
+        .admin-user-name small {
+            color: #999;
+        }
+        
+        .admin-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+        
+        .stat-box.users { border-left-color: #4caf50; }
+        .stat-box.drivers { border-left-color: #ff9800; }
+        .stat-box.bookings { border-left-color: #2196f3; }
+        .stat-box.revenue { border-left-color: #f44336; }
+        
+        .stat-label {
+            color: #999;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-change {
+            color: #4caf50;
+            font-size: 0.9rem;
+        }
+        
+        .stat-change.negative { color: #f44336; }
+        
+        /* Section */
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: none;
+        }
+        
+        .section.active { display: block; }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .section-title i {
+            color: #2a5298;
+            font-size: 1.8rem;
+        }
+        
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: #f5f5f5;
+        }
+        
+        th {
+            padding: 1rem;
+            text-align: left;
+            color: #333;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            color: #666;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .badge.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .badge.warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        .badge.danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .badge.info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+        
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-edit {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-approve {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-sm:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        
+        /* Charts placeholder */
+        .chart-placeholder {
+            background: #f9f9f9;
+            padding: 3rem;
+            border-radius: 8px;
+            text-align: center;
+            color: #999;
+            margin-bottom: 1rem;
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 8px rgba(42, 82, 152, 0.3);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-sidebar {
+                display: none;
+            }
+            
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i> GO India RIDE - Admin
+            </div>
+            <div style="color: white;">
+                <span id="adminName">Admin Panel</span>
+                <a href="../index.html" onclick="logout()" style="color: white; margin-left: 2rem; cursor: pointer;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <i class="fas fa-shield-alt"></i>
+                Admin Panel
+            </div>
+            
+            <ul class="admin-menu">
+                <li class="admin-menu-label">Main</li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link active" onclick="showSection('overview')">
+                        <i class="fas fa-home"></i>
+                        <span>Overview</span>
+                    </a>
+                </li>
+                
+                <li class="admin-menu-label">Management</li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('users')">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('drivers')">
+                        <i class="fas fa-car"></i>
+                        <span>Drivers</span>
+                    </a>
+                </li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('bookings')">
+                        <i class="fas fa-calendar"></i>
+                        <span>Bookings</span>
+                    </a>
+                </li>
+                
+                <li class="admin-menu-label">Reports</li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('revenue')">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Revenue</span>
+                    </a>
+                </li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                
+                <li class="admin-menu-label">System</li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('documents')">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Document Verification</span>
+                    </a>
+                </li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('complaints')">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Complaints</span>
+                    </a>
+                </li>
+                <li class="admin-menu-item">
+                    <a class="admin-menu-link" onclick="showSection('settings')">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- Header -->
+            <div class="admin-header">
+                <h1>
+                    <i class="fas fa-chart-bar"></i>
+                    Admin Dashboard
+                </h1>
+                <div class="admin-user-info">
+                    <div class="admin-user-name">
+                        <strong id="adminUserName">Admin User</strong>
+                        <small>Administrator</small>
+                    </div>
+                    <div class="admin-avatar">A</div>
+                </div>
+            </div>
+
+            <!-- ======== OVERVIEW SECTION ======== -->
+            <section class="section active" id="overview">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-box users">
+                        <div class="stat-label">Total Customers</div>
+                        <div class="stat-value" id="totalCustomers">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i> 12% from last month
+                        </div>
+                    </div>
+                    
+                    <div class="stat-box drivers">
+                        <div class="stat-label">Active Drivers</div>
+                        <div class="stat-value" id="totalDrivers">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i> 8% from last month
+                        </div>
+                    </div>
+                    
+                    <div class="stat-box bookings">
+                        <div class="stat-label">Total Bookings Today</div>
+                        <div class="stat-value" id="totalBookingsToday">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-down"></i> 5% from last day
+                        </div>
+                    </div>
+                    
+                    <div class="stat-box revenue">
+                        <div class="stat-label">Revenue Today</div>
+                        <div class="stat-value" id="revenueToday">₹0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i> 15% from yesterday
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h3 style="color: #333; margin-bottom: 1rem;">Bookings This Week</h3>
+                        <div class="chart-placeholder">
+                            📊 Chart Coming Soon
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h3 style="color: #333; margin-bottom: 1rem;">Revenue This Month</h3>
+                        <div class="chart-placeholder">
+                            📈 Chart Coming Soon
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== CUSTOMERS SECTION ======== -->
+            <section class="section" id="users">
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    Customer Management
+                </div>
+                
+                <button class="btn-submit" style="width: auto; margin-bottom: 1.5rem;" onclick="openModal('userModal')">
+                    <i class="fas fa-plus"></i> Add New Customer
+                </button>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">No customers found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ======== DRIVERS SECTION ======== -->
+            <section class="section" id="drivers">
+                <div class="section-title">
+                    <i class="fas fa-car"></i>
+                    Driver Management
+                </div>
+                
+                <button class="btn-submit" style="width: auto; margin-bottom: 1.5rem;" onclick="openModal('driverModal')">
+                    <i class="fas fa-plus"></i> Add New Driver
+                </button>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Vehicle</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th>Verified</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="driversTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">No drivers found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ======== BOOKINGS SECTION ======== -->
+            <section class="section" id="bookings">
+                <div class="section-title">
+                    <i class="fas fa-calendar"></i>
+                    Bookings Management
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Customer</th>
+                                <th>Driver</th>
+                                <th>Route</th>
+                                <th>Fare</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #999;">No bookings found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ======== REVENUE SECTION ======== -->
+            <section class="section" id="revenue">
+                <div class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Revenue Reports
+                </div>
+                
+                <div class="grid-2">
+                    <div style="background: white; padding: 2rem; border-radius: 12px; border-left: 5px solid #f44336;">
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="totalRevenue">₹0</div>
+                    </div>
+                    
+                    <div style="background: white; padding: 2rem; border-radius: 12px; border-left: 5px solid #4caf50;">
+                        <div class="stat-label">Net Profit (After 5% Commission)</div>
+                        <div class="stat-value" id="netProfit">₹0</div>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 2rem; border-radius: 12px; margin-top: 1.5rem;">
+                    <h3 style="color: #333; margin-bottom: 1rem;">Monthly Breakdown</h3>
+                    <div class="chart-placeholder">
+                        📊 Revenue Chart Coming Soon
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== DOCUMENT VERIFICATION ======== -->
+            <section class="section" id="documents">
+                <div class="section-title">
+                    <i class="fas fa-file-contract"></i>
+                    Document Verification
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Driver Name</th>
+                                <th>Document Type</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #999;">No pending documents</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ======== SETTINGS SECTION ======== -->
+            <section class="section" id="settings">
+                <div class="section-title">
+                    <i class="fas fa-cog"></i>
+                    System Settings
+                </div>
+                
+                <div class="form-group">
+                    <label>Commission Rate (%)</label>
+                    <input type="number" id="commissionRate" value="5" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Minimum Ride Fare (₹)</label>
+                    <input type="number" id="minFare" value="50" step="1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Per KM Rate (₹)</label>
+                    <input type="number" id="kmRate" value="5" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Per Minute Rate (₹)</label>
+                    <input type="number" id="minuteRate" value="10" step="0.1">
+                </div>
+                
+                <button class="btn-submit">Save Settings</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Customer</h2>
+                <button class="modal-close" onclick="closeModal('userModal')">×</button>
+            </div>
+            <form>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" required>
+                </div>
+                <button type="submit" class="btn-submit">Add Customer</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="driverModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Driver</h2>
+                <button class="modal-close" onclick="closeModal('driverModal')">×</button>
+            </div>
+            <form>
+                <div class="form-group">
+                    <label>Driver Name</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Vehicle Number</label>
+                    <input type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" required>
+                </div>
+                <button type="submit" class="btn-submit">Add Driver</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check if admin is logged in
+        const admin = checkAuth();
+        if (!admin || admin.role !== 'admin') {
+            window.location.href = './login.html';
+        }
+
+        // Load admin data
+        function loadAdminDashboard() {
+            const adminData = JSON.parse(localStorage.getItem('currentAdmin'));
+            if (adminData) {
+                document.getElementById('adminUserName').textContent = adminData.name || 'Admin';
+                document.getElementById('adminName').textContent = adminData.name || 'Admin User';
+            }
+
+            // Load stats
+            const customers = JSON.parse(localStorage.getItem('users')) || [];
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+
+            document.getElementById('totalCustomers').textContent = customers.length;
+            document.getElementById('totalDrivers').textContent = drivers.length;
+            document.getElementById('totalBookingsToday').textContent = bookings.filter(b => {
+                const bookingDate = new Date(b.createdAt).toDateString();
+                const today = new Date().toDateString();
+                return bookingDate === today;
+            }).length;
+
+            // Calculate revenue
+            let totalRevenue = bookings.reduce((sum, b) => {
+                const fare = parseInt(b.totalFare?.replace(/₹/g, '') || 0);
+                return sum + fare;
+            }, 0);
+            
+            document.getElementById('revenueToday').textContent = '₹' + totalRevenue;
+            document.getElementById('totalRevenue').textContent = '₹' + totalRevenue;
+            document.getElementById('netProfit').textContent = '₹' + Math.floor(totalRevenue * 0.95);
+
+            // Load customers table
+            loadCustomersTable(customers);
+            loadDriversTable(drivers);
+            loadBookingsTable(bookings);
+        }
+
+        function loadCustomersTable(customers) {
+            const tbody = document.getElementById('customersTableBody');
+            if (customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No customers found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = customers.map((customer, index) => `
+                <tr>
+                    <td>#${index + 1}</td>
+                    <td>${customer.fullname}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td><span class="badge success">Active</span></td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadDriversTable(drivers) {
+            const tbody = document.getElementById('driversTableBody');
+            if (drivers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No drivers found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = drivers.map((driver, index) => `
+                <tr>
+                    <td>#${index + 1}</td>
+                    <td>${driver.name || 'N/A'}</td>
+                    <td>${driver.vehicleNumber || 'N/A'}</td>
+                    <td>
+                        <i class="fas fa-star" style="color: #ffc107;"></i> 4.5
+                    </td>
+                    <td><span class="badge success">Online</span></td>
+                    <td><span class="badge success">✓ Verified</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadBookingsTable(bookings) {
+            const tbody = document.getElementById('bookingsTableBody');
+            if (bookings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No bookings found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = bookings.map((booking, index) => `
+                <tr>
+                    <td>#${booking.id || index + 1}</td>
+                    <td>Customer</td>
+                    <td>Driver</td>
+                    <td>${booking.pickup} → ${booking.dropoff}</td>
+                    <td>${booking.totalFare}</td>
+                    <td><span class="badge info">Completed</span></td>
+                    <td>${new Date(booking.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn-sm btn-edit"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Section Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.admin-menu-link').forEach(l => l.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.target.closest('.admin-menu-link').classList.add('active');
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Initialize
+        loadAdminDashboard();
+    </script>
+</body>
+</html>
