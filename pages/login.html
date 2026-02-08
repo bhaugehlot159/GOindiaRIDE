@@ -89,6 +89,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            overflow-y: auto;
         }
 
         .login-header {
@@ -107,10 +108,10 @@
             font-size: 0.95rem;
         }
 
-        /* Role Selection */
+        /* Role Selection - 2 columns (Customer & Driver only) */
         .role-selector {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -124,18 +125,20 @@
             flex-direction: column;
             align-items: center;
             gap: 0.5rem;
-            padding: 1rem;
+            padding: 1.2rem 0.8rem;
             border: 3px solid #ddd;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
+            background: white;
         }
 
         .role-option:checked + .role-label {
             border-color: #667eea;
             background: #f0f4ff;
             color: #667eea;
+            transform: scale(1.05);
         }
 
         .role-label:hover {
@@ -144,7 +147,7 @@
         }
 
         .role-label i {
-            font-size: 2rem;
+            font-size: 2.5rem;
             color: #667eea;
         }
 
@@ -155,6 +158,11 @@
         .role-label span {
             font-weight: 600;
             font-size: 0.9rem;
+            color: #333;
+        }
+
+        .role-option:checked + .role-label span {
+            color: #667eea;
         }
 
         /* Form Groups */
@@ -271,13 +279,18 @@
             color: white;
         }
 
-        .btn-login:hover {
+        .btn-login:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
         .btn-login:active {
             transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
 
         .btn-signup {
@@ -287,58 +300,6 @@
 
         .btn-signup:hover {
             background: #f0f4ff;
-        }
-
-        /* Social Login */
-        .social-divider {
-            display: flex;
-            align-items: center;
-            margin: 1.5rem 0;
-            color: #bbb;
-            font-size: 0.9rem;
-        }
-
-        .social-divider::before,
-        .social-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #ddd;
-        }
-
-        .social-divider span {
-            margin: 0 1rem;
-        }
-
-        .social-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .btn-social {
-            padding: 0.8rem;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-weight: 600;
-            color: #666;
-        }
-
-        .btn-social:hover {
-            border-color: #667eea;
-            background: #f9f9f9;
-            color: #667eea;
-        }
-
-        .btn-social i {
-            font-size: 1.2rem;
         }
 
         /* Error Message */
@@ -400,50 +361,35 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .login-container {
-                grid-template-columns: 1fr;
-                min-height: auto;
-            }
-
-            .login-left {
-                padding: 2rem 1.5rem;
-                min-height: 300px;
-            }
-
-            .login-left h1 {
-                font-size: 2rem;
-            }
-
-            .login-right {
-                padding: 2rem 1.5rem;
-            }
-
-            .role-selector {
-                grid-template-columns: 1fr;
-            }
-
-            .form-options {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: flex-start;
-            }
-
-            .form-buttons {
-                flex-direction: column;
-            }
-
-            .social-buttons {
-                grid-template-columns: 1fr;
-            }
+        /* Demo Info */
+        .demo-info {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: #1565c0;
         }
 
+        .demo-info strong {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-info code {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Divider Text */
         .divider-text {
             text-align: center;
             color: #999;
             font-size: 0.9rem;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
         }
 
         .divider-text a {
@@ -455,6 +401,41 @@
 
         .divider-text a:hover {
             text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .login-left {
+                padding: 2rem 1.5rem;
+                min-height: 250px;
+            }
+
+            .login-left h1 {
+                font-size: 1.8rem;
+            }
+
+            .login-right {
+                padding: 2rem 1.5rem;
+            }
+
+            .role-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .form-options {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -496,7 +477,7 @@
         <div class="login-right">
             <div class="login-header">
                 <h2>Welcome Back</h2>
-                <p>Sign in to your account to continue</p>
+                <p>Sign in to your account</p>
             </div>
 
             <!-- Error Message -->
@@ -511,35 +492,45 @@
                 <span id="successText">Login successful! Redirecting...</span>
             </div>
 
-            <!-- Role Selection -->
+            <!-- Role Selection - ONLY Customer & Driver (Admin Hidden) -->
             <div class="role-selector">
-                <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked>
-                <label for="roleCustomer" class="role-label">
-                    <i class="fas fa-user"></i>
-                    <span>Customer</span>
-                </label>
+                <div>
+                    <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked>
+                    <label for="roleCustomer" class="role-label">
+                        <i class="fas fa-user"></i>
+                        <span>Customer</span>
+                    </label>
+                </div>
 
-                <input type="radio" name="role" id="roleDriver" value="driver" class="role-option">
-                <label for="roleDriver" class="role-label">
-                    <i class="fas fa-car"></i>
-                    <span>Driver</span>
-                </label>
+                <div>
+                    <input type="radio" name="role" id="roleDriver" value="driver" class="role-option">
+                    <label for="roleDriver" class="role-label">
+                        <i class="fas fa-car"></i>
+                        <span>Driver</span>
+                    </label>
+                </div>
 
-                <input type="radio" name="role" id="roleAdmin" value="admin" class="role-option">
-                <label for="roleAdmin" class="role-label">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Admin</span>
-                </label>
+                <!-- HIDDEN ADMIN OPTION (Only visible to Admin) -->
+                <div id="adminOptionContainer" style="display: none;">
+                    <input type="radio" name="role" id="roleAdmin" value="admin" class="role-option">
+                    <label for="roleAdmin" class="role-label">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Admin</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Demo Info -->
+            <div class="demo-info">
+                <strong>📝 Demo Accounts:</strong>
+                Customer: <code>test@email.com</code> / <code>test123</code>
             </div>
 
             <!-- Login Form -->
             <form id="loginForm">
                 <!-- Email -->
                 <div class="form-group">
-                    <label for="email">
-                        <i class="fas fa-envelope"></i>
-                        Email Address
-                    </label>
+                    <label for="email">Email Address</label>
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"></i>
                         <input 
@@ -554,10 +545,7 @@
 
                 <!-- Password -->
                 <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i>
-                        Password
-                    </label>
+                    <label for="password">Password</label>
                     <div class="input-with-icon">
                         <i class="fas fa-lock"></i>
                         <input 
@@ -576,9 +564,7 @@
                         <input type="checkbox" id="rememberMe">
                         <span>Remember me</span>
                     </label>
-                    <a class="forgot-password" onclick="alert('Password reset feature coming soon!')">
-                        Forgot password?
-                    </a>
+                    <a class="forgot-password">Forgot password?</a>
                 </div>
 
                 <!-- Buttons -->
@@ -591,22 +577,6 @@
                     </button>
                 </div>
             </form>
-
-            <!-- Social Login -->
-            <div class="social-divider">
-                <span>Or continue with</span>
-            </div>
-
-            <div class="social-buttons">
-                <button class="btn-social" onclick="alert('Google login coming soon!')">
-                    <i class="fab fa-google"></i>
-                    Google
-                </button>
-                <button class="btn-social" onclick="alert('Facebook login coming soon!')">
-                    <i class="fab fa-facebook"></i>
-                    Facebook
-                </button>
-            </div>
 
             <!-- Sign Up Link -->
             <div class="divider-text">
@@ -627,15 +597,70 @@
         const successMessage = document.getElementById('successMessage');
         const loginBtnText = document.getElementById('loginBtnText');
         const rememberMe = document.getElementById('rememberMe');
+        const adminOptionContainer = document.getElementById('adminOptionContainer');
 
-        // Show Error Message
+        // SECRET KEY - Change this to your own key
+        const ADMIN_SECRET_KEY = 'BhAuGeHlOt159AdminAccess';
+
+        // Check if Admin option should be shown
+        function checkAdminAccess() {
+            // Check if user has admin access key in localStorage
+            const hasAdminAccess = localStorage.getItem('adminAccess') === ADMIN_SECRET_KEY;
+            
+            if (hasAdminAccess) {
+                adminOptionContainer.style.display = 'block';
+                // Also need to update grid to 3 columns
+                document.querySelector('.role-selector').style.gridTemplateColumns = 'repeat(3, 1fr)';
+                updateDemoInfo();
+            }
+        }
+
+        // Update demo info when admin access is enabled
+        function updateDemoInfo() {
+            const demoInfo = document.querySelector('.demo-info');
+            if (adminOptionContainer.style.display !== 'none') {
+                demoInfo.innerHTML = `
+                    <strong>📝 Demo Accounts:</strong>
+                    Customer: <code>test@email.com</code> / <code>test123</code><br>
+                    Admin: <code>admin@goindia.com</code> / <code>admin123</code>
+                `;
+            }
+        }
+
+        // ADMIN ACCESS: Press Ctrl+Alt+A three times to unlock admin panel
+        let adminKeyPressCount = 0;
+        let adminKeyPressTimer = null;
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.altKey && e.key === 'a') {
+                e.preventDefault();
+                adminKeyPressCount++;
+
+                clearTimeout(adminKeyPressTimer);
+                adminKeyPressTimer = setTimeout(() => {
+                    adminKeyPressCount = 0;
+                }, 2000);
+
+                if (adminKeyPressCount === 3) {
+                    adminKeyPressCount = 0;
+                    // Save admin access
+                    localStorage.setItem('adminAccess', ADMIN_SECRET_KEY);
+                    adminOptionContainer.style.display = 'block';
+                    document.querySelector('.role-selector').style.gridTemplateColumns = 'repeat(3, 1fr)';
+                    updateDemoInfo();
+                    alert('✅ Admin panel unlocked! Refresh the page.');
+                }
+            }
+        });
+
+        // Show Error
         function showError(message) {
             errorText.textContent = message;
             errorMessage.classList.add('show');
             setTimeout(() => errorMessage.classList.remove('show'), 5000);
         }
 
-        // Show Success Message
+        // Show Success
         function showSuccess(message) {
             document.getElementById('successText').textContent = message;
             successMessage.classList.add('show');
@@ -650,14 +675,14 @@
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // Validate inputs
+            // Validate
             if (!emailInput.value.trim()) {
-                showError('Please enter your email address');
+                showError('Please enter email');
                 return;
             }
 
             if (!passwordInput.value) {
-                showError('Please enter your password');
+                showError('Please enter password');
                 return;
             }
 
@@ -666,15 +691,14 @@
             const email = emailInput.value.trim().toLowerCase();
             const password = passwordInput.value;
 
-            // Show loading state
+            // Loading state
             loginForm.style.opacity = '0.6';
             loginForm.style.pointerEvents = 'none';
             loginBtnText.innerHTML = '<span class="spinner"></span>Signing in...';
 
-            // Simulate API call
+            // Simulate API
             setTimeout(() => {
                 try {
-                    // Get users from localStorage
                     const users = JSON.parse(localStorage.getItem('users')) || [];
                     const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
                     const admins = JSON.parse(localStorage.getItem('admins')) || [
@@ -690,7 +714,6 @@
                     let user = null;
                     let redirectUrl = '';
 
-                    // Check based on role
                     if (role === 'customer') {
                         user = users.find(u => u.email === email && u.password === password);
                         redirectUrl = user ? './customer-dashboard.html' : null;
@@ -706,25 +729,20 @@
                         loginForm.style.opacity = '1';
                         loginForm.style.pointerEvents = 'auto';
                         loginBtnText.textContent = 'Sign In';
-                        showError(`Invalid email or password for ${role} account`);
+                        showError(`Invalid credentials for ${role}`);
                         return;
                     }
 
-                    // Store login info
                     user.role = role;
                     
                     if (role === 'customer') {
                         localStorage.setItem('currentUser', JSON.stringify(user));
-                        localStorage.setItem('userRole', 'customer');
                     } else if (role === 'driver') {
                         localStorage.setItem('currentDriver', JSON.stringify(user));
-                        localStorage.setItem('userRole', 'driver');
                     } else if (role === 'admin') {
                         localStorage.setItem('currentAdmin', JSON.stringify(user));
-                        localStorage.setItem('userRole', 'admin');
                     }
 
-                    // Remember me
                     if (rememberMe.checked) {
                         localStorage.setItem('rememberMe', 'true');
                         localStorage.setItem('savedEmail', email);
@@ -733,42 +751,37 @@
 
                     showSuccess('Login successful! Redirecting...');
 
-                    // Redirect
                     setTimeout(() => {
                         window.location.href = redirectUrl;
                     }, 1500);
 
                 } catch (error) {
-                    console.error('Login error:', error);
+                    console.error('Error:', error);
                     loginForm.style.opacity = '1';
                     loginForm.style.pointerEvents = 'auto';
                     loginBtnText.textContent = 'Sign In';
-                    showError('An error occurred. Please try again.');
+                    showError('An error occurred');
                 }
             }, 1500);
         });
 
-        // Load saved email if "Remember Me" was checked
+        // Load saved data
         window.addEventListener('load', function() {
-            const rememberMe = localStorage.getItem('rememberMe') === 'true';
-            if (rememberMe) {
-                const savedEmail = localStorage.getItem('savedEmail');
-                const savedRole = localStorage.getItem('savedRole');
+            // Check admin access first
+            checkAdminAccess();
+
+            if (localStorage.getItem('rememberMe') === 'true') {
+                const email = localStorage.getItem('savedEmail');
+                const role = localStorage.getItem('savedRole');
                 
-                if (savedEmail) emailInput.value = savedEmail;
-                if (savedRole) {
-                    const roleInput = document.querySelector(`input[name="role"][value="${savedRole}"]`);
-                    if (roleInput) roleInput.checked = true;
+                if (email) emailInput.value = email;
+                if (role && (role === 'customer' || role === 'driver' || (role === 'admin' && adminOptionContainer.style.display !== 'none'))) {
+                    document.querySelector(`input[name="role"][value="${role}"]`).checked = true;
                 }
                 
-                document.getElementById('rememberMe').checked = true;
+                rememberMe.checked = true;
             }
         });
-
-        // Demo accounts info (for testing)
-        console.log('Demo Accounts:');
-        console.log('Customer: test@email.com / test123');
-        console.log('Admin: admin@goindia.com / admin123');
     </script>
 </body>
 </html>
