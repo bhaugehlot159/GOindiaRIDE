@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard - GO India RIDE</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: calc(100vh - 80px);
+            background: #f5f5f5;
+        }
+        
+        .sidebar {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem 0;
+            position: sticky;
+            top: 80px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            padding: 1rem 2rem;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-menu li:hover,
+        .sidebar-menu li.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: #667eea;
+        }
+        
+        .sidebar-menu li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-header h1 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            background: #4caf50;
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-card .label {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .bookings-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .booking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .booking-info {
+            flex: 1;
+        }
+        
+        .booking-info .from-to {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .booking-info .time {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .booking-action {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn-accept {
+            padding: 0.5rem 1rem;
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-reject {
+            padding: 0.5rem 1rem;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-accept:hover { background: #45a049; }
+        .btn-reject:hover { background: #da190b; }
+        
+        .section-title {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .section-title i {
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i> GO India RIDE
+            </div>
+            <div style="color: white;">
+                <span id="driverName">Driver Portal</span>
+                <a href="../index.html" onclick="logout()" style="color: white; margin-left: 2rem; cursor: pointer;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="#overview">
+                        <i class="fas fa-home"></i>
+                        <span>Overview</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#bookings">
+                        <i class="fas fa-calendar"></i>
+                        <span>Active Bookings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#earnings">
+                        <i class="fas fa-wallet"></i>
+                        <span>Earnings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#vehicle">
+                        <i class="fas fa-car"></i>
+                        <span>Vehicle Info</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#documents">
+                        <i class="fas fa-file"></i>
+                        <span>Documents</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#ratings">
+                        <i class="fas fa-star"></i>
+                        <span>Ratings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#help">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help & Support</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div>
+                    <h1>Driver Dashboard</h1>
+                    <p id="driverWelcome" style="color: #666; margin: 0.5rem 0;">Welcome back!</p>
+                </div>
+                <div class="status-badge" id="statusBadge">
+                    <i class="fas fa-circle"></i> Online
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-car"></i>
+                    <div class="number" id="totalTrips">0</div>
+                    <div class="label">Total Trips Today</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-wallet"></i>
+                    <div class="number" id="totalEarnings">₹0</div>
+                    <div class="label">Earnings Today</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-star"></i>
+                    <div class="number" id="avgRating">4.5</div>
+                    <div class="label">Average Rating</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="number" id="onlineHours">0h</div>
+                    <div class="label">Online Hours</div>
+                </div>
+            </div>
+
+            <!-- Active Bookings Section -->
+            <div class="bookings-section">
+                <div class="section-title">
+                    <i class="fas fa-fire"></i>
+                    Active Booking Requests
+                </div>
+                <div id="bookingsList">
+                    <div style="text-align: center; color: #999; padding: 2rem;">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No active bookings at the moment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings Section -->
+            <div class="bookings-section" style="margin-top: 2rem;">
+                <div class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Today's Earnings
+                </div>
+                <div style="padding: 1rem;">
+                    <p><strong>Base Fare:</strong> <span id="baseFare">₹0</span></p>
+                    <p><strong>Distance Fare:</strong> <span id="distanceFare">₹0</span></p>
+                    <p><strong>Tips:</strong> <span id="tips">₹0</span></p>
+                    <p><strong>Commission (5%):</strong> <span id="commission">₹0</span></p>
+                    <hr>
+                    <p style="font-size: 1.3rem; font-weight: bold;"><strong>Net Earnings:</strong> <span id="netEarnings" style="color: #4caf50;">₹0</span></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check if driver is logged in
+        const driver = checkAuth();
+        if (!driver) {
+            window.location.href = './login.html';
+        }
+
+        // Load driver data
+        function loadDashboard() {
+            const driverData = JSON.parse(localStorage.getItem('currentDriver'));
+            if (driverData) {
+                document.getElementById('driverName').textContent = driverData.name || 'Driver';
+                document.getElementById('driverWelcome').textContent = `Welcome back, ${driverData.name}!`;
+                
+                // Load trips and earnings
+                const trips = JSON.parse(localStorage.getItem('driverTrips')) || [];
+                document.getElementById('totalTrips').textContent = trips.length;
+                
+                let totalEarnings = trips.reduce((sum, trip) => sum + (trip.fare || 0), 0);
+                document.getElementById('totalEarnings').textContent = '₹' + totalEarnings;
+            }
+        }
+
+        // Toggle online status
+        document.getElementById('statusBadge').addEventListener('click', function() {
+            this.classList.toggle('online');
+            const isOnline = this.textContent.includes('Online');
+            this.innerHTML = isOnline ? 
+                '<i class="fas fa-circle"></i> Offline' : 
+                '<i class="fas fa-circle"></i> Online';
+        });
+
+        // Initialize dashboard
+        loadDashboard();
+    </script>
+</body>
+</html>
