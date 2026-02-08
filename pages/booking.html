@@ -239,11 +239,6 @@
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
-        .booking-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         /* Right Side - Summary & Map */
         .summary-section {
             display: flex;
@@ -527,6 +522,163 @@
             background: rgba(255,255,255,0.3);
         }
 
+        /* Donation Modal */
+        .donation-modal .modal-content {
+            max-width: 500px;
+        }
+
+        .donation-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .donation-btn-option {
+            padding: 1rem;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .donation-btn-option:hover,
+        .donation-btn-option.selected {
+            border-color: #ff5722;
+            background: #fff3e0;
+        }
+
+        .donation-modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .donation-modal-icon {
+            font-size: 3rem;
+            color: #ff5722;
+            margin-bottom: 1rem;
+        }
+
+        .donation-modal-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .donation-modal-text {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .donation-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .donation-action-btn {
+            flex: 1;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .donation-action-btn.donate {
+            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+            color: white;
+        }
+
+        .donation-action-btn.skip {
+            background: #eee;
+            color: #333;
+        }
+
+        /* Receipt Modal */
+        .receipt-modal .modal-content {
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .receipt-header h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .receipt-header p {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .receipt-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .receipt-section h4 {
+            color: #999;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+
+        .receipt-row.total {
+            border-top: 2px solid #eee;
+            border-bottom: none;
+            padding-top: 1rem;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .receipt-total-amount {
+            color: #4caf50;
+        }
+
+        .receipt-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .receipt-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .receipt-btn.download {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .receipt-btn.share {
+            background: #eee;
+            color: #333;
+        }
+
         @media (max-width: 768px) {
             .booking-grid {
                 grid-template-columns: 1fr;
@@ -546,6 +698,10 @@
 
             .header {
                 margin-bottom: 1rem;
+            }
+
+            .donation-options {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -607,7 +763,6 @@
                                     <option value="Airport, Jaipur">
                                     <option value="Railway Station, Jaipur">
                                     <option value="Hawa Mahal, Jaipur">
-                                    <option value="City Palace, Jaipur">
                                 </datalist>
                             </div>
                         </div>
@@ -630,7 +785,6 @@
                                     <option value="Airport, Jaipur">
                                     <option value="Railway Station, Jaipur">
                                     <option value="Mall, Jaipur">
-                                    <option value="Hospital, Jaipur">
                                 </datalist>
                             </div>
                         </div>
@@ -642,20 +796,12 @@
 
                         <div class="form-group">
                             <label for="rideDate">Date *</label>
-                            <input 
-                                type="date" 
-                                id="rideDate" 
-                                required
-                            >
+                            <input type="date" id="rideDate" required>
                         </div>
 
                         <div class="form-group">
                             <label for="rideTime">Time *</label>
-                            <input 
-                                type="time" 
-                                id="rideTime" 
-                                required
-                            >
+                            <input type="time" id="rideTime" required>
                         </div>
                     </div>
 
@@ -739,14 +885,6 @@
                             <label class="request-checkbox">
                                 <input type="checkbox" id="music" onchange="updateFare()">
                                 <span>Music System</span>
-                            </label>
-                            <label class="request-checkbox">
-                                <input type="checkbox" id="quietRide" onchange="updateFare()">
-                                <span>Quiet Ride</span>
-                            </label>
-                            <label class="request-checkbox">
-                                <input type="checkbox" id="accessibility" onchange="updateFare()">
-                                <span>Wheelchair Accessible</span>
                             </label>
                         </div>
                     </div>
@@ -876,8 +1014,128 @@
                 <br><br>
                 Driver will be assigned in a moment. Check your dashboard for updates.
             </div>
-            <button class="modal-btn" onclick="closeSucessModal()">
+            <button class="modal-btn" onclick="closeSuccessModal()">
                 View Booking
+            </button>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div class="modal donation-modal" id="donationModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDonationModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+            
+            <div class="donation-modal-header">
+                <div class="donation-modal-icon">❤️</div>
+                <div class="donation-modal-title">Help Someone Today</div>
+                <div class="donation-modal-text">
+                    Your ride was amazing! Would you like to help an underprivileged driver or student with a small donation?
+                </div>
+            </div>
+
+            <div style="background: #fff3e0; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #ff5722;">
+                <p style="color: #e65100; font-size: 0.9rem;">
+                    <strong>💡 Did you know?</strong> 10% of our platform's revenue goes to help drivers and their families.
+                </p>
+            </div>
+
+            <h4 style="color: #333; margin-bottom: 1rem; font-weight: 600;">Choose Amount:</h4>
+            <div class="donation-options">
+                <button type="button" class="donation-btn-option" onclick="selectDonation(50)">₹50</button>
+                <button type="button" class="donation-btn-option" onclick="selectDonation(100)">₹100</button>
+                <button type="button" class="donation-btn-option" onclick="selectDonation(250)">₹250</button>
+                <button type="button" class="donation-btn-option" onclick="selectDonation(500)">₹500</button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <input type="number" id="customDonationAmount" placeholder="Or enter custom amount (₹)" min="1" style="width: 100%; padding: 0.8rem; border: 2px solid #ddd; border-radius: 8px;">
+            </div>
+
+            <div class="donation-actions">
+                <button type="button" class="donation-action-btn donate" onclick="submitDonation()">
+                    <i class="fas fa-heart"></i>
+                    Donate Now
+                </button>
+                <button type="button" class="donation-action-btn skip" onclick="closeDonationModal()">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal receipt-modal" id="receiptModal">
+        <div class="modal-content">
+            <div class="receipt-header">
+                <h3>🎉 Thank You!</h3>
+                <p>Your donation & ride receipt</p>
+            </div>
+
+            <div class="receipt-section">
+                <h4>Ride Details</h4>
+                <div class="receipt-row">
+                    <span>Pickup Location</span>
+                    <span id="receiptPickup">-</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Dropoff Location</span>
+                    <span id="receiptDropoff">-</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Ride Fare</span>
+                    <span id="receiptFare">₹0</span>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h4>Donation Details</h4>
+                <div class="receipt-row">
+                    <span>Donation Amount</span>
+                    <span id="receiptDonation">₹0</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Beneficiary</span>
+                    <span>Underprivileged Driver Fund</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Reference ID</span>
+                    <span id="receiptRefId">-</span>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h4>Summary</h4>
+                <div class="receipt-row">
+                    <span>Ride Amount</span>
+                    <span id="receiptRideAmount">₹0</span>
+                </div>
+                <div class="receipt-row">
+                    <span>+ Donation</span>
+                    <span id="receiptDonationAmount">₹0</span>
+                </div>
+                <div class="receipt-row total">
+                    <span>Total Paid</span>
+                    <span id="receiptTotal">₹0</span>
+                </div>
+            </div>
+
+            <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #4caf50;">
+                <p style="color: #2e7d32; font-size: 0.9rem;">
+                    <strong>✅ Impact:</strong> Your donation will help one person get better opportunities!
+                </p>
+            </div>
+
+            <div class="receipt-actions">
+                <button class="receipt-btn download" onclick="downloadReceipt()">
+                    <i class="fas fa-download"></i>
+                    Download
+                </button>
+                <button class="receipt-btn share" onclick="shareReceipt()">
+                    <i class="fas fa-share"></i>
+                    Share
+                </button>
+            </div>
+
+            <button class="modal-btn" onclick="closeReceiptModal()" style="width: 100%; margin-top: 1rem;">
+                Continue to Dashboard
             </button>
         </div>
     </div>
@@ -901,23 +1159,22 @@
         }
 
         let currentUser = null;
+        let selectedDonationAmount = 0;
+        let currentRideForDonation = null;
 
         window.addEventListener('load', function() {
             currentUser = checkAuth();
             if (!currentUser) return;
 
-            // Set today's date as minimum
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('rideDate').min = today;
             document.getElementById('rideDate').value = today;
 
-            // Set current time
             const now = new Date();
             const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
                               now.getMinutes().toString().padStart(2, '0');
             document.getElementById('rideTime').value = timeString;
 
-            // Initial fare calculation
             updateFare();
         });
 
@@ -931,20 +1188,15 @@
             const luggage = document.getElementById('luggage').value;
             const distance = parseInt(document.getElementById('distanceKm').textContent) || 5;
 
-            // Rates per km
             const rates = {
                 'economy': 10,
                 'premium': 15,
                 'xl': 20
             };
 
-            // Base fare
             const baseFare = 50;
-
-            // Distance fare
             const distanceFare = distance * rates[rideType];
 
-            // Luggage charges
             const luggageCharges = {
                 'none': 0,
                 'small': 20,
@@ -954,23 +1206,16 @@
 
             const luggageFare = luggageCharges[luggage];
 
-            // Extra charges for special requests
             let extrasFare = 0;
             if (document.getElementById('airCondition').checked) extrasFare += 20;
             if (document.getElementById('wifi').checked) extrasFare += 10;
             if (document.getElementById('charger').checked) extrasFare += 10;
             if (document.getElementById('music').checked) extrasFare += 15;
-            if (document.getElementById('quietRide').checked) extrasFare += 15;
-            if (document.getElementById('accessibility').checked) extrasFare += 30;
 
-            // Taxes (10% of subtotal)
             const subtotal = baseFare + distanceFare + luggageFare + extrasFare;
             const taxesFare = Math.round(subtotal * 0.1);
-
-            // Total
             const totalFare = subtotal + taxesFare;
 
-            // Update display
             document.getElementById('baseFare').textContent = `₹${baseFare}`;
             document.getElementById('distanceFare').textContent = `₹${distanceFare}`;
             document.getElementById('luggageFare').textContent = `₹${luggageFare}`;
@@ -1002,7 +1247,6 @@
         function bookRide(e) {
             e.preventDefault();
 
-            // Validate fields
             const pickup = document.getElementById('pickup').value.trim();
             const dropoff = document.getElementById('dropoff').value.trim();
             const rideDate = document.getElementById('rideDate').value;
@@ -1021,7 +1265,6 @@
                 return;
             }
 
-            // Create booking object
             const bookingId = 'RID' + Date.now();
             const totalFare = parseInt(document.getElementById('totalFare').textContent.replace('₹', ''));
             const distance = parseInt(document.getElementById('distanceKm').textContent);
@@ -1047,35 +1290,34 @@
                 driverETA: null
             };
 
-            // Save booking
             let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             bookings.push(booking);
             localStorage.setItem('bookings', JSON.stringify(bookings));
 
             console.log('✅ Booking created:', booking);
 
-            // Show success modal
             document.getElementById('bookingReference').textContent = `Reference: #${bookingId}`;
             document.getElementById('successModal').classList.add('active');
 
-            // Simulate driver assignment after 3 seconds
             setTimeout(() => {
                 assignDriver(bookingId);
             }, 3000);
+
+            setTimeout(() => {
+                completeRideAndShowDonation(bookingId);
+            }, 5000);
         }
 
         function assignDriver(bookingId) {
             const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
             
             if (drivers.length === 0) {
-                showError('No drivers available at the moment');
+                showError('No drivers available');
                 return;
             }
 
-            // Random driver assignment
             const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
 
-            // Update booking with driver
             let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const bookingIdx = bookings.findIndex(b => b.id === bookingId);
             
@@ -1090,9 +1332,7 @@
                 bookings[bookingIdx].status = 'confirmed';
                 
                 localStorage.setItem('bookings', JSON.stringify(bookings));
-                console.log('✅ Driver assigned:', randomDriver.name);
 
-                // Show driver details
                 document.getElementById('driverName').textContent = randomDriver.name;
                 document.getElementById('driverRating').textContent = `⭐⭐⭐⭐⭐ ${randomDriver.rating || 5.0}`;
                 document.getElementById('vehicleType').textContent = randomDriver.vehicleType;
@@ -1105,8 +1345,171 @@
             }
         }
 
+        // 🎯 Complete ride and show donation
+        function completeRideAndShowDonation(bookingId) {
+            let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const idx = bookings.findIndex(b => b.id === bookingId);
+            
+            if (idx !== -1) {
+                bookings[idx].status = 'completed';
+                bookings[idx].duration = Math.floor(Math.random() * 30) + 10 + ' mins';
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+
+                setTimeout(() => {
+                    document.getElementById('successModal').classList.remove('active');
+                    currentRideForDonation = bookingId;
+                    selectedDonationAmount = 50;
+                    document.getElementById('donationModal').classList.add('active');
+                }, 1000);
+            }
+        }
+
         // ============================================
-        // MESSAGE FUNCTIONS
+        // DONATION SYSTEM
+        // ============================================
+
+        function closeDonationModal() {
+            document.getElementById('donationModal').classList.remove('active');
+            window.location.href = './customer-dashboard.html';
+        }
+
+        function selectDonation(amount) {
+            selectedDonationAmount = amount;
+            document.querySelectorAll('.donation-btn-option').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            document.getElementById('customDonationAmount').value = '';
+        }
+
+        document.getElementById('customDonationAmount')?.addEventListener('input', function() {
+            if (this.value) {
+                selectedDonationAmount = parseInt(this.value);
+                document.querySelectorAll('.donation-btn-option').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+            }
+        });
+
+        function submitDonation() {
+            const customAmount = document.getElementById('customDonationAmount').value;
+            const amount = customAmount ? parseInt(customAmount) : selectedDonationAmount;
+
+            if (!amount || amount < 1) {
+                alert('Please select a valid amount');
+                return;
+            }
+
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const ride = bookings.find(b => b.id === currentRideForDonation);
+
+            if (!ride) {
+                alert('Ride not found');
+                return;
+            }
+
+            // Create donation
+            const donation = {
+                id: 'DON' + Date.now(),
+                rideId: currentRideForDonation,
+                amount: amount,
+                beneficiary: 'Underprivileged Driver Fund',
+                createdAt: new Date().toISOString()
+            };
+
+            let donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
+            donations.push(donation);
+            localStorage.setItem('customerDonations_' + currentUser.id, JSON.stringify(donations));
+
+            // Deduct from wallet
+            let wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0, transactions: [] };
+            wallet.balance -= amount;
+            wallet.transactions = wallet.transactions || [];
+            wallet.transactions.unshift({
+                type: 'donation',
+                amount: amount,
+                description: 'Donation to help drivers',
+                date: new Date().toISOString()
+            });
+            localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
+
+            // Show receipt
+            const totalAmount = ride.totalFare + amount;
+
+            document.getElementById('receiptPickup').textContent = ride.pickup;
+            document.getElementById('receiptDropoff').textContent = ride.dropoff;
+            document.getElementById('receiptFare').textContent = `₹${ride.totalFare}`;
+            document.getElementById('receiptDonation').textContent = `₹${amount}`;
+            document.getElementById('receiptRefId').textContent = donation.id;
+            document.getElementById('receiptRideAmount').textContent = `₹${ride.totalFare}`;
+            document.getElementById('receiptDonationAmount').textContent = `₹${amount}`;
+            document.getElementById('receiptTotal').textContent = `₹${totalAmount}`;
+
+            document.getElementById('donationModal').classList.remove('active');
+            document.getElementById('receiptModal').classList.add('active');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('active');
+            window.location.href = './customer-dashboard.html';
+        }
+
+        function downloadReceipt() {
+            const receiptText = `
+GO INDIA RIDE - RECEIPT
+
+========================
+RIDE DETAILS
+========================
+Pickup: ${document.getElementById('receiptPickup').textContent}
+Dropoff: ${document.getElementById('receiptDropoff').textContent}
+Ride Fare: ${document.getElementById('receiptFare').textContent}
+
+========================
+DONATION DETAILS
+========================
+Donation Amount: ${document.getElementById('receiptDonation').textContent}
+Beneficiary: Underprivileged Driver Fund
+Reference ID: ${document.getElementById('receiptRefId').textContent}
+Date: ${new Date().toLocaleString()}
+
+========================
+SUMMARY
+========================
+Ride Amount: ${document.getElementById('receiptRideAmount').textContent}
++ Donation: ${document.getElementById('receiptDonationAmount').textContent}
+Total Paid: ${document.getElementById('receiptTotal').textContent}
+
+Thank you for your generosity! ❤️
+            `;
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(receiptText));
+            element.setAttribute('download', 'receipt_' + new Date().getTime() + '.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+
+            alert('✅ Receipt downloaded!');
+        }
+
+        function shareReceipt() {
+            const donationAmount = document.getElementById('receiptDonation').textContent;
+            const shareText = `I just donated ${donationAmount} through GO India RIDE to help underprivileged drivers! 🙏❤️ #GoIndiaRide`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'GO India RIDE Donation',
+                    text: shareText
+                });
+            } else {
+                alert('Share: ' + shareText);
+            }
+        }
+
+        // ============================================
+        // MESSAGES
         // ============================================
 
         function showError(message) {
@@ -1122,16 +1525,6 @@
         }
 
         // ============================================
-        // MODAL FUNCTIONS
-        // ============================================
-
-        function closeSucessModal() {
-            document.getElementById('successModal').classList.remove('active');
-            // Redirect to dashboard
-            window.location.href = './customer-dashboard.html';
-        }
-
-        // ============================================
         // DRIVER ACTIONS
         // ============================================
 
@@ -1144,15 +1537,15 @@
         }
 
         // ============================================
-        // UTILITY FUNCTIONS
+        // UTILITY
         // ============================================
 
         function goBack() {
-            if (currentUser) {
-                window.location.href = './customer-dashboard.html';
-            } else {
-                window.location.href = './login.html';
-            }
+            window.location.href = './customer-dashboard.html';
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
         }
 
         console.log('🚀 Booking page loaded');
