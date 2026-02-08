@@ -1,79 +1,154 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>GoIndiaRide – Rajasthan Taxi Service</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO India RIDE - Premium Taxi Service</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i> GO India RIDE
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="pages/login.html" class="btn-login">Login</a></li>
+                <li><a href="pages/signup.html" class="btn-signup">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
 
-  <!-- ================= HEADER ================= -->
-  <header>
-    <h1>GoIndiaRide</h1>
-    <p>Rajasthan Taxi & Travel Service</p>
-  </header>
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Your Trusted Taxi Partner in India</h1>
+            <p>Fast, Safe & Affordable Rides at Your Fingertips</p>
+            <div class="hero-buttons">
+                <a href="pages/booking.html" class="btn btn-primary">Book a Ride</a>
+                <a href="#how-it-works" class="btn btn-secondary">How It Works</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="images/hero-car.png" alt="Taxi">
+        </div>
+    </section>
 
-  <!-- ================= BOOKING SECTION ================= -->
-  <section class="booking-section">
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2>Why Choose GO India RIDE?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-map-location-dot"></i>
+                    <h3>Real-time Tracking</h3>
+                    <p>Track your ride in real-time with GPS location</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield"></i>
+                    <h3>Safe & Secure</h3>
+                    <p>Emergency SOS button and driver verification</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-wallet"></i>
+                    <h3>Easy Payment</h3>
+                    <p>Multiple payment options - Card, UPI, Wallet</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Best Prices</h3>
+                    <p>Transparent pricing with no hidden charges</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>24/7 Support</h3>
+                    <p>Customer support available round the clock</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Ride Sharing</h3>
+                    <p>Share rides and save up to 50% on fares</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <label for="locationInput">Location चुनें</label>
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Enter Location</h3>
+                    <p>Pick your pick-up & drop-off location</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Choose Ride</h3>
+                    <p>Select ride type and see estimated fare</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Confirm Booking</h3>
+                    <p>Confirm your ride and meet your driver</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Enjoy Ride</h3>
+                    <p>Track driver and enjoy safe ride</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <input
-      type="text"
-      id="locationInput"
-      placeholder="State, District या Tourist Place लिखें"
-      autocomplete="off"
-    >
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <h2>About GO India RIDE</h2>
+            <p>We are committed to providing safe, reliable, and affordable taxi services across India. With our advanced technology and professional drivers, we ensure every ride is smooth and hassle-free.</p>
+        </div>
+    </section>
 
-    <!-- AUTOCOMPLETE SUGGESTIONS -->
-    <ul id="suggestions" class="suggestions-box"></ul>
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <p>+91 XXXXX XXXXX</p>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <p>support@goindiaride.in</p>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-location-dot"></i>
+                    <p>India</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  </section>
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 GO India RIDE. All rights reserved.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
 
-  <!-- ================= TOURIST PLACES OUTPUT ================= -->
-  <section id="placesSection" class="places-section">
-    <!-- JS से tourist places यहाँ आएंगे -->
-  </section>
-
-  <!-- ================= VEHICLES ================= -->
-  <section class="vehicles">
-    <h2>Available Vehicles</h2>
-    <ul>
-      <li>Swift Dzire</li>
-      <li>Ertiga</li>
-      <li>Innova Crysta</li>
-      <li>Tempo Traveller</li>
-    </ul>
-
-    <a
-      class="btn"
-      href="https://wa.me/918426891471"
-      target="_blank">
-      WhatsApp Booking
-    </a>
-  </section>
-
-  <!-- ================= FOOTER ================= -->
-  <footer>
-    © GoIndiaRide – Rajasthan Taxi Service
-  </footer>
-
-  <!-- JS FILES (ORDER IMPORTANT) -->
-
-<script src="js/locations.js"></script>
-
-<!-- STEP-2 DATA FILE (VERY IMPORTANT) -->
-<script src="js/data/rajasthan-tourist-places.js"></script>
-
-<!-- TEST (temporary) -->
-<script>
-  console.log("TEST:", window.RajasthanTouristPlaces);
-</script>
-
-<script src="js/booking.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
