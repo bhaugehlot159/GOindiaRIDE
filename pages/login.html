@@ -118,6 +118,10 @@
             box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
         }
 
+        .admin-portal-link i {
+            font-size: 1rem;
+        }
+
         .login-header {
             margin-bottom: 2rem;
             text-align: center;
@@ -356,6 +360,10 @@
         .error-message.show {
             display: block;
             animation: slideDown 0.3s ease;
+        }
+
+        .error-message i {
+            margin-right: 0.5rem;
         }
 
         .success-message {
@@ -801,11 +809,10 @@
 
     <script>
         // ============================================
-        // INITIALIZE DEMO DATA
+        // INITIALIZE DEMO DATA ON PAGE LOAD
         // ============================================
 
         function initializeDemoData() {
-            // Check if demo data already exists
             const existingUsers = localStorage.getItem('users');
             const existingDrivers = localStorage.getItem('drivers');
 
@@ -822,7 +829,7 @@
                     }
                 ];
                 localStorage.setItem('users', JSON.stringify(demoUsers));
-                console.log('✅ Demo customer account created');
+                console.log('✅ Demo customer account initialized');
             }
 
             if (!existingDrivers) {
@@ -839,8 +846,11 @@
                     }
                 ];
                 localStorage.setItem('drivers', JSON.stringify(demoDrivers));
-                console.log('✅ Demo driver account created');
+                console.log('✅ Demo driver account initialized');
             }
+
+            console.log('📊 Current Users:', JSON.parse(localStorage.getItem('users')));
+            console.log('📊 Current Drivers:', JSON.parse(localStorage.getItem('drivers')));
         }
 
         // Initialize on page load
@@ -884,7 +894,7 @@
         }
 
         // ============================================
-        // MAIN LOGIN LOGIC
+        // MAIN LOGIN LOGIC - FULLY FIXED
         // ============================================
 
         const loginForm = document.getElementById('loginForm');
@@ -936,17 +946,17 @@
             window.location.href = './signup.html';
         }
 
-        // Form Submission - ✅ FIXED
+        // LOGIN FORM SUBMISSION - COMPLETE & FIXED
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
             if (!emailInput.value.trim()) {
-                showError('Please enter email');
+                showError('❌ Please enter email');
                 return;
             }
 
             if (!passwordInput.value) {
-                showError('Please enter password');
+                showError('❌ Please enter password');
                 return;
             }
 
@@ -954,7 +964,10 @@
             const email = emailInput.value.trim().toLowerCase();
             const password = passwordInput.value;
 
-            console.log('🔐 Login attempt:', { role, email });
+            console.log('🔐 Login Attempt:');
+            console.log('  Role:', role);
+            console.log('  Email:', email);
+            console.log('  Password length:', password.length);
 
             loginForm.style.opacity = '0.6';
             loginForm.style.pointerEvents = 'none';
@@ -964,7 +977,7 @@
                 try {
                     const users = JSON.parse(localStorage.getItem('users')) || [];
                     const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-                    const admins = JSON.parse(localStorage.getItem('admins')) || [
+                    const admins = [
                         {
                             id: 'admin1',
                             email: 'admin@goindia.com',
@@ -974,35 +987,49 @@
                         }
                     ];
 
+                    console.log('📊 Available Data:');
+                    console.log('  Users count:', users.length);
+                    console.log('  Drivers count:', drivers.length);
+
                     let user = null;
                     let redirectUrl = '';
 
-                    console.log('👥 Checking users:', users);
-                    console.log('🚗 Checking drivers:', drivers);
-
                     if (role === 'customer') {
-                        user = users.find(u => u.email === email && u.password === password);
+                        console.log('🔎 Searching in customers...');
+                        user = users.find(u => {
+                            const emailMatch = u.email === email;
+                            const passwordMatch = u.password === password;
+                            console.log(`    Checking ${u.email}: email=${emailMatch}, password=${passwordMatch}`);
+                            return emailMatch && passwordMatch;
+                        });
                         if (user) {
                             redirectUrl = './customer-dashboard.html';
                             localStorage.setItem('currentUser', JSON.stringify(user));
                             localStorage.setItem('userRole', 'customer');
-                            console.log('✅ Customer login successful');
+                            console.log('✅ CUSTOMER LOGIN SUCCESSFUL');
                         }
                     } else if (role === 'driver') {
-                        user = drivers.find(d => d.email === email && d.password === password);
+                        console.log('🔎 Searching in drivers...');
+                        user = drivers.find(d => {
+                            const emailMatch = d.email === email;
+                            const passwordMatch = d.password === password;
+                            console.log(`    Checking ${d.email}: email=${emailMatch}, password=${passwordMatch}`);
+                            return emailMatch && passwordMatch;
+                        });
                         if (user) {
                             redirectUrl = './driver-dashboard.html';
                             localStorage.setItem('currentDriver', JSON.stringify(user));
                             localStorage.setItem('userRole', 'driver');
-                            console.log('✅ Driver login successful');
+                            console.log('✅ DRIVER LOGIN SUCCESSFUL');
                         }
                     } else if (role === 'admin') {
+                        console.log('🔎 Searching in admins...');
                         user = admins.find(a => a.email === email && a.password === password);
                         if (user) {
                             redirectUrl = './admin-dashboard.html';
                             localStorage.setItem('currentAdmin', JSON.stringify(user));
                             localStorage.setItem('userRole', 'admin');
-                            console.log('✅ Admin login successful');
+                            console.log('✅ ADMIN LOGIN SUCCESSFUL');
                         }
                     }
 
@@ -1010,8 +1037,8 @@
                         loginForm.style.opacity = '1';
                         loginForm.style.pointerEvents = 'auto';
                         loginBtnText.textContent = 'Sign In';
-                        showError(`❌ Invalid email or password for ${role}`);
-                        console.log('❌ Login failed - Invalid credentials');
+                        showError(`❌ Invalid email or password`);
+                        console.log('❌ LOGIN FAILED - Credentials not found');
                         return;
                     }
 
@@ -1024,20 +1051,21 @@
                     showSuccess('✅ Login successful! Redirecting...');
 
                     setTimeout(() => {
+                        console.log('🚀 Redirecting to:', redirectUrl);
                         window.location.href = redirectUrl;
                     }, 1500);
 
                 } catch (error) {
-                    console.error('Login error:', error);
+                    console.error('❌ Login error:', error);
                     loginForm.style.opacity = '1';
                     loginForm.style.pointerEvents = 'auto';
                     loginBtnText.textContent = 'Sign In';
-                    showError('An error occurred. Please try again.');
+                    showError('❌ An error occurred. Please try again.');
                 }
             }, 1500);
         });
 
-        // Load saved data
+        // Load saved data on page load
         window.addEventListener('load', function() {
             if (localStorage.getItem('rememberMe') === 'true') {
                 const email = localStorage.getItem('savedEmail');
@@ -1053,11 +1081,11 @@
                 rememberMe.checked = true;
             }
 
-            console.log('✅ Login page loaded');
+            console.log('✅ Login page fully initialized');
         });
 
         // ============================================
-        // FORGOT PASSWORD LOGIC FOR ALL ROLES
+        // FORGOT PASSWORD MODAL LOGIC
         // ============================================
 
         function openForgotPasswordModal() {
@@ -1104,7 +1132,7 @@
             localStorage.setItem('resetEmail', email);
             localStorage.setItem('resetUserType', userExists ? 'customer' : 'driver');
 
-            console.log('✅ Email verified:', email, userExists ? 'Customer' : 'Driver');
+            console.log('✅ Email verified:', email);
 
             document.getElementById('forgotStep1').style.display = 'none';
             document.getElementById('forgotStep2').style.display = 'block';
@@ -1176,7 +1204,7 @@
             }
         }
 
-        console.log('🚀 Login page fully initialized');
+        console.log('🚀 Login page fully loaded and initialized');
     </script>
 </body>
 </html>
