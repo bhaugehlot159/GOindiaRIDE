@@ -17,7 +17,6 @@
             background: #f5f5f5;
         }
 
-        /* Navbar */
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -73,14 +72,12 @@
             border-radius: 20px;
             font-weight: bold;
             cursor: pointer;
-        }
-
-        .status-online {
+            border: none;
             background: rgba(76, 175, 80, 0.2);
             color: #4caf50;
         }
 
-        .status-offline {
+        .status-badge.offline {
             background: rgba(244, 67, 54, 0.2);
             color: #f44336;
         }
@@ -99,14 +96,12 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        /* Header Section */
         .header-section {
             background: white;
             padding: 2rem;
@@ -135,7 +130,7 @@
 
         .header-btn {
             padding: 0.8rem 1.5rem;
-            border: 2px solid #667eea;
+            border: none;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 8px;
@@ -152,13 +147,13 @@
         .header-btn.secondary {
             background: white;
             color: #667eea;
+            border: 2px solid #667eea;
         }
 
         .header-btn.secondary:hover {
             background: #f0f4ff;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -193,7 +188,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Tabs */
         .tabs {
             background: white;
             border-radius: 12px;
@@ -241,7 +235,6 @@
             display: block;
         }
 
-        /* Ride Cards */
         .ride-list {
             display: grid;
             gap: 1.5rem;
@@ -321,7 +314,6 @@
             background: #764ba2;
         }
 
-        /* Profile Section */
         .profile-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -372,7 +364,7 @@
             font-size: 0.9rem;
         }
 
-        .profile-detail value {
+        .profile-detail-value {
             display: block;
             color: #333;
             font-weight: 600;
@@ -396,7 +388,6 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        /* Earnings Section */
         .earnings-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -439,7 +430,6 @@
             font-weight: bold;
         }
 
-        /* Vehicle Section */
         .vehicle-card {
             background: white;
             padding: 2rem;
@@ -469,7 +459,6 @@
             font-size: 0.9rem;
         }
 
-        /* Documents Section */
         .documents-list {
             display: grid;
             gap: 1rem;
@@ -527,7 +516,6 @@
             color: #f44336;
         }
 
-        /* Ratings Section */
         .ratings-section {
             background: white;
             padding: 2rem;
@@ -585,7 +573,6 @@
             opacity: 0.5;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -678,6 +665,29 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
         @media (max-width: 768px) {
             .navbar-container {
                 padding: 0 1rem;
@@ -726,7 +736,6 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-logo">
@@ -737,7 +746,7 @@
                 <div class="navbar-user">
                     <div class="user-avatar" id="userAvatar">D</div>
                     <span id="userName">Driver</span>
-                    <button class="status-badge status-online" id="statusBadge" onclick="toggleOnlineStatus()">
+                    <button class="status-badge" id="statusBadge" onclick="toggleOnlineStatus()">
                         <i class="fas fa-circle"></i> Online
                     </button>
                 </div>
@@ -749,9 +758,16 @@
         </div>
     </nav>
 
-    <!-- Main Container -->
     <div class="container">
-        <!-- Header Section -->
+        <div class="message success" id="successMessage">
+            <i class="fas fa-check-circle"></i>
+            <span id="successText"></span>
+        </div>
+        <div class="message error" id="errorMessage">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorText"></span>
+        </div>
+
         <div class="header-section">
             <div class="header-title">
                 <h1 id="welcomeMsg">Welcome back, Driver!</h1>
@@ -769,7 +785,6 @@
             </div>
         </div>
 
-        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Today's Earnings</h3>
@@ -788,7 +803,6 @@
             </div>
         </div>
 
-        <!-- Tabs Section -->
         <div class="tabs">
             <div class="tab-buttons">
                 <button class="tab-button active" onclick="switchTab('rides')">
@@ -808,7 +822,6 @@
                 </button>
             </div>
 
-            <!-- Pending Rides Tab -->
             <div class="tab-content active" id="ridesTab">
                 <div id="pendingRidesList" class="ride-list">
                     <div class="empty-state">
@@ -818,7 +831,6 @@
                 </div>
             </div>
 
-            <!-- Completed Rides Tab -->
             <div class="tab-content" id="completedTab">
                 <div id="completedRidesList" class="ride-list">
                     <div class="empty-state">
@@ -828,7 +840,6 @@
                 </div>
             </div>
 
-            <!-- Earnings Tab -->
             <div class="tab-content" id="earningsTab">
                 <div class="earnings-card">
                     <div class="earnings-label">Total Earnings</div>
@@ -860,10 +871,8 @@
                 </div>
             </div>
 
-            <!-- Profile Tab -->
             <div class="tab-content" id="profileTab">
                 <div class="profile-section">
-                    <!-- Driver Info -->
                     <div class="profile-info">
                         <div class="profile-avatar" id="profileAvatar">D</div>
                         <div class="profile-name" id="profileName">Driver Name</div>
@@ -871,17 +880,17 @@
 
                         <div class="profile-detail">
                             <label>Email</label>
-                            <value id="profileEmail">email@example.com</value>
+                            <div class="profile-detail-value" id="profileEmail">email@example.com</div>
                         </div>
 
                         <div class="profile-detail">
                             <label>Mobile Number</label>
-                            <value id="profilePhone">9876543210</value>
+                            <div class="profile-detail-value" id="profilePhone">9876543210</div>
                         </div>
 
                         <div class="profile-detail">
                             <label>Member Since</label>
-                            <value id="profileMemberSince">Jan 2024</value>
+                            <div class="profile-detail-value" id="profileMemberSince">Jan 2024</div>
                         </div>
 
                         <button class="edit-profile-btn" onclick="openEditProfileModal()">
@@ -890,7 +899,6 @@
                         </button>
                     </div>
 
-                    <!-- Vehicle Info -->
                     <div class="profile-info">
                         <h3 style="margin-bottom: 1.5rem;">Vehicle Details</h3>
 
@@ -906,17 +914,17 @@
 
                         <div class="profile-detail">
                             <label>Vehicle Type</label>
-                            <value id="vehicleType">Economy</value>
+                            <div class="profile-detail-value" id="vehicleType">Economy</div>
                         </div>
 
                         <div class="profile-detail">
                             <label>Year of Manufacture</label>
-                            <value id="vehicleYear">2020</value>
+                            <div class="profile-detail-value" id="vehicleYear">2020</div>
                         </div>
 
                         <div class="profile-detail">
                             <label>Insurance Valid Till</label>
-                            <value id="insuranceValid">31-Dec-2025</value>
+                            <div class="profile-detail-value" id="insuranceValid">31-Dec-2025</div>
                         </div>
 
                         <button class="edit-profile-btn" onclick="editVehicle()">
@@ -926,7 +934,6 @@
                     </div>
                 </div>
 
-                <!-- Documents Section -->
                 <div style="margin-top: 2rem;">
                     <h3 style="margin-bottom: 1.5rem;">Documents</h3>
                     <div class="documents-list">
@@ -993,7 +1000,6 @@
                 </div>
             </div>
 
-            <!-- Ratings Tab -->
             <div class="tab-content" id="ratingsTab">
                 <div class="ratings-section">
                     <h3 style="margin-bottom: 1.5rem;">Customer Ratings</h3>
@@ -1008,7 +1014,6 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
     <div class="modal" id="editProfileModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1043,30 +1048,21 @@
     </div>
 
     <script>
-        // ============================================
-        // AUTHENTICATION CHECK
-        // ============================================
+        let currentDriver = null;
+        let isOnline = true;
 
         function checkAuth() {
             const userRole = localStorage.getItem('userRole');
-            const currentDriver = localStorage.getItem('currentDriver');
+            const currentDriverData = localStorage.getItem('currentDriver');
 
-            if (userRole !== 'driver' || !currentDriver) {
-                console.log('❌ Not authenticated as driver');
-                alert('Please login as driver first');
+            if (userRole !== 'driver' || !currentDriverData) {
+                alert('❌ Please login as driver first');
                 window.location.href = './login.html';
                 return null;
             }
 
-            return JSON.parse(currentDriver);
+            return JSON.parse(currentDriverData);
         }
-
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-
-        let currentDriver = null;
-        let isOnline = true;
 
         window.addEventListener('load', function() {
             currentDriver = checkAuth();
@@ -1079,32 +1075,23 @@
             loadRatings();
         });
 
-        // ============================================
-        // LOAD DASHBOARD DATA
-        // ============================================
-
         function loadDashboard() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const driverBookings = bookings.filter(b => b.driverId === currentDriver.id);
+            const completedBookings = driverBookings.filter(b => b.status === 'completed');
 
-            const totalEarnings = driverBookings
-                .filter(b => b.status === 'completed')
-                .reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
+            const today = new Date().toDateString();
+            const todayBookings = completedBookings.filter(b => new Date(b.createdAt).toDateString() === today);
 
-            const todayBookings = driverBookings.filter(b => {
-                const bookingDate = new Date(b.createdAt).toDateString();
-                const today = new Date().toDateString();
-                return bookingDate === today && b.status === 'completed';
-            });
-
-            const todayEarnings = todayBookings.reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
+            const todayEarnings = todayBookings.reduce((sum, b) => sum + ((b.totalFare || 0) * 0.7), 0);
+            const totalEarnings = completedBookings.reduce((sum, b) => sum + ((b.totalFare || 0) * 0.7), 0);
 
             document.getElementById('welcomeMsg').textContent = `Welcome back, ${currentDriver.name}!`;
             document.getElementById('userName').textContent = currentDriver.name;
-            document.getElementById('todayEarnings').textContent = `₹${todayEarnings}`;
+            document.getElementById('todayEarnings').textContent = `₹${Math.round(todayEarnings)}`;
             document.getElementById('todayRides').textContent = todayBookings.length;
-            document.getElementById('totalEarnings').textContent = `₹${totalEarnings}`;
-            document.getElementById('totalRides').textContent = driverBookings.length;
+            document.getElementById('totalEarnings').textContent = `₹${Math.round(totalEarnings)}`;
+            document.getElementById('totalRides').textContent = completedBookings.length;
 
             const ratings = JSON.parse(localStorage.getItem(`ratings_${currentDriver.id}`)) || [];
             if (ratings.length > 0) {
@@ -1117,10 +1104,6 @@
             document.getElementById('userAvatar').textContent = initials;
         }
 
-        // ============================================
-        // LOAD RIDES
-        // ============================================
-
         function loadRides() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const driverBookings = bookings.filter(b => b.driverId === currentDriver.id);
@@ -1128,78 +1111,52 @@
             const pendingRides = driverBookings.filter(b => b.status === 'pending' || b.status === 'active');
             const completedRides = driverBookings.filter(b => b.status === 'completed');
 
-            // Pending Rides
             const pendingList = document.getElementById('pendingRidesList');
             if (pendingRides.length === 0) {
-                pendingList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No pending rides. Check back soon!</p>
-                    </div>
-                `;
+                pendingList.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No pending rides. Check back soon!</p></div>`;
             } else {
                 pendingList.innerHTML = pendingRides.map(ride => `
                     <div class="ride-card pending">
                         <div class="ride-info">
-                            <div class="ride-route">
-                                <i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}
-                            </div>
+                            <div class="ride-route"><i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}</div>
                             <div class="ride-details">
                                 <span><i class="fas fa-calendar"></i> ${new Date(ride.createdAt).toLocaleDateString()}</span>
                                 <span><i class="fas fa-tag"></i> ${ride.rideType}</span>
-                                <span><i class="fas fa-money-bill"></i> ₹${ride.driverEarnings || 0}</span>
+                                <span><i class="fas fa-money-bill"></i> ₹${Math.round((ride.totalFare || 0) * 0.7)}</span>
                             </div>
                             <div class="customer-info">
-                                <strong>Customer:</strong> ${ride.customerName || 'Unknown'} | 
-                                <strong>Rating:</strong> ${ride.customerRating || 'N/A'}
+                                <strong>Customer:</strong> ${ride.customerName || 'Unknown'} | <strong>Rating:</strong> 5.0
                             </div>
                         </div>
                         <div class="ride-actions">
-                            <button class="ride-btn primary" onclick="acceptRideAction('${ride.id}')">
-                                <i class="fas fa-check"></i> Accept
-                            </button>
-                            <button class="ride-btn" onclick="declineRide('${ride.id}')">
-                                <i class="fas fa-times"></i> Decline
-                            </button>
+                            <button class="ride-btn primary" onclick="acceptRideAction('${ride.id}')"><i class="fas fa-check"></i> Accept</button>
+                            <button class="ride-btn" onclick="declineRide('${ride.id}')"><i class="fas fa-times"></i> Decline</button>
                         </div>
                     </div>
                 `).join('');
             }
 
-            // Completed Rides
             const completedList = document.getElementById('completedRidesList');
             if (completedRides.length === 0) {
-                completedList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No completed rides yet</p>
-                    </div>
-                `;
+                completedList.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No completed rides yet</p></div>`;
             } else {
                 completedList.innerHTML = completedRides.map(ride => `
                     <div class="ride-card completed">
                         <div class="ride-info">
-                            <div class="ride-route">
-                                <i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}
-                            </div>
+                            <div class="ride-route"><i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}</div>
                             <div class="ride-details">
                                 <span><i class="fas fa-calendar"></i> ${new Date(ride.createdAt).toLocaleDateString()}</span>
                                 <span><i class="fas fa-clock"></i> ${ride.duration || '30 mins'}</span>
-                                <span><i class="fas fa-money-bill"></i> ₹${ride.driverEarnings || 0}</span>
+                                <span><i class="fas fa-money-bill"></i> ₹${Math.round((ride.totalFare || 0) * 0.7)}</span>
                             </div>
                             <div class="customer-info">
-                                <strong>Customer:</strong> ${ride.customerName || 'Unknown'} | 
-                                <strong>Rating:</strong> ${ride.customerRating || 'Not rated yet'}
+                                <strong>Customer:</strong> ${ride.customerName || 'Unknown'} | <strong>Rating:</strong> 5.0
                             </div>
                         </div>
                     </div>
                 `).join('');
             }
         }
-
-        // ============================================
-        // LOAD PROFILE
-        // ============================================
 
         function loadProfile() {
             const initials = currentDriver.name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -1211,68 +1168,52 @@
             const joinDate = new Date(currentDriver.createdAt || Date.now());
             document.getElementById('profileMemberSince').textContent = joinDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
 
-            // Vehicle info
             document.getElementById('vehicleName').textContent = currentDriver.vehicleType || 'Vehicle';
             document.getElementById('vehicleNumber').textContent = `Registration: ${currentDriver.vehicleNumber}`;
             document.getElementById('vehicleType').textContent = currentDriver.vehicleType || 'Economy';
-            document.getElementById('vehicleYear').textContent = currentDriver.vehicleYear || '2020';
 
-            // Ratings
             const ratings = JSON.parse(localStorage.getItem(`ratings_${currentDriver.id}`)) || [];
             if (ratings.length > 0) {
                 const avgRating = (ratings.reduce((a, b) => a + b.rating, 0) / ratings.length).toFixed(1);
                 document.getElementById('profileRating').textContent = `${'⭐'.repeat(Math.round(avgRating))} (${avgRating})`;
             }
 
-            // Edit form
             document.getElementById('editName').value = currentDriver.name;
             document.getElementById('editEmail').value = currentDriver.email;
             document.getElementById('editPhone').value = currentDriver.phone;
         }
 
-        // ============================================
-        // LOAD EARNINGS
-        // ============================================
-
         function loadEarnings() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const driverBookings = bookings.filter(b => b.driverId === currentDriver.id && b.status === 'completed');
 
-            const totalEarnings = driverBookings.reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
+            const totalEarnings = driverBookings.reduce((sum, b) => sum + ((b.totalFare || 0) * 0.7), 0);
 
             const today = new Date().toDateString();
             const todayEarnings = driverBookings
                 .filter(b => new Date(b.createdAt).toDateString() === today)
-                .reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
+                .reduce((sum, b) => sum + ((b.totalFare || 0) * 0.7), 0);
 
-            document.getElementById('totalEarningsDisplay').textContent = `₹${totalEarnings}`;
-            document.getElementById('todayEarningsDisplay').textContent = `₹${todayEarnings}`;
+            document.getElementById('totalEarningsDisplay').textContent = `₹${Math.round(totalEarnings)}`;
+            document.getElementById('todayEarningsDisplay').textContent = `₹${Math.round(todayEarnings)}`;
 
-            // Week earnings
             const weekStart = new Date();
             weekStart.setDate(weekStart.getDate() - weekStart.getDay());
             const weekEarnings = driverBookings
                 .filter(b => new Date(b.createdAt) >= weekStart)
-                .reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
-            document.getElementById('weekEarningsDisplay').textContent = `₹${weekEarnings}`;
+                .reduce((sum, b) => sum + ((b.totalFare || 0) * 0.7), 0);
+            document.getElementById('weekEarningsDisplay').textContent = `₹${Math.round(weekEarnings)}`;
 
-            // Month earnings
             const monthStart = new Date();
             monthStart.setDate(1);
             const monthEarnings = driverBookings
                 .filter(b => new Date(b.createdAt) >= monthStart)
-                .reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
-            document.getElementById('monthEarningsDisplay').textContent = `₹${monthEarnings}`;
+                .reduce((sum, b) => sum + ((b.totalFare || 0) * 0.7), 0);
+            document.getElementById('monthEarningsDisplay').textContent = `₹${Math.round(monthEarnings)}`;
 
-            // Detailed earnings
             const detailList = document.getElementById('earningsDetail');
             if (driverBookings.length === 0) {
-                detailList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-chart-bar"></i>
-                        <p>No earnings data yet</p>
-                    </div>
-                `;
+                detailList.innerHTML = `<div class="empty-state"><i class="fas fa-chart-bar"></i><p>No earnings data yet</p></div>`;
             } else {
                 detailList.innerHTML = driverBookings.map(ride => `
                     <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
@@ -1280,27 +1221,18 @@
                             <strong>${ride.pickup} → ${ride.dropoff}</strong><br>
                             <small style="color: #999;">${new Date(ride.createdAt).toLocaleDateString()}</small>
                         </div>
-                        <strong style="color: #4caf50;">+₹${ride.driverEarnings || 0}</strong>
+                        <strong style="color: #4caf50;">+₹${Math.round((ride.totalFare || 0) * 0.7)}</strong>
                     </div>
                 `).join('');
             }
         }
-
-        // ============================================
-        // LOAD RATINGS
-        // ============================================
 
         function loadRatings() {
             const ratings = JSON.parse(localStorage.getItem(`ratings_${currentDriver.id}`)) || [];
 
             const ratingsList = document.getElementById('ratingsList');
             if (ratings.length === 0) {
-                ratingsList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-star"></i>
-                        <p>No ratings yet. Complete rides to get ratings!</p>
-                    </div>
-                `;
+                ratingsList.innerHTML = `<div class="empty-state"><i class="fas fa-star"></i><p>No ratings yet. Complete rides to get ratings!</p></div>`;
             } else {
                 ratingsList.innerHTML = ratings.map(r => `
                     <div class="rating-item">
@@ -1315,10 +1247,6 @@
             }
         }
 
-        // ============================================
-        // TAB SWITCHING
-        // ============================================
-
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -1326,10 +1254,6 @@
             document.getElementById(tabName + 'Tab').classList.add('active');
             event.target.classList.add('active');
         }
-
-        // ============================================
-        // PROFILE FUNCTIONS
-        // ============================================
 
         function openEditProfileModal() {
             document.getElementById('editProfileModal').classList.add('active');
@@ -1354,19 +1278,15 @@
                 localStorage.setItem('currentDriver', JSON.stringify(currentDriver));
             }
 
+            showSuccess('✅ Profile updated!');
             loadProfile();
             loadDashboard();
             closeEditProfileModal();
-            alert('✅ Profile updated!');
         }
 
         function editVehicle() {
             alert('🚗 Vehicle edit feature coming soon!');
         }
-
-        // ============================================
-        // RIDE FUNCTIONS
-        // ============================================
 
         function acceptRide() {
             alert('🚗 Finding nearby rides...');
@@ -1377,16 +1297,16 @@
             const idx = bookings.findIndex(b => b.id === rideId);
             if (idx !== -1) {
                 bookings[idx].status = 'active';
-                bookings[idx].driverId = currentDriver.id;
                 localStorage.setItem('bookings', JSON.stringify(bookings));
                 loadRides();
-                alert('✅ Ride accepted!');
+                loadDashboard();
+                showSuccess('✅ Ride accepted!');
             }
         }
 
         function declineRide(rideId) {
-            if (confirm('Decline this ride?')) {
-                alert('❌ Ride declined');
+            if (confirm('Are you sure you want to decline this ride?')) {
+                showSuccess('❌ Ride declined');
             }
         }
 
@@ -1394,28 +1314,32 @@
             alert('🗺️ Map view coming soon!');
         }
 
-        // ============================================
-        // STATUS FUNCTIONS
-        // ============================================
-
         function toggleOnlineStatus() {
             isOnline = !isOnline;
             const badge = document.getElementById('statusBadge');
 
             if (isOnline) {
-                badge.className = 'status-badge status-online';
+                badge.className = 'status-badge';
                 badge.innerHTML = '<i class="fas fa-circle"></i> Online';
-                alert('✅ You are now online');
+                showSuccess('✅ You are now online');
             } else {
-                badge.className = 'status-badge status-offline';
+                badge.className = 'status-badge offline';
                 badge.innerHTML = '<i class="fas fa-circle"></i> Offline';
-                alert('❌ You are now offline');
+                showSuccess('❌ You are now offline');
             }
         }
 
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
+        function showSuccess(msg) {
+            document.getElementById('successText').textContent = msg;
+            document.getElementById('successMessage').classList.add('show');
+            setTimeout(() => document.getElementById('successMessage').classList.remove('show'), 3000);
+        }
+
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('errorMessage').classList.add('show');
+            setTimeout(() => document.getElementById('errorMessage').classList.remove('show'), 3000);
+        }
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
