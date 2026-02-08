@@ -28,18 +28,21 @@
             color: white;
             overflow-y: auto;
             z-index: 100;
+            padding-top: 0;
         }
 
         .sidebar-header {
             padding: 2rem 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
         }
 
         .sidebar-logo {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
         }
 
@@ -55,24 +58,27 @@
             gap: 1rem;
             transition: all 0.3s;
             border-left: 3px solid transparent;
+            color: rgba(255,255,255,0.8);
         }
 
         .menu-item:hover {
             background: rgba(255,255,255,0.1);
             border-left-color: white;
+            color: white;
         }
 
         .menu-item.active {
             background: rgba(255,255,255,0.15);
             border-left-color: white;
+            color: white;
         }
 
         .menu-item i {
             font-size: 1.2rem;
-            width: 30px;
+            width: 25px;
         }
 
-        /* Top Bar */
+        /* Topbar */
         .topbar {
             position: fixed;
             top: 0;
@@ -137,26 +143,23 @@
             margin-left: 250px;
             margin-top: 70px;
             padding: 2rem;
+            min-height: calc(100vh - 70px);
         }
 
-        /* Dashboard Grid */
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
             background: white;
-            padding: 1.5rem;
+            padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             border-left: 4px solid #667eea;
-        }
-
-        .stat-card.danger {
-            border-left-color: #f44336;
         }
 
         .stat-card.success {
@@ -167,46 +170,53 @@
             border-left-color: #ff9800;
         }
 
+        .stat-card.danger {
+            border-left-color: #f44336;
+        }
+
         .stat-card.donation {
             border-left-color: #ff5722;
         }
 
         .stat-label {
             color: #999;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
             color: #333;
+            margin-bottom: 0.5rem;
         }
 
         .stat-change {
             color: #999;
             font-size: 0.85rem;
-            margin-top: 0.5rem;
         }
 
-        /* Tabs */
+        /* Tab Container */
         .tab-container {
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
         }
 
         .tab-buttons {
             display: flex;
             border-bottom: 2px solid #eee;
             overflow-x: auto;
+            background: #f9f9f9;
         }
 
         .tab-button {
-            flex: 1;
-            padding: 1.5rem;
+            flex: 0 0 auto;
+            padding: 1.3rem 1.8rem;
             background: none;
             border: none;
             cursor: pointer;
@@ -216,16 +226,18 @@
             transition: all 0.3s;
             white-space: nowrap;
             min-width: 150px;
+            text-align: center;
         }
 
         .tab-button:hover {
             color: #667eea;
-            background: #f9f9f9;
+            background: white;
         }
 
         .tab-button.active {
             color: #667eea;
             border-bottom-color: #667eea;
+            background: white;
         }
 
         .tab-content {
@@ -235,9 +247,15 @@
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s;
         }
 
-        /* Tables */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Table Styles */
         .table-responsive {
             overflow-x: auto;
         }
@@ -245,6 +263,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 1rem;
         }
 
         thead {
@@ -258,6 +277,8 @@
             font-weight: 600;
             color: #333;
             font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         td {
@@ -275,7 +296,9 @@
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
             font-size: 0.8rem;
-            font-weight: bold;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-pending {
@@ -298,20 +321,24 @@
             color: #f44336;
         }
 
+        /* Action Buttons */
         .action-btns {
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .action-btn {
-            padding: 0.5rem 0.8rem;
+            padding: 0.5rem 1rem;
             border: 1px solid #667eea;
             background: white;
             color: #667eea;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.8rem;
+            font-weight: 600;
             transition: all 0.3s;
+            white-space: nowrap;
         }
 
         .action-btn:hover {
@@ -329,6 +356,16 @@
             color: white;
         }
 
+        .action-btn.success {
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        .action-btn.success:hover {
+            background: #4caf50;
+            color: white;
+        }
+
         /* Forms */
         .form-section {
             background: white;
@@ -338,14 +375,21 @@
             margin-bottom: 2rem;
         }
 
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .form-group label {
@@ -353,7 +397,7 @@
             color: #333;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .form-group input,
@@ -364,6 +408,7 @@
             border: 2px solid #ddd;
             border-radius: 8px;
             font-family: inherit;
+            font-size: 0.95rem;
             transition: all 0.3s;
         }
 
@@ -375,13 +420,17 @@
             box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
         }
 
+        /* Buttons */
         .btn {
             padding: 0.8rem 1.5rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 0.95rem;
             transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn-primary {
@@ -445,44 +494,58 @@
         .modal-header h2 {
             margin: 0;
             color: #333;
+            font-size: 1.5rem;
         }
 
         .modal-close {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             cursor: pointer;
             color: #999;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #333;
         }
 
         /* Messages */
         .message {
-            padding: 1rem;
+            padding: 1rem 1.5rem;
             border-radius: 8px;
             margin-bottom: 1rem;
             display: none;
+            border-left: 4px solid;
+            font-weight: 500;
         }
 
         .message.show {
             display: block;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .message.success {
             background: #e8f5e9;
             color: #2e7d32;
-            border-left: 4px solid #4caf50;
+            border-left-color: #4caf50;
         }
 
         .message.error {
             background: #ffebee;
             color: #c62828;
-            border-left: 4px solid #f44336;
+            border-left-color: #f44336;
         }
 
         .message.warning {
             background: #fff3e0;
             color: #e65100;
-            border-left: 4px solid #ff9800;
+            border-left-color: #ff9800;
         }
 
         /* Charts */
@@ -498,7 +561,7 @@
             font-size: 1.2rem;
             color: #333;
             margin-bottom: 1.5rem;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         /* Empty State */
@@ -514,6 +577,50 @@
             opacity: 0.5;
         }
 
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* Donation Styles */
+        .donation-header {
+            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .donation-header h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+
+        .donation-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .donation-stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .donation-stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .donation-stat-label {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -522,7 +629,6 @@
 
             .topbar {
                 left: 200px;
-                padding: 0 1rem;
             }
 
             .main-content {
@@ -542,12 +648,17 @@
                 overflow-x: auto;
             }
 
+            .tab-button {
+                min-width: 120px;
+                padding: 1rem;
+            }
+
             table {
                 font-size: 0.85rem;
             }
 
             th, td {
-                padding: 0.7rem;
+                padding: 0.8rem 0.5rem;
             }
         }
 
@@ -563,47 +674,42 @@
             .main-content {
                 margin-left: 0;
             }
+
+            .action-btns {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
         }
 
-        .scroll-x {
-            overflow-x: auto;
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
-        /* Donation Stats */
-        .donation-stat {
-            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
+        .badge-success {
+            background: #e8f5e9;
+            color: #4caf50;
         }
 
-        .donation-stat h3 {
-            margin-bottom: 1rem;
+        .badge-danger {
+            background: #ffebee;
+            color: #f44336;
         }
 
-        .donation-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+        .badge-warning {
+            background: #fff3e0;
+            color: #ff9800;
         }
 
-        .donation-stat-item {
-            background: rgba(255,255,255,0.1);
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .donation-stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .donation-stat-label {
-            opacity: 0.9;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
+        .badge-info {
+            background: #e3f2fd;
+            color: #2196f3;
         }
     </style>
 </head>
@@ -658,7 +764,7 @@
         <div class="topbar-right">
             <div class="admin-profile">
                 <div class="admin-avatar">A</div>
-                <span id="adminName">Admin User</span>
+                <span id="adminName">Admin</span>
             </div>
             <button class="logout-btn" onclick="logout()">
                 <i class="fas fa-sign-out-alt"></i>
@@ -685,7 +791,7 @@
                 <div class="stat-card">
                     <div class="stat-label">Total Bookings</div>
                     <div class="stat-value" id="totalBookings">0</div>
-                    <div class="stat-change">All time bookings</div>
+                    <div class="stat-change">All time</div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-label">Completed Rides</div>
@@ -715,25 +821,25 @@
                 <div class="stat-card">
                     <div class="stat-label">Total Customers</div>
                     <div class="stat-value" id="totalCustomers">0</div>
-                    <div class="stat-change">Registered users</div>
+                    <div class="stat-change">Registered</div>
                 </div>
                 <div class="stat-card donation">
                     <div class="stat-label">❤️ Total Donations</div>
-                    <div class="stat-value" id="dashboardTotalDonations">₹0</div>
-                    <div class="stat-change" id="dashboardDonorCount">0 donors</div>
+                    <div class="stat-value" id="totalDonations">₹0</div>
+                    <div class="stat-change" id="totalDonors">0 donors</div>
                 </div>
             </div>
 
             <div class="chart-container">
-                <div class="chart-title">Recent Bookings Overview</div>
+                <div class="chart-title">Recent Bookings</div>
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>Booking ID</th>
+                                <th>ID</th>
                                 <th>Customer</th>
                                 <th>Route</th>
-                                <th>Ride Type</th>
+                                <th>Type</th>
                                 <th>Fare</th>
                                 <th>Status</th>
                                 <th>Date</th>
@@ -782,7 +888,7 @@
                                 <tr>
                                     <td colspan="8" class="empty-state">
                                         <i class="fas fa-inbox"></i>
-                                        <p>No bookings found</p>
+                                        <p>No bookings</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -800,32 +906,30 @@
                     Add Customer
                 </button>
             </div>
-            <div class="tab-container">
-                <div style="padding: 2rem;">
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Rides</th>
-                                    <th>Total Spent</th>
-                                    <th>Rating</th>
-                                    <th>Joined</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="customersTableBody">
-                                <tr>
-                                    <td colspan="8" class="empty-state">
-                                        <i class="fas fa-inbox"></i>
-                                        <p>No customers yet</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="chart-container">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Rides</th>
+                                <th>Spent</th>
+                                <th>Rating</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No customers</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -838,33 +942,31 @@
                     Add Driver
                 </button>
             </div>
-            <div class="tab-container">
-                <div style="padding: 2rem;">
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Vehicle</th>
-                                    <th>Rides</th>
-                                    <th>Earnings</th>
-                                    <th>Rating</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="driversTableBody">
-                                <tr>
-                                    <td colspan="9" class="empty-state">
-                                        <i class="fas fa-inbox"></i>
-                                        <p>No drivers yet</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="chart-container">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Vehicle</th>
+                                <th>Rides</th>
+                                <th>Earnings</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="driversTableBody">
+                            <tr>
+                                <td colspan="9" class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No drivers</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -895,7 +997,7 @@
             </div>
 
             <div class="chart-container">
-                <div class="chart-title">Revenue Details</div>
+                <div class="chart-title">Revenue Breakdown</div>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -920,11 +1022,11 @@
             </div>
         </div>
 
-        <!-- Donations Tab (NEW) -->
+        <!-- Donations Tab -->
         <div class="tab-content" id="donationsTab">
-            <div class="donation-stat">
-                <h3>❤️ Donation Wallet Statistics</h3>
-                <div class="donation-stats-grid">
+            <div class="donation-header">
+                <h3>❤️ Donation Wallet Management</h3>
+                <div class="donation-stats">
                     <div class="donation-stat-item">
                         <div class="donation-stat-value" id="donTotalAmount">₹0</div>
                         <div class="donation-stat-label">Total Raised</div>
@@ -954,7 +1056,7 @@
                                 <th>Donor</th>
                                 <th>Country</th>
                                 <th>Amount</th>
-                                <th>From Ride</th>
+                                <th>Ride ID</th>
                                 <th>Beneficiary</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -1005,7 +1107,7 @@
                                 <th>Beneficiary</th>
                                 <th>Donations</th>
                                 <th>Total Amount</th>
-                                <th>Impact</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="topBeneficiariesTable">
@@ -1019,12 +1121,54 @@
                     </table>
                 </div>
             </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Donation Impact</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Impact Category</th>
+                                <th>Total Amount</th>
+                                <th>Number of People</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donationImpactTable">
+                            <tr>
+                                <td>Education Support</td>
+                                <td id="impact-education">₹0</td>
+                                <td id="impact-education-count">0</td>
+                                <td>Students helped with fees & books</td>
+                            </tr>
+                            <tr>
+                                <td>Healthcare</td>
+                                <td id="impact-health">₹0</td>
+                                <td id="impact-health-count">0</td>
+                                <td>Medical treatments provided</td>
+                            </tr>
+                            <tr>
+                                <td>Emergency Relief</td>
+                                <td id="impact-emergency">₹0</td>
+                                <td id="impact-emergency-count">0</td>
+                                <td>Crisis support provided</td>
+                            </tr>
+                            <tr>
+                                <td>Livelihood Support</td>
+                                <td id="impact-livelihood">₹0</td>
+                                <td id="impact-livelihood-count">0</td>
+                                <td>Business support & training</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Reports Tab -->
         <div class="tab-content" id="reportsTab">
             <div class="form-section">
-                <h3 style="margin-bottom: 1.5rem;">Generate Reports</h3>
+                <h3>Generate Reports</h3>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="reportType">Report Type</label>
@@ -1078,14 +1222,12 @@
         <!-- Settings Tab -->
         <div class="tab-content" id="settingsTab">
             <div class="form-section">
-                <h3 style="margin-bottom: 1.5rem;">Application Settings</h3>
-                
-                <div class="form-group">
-                    <label for="baseFare">Base Fare (₹)</label>
-                    <input type="number" id="baseFare" value="50" min="0">
-                </div>
-
+                <h3>Pricing Settings</h3>
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label for="baseFare">Base Fare (₹)</label>
+                        <input type="number" id="baseFare" value="50" min="0">
+                    </div>
                     <div class="form-group">
                         <label for="economyRate">Economy Rate (₹/km)</label>
                         <input type="number" id="economyRate" value="10" min="0">
@@ -1098,16 +1240,9 @@
                         <label for="xlRate">XL Rate (₹/km)</label>
                         <input type="number" id="xlRate" value="20" min="0">
                     </div>
-                </div>
-
-                <div class="form-grid">
                     <div class="form-group">
                         <label for="driverShare">Driver Share (%)</label>
                         <input type="number" id="driverShare" value="70" min="0" max="100">
-                    </div>
-                    <div class="form-group">
-                        <label for="platformShare">Platform Share (%)</label>
-                        <input type="number" id="platformShare" value="30" min="0" max="100">
                     </div>
                     <div class="form-group">
                         <label for="tax">Tax (%)</label>
@@ -1115,59 +1250,50 @@
                     </div>
                 </div>
 
-                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Donation Settings</h3>
-
+                <h3 style="margin-top: 2rem;">Donation Settings</h3>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="donationDefaultAmount">Default Donation Amount (₹)</label>
-                        <input type="number" id="donationDefaultAmount" value="50" min="1">
+                        <label for="donMinAmount">Minimum Donation (₹)</label>
+                        <input type="number" id="donMinAmount" value="10" min="1">
                     </div>
                     <div class="form-group">
-                        <label for="donationMinAmount">Minimum Donation (₹)</label>
-                        <input type="number" id="donationMinAmount" value="10" min="1">
+                        <label for="donMaxAmount">Maximum Donation (₹)</label>
+                        <input type="number" id="donMaxAmount" value="5000" min="1">
                     </div>
                     <div class="form-group">
-                        <label for="donationMaxAmount">Maximum Donation (₹)</label>
-                        <input type="number" id="donationMaxAmount" value="5000" min="1">
+                        <label>
+                            <input type="checkbox" id="enableDonations" checked>
+                            Enable Donations
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="showDonationAfterRide" checked>
+                            Show After Ride
+                        </label>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label>
-                        <input type="checkbox" id="enableDonations" checked>
-                        <span>Enable Donations Feature</span>
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="showDonationAfterRide" checked>
-                        <span>Show Donation Popup After Ride</span>
-                    </label>
-                </div>
-
-                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Notifications</h3>
-                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                    <label>
+                <h3 style="margin-top: 2rem;">Notifications</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="checkbox" id="emailNotif" checked>
                         <span>Email Notifications</span>
                     </label>
-                    <label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="checkbox" id="smsNotif" checked>
                         <span>SMS Notifications</span>
                     </label>
-                    <label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
                         <input type="checkbox" id="pushNotif" checked>
                         <span>Push Notifications</span>
                     </label>
                 </div>
 
-                <div style="margin-top: 2rem;">
-                    <button class="btn btn-primary" onclick="saveSettings()">
-                        <i class="fas fa-save"></i>
-                        Save Settings
-                    </button>
-                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i>
+                    Save Settings
+                </button>
             </div>
         </div>
     </div>
@@ -1196,7 +1322,7 @@
                     <label for="custPassword">Password</label>
                     <input type="password" id="custPassword" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Add Customer</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Add Customer</button>
             </form>
         </div>
     </div>
@@ -1237,43 +1363,57 @@
                     <label for="drvVehicleNumber">Vehicle Number</label>
                     <input type="text" id="drvVehicleNumber" placeholder="RJ 01 AB 1234" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Add Driver</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Add Driver</button>
             </form>
         </div>
     </div>
 
     <script>
         // ============================================
-        // AUTHENTICATION CHECK
+        // AUTHENTICATION
         // ============================================
 
         function checkAuth() {
-            const userRole = localStorage.getItem('userRole');
-            const currentAdmin = localStorage.getItem('currentAdmin');
-
-            if (userRole !== 'admin' || !currentAdmin) {
-                alert('Please login as admin first');
+            const role = localStorage.getItem('userRole');
+            const admin = localStorage.getItem('currentAdmin');
+            if (role !== 'admin' || !admin) {
+                alert('Admin access required');
                 window.location.href = './login.html';
                 return null;
             }
-
-            return JSON.parse(currentAdmin);
+            return JSON.parse(admin);
         }
 
         let currentAdmin = null;
         let bookingFilter = 'all';
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', () => {
             currentAdmin = checkAuth();
             if (!currentAdmin) return;
-
+            
             document.getElementById('adminName').textContent = currentAdmin.name;
             loadDashboard();
             loadAllData();
         });
 
         // ============================================
-        // LOAD DASHBOARD DATA
+        // MESSAGES
+        // ============================================
+
+        function showSuccess(msg) {
+            document.getElementById('successText').textContent = msg;
+            document.getElementById('successMessage').classList.add('show');
+            setTimeout(() => document.getElementById('successMessage').classList.remove('show'), 4000);
+        }
+
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('errorMessage').classList.add('show');
+            setTimeout(() => document.getElementById('errorMessage').classList.remove('show'), 4000);
+        }
+
+        // ============================================
+        // LOAD DASHBOARD
         // ============================================
 
         function loadDashboard() {
@@ -1281,33 +1421,20 @@
             const customers = JSON.parse(localStorage.getItem('users')) || [];
             const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
 
-            const totalBookings = bookings.length;
-            const completedRides = bookings.filter(b => b.status === 'completed').length;
-            const pendingBookings = bookings.filter(b => b.status === 'pending').length;
-            const cancelledRides = bookings.filter(b => b.status === 'cancelled').length;
+            const completed = bookings.filter(b => b.status === 'completed').length;
+            const pending = bookings.filter(b => b.status === 'pending').length;
+            const cancelled = bookings.filter(b => b.status === 'cancelled').length;
 
             const today = new Date().toDateString();
-            const completedToday = bookings.filter(b => 
-                b.status === 'completed' && 
-                new Date(b.createdAt).toDateString() === today
-            ).length;
-            const cancelledToday = bookings.filter(b => 
-                b.status === 'cancelled' && 
-                new Date(b.createdAt).toDateString() === today
-            ).length;
+            const completedToday = bookings.filter(b => b.status === 'completed' && new Date(b.createdAt).toDateString() === today).length;
+            const cancelledToday = bookings.filter(b => b.status === 'cancelled' && new Date(b.createdAt).toDateString() === today).length;
 
-            const totalRevenue = bookings
-                .filter(b => b.status === 'completed')
-                .reduce((sum, b) => sum + (b.totalFare || 0), 0);
-
-            const revenueToday = bookings
-                .filter(b => b.status === 'completed' && new Date(b.createdAt).toDateString() === today)
-                .reduce((sum, b) => sum + (b.totalFare || 0), 0);
+            const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
+            const revenueToday = bookings.filter(b => b.status === 'completed' && new Date(b.createdAt).toDateString() === today).reduce((sum, b) => sum + (b.totalFare || 0), 0);
 
             const activeDrivers = drivers.filter(d => d.isOnline).length;
-            const totalCustomers = customers.length;
 
-            // 🎯 DONATIONS DATA
+            // Donations
             let totalDonations = 0;
             let totalDonors = 0;
             customers.forEach(c => {
@@ -1316,36 +1443,34 @@
                 if (custDonations.length > 0) totalDonors++;
             });
 
-            // Update stats
-            document.getElementById('totalBookings').textContent = totalBookings;
-            document.getElementById('completedRides').textContent = completedRides;
+            document.getElementById('totalBookings').textContent = bookings.length;
+            document.getElementById('completedRides').textContent = completed;
             document.getElementById('completedToday').textContent = `${completedToday} today`;
-            document.getElementById('pendingBookings').textContent = pendingBookings;
-            document.getElementById('cancelledRides').textContent = cancelledRides;
+            document.getElementById('pendingBookings').textContent = pending;
+            document.getElementById('cancelledRides').textContent = cancelled;
             document.getElementById('cancelledToday').textContent = `${cancelledToday} today`;
             document.getElementById('totalRevenue').textContent = `₹${totalRevenue}`;
             document.getElementById('revenueToday').textContent = `₹${revenueToday} today`;
             document.getElementById('activeDrivers').textContent = activeDrivers;
             document.getElementById('totalDrivers').textContent = `${drivers.length} total`;
-            document.getElementById('totalCustomers').textContent = totalCustomers;
-            document.getElementById('dashboardTotalDonations').textContent = `₹${totalDonations}`;
-            document.getElementById('dashboardDonorCount').textContent = `${totalDonors} donors`;
+            document.getElementById('totalCustomers').textContent = customers.length;
+            document.getElementById('totalDonations').textContent = `₹${totalDonations}`;
+            document.getElementById('totalDonors').textContent = `${totalDonors} donors`;
 
-            // Recent bookings
             const recentBookings = bookings.slice(-5).reverse();
-            const recentTable = document.getElementById('recentBookingsTable');
+            const table = document.getElementById('recentBookingsTable');
             if (recentBookings.length === 0) {
-                recentTable.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No bookings yet</p></td></tr>';
+                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No bookings</p></td></tr>';
             } else {
-                recentTable.innerHTML = recentBookings.map(b => `
+                table.innerHTML = recentBookings.map(b => `
                     <tr>
                         <td><strong>${b.id}</strong></td>
                         <td>${b.customerName}</td>
                         <td><small>${b.pickup}</small></td>
-                        <td><small>${b.dropoff}</small></td>
                         <td>${b.rideType}</td>
-                        <td><strong>₹${b.totalFare}</strong></td>
+                        <td>₹${b.totalFare}</td>
                         <td><span class="status-badge status-${b.status}">${b.status.toUpperCase()}</span></td>
+                        <td>${new Date(b.createdAt).toLocaleDateString()}</td>
                         <td>
                             <div class="action-btns">
                                 <button class="action-btn" onclick="viewBooking('${b.id}')">View</button>
@@ -1378,7 +1503,7 @@
 
             const table = document.getElementById('bookingsTableBody');
             if (filtered.length === 0) {
-                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No bookings found</p></td></tr>';
+                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No bookings</p></td></tr>';
             } else {
                 table.innerHTML = filtered.map(b => `
                     <tr>
@@ -1392,7 +1517,7 @@
                         <td>
                             <div class="action-btns">
                                 <button class="action-btn" onclick="viewBooking('${b.id}')">View</button>
-                                ${b.status === 'pending' ? `<button class="action-btn" onclick="confirmBooking('${b.id}')">Confirm</button>` : ''}
+                                ${b.status === 'pending' ? `<button class="action-btn success" onclick="confirmBooking('${b.id}')">Confirm</button>` : ''}
                                 ${b.status !== 'completed' && b.status !== 'cancelled' ? `<button class="action-btn danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ''}
                             </div>
                         </td>
@@ -1403,7 +1528,7 @@
 
         function switchBookingFilter(filter) {
             bookingFilter = filter;
-            document.querySelectorAll('.tab-buttons .tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#bookingsTab .tab-button').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             loadBookings();
         }
@@ -1428,13 +1553,13 @@
         }
 
         function cancelBooking(bookingId) {
-            if (confirm('Are you sure you want to cancel this booking?')) {
+            if (confirm('Cancel this booking?')) {
                 let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
                 const idx = bookings.findIndex(b => b.id === bookingId);
                 if (idx !== -1) {
                     bookings[idx].status = 'cancelled';
                     localStorage.setItem('bookings', JSON.stringify(bookings));
-                    showSuccess('❌ Booking cancelled');
+                    showSuccess('Booking cancelled');
                     loadDashboard();
                     loadBookings();
                 }
@@ -1446,7 +1571,6 @@
             const booking = bookings.find(b => b.id === bookingId);
             if (booking) {
                 alert(`
-Booking Details:
 ID: ${booking.id}
 Customer: ${booking.customerName}
 Phone: ${booking.customerPhone}
@@ -1456,8 +1580,8 @@ Ride Type: ${booking.rideType}
 Fare: ₹${booking.totalFare}
 Status: ${booking.status}
 Date: ${new Date(booking.createdAt).toLocaleString()}
-${booking.driverName ? `Driver: ${booking.driverName}` : ''}
-${booking.notes ? `Notes: ${booking.notes}` : ''}
+Driver: ${booking.driverName || 'Unassigned'}
+Notes: ${booking.notes || 'None'}
                 `);
             }
         }
@@ -1472,13 +1596,11 @@ ${booking.notes ? `Notes: ${booking.notes}` : ''}
 
             const table = document.getElementById('customersTableBody');
             if (customers.length === 0) {
-                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No customers yet</p></td></tr>';
+                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No customers</p></td></tr>';
             } else {
                 table.innerHTML = customers.map(c => {
                     const custBookings = bookings.filter(b => b.customerId === c.id);
-                    const totalSpent = custBookings
-                        .filter(b => b.status === 'completed')
-                        .reduce((sum, b) => sum + (b.totalFare || 0), 0);
+                    const totalSpent = custBookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
                     const joinDate = new Date(c.createdAt).toLocaleDateString();
 
                     return `
@@ -1488,7 +1610,7 @@ ${booking.notes ? `Notes: ${booking.notes}` : ''}
                             <td>${c.phone}</td>
                             <td>${custBookings.length}</td>
                             <td>₹${totalSpent}</td>
-                            <td>5.0 ⭐</td>
+                            <td>⭐ 5.0</td>
                             <td>${joinDate}</td>
                             <td>
                                 <div class="action-btns">
@@ -1527,7 +1649,7 @@ ${booking.notes ? `Notes: ${booking.notes}` : ''}
             users.push(customer);
             localStorage.setItem('users', JSON.stringify(users));
 
-            showSuccess('✅ Customer added successfully!');
+            showSuccess('✅ Customer added!');
             closeAddCustomerModal();
             loadCustomers();
             document.querySelector('#addCustomerModal form').reset();
@@ -1538,7 +1660,6 @@ ${booking.notes ? `Notes: ${booking.notes}` : ''}
             const customer = customers.find(c => c.id === customerId);
             if (customer) {
                 alert(`
-Customer Details:
 Name: ${customer.fullname}
 Email: ${customer.email}
 Phone: ${customer.phone}
@@ -1548,11 +1669,11 @@ Joined: ${new Date(customer.createdAt).toLocaleDateString()}
         }
 
         function deleteCustomer(customerId) {
-            if (confirm('Are you sure? This will delete the customer account.')) {
+            if (confirm('Delete customer?')) {
                 let users = JSON.parse(localStorage.getItem('users')) || [];
                 users = users.filter(u => u.id !== customerId);
                 localStorage.setItem('users', JSON.stringify(users));
-                showSuccess('❌ Customer deleted');
+                showSuccess('Customer deleted');
                 loadCustomers();
             }
         }
@@ -1567,7 +1688,7 @@ Joined: ${new Date(customer.createdAt).toLocaleDateString()}
 
             const table = document.getElementById('driversTableBody');
             if (drivers.length === 0) {
-                table.innerHTML = '<tr><td colspan="9" class="empty-state"><i class="fas fa-inbox"></i><p>No drivers yet</p></td></tr>';
+                table.innerHTML = '<tr><td colspan="9" class="empty-state"><i class="fas fa-inbox"></i><p>No drivers</p></td></tr>';
             } else {
                 table.innerHTML = drivers.map(d => {
                     const drvBookings = bookings.filter(b => b.driverId === d.id && b.status === 'completed');
@@ -1582,105 +1703,5 @@ Joined: ${new Date(customer.createdAt).toLocaleDateString()}
                             <td>${d.vehicleType} - ${d.vehicleNumber}</td>
                             <td>${drvBookings.length}</td>
                             <td>₹${earnings}</td>
-                            <td>5.0 ⭐</td>
-                            <td><span class="status-badge status-${d.isOnline ? 'confirmed' : 'pending'}">${status}</span></td>
+                            <td>⭐ 5.0</td>
                             <td>
-                                <div class="action-btns">
-                                    <button class="action-btn" onclick="viewDriver('${d.id}')">View</button>
-                                    <button class="action-btn" onclick="toggleDriver('${d.id}')">${d.isOnline ? 'Suspend' : 'Activate'}</button>
-                                    <button class="action-btn danger" onclick="deleteDriver('${d.id}')">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-        }
-
-        function openAddDriverModal() {
-            document.getElementById('addDriverModal').classList.add('active');
-        }
-
-        function closeAddDriverModal() {
-            document.getElementById('addDriverModal').classList.remove('active');
-        }
-
-        function saveDriver(e) {
-            e.preventDefault();
-
-            const driver = {
-                id: 'driver_' + Date.now(),
-                name: document.getElementById('drvName').value,
-                email: document.getElementById('drvEmail').value.toLowerCase(),
-                phone: document.getElementById('drvPhone').value,
-                password: document.getElementById('drvPassword').value,
-                vehicleType: document.getElementById('drvVehicle').value,
-                vehicleNumber: document.getElementById('drvVehicleNumber').value,
-                role: 'driver',
-                isOnline: true,
-                createdAt: new Date().toISOString()
-            };
-
-            let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-            drivers.push(driver);
-            localStorage.setItem('drivers', JSON.stringify(drivers));
-
-            showSuccess('✅ Driver added successfully!');
-            closeAddDriverModal();
-            loadDrivers();
-            document.querySelector('#addDriverModal form').reset();
-        }
-
-        function viewDriver(driverId) {
-            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-            const driver = drivers.find(d => d.id === driverId);
-            if (driver) {
-                alert(`
-Driver Details:
-Name: ${driver.name}
-Email: ${driver.email}
-Phone: ${driver.phone}
-Vehicle: ${driver.vehicleType}
-Registration: ${driver.vehicleNumber}
-Status: ${driver.isOnline ? 'Online' : 'Offline'}
-Joined: ${new Date(driver.createdAt).toLocaleDateString()}
-                `);
-            }
-        }
-
-        function toggleDriver(driverId) {
-            let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-            const idx = drivers.findIndex(d => d.id === driverId);
-            if (idx !== -1) {
-                drivers[idx].isOnline = !drivers[idx].isOnline;
-                localStorage.setItem('drivers', JSON.stringify(drivers));
-                const action = drivers[idx].isOnline ? 'Activated' : 'Suspended';
-                showSuccess(`✅ Driver ${action}`);
-                loadDrivers();
-            }
-        }
-
-        function deleteDriver(driverId) {
-            if (confirm('Are you sure? This will delete the driver account.')) {
-                let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-                drivers = drivers.filter(d => d.id !== driverId);
-                localStorage.setItem('drivers', JSON.stringify(drivers));
-                showSuccess('❌ Driver deleted');
-                loadDrivers();
-            }
-        }
-
-        // ============================================
-        // LOAD EARNINGS
-        // ============================================
-
-        function loadEarnings() {
-            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-            const completedBookings = bookings.filter(b => b.status === 'completed');
-
-            const today = new Date().toDateString();
-            const todayBookings = completedBookings.filter(b => 
-                new Date(b.createdAt).toDateString() === today
-            );
-
-            const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.totalFare
