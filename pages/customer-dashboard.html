@@ -76,7 +76,6 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s;
         }
 
         .logout-btn:hover {
@@ -134,7 +133,6 @@
             flex-direction: column;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.3s;
         }
 
         .quick-action-btn:hover {
@@ -162,20 +160,24 @@
             border-left: 4px solid #667eea;
         }
 
-        .stat-card h3 {
+        .stat-card.donation {
+            border-left-color: #ff5722;
+        }
+
+        .stat-label {
             color: #999;
             font-size: 0.9rem;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
         }
 
-        .stat-card .value {
+        .stat-value {
             font-size: 2rem;
             font-weight: bold;
             color: #333;
         }
 
-        .stat-card .subtext {
+        .stat-subtext {
             color: #999;
             font-size: 0.85rem;
             margin-top: 0.5rem;
@@ -249,10 +251,6 @@
             border-left-color: #4caf50;
         }
 
-        .ride-card.cancelled {
-            border-left-color: #f44336;
-        }
-
         .ride-info {
             flex: 1;
         }
@@ -284,7 +282,6 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
         }
 
         .ride-btn:hover {
@@ -297,173 +294,7 @@
             color: white;
         }
 
-        .ride-btn.primary:hover {
-            background: #764ba2;
-        }
-
-        /* Profile Section */
-        .profile-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        .profile-info {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-
-        .profile-detail {
-            margin: 1rem 0;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        .profile-detail label {
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        .profile-detail value {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-top: 0.3rem;
-        }
-
-        .edit-profile-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 1rem;
-        }
-
-        .edit-profile-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Wallet Section */
-        .wallet-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-        }
-
-        .wallet-balance {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .wallet-label {
-            opacity: 0.9;
-            margin-bottom: 1.5rem;
-        }
-
-        .wallet-actions {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .wallet-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .wallet-btn:hover {
-            background: white;
-            color: #667eea;
-        }
-
-        /* Ratings Section */
-        .ratings-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .rating-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        .rating-item:last-child {
-            border-bottom: none;
-        }
-
-        .rating-info {
-            flex: 1;
-        }
-
-        .rating-driver {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.3rem;
-        }
-
-        .rating-date {
-            color: #999;
-            font-size: 0.85rem;
-        }
-
-        .rating-stars {
-            color: #ffc107;
-            font-size: 1rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #999;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        /* Modal */
+        /* Donation Popup */
         .modal {
             display: none;
             position: fixed;
@@ -471,7 +302,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -487,26 +318,92 @@
             border-radius: 12px;
             max-width: 500px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
 
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
             margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #eee;
         }
 
-        .modal-header h2 {
-            margin: 0;
+        .modal-icon {
+            font-size: 3rem;
+            color: #ff5722;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .donation-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .donation-btn-option {
+            padding: 1rem;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .donation-btn-option:hover {
+            border-color: #ff5722;
+            background: #fff3e0;
+        }
+
+        .donation-btn-option.selected {
+            border-color: #ff5722;
+            background: #ff5722;
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .modal-btn.donate {
+            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+            color: white;
+        }
+
+        .modal-btn.donate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+        }
+
+        .modal-btn.skip {
+            background: #eee;
             color: #333;
         }
 
         .modal-close {
+            float: right;
             background: none;
             border: none;
             font-size: 1.5rem;
@@ -514,65 +411,122 @@
             color: #999;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        /* Receipt Modal */
+        .receipt-modal .modal-content {
+            max-width: 600px;
         }
 
-        .form-group label {
-            display: block;
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .receipt-header h3 {
             color: #333;
-            font-weight: 600;
             margin-bottom: 0.5rem;
         }
 
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.9rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-family: inherit;
-            transition: all 0.3s;
+        .receipt-header p {
+            color: #999;
+            font-size: 0.9rem;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        .receipt-section {
+            margin-bottom: 1.5rem;
         }
 
-        .form-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .receipt-section h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            color: #999;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            color: #666;
+        }
+
+        .receipt-row.total {
+            border-top: 2px solid #eee;
+            padding-top: 1rem;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .receipt-total-amount {
+            color: #4caf50;
+        }
+
+        .receipt-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .receipt-btn {
+            flex: 1;
+            padding: 0.8rem;
             border: none;
             border-radius: 8px;
-            font-weight: bold;
             cursor: pointer;
+            font-weight: bold;
         }
 
-        .form-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .receipt-btn.download {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .receipt-btn.share {
+            background: #eee;
+            color: #333;
+        }
+
+        /* Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
         }
 
         @media (max-width: 768px) {
-            .navbar-container {
-                padding: 0 1rem;
-            }
-
-            .navbar-right {
-                gap: 1rem;
-            }
-
             .container {
                 padding: 1rem;
             }
 
-            .profile-section {
-                grid-template-columns: 1fr;
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
             }
 
             .ride-card {
@@ -589,12 +543,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .tab-buttons {
-                overflow-x: auto;
-            }
-
-            .tab-button {
-                min-width: 120px;
+            .donation-options {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -627,16 +577,16 @@
             <div class="header-top">
                 <div class="header-title">
                     <h1 id="welcomeMsg">Welcome to GO India RIDE</h1>
-                    <p>Manage your rides and account</p>
+                    <p>Manage your rides and help those in need</p>
                 </div>
                 <div class="quick-actions">
                     <button class="quick-action-btn" onclick="goToBooking()">
                         <i class="fas fa-plus-circle"></i>
                         Book Ride
                     </button>
-                    <button class="quick-action-btn" onclick="openAddMoneyModal()">
-                        <i class="fas fa-wallet"></i>
-                        Add Money
+                    <button class="quick-action-btn" onclick="openDonations()">
+                        <i class="fas fa-heart"></i>
+                        Donate
                     </button>
                     <button class="quick-action-btn" onclick="switchTab('profile')">
                         <i class="fas fa-user-circle"></i>
@@ -649,19 +599,24 @@
         <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Rides</h3>
-                <div class="value" id="totalRides">0</div>
-                <div class="subtext">All time rides</div>
+                <div class="stat-label">Total Rides</div>
+                <div class="stat-value" id="totalRides">0</div>
+                <div class="stat-subtext">All time rides</div>
             </div>
             <div class="stat-card">
-                <h3>Wallet Balance</h3>
-                <div class="value" id="walletBalance">₹0</div>
-                <div class="subtext">Available balance</div>
+                <div class="stat-label">Wallet Balance</div>
+                <div class="stat-value" id="walletBalance">₹0</div>
+                <div class="stat-subtext">Available balance</div>
+            </div>
+            <div class="stat-card donation">
+                <div class="stat-label">❤️ Donations Contributed</div>
+                <div class="stat-value" id="donationContributed">₹0</div>
+                <div class="stat-subtext">Help to those in need</div>
             </div>
             <div class="stat-card">
-                <h3>Average Rating</h3>
-                <div class="value" id="avgRating">5.0</div>
-                <div class="subtext" id="totalRatings">0 ratings</div>
+                <div class="stat-label">Average Rating</div>
+                <div class="stat-value" id="avgRating">5.0 ⭐</div>
+                <div class="stat-subtext">From your rides</div>
             </div>
         </div>
 
@@ -674,14 +629,11 @@
                 <button class="tab-button" onclick="switchTab('history')">
                     <i class="fas fa-history"></i> Ride History
                 </button>
+                <button class="tab-button" onclick="switchTab('donations')">
+                    <i class="fas fa-heart"></i> My Donations
+                </button>
                 <button class="tab-button" onclick="switchTab('profile')">
                     <i class="fas fa-user"></i> Profile
-                </button>
-                <button class="tab-button" onclick="switchTab('wallet')">
-                    <i class="fas fa-wallet"></i> Wallet
-                </button>
-                <button class="tab-button" onclick="switchTab('ratings')">
-                    <i class="fas fa-star"></i> Ratings
                 </button>
             </div>
 
@@ -705,107 +657,34 @@
                 </div>
             </div>
 
+            <!-- Donations Tab -->
+            <div class="tab-content" id="donationsTab">
+                <div id="donationsList" class="ride-list">
+                    <div class="empty-state">
+                        <i class="fas fa-heart"></i>
+                        <p>No donations yet. <a href="javascript:openDonations()" style="color: #667eea; cursor: pointer;">Start donating!</a></p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Profile Tab -->
             <div class="tab-content" id="profileTab">
-                <div class="profile-section">
-                    <div class="profile-info">
-                        <div class="profile-avatar" id="profileAvatar">C</div>
-                        <div class="profile-name" id="profileName">Customer Name</div>
-                        
-                        <div class="profile-detail">
-                            <label>Email</label>
-                            <value id="profileEmail">email@example.com</value>
-                        </div>
-
-                        <div class="profile-detail">
-                            <label>Mobile Number</label>
-                            <value id="profilePhone">9876543210</value>
-                        </div>
-
-                        <div class="profile-detail">
-                            <label>Member Since</label>
-                            <value id="profileMemberSince">Jan 2024</value>
-                        </div>
-
-                        <button class="edit-profile-btn" onclick="openEditProfileModal()">
-                            <i class="fas fa-edit"></i>
-                            Edit Profile
-                        </button>
-                    </div>
-
-                    <div class="profile-info">
-                        <h3 style="margin-bottom: 1.5rem;">Account Settings</h3>
-                        
-                        <div class="profile-detail">
-                            <label>
-                                <input type="checkbox" id="emailNotifications"> 
-                                Email Notifications
-                            </label>
-                        </div>
-
-                        <div class="profile-detail">
-                            <label>
-                                <input type="checkbox" id="smsNotifications"> 
-                                SMS Notifications
-                            </label>
-                        </div>
-
-                        <div class="profile-detail">
-                            <label>
-                                <input type="checkbox" id="whatsappNotifications" checked> 
-                                WhatsApp Notifications
-                            </label>
-                        </div>
-
-                        <button class="edit-profile-btn" onclick="changePassword()" style="margin-top: 2rem;">
-                            <i class="fas fa-lock"></i>
-                            Change Password
-                        </button>
-
-                        <button class="edit-profile-btn" style="background: #f44336; margin-top: 1rem;" onclick="deleteAccount()">
-                            <i class="fas fa-trash"></i>
-                            Delete Account
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Wallet Tab -->
-            <div class="tab-content" id="walletTab">
-                <div class="wallet-card">
-                    <div class="wallet-label">Available Balance</div>
-                    <div class="wallet-balance" id="walletBalanceDisplay">₹0</div>
-                    <div class="wallet-actions">
-                        <button class="wallet-btn" onclick="openAddMoneyModal()">
-                            <i class="fas fa-plus"></i>
-                            Add Money
-                        </button>
-                        <button class="wallet-btn" onclick="withdrawMoney()">
-                            <i class="fas fa-arrow-right"></i>
-                            Withdraw
-                        </button>
-                    </div>
-                </div>
-
-                <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                    <h3 style="margin-bottom: 1.5rem;">Transaction History</h3>
-                    <div id="transactionList">
-                        <div class="empty-state">
-                            <i class="fas fa-list"></i>
-                            <p>No transactions yet</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ratings Tab -->
-            <div class="tab-content" id="ratingsTab">
-                <div class="ratings-section">
-                    <h3 style="margin-bottom: 1.5rem;">Your Ratings</h3>
-                    <div id="ratingsList">
-                        <div class="empty-state">
-                            <i class="fas fa-star"></i>
-                            <p>No ratings yet. Complete rides to get ratings!</p>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+                    <div style="background: white; padding: 2rem; border-radius: 12px;">
+                        <h3 style="margin-bottom: 1.5rem; color: #333;">Personal Information</h3>
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <label style="color: #999; font-size: 0.9rem;">Full Name</label>
+                                <p style="color: #333; font-weight: 600;" id="profileName">-</p>
+                            </div>
+                            <div>
+                                <label style="color: #999; font-size: 0.9rem;">Email</label>
+                                <p style="color: #333; font-weight: 600;" id="profileEmail">-</p>
+                            </div>
+                            <div>
+                                <label style="color: #999; font-size: 0.9rem;">Phone</label>
+                                <p style="color: #333; font-weight: 600;" id="profilePhone">-</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -813,66 +692,122 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div class="modal" id="editProfileModal">
+    <!-- Donation Suggestion Modal -->
+    <div class="modal" id="donationModal">
         <div class="modal-content">
+            <button class="modal-close" onclick="closeDonationModal()">&times;</button>
             <div class="modal-header">
-                <h2>Edit Profile</h2>
-                <button class="modal-close" onclick="closeEditProfileModal()">&times;</button>
+                <div class="modal-icon">❤️</div>
+                <div class="modal-title">Help Someone Today</div>
+                <div class="modal-description">
+                    Your ride was amazing! Would you like to help an underprivileged driver or student with a small donation?
+                </div>
             </div>
 
-            <form onsubmit="saveProfile(event)">
-                <div class="form-group">
-                    <label for="editName">Full Name</label>
-                    <input type="text" id="editName" required>
-                </div>
+            <div style="background: #fff3e0; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #ff5722;">
+                <p style="color: #e65100; font-size: 0.9rem;">
+                    <strong>💡 Did you know?</strong> 10% of our platform's revenue goes to help drivers and their families.
+                </p>
+            </div>
 
-                <div class="form-group">
-                    <label for="editEmail">Email</label>
-                    <input type="email" id="editEmail" required>
-                </div>
+            <h4 style="color: #333; margin-bottom: 1rem; font-weight: 600;">Choose Amount:</h4>
+            <div class="donation-options">
+                <button class="donation-btn-option" onclick="selectDonation(50)">₹50</button>
+                <button class="donation-btn-option" onclick="selectDonation(100)">₹100</button>
+                <button class="donation-btn-option" onclick="selectDonation(250)">₹250</button>
+                <button class="donation-btn-option" onclick="selectDonation(500)">₹500</button>
+            </div>
 
-                <div class="form-group">
-                    <label for="editPhone">Phone</label>
-                    <input type="tel" id="editPhone" required>
-                </div>
+            <div id="customDonationInput" style="margin-bottom: 1.5rem;">
+                <input type="number" id="customDonationAmount" placeholder="Or enter custom amount (₹)" min="1" style="width: 100%; padding: 0.8rem; border: 2px solid #ddd; border-radius: 8px;">
+            </div>
 
-                <div class="form-group">
-                    <label for="editCity">City</label>
-                    <input type="text" id="editCity">
-                </div>
-
-                <button type="submit" class="form-btn">Save Changes</button>
-            </form>
+            <div class="modal-actions">
+                <button class="modal-btn donate" id="donateBtn" onclick="submitDonation()">
+                    <i class="fas fa-heart"></i>
+                    Donate Now
+                </button>
+                <button class="modal-btn skip" onclick="closeDonationModal()">Skip</button>
+            </div>
         </div>
     </div>
 
-    <!-- Add Money Modal -->
-    <div class="modal" id="addMoneyModal">
+    <!-- Receipt Modal -->
+    <div class="modal receipt-modal" id="receiptModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Money to Wallet</h2>
-                <button class="modal-close" onclick="closeAddMoneyModal()">&times;</button>
+            <div class="receipt-header">
+                <h3>🎉 Thank You!</h3>
+                <p>Your donation receipt</p>
             </div>
 
-            <form onsubmit="addMoney(event)">
-                <div class="form-group">
-                    <label for="addAmount">Amount (₹)</label>
-                    <input type="number" id="addAmount" min="100" max="10000" placeholder="Min ₹100" required>
+            <div class="receipt-section">
+                <h4>Ride Details</h4>
+                <div class="receipt-row">
+                    <span>Pickup Location</span>
+                    <span id="receiptPickup">-</span>
                 </div>
-
-                <div class="form-group">
-                    <label for="paymentMethod">Payment Method</label>
-                    <select id="paymentMethod" style="width: 100%; padding: 0.9rem; border: 2px solid #ddd; border-radius: 8px;">
-                        <option>Debit Card</option>
-                        <option>Credit Card</option>
-                        <option>UPI</option>
-                        <option>Net Banking</option>
-                    </select>
+                <div class="receipt-row">
+                    <span>Dropoff Location</span>
+                    <span id="receiptDropoff">-</span>
                 </div>
+                <div class="receipt-row">
+                    <span>Ride Fare</span>
+                    <span id="receiptFare">₹0</span>
+                </div>
+            </div>
 
-                <button type="submit" class="form-btn">Add Money</button>
-            </form>
+            <div class="receipt-section">
+                <h4>Donation Details</h4>
+                <div class="receipt-row">
+                    <span>Donation Amount</span>
+                    <span id="receiptDonation">₹0</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Beneficiary</span>
+                    <span id="receiptBeneficiary">Underprivileged Driver Fund</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Reference ID</span>
+                    <span id="receiptRefId">-</span>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h4>Summary</h4>
+                <div class="receipt-row">
+                    <span>Ride Amount</span>
+                    <span id="receiptRideAmount">₹0</span>
+                </div>
+                <div class="receipt-row">
+                    <span>+ Donation</span>
+                    <span id="receiptDonationAmount">₹0</span>
+                </div>
+                <div class="receipt-row total">
+                    <span>Total Paid</span>
+                    <span id="receiptTotal">₹0</span>
+                </div>
+            </div>
+
+            <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #4caf50;">
+                <p style="color: #2e7d32; font-size: 0.9rem;">
+                    <strong>✅ Impact:</strong> Your donation will help <span id="receiptImpact">one person</span> get better opportunities!
+                </p>
+            </div>
+
+            <div class="receipt-actions">
+                <button class="receipt-btn download" onclick="downloadReceipt()">
+                    <i class="fas fa-download"></i>
+                    Download
+                </button>
+                <button class="receipt-btn share" onclick="shareReceipt()">
+                    <i class="fas fa-share"></i>
+                    Share
+                </button>
+            </div>
+
+            <button class="modal-btn" onclick="closeReceiptModal()" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.9rem;">
+                Continue
+            </button>
         </div>
     </div>
 
@@ -886,7 +821,6 @@
             const currentUser = localStorage.getItem('currentUser');
 
             if (userRole !== 'customer' || !currentUser) {
-                console.log('❌ Not authenticated as customer');
                 alert('Please login as customer first');
                 window.location.href = './login.html';
                 return null;
@@ -895,11 +829,9 @@
             return JSON.parse(currentUser);
         }
 
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-
         let currentUser = null;
+        let selectedDonationAmount = 0;
+        let currentRideForDonation = null;
 
         window.addEventListener('load', function() {
             currentUser = checkAuth();
@@ -907,40 +839,30 @@
 
             loadDashboard();
             loadRides();
+            loadDonations();
             loadProfile();
-            loadWallet();
-            loadRatings();
         });
 
         // ============================================
-        // LOAD DASHBOARD DATA
+        // LOAD DASHBOARD
         // ============================================
 
         function loadDashboard() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
+            const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
 
-            // Update stats
+            const totalDonationAmount = donations.reduce((sum, d) => sum + d.amount, 0);
+            const wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0 };
+
             document.getElementById('totalRides').textContent = customerBookings.length;
+            document.getElementById('walletBalance').textContent = `₹${wallet.balance}`;
+            document.getElementById('donationContributed').textContent = `₹${totalDonationAmount}`;
             document.getElementById('welcomeMsg').textContent = `Welcome, ${currentUser.fullname}!`;
             document.getElementById('userName').textContent = currentUser.fullname;
 
-            // User avatar
             const initials = currentUser.fullname.split(' ').map(n => n[0]).join('').toUpperCase();
             document.getElementById('userAvatar').textContent = initials;
-
-            // Wallet balance
-            const wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0 };
-            document.getElementById('walletBalance').textContent = `₹${wallet.balance}`;
-            document.getElementById('walletBalanceDisplay').textContent = `₹${wallet.balance}`;
-
-            // Average rating
-            const ratings = JSON.parse(localStorage.getItem(`ratings_${currentUser.id}`)) || [];
-            if (ratings.length > 0) {
-                const avgRating = (ratings.reduce((a, b) => a + b.rating, 0) / ratings.length).toFixed(1);
-                document.getElementById('avgRating').textContent = avgRating;
-                document.getElementById('totalRatings').textContent = `${ratings.length} ratings`;
-            }
         }
 
         // ============================================
@@ -951,7 +873,7 @@
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
 
-            const activeRides = customerBookings.filter(b => b.status === 'active' || b.status === 'scheduled');
+            const activeRides = customerBookings.filter(b => b.status === 'active');
             const completedRides = customerBookings.filter(b => b.status === 'completed');
 
             // Active Rides
@@ -979,9 +901,6 @@
                         <div class="ride-actions">
                             <button class="ride-btn primary" onclick="trackRide('${ride.id}')">
                                 <i class="fas fa-location-arrow"></i> Track
-                            </button>
-                            <button class="ride-btn" onclick="cancelRide('${ride.id}')">
-                                <i class="fas fa-times"></i> Cancel
                             </button>
                         </div>
                     </div>
@@ -1011,8 +930,49 @@
                             </div>
                         </div>
                         <div class="ride-actions">
-                            <button class="ride-btn primary" onclick="rateRide('${ride.id}')">
+                            <button class="ride-btn primary" onclick="viewReceipt('${ride.id}')">
+                                <i class="fas fa-receipt"></i> Receipt
+                            </button>
+                            <button class="ride-btn" onclick="rateRide('${ride.id}')">
                                 <i class="fas fa-star"></i> Rate
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ============================================
+        // LOAD DONATIONS
+        // ============================================
+
+        function loadDonations() {
+            const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
+
+            const donationsList = document.getElementById('donationsList');
+            if (donations.length === 0) {
+                donationsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-heart"></i>
+                        <p>No donations yet. Help someone in need!</p>
+                    </div>
+                `;
+            } else {
+                donationsList.innerHTML = donations.map(d => `
+                    <div class="ride-card" style="border-left-color: #ff5722;">
+                        <div class="ride-info">
+                            <div class="ride-route">
+                                <i class="fas fa-heart" style="color: #ff5722;"></i> Donation to ${d.beneficiary}
+                            </div>
+                            <div class="ride-details">
+                                <span><i class="fas fa-calendar"></i> ${new Date(d.createdAt).toLocaleDateString()}</span>
+                                <span><strong style="color: #ff5722;">₹${d.amount}</strong></span>
+                                <span><i class="fas fa-check-circle" style="color: #4caf50;"></i> Completed</span>
+                            </div>
+                        </div>
+                        <div class="ride-actions">
+                            <button class="ride-btn" onclick="viewDonationReceipt('${d.id}')">
+                                <i class="fas fa-receipt"></i> Receipt
                             </button>
                         </div>
                     </div>
@@ -1025,79 +985,187 @@
         // ============================================
 
         function loadProfile() {
-            const initials = currentUser.fullname.split(' ').map(n => n[0]).join('').toUpperCase();
-            document.getElementById('profileAvatar').textContent = initials;
             document.getElementById('profileName').textContent = currentUser.fullname;
             document.getElementById('profileEmail').textContent = currentUser.email;
             document.getElementById('profilePhone').textContent = currentUser.phone;
-            
-            const joinDate = new Date(currentUser.createdAt);
-            document.getElementById('profileMemberSince').textContent = joinDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-
-            // Edit form
-            document.getElementById('editName').value = currentUser.fullname;
-            document.getElementById('editEmail').value = currentUser.email;
-            document.getElementById('editPhone').value = currentUser.phone;
         }
 
         // ============================================
-        // LOAD WALLET
+        // DONATION SYSTEM
         // ============================================
 
-        function loadWallet() {
-            const wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { 
-                balance: 0, 
-                transactions: [] 
+        function openDonations() {
+            window.location.href = './donations.html';
+        }
+
+        function openDonationModal(rideId) {
+            currentRideForDonation = rideId;
+            selectedDonationAmount = 50;
+            document.getElementById('donationModal').classList.add('active');
+        }
+
+        function closeDonationModal() {
+            document.getElementById('donationModal').classList.remove('active');
+        }
+
+        function selectDonation(amount) {
+            selectedDonationAmount = amount;
+            document.querySelectorAll('.donation-btn-option').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            document.getElementById('customDonationAmount').value = '';
+        }
+
+        document.getElementById('customDonationAmount')?.addEventListener('input', function() {
+            if (this.value) {
+                selectedDonationAmount = parseInt(this.value);
+                document.querySelectorAll('.donation-btn-option').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+            }
+        });
+
+        function submitDonation() {
+            const customAmount = document.getElementById('customDonationAmount').value;
+            const amount = customAmount ? parseInt(customAmount) : selectedDonationAmount;
+
+            if (!amount || amount < 1) {
+                alert('Please select a valid amount');
+                return;
+            }
+
+            // Create donation record
+            const donation = {
+                id: 'DON' + Date.now(),
+                rideId: currentRideForDonation,
+                amount: amount,
+                beneficiary: 'Underprivileged Driver Fund',
+                createdAt: new Date().toISOString()
             };
 
-            const transactionList = document.getElementById('transactionList');
-            if (wallet.transactions && wallet.transactions.length > 0) {
-                transactionList.innerHTML = wallet.transactions.map(tx => `
-                    <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: bold; color: #333;">${tx.type === 'credit' ? '+ Added' : '- Paid'} ₹${tx.amount}</div>
-                            <div style="color: #999; font-size: 0.85rem;">${new Date(tx.date).toLocaleDateString()}</div>
-                        </div>
-                        <div style="color: ${tx.type === 'credit' ? '#4caf50' : '#f44336'}; font-weight: bold;">
-                            ${tx.type === 'credit' ? '+' : '-'}₹${tx.amount}
-                        </div>
-                    </div>
-                `).join('');
+            let donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
+            donations.push(donation);
+            localStorage.setItem('customerDonations_' + currentUser.id, JSON.stringify(donations));
+
+            // Deduct from wallet
+            let wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0, transactions: [] };
+            wallet.balance -= amount;
+            wallet.transactions = wallet.transactions || [];
+            wallet.transactions.unshift({
+                type: 'donation',
+                amount: amount,
+                description: 'Donation to help drivers',
+                date: new Date().toISOString()
+            });
+            localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
+
+            // Get ride details for receipt
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const ride = bookings.find(b => b.id === currentRideForDonation);
+
+            // Show receipt
+            showDonationReceipt(ride, amount, donation.id);
+        }
+
+        function showDonationReceipt(ride, donationAmount, donationId) {
+            if (!ride) {
+                alert('❌ Ride not found');
+                return;
+            }
+
+            const totalAmount = ride.totalFare + donationAmount;
+
+            document.getElementById('receiptPickup').textContent = ride.pickup;
+            document.getElementById('receiptDropoff').textContent = ride.dropoff;
+            document.getElementById('receiptFare').textContent = `₹${ride.totalFare}`;
+            document.getElementById('receiptDonation').textContent = `₹${donationAmount}`;
+            document.getElementById('receiptRefId').textContent = donationId;
+            document.getElementById('receiptRideAmount').textContent = `₹${ride.totalFare}`;
+            document.getElementById('receiptDonationAmount').textContent = `₹${donationAmount}`;
+            document.getElementById('receiptTotal').textContent = `₹${totalAmount}`;
+            document.getElementById('receiptImpact').textContent = `provide meals/help to one person for a day`;
+
+            closeDonationModal();
+            document.getElementById('receiptModal').classList.add('active');
+
+            // Reload data
+            loadDashboard();
+            loadDonations();
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('active');
+        }
+
+        function downloadReceipt() {
+            const receiptText = `
+GO INDIA RIDE - DONATION RECEIPT
+
+========================
+RIDE DETAILS
+========================
+Pickup: ${document.getElementById('receiptPickup').textContent}
+Dropoff: ${document.getElementById('receiptDropoff').textContent}
+Ride Fare: ${document.getElementById('receiptFare').textContent}
+
+========================
+DONATION DETAILS
+========================
+Donation Amount: ${document.getElementById('receiptDonation').textContent}
+Beneficiary: ${document.getElementById('receiptBeneficiary').textContent}
+Reference ID: ${document.getElementById('receiptRefId').textContent}
+Date: ${new Date().toLocaleString()}
+
+========================
+SUMMARY
+========================
+Ride Amount: ${document.getElementById('receiptRideAmount').textContent}
++ Donation: ${document.getElementById('receiptDonationAmount').textContent}
+Total Paid: ${document.getElementById('receiptTotal').textContent}
+
+Thank you for your generosity! ❤️
+            `;
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(receiptText));
+            element.setAttribute('download', 'donation_receipt_' + new Date().getTime() + '.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+
+            alert('✅ Receipt downloaded!');
+        }
+
+        function shareReceipt() {
+            const receiptText = `I just donated ₹${document.getElementById('receiptDonation').textContent} through GO India RIDE to help underprivileged drivers! 🙏❤️ #GoIndiaRide #HelpingDrivers`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'GO India RIDE Donation',
+                    text: receiptText,
+                    url: window.location.href
+                });
             } else {
-                transactionList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-list"></i>
-                        <p>No transactions yet</p>
-                    </div>
-                `;
+                alert('Share: ' + receiptText);
             }
         }
 
-        // ============================================
-        // LOAD RATINGS
-        // ============================================
+        function viewDonationReceipt(donationId) {
+            const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
+            const donation = donations.find(d => d.id === donationId);
+            if (donation) {
+                alert(`
+Donation Receipt
+================
+Amount: ₹${donation.amount}
+Beneficiary: ${donation.beneficiary}
+Date: ${new Date(donation.createdAt).toLocaleString()}
+Reference: ${donation.id}
 
-        function loadRatings() {
-            const ratings = JSON.parse(localStorage.getItem(`ratings_${currentUser.id}`)) || [];
-
-            const ratingsList = document.getElementById('ratingsList');
-            if (ratings.length === 0) {
-                ratingsList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-star"></i>
-                        <p>No ratings yet. Complete rides to get ratings!</p>
-                    </div>
-                `;
-            } else {
-                ratingsList.innerHTML = ratings.map(r => `
-                    <div class="rating-item">
-                        <div class="rating-info">
-                            <div class="rating-driver">${r.driverName}</div>
-                            <div class="rating-date">${new Date(r.date).toLocaleDateString()}</div>
-                        </div>
-                        <div class="rating-stars">${'⭐'.repeat(r.rating)}</div>
-                    </div>
-                `).join('');
+Thank you for helping! ❤️
+                `);
             }
         }
 
@@ -1106,210 +1174,62 @@
         // ============================================
 
         function switchTab(tabName) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
 
-            // Remove active from buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
             });
 
-            // Show selected tab
             document.getElementById(tabName + 'Tab').classList.add('active');
-
-            // Add active to button
             event.target.classList.add('active');
-        }
-
-        // ============================================
-        // PROFILE FUNCTIONS
-        // ============================================
-
-        function openEditProfileModal() {
-            document.getElementById('editProfileModal').classList.add('active');
-        }
-
-        function closeEditProfileModal() {
-            document.getElementById('editProfileModal').classList.remove('active');
-        }
-
-        function saveProfile(e) {
-            e.preventDefault();
-
-            currentUser.fullname = document.getElementById('editName').value;
-            currentUser.email = document.getElementById('editEmail').value;
-            currentUser.phone = document.getElementById('editPhone').value;
-
-            let users = JSON.parse(localStorage.getItem('users')) || [];
-            const idx = users.findIndex(u => u.id === currentUser.id);
-            if (idx !== -1) {
-                users[idx] = currentUser;
-                localStorage.setItem('users', JSON.stringify(users));
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            }
-
-            loadProfile();
-            closeEditProfileModal();
-            alert('✅ Profile updated successfully!');
-        }
-
-        // ============================================
-        // WALLET FUNCTIONS
-        // ============================================
-
-        function openAddMoneyModal() {
-            document.getElementById('addMoneyModal').classList.add('active');
-        }
-
-        function closeAddMoneyModal() {
-            document.getElementById('addMoneyModal').classList.remove('active');
-        }
-
-        function addMoney(e) {
-            e.preventDefault();
-
-            const amount = parseInt(document.getElementById('addAmount').value);
-            const method = document.getElementById('paymentMethod').value;
-
-            let wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { 
-                balance: 0, 
-                transactions: [] 
-            };
-
-            wallet.balance += amount;
-            wallet.transactions = wallet.transactions || [];
-            wallet.transactions.unshift({
-                type: 'credit',
-                amount: amount,
-                method: method,
-                date: new Date().toISOString()
-            });
-
-            localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
-
-            loadDashboard();
-            loadWallet();
-            closeAddMoneyModal();
-            alert(`✅ ₹${amount} added to wallet!`);
-        }
-
-        function withdrawMoney() {
-            const amount = prompt('Enter amount to withdraw (₹):');
-            if (!amount) return;
-
-            let wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0 };
-
-            if (wallet.balance < amount) {
-                alert('❌ Insufficient balance');
-                return;
-            }
-
-            wallet.balance -= amount;
-            wallet.transactions = wallet.transactions || [];
-            wallet.transactions.unshift({
-                type: 'debit',
-                amount: amount,
-                method: 'Bank Transfer',
-                date: new Date().toISOString()
-            });
-
-            localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
-
-            loadDashboard();
-            loadWallet();
-            alert(`✅ ₹${amount} withdrawal request submitted!`);
-        }
-
-        // ============================================
-        // RIDE FUNCTIONS
-        // ============================================
-
-        function trackRide(rideId) {
-            alert('🚗 Track feature coming soon!');
-        }
-
-        function cancelRide(rideId) {
-            if (confirm('Are you sure you want to cancel this ride?')) {
-                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-                const idx = bookings.findIndex(b => b.id === rideId);
-                if (idx !== -1) {
-                    bookings[idx].status = 'cancelled';
-                    localStorage.setItem('bookings', JSON.stringify(bookings));
-                    loadRides();
-                    alert('✅ Ride cancelled');
-                }
-            }
-        }
-
-        function rateRide(rideId) {
-            const rating = prompt('Rate this ride (1-5 stars):');
-            if (rating && rating >= 1 && rating <= 5) {
-                let ratings = JSON.parse(localStorage.getItem(`ratings_${currentUser.id}`)) || [];
-                ratings.push({
-                    rideId: rideId,
-                    rating: parseInt(rating),
-                    driverName: 'Driver Name',
-                    date: new Date().toISOString()
-                });
-                localStorage.setItem(`ratings_${currentUser.id}`, JSON.stringify(ratings));
-                loadDashboard();
-                loadRatings();
-                alert('�� Thanks for rating!');
-            }
         }
 
         // ============================================
         // OTHER FUNCTIONS
         // ============================================
 
-        function changePassword() {
-            const newPass = prompt('Enter new password:');
-            if (newPass && newPass.length >= 6) {
-                currentUser.password = newPass;
-                let users = JSON.parse(localStorage.getItem('users')) || [];
-                const idx = users.findIndex(u => u.id === currentUser.id);
-                if (idx !== -1) {
-                    users[idx] = currentUser;
-                    localStorage.setItem('users', JSON.stringify(users));
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                }
-                alert('✅ Password changed successfully!');
-            } else {
-                alert('❌ Password must be at least 6 characters');
-            }
-        }
-
-        function deleteAccount() {
-            if (confirm('Are you sure? This action cannot be undone!')) {
-                let users = JSON.parse(localStorage.getItem('users')) || [];
-                users = users.filter(u => u.id !== currentUser.id);
-                localStorage.setItem('users', JSON.stringify(users));
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('userRole');
-                alert('❌ Account deleted');
-                window.location.href = './login.html';
-            }
-        }
-
         function goToBooking() {
             window.location.href = './booking.html';
+        }
+
+        function trackRide(rideId) {
+            alert('📍 Live tracking coming soon!');
+        }
+
+        function viewReceipt(rideId) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const ride = bookings.find(b => b.id === rideId);
+            if (ride) {
+                alert(`
+Ride Receipt
+============
+From: ${ride.pickup}
+To: ${ride.dropoff}
+Type: ${ride.rideType}
+Distance: ${ride.distance}km
+Fare: ₹${ride.totalFare}
+Date: ${new Date(ride.createdAt).toLocaleString()}
+
+Thank you for riding with us! 🚗
+                `);
+            }
+        }
+
+        function rateRide(rideId) {
+            const rating = prompt('Rate this ride (1-5 stars):');
+            if (rating && rating >= 1 && rating <= 5) {
+                alert(`✅ Thanks for rating! You gave ${rating} stars.`);
+            }
         }
 
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('currentUser');
-                localStorage.removeItem('currentDriver');
-                localStorage.removeItem('currentAdmin');
                 localStorage.removeItem('userRole');
                 window.location.href = './login.html';
             }
-        }
-
-        window.onclick = (e) => {
-            if (e.target.id === 'editProfileModal') closeEditProfileModal();
-            if (e.target.id === 'addMoneyModal') closeAddMoneyModal();
         }
 
         console.log('🚀 Customer Dashboard loaded');
