@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - GO India RIDE</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: calc(100vh - 80px);
+            background: #f5f5f5;
+        }
+        
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .action-card i {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .action-card h3 {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+        
+        .recent-trips {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .trip-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .trip-item:last-child {
+            border-bottom: none;
+        }
+        
+        .trip-info {
+            flex: 1;
+        }
+        
+        .trip-route {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .trip-time {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .trip-fare {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i> GO India RIDE
+            </div>
+            <div style="color: white;">
+                <span id="userName">Welcome!</span>
+                <a href="../index.html" onclick="logout()" style="color: white; margin-left: 2rem; cursor: pointer;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1 id="welcomeMsg">Welcome to GO India RIDE!</h1>
+            <p>Your trusted ride sharing platform across Rajasthan</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-card" onclick="window.location.href='./booking.html'">
+                <i class="fas fa-plus-circle"></i>
+                <h3>Book a Ride</h3>
+                <p>Start a new journey</p>
+            </div>
+            <div class="action-card" onclick="loadTripsDetail()">
+                <i class="fas fa-history"></i>
+                <h3>Trip History</h3>
+                <p>View past rides</p>
+            </div>
+            <div class="action-card" onclick="loadWallet()">
+                <i class="fas fa-wallet"></i>
+                <h3>Wallet</h3>
+                <p>Check balance</p>
+            </div>
+            <div class="action-card" onclick="loadSettings()">
+                <i class="fas fa-cog"></i>
+                <h3>Settings</h3>
+                <p>Manage account</p>
+            </div>
+        </div>
+
+        <!-- Recent Trips -->
+        <div class="recent-trips">
+            <h2 style="margin-top: 0;">Recent Trips</h2>
+            <div id="tripsList">
+                <div style="text-align: center; color: #999; padding: 2rem;">
+                    <p>No trips yet. <a href="./booking.html" style="color: #667eea; cursor: pointer;">Book your first ride!</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check if user is logged in
+        const user = checkAuth();
+        if (!user) {
+            window.location.href = './login.html';
+        }
+
+        // Load user data
+        function loadDashboard() {
+            const userData = JSON.parse(localStorage.getItem('currentUser'));
+            if (userData) {
+                document.getElementById('userName').textContent = userData.fullname || 'User';
+                document.getElementById('welcomeMsg').textContent = `Welcome, ${userData.fullname}!`;
+                
+                loadTrips();
+            }
+        }
+
+        function loadTrips() {
+            const trips = JSON.parse(localStorage.getItem('bookings')) || [];
+            const tripsList = document.getElementById('tripsList');
+            
+            if (trips.length === 0) {
+                tripsList.innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 2rem;">
+                        <p>No trips yet. <a href="./booking.html" style="color: #667eea; cursor: pointer;">Book your first ride!</a></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tripsList.innerHTML = trips.map(trip => `
+                <div class="trip-item">
+                    <div class="trip-info">
+                        <div class="trip-route">${trip.pickup} → ${trip.dropoff}</div>
+                        <div class="trip-time">${new Date(trip.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div class="trip-fare">${trip.totalFare}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadTripsDetail() {
+            alert('Trip history view - Coming soon!');
+        }
+
+        function loadWallet() {
+            alert('Wallet feature - Coming soon!');
+        }
+
+        function loadSettings() {
+            alert('Settings page - Coming soon!');
+        }
+
+        // Initialize dashboard
+        loadDashboard();
+    </script>
+</body>
+</html>
