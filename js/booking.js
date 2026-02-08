@@ -1,132 +1,85 @@
-// ===============================
-// AUTOCOMPLETE + TOURIST PLACES
-// ===============================
+// Initialize map
+let map;
+let pickupMarker, dropoffMarker;
+let selectedRideType = 'economy';
+const rideRates = {
+    economy: 5,
+    premium: 8
+};
 
-document.addEventListener("DOMContentLoaded", () => {
+// Check user authentication
+const currentUser = checkAuth();
+document.getElementById('userDisplay').textContent = `Welcome, ${currentUser.fullname}!`;
 
-  const input = document.getElementById("locationInput");
-  const suggestionsBox = document.getElementById("suggestions");
-  const placesSection = document.getElementById("placesSection");
+// Initialize Leaflet Map
+function initMap() {
+    map = L.map('map').setView([28.7041, 77.1025], 13); // Delhi coordinates
 
-  if (!input || !suggestionsBox) return;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+}
 
-  // ===============================
-  // COLLECT ALL LOCATIONS
-  // ===============================
-  let ALL_LOCATIONS = [];
-
-  // States
-  if (window.locationsData?.states) {
-    ALL_LOCATIONS.push(...window.locationsData.states);
-  }
-
-  // Rajasthan districts
-  if (window.locationsData?.rajasthan?.districts) {
-    ALL_LOCATIONS.push(...window.locationsData.rajasthan.districts);
-  }
-
-  // Tourist places (district wise)
-  if (window.RajasthanData) {
-    Object.keys(window.RajasthanData).forEach(district => {
-      window.RajasthanData[district].forEach(place => {
-        ALL_LOCATIONS.push(place.name);
-      });
+// Ride type selection
+document.querySelectorAll('.ride-type-card').forEach(card => {
+    card.addEventListener('click', function() {
+        document.querySelectorAll('.ride-type-card').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        selectedRideType = this.dataset.type;
+        calculateFare();
     });
-  }
+});
 
-  // Remove duplicates
-  ALL_LOCATIONS = [...new Set(ALL_LOCATIONS)];
+// Calculate fare estimation
+function calculateFare() {
+    const baseFare = 50;
+    const distance = Math.random() * 10 + 5; // Random distance for demo
+    const time = Math.random() * 30 + 10; // Random time for demo
+    
+    const ratePerKm = rideRates[selectedRideType];
+    const distanceFare = distance * ratePerKm;
+    const timeFare = (time / 60) * 10; // ₹10 per minute
+    
+    const total = baseFare + distanceFare + timeFare;
+    
+    document.getElementById('distanceFare').textContent = `₹${distanceFare.toFixed(2)}`;
+    document.getElementById('timeFare').textContent = `₹${timeFare.toFixed(2)}`;
+    document.getElementById('totalFare').textContent = `₹${total.toFixed(2)}`;
+}
 
-  // ===============================
-  // INPUT EVENT
-  // ===============================
-  input.addEventListener("input", function () {
-    const value = this.value.toLowerCase().trim();
-    suggestionsBox.innerHTML = "";
+// Handle booking form submission
+document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-    if (value.length < 1) {
-      suggestionsBox.style.display = "none";
-      return;
-    }
+    const pickup = document.getElementById('pickup').value;
+    const dropoff = document.getElementById('dropoff').value;
+    const rideDateTime = document.getElementById('rideDateTime').value;
+    const totalFare = document.getElementById('totalFare').textContent;
 
-    const matches = ALL_LOCATIONS.filter(name =>
-      name.toLowerCase().includes(value)
-    );
+    const booking = {
+        id: Date.now(),
+        userId: currentUser.id,
+        pickup,
+        dropoff,
+        rideType: selectedRideType,
+        rideDateTime: rideDateTime || new Date().toISOString(),
+        totalFare,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+    };
 
-    if (matches.length === 0) {
-      suggestionsBox.style.display = "none";
-      return;
-    }
+    // Save booking
+    const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+    bookings.push(booking);
+    localStorage.setItem('bookings', JSON.stringify(bookings));
 
-    suggestionsBox.style.display = "block";
+    alert('Booking confirmed! Ride ID: ' + booking.id);
+    window.location.href = 'dashboard.html';
+});
 
-    matches.slice(0, 10).forEach(name => {
-      const li = document.createElement("li");
-      li.textContent = name;
-
-      li.addEventListener("click", () => {
-        input.value = name;
-        suggestionsBox.style.display = "none";
-        showTouristPlaces(name);
-      });
-
-      suggestionsBox.appendChild(li);
-    });
-  });
-
-  // ===============================
-  // SHOW TOURIST PLACES
-  // ===============================
-  function showTouristPlaces(selectedName) {
-    placesSection.innerHTML = "";
-
-    if (!window.RajasthanData) return;
-
-    // Case 1: District selected
-    if (window.RajasthanData[selectedName]) {
-      renderPlaces(selectedName, window.RajasthanData[selectedName]);
-      return;
-    }
-
-    // Case 2: Tourist place selected
-    Object.keys(window.RajasthanData).forEach(district => {
-      const found = window.RajasthanData[district].find(
-        p => p.name === selectedName
-      );
-
-      if (found) {
-        renderPlaces(district, window.RajasthanData[district]);
-      }
-    });
-  }
-
-  // ===============================
-  // RENDER PLACES
-  // ===============================
-  function renderPlaces(district, places) {
-    const title = document.createElement("h2");
-    title.textContent = district + " Tourist Places";
-    placesSection.appendChild(title);
-
-    const ul = document.createElement("ul");
-    ul.className = "places-list";
-
-    places.forEach(place => {
-      const li = document.createElement("li");
-      li.textContent = place.name;
-      ul.appendChild(li);
-    });
-
-    placesSection.appendChild(ul);
-  }
-
-  // ===============================
-  // CLICK OUTSIDE CLOSE
-  // ===============================
-  document.addEventListener("click", e => {
-    if (!e.target.closest(".booking-section")) {
-      suggestionsBox.style.display = "none";
-    }
-  });
-
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    calculateFare();
 });
