@@ -167,23 +167,27 @@
             border-left-color: #ff9800;
         }
 
+        .stat-card.donation {
+            border-left-color: #ff5722;
+        }
+
         .stat-label {
             color: #999;
             font-size: 0.9rem;
-            text-transform: uppercase;
             margin-bottom: 0.5rem;
+            text-transform: uppercase;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: bold;
             color: #333;
-            margin-bottom: 0.5rem;
         }
 
         .stat-change {
-            font-size: 0.85rem;
             color: #999;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
         }
 
         /* Tabs */
@@ -210,6 +214,7 @@
             color: #999;
             border-bottom: 3px solid transparent;
             transition: all 0.3s;
+            white-space: nowrap;
             min-width: 150px;
         }
 
@@ -509,10 +514,6 @@
             opacity: 0.5;
         }
 
-        .empty-state p {
-            margin: 0;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -567,6 +568,43 @@
         .scroll-x {
             overflow-x: auto;
         }
+
+        /* Donation Stats */
+        .donation-stat {
+            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .donation-stat h3 {
+            margin-bottom: 1rem;
+        }
+
+        .donation-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .donation-stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .donation-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .donation-stat-label {
+            opacity: 0.9;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -598,6 +636,10 @@
             <div class="menu-item" onclick="switchTab('earnings')">
                 <i class="fas fa-money-bill"></i>
                 <span>Earnings</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('donations')">
+                <i class="fas fa-heart"></i>
+                <span>Donations</span>
             </div>
             <div class="menu-item" onclick="switchTab('reports')">
                 <i class="fas fa-file-chart-line"></i>
@@ -675,10 +717,10 @@
                     <div class="stat-value" id="totalCustomers">0</div>
                     <div class="stat-change">Registered users</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Avg Rating</div>
-                    <div class="stat-value" id="avgRating">5.0 ⭐</div>
-                    <div class="stat-change">Based on reviews</div>
+                <div class="stat-card donation">
+                    <div class="stat-label">❤️ Total Donations</div>
+                    <div class="stat-value" id="dashboardTotalDonations">₹0</div>
+                    <div class="stat-change" id="dashboardDonorCount">0 donors</div>
                 </div>
             </div>
 
@@ -846,7 +888,7 @@
                     <div class="stat-change" id="monthRides">0 rides</div>
                 </div>
                 <div class="stat-card success">
-                    <div class="stat-label">Driver Earnings</div>
+                    <div class="stat-label">Driver Earnings (70%)</div>
                     <div class="stat-value" id="driverEarnings">₹0</div>
                     <div class="stat-change">Distributed</div>
                 </div>
@@ -878,6 +920,107 @@
             </div>
         </div>
 
+        <!-- Donations Tab (NEW) -->
+        <div class="tab-content" id="donationsTab">
+            <div class="donation-stat">
+                <h3>❤️ Donation Wallet Statistics</h3>
+                <div class="donation-stats-grid">
+                    <div class="donation-stat-item">
+                        <div class="donation-stat-value" id="donTotalAmount">₹0</div>
+                        <div class="donation-stat-label">Total Raised</div>
+                    </div>
+                    <div class="donation-stat-item">
+                        <div class="donation-stat-value" id="donTotalDonors">0</div>
+                        <div class="donation-stat-label">Total Donors</div>
+                    </div>
+                    <div class="donation-stat-item">
+                        <div class="donation-stat-value" id="donPeopleHelped">0</div>
+                        <div class="donation-stat-label">People Helped</div>
+                    </div>
+                    <div class="donation-stat-item">
+                        <div class="donation-stat-value" id="donThisMonth">₹0</div>
+                        <div class="donation-stat-label">This Month</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">All Donations</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Donor</th>
+                                <th>Country</th>
+                                <th>Amount</th>
+                                <th>From Ride</th>
+                                <th>Beneficiary</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donationsTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fas fa-heart"></i>
+                                    <p>No donations yet</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Donations by Country</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Donors</th>
+                                <th>Total Amount</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donationsByCountryTable">
+                            <tr>
+                                <td colspan="4" class="empty-state">
+                                    <i class="fas fa-globe"></i>
+                                    <p>No data</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Top Beneficiaries</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Beneficiary</th>
+                                <th>Donations</th>
+                                <th>Total Amount</th>
+                                <th>Impact</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topBeneficiariesTable">
+                            <tr>
+                                <td colspan="4" class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <p>No data</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Reports Tab -->
         <div class="tab-content" id="reportsTab">
             <div class="form-section">
@@ -890,6 +1033,7 @@
                             <option value="rides">Rides Report</option>
                             <option value="drivers">Drivers Report</option>
                             <option value="customers">Customers Report</option>
+                            <option value="donations">Donations Report</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -971,8 +1115,39 @@
                     </div>
                 </div>
 
+                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Donation Settings</h3>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="donationDefaultAmount">Default Donation Amount (₹)</label>
+                        <input type="number" id="donationDefaultAmount" value="50" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="donationMinAmount">Minimum Donation (₹)</label>
+                        <input type="number" id="donationMinAmount" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="donationMaxAmount">Maximum Donation (₹)</label>
+                        <input type="number" id="donationMaxAmount" value="5000" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label>
+                        <input type="checkbox" id="enableDonations" checked>
+                        <span>Enable Donations Feature</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="showDonationAfterRide" checked>
+                        <span>Show Donation Popup After Ride</span>
+                    </label>
+                </div>
+
                 <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Notifications</h3>
-                <div style="display: flex; gap: 2rem;">
+                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
                     <label>
                         <input type="checkbox" id="emailNotif" checked>
                         <span>Email Notifications</span>
@@ -1132,6 +1307,15 @@
             const activeDrivers = drivers.filter(d => d.isOnline).length;
             const totalCustomers = customers.length;
 
+            // 🎯 DONATIONS DATA
+            let totalDonations = 0;
+            let totalDonors = 0;
+            customers.forEach(c => {
+                const custDonations = JSON.parse(localStorage.getItem(`customerDonations_${c.id}`)) || [];
+                totalDonations += custDonations.reduce((sum, d) => sum + d.amount, 0);
+                if (custDonations.length > 0) totalDonors++;
+            });
+
             // Update stats
             document.getElementById('totalBookings').textContent = totalBookings;
             document.getElementById('completedRides').textContent = completedRides;
@@ -1144,6 +1328,8 @@
             document.getElementById('activeDrivers').textContent = activeDrivers;
             document.getElementById('totalDrivers').textContent = `${drivers.length} total`;
             document.getElementById('totalCustomers').textContent = totalCustomers;
+            document.getElementById('dashboardTotalDonations').textContent = `₹${totalDonations}`;
+            document.getElementById('dashboardDonorCount').textContent = `${totalDonors} donors`;
 
             // Recent bookings
             const recentBookings = bookings.slice(-5).reverse();
@@ -1175,6 +1361,7 @@
             loadCustomers();
             loadDrivers();
             loadEarnings();
+            loadDonations();
         }
 
         // ============================================
@@ -1227,7 +1414,6 @@
             
             if (idx !== -1) {
                 bookings[idx].status = 'confirmed';
-                // Auto-assign driver
                 const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
                 if (drivers.length > 0) {
                     const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
@@ -1497,152 +1683,4 @@ Joined: ${new Date(driver.createdAt).toLocaleDateString()}
                 new Date(b.createdAt).toDateString() === today
             );
 
-            const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0);
-            const todayRideCount = todayBookings.length;
-
-            // Week
-            const weekStart = new Date();
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-            const weekBookings = completedBookings.filter(b => 
-                new Date(b.createdAt) >= weekStart
-            );
-            const weekRevenue = weekBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0);
-
-            // Month
-            const monthStart = new Date();
-            monthStart.setDate(1);
-            const monthBookings = completedBookings.filter(b => 
-                new Date(b.createdAt) >= monthStart
-            );
-            const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0);
-
-            const driverShare = (completedBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0) * 0.7);
-
-            document.getElementById('todayRevenue').textContent = `₹${todayRevenue}`;
-            document.getElementById('todayRides').textContent = `${todayRideCount} rides`;
-            document.getElementById('weekRevenue').textContent = `₹${weekRevenue}`;
-            document.getElementById('weekRides').textContent = `${weekBookings.length} rides`;
-            document.getElementById('monthRevenue').textContent = `₹${monthRevenue}`;
-            document.getElementById('monthRides').textContent = `${monthBookings.length} rides`;
-            document.getElementById('driverEarnings').textContent = `₹${Math.round(driverShare)}`;
-
-            // Earnings table
-            const earningsTable = document.getElementById('earningsTableBody');
-            if (completedBookings.length === 0) {
-                earningsTable.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-chart-line"></i><p>No earnings data</p></td></tr>';
-            } else {
-                const grouped = {};
-                completedBookings.forEach(b => {
-                    const date = new Date(b.createdAt).toLocaleDateString();
-                    if (!grouped[date]) grouped[date] = [];
-                    grouped[date].push(b);
-                });
-
-                earningsTable.innerHTML = Object.entries(grouped).map(([date, rides]) => {
-                    const total = rides.reduce((sum, r) => sum + (r.totalFare || 0), 0);
-                    const driverShare = Math.round(total * 0.7);
-                    const platformShare = Math.round(total * 0.3);
-
-                    return `
-                        <tr>
-                            <td>${date}</td>
-                            <td>${rides.length}</td>
-                            <td>₹${total}</td>
-                            <td>₹${driverShare}</td>
-                            <td>₹${platformShare}</td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-        }
-
-        // ============================================
-        // SETTINGS
-        // ============================================
-
-        function saveSettings() {
-            const settings = {
-                baseFare: parseInt(document.getElementById('baseFare').value),
-                economyRate: parseInt(document.getElementById('economyRate').value),
-                premiumRate: parseInt(document.getElementById('premiumRate').value),
-                xlRate: parseInt(document.getElementById('xlRate').value),
-                driverShare: parseInt(document.getElementById('driverShare').value),
-                platformShare: parseInt(document.getElementById('platformShare').value),
-                tax: parseInt(document.getElementById('tax').value),
-                emailNotif: document.getElementById('emailNotif').checked,
-                smsNotif: document.getElementById('smsNotif').checked,
-                pushNotif: document.getElementById('pushNotif').checked
-            };
-
-            localStorage.setItem('appSettings', JSON.stringify(settings));
-            showSuccess('✅ Settings saved successfully!');
-        }
-
-        function generateReport() {
-            alert('📊 Report generated! Download feature coming soon.');
-        }
-
-        // ============================================
-        // TAB SWITCHING
-        // ============================================
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            event.target.classList.add('active');
-
-            const titles = {
-                'dashboard': 'Dashboard',
-                'bookings': 'Bookings Management',
-                'customers': 'Customers',
-                'drivers': 'Drivers',
-                'earnings': 'Earnings & Revenue',
-                'reports': 'Reports',
-                'settings': 'Settings'
-            };
-
-            document.getElementById('topbarTitle').textContent = titles[tabName] || 'Dashboard';
-        }
-
-        // ============================================
-        // MESSAGES
-        // ============================================
-
-        function showSuccess(message) {
-            document.getElementById('successText').textContent = message;
-            document.getElementById('successMessage').classList.add('show');
-            setTimeout(() => document.getElementById('successMessage').classList.remove('show'), 5000);
-        }
-
-        function showError(message) {
-            document.getElementById('errorText').textContent = message;
-            document.getElementById('errorMessage').classList.add('show');
-            setTimeout(() => document.getElementById('errorMessage').classList.remove('show'), 5000);
-        }
-
-        // ============================================
-        // LOGOUT
-        // ============================================
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('currentAdmin');
-                localStorage.removeItem('userRole');
-                window.location.href = './login.html';
-            }
-        }
-
-        // Close modals on background click
-        window.onclick = (e) => {
-            const customerModal = document.getElementById('addCustomerModal');
-            const driverModal = document.getElementById('addDriverModal');
-            if (e.target === customerModal) closeAddCustomerModal();
-            if (e.target === driverModal) closeAddDriverModal();
-        }
-
-        console.log('🚀 Admin Dashboard loaded');
-    </script>
-</body>
-</html>
+            const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.totalFare
