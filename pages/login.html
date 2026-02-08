@@ -118,10 +118,6 @@
             box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
         }
 
-        .admin-portal-link i {
-            font-size: 1rem;
-        }
-
         .login-header {
             margin-bottom: 2rem;
             text-align: center;
@@ -247,6 +243,25 @@
 
         .input-with-icon input {
             padding-left: 3rem;
+            padding-right: 2.8rem;
+        }
+
+        /* Password Show/Hide Button */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: #764ba2;
         }
 
         .form-options {
@@ -341,10 +356,6 @@
         .error-message.show {
             display: block;
             animation: slideDown 0.3s ease;
-        }
-
-        .error-message i {
-            margin-right: 0.5rem;
         }
 
         .success-message {
@@ -643,6 +654,7 @@
             <div class="demo-info">
                 <strong>📝 Demo Accounts:</strong>
                 Customer: <code>test@email.com</code> / <code>test123</code><br>
+                Driver: <code>driver@email.com</code> / <code>driver123</code><br>
                 <span id="adminDemoText" style="display: none;">Admin: <code>admin@goindia.com</code> / <code>admin123</code></span>
             </div>
 
@@ -673,6 +685,9 @@
                             placeholder="Enter your password"
                             required
                         >
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -750,6 +765,9 @@
                             placeholder="Enter new password (min 6 characters)"
                             required
                         >
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibilityModal('newPassword')">
+                            <i class="fas fa-eye" id="newPasswordToggle"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -763,6 +781,9 @@
                             placeholder="Confirm new password"
                             required
                         >
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibilityModal('confirmNewPassword')">
+                            <i class="fas fa-eye" id="confirmNewPasswordToggle"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -779,6 +800,89 @@
     </div>
 
     <script>
+        // ============================================
+        // INITIALIZE DEMO DATA
+        // ============================================
+
+        function initializeDemoData() {
+            // Check if demo data already exists
+            const existingUsers = localStorage.getItem('users');
+            const existingDrivers = localStorage.getItem('drivers');
+
+            if (!existingUsers) {
+                const demoUsers = [
+                    {
+                        id: 'user_1',
+                        fullname: 'Test Customer',
+                        email: 'test@email.com',
+                        phone: '9876543210',
+                        password: 'test123',
+                        role: 'customer',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                localStorage.setItem('users', JSON.stringify(demoUsers));
+                console.log('✅ Demo customer account created');
+            }
+
+            if (!existingDrivers) {
+                const demoDrivers = [
+                    {
+                        id: 'driver_1',
+                        name: 'Test Driver',
+                        email: 'driver@email.com',
+                        phone: '9876543211',
+                        password: 'driver123',
+                        vehicleNumber: 'RJ01AB1234',
+                        role: 'driver',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                localStorage.setItem('drivers', JSON.stringify(demoDrivers));
+                console.log('✅ Demo driver account created');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            initializeDemoData();
+        });
+
+        // ============================================
+        // PASSWORD SHOW/HIDE FUNCTIONALITY
+        // ============================================
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function togglePasswordVisibilityModal(fieldId) {
+            const field = document.getElementById(fieldId);
+            const toggleId = fieldId + 'Toggle';
+            const toggleIcon = document.getElementById(toggleId);
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
         // ============================================
         // MAIN LOGIN LOGIC
         // ============================================
@@ -832,7 +936,7 @@
             window.location.href = './signup.html';
         }
 
-        // Form Submission
+        // Form Submission - ✅ FIXED
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -872,6 +976,9 @@
 
                     let user = null;
                     let redirectUrl = '';
+
+                    console.log('👥 Checking users:', users);
+                    console.log('🚗 Checking drivers:', drivers);
 
                     if (role === 'customer') {
                         user = users.find(u => u.email === email && u.password === password);
@@ -953,7 +1060,6 @@
         // FORGOT PASSWORD LOGIC FOR ALL ROLES
         // ============================================
 
-        // Open Forgot Password Modal
         function openForgotPasswordModal() {
             document.getElementById('forgotPasswordModal').classList.add('active');
             document.getElementById('forgotStep1').style.display = 'block';
@@ -967,13 +1073,11 @@
             console.log('🔓 Forgot password modal opened');
         }
 
-        // Close Forgot Password Modal
         function closeForgotPasswordModal() {
             document.getElementById('forgotPasswordModal').classList.remove('active');
             console.log('🔒 Forgot password modal closed');
         }
 
-        // Send Reset Email (Step 1)
         function sendResetEmail() {
             const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
             const forgotError1 = document.getElementById('forgotError1');
@@ -984,7 +1088,6 @@
                 return;
             }
 
-            // Check if email exists in users or drivers
             const users = JSON.parse(localStorage.getItem('users')) || [];
             const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
 
@@ -998,18 +1101,15 @@
                 return;
             }
 
-            // Save email for password reset
             localStorage.setItem('resetEmail', email);
             localStorage.setItem('resetUserType', userExists ? 'customer' : 'driver');
 
             console.log('✅ Email verified:', email, userExists ? 'Customer' : 'Driver');
 
-            // Show step 2
             document.getElementById('forgotStep1').style.display = 'none';
             document.getElementById('forgotStep2').style.display = 'block';
         }
 
-        // Reset Password (Step 2)
         function resetPassword() {
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmNewPassword').value;
@@ -1036,7 +1136,6 @@
             }
 
             try {
-                // Update password in users or drivers
                 if (userType === 'customer') {
                     let users = JSON.parse(localStorage.getItem('users')) || [];
                     const userIndex = users.findIndex(u => u.email === resetEmail);
@@ -1055,11 +1154,9 @@
                     }
                 }
 
-                // Clear reset data
                 localStorage.removeItem('resetEmail');
                 localStorage.removeItem('resetUserType');
 
-                // Show success step
                 document.getElementById('forgotStep2').style.display = 'none';
                 document.getElementById('forgotStep3').style.display = 'block';
                 console.log('✅ Password reset successful!');
