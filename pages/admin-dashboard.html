@@ -4,378 +4,402 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - GO India RIDE</title>
-    <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-        
-        .admin-container {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            min-height: calc(100vh - 80px);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+
         /* Sidebar */
-        .admin-sidebar {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 2rem 0;
-            position: sticky;
-            top: 80px;
-            height: calc(100vh - 80px);
             overflow-y: auto;
+            z-index: 100;
         }
-        
-        .admin-logo {
-            padding: 1.5rem 2rem;
-            border-bottom: 2px solid rgba(255,255,255,0.1);
-            margin-bottom: 1.5rem;
-            font-size: 1.3rem;
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            gap: 0.5rem;
         }
-        
-        .admin-logo i { font-size: 1.5rem; }
-        
-        .admin-menu {
-            list-style: none;
+
+        .sidebar-menu {
+            padding: 1.5rem 0;
         }
-        
-        .admin-menu-item {
-            padding: 0;
-            margin-bottom: 0.5rem;
-        }
-        
-        .admin-menu-link {
+
+        .menu-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 1rem 2rem;
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            cursor: pointer;
             transition: all 0.3s;
-            border-left: 4px solid transparent;
+            border-left: 3px solid transparent;
         }
-        
-        .admin-menu-link:hover,
-        .admin-menu-link.active {
+
+        .menu-item:hover {
             background: rgba(255,255,255,0.1);
-            color: white;
-            border-left-color: #00d4ff;
-            padding-left: 1.8rem;
+            border-left-color: white;
         }
-        
-        .admin-menu-link i {
+
+        .menu-item.active {
+            background: rgba(255,255,255,0.15);
+            border-left-color: white;
+        }
+
+        .menu-item i {
             font-size: 1.2rem;
-            width: 24px;
+            width: 30px;
         }
-        
-        .admin-menu-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.5);
-            padding: 1rem 2rem 0.5rem;
-            font-weight: bold;
-            margin-top: 1rem;
-        }
-        
-        /* Main Content */
-        .admin-content {
-            padding: 2rem;
-            overflow-y: auto;
-        }
-        
-        .admin-header {
+
+        /* Top Bar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 250px;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            padding: 1.5rem 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 0 2rem;
+            z-index: 99;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        
-        .admin-header h1 {
-            margin: 0;
+
+        .topbar-title {
+            font-size: 1.5rem;
             color: #333;
+            font-weight: bold;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .admin-profile {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        
-        .admin-header h1 i {
-            color: #2a5298;
-            font-size: 1.8rem;
-        }
-        
-        .admin-user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .admin-user-name {
-            text-align: right;
-        }
-        
-        .admin-user-name strong {
-            display: block;
-            color: #333;
-        }
-        
-        .admin-user-name small {
-            color: #999;
-        }
-        
+
         .admin-avatar {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
             font-weight: bold;
-            font-size: 1.5rem;
         }
-        
-        /* Stats Grid */
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            color: #764ba2;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 70px;
+            padding: 2rem;
+        }
+
+        /* Dashboard Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
-        
-        .stat-box {
+
+        .stat-card {
             background: white;
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
         }
-        
-        .stat-box.users { border-left-color: #4caf50; }
-        .stat-box.drivers { border-left-color: #ff9800; }
-        .stat-box.bookings { border-left-color: #2196f3; }
-        .stat-box.revenue { border-left-color: #f44336; }
-        
+
+        .stat-card.danger {
+            border-left-color: #f44336;
+        }
+
+        .stat-card.success {
+            border-left-color: #4caf50;
+        }
+
+        .stat-card.warning {
+            border-left-color: #ff9800;
+        }
+
         .stat-label {
             color: #999;
             font-size: 0.9rem;
             text-transform: uppercase;
             margin-bottom: 0.5rem;
         }
-        
+
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: bold;
             color: #333;
             margin-bottom: 0.5rem;
         }
-        
+
         .stat-change {
-            color: #4caf50;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: #999;
         }
-        
-        .stat-change.negative { color: #f44336; }
-        
-        /* Section */
-        .section {
+
+        /* Tabs */
+        .tab-container {
             background: white;
-            padding: 2rem;
             border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            display: none;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        
-        .section.active { display: block; }
-        
-        .section-title {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 1.5rem;
+
+        .tab-buttons {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .section-title i {
-            color: #2a5298;
-            font-size: 1.8rem;
-        }
-        
-        /* Table */
-        .table-container {
+            border-bottom: 2px solid #eee;
             overflow-x: auto;
         }
-        
+
+        .tab-button {
+            flex: 1;
+            padding: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            min-width: 150px;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+            background: #f9f9f9;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         thead {
             background: #f5f5f5;
+            border-bottom: 2px solid #eee;
         }
-        
+
         th {
             padding: 1rem;
             text-align: left;
-            color: #333;
             font-weight: 600;
-            border-bottom: 2px solid #ddd;
+            color: #333;
+            font-size: 0.9rem;
         }
-        
+
         td {
             padding: 1rem;
             border-bottom: 1px solid #eee;
             color: #666;
         }
-        
+
         tr:hover {
             background: #f9f9f9;
         }
-        
-        .badge {
+
+        .status-badge {
             display: inline-block;
             padding: 0.4rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: bold;
         }
-        
-        .badge.success {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .badge.warning {
+
+        .status-pending {
             background: #fff3e0;
-            color: #e65100;
+            color: #ff9800;
         }
-        
-        .badge.danger {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .badge.info {
+
+        .status-confirmed {
             background: #e3f2fd;
-            color: #1565c0;
+            color: #2196f3;
         }
-        
-        /* Buttons */
-        .btn-group {
+
+        .status-completed {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .status-cancelled {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .action-btns {
             display: flex;
             gap: 0.5rem;
-            justify-content: flex-end;
         }
-        
-        .btn-sm {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-            border: none;
+
+        .action-btn {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #667eea;
+            background: white;
+            color: #667eea;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 0.8rem;
             transition: all 0.3s;
         }
-        
-        .btn-edit {
-            background: #2196f3;
+
+        .action-btn:hover {
+            background: #667eea;
             color: white;
         }
-        
-        .btn-delete {
+
+        .action-btn.danger {
+            border-color: #f44336;
+            color: #f44336;
+        }
+
+        .action-btn.danger:hover {
             background: #f44336;
             color: white;
         }
-        
-        .btn-approve {
-            background: #4caf50;
-            color: white;
+
+        /* Forms */
+        .form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
         }
-        
-        .btn-sm:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
-        
-        /* Charts placeholder */
-        .chart-placeholder {
-            background: #f9f9f9;
-            padding: 3rem;
-            border-radius: 8px;
-            text-align: center;
-            color: #999;
-            margin-bottom: 1rem;
-        }
-        
-        /* Form */
+
         .form-group {
             margin-bottom: 1.5rem;
         }
-        
+
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
             color: #333;
             font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
-        
+
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 0.8rem;
+            padding: 0.9rem;
             border: 2px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
             font-family: inherit;
             transition: all 0.3s;
         }
-        
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #2a5298;
-            box-shadow: 0 0 8px rgba(42, 82, 152, 0.3);
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
         }
-        
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 2rem;
+
+        .btn {
+            padding: 0.8rem 1.5rem;
             border: none;
             border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
             cursor: pointer;
+            font-weight: bold;
             transition: all 0.3s;
-            width: 100%;
         }
-        
-        .btn-submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-        
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f4ff;
+        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -388,34 +412,36 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .modal.active {
             display: flex;
         }
-        
+
         .modal-content {
             background: white;
             padding: 2rem;
             border-radius: 12px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
-        
+
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid #eee;
         }
-        
+
         .modal-header h2 {
             margin: 0;
             color: #333;
         }
-        
+
         .modal-close {
             background: none;
             border: none;
@@ -423,564 +449,1200 @@
             cursor: pointer;
             color: #999;
         }
-        
+
+        /* Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .message.warning {
+            background: #fff3e0;
+            color: #e65100;
+            border-left: 4px solid #ff9800;
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            margin: 0;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .admin-container {
+            .sidebar {
+                width: 200px;
+            }
+
+            .topbar {
+                left: 200px;
+                padding: 0 1rem;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .admin-sidebar {
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-buttons {
+                overflow-x: auto;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.7rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
                 display: none;
             }
-            
-            .grid-2 {
-                grid-template-columns: 1fr;
+
+            .topbar {
+                left: 0;
             }
-            
-            .admin-header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
+
+            .main-content {
+                margin-left: 0;
             }
+        }
+
+        .scroll-x {
+            overflow-x: auto;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-taxi"></i> GO India RIDE - Admin
-            </div>
-            <div style="color: white;">
-                <span id="adminName">Admin Panel</span>
-                <a href="../index.html" onclick="logout()" style="color: white; margin-left: 2rem; cursor: pointer;">Logout</a>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-taxi"></i>
+                GO India RIDE
             </div>
         </div>
-    </nav>
-
-    <div class="admin-container">
-        <!-- Sidebar -->
-        <aside class="admin-sidebar">
-            <div class="admin-logo">
-                <i class="fas fa-shield-alt"></i>
-                Admin Panel
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchTab('dashboard')">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
             </div>
-            
-            <ul class="admin-menu">
-                <li class="admin-menu-label">Main</li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link active" onclick="showSection('overview')">
-                        <i class="fas fa-home"></i>
-                        <span>Overview</span>
-                    </a>
-                </li>
-                
-                <li class="admin-menu-label">Management</li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('users')">
-                        <i class="fas fa-users"></i>
-                        <span>Customers</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('drivers')">
-                        <i class="fas fa-car"></i>
-                        <span>Drivers</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('bookings')">
-                        <i class="fas fa-calendar"></i>
-                        <span>Bookings</span>
-                    </a>
-                </li>
-                
-                <li class="admin-menu-label">Reports</li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('revenue')">
-                        <i class="fas fa-chart-pie"></i>
-                        <span>Revenue</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('analytics')">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Analytics</span>
-                    </a>
-                </li>
-                
-                <li class="admin-menu-label">System</li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('documents')">
-                        <i class="fas fa-file-contract"></i>
-                        <span>Document Verification</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('complaints')">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>Complaints</span>
-                    </a>
-                </li>
-                <li class="admin-menu-item">
-                    <a class="admin-menu-link" onclick="showSection('settings')">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
+            <div class="menu-item" onclick="switchTab('bookings')">
+                <i class="fas fa-calendar-check"></i>
+                <span>Bookings</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('customers')">
+                <i class="fas fa-users"></i>
+                <span>Customers</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('drivers')">
+                <i class="fas fa-car"></i>
+                <span>Drivers</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('earnings')">
+                <i class="fas fa-money-bill"></i>
+                <span>Earnings</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('reports')">
+                <i class="fas fa-file-chart-line"></i>
+                <span>Reports</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('settings')">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </div>
+    </div>
 
-        <!-- Main Content -->
-        <main class="admin-content">
-            <!-- Header -->
-            <div class="admin-header">
-                <h1>
-                    <i class="fas fa-chart-bar"></i>
-                    Admin Dashboard
-                </h1>
-                <div class="admin-user-info">
-                    <div class="admin-user-name">
-                        <strong id="adminUserName">Admin User</strong>
-                        <small>Administrator</small>
-                    </div>
-                    <div class="admin-avatar">A</div>
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-right">
+            <div class="admin-profile">
+                <div class="admin-avatar">A</div>
+                <span id="adminName">Admin User</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Messages -->
+        <div class="message success" id="successMessage">
+            <i class="fas fa-check-circle"></i>
+            <span id="successText"></span>
+        </div>
+        <div class="message error" id="errorMessage">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="errorText"></span>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboardTab">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Bookings</div>
+                    <div class="stat-value" id="totalBookings">0</div>
+                    <div class="stat-change">All time bookings</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Completed Rides</div>
+                    <div class="stat-value" id="completedRides">0</div>
+                    <div class="stat-change" id="completedToday">0 today</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">Pending Bookings</div>
+                    <div class="stat-value" id="pendingBookings">0</div>
+                    <div class="stat-change">Awaiting confirmation</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-label">Cancelled Rides</div>
+                    <div class="stat-value" id="cancelledRides">0</div>
+                    <div class="stat-change" id="cancelledToday">0 today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-value" id="totalRevenue">₹0</div>
+                    <div class="stat-change" id="revenueToday">₹0 today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Drivers</div>
+                    <div class="stat-value" id="activeDrivers">0</div>
+                    <div class="stat-change" id="totalDrivers">0 total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Customers</div>
+                    <div class="stat-value" id="totalCustomers">0</div>
+                    <div class="stat-change">Registered users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Rating</div>
+                    <div class="stat-value" id="avgRating">5.0 ⭐</div>
+                    <div class="stat-change">Based on reviews</div>
                 </div>
             </div>
 
-            <!-- ======== OVERVIEW SECTION ======== -->
-            <section class="section active" id="overview">
-                <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-box users">
-                        <div class="stat-label">Total Customers</div>
-                        <div class="stat-value" id="totalCustomers">0</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i> 12% from last month
-                        </div>
-                    </div>
-                    
-                    <div class="stat-box drivers">
-                        <div class="stat-label">Active Drivers</div>
-                        <div class="stat-value" id="totalDrivers">0</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i> 8% from last month
-                        </div>
-                    </div>
-                    
-                    <div class="stat-box bookings">
-                        <div class="stat-label">Total Bookings Today</div>
-                        <div class="stat-value" id="totalBookingsToday">0</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-down"></i> 5% from last day
-                        </div>
-                    </div>
-                    
-                    <div class="stat-box revenue">
-                        <div class="stat-label">Revenue Today</div>
-                        <div class="stat-value" id="revenueToday">₹0</div>
-                        <div class="stat-change">
-                            <i class="fas fa-arrow-up"></i> 15% from yesterday
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                        <h3 style="color: #333; margin-bottom: 1rem;">Bookings This Week</h3>
-                        <div class="chart-placeholder">
-                            📊 Chart Coming Soon
-                        </div>
-                    </div>
-                    
-                    <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                        <h3 style="color: #333; margin-bottom: 1rem;">Revenue This Month</h3>
-                        <div class="chart-placeholder">
-                            📈 Chart Coming Soon
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ======== CUSTOMERS SECTION ======== -->
-            <section class="section" id="users">
-                <div class="section-title">
-                    <i class="fas fa-users"></i>
-                    Customer Management
-                </div>
-                
-                <button class="btn-submit" style="width: auto; margin-bottom: 1.5rem;" onclick="openModal('userModal')">
-                    <i class="fas fa-plus"></i> Add New Customer
-                </button>
-                
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Status</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customersTableBody">
-                            <tr>
-                                <td colspan="7" style="text-align: center; color: #999;">No customers found</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- ======== DRIVERS SECTION ======== -->
-            <section class="section" id="drivers">
-                <div class="section-title">
-                    <i class="fas fa-car"></i>
-                    Driver Management
-                </div>
-                
-                <button class="btn-submit" style="width: auto; margin-bottom: 1.5rem;" onclick="openModal('driverModal')">
-                    <i class="fas fa-plus"></i> Add New Driver
-                </button>
-                
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Vehicle</th>
-                                <th>Rating</th>
-                                <th>Status</th>
-                                <th>Verified</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="driversTableBody">
-                            <tr>
-                                <td colspan="7" style="text-align: center; color: #999;">No drivers found</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- ======== BOOKINGS SECTION ======== -->
-            <section class="section" id="bookings">
-                <div class="section-title">
-                    <i class="fas fa-calendar"></i>
-                    Bookings Management
-                </div>
-                
-                <div class="table-container">
+            <div class="chart-container">
+                <div class="chart-title">Recent Bookings Overview</div>
+                <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
                                 <th>Booking ID</th>
                                 <th>Customer</th>
-                                <th>Driver</th>
                                 <th>Route</th>
+                                <th>Ride Type</th>
                                 <th>Fare</th>
                                 <th>Status</th>
                                 <th>Date</th>
-                                <th>Actions</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="bookingsTableBody">
+                        <tbody id="recentBookingsTable">
                             <tr>
-                                <td colspan="8" style="text-align: center; color: #999;">No bookings found</td>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No bookings yet</p>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- ======== REVENUE SECTION ======== -->
-            <section class="section" id="revenue">
-                <div class="section-title">
-                    <i class="fas fa-chart-pie"></i>
-                    Revenue Reports
+        <!-- Bookings Tab -->
+        <div class="tab-content" id="bookingsTab">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchBookingFilter('all')">All</button>
+                    <button class="tab-button" onclick="switchBookingFilter('pending')">Pending</button>
+                    <button class="tab-button" onclick="switchBookingFilter('confirmed')">Confirmed</button>
+                    <button class="tab-button" onclick="switchBookingFilter('completed')">Completed</button>
+                    <button class="tab-button" onclick="switchBookingFilter('cancelled')">Cancelled</button>
                 </div>
-                
-                <div class="grid-2">
-                    <div style="background: white; padding: 2rem; border-radius: 12px; border-left: 5px solid #f44336;">
-                        <div class="stat-label">Total Revenue</div>
-                        <div class="stat-value" id="totalRevenue">₹0</div>
-                    </div>
-                    
-                    <div style="background: white; padding: 2rem; border-radius: 12px; border-left: 5px solid #4caf50;">
-                        <div class="stat-label">Net Profit (After 5% Commission)</div>
-                        <div class="stat-value" id="netProfit">₹0</div>
+                <div style="padding: 2rem;">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Pickup</th>
+                                    <th>Dropoff</th>
+                                    <th>Driver</th>
+                                    <th>Fare</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingsTableBody">
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No bookings found</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                
-                <div style="background: white; padding: 2rem; border-radius: 12px; margin-top: 1.5rem;">
-                    <h3 style="color: #333; margin-bottom: 1rem;">Monthly Breakdown</h3>
-                    <div class="chart-placeholder">
-                        📊 Revenue Chart Coming Soon
-                    </div>
-                </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- ======== DOCUMENT VERIFICATION ======== -->
-            <section class="section" id="documents">
-                <div class="section-title">
-                    <i class="fas fa-file-contract"></i>
-                    Document Verification
+        <!-- Customers Tab -->
+        <div class="tab-content" id="customersTab">
+            <div style="margin-bottom: 2rem;">
+                <button class="btn btn-primary" onclick="openAddCustomerModal()">
+                    <i class="fas fa-user-plus"></i>
+                    Add Customer
+                </button>
+            </div>
+            <div class="tab-container">
+                <div style="padding: 2rem;">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Rides</th>
+                                    <th>Total Spent</th>
+                                    <th>Rating</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody">
+                                <tr>
+                                    <td colspan="8" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No customers yet</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                
-                <div class="table-container">
+            </div>
+        </div>
+
+        <!-- Drivers Tab -->
+        <div class="tab-content" id="driversTab">
+            <div style="margin-bottom: 2rem;">
+                <button class="btn btn-primary" onclick="openAddDriverModal()">
+                    <i class="fas fa-car-plus"></i>
+                    Add Driver
+                </button>
+            </div>
+            <div class="tab-container">
+                <div style="padding: 2rem;">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Vehicle</th>
+                                    <th>Rides</th>
+                                    <th>Earnings</th>
+                                    <th>Rating</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="driversTableBody">
+                                <tr>
+                                    <td colspan="9" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No drivers yet</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings Tab -->
+        <div class="tab-content" id="earningsTab">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Today's Revenue</div>
+                    <div class="stat-value" id="todayRevenue">₹0</div>
+                    <div class="stat-change" id="todayRides">0 rides</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">This Week</div>
+                    <div class="stat-value" id="weekRevenue">₹0</div>
+                    <div class="stat-change" id="weekRides">0 rides</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">This Month</div>
+                    <div class="stat-value" id="monthRevenue">₹0</div>
+                    <div class="stat-change" id="monthRides">0 rides</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Driver Earnings</div>
+                    <div class="stat-value" id="driverEarnings">₹0</div>
+                    <div class="stat-change">Distributed</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Revenue Details</div>
+                <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>Driver Name</th>
-                                <th>Document Type</th>
-                                <th>Status</th>
-                                <th>Submitted</th>
-                                <th>Actions</th>
+                                <th>Date</th>
+                                <th>Rides</th>
+                                <th>Total Fare</th>
+                                <th>Driver Share (70%)</th>
+                                <th>Platform (30%)</th>
                             </tr>
                         </thead>
-                        <tbody id="documentsTableBody">
+                        <tbody id="earningsTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #999;">No pending documents</td>
+                                <td colspan="5" class="empty-state">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>No earnings data</p>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- ======== SETTINGS SECTION ======== -->
-            <section class="section" id="settings">
-                <div class="section-title">
-                    <i class="fas fa-cog"></i>
-                    System Settings
+        <!-- Reports Tab -->
+        <div class="tab-content" id="reportsTab">
+            <div class="form-section">
+                <h3 style="margin-bottom: 1.5rem;">Generate Reports</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="reportType">Report Type</label>
+                        <select id="reportType">
+                            <option value="revenue">Revenue Report</option>
+                            <option value="rides">Rides Report</option>
+                            <option value="drivers">Drivers Report</option>
+                            <option value="customers">Customers Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportDateFrom">From Date</label>
+                        <input type="date" id="reportDateFrom">
+                    </div>
+                    <div class="form-group">
+                        <label for="reportDateTo">To Date</label>
+                        <input type="date" id="reportDateTo">
+                    </div>
                 </div>
+                <button class="btn btn-primary" onclick="generateReport()">
+                    <i class="fas fa-file-pdf"></i>
+                    Generate Report
+                </button>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">System Statistics</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Value</th>
+                                <th>Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <tr>
+                                <td colspan="3" class="empty-state">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>No report data</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-content" id="settingsTab">
+            <div class="form-section">
+                <h3 style="margin-bottom: 1.5rem;">Application Settings</h3>
                 
                 <div class="form-group">
-                    <label>Commission Rate (%)</label>
-                    <input type="number" id="commissionRate" value="5" step="0.1">
+                    <label for="baseFare">Base Fare (₹)</label>
+                    <input type="number" id="baseFare" value="50" min="0">
                 </div>
-                
-                <div class="form-group">
-                    <label>Minimum Ride Fare (₹)</label>
-                    <input type="number" id="minFare" value="50" step="1">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="economyRate">Economy Rate (₹/km)</label>
+                        <input type="number" id="economyRate" value="10" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="premiumRate">Premium Rate (₹/km)</label>
+                        <input type="number" id="premiumRate" value="15" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="xlRate">XL Rate (₹/km)</label>
+                        <input type="number" id="xlRate" value="20" min="0">
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Per KM Rate (₹)</label>
-                    <input type="number" id="kmRate" value="5" step="0.1">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="driverShare">Driver Share (%)</label>
+                        <input type="number" id="driverShare" value="70" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="platformShare">Platform Share (%)</label>
+                        <input type="number" id="platformShare" value="30" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="tax">Tax (%)</label>
+                        <input type="number" id="tax" value="10" min="0" max="100">
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Per Minute Rate (₹)</label>
-                    <input type="number" id="minuteRate" value="10" step="0.1">
+
+                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem;">Notifications</h3>
+                <div style="display: flex; gap: 2rem;">
+                    <label>
+                        <input type="checkbox" id="emailNotif" checked>
+                        <span>Email Notifications</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="smsNotif" checked>
+                        <span>SMS Notifications</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="pushNotif" checked>
+                        <span>Push Notifications</span>
+                    </label>
                 </div>
-                
-                <button class="btn-submit">Save Settings</button>
-            </section>
-        </main>
+
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save"></i>
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Modals -->
-    <div class="modal" id="userModal">
+    <!-- Add Customer Modal -->
+    <div class="modal" id="addCustomerModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Customer</h2>
-                <button class="modal-close" onclick="closeModal('userModal')">×</button>
+                <h2>Add New Customer</h2>
+                <button class="modal-close" onclick="closeAddCustomerModal()">&times;</button>
             </div>
-            <form>
+            <form onsubmit="saveCustomer(event)">
                 <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" required>
+                    <label for="custName">Full Name</label>
+                    <input type="text" id="custName" required>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" required>
+                    <label for="custEmail">Email</label>
+                    <input type="email" id="custEmail" required>
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
-                    <input type="tel" required>
+                    <label for="custPhone">Phone</label>
+                    <input type="tel" id="custPhone" required>
                 </div>
-                <button type="submit" class="btn-submit">Add Customer</button>
+                <div class="form-group">
+                    <label for="custPassword">Password</label>
+                    <input type="password" id="custPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Customer</button>
             </form>
         </div>
     </div>
 
-    <div class="modal" id="driverModal">
+    <!-- Add Driver Modal -->
+    <div class="modal" id="addDriverModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Driver</h2>
-                <button class="modal-close" onclick="closeModal('driverModal')">×</button>
+                <h2>Add New Driver</h2>
+                <button class="modal-close" onclick="closeAddDriverModal()">&times;</button>
             </div>
-            <form>
+            <form onsubmit="saveDriver(event)">
                 <div class="form-group">
-                    <label>Driver Name</label>
-                    <input type="text" required>
+                    <label for="drvName">Full Name</label>
+                    <input type="text" id="drvName" required>
                 </div>
                 <div class="form-group">
-                    <label>Vehicle Number</label>
-                    <input type="text" required>
+                    <label for="drvEmail">Email</label>
+                    <input type="email" id="drvEmail" required>
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
-                    <input type="tel" required>
+                    <label for="drvPhone">Phone</label>
+                    <input type="tel" id="drvPhone" required>
                 </div>
-                <button type="submit" class="btn-submit">Add Driver</button>
+                <div class="form-group">
+                    <label for="drvPassword">Password</label>
+                    <input type="password" id="drvPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="drvVehicle">Vehicle Type</label>
+                    <select id="drvVehicle" required>
+                        <option value="economy">Economy</option>
+                        <option value="premium">Premium</option>
+                        <option value="xl">XL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="drvVehicleNumber">Vehicle Number</label>
+                    <input type="text" id="drvVehicleNumber" placeholder="RJ 01 AB 1234" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Driver</button>
             </form>
         </div>
     </div>
 
-    <script src="../js/auth.js"></script>
     <script>
-        // Check if admin is logged in
-        const admin = checkAuth();
-        if (!admin || admin.role !== 'admin') {
-            window.location.href = './login.html';
-        }
+        // ============================================
+        // AUTHENTICATION CHECK
+        // ============================================
 
-        // Load admin data
-        function loadAdminDashboard() {
-            const adminData = JSON.parse(localStorage.getItem('currentAdmin'));
-            if (adminData) {
-                document.getElementById('adminUserName').textContent = adminData.name || 'Admin';
-                document.getElementById('adminName').textContent = adminData.name || 'Admin User';
+        function checkAuth() {
+            const userRole = localStorage.getItem('userRole');
+            const currentAdmin = localStorage.getItem('currentAdmin');
+
+            if (userRole !== 'admin' || !currentAdmin) {
+                alert('Please login as admin first');
+                window.location.href = './login.html';
+                return null;
             }
 
-            // Load stats
+            return JSON.parse(currentAdmin);
+        }
+
+        let currentAdmin = null;
+        let bookingFilter = 'all';
+
+        window.addEventListener('load', function() {
+            currentAdmin = checkAuth();
+            if (!currentAdmin) return;
+
+            document.getElementById('adminName').textContent = currentAdmin.name;
+            loadDashboard();
+            loadAllData();
+        });
+
+        // ============================================
+        // LOAD DASHBOARD DATA
+        // ============================================
+
+        function loadDashboard() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const customers = JSON.parse(localStorage.getItem('users')) || [];
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+
+            const totalBookings = bookings.length;
+            const completedRides = bookings.filter(b => b.status === 'completed').length;
+            const pendingBookings = bookings.filter(b => b.status === 'pending').length;
+            const cancelledRides = bookings.filter(b => b.status === 'cancelled').length;
+
+            const today = new Date().toDateString();
+            const completedToday = bookings.filter(b => 
+                b.status === 'completed' && 
+                new Date(b.createdAt).toDateString() === today
+            ).length;
+            const cancelledToday = bookings.filter(b => 
+                b.status === 'cancelled' && 
+                new Date(b.createdAt).toDateString() === today
+            ).length;
+
+            const totalRevenue = bookings
+                .filter(b => b.status === 'completed')
+                .reduce((sum, b) => sum + (b.totalFare || 0), 0);
+
+            const revenueToday = bookings
+                .filter(b => b.status === 'completed' && new Date(b.createdAt).toDateString() === today)
+                .reduce((sum, b) => sum + (b.totalFare || 0), 0);
+
+            const activeDrivers = drivers.filter(d => d.isOnline).length;
+            const totalCustomers = customers.length;
+
+            // Update stats
+            document.getElementById('totalBookings').textContent = totalBookings;
+            document.getElementById('completedRides').textContent = completedRides;
+            document.getElementById('completedToday').textContent = `${completedToday} today`;
+            document.getElementById('pendingBookings').textContent = pendingBookings;
+            document.getElementById('cancelledRides').textContent = cancelledRides;
+            document.getElementById('cancelledToday').textContent = `${cancelledToday} today`;
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue}`;
+            document.getElementById('revenueToday').textContent = `₹${revenueToday} today`;
+            document.getElementById('activeDrivers').textContent = activeDrivers;
+            document.getElementById('totalDrivers').textContent = `${drivers.length} total`;
+            document.getElementById('totalCustomers').textContent = totalCustomers;
+
+            // Recent bookings
+            const recentBookings = bookings.slice(-5).reverse();
+            const recentTable = document.getElementById('recentBookingsTable');
+            if (recentBookings.length === 0) {
+                recentTable.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No bookings yet</p></td></tr>';
+            } else {
+                recentTable.innerHTML = recentBookings.map(b => `
+                    <tr>
+                        <td><strong>${b.id}</strong></td>
+                        <td>${b.customerName}</td>
+                        <td><small>${b.pickup}</small></td>
+                        <td><small>${b.dropoff}</small></td>
+                        <td>${b.rideType}</td>
+                        <td><strong>₹${b.totalFare}</strong></td>
+                        <td><span class="status-badge status-${b.status}">${b.status.toUpperCase()}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn" onclick="viewBooking('${b.id}')">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function loadAllData() {
+            loadBookings();
+            loadCustomers();
+            loadDrivers();
+            loadEarnings();
+        }
+
+        // ============================================
+        // LOAD BOOKINGS
+        // ============================================
+
+        function loadBookings() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            let filtered = bookings;
+
+            if (bookingFilter !== 'all') {
+                filtered = bookings.filter(b => b.status === bookingFilter);
+            }
+
+            const table = document.getElementById('bookingsTableBody');
+            if (filtered.length === 0) {
+                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No bookings found</p></td></tr>';
+            } else {
+                table.innerHTML = filtered.map(b => `
+                    <tr>
+                        <td>${b.id}</td>
+                        <td>${b.customerName}</td>
+                        <td>${b.pickup}</td>
+                        <td>${b.dropoff}</td>
+                        <td>${b.driverName || 'Unassigned'}</td>
+                        <td>₹${b.totalFare}</td>
+                        <td><span class="status-badge status-${b.status}">${b.status.toUpperCase()}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="action-btn" onclick="viewBooking('${b.id}')">View</button>
+                                ${b.status === 'pending' ? `<button class="action-btn" onclick="confirmBooking('${b.id}')">Confirm</button>` : ''}
+                                ${b.status !== 'completed' && b.status !== 'cancelled' ? `<button class="action-btn danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function switchBookingFilter(filter) {
+            bookingFilter = filter;
+            document.querySelectorAll('.tab-buttons .tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadBookings();
+        }
+
+        function confirmBooking(bookingId) {
+            let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const idx = bookings.findIndex(b => b.id === bookingId);
+            
+            if (idx !== -1) {
+                bookings[idx].status = 'confirmed';
+                // Auto-assign driver
+                const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+                if (drivers.length > 0) {
+                    const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
+                    bookings[idx].driverId = randomDriver.id;
+                    bookings[idx].driverName = randomDriver.name;
+                }
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                showSuccess('✅ Booking confirmed & driver assigned!');
+                loadDashboard();
+                loadBookings();
+            }
+        }
+
+        function cancelBooking(bookingId) {
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const idx = bookings.findIndex(b => b.id === bookingId);
+                if (idx !== -1) {
+                    bookings[idx].status = 'cancelled';
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                    showSuccess('❌ Booking cancelled');
+                    loadDashboard();
+                    loadBookings();
+                }
+            }
+        }
+
+        function viewBooking(bookingId) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                alert(`
+Booking Details:
+ID: ${booking.id}
+Customer: ${booking.customerName}
+Phone: ${booking.customerPhone}
+Pickup: ${booking.pickup}
+Dropoff: ${booking.dropoff}
+Ride Type: ${booking.rideType}
+Fare: ₹${booking.totalFare}
+Status: ${booking.status}
+Date: ${new Date(booking.createdAt).toLocaleString()}
+${booking.driverName ? `Driver: ${booking.driverName}` : ''}
+${booking.notes ? `Notes: ${booking.notes}` : ''}
+                `);
+            }
+        }
+
+        // ============================================
+        // LOAD CUSTOMERS
+        // ============================================
+
+        function loadCustomers() {
+            const customers = JSON.parse(localStorage.getItem('users')) || [];
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+
+            const table = document.getElementById('customersTableBody');
+            if (customers.length === 0) {
+                table.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No customers yet</p></td></tr>';
+            } else {
+                table.innerHTML = customers.map(c => {
+                    const custBookings = bookings.filter(b => b.customerId === c.id);
+                    const totalSpent = custBookings
+                        .filter(b => b.status === 'completed')
+                        .reduce((sum, b) => sum + (b.totalFare || 0), 0);
+                    const joinDate = new Date(c.createdAt).toLocaleDateString();
+
+                    return `
+                        <tr>
+                            <td>${c.fullname}</td>
+                            <td>${c.email}</td>
+                            <td>${c.phone}</td>
+                            <td>${custBookings.length}</td>
+                            <td>₹${totalSpent}</td>
+                            <td>5.0 ⭐</td>
+                            <td>${joinDate}</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewCustomer('${c.id}')">View</button>
+                                    <button class="action-btn danger" onclick="deleteCustomer('${c.id}')">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function openAddCustomerModal() {
+            document.getElementById('addCustomerModal').classList.add('active');
+        }
+
+        function closeAddCustomerModal() {
+            document.getElementById('addCustomerModal').classList.remove('active');
+        }
+
+        function saveCustomer(e) {
+            e.preventDefault();
+
+            const customer = {
+                id: 'user_' + Date.now(),
+                fullname: document.getElementById('custName').value,
+                email: document.getElementById('custEmail').value.toLowerCase(),
+                phone: document.getElementById('custPhone').value,
+                password: document.getElementById('custPassword').value,
+                role: 'customer',
+                createdAt: new Date().toISOString()
+            };
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            users.push(customer);
+            localStorage.setItem('users', JSON.stringify(users));
+
+            showSuccess('✅ Customer added successfully!');
+            closeAddCustomerModal();
+            loadCustomers();
+            document.querySelector('#addCustomerModal form').reset();
+        }
+
+        function viewCustomer(customerId) {
+            const customers = JSON.parse(localStorage.getItem('users')) || [];
+            const customer = customers.find(c => c.id === customerId);
+            if (customer) {
+                alert(`
+Customer Details:
+Name: ${customer.fullname}
+Email: ${customer.email}
+Phone: ${customer.phone}
+Joined: ${new Date(customer.createdAt).toLocaleDateString()}
+                `);
+            }
+        }
+
+        function deleteCustomer(customerId) {
+            if (confirm('Are you sure? This will delete the customer account.')) {
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                users = users.filter(u => u.id !== customerId);
+                localStorage.setItem('users', JSON.stringify(users));
+                showSuccess('❌ Customer deleted');
+                loadCustomers();
+            }
+        }
+
+        // ============================================
+        // LOAD DRIVERS
+        // ============================================
+
+        function loadDrivers() {
             const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
 
-            document.getElementById('totalCustomers').textContent = customers.length;
-            document.getElementById('totalDrivers').textContent = drivers.length;
-            document.getElementById('totalBookingsToday').textContent = bookings.filter(b => {
-                const bookingDate = new Date(b.createdAt).toDateString();
-                const today = new Date().toDateString();
-                return bookingDate === today;
-            }).length;
-
-            // Calculate revenue
-            let totalRevenue = bookings.reduce((sum, b) => {
-                const fare = parseInt(b.totalFare?.replace(/₹/g, '') || 0);
-                return sum + fare;
-            }, 0);
-            
-            document.getElementById('revenueToday').textContent = '₹' + totalRevenue;
-            document.getElementById('totalRevenue').textContent = '₹' + totalRevenue;
-            document.getElementById('netProfit').textContent = '₹' + Math.floor(totalRevenue * 0.95);
-
-            // Load customers table
-            loadCustomersTable(customers);
-            loadDriversTable(drivers);
-            loadBookingsTable(bookings);
-        }
-
-        function loadCustomersTable(customers) {
-            const tbody = document.getElementById('customersTableBody');
-            if (customers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No customers found</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = customers.map((customer, index) => `
-                <tr>
-                    <td>#${index + 1}</td>
-                    <td>${customer.fullname}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.phone}</td>
-                    <td><span class="badge success">Active</span></td>
-                    <td>${new Date().toLocaleDateString()}</td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                            <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function loadDriversTable(drivers) {
-            const tbody = document.getElementById('driversTableBody');
+            const table = document.getElementById('driversTableBody');
             if (drivers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No drivers found</td></tr>';
-                return;
-            }
+                table.innerHTML = '<tr><td colspan="9" class="empty-state"><i class="fas fa-inbox"></i><p>No drivers yet</p></td></tr>';
+            } else {
+                table.innerHTML = drivers.map(d => {
+                    const drvBookings = bookings.filter(b => b.driverId === d.id && b.status === 'completed');
+                    const earnings = drvBookings.reduce((sum, b) => sum + (b.driverEarnings || 0), 0);
+                    const status = d.isOnline ? 'Online' : 'Offline';
 
-            tbody.innerHTML = drivers.map((driver, index) => `
-                <tr>
-                    <td>#${index + 1}</td>
-                    <td>${driver.name || 'N/A'}</td>
-                    <td>${driver.vehicleNumber || 'N/A'}</td>
-                    <td>
-                        <i class="fas fa-star" style="color: #ffc107;"></i> 4.5
-                    </td>
-                    <td><span class="badge success">Online</span></td>
-                    <td><span class="badge success">✓ Verified</span></td>
-                    <td>
-                        <div class="btn-group">
-                            <button class="btn-sm btn-edit"><i class="fas fa-edit"></i></button>
-                            <button class="btn-sm btn-delete"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function loadBookingsTable(bookings) {
-            const tbody = document.getElementById('bookingsTableBody');
-            if (bookings.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No bookings found</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = bookings.map((booking, index) => `
-                <tr>
-                    <td>#${booking.id || index + 1}</td>
-                    <td>Customer</td>
-                    <td>Driver</td>
-                    <td>${booking.pickup} → ${booking.dropoff}</td>
-                    <td>${booking.totalFare}</td>
-                    <td><span class="badge info">Completed</span></td>
-                    <td>${new Date(booking.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        <button class="btn-sm btn-edit"><i class="fas fa-eye"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Section Navigation
-        function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.admin-menu-link').forEach(l => l.classList.remove('active'));
-            
-            document.getElementById(sectionId).classList.add('active');
-            event.target.closest('.admin-menu-link').classList.add('active');
-        }
-
-        // Modal Functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('active');
+                    return `
+                        <tr>
+                            <td>${d.name}</td>
+                            <td>${d.email}</td>
+                            <td>${d.phone}</td>
+                            <td>${d.vehicleType} - ${d.vehicleNumber}</td>
+                            <td>${drvBookings.length}</td>
+                            <td>₹${earnings}</td>
+                            <td>5.0 ⭐</td>
+                            <td><span class="status-badge status-${d.isOnline ? 'confirmed' : 'pending'}">${status}</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewDriver('${d.id}')">View</button>
+                                    <button class="action-btn" onclick="toggleDriver('${d.id}')">${d.isOnline ? 'Suspend' : 'Activate'}</button>
+                                    <button class="action-btn danger" onclick="deleteDriver('${d.id}')">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
         }
 
-        // Initialize
-        loadAdminDashboard();
+        function openAddDriverModal() {
+            document.getElementById('addDriverModal').classList.add('active');
+        }
+
+        function closeAddDriverModal() {
+            document.getElementById('addDriverModal').classList.remove('active');
+        }
+
+        function saveDriver(e) {
+            e.preventDefault();
+
+            const driver = {
+                id: 'driver_' + Date.now(),
+                name: document.getElementById('drvName').value,
+                email: document.getElementById('drvEmail').value.toLowerCase(),
+                phone: document.getElementById('drvPhone').value,
+                password: document.getElementById('drvPassword').value,
+                vehicleType: document.getElementById('drvVehicle').value,
+                vehicleNumber: document.getElementById('drvVehicleNumber').value,
+                role: 'driver',
+                isOnline: true,
+                createdAt: new Date().toISOString()
+            };
+
+            let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            drivers.push(driver);
+            localStorage.setItem('drivers', JSON.stringify(drivers));
+
+            showSuccess('✅ Driver added successfully!');
+            closeAddDriverModal();
+            loadDrivers();
+            document.querySelector('#addDriverModal form').reset();
+        }
+
+        function viewDriver(driverId) {
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            const driver = drivers.find(d => d.id === driverId);
+            if (driver) {
+                alert(`
+Driver Details:
+Name: ${driver.name}
+Email: ${driver.email}
+Phone: ${driver.phone}
+Vehicle: ${driver.vehicleType}
+Registration: ${driver.vehicleNumber}
+Status: ${driver.isOnline ? 'Online' : 'Offline'}
+Joined: ${new Date(driver.createdAt).toLocaleDateString()}
+                `);
+            }
+        }
+
+        function toggleDriver(driverId) {
+            let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            const idx = drivers.findIndex(d => d.id === driverId);
+            if (idx !== -1) {
+                drivers[idx].isOnline = !drivers[idx].isOnline;
+                localStorage.setItem('drivers', JSON.stringify(drivers));
+                const action = drivers[idx].isOnline ? 'Activated' : 'Suspended';
+                showSuccess(`✅ Driver ${action}`);
+                loadDrivers();
+            }
+        }
+
+        function deleteDriver(driverId) {
+            if (confirm('Are you sure? This will delete the driver account.')) {
+                let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+                drivers = drivers.filter(d => d.id !== driverId);
+                localStorage.setItem('drivers', JSON.stringify(drivers));
+                showSuccess('❌ Driver deleted');
+                loadDrivers();
+            }
+        }
+
+        // ============================================
+        // LOAD EARNINGS
+        // ============================================
+
+        function loadEarnings() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const completedBookings = bookings.filter(b => b.status === 'completed');
+
+            const today = new Date().toDateString();
+            const todayBookings = completedBookings.filter(b => 
+                new Date(b.createdAt).toDateString() === today
+            );
+
+            const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0);
+            const todayRideCount = todayBookings.length;
+
+            // Week
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            const weekBookings = completedBookings.filter(b => 
+                new Date(b.createdAt) >= weekStart
+            );
+            const weekRevenue = weekBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0);
+
+            // Month
+            const monthStart = new Date();
+            monthStart.setDate(1);
+            const monthBookings = completedBookings.filter(b => 
+                new Date(b.createdAt) >= monthStart
+            );
+            const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0);
+
+            const driverShare = (completedBookings.reduce((sum, b) => sum + (b.totalFare || 0), 0) * 0.7);
+
+            document.getElementById('todayRevenue').textContent = `₹${todayRevenue}`;
+            document.getElementById('todayRides').textContent = `${todayRideCount} rides`;
+            document.getElementById('weekRevenue').textContent = `₹${weekRevenue}`;
+            document.getElementById('weekRides').textContent = `${weekBookings.length} rides`;
+            document.getElementById('monthRevenue').textContent = `₹${monthRevenue}`;
+            document.getElementById('monthRides').textContent = `${monthBookings.length} rides`;
+            document.getElementById('driverEarnings').textContent = `₹${Math.round(driverShare)}`;
+
+            // Earnings table
+            const earningsTable = document.getElementById('earningsTableBody');
+            if (completedBookings.length === 0) {
+                earningsTable.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-chart-line"></i><p>No earnings data</p></td></tr>';
+            } else {
+                const grouped = {};
+                completedBookings.forEach(b => {
+                    const date = new Date(b.createdAt).toLocaleDateString();
+                    if (!grouped[date]) grouped[date] = [];
+                    grouped[date].push(b);
+                });
+
+                earningsTable.innerHTML = Object.entries(grouped).map(([date, rides]) => {
+                    const total = rides.reduce((sum, r) => sum + (r.totalFare || 0), 0);
+                    const driverShare = Math.round(total * 0.7);
+                    const platformShare = Math.round(total * 0.3);
+
+                    return `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${rides.length}</td>
+                            <td>₹${total}</td>
+                            <td>₹${driverShare}</td>
+                            <td>₹${platformShare}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // ============================================
+        // SETTINGS
+        // ============================================
+
+        function saveSettings() {
+            const settings = {
+                baseFare: parseInt(document.getElementById('baseFare').value),
+                economyRate: parseInt(document.getElementById('economyRate').value),
+                premiumRate: parseInt(document.getElementById('premiumRate').value),
+                xlRate: parseInt(document.getElementById('xlRate').value),
+                driverShare: parseInt(document.getElementById('driverShare').value),
+                platformShare: parseInt(document.getElementById('platformShare').value),
+                tax: parseInt(document.getElementById('tax').value),
+                emailNotif: document.getElementById('emailNotif').checked,
+                smsNotif: document.getElementById('smsNotif').checked,
+                pushNotif: document.getElementById('pushNotif').checked
+            };
+
+            localStorage.setItem('appSettings', JSON.stringify(settings));
+            showSuccess('✅ Settings saved successfully!');
+        }
+
+        function generateReport() {
+            alert('📊 Report generated! Download feature coming soon.');
+        }
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+
+            const titles = {
+                'dashboard': 'Dashboard',
+                'bookings': 'Bookings Management',
+                'customers': 'Customers',
+                'drivers': 'Drivers',
+                'earnings': 'Earnings & Revenue',
+                'reports': 'Reports',
+                'settings': 'Settings'
+            };
+
+            document.getElementById('topbarTitle').textContent = titles[tabName] || 'Dashboard';
+        }
+
+        // ============================================
+        // MESSAGES
+        // ============================================
+
+        function showSuccess(message) {
+            document.getElementById('successText').textContent = message;
+            document.getElementById('successMessage').classList.add('show');
+            setTimeout(() => document.getElementById('successMessage').classList.remove('show'), 5000);
+        }
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.add('show');
+            setTimeout(() => document.getElementById('errorMessage').classList.remove('show'), 5000);
+        }
+
+        // ============================================
+        // LOGOUT
+        // ============================================
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentAdmin');
+                localStorage.removeItem('userRole');
+                window.location.href = './login.html';
+            }
+        }
+
+        // Close modals on background click
+        window.onclick = (e) => {
+            const customerModal = document.getElementById('addCustomerModal');
+            const driverModal = document.getElementById('addDriverModal');
+            if (e.target === customerModal) closeAddCustomerModal();
+            if (e.target === driverModal) closeAddDriverModal();
+        }
+
+        console.log('🚀 Admin Dashboard loaded');
     </script>
 </body>
 </html>
