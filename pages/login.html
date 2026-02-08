@@ -93,7 +93,6 @@
             position: relative;
         }
 
-        /* Admin Link - Top Right Corner */
         .admin-portal-link {
             position: absolute;
             top: 1rem;
@@ -110,6 +109,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
+            border: none;
         }
 
         .admin-portal-link:hover {
@@ -138,7 +138,6 @@
             font-size: 0.95rem;
         }
 
-        /* Role Selection - 2 columns only (Customer & Driver) */
         .role-selector {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -195,7 +194,6 @@
             color: #667eea;
         }
 
-        /* Form Groups */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -208,8 +206,7 @@
             font-size: 0.95rem;
         }
 
-        .form-group input,
-        .form-group select {
+        .form-group input {
             width: 100%;
             padding: 0.9rem 1rem;
             border: 2px solid #ddd;
@@ -219,8 +216,7 @@
             transition: all 0.3s;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
+        .form-group input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
@@ -231,7 +227,6 @@
             color: #bbb;
         }
 
-        /* Input with Icon */
         .input-with-icon {
             position: relative;
         }
@@ -249,7 +244,6 @@
             padding-left: 3rem;
         }
 
-        /* Remember & Forgot */
         .form-options {
             display: flex;
             justify-content: space-between;
@@ -283,15 +277,13 @@
             text-decoration: underline;
         }
 
-        /* Buttons */
         .form-buttons {
             display: flex;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
 
-        .btn-login,
-        .btn-signup {
+        .btn-login, .btn-signup {
             flex: 1;
             padding: 1rem;
             border: 2px solid #667eea;
@@ -314,10 +306,6 @@
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
         .btn-login:disabled {
             opacity: 0.7;
             cursor: not-allowed;
@@ -332,7 +320,6 @@
             background: #f0f4ff;
         }
 
-        /* Error Message */
         .error-message {
             background: #ffebee;
             color: #c62828;
@@ -353,7 +340,6 @@
             margin-right: 0.5rem;
         }
 
-        /* Success Message */
         .success-message {
             background: #e8f5e9;
             color: #2e7d32;
@@ -370,7 +356,6 @@
             animation: slideDown 0.3s ease;
         }
 
-        /* Loading Spinner */
         .spinner {
             display: inline-block;
             width: 1rem;
@@ -391,7 +376,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Demo Info */
         .demo-info {
             background: #e3f2fd;
             border: 2px solid #2196f3;
@@ -414,7 +398,6 @@
             font-family: 'Courier New', monospace;
         }
 
-        /* Divider Text */
         .divider-text {
             text-align: center;
             color: #999;
@@ -433,7 +416,10 @@
             text-decoration: underline;
         }
 
-        /* Responsive */
+        #adminRoleContainer {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .login-container {
                 grid-template-columns: 1fr;
@@ -462,7 +448,6 @@
 
             .role-selector {
                 grid-template-columns: 1fr 1fr;
-                gap: 1rem;
             }
 
             .form-options {
@@ -513,11 +498,11 @@
 
         <!-- Right Panel -->
         <div class="login-right">
-            <!-- Admin Portal Link - Top Right -->
-            <a class="admin-portal-link" onclick="toggleAdminLogin()">
+            <!-- Admin Portal Link -->
+            <button class="admin-portal-link" onclick="toggleAdminLogin()">
                 <i class="fas fa-lock"></i>
                 Admin Portal
-            </a>
+            </button>
 
             <div class="login-header">
                 <h2>Welcome Back</h2>
@@ -536,9 +521,8 @@
                 <span id="successText">Login successful! Redirecting...</span>
             </div>
 
-            <!-- Role Selection - ONLY Customer & Driver (2 columns) -->
+            <!-- Role Selection -->
             <div class="role-selector" id="roleSelector">
-                <!-- Customer -->
                 <div>
                     <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked>
                     <label for="roleCustomer" class="role-label">
@@ -547,7 +531,6 @@
                     </label>
                 </div>
 
-                <!-- Driver -->
                 <div>
                     <input type="radio" name="role" id="roleDriver" value="driver" class="role-option">
                     <label for="roleDriver" class="role-label">
@@ -557,8 +540,8 @@
                 </div>
             </div>
 
-            <!-- Admin Role (Hidden by default) -->
-            <div id="adminRoleContainer" style="display: none;">
+            <!-- Admin Role (Hidden) -->
+            <div id="adminRoleContainer">
                 <div class="role-selector">
                     <input type="radio" name="role" id="roleAdmin" value="admin" class="role-option">
                     <label for="roleAdmin" class="role-label">
@@ -577,7 +560,6 @@
 
             <!-- Login Form -->
             <form id="loginForm">
-                <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <div class="input-with-icon">
@@ -592,7 +574,6 @@
                     </div>
                 </div>
 
-                <!-- Password -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="input-with-icon">
@@ -607,7 +588,6 @@
                     </div>
                 </div>
 
-                <!-- Remember & Forgot -->
                 <div class="form-options">
                     <label class="remember-me">
                         <input type="checkbox" id="rememberMe">
@@ -616,7 +596,6 @@
                     <a class="forgot-password">Forgot password?</a>
                 </div>
 
-                <!-- Buttons -->
                 <div class="form-buttons">
                     <button type="submit" class="btn-login">
                         <span id="loginBtnText">Sign In</span>
@@ -627,7 +606,6 @@
                 </div>
             </form>
 
-            <!-- Sign Up Link -->
             <div class="divider-text">
                 Don't have an account? 
                 <a onclick="goToSignup()">Sign Up Now</a>
@@ -635,7 +613,6 @@
         </div>
     </div>
 
-    <script src="../js/auth.js"></script>
     <script>
         // Elements
         const loginForm = document.getElementById('loginForm');
@@ -657,22 +634,14 @@
             adminModeActive = !adminModeActive;
 
             if (adminModeActive) {
-                // Show Admin option
                 adminRoleContainer.style.display = 'block';
                 adminDemoText.style.display = 'inline';
-                roleSelector.style.gridTemplateColumns = '1fr';
                 roleSelector.style.display = 'none';
-                
-                // Check admin radio
                 document.getElementById('roleAdmin').checked = true;
             } else {
-                // Hide Admin option
                 adminRoleContainer.style.display = 'none';
                 adminDemoText.style.display = 'none';
-                roleSelector.style.gridTemplateColumns = 'repeat(2, 1fr)';
                 roleSelector.style.display = 'grid';
-                
-                // Check customer radio
                 document.getElementById('roleCustomer').checked = true;
             }
         }
@@ -695,7 +664,7 @@
             window.location.href = './signup.html';
         }
 
-        // Form Submission
+        // Form Submission - ✅ FIXED
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -714,6 +683,8 @@
             const role = document.querySelector('input[name="role"]:checked').value;
             const email = emailInput.value.trim().toLowerCase();
             const password = passwordInput.value;
+
+            console.log('Login attempt:', { role, email }); // Debug log
 
             // Loading state
             loginForm.style.opacity = '0.6';
@@ -738,15 +709,31 @@
                     let user = null;
                     let redirectUrl = '';
 
+                    // ✅ FIXED: Check role correctly
                     if (role === 'customer') {
                         user = users.find(u => u.email === email && u.password === password);
-                        redirectUrl = user ? './customer-dashboard.html' : null;
+                        if (user) {
+                            redirectUrl = './customer-dashboard.html';
+                            localStorage.setItem('currentUser', JSON.stringify(user));
+                            localStorage.setItem('userRole', 'customer');
+                            console.log('✅ Customer login successful');
+                        }
                     } else if (role === 'driver') {
                         user = drivers.find(d => d.email === email && d.password === password);
-                        redirectUrl = user ? './driver-dashboard.html' : null;
+                        if (user) {
+                            redirectUrl = './driver-dashboard.html';
+                            localStorage.setItem('currentDriver', JSON.stringify(user));
+                            localStorage.setItem('userRole', 'driver');
+                            console.log('✅ Driver login successful');
+                        }
                     } else if (role === 'admin') {
                         user = admins.find(a => a.email === email && a.password === password);
-                        redirectUrl = user ? './admin-dashboard.html' : null;
+                        if (user) {
+                            redirectUrl = './admin-dashboard.html';
+                            localStorage.setItem('currentAdmin', JSON.stringify(user));
+                            localStorage.setItem('userRole', 'admin');
+                            console.log('✅ Admin login successful');
+                        }
                     }
 
                     if (!user) {
@@ -754,17 +741,8 @@
                         loginForm.style.pointerEvents = 'auto';
                         loginBtnText.textContent = 'Sign In';
                         showError(`Invalid credentials for ${role}`);
+                        console.log('❌ Login failed - Invalid credentials');
                         return;
-                    }
-
-                    user.role = role;
-                    
-                    if (role === 'customer') {
-                        localStorage.setItem('currentUser', JSON.stringify(user));
-                    } else if (role === 'driver') {
-                        localStorage.setItem('currentDriver', JSON.stringify(user));
-                    } else if (role === 'admin') {
-                        localStorage.setItem('currentAdmin', JSON.stringify(user));
                     }
 
                     if (rememberMe.checked) {
@@ -775,12 +753,14 @@
 
                     showSuccess('Login successful! Redirecting...');
 
+                    // ✅ Redirect after 1.5 seconds
                     setTimeout(() => {
+                        console.log('Redirecting to:', redirectUrl);
                         window.location.href = redirectUrl;
                     }, 1500);
 
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Login error:', error);
                     loginForm.style.opacity = '1';
                     loginForm.style.pointerEvents = 'auto';
                     loginBtnText.textContent = 'Sign In';
@@ -804,6 +784,8 @@
                 
                 rememberMe.checked = true;
             }
+
+            console.log('✅ Login page loaded');
         });
     </script>
 </body>
