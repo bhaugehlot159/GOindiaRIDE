@@ -32,7 +32,7 @@
             width: 100%;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            min-height: 600px;
+            min-height: auto;
         }
 
         .signup-left {
@@ -90,6 +90,7 @@
             flex-direction: column;
             justify-content: center;
             overflow-y: auto;
+            max-height: 90vh;
         }
 
         .signup-header {
@@ -212,6 +213,25 @@
 
         .input-with-icon input {
             padding-left: 3rem;
+            padding-right: 2.8rem;
+        }
+
+        /* Password Show/Hide Button */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: #764ba2;
         }
 
         .form-buttons {
@@ -271,6 +291,10 @@
         .error-message.show {
             display: block;
             animation: slideDown 0.3s ease;
+        }
+
+        .error-message i {
+            margin-right: 0.5rem;
         }
 
         .success-message {
@@ -344,12 +368,10 @@
         @media (max-width: 768px) {
             .signup-container {
                 grid-template-columns: 1fr;
-                min-height: auto;
             }
 
             .signup-left {
                 padding: 2rem 1.5rem;
-                min-height: 250px;
             }
 
             .signup-left h1 {
@@ -489,7 +511,7 @@
                     </div>
                 </div>
 
-                <!-- Password -->
+                <!-- Password with Show/Hide -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="input-with-icon">
@@ -498,13 +520,16 @@
                             type="password" 
                             id="password" 
                             name="password" 
-                            placeholder="Create a strong password"
+                            placeholder="Create a strong password (min 6 characters)"
                             required
                         >
+                        <button type="button" class="password-toggle" onclick="togglePasswordSignup('password')">
+                            <i class="fas fa-eye" id="passwordToggle"></i>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Confirm Password -->
+                <!-- Confirm Password with Show/Hide -->
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="input-with-icon">
@@ -516,6 +541,9 @@
                             placeholder="Confirm your password"
                             required
                         >
+                        <button type="button" class="password-toggle" onclick="togglePasswordSignup('confirmPassword')">
+                            <i class="fas fa-eye" id="confirmPasswordToggle"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -545,6 +573,23 @@
     </div>
 
     <script>
+        // Password Show/Hide for Signup
+        function togglePasswordSignup(fieldId) {
+            const field = document.getElementById(fieldId);
+            const toggleId = fieldId + 'Toggle';
+            const toggleIcon = document.getElementById(toggleId);
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
         // Elements
         const signupForm = document.getElementById('signupForm');
         const fullnameInput = document.getElementById('fullname');
@@ -576,7 +621,7 @@
             window.location.href = './login.html';
         }
 
-        // Form Submission - ✅ FIXED
+        // Form Submission
         signupForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -651,40 +696,36 @@
                     }
 
                     // Create new user object
-                    let newUser;
-                    let redirectRole;
-
                     if (role === 'customer') {
-                        newUser = {
+                        const newUser = {
                             id: 'user_' + Date.now(),
-                            fullname,
-                            email,
-                            phone,
-                            password,
+                            fullname: fullname,
+                            email: email,
+                            phone: phone,
+                            password: password,
                             role: 'customer',
                             createdAt: new Date().toISOString()
                         };
                         users.push(newUser);
                         localStorage.setItem('users', JSON.stringify(users));
-                        redirectRole = 'customer';
                         console.log('✅ Customer account created:', newUser);
                     } else if (role === 'driver') {
-                        newUser = {
+                        const newDriver = {
                             id: 'driver_' + Date.now(),
                             name: fullname,
-                            email,
-                            phone,
-                            password,
+                            email: email,
+                            phone: phone,
+                            password: password,
+                            vehicleNumber: '',
                             role: 'driver',
                             createdAt: new Date().toISOString()
                         };
-                        drivers.push(newUser);
+                        drivers.push(newDriver);
                         localStorage.setItem('drivers', JSON.stringify(drivers));
-                        redirectRole = 'driver';
-                        console.log('✅ Driver account created:', newUser);
+                        console.log('✅ Driver account created:', newDriver);
                     }
 
-                    showSuccess(`${role.charAt(0).toUpperCase() + role.slice(1)} account created! Redirecting to login...`);
+                    showSuccess(`✅ ${role.charAt(0).toUpperCase() + role.slice(1)} account created! Redirecting to login...`);
 
                     // Redirect to login after 2 seconds
                     setTimeout(() => {
