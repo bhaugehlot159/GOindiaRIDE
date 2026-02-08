@@ -15,20 +15,27 @@
             padding: 2rem;
             max-width: 1400px;
             margin: 0 auto;
-            min-height: 100vh;
+            min-height: calc(100vh - 80px);
+            background: #f5f5f5;
         }
 
         .booking-form {
             background: white;
             padding: 2rem;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
             height: fit-content;
+            position: sticky;
+            top: 100px;
         }
 
         .booking-form h2 {
             margin-bottom: 1.5rem;
             color: #333;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .form-group {
@@ -39,25 +46,121 @@
             display: block;
             margin-bottom: 0.5rem;
             color: #333;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 0.95rem;
         }
 
-        .form-group input, .form-group select {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 0.8rem;
             border: 2px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
         }
 
+        /* Search Wrapper */
+        .search-wrapper {
+            position: relative;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 350px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .suggestions-dropdown:empty {
+            display: none;
+        }
+
+        .suggestion-group {
+            padding: 0.5rem 0;
+        }
+
+        .suggestion-title {
+            padding: 0.7rem 1rem;
+            background: #f5f5f5;
+            margin: 0;
+            font-size: 0.85rem;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion-item {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .suggestion-item:hover {
+            background: #f9f9f9;
+            padding-left: 1.5rem;
+            color: #667eea;
+        }
+
+        .suggestion-item i {
+            color: #667eea;
+            font-size: 1.1rem;
+            min-width: 25px;
+        }
+
+        .suggestion-item strong {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .attraction-info {
+            flex: 1;
+        }
+
+        .attraction-name {
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+        }
+
+        .attraction-location {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .no-result {
+            color: #999;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* Ride Types */
         .ride-types {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -68,10 +171,11 @@
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
-            transition: 0.3s;
+            transition: all 0.3s;
         }
 
-        .ride-type-card:hover, .ride-type-card.active {
+        .ride-type-card:hover,
+        .ride-type-card.active {
             border-color: #667eea;
             background: #f0f4ff;
         }
@@ -85,6 +189,7 @@
         .ride-type-card p {
             font-weight: bold;
             margin-bottom: 0.25rem;
+            color: #333;
         }
 
         .ride-type-card span {
@@ -92,6 +197,7 @@
             font-size: 0.9rem;
         }
 
+        /* Fare Estimation */
         .fare-estimation {
             background: #f8f9fa;
             padding: 1.5rem;
@@ -101,6 +207,7 @@
 
         .fare-estimation h3 {
             margin-bottom: 1rem;
+            color: #333;
         }
 
         .fare-row {
@@ -119,17 +226,22 @@
             color: #667eea;
         }
 
+        /* Buttons */
         .book-btn {
             width: 100%;
             padding: 1rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 1.1rem;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.3s;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .book-btn:hover {
@@ -140,8 +252,70 @@
         #map {
             width: 100%;
             height: 600px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .promo-section {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .promo-section input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .btn-apply-promo {
+            padding: 0.8rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-apply-promo:hover {
+            background: #764ba2;
+        }
+
+        /* Tourist Panel */
+        .tourist-panel {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            max-width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 999;
+        }
+
+        .tourist-panel.active {
+            display: block;
+        }
+
+        .tourist-panel h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .tourist-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .tourist-item:hover {
+            background: #f5f5f5;
         }
 
         @media (max-width: 768px) {
@@ -151,6 +325,14 @@
 
             #map {
                 height: 400px;
+            }
+
+            .ride-types {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tourist-panel {
+                max-width: 100%;
             }
         }
     </style>
@@ -163,8 +345,8 @@
                 <i class="fas fa-taxi"></i> GO India RIDE
             </div>
             <div style="color: white;">
-                <span id="userDisplay"></span>
-                <a href="#" onclick="logout()" style="color: white; margin-left: 1rem;">Logout</a>
+                <span id="userDisplay">Welcome!</span>
+                <a href="#" onclick="logout()" style="color: white; margin-left: 1rem; text-decoration: none; cursor: pointer;">Logout</a>
             </div>
         </div>
     </nav>
@@ -175,39 +357,86 @@
             <h2><i class="fas fa-car"></i> Book Your Ride</h2>
 
             <form id="bookingForm">
+                <!-- Pickup Location -->
                 <div class="form-group">
-                    <label for="pickup">Pickup Location</label>
-                    <input type="text" id="pickup" placeholder="Enter pickup location" required>
+                    <label for="pickup">📍 Pickup Location</label>
+                    <div class="search-wrapper">
+                        <input 
+                            type="text" 
+                            id="pickup" 
+                            placeholder="Enter city, district, or attraction name"
+                            autocomplete="off"
+                            required
+                        >
+                        <div class="suggestions-dropdown" id="pickupSuggestions"></div>
+                    </div>
                 </div>
 
+                <!-- Dropoff Location -->
                 <div class="form-group">
-                    <label for="dropoff">Drop-off Location</label>
-                    <input type="text" id="dropoff" placeholder="Enter drop-off location" required>
+                    <label for="dropoff">📍 Drop-off Location</label>
+                    <div class="search-wrapper">
+                        <input 
+                            type="text" 
+                            id="dropoff" 
+                            placeholder="Enter city, district, or attraction name"
+                            autocomplete="off"
+                            required
+                        >
+                        <div class="suggestions-dropdown" id="dropoffSuggestions"></div>
+                    </div>
                 </div>
 
+                <!-- Ride Type -->
                 <div class="form-group">
-                    <label>Select Ride Type</label>
+                    <label>🚗 Select Ride Type</label>
                     <div class="ride-types">
-                        <div class="ride-type-card active" data-type="economy">
+                        <div class="ride-type-card active" data-type="economy" data-price="5">
                             <i class="fas fa-car"></i>
                             <p>Economy</p>
                             <span>₹5/km</span>
                         </div>
-                        <div class="ride-type-card" data-type="premium">
+                        <div class="ride-type-card" data-type="premium" data-price="8">
                             <i class="fas fa-crown"></i>
                             <p>Premium</p>
                             <span>₹8/km</span>
                         </div>
+                        <div class="ride-type-card" data-type="xl" data-price="10">
+                            <i class="fas fa-van-shuttle"></i>
+                            <p>XL (6 Seater)</p>
+                            <span>₹10/km</span>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Passengers -->
                 <div class="form-group">
-                    <label for="rideDateTime">Ride Date & Time</label>
+                    <label for="passengers">👥 Passengers</label>
+                    <select id="passengers">
+                        <option value="1">1 Passenger</option>
+                        <option value="2">2 Passengers</option>
+                        <option value="3">3 Passengers</option>
+                        <option value="4">4 Passengers</option>
+                        <option value="5">5 Passengers</option>
+                        <option value="6">6 Passengers</option>
+                    </select>
+                </div>
+
+                <!-- DateTime -->
+                <div class="form-group">
+                    <label for="rideDateTime">⏰ Schedule (Optional)</label>
                     <input type="datetime-local" id="rideDateTime">
                 </div>
 
-                <div class="fare-estimation" id="fareEstimation">
-                    <h3>Estimated Fare</h3>
+                <!-- Special Requests -->
+                <div class="form-group">
+                    <label for="specialRequests">💬 Special Requests</label>
+                    <textarea id="specialRequests" placeholder="AC, quiet, music, etc."></textarea>
+                </div>
+
+                <!-- Fare Estimation -->
+                <div class="fare-estimation">
+                    <h3>💰 Estimated Fare</h3>
                     <div class="fare-row">
                         <span>Base Fare:</span>
                         <span>₹50</span>
@@ -217,17 +446,24 @@
                         <span id="distanceFare">₹0</span>
                     </div>
                     <div class="fare-row">
-                        <span>Time (0 min):</span>
+                        <span>Time:</span>
                         <span id="timeFare">₹0</span>
                     </div>
                     <div class="fare-row total">
-                        <span>Total:</span>
+                        <span>💵 Total:</span>
                         <span id="totalFare">₹50</span>
                     </div>
                 </div>
 
+                <!-- Promo Code -->
+                <div class="promo-section">
+                    <input type="text" id="promoCode" placeholder="Promo code">
+                    <button type="button" class="btn-apply-promo" onclick="applyPromo()">Apply</button>
+                </div>
+
+                <!-- Book Button -->
                 <button type="submit" class="book-btn">
-                    <i class="fas fa-check"></i> Confirm Booking
+                    <i class="fas fa-check-circle"></i> Book Ride
                 </button>
             </form>
         </div>
@@ -236,8 +472,310 @@
         <div id="map"></div>
     </div>
 
+    <!-- Tourist Attractions Panel -->
+    <div class="tourist-panel" id="touristPanel">
+        <h3>🎯 Nearby Attractions</h3>
+        <div id="touristList"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../data/format-1-js/rajasthan-1000-attractions.js"></script>
+    <script src="../js/auto-suggest.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="../js/booking.js"></script>
     <script src="../js/auth.js"></script>
+    <script>
+        // =======================================
+        // AUTO-SUGGEST IMPLEMENTATION
+        // =======================================
+
+        let pickupSuggest, dropoffSuggest;
+
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initialize auto-suggest
+            pickupSuggest = new AutoSuggestManager(
+                document.getElementById('pickup'),
+                document.getElementById('pickupSuggestions'),
+                RajasthanData
+            );
+
+            dropoffSuggest = new AutoSuggestManager(
+                document.getElementById('dropoff'),
+                document.getElementById('dropoffSuggestions'),
+                RajasthanData
+            );
+
+            // Check authentication
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('userDisplay').textContent = `Welcome, ${user.fullname}!`;
+            }
+
+            // Initialize map
+            initializeMap();
+
+            // Ride type selection
+            setupRideTypeSelection();
+
+            // Calculate fare
+            calculateFare();
+        });
+
+        // =======================================
+        // AUTO-SUGGEST CLASS
+        // =======================================
+
+        class AutoSuggestManager {
+            constructor(inputElement, suggestionsContainer, dataObject) {
+                this.input = inputElement;
+                this.container = suggestionsContainer;
+                this.data = dataObject;
+                this.init();
+            }
+
+            init() {
+                this.input.addEventListener('input', (e) => this.handleInput(e));
+                document.addEventListener('click', (e) => {
+                    if (e.target !== this.input) {
+                        this.container.innerHTML = '';
+                    }
+                });
+            }
+
+            handleInput(event) {
+                const query = event.target.value.toLowerCase().trim();
+
+                if (query.length < 2) {
+                    this.container.innerHTML = '';
+                    return;
+                }
+
+                const results = this.search(query);
+                this.displaySuggestions(results, query);
+            }
+
+            search(query) {
+                const districts = [];
+                const attractions = [];
+
+                for (const district in this.data) {
+                    if (district.startsWith('_')) continue;
+
+                    if (district.toLowerCase().includes(query)) {
+                        districts.push({
+                            type: 'district',
+                            name: district,
+                            data: this.data[district]
+                        });
+                    }
+
+                    const districtData = this.data[district];
+                    for (const category in districtData) {
+                        if (category.startsWith('_')) continue;
+                        
+                        const items = districtData[category];
+                        for (const itemName in items) {
+                            if (itemName.toLowerCase().includes(query)) {
+                                attractions.push({
+                                    type: 'attraction',
+                                    name: itemName,
+                                    district: district,
+                                    category: category,
+                                    data: items[itemName]
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return { districts, attractions };
+            }
+
+            displaySuggestions(results, query) {
+                let html = '';
+
+                // Districts
+                if (results.districts.length > 0) {
+                    html += '<div class="suggestion-group">';
+                    html += '<div class="suggestion-title">Districts</div>';
+                    results.districts.slice(0, 5).forEach(item => {
+                        const highlighted = this.highlightText(item.name, query);
+                        html += `
+                            <div class="suggestion-item" onclick="selectDistrict('${item.name}')">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${highlighted}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                // Attractions
+                if (results.attractions.length > 0) {
+                    html += '<div class="suggestion-group">';
+                    html += '<div class="suggestion-title">Attractions</div>';
+                    results.attractions.slice(0, 8).forEach(item => {
+                        const highlighted = this.highlightText(item.name, query);
+                        const icon = this.getCategoryIcon(item.category);
+                        html += `
+                            <div class="suggestion-item" onclick="selectAttraction('${item.name}', '${item.district}')">
+                                ${icon}
+                                <div class="attraction-info">
+                                    <div class="attraction-name">${highlighted}</div>
+                                    <div class="attraction-location">${item.district}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                if (html === '') {
+                    html = '<div class="suggestion-item no-result">No results found</div>';
+                }
+
+                this.container.innerHTML = html;
+            }
+
+            highlightText(text, query) {
+                const regex = new RegExp(`(${query})`, 'gi');
+                return text.replace(regex, '<strong>$1</strong>');
+            }
+
+            getCategoryIcon(category) {
+                const icons = {
+                    'forts': '<i class="fas fa-chess-rook"></i>',
+                    'palaces': '<i class="fas fa-crown"></i>',
+                    'temples': '<i class="fas fa-gopuram"></i>',
+                    'museums': '<i class="fas fa-museum"></i>',
+                    'lakes': '<i class="fas fa-water"></i>',
+                    'gardens': '<i class="fas fa-leaf"></i>',
+                    'wildlife': '<i class="fas fa-paw"></i>',
+                    'markets': '<i class="fas fa-store"></i>'
+                };
+                return icons[category] || '<i class="fas fa-location-dot"></i>';
+            }
+        }
+
+        // Select functions
+        function selectDistrict(district) {
+            const activeInput = document.activeElement.id === 'pickup' ? 
+                document.getElementById('pickup') : 
+                document.getElementById('dropoff');
+            activeInput.value = district;
+        }
+
+        function selectAttraction(name, district) {
+            const activeInput = document.activeElement.id === 'pickup' ? 
+                document.getElementById('pickup') : 
+                document.getElementById('dropoff');
+            activeInput.value = name + ", " + district;
+        }
+
+        // =======================================
+        // RIDE TYPE SELECTION
+        // =======================================
+
+        function setupRideTypeSelection() {
+            document.querySelectorAll('.ride-type-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.ride-type-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    calculateFare();
+                });
+            });
+        }
+
+        // =======================================
+        // FARE CALCULATION
+        // =======================================
+
+        function calculateFare() {
+            const baseFare = 50;
+            const distance = 10; // Default 10 km
+            const time = 20; // Default 20 minutes
+            const passengers = parseInt(document.getElementById('passengers').value);
+            
+            const activeCard = document.querySelector('.ride-type-card.active');
+            const ratePerKm = parseInt(activeCard.dataset.price);
+            
+            const distanceFare = distance * ratePerKm;
+            const timeFare = (time / 60) * 10; // ₹10 per minute
+            const passengerSurcharge = (passengers - 1) * 20; // ₹20 per extra passenger
+            
+            const total = baseFare + distanceFare + timeFare + passengerSurcharge;
+            
+            document.getElementById('distanceFare').textContent = `₹${distanceFare.toFixed(0)}`;
+            document.getElementById('timeFare').textContent = `₹${timeFare.toFixed(0)}`;
+            document.getElementById('totalFare').textContent = `₹${total.toFixed(0)}`;
+        }
+
+        // =======================================
+        // PROMO CODE
+        // =======================================
+
+        function applyPromo() {
+            const promoCode = document.getElementById('promoCode').value;
+            const promos = {
+                'SAVE10': 0.10,
+                'SAVE20': 0.20,
+                'WELCOME50': 0.50
+            };
+
+            if (promos[promoCode]) {
+                const totalFare = parseInt(document.getElementById('totalFare').textContent.replace('₹', ''));
+                const discount = totalFare * promos[promoCode];
+                const newTotal = totalFare - discount;
+                document.getElementById('totalFare').textContent = `₹${newTotal.toFixed(0)}`;
+                alert(`Promo applied! Discount: ₹${discount.toFixed(0)}`);
+            } else {
+                alert('Invalid promo code');
+            }
+        }
+
+        // =======================================
+        // MAP INITIALIZATION
+        // =======================================
+
+        function initializeMap() {
+            const map = L.map('map').setView([27.5, 75.5], 7);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        // =======================================
+        // FORM SUBMISSION
+        // =======================================
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const pickup = document.getElementById('pickup').value;
+            const dropoff = document.getElementById('dropoff').value;
+            const rideType = document.querySelector('.ride-type-card.active').dataset.type;
+            const totalFare = document.getElementById('totalFare').textContent;
+
+            const booking = {
+                id: Date.now(),
+                pickup,
+                dropoff,
+                rideType,
+                totalFare,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            bookings.push(booking);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+
+            alert('Booking confirmed! Ride ID: ' + booking.id);
+            window.location.href = 'dashboard.html';
+        });
+
+        // Passenger change
+        document.getElementById('passengers').addEventListener('change', calculateFare);
+    </script>
 </body>
 </html>
