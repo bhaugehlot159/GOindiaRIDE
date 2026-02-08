@@ -409,6 +409,7 @@
             display: none;
             border-left: 4px solid #2e7d32;
             font-size: 0.9rem;
+            white-space: pre-wrap;
         }
 
         .success-message.show {
@@ -476,36 +477,38 @@
             text-decoration: underline;
         }
 
-        /* OTP Input Styles */
+        /* OTP Input Styles - FIXED */
         .otp-input-group {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
             justify-content: center;
         }
 
         .otp-digit {
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
+            width: 55px;
+            height: 55px;
+            font-size: 28px;
+            font-weight: bold;
             text-align: center;
             border: 2px solid #ddd;
-            border-radius: 8px;
-            font-weight: bold;
+            border-radius: 10px;
+            transition: all 0.3s;
         }
 
         .otp-digit:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+            background: #f0f4ff;
         }
 
         .otp-info {
             text-align: center;
-            color: #667eea;
+            color: #333;
             font-weight: bold;
             margin-bottom: 1rem;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .timer {
@@ -635,9 +638,13 @@
             }
 
             .otp-digit {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .otp-input-group {
+                gap: 0.5rem;
             }
 
             .form-options {
@@ -708,7 +715,7 @@
             <!-- Success Message -->
             <div class="success-message" id="successMessage">
                 <i class="fas fa-check-circle"></i>
-                <span id="successText">Login successful! Redirecting...</span>
+                <span id="successText"></span>
             </div>
 
             <!-- Role Selection -->
@@ -764,16 +771,14 @@
             <div class="demo-info">
                 <strong>📝 Demo Accounts:</strong>
                 <span id="demoCustomer">
-                    📱 Customer Mobile: <code>9876543210</code><br>
-                    📧 Customer Email: <code>test@email.com</code> / <code>test123</code><br>
-                    🔐 OTP: <code>123456</code><br>
+                    📱 Customer: <code>9876543210</code> | 🔐 OTP: <code>123456</code><br>
+                    📧 Email: <code>test@email.com</code> | Pass: <code>test123</code><br>
                 </span>
                 <span id="demoDriver" style="display: none;">
-                    📱 Driver Mobile: <code>9876543211</code><br>
-                    📧 Driver Email: <code>driver@email.com</code> / <code>driver123</code><br>
-                    🔐 OTP: <code>123456</code><br>
+                    📱 Driver: <code>9876543211</code> | 🔐 OTP: <code>123456</code><br>
+                    📧 Email: <code>driver@email.com</code> | Pass: <code>driver123</code><br>
                 </span>
-                <span id="adminDemoText" style="display: none;">📧 Admin: <code>admin@goindia.com</code> / <code>admin123</code></span>
+                <span id="adminDemoText" style="display: none;">📧 Admin: <code>admin@goindia.com</code> | Pass: <code>admin123</code></span>
             </div>
 
             <!-- Login Form -->
@@ -787,9 +792,9 @@
                             <input 
                                 type="tel" 
                                 id="phone" 
-                                name="phone" 
-                                placeholder="Enter 10 digit mobile number"
+                                placeholder="Enter 10 digit mobile"
                                 maxlength="10"
+                                inputmode="numeric"
                             >
                         </div>
                     </div>
@@ -799,16 +804,16 @@
                     </button>
 
                     <div id="otpSection" style="display: none;">
-                        <div class="otp-info">Enter OTP sent to your mobile</div>
-                        <div class="otp-input-group">
-                            <input type="text" class="otp-digit" maxlength="1" placeholder="0">
-                            <input type="text" class="otp-digit" maxlength="1" placeholder="0">
-                            <input type="text" class="otp-digit" maxlength="1" placeholder="0">
-                            <input type="text" class="otp-digit" maxlength="1" placeholder="0">
-                            <input type="text" class="otp-digit" maxlength="1" placeholder="0">
-                            <input type="text" class="otp-digit" maxlength="1" placeholder="0">
+                        <div class="otp-info">🔐 GO India RIDE - Enter OTP</div>
+                        <div class="otp-input-group" id="otpInputGroup">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric">
+                            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric">
                         </div>
-                        <div class="timer" id="otpTimer" style="display: none;"></div>
+                        <div class="timer" id="otpTimer"></div>
 
                         <div class="form-buttons">
                             <button type="button" class="btn-verify" onclick="verifyOTP()">
@@ -830,7 +835,6 @@
                             <input 
                                 type="email" 
                                 id="email" 
-                                name="email" 
                                 placeholder="Enter your email"
                             >
                         </div>
@@ -843,8 +847,7 @@
                             <input 
                                 type="password" 
                                 id="password" 
-                                name="password" 
-                                placeholder="Enter your password"
+                                placeholder="Enter password"
                             >
                             <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
                                 <i class="fas fa-eye" id="passwordToggleIcon"></i>
@@ -864,7 +867,7 @@
 
                     <div class="form-buttons">
                         <button type="submit" class="btn-login">
-                            <span id="loginBtnText">Sign In</span>
+                            Sign In
                         </button>
                         <button type="button" class="btn-signup" onclick="goToSignup()">
                             Sign Up
@@ -881,7 +884,6 @@
                             <input 
                                 type="email" 
                                 id="adminEmail" 
-                                name="adminEmail" 
                                 placeholder="Enter admin email"
                             >
                         </div>
@@ -894,7 +896,6 @@
                             <input 
                                 type="password" 
                                 id="adminPassword" 
-                                name="adminPassword" 
                                 placeholder="Enter password"
                             >
                             <button type="button" class="password-toggle" onclick="toggleAdminPasswordVisibility()">
@@ -941,7 +942,7 @@
                         <input 
                             type="email" 
                             id="forgotEmail" 
-                            placeholder="Enter your registered email"
+                            placeholder="Enter your email"
                         >
                     </div>
                 </div>
@@ -950,7 +951,7 @@
             </div>
 
             <div id="forgotStep2" style="display: none;">
-                <p style="color: #666; margin-bottom: 1.5rem;">Create a new password for your account.</p>
+                <p style="color: #666; margin-bottom: 1.5rem;">Create a new password.</p>
                 
                 <div class="modal-error" id="forgotError2"></div>
                 
@@ -961,11 +962,8 @@
                         <input 
                             type="password" 
                             id="newPassword" 
-                            placeholder="Enter new password (min 6 characters)"
+                            placeholder="Min 6 characters"
                         >
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibilityModal('newPassword')">
-                            <i class="fas fa-eye" id="newPasswordToggle"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -976,11 +974,8 @@
                         <input 
                             type="password" 
                             id="confirmNewPassword" 
-                            placeholder="Confirm new password"
+                            placeholder="Confirm password"
                         >
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibilityModal('confirmNewPassword')">
-                            <i class="fas fa-eye" id="confirmNewPasswordToggle"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -989,7 +984,7 @@
 
             <div id="forgotStep3" style="display: none; text-align: center;">
                 <i class="fas fa-check-circle" style="font-size: 3rem; color: #4caf50; margin-bottom: 1rem;"></i>
-                <h3 style="color: #333; margin-bottom: 0.5rem;">Password Reset Successful!</h3>
+                <h3 style="color: #333;">Password Reset Successful!</h3>
                 <p style="color: #666; margin-bottom: 1.5rem;">Your password has been updated.</p>
                 <button type="button" class="btn-submit" onclick="closeForgotPasswordModal()">Back to Login</button>
             </div>
@@ -1018,7 +1013,6 @@
                     }
                 ];
                 localStorage.setItem('users', JSON.stringify(demoUsers));
-                console.log('✅ Demo customer account initialized');
             }
 
             if (!existingDrivers) {
@@ -1035,15 +1029,70 @@
                     }
                 ];
                 localStorage.setItem('drivers', JSON.stringify(demoDrivers));
-                console.log('✅ Demo driver account initialized');
             }
 
-            console.log('📊 Demo Data Initialized');
+            console.log('✅ Demo data initialized');
         }
 
         window.addEventListener('load', function() {
             initializeDemoData();
+            setupOTPInputListeners();
         });
+
+        // ============================================
+        // OTP INPUT LISTENERS - FIXED
+        // ============================================
+
+        function setupOTPInputListeners() {
+            const otpInputGroup = document.getElementById('otpInputGroup');
+            
+            if (!otpInputGroup) return;
+
+            const otpInputs = otpInputGroup.querySelectorAll('.otp-digit');
+
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    // Only allow numbers
+                    this.value = this.value.replace(/[^0-9]/g, '');
+
+                    // Move to next input
+                    if (this.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    // Backspace - move to previous
+                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                    // Arrow keys
+                    if (e.key === 'ArrowLeft' && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                    if (e.key === 'ArrowRight' && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+                    
+                    for (let i = 0; i < pasteData.length && (index + i) < otpInputs.length; i++) {
+                        otpInputs[index + i].value = pasteData[i];
+                    }
+                    
+                    if (pasteData.length > 0) {
+                        const nextIndex = Math.min(index + pasteData.length, otpInputs.length - 1);
+                        otpInputs[nextIndex].focus();
+                    }
+                });
+            });
+
+            // Auto-focus first input
+            otpInputs[0].focus();
+        }
 
         // ============================================
         // UI MANAGEMENT
@@ -1073,8 +1122,6 @@
             } else if (role === 'admin') {
                 loginMethodSelector.style.display = 'none';
                 adminLoginMethod.style.display = 'block';
-                demoCustomer.style.display = 'none';
-                demoDriver.style.display = 'none';
                 adminDemoText.style.display = 'inline';
             }
         }
@@ -1127,24 +1174,8 @@
             }
         }
 
-        function togglePasswordVisibilityModal(fieldId) {
-            const field = document.getElementById(fieldId);
-            const toggleId = fieldId + 'Toggle';
-            const toggleIcon = document.getElementById(toggleId);
-
-            if (field.type === 'password') {
-                field.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                field.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
-
         // ============================================
-        // ERROR & SUCCESS MESSAGES
+        // ERROR & SUCCESS
         // ============================================
 
         function showError(message) {
@@ -1163,7 +1194,7 @@
         }
 
         // ============================================
-        // OTP FUNCTIONALITY
+        // OTP FUNCTIONALITY - FIXED
         // ============================================
 
         let otpTimerInterval = null;
@@ -1173,7 +1204,7 @@
             const role = document.querySelector('input[name="role"]:checked').value;
 
             if (!phone || phone.length !== 10) {
-                showError('❌ Please enter valid 10 digit mobile number');
+                showError('❌ Enter valid 10 digit mobile number');
                 return;
             }
 
@@ -1194,22 +1225,19 @@
 
             document.getElementById('otpSection').style.display = 'block';
             document.getElementById('phone').disabled = true;
-            document.getElementById('phone').style.opacity = '0.5';
 
-            // Demo OTP
             localStorage.setItem('mockOTP', '123456');
             localStorage.setItem('otpPhone', phone);
 
-            showSuccess('✅ OTP sent! Demo OTP: 123456');
-
-            // Start timer
+            showSuccess(`✅ GO India RIDE\nOTP sent to ${phone}\nDemo OTP: 123456`);
+            
+            setupOTPInputListeners();
             startOTPTimer(180);
         }
 
         function startOTPTimer(seconds) {
             let remaining = seconds;
             const timerElement = document.getElementById('otpTimer');
-            timerElement.style.display = 'block';
 
             clearInterval(otpTimerInterval);
 
@@ -1217,7 +1245,7 @@
                 remaining--;
                 const mins = Math.floor(remaining / 60);
                 const secs = remaining % 60;
-                timerElement.textContent = `OTP expires in ${mins}:${secs.toString().padStart(2, '0')}`;
+                timerElement.textContent = `⏱️ OTP expires in ${mins}:${secs.toString().padStart(2, '0')}`;
 
                 if (remaining <= 0) {
                     clearInterval(otpTimerInterval);
@@ -1275,7 +1303,7 @@
                 return;
             }
 
-            showSuccess('✅ Login successful!');
+            showSuccess('✅ GO India RIDE\nLogin successful!\nRedirecting...');
             localStorage.removeItem('mockOTP');
             localStorage.removeItem('otpPhone');
             clearInterval(otpTimerInterval);
@@ -1288,10 +1316,9 @@
         function resetOTP() {
             document.getElementById('otpSection').style.display = 'none';
             document.getElementById('phone').disabled = false;
-            document.getElementById('phone').style.opacity = '1';
             document.getElementById('phone').value = '';
             document.querySelectorAll('.otp-digit').forEach(input => input.value = '');
-            document.getElementById('otpTimer').style.display = 'none';
+            document.getElementById('otpTimer').textContent = '';
             clearInterval(otpTimerInterval);
             localStorage.removeItem('mockOTP');
             localStorage.removeItem('otpPhone');
@@ -1306,13 +1333,8 @@
             const role = document.querySelector('input[name="role"]:checked').value;
             const method = document.querySelector('input[name="loginMethod"]:checked')?.value;
 
-            if (role === 'customer' || role === 'driver') {
-                if (method === 'mobile') {
-                    // Mobile OTP is handled separately
-                    return;
-                } else {
-                    loginWithPassword();
-                }
+            if ((role === 'customer' || role === 'driver') && method === 'password') {
+                loginWithPassword();
             }
         }
 
@@ -1338,7 +1360,6 @@
                     redirectUrl = './customer-dashboard.html';
                     localStorage.setItem('currentUser', JSON.stringify(user));
                     localStorage.setItem('userRole', 'customer');
-                    console.log('✅ Customer login successful');
                 }
             } else if (role === 'driver') {
                 user = drivers.find(d => d.email === email && d.password === password);
@@ -1346,7 +1367,6 @@
                     redirectUrl = './driver-dashboard.html';
                     localStorage.setItem('currentDriver', JSON.stringify(user));
                     localStorage.setItem('userRole', 'driver');
-                    console.log('✅ Driver login successful');
                 }
             }
 
@@ -1355,7 +1375,7 @@
                 return;
             }
 
-            showSuccess('✅ Login successful!');
+            showSuccess('✅ GO India RIDE\nLogin successful!');
 
             setTimeout(() => {
                 window.location.href = redirectUrl;
@@ -1418,9 +1438,8 @@
 
             localStorage.setItem('currentAdmin', JSON.stringify(admin));
             localStorage.setItem('userRole', 'admin');
-            console.log('✅ Admin login successful');
 
-            showSuccess('✅ Admin login successful!');
+            showSuccess('✅ GO India RIDE\nAdmin login successful!');
 
             setTimeout(() => {
                 window.location.href = './admin-dashboard.html';
@@ -1479,7 +1498,7 @@
             const forgotError2 = document.getElementById('forgotError2');
 
             if (newPassword.length < 6) {
-                forgotError2.textContent = '❌ Password must be at least 6 characters';
+                forgotError2.textContent = '❌ Min 6 characters';
                 forgotError2.classList.add('show');
                 return;
             }
@@ -1513,17 +1532,16 @@
             document.getElementById('forgotStep3').style.display = 'block';
         }
 
-        // Close modal on outside click
+        // Utility
+        function goToSignup() {
+            window.location.href = './signup.html';
+        }
+
         window.onclick = function(event) {
             const modal = document.getElementById('forgotPasswordModal');
             if (event.target === modal) {
                 closeForgotPasswordModal();
             }
-        }
-
-        // Utility
-        function goToSignup() {
-            window.location.href = './signup.html';
         }
 
         console.log('🚀 Login page initialized');
