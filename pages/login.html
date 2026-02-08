@@ -108,10 +108,10 @@
             font-size: 0.95rem;
         }
 
-        /* Role Selection - 2 columns (Customer & Driver only) */
+        /* Role Selection - 3 columns */
         .role-selector {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
             margin-bottom: 2rem;
         }
@@ -163,6 +163,27 @@
 
         .role-option:checked + .role-label span {
             color: #667eea;
+        }
+
+        /* Admin Badge */
+        .admin-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff5722;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .role-admin-wrapper {
+            position: relative;
         }
 
         /* Form Groups */
@@ -424,7 +445,7 @@
             }
 
             .role-selector {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(3, 1fr);
             }
 
             .form-options {
@@ -492,8 +513,9 @@
                 <span id="successText">Login successful! Redirecting...</span>
             </div>
 
-            <!-- Role Selection - ONLY Customer & Driver (Admin Hidden) -->
+            <!-- Role Selection - 3 options visible -->
             <div class="role-selector">
+                <!-- Customer -->
                 <div>
                     <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked>
                     <label for="roleCustomer" class="role-label">
@@ -502,6 +524,7 @@
                     </label>
                 </div>
 
+                <!-- Driver -->
                 <div>
                     <input type="radio" name="role" id="roleDriver" value="driver" class="role-option">
                     <label for="roleDriver" class="role-label">
@@ -510,20 +533,22 @@
                     </label>
                 </div>
 
-                <!-- HIDDEN ADMIN OPTION (Only visible to Admin) -->
-                <div id="adminOptionContainer" style="display: none;">
+                <!-- Admin - ALWAYS VISIBLE -->
+                <div class="role-admin-wrapper">
                     <input type="radio" name="role" id="roleAdmin" value="admin" class="role-option">
                     <label for="roleAdmin" class="role-label">
                         <i class="fas fa-shield-alt"></i>
                         <span>Admin</span>
                     </label>
+                    <div class="admin-badge">Admin</div>
                 </div>
             </div>
 
             <!-- Demo Info -->
             <div class="demo-info">
                 <strong>📝 Demo Accounts:</strong>
-                Customer: <code>test@email.com</code> / <code>test123</code>
+                Customer: <code>test@email.com</code> / <code>test123</code><br>
+                Admin: <code>admin@goindia.com</code> / <code>admin123</code>
             </div>
 
             <!-- Login Form -->
@@ -597,61 +622,6 @@
         const successMessage = document.getElementById('successMessage');
         const loginBtnText = document.getElementById('loginBtnText');
         const rememberMe = document.getElementById('rememberMe');
-        const adminOptionContainer = document.getElementById('adminOptionContainer');
-
-        // SECRET KEY - Change this to your own key
-        const ADMIN_SECRET_KEY = 'BhAuGeHlOt159AdminAccess';
-
-        // Check if Admin option should be shown
-        function checkAdminAccess() {
-            // Check if user has admin access key in localStorage
-            const hasAdminAccess = localStorage.getItem('adminAccess') === ADMIN_SECRET_KEY;
-            
-            if (hasAdminAccess) {
-                adminOptionContainer.style.display = 'block';
-                // Also need to update grid to 3 columns
-                document.querySelector('.role-selector').style.gridTemplateColumns = 'repeat(3, 1fr)';
-                updateDemoInfo();
-            }
-        }
-
-        // Update demo info when admin access is enabled
-        function updateDemoInfo() {
-            const demoInfo = document.querySelector('.demo-info');
-            if (adminOptionContainer.style.display !== 'none') {
-                demoInfo.innerHTML = `
-                    <strong>📝 Demo Accounts:</strong>
-                    Customer: <code>test@email.com</code> / <code>test123</code><br>
-                    Admin: <code>admin@goindia.com</code> / <code>admin123</code>
-                `;
-            }
-        }
-
-        // ADMIN ACCESS: Press Ctrl+Alt+A three times to unlock admin panel
-        let adminKeyPressCount = 0;
-        let adminKeyPressTimer = null;
-
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.altKey && e.key === 'a') {
-                e.preventDefault();
-                adminKeyPressCount++;
-
-                clearTimeout(adminKeyPressTimer);
-                adminKeyPressTimer = setTimeout(() => {
-                    adminKeyPressCount = 0;
-                }, 2000);
-
-                if (adminKeyPressCount === 3) {
-                    adminKeyPressCount = 0;
-                    // Save admin access
-                    localStorage.setItem('adminAccess', ADMIN_SECRET_KEY);
-                    adminOptionContainer.style.display = 'block';
-                    document.querySelector('.role-selector').style.gridTemplateColumns = 'repeat(3, 1fr)';
-                    updateDemoInfo();
-                    alert('✅ Admin panel unlocked! Refresh the page.');
-                }
-            }
-        });
 
         // Show Error
         function showError(message) {
@@ -767,15 +737,12 @@
 
         // Load saved data
         window.addEventListener('load', function() {
-            // Check admin access first
-            checkAdminAccess();
-
             if (localStorage.getItem('rememberMe') === 'true') {
                 const email = localStorage.getItem('savedEmail');
                 const role = localStorage.getItem('savedRole');
                 
                 if (email) emailInput.value = email;
-                if (role && (role === 'customer' || role === 'driver' || (role === 'admin' && adminOptionContainer.style.display !== 'none'))) {
+                if (role) {
                     document.querySelector(`input[name="role"][value="${role}"]`).checked = true;
                 }
                 
