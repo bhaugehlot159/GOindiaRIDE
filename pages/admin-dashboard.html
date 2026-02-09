@@ -771,6 +771,22 @@
                 Logout
             </button>
         </div>
+                // ============================================
+        // LOGOUT FUNCTION
+        // ============================================
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                console.log('🚪 Admin logout');
+                localStorage.removeItem('currentAdmin');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('admin2FAEmail');
+                localStorage.removeItem('admin2FAOTP');
+                localStorage.removeItem('admin2FAMethod');
+                alert('✅ Logged out successfully');
+                window.location.href = '/pages/login.html';
+            }
+        }
     </div>
 
     <!-- Main Content -->
