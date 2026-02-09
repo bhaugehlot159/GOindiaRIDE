@@ -599,22 +599,22 @@
                         <span>Email + Password</span>
                     </label>
                 </div>
-            </div>
-
-            <!-- Demo Info -->
-            <div class="demo-info">
+                        <div class="demo-info">
                 <strong>📝 Demo Accounts:</strong><br>
                 <span id="demoCustomer">
-                    📱 Customer: <code>9876543210</code> | 🔐 <code>123456</code><br>
-                    📧 Email: <code>test@email.com</code> | <code>test123</code><br>
+                    📱 Customer OTP: <code>9876543210</code> | OTP: <code>123456</code><br>
+                    📧 Customer Email: <code>customer@test.com</code> | Pass: <code>123456</code><br>
                 </span>
                 <span id="demoDriver" style="display: none;">
-                    📱 Driver: <code>9876543211</code> | 🔐 <code>123456</code><br>
-                    📧 Email: <code>driver@email.com</code> | <code>driver123</code><br>
+                    📱 Driver OTP: <code>8765432109</code> | OTP: <code>123456</code><br>
+                    📧 Driver Email: <code>driver@test.com</code> | Pass: <code>123456</code><br>
                 </span>
-                <span id="adminDemoText" style="display: none;">📧 Admin: <code>admin@goindia.com</code> | <code>admin123</code></span>
+                <span id="adminDemoText" style="display: none;">
+                    🔐 Admin 2FA: Email: <code>admin@test.com</code><br>
+                    Password: <code>123456</code><br>
+                    2FA Code: <code>123456</code>
+                </span>
             </div>
-
             <!-- Login Form -->
             <form id="loginForm" onsubmit="handleLoginSubmit(event)">
                 <!-- Mobile OTP Method -->
@@ -978,35 +978,56 @@
             if (method === 'password') loginWithPassword();
         }
 
-        function loginWithPassword() {
+                function loginWithPassword() {
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
             const role = document.querySelector('input[name="role"]:checked').value;
+
+            console.log('🔐 Password Login:', { email, password, role });
 
             if (!email || !password) {
                 showError('❌ Enter email and password');
                 return;
             }
 
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            // Demo credentials
+            const demoAccounts = {
+                'customer': { 
+                    id: 'cust_1',
+                    fullname: 'John Doe',
+                    email: 'customer@test.com',
+                    phone: '9876543210',
+                    password: '123456',
+                    role: 'customer'
+                },
+                'driver': { 
+                    id: 'drv_1',
+                    name: 'Rajesh Driver',
+                    email: 'driver@test.com',
+                    phone: '8765432109',
+                    password: '123456',
+                    vehicleType: 'economy',
+                    vehicleNumber: 'RJ01AB1234',
+                    role: 'driver'
+                }
+            };
 
-            let user = (role === 'customer') ? 
-                users.find(u => u.email === email && u.password === password) : 
-                drivers.find(d => d.email === email && d.password === password);
+            const demoAccount = demoAccounts[role];
 
-            if (!user) {
-                showError('❌ Invalid credentials');
+            if (email !== demoAccount.email || password !== demoAccount.password) {
+                showError(`❌ Invalid!\nDemo: ${demoAccount.email}`);
                 return;
             }
 
-            localStorage.setItem(role === 'customer' ? 'currentUser' : 'currentDriver', JSON.stringify(user));
+            console.log('✅ Credentials matched');
+
+            localStorage.setItem(role === 'customer' ? 'currentUser' : 'currentDriver', JSON.stringify(demoAccount));
             localStorage.setItem('userRole', role);
 
-            showSuccess(`✅ GO India RIDE\nLogin successful!`);
+            showSuccess(`✅ Login successful!`);
             
             setTimeout(() => {
-                window.location.href = `./${role}-dashboard.html`;
+                window.location.href = `/pages/${role}-dashboard.html`;
             }, 1500);
         }
 
