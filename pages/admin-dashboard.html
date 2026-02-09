@@ -6,34 +6,76 @@
     <title>Admin Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        header { background-color: #4CAF50; color: white; padding: 1em; text-align: center; }
-        nav { margin: 20px 0; }
-        nav a { margin: 0 15px; text-decoration: none; color: #4CAF50; }
-        .content { padding: 20px; }
-        footer { margin-top: 20px; text-align: center; }
+        .sidebar { background: linear-gradient(to right, #6a11cb, #2575fc); color: white; height: 100vh; padding: 15px; position: fixed; width: 250px; }
+        .topbar { background: white; height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+        .content { margin-left: 250px; padding: 15px; }
+        .stat-card { background-color: #f0f0f0; padding: 15px; margin: 10px; border-radius: 5px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }
+        .modal-content { background: white; padding: 20px; margin: 15% auto; width: 300px; text-align: center; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Admin Dashboard</h1>
-    </header>
+<div class="sidebar">
+    <h2>Admin Dashboard</h2>
     <nav>
-        <a href="#">Home</a>
-        <a href="#">Settings</a>
-        <a href="#" id="logout">Logout</a>
+        <ul>
+            <li>Bookings Management</li>
+            <li>Customers Management</li>
+            <li>Drivers Management</li>
+            <li>Earnings</li>
+            <li>Reports</li>
+            <li>Settings</li>
+        </ul>
     </nav>
-    <div class="content">
-        <h2>Welcome Admin</h2>
-        <p>This is your dashboard. Manage your application here.</p>
+</div>
+<div class="topbar">
+    <h2>Admin Profile</h2>
+    <button id="logoutBtn">Logout</button>
+</div>
+<div class="content">
+    <h2>Dashboard Statistics</h2>
+    <div class="stat-card">Total Bookings: <span id="totalBookings">0</span></div>
+    <div class="stat-card">Completed Rides: <span id="completedRides">0</span></div>
+    <div class="stat-card">Pending Bookings: <span id="pendingBookings">0</span></div>
+    <div class="stat-card">Cancelled Rides: <span id="cancelledRides">0</span></div>
+    <div class="stat-card">Total Revenue: <span id="totalRevenue">0</span></div>
+    <div class="stat-card">Active Drivers: <span id="activeDrivers">0</span></div>
+    <div class="stat-card">Total Customers: <span id="totalCustomers">0</span></div>
+    <div class="stat-card">Total Donations: <span id="totalDonations">0</span></div>
+</div>
+
+<div id="logoutModal" class="modal">
+    <div class="modal-content">
+        <p>Are you sure you want to logout from your admin account?</p>
+        <button id="yesLogout">Yes</button>
+        <button id="noLogout">No</button>
     </div>
-    <footer>
-        <p>&copy; 2026 GOindiaRIDE</p>
-    </footer>
-    <script>
-        document.getElementById('logout').addEventListener('click', function() {
-            localStorage.clear();
-            window.location.href = 'login.html';
-        });
-    </script>
+</div>
+
+<script>
+    document.getElementById('logoutBtn').onclick = function() {
+        document.getElementById('logoutModal').style.display = 'block';
+    };
+    document.getElementById('noLogout').onclick = function() {
+        document.getElementById('logoutModal').style.display = 'none';
+    };
+    document.getElementById('yesLogout').onclick = function() {
+        // Perform logout operation here
+        alert('Logged out!');
+        document.getElementById('logoutModal').style.display = 'none';
+    };
+
+    function loadDashboardData() {
+        document.getElementById('totalBookings').innerText = localStorage.getItem('totalBookings') || 0;
+        document.getElementById('completedRides').innerText = localStorage.getItem('completedRides') || 0;
+        document.getElementById('pendingBookings').innerText = localStorage.getItem('pendingBookings') || 0;
+        document.getElementById('cancelledRides').innerText = localStorage.getItem('cancelledRides') || 0;
+        document.getElementById('totalRevenue').innerText = localStorage.getItem('totalRevenue') || 0;
+        document.getElementById('activeDrivers').innerText = localStorage.getItem('activeDrivers') || 0;
+        document.getElementById('totalCustomers').innerText = localStorage.getItem('totalCustomers') || 0;
+        document.getElementById('totalDonations').innerText = localStorage.getItem('totalDonations') || 0;
+    }
+    window.onload = loadDashboardData;
+</script>
 </body>
 </html>
