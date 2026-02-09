@@ -3,139 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <title>Admin Dashboard - GO India RIDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Add your custom styles here */
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #ece9e6, #ffffff);
-            margin: 0;
-            padding: 0;
-        }
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            background: #3949ab;
-            position: fixed;
-        }
-        .sidebar a {
-            color: white;
-            padding: 15px;
-            text-decoration: none;
-            display: block;
-        }
-        .topbar {
-            background: #3f51b5;
-            color: white;
-            padding: 15px;
-            position: fixed;
-            top: 0;
-            width: calc(100% - 250px);
-            left: 250px;
-        }
-        .card {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            margin: 20px;
-            flex: 1;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            padding-top: 100px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #333; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; overflow-y: auto; z-index: 1000; }
+        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 20px; }
+        .sidebar-logo h2 { font-size: 1.4rem; }
+        .menu-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.8); }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .topbar { position: fixed; top: 0; left: 260px; right: 0; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); z-index: 999; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .admin-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .logout-btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .main-content { margin-left: 260px; margin-top: 70px; padding: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-top: 4px solid #667eea; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #333; margin-top: 10px; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); }
+        .modal-title { font-size: 1.5rem; color: #333; margin: 15px 0; font-weight: 600; }
+        .modal-text { color: #666; margin-bottom: 30px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .modal-btn.yes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .modal-btn.no { background: #f0f0f0; color: #333; }
     </style>
 </head>
-<body onload="checkAuthentication()">
-
-<div class="sidebar">
-    <h2>Admin Panel</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Bookings</a>
-    <a href="#">Drivers</a>
-    <a href="#">Customers</a>
-    <a href="#">Settings</a>
-</div>
-
-<div class="topbar">
-    <span>Welcome, Admin!</span>
-    <button onclick="showLogoutModal()">Logout</button>
-</div>
-
-<div class="content" style="margin-left: 270px; padding-top: 60px;">
-    <div class="statistics">
-        <div class="card" id="totalBookings">Total Bookings: 0</div>
-        <div class="card" id="completedRides">Completed Rides: 0</div>
-        <div class="card" id="pendingBookings">Pending Bookings: 0</div>
-        <div class="card" id="cancelledRides">Cancelled Rides: 0</div>
-        <div class="card" id="totalRevenue">Total Revenue: $0</div>
-        <div class="card" id="activeDrivers">Active Drivers: 0</div>
-        <div class="card" id="totalCustomers">Total Customers: 0</div>
-        <div class="card" id="totalDonations">Total Donations: $0</div>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <h2><i class="fas fa-taxi"></i> GO India RIDE</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item"><i class="fas fa-chart-line"></i> Dashboard</div>
+            <div class="menu-item"><i class="fas fa-calendar-alt"></i> Bookings</div>
+            <div class="menu-item"><i class="fas fa-users"></i> Customers</div>
+            <div class="menu-item"><i class="fas fa-car"></i> Drivers</div>
+            <div class="menu-item"><i class="fas fa-money-bill"></i> Earnings</div>
+            <div class="menu-item"><i class="fas fa-file-alt"></i> Reports</div>
+            <div class="menu-item"><i class="fas fa-cog"></i> Settings</div>
+        </div>
     </div>
-</div>
 
-<div id="logoutModal" class="modal">
-    <div class="modal-content">
-        <p>Are you sure you want to logout from your admin account?</p>
-        <button onclick="logout()">Yes</button>
-        <button onclick="closeModal()">No</button>
+    <div class="topbar">
+        <div class="topbar-left"><h1>Dashboard</h1></div>
+        <div class="topbar-right">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="admin-avatar" id="adminAvatar">A</div>
+                <div>
+                    <div style="font-weight: 600;" id="adminName">Admin</div>
+                    <small style="color: #999;">Administrator</small>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="showLogoutModal()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
     </div>
-</div>
 
-<script>
-    function showLogoutModal() {
-        document.getElementById('logoutModal').style.display = 'block';
-    }
+    <div class="main-content">
+        <h2>Welcome to Admin Dashboard</h2>
+        <p style="color: #999; margin-bottom: 30px;">Manage your GO India RIDE platform efficiently</p>
+        <div class="stats-grid">
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Bookings</div><div class="stat-value" id="totalBookings">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Completed Rides</div><div class="stat-value" id="completedRides">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Pending Bookings</div><div class="stat-value" id="pendingBookings">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Cancelled Rides</div><div class="stat-value" id="cancelledRides">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Revenue</div><div class="stat-value" id="totalRevenue">₹0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Active Drivers</div><div class="stat-value" id="activeDrivers">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Customers</div><div class="stat-value" id="totalCustomers">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Donations</div><div class="stat-value" id="totalDonations">₹0</div></div>
+        </div>
+    </div>
 
-    function closeModal() {
-        document.getElementById('logoutModal').style.display = 'none';
-    }
+    <div class="modal" id="logoutModal">
+        <div class="modal-content">
+            <div style="font-size: 3rem; color: #f5a623;">❓</div>
+            <div class="modal-title">Confirm Logout</div>
+            <div class="modal-text">Are you sure you want to logout from your admin account?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" onclick="confirmLogout()">Yes, Logout</button>
+                <button class="modal-btn no" onclick="cancelLogout()">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-    function logout() {
-        localStorage.clear();
-        window.location.href = '/pages/login.html';
-    }
-
-    function checkAuthentication() {
-        const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
-        if (!isAuthenticated) {
-            window.location.href = '/pages/login.html';
-        } else {
+    <script>
+        window.addEventListener('load', () => {
+            const admin = localStorage.getItem('currentAdmin');
+            const role = localStorage.getItem('userRole');
+            if (!admin || role !== 'admin') {
+                window.location.href = '/pages/login.html';
+                return;
+            }
+            try {
+                const adminData = JSON.parse(admin);
+                document.getElementById('adminName').textContent = adminData.name || 'Admin';
+                document.getElementById('adminAvatar').textContent = (adminData.name || 'A')[0].toUpperCase();
+            } catch (e) {
+                window.location.href = '/pages/login.html';
+            }
             loadDashboardData();
+        });
+
+        function loadDashboardData() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const customers = JSON.parse(localStorage.getItem('users')) || [];
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            const completed = bookings.filter(b => b.status === 'completed').length;
+            const pending = bookings.filter(b => b.status === 'pending').length;
+            const cancelled = bookings.filter(b => b.status === 'cancelled').length;
+            const revenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
+            const activeDrv = drivers.filter(d => d.isOnline).length;
+            document.getElementById('totalBookings').textContent = bookings.length;
+            document.getElementById('completedRides').textContent = completed;
+            document.getElementById('pendingBookings').textContent = pending;
+            document.getElementById('cancelledRides').textContent = cancelled;
+            document.getElementById('totalRevenue').textContent = '₹' + revenue;
+            document.getElementById('activeDrivers').textContent = activeDrv;
+            document.getElementById('totalCustomers').textContent = customers.length;
+            document.getElementById('totalDonations').textContent = '₹0';
         }
-    }
 
-    function loadDashboardData() {
-        document.getElementById('totalBookings').innerText = 'Total Bookings: ' + localStorage.getItem('totalBookings');
-        document.getElementById('completedRides').innerText = 'Completed Rides: ' + localStorage.getItem('completedRides');
-        document.getElementById('pendingBookings').innerText = 'Pending Bookings: ' + localStorage.getItem('pendingBookings');
-        document.getElementById('cancelledRides').innerText = 'Cancelled Rides: ' + localStorage.getItem('cancelledRides');
-        document.getElementById('totalRevenue').innerText = 'Total Revenue: $' + localStorage.getItem('totalRevenue');
-        document.getElementById('activeDrivers').innerText = 'Active Drivers: ' + localStorage.getItem('activeDrivers');
-        document.getElementById('totalCustomers').innerText = 'Total Customers: ' + localStorage.getItem('totalCustomers');
-        document.getElementById('totalDonations').innerText = 'Total Donations: $' + localStorage.getItem('totalDonations');
-    }
-</script>
+        function showLogoutModal() {
+            document.getElementById('logoutModal').classList.add('active');
+        }
 
+        function cancelLogout() {
+            document.getElementById('logoutModal').classList.remove('active');
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('admin2FAEmail');
+            localStorage.removeItem('admin2FAOTP');
+            localStorage.removeItem('admin2FAMethod');
+            window.location.href = '/pages/login.html';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('logoutModal');
+            if (event.target === modal) {
+                cancelLogout();
+            }
+        }
+    </script>
 </body>
 </html>
