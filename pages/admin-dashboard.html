@@ -4,29 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background-color: #4CAF50; color: white; padding: 1em; text-align: center; }
+        nav { margin: 20px 0; }
+        nav a { margin: 0 15px; text-decoration: none; color: #4CAF50; }
+        .content { padding: 20px; }
+        footer { margin-top: 20px; text-align: center; }
+    </style>
 </head>
 <body>
-    <nav>
+    <header>
         <h1>Admin Dashboard</h1>
-        <button id="logoutBtn">Logout</button>
+    </header>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">Settings</a>
+        <a href="#" id="logout">Logout</a>
     </nav>
-    <main>
-        <section>
-            <h2>Welcome, Admin!</h2>
-            <p>Manage your application effectively.</p>
-        </section>
-        <section>
-            <h3>User Management</h3>
-            <!-- User management features go here -->
-        </section>
-    </main>
+    <div class="content">
+        <h2>Welcome Admin</h2>
+        <p>This is your dashboard. Manage your application here.</p>
+    </div>
+    <footer>
+        <p>&copy; 2026 GOindiaRIDE</p>
+    </footer>
     <script>
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            // Function to handle logout
-            alert('Logging out...');
-            // Add logout functionality here
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.clear();
+            window.location.href = 'login.html';
         });
     </script>
 </body>
