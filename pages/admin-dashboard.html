@@ -1382,25 +1382,9 @@
             </form>
         </div>
     </div>
-
-           </div>
-
-    <script>
-        // ============================================
-        // AUTHENTICATION
-        // ============================================
-
-        function checkAuth() {
-            const role = localStorage.getItem('userRole');
-            const admin = localStorage.getItem('currentAdmin');
-            if (role !== 'admin' || !admin) {
-                console.log('❌ Admin auth failed');
-                window.location.href = '/pages/login.html';
-                return null;
-            }
-            return JSON.parse(admin);
-        }
-
+</div>
+                        
+<script>
         let currentAdmin = null;
         let bookingFilter = 'all';
 
