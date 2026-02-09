@@ -1373,23 +1373,37 @@
         // AUTHENTICATION
         // ============================================
 
-        function checkAuth() {
+               function checkAuth() {
             const role = localStorage.getItem('userRole');
             const admin = localStorage.getItem('currentAdmin');
             if (role !== 'admin' || !admin) {
-                alert('Admin access required');
-                window.location.href = './login.html';
+                console.log('❌ Admin auth failed');
+                window.location.href = '/pages/login.html';
                 return null;
             }
             return JSON.parse(admin);
         }
+            return JSON.parse(admin);
+        }
 
-        let currentAdmin = null;
+               let currentAdmin = null;
         let bookingFilter = 'all';
 
         window.addEventListener('load', () => {
-            currentAdmin = checkAuth();
-            if (!currentAdmin) return;
+            console.log('📊 Admin Dashboard Loading');
+            
+            const storedAdmin = localStorage.getItem('currentAdmin');
+            const storedRole = localStorage.getItem('userRole');
+            
+            if (!storedAdmin || storedRole !== 'admin') {
+                console.log('❌ Not admin');
+                alert('❌ Admin access required');
+                window.location.href = '/pages/login.html';
+                return;
+            }
+            
+            currentAdmin = JSON.parse(storedAdmin);
+            console.log('✅ Admin logged in:', currentAdmin.name);
             
             document.getElementById('adminName').textContent = currentAdmin.name;
             loadDashboard();
