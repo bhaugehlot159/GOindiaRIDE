@@ -25,7 +25,6 @@
         .role-option:checked + .role-label { border-color: #667eea; background: #f0f4ff; color: #667eea; }
         .role-label i { font-size: 2.8rem; color: #667eea; }
         .role-label span { font-weight: 600; font-size: 1rem; }
-        #adminRoleContainer { display: none; margin-bottom: 2rem; }
         .login-method-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .method-option { display: none; }
         .method-label { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.9rem; }
@@ -38,6 +37,7 @@
         .input-with-icon { position: relative; }
         .input-with-icon i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #667eea; }
         .input-with-icon input { padding-left: 3rem; }
+        .password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2rem; }
         .demo-info { background: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #1565c0; }
         .demo-info code { background: rgba(33, 150, 243, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
         .error-message { background: #ffebee; color: #c62828; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: none; border-left: 4px solid #c62828; }
@@ -109,17 +109,6 @@
                 </div>
             </div>
 
-            <!-- Admin Role -->
-            <div id="adminRoleContainer">
-                <div class="role-selector">
-                    <input type="radio" name="role" id="roleAdmin" value="admin" class="role-option">
-                    <label for="roleAdmin" class="role-label">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Admin</span>
-                    </label>
-                </div>
-            </div>
-
             <!-- Login Method Selector -->
             <div class="login-method-selector" id="loginMethodSelector" style="display: none;">
                 <div>
@@ -143,15 +132,13 @@
             <div class="demo-info" id="demoInfo">
                 <strong>📝 Demo Login:</strong><br>
                 <span id="demoCustomer">
-                    👤 Customer OTP: <code>9876543210</code> | OTP: <code>123456</code><br>
-                    📧 Email: <code>customer@test.com</code> | Pass: <code>123456</code>
+                    👤 OTP: <code>9876543210</code> | <code>123456</code> | 📧 <code>customer@test.com</code> | <code>123456</code>
                 </span>
                 <span id="demoDriver" style="display: none;">
-                    🚗 Driver OTP: <code>8765432109</code> | OTP: <code>123456</code><br>
-                    📧 Email: <code>driver@test.com</code> | Pass: <code>123456</code>
+                    🚗 OTP: <code>8765432109</code> | <code>123456</code> | 📧 <code>driver@test.com</code> | <code>123456</code>
                 </span>
                 <span id="adminDemoText" style="display: none;">
-                    🛡️ Admin: <code>admin@test.com</code> | Pass: <code>123456</code>
+                    🛡️ Email: <code>admin@test.com</code> | Pass: <code>123456</code> | 2FA: <code>123456</code>
                 </span>
             </div>
 
@@ -206,6 +193,9 @@
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="customerPassword" placeholder="123456">
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('customerPassword')">
+                                <i class="fas fa-eye" id="customerPasswordIcon"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -267,12 +257,96 @@
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="driverPassword" placeholder="123456">
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('driverPassword')">
+                                <i class="fas fa-eye" id="driverPasswordIcon"></i>
+                            </button>
                         </div>
                     </div>
 
                     <div class="form-buttons">
                         <button type="button" class="btn-login" onclick="driverLoginEmail()">Login</button>
                         <button type="button" class="btn-signup" onclick="updateSelectedLoginMethod()">Back</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- ============ ADMIN SECTION ============ -->
+            <form id="adminForm" style="display: none;">
+                <!-- Admin Step 1: Email + Password -->
+                <div id="adminStep1">
+                    <div class="form-group">
+                        <label for="adminEmail">📧 Email</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="adminEmail" placeholder="admin@test.com">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adminPassword">🔐 Password</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="adminPassword" placeholder="123456">
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('adminPassword')">
+                                <i class="fas fa-eye" id="adminPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="button" class="btn-login" onclick="adminStep1Login()">Next (2FA)</button>
+                        <button type="button" class="btn-signup" onclick="toggleAdminLogin()">Back</button>
+                    </div>
+                </div>
+
+                <!-- Admin Step 2: 2FA Method Selection -->
+                <div id="adminStep2" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 2rem; color: #667eea;"></i>
+                        <h3>Two-Factor Authentication</h3>
+                    </div>
+
+                    <div class="login-method-selector">
+                        <div>
+                            <input type="radio" name="admin2FAMethod" id="admin2FAEmail" value="email" class="method-option" checked onchange="updateAdmin2FAMethod()">
+                            <label for="admin2FAEmail" class="method-label">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email OTP</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input type="radio" name="admin2FAMethod" id="admin2FAMobile" value="mobile" class="method-option" onchange="updateAdmin2FAMethod()">
+                            <label for="admin2FAMobile" class="method-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Mobile OTP</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-send-otp" onclick="sendAdmin2FAOTP()" style="width: 100%; margin-top: 1rem;">Send OTP</button>
+                </div>
+
+                <!-- Admin Step 3: 2FA Verification -->
+                <div id="adminStep3" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <i class="fas fa-lock" style="font-size: 2rem; color: #667eea;"></i>
+                        <h3>Enter 2FA Code</h3>
+                        <small style="color: #999;">Demo Code: 123456</small>
+                    </div>
+
+                    <div class="otp-input-group">
+                        <input type="text" class="otp-digit admin2fa-otp" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-digit admin2fa-otp" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-digit admin2fa-otp" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-digit admin2fa-otp" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-digit admin2fa-otp" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-digit admin2fa-otp" maxlength="1" inputmode="numeric">
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="button" class="btn-verify" onclick="verifyAdmin2FA()">Verify 2FA</button>
+                        <button type="button" class="btn-signup" onclick="adminResetTo2FAMethod()">Back</button>
                     </div>
                 </div>
             </form>
@@ -291,8 +365,6 @@
             const driverForm = document.getElementById('driverForm');
             const demoCustomer = document.getElementById('demoCustomer');
             const demoDriver = document.getElementById('demoDriver');
-
-            console.log('🔄 Role changed to:', role);
 
             if (role === 'customer') {
                 methodSelector.style.display = 'none';
@@ -314,11 +386,8 @@
 
         function updateSelectedLoginMethod() {
             const method = document.querySelector('input[name="loginMethod"]:checked')?.value;
-            const driverForm = document.getElementById('driverForm');
             const driverMobile = document.getElementById('driverMobileOTP');
             const driverEmail = document.getElementById('driverEmailPassword');
-
-            console.log('📋 Method:', method);
 
             if (method === 'mobile') {
                 driverMobile.style.display = 'block';
@@ -330,63 +399,62 @@
         }
 
         // ============================================
+        // PASSWORD VISIBILITY TOGGLE
+        // ============================================
+
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(inputId + 'Icon');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // ============================================
         // CUSTOMER FUNCTIONS
         // ============================================
 
         function customerSendOTP() {
             const phone = document.getElementById('customerPhone').value.trim();
-            const demoPhone = '9876543210';
-
-            if (!phone || phone.length !== 10) {
-                showError('❌ Enter 10 digit phone');
+            if (phone !== '9876543210') {
+                showError('❌ Demo phone: 9876543210');
                 return;
             }
-
-            if (phone !== demoPhone) {
-                showError(`❌ Demo phone: ${demoPhone}`);
-                return;
-            }
-
             document.getElementById('customerOTPSection').classList.add('show');
             document.getElementById('customerPhone').disabled = true;
             localStorage.setItem('customerOTP', '123456');
-            showSuccess(`✅ OTP sent\nDemo OTP: 123456`);
+            showSuccess('✅ OTP sent\nCode: 123456');
             setupOTPInputs('.customer-otp');
         }
 
         function customerVerifyOTP() {
             const inputs = document.querySelectorAll('.customer-otp');
             const otp = Array.from(inputs).map(i => i.value).join('');
-
-            if (otp.length !== 6) {
-                showError('❌ Enter 6 digits');
-                return;
-            }
-
             if (otp !== '123456') {
-                showError('❌ Wrong OTP\nCorrect: 123456');
+                showError('❌ Wrong OTP');
                 return;
             }
-
             customerLoginOTP();
         }
 
         function customerLoginOTP() {
-            const customer = {
+            localStorage.setItem('currentUser', JSON.stringify({
                 id: 'cust_1',
                 fullname: 'John Doe',
                 email: 'customer@test.com',
                 phone: '9876543210',
                 role: 'customer'
-            };
-
-            localStorage.setItem('currentUser', JSON.stringify(customer));
+            }));
             localStorage.setItem('userRole', 'customer');
             showSuccess('✅ Login successful!');
-
-            setTimeout(() => {
-                window.location.href = '/pages/customer-dashboard.html';
-            }, 1500);
+            setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
         }
 
         function customerResetOTP() {
@@ -399,27 +467,20 @@
         function customerLoginEmail() {
             const email = document.getElementById('customerEmail').value.trim().toLowerCase();
             const password = document.getElementById('customerPassword').value;
-
             if (email !== 'customer@test.com' || password !== '123456') {
                 showError('❌ Wrong credentials');
                 return;
             }
-
-            const customer = {
+            localStorage.setItem('currentUser', JSON.stringify({
                 id: 'cust_1',
                 fullname: 'John Doe',
                 email: 'customer@test.com',
                 phone: '9876543210',
                 role: 'customer'
-            };
-
-            localStorage.setItem('currentUser', JSON.stringify(customer));
+            }));
             localStorage.setItem('userRole', 'customer');
             showSuccess('✅ Login successful!');
-
-            setTimeout(() => {
-                window.location.href = '/pages/customer-dashboard.html';
-            }, 1500);
+            setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
         }
 
         // ============================================
@@ -428,44 +489,29 @@
 
         function driverSendOTP() {
             const phone = document.getElementById('driverPhone').value.trim();
-            const demoPhone = '8765432109';
-
-            if (!phone || phone.length !== 10) {
-                showError('❌ Enter 10 digit phone');
+            if (phone !== '8765432109') {
+                showError('❌ Demo phone: 8765432109');
                 return;
             }
-
-            if (phone !== demoPhone) {
-                showError(`❌ Demo phone: ${demoPhone}`);
-                return;
-            }
-
             document.getElementById('driverOTPSection').classList.add('show');
             document.getElementById('driverPhone').disabled = true;
             localStorage.setItem('driverOTP', '123456');
-            showSuccess(`✅ OTP sent\nDemo OTP: 123456`);
+            showSuccess('✅ OTP sent\nCode: 123456');
             setupOTPInputs('.driver-otp');
         }
 
         function driverVerifyOTP() {
             const inputs = document.querySelectorAll('.driver-otp');
             const otp = Array.from(inputs).map(i => i.value).join('');
-
-            if (otp.length !== 6) {
-                showError('❌ Enter 6 digits');
-                return;
-            }
-
             if (otp !== '123456') {
-                showError('❌ Wrong OTP\nCorrect: 123456');
+                showError('❌ Wrong OTP');
                 return;
             }
-
             driverLoginOTP();
         }
 
         function driverLoginOTP() {
-            const driver = {
+            localStorage.setItem('currentDriver', JSON.stringify({
                 id: 'drv_1',
                 name: 'Rajesh Driver',
                 email: 'driver@test.com',
@@ -473,15 +519,10 @@
                 vehicleType: 'economy',
                 vehicleNumber: 'RJ01AB1234',
                 role: 'driver'
-            };
-
-            localStorage.setItem('currentDriver', JSON.stringify(driver));
+            }));
             localStorage.setItem('userRole', 'driver');
             showSuccess('✅ Login successful!');
-
-            setTimeout(() => {
-                window.location.href = '/pages/driver-dashboard.html';
-            }, 1500);
+            setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
         }
 
         function driverResetOTP() {
@@ -494,13 +535,11 @@
         function driverLoginEmail() {
             const email = document.getElementById('driverEmail').value.trim().toLowerCase();
             const password = document.getElementById('driverPassword').value;
-
             if (email !== 'driver@test.com' || password !== '123456') {
                 showError('❌ Wrong credentials');
                 return;
             }
-
-            const driver = {
+            localStorage.setItem('currentDriver', JSON.stringify({
                 id: 'drv_1',
                 name: 'Rajesh Driver',
                 email: 'driver@test.com',
@@ -508,15 +547,109 @@
                 vehicleType: 'economy',
                 vehicleNumber: 'RJ01AB1234',
                 role: 'driver'
-            };
-
-            localStorage.setItem('currentDriver', JSON.stringify(driver));
+            }));
             localStorage.setItem('userRole', 'driver');
             showSuccess('✅ Login successful!');
+            setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
+        }
 
+        // ============================================
+        // ADMIN FUNCTIONS
+        // ============================================
+
+        function adminStep1Login() {
+            const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+            const password = document.getElementById('adminPassword').value;
+
+            if (email !== 'admin@test.com' || password !== '123456') {
+                showError('❌ Wrong credentials');
+                return;
+            }
+
+            localStorage.setItem('admin2FAEmail', email);
+            document.getElementById('adminStep1').style.display = 'none';
+            document.getElementById('adminStep2').style.display = 'block';
+        }
+
+        function updateAdmin2FAMethod() {
+            // Method selection changed
+        }
+
+        function sendAdmin2FAOTP() {
+            const method = document.querySelector('input[name="admin2FAMethod"]:checked').value;
+            const email = localStorage.getItem('admin2FAEmail');
+
+            localStorage.setItem('admin2FAOTP', '123456');
+            localStorage.setItem('admin2FAMethod', method);
+
+            if (method === 'email') {
+                showSuccess(`✅ OTP sent to ${email}\nCode: 123456`);
+            } else {
+                showSuccess(`✅ OTP sent to 7654321098\nCode: 123456`);
+            }
+
+            document.getElementById('adminStep2').style.display = 'none';
+            document.getElementById('adminStep3').style.display = 'block';
+            setupOTPInputs('.admin2fa-otp');
+        }
+
+        function verifyAdmin2FA() {
+            const inputs = document.querySelectorAll('.admin2fa-otp');
+            const otp = Array.from(inputs).map(i => i.value).join('');
+
+            if (otp !== '123456') {
+                showError('❌ Wrong 2FA code');
+                return;
+            }
+
+            const email = localStorage.getItem('admin2FAEmail');
+            localStorage.setItem('currentAdmin', JSON.stringify({
+                id: 'admin_1',
+                name: 'Admin User',
+                email: email,
+                phone: '7654321098',
+                role: 'admin'
+            }));
+            localStorage.setItem('userRole', 'admin');
+
+            showSuccess('✅ Admin login successful!');
             setTimeout(() => {
-                window.location.href = '/pages/driver-dashboard.html';
+                window.location.href = '/pages/admin-dashboard.html';
             }, 1500);
+        }
+
+        function adminResetTo2FAMethod() {
+            document.getElementById('adminStep2').style.display = 'block';
+            document.getElementById('adminStep3').style.display = 'none';
+            document.querySelectorAll('.admin2fa-otp').forEach(i => i.value = '');
+        }
+
+        function toggleAdminLogin() {
+            const adminForm = document.getElementById('adminForm');
+            const roleSelector = document.getElementById('roleSelector');
+            const customerForm = document.getElementById('customerForm');
+            const driverForm = document.getElementById('driverForm');
+            const adminText = document.getElementById('adminDemoText');
+
+            if (adminForm.style.display === 'none') {
+                adminForm.style.display = 'block';
+                roleSelector.style.display = 'none';
+                customerForm.style.display = 'none';
+                driverForm.style.display = 'none';
+                adminText.style.display = 'inline';
+                document.getElementById('adminStep1').style.display = 'block';
+                document.getElementById('adminStep2').style.display = 'none';
+                document.getElementById('adminStep3').style.display = 'none';
+                document.getElementById('adminEmail').value = '';
+                document.getElementById('adminPassword').value = '';
+            } else {
+                adminForm.style.display = 'none';
+                roleSelector.style.display = 'grid';
+                customerForm.style.display = 'block';
+                driverForm.style.display = 'none';
+                adminText.style.display = 'none';
+                updateLoginMethod();
+            }
         }
 
         // ============================================
@@ -539,6 +672,7 @@
                     }
                 };
             });
+            inputs[0].focus();
         }
 
         function showError(msg) {
@@ -553,28 +687,6 @@
             alert(msg);
         }
 
-        function toggleAdminLogin() {
-            const adminContainer = document.getElementById('adminRoleContainer');
-            const roleSelector = document.getElementById('roleSelector');
-            const adminText = document.getElementById('adminDemoText');
-            const demoDriver = document.getElementById('demoDriver');
-
-            if (adminContainer.style.display === 'none') {
-                adminContainer.style.display = 'block';
-                roleSelector.style.display = 'none';
-                demoDriver.style.display = 'none';
-                adminText.style.display = 'inline';
-                document.getElementById('roleAdmin').checked = true;
-            } else {
-                adminContainer.style.display = 'none';
-                roleSelector.style.display = 'grid';
-                adminText.style.display = 'none';
-                document.getElementById('roleCustomer').checked = true;
-                updateLoginMethod();
-            }
-        }
-
-        // Initialize
         window.addEventListener('load', () => {
             console.log('🚀 Login Page Loaded');
             updateLoginMethod();
