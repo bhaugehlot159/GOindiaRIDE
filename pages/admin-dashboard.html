@@ -4,78 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        .sidebar { background: linear-gradient(to right, #6a11cb, #2575fc); color: white; height: 100vh; padding: 15px; position: fixed; width: 250px; }
-        .topbar { background: white; height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
-        .content { margin-left: 250px; padding: 15px; }
-        .stat-card { background-color: #f0f0f0; padding: 15px; margin: 10px; border-radius: 5px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }
-        .modal-content { background: white; padding: 20px; margin: 15% auto; width: 300px; text-align: center; border-radius: 5px; }
+        /* Add your custom styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #ece9e6, #ffffff);
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #3949ab;
+            position: fixed;
+        }
+        .sidebar a {
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+            display: block;
+        }
+        .topbar {
+            background: #3f51b5;
+            color: white;
+            padding: 15px;
+            position: fixed;
+            top: 0;
+            width: calc(100% - 250px);
+            left: 250px;
+        }
+        .card {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 20px;
+            flex: 1;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
     </style>
 </head>
-<body>
+<body onload="checkAuthentication()">
+
 <div class="sidebar">
-    <h2>Admin Dashboard</h2>
-    <nav>
-        <ul>
-            <li>Bookings Management</li>
-            <li>Customers Management</li>
-            <li>Drivers Management</li>
-            <li>Earnings</li>
-            <li>Reports</li>
-            <li>Settings</li>
-        </ul>
-    </nav>
+    <h2>Admin Panel</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Bookings</a>
+    <a href="#">Drivers</a>
+    <a href="#">Customers</a>
+    <a href="#">Settings</a>
 </div>
+
 <div class="topbar">
-    <h2>Admin Profile</h2>
-    <button id="logoutBtn">Logout</button>
+    <span>Welcome, Admin!</span>
+    <button onclick="showLogoutModal()">Logout</button>
 </div>
-<div class="content">
-    <h2>Dashboard Statistics</h2>
-    <div class="stat-card">Total Bookings: <span id="totalBookings">0</span></div>
-    <div class="stat-card">Completed Rides: <span id="completedRides">0</span></div>
-    <div class="stat-card">Pending Bookings: <span id="pendingBookings">0</span></div>
-    <div class="stat-card">Cancelled Rides: <span id="cancelledRides">0</span></div>
-    <div class="stat-card">Total Revenue: <span id="totalRevenue">0</span></div>
-    <div class="stat-card">Active Drivers: <span id="activeDrivers">0</span></div>
-    <div class="stat-card">Total Customers: <span id="totalCustomers">0</span></div>
-    <div class="stat-card">Total Donations: <span id="totalDonations">0</span></div>
+
+<div class="content" style="margin-left: 270px; padding-top: 60px;">
+    <div class="statistics">
+        <div class="card" id="totalBookings">Total Bookings: 0</div>
+        <div class="card" id="completedRides">Completed Rides: 0</div>
+        <div class="card" id="pendingBookings">Pending Bookings: 0</div>
+        <div class="card" id="cancelledRides">Cancelled Rides: 0</div>
+        <div class="card" id="totalRevenue">Total Revenue: $0</div>
+        <div class="card" id="activeDrivers">Active Drivers: 0</div>
+        <div class="card" id="totalCustomers">Total Customers: 0</div>
+        <div class="card" id="totalDonations">Total Donations: $0</div>
+    </div>
 </div>
 
 <div id="logoutModal" class="modal">
     <div class="modal-content">
         <p>Are you sure you want to logout from your admin account?</p>
-        <button id="yesLogout">Yes</button>
-        <button id="noLogout">No</button>
+        <button onclick="logout()">Yes</button>
+        <button onclick="closeModal()">No</button>
     </div>
 </div>
 
 <script>
-    document.getElementById('logoutBtn').onclick = function() {
+    function showLogoutModal() {
         document.getElementById('logoutModal').style.display = 'block';
-    };
-    document.getElementById('noLogout').onclick = function() {
+    }
+
+    function closeModal() {
         document.getElementById('logoutModal').style.display = 'none';
-    };
-    document.getElementById('yesLogout').onclick = function() {
-        // Perform logout operation here
-        alert('Logged out!');
-        document.getElementById('logoutModal').style.display = 'none';
-    };
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/pages/login.html';
+    }
+
+    function checkAuthentication() {
+        const isAuthenticated = localStorage.getItem('isAdminAuthenticated');
+        if (!isAuthenticated) {
+            window.location.href = '/pages/login.html';
+        } else {
+            loadDashboardData();
+        }
+    }
 
     function loadDashboardData() {
-        document.getElementById('totalBookings').innerText = localStorage.getItem('totalBookings') || 0;
-        document.getElementById('completedRides').innerText = localStorage.getItem('completedRides') || 0;
-        document.getElementById('pendingBookings').innerText = localStorage.getItem('pendingBookings') || 0;
-        document.getElementById('cancelledRides').innerText = localStorage.getItem('cancelledRides') || 0;
-        document.getElementById('totalRevenue').innerText = localStorage.getItem('totalRevenue') || 0;
-        document.getElementById('activeDrivers').innerText = localStorage.getItem('activeDrivers') || 0;
-        document.getElementById('totalCustomers').innerText = localStorage.getItem('totalCustomers') || 0;
-        document.getElementById('totalDonations').innerText = localStorage.getItem('totalDonations') || 0;
+        document.getElementById('totalBookings').innerText = 'Total Bookings: ' + localStorage.getItem('totalBookings');
+        document.getElementById('completedRides').innerText = 'Completed Rides: ' + localStorage.getItem('completedRides');
+        document.getElementById('pendingBookings').innerText = 'Pending Bookings: ' + localStorage.getItem('pendingBookings');
+        document.getElementById('cancelledRides').innerText = 'Cancelled Rides: ' + localStorage.getItem('cancelledRides');
+        document.getElementById('totalRevenue').innerText = 'Total Revenue: $' + localStorage.getItem('totalRevenue');
+        document.getElementById('activeDrivers').innerText = 'Active Drivers: ' + localStorage.getItem('activeDrivers');
+        document.getElementById('totalCustomers').innerText = 'Total Customers: ' + localStorage.getItem('totalCustomers');
+        document.getElementById('totalDonations').innerText = 'Total Donations: $' + localStorage.getItem('totalDonations');
     }
-    window.onload = loadDashboardData;
 </script>
+
 </body>
 </html>
