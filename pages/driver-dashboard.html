@@ -1048,25 +1048,24 @@
     </div>
 
     <script>
-        let currentDriver = null;
+                let currentDriver = null;
         let isOnline = true;
 
-        function checkAuth() {
-            const userRole = localStorage.getItem('userRole');
-            const currentDriverData = localStorage.getItem('currentDriver');
-
-            if (userRole !== 'driver' || !currentDriverData) {
-                alert('❌ Please login as driver first');
-                window.location.href = './login.html';
-                return null;
-            }
-
-            return JSON.parse(currentDriverData);
-        }
-
         window.addEventListener('load', function() {
-            currentDriver = checkAuth();
-            if (!currentDriver) return;
+            console.log('📄 Driver Dashboard Loading');
+            
+            const storedDriver = localStorage.getItem('currentDriver');
+            const storedRole = localStorage.getItem('userRole');
+            
+            if (!storedDriver || storedRole !== 'driver') {
+                console.log('❌ Not logged in');
+                alert('❌ Please login as driver first');
+                window.location.href = '/pages/login.html';
+                return;
+            }
+            
+            currentDriver = JSON.parse(storedDriver);
+            console.log('✅ Driver logged in:', currentDriver.name);
 
             loadDashboard();
             loadRides();
