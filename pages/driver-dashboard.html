@@ -1340,11 +1340,12 @@
             setTimeout(() => document.getElementById('errorMessage').classList.remove('show'), 3000);
         }
 
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+                function logout() {
+            if (confirm('Logout?')) {
                 localStorage.removeItem('currentDriver');
                 localStorage.removeItem('userRole');
-                window.location.href = './login.html';
+                alert('✅ Logged out');
+                window.location.href = '/pages/login.html';
             }
         }
 
