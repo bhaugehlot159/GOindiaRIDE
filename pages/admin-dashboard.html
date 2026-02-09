@@ -1384,21 +1384,7 @@
     </div>
 </div>
                         
-<script>
-        let currentAdmin = null;
-        let bookingFilter = 'all';
 
-        window.addEventListener('load', () => {
-            console.log('📊 Admin Dashboard Loading');
-            
-            const storedAdmin = localStorage.getItem('currentAdmin');
-            const storedRole = localStorage.getItem('userRole');
-            
-            if (!storedAdmin || storedRole !== 'admin') {
-                console.log('❌ Not admin');
-                alert('❌ Admin access required');
-                window.location.href = '/pages/login.html';
-                return;
             }
             
             currentAdmin = JSON.parse(storedAdmin);
