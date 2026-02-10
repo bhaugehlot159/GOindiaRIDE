@@ -353,6 +353,7 @@
         </div>
     </div>
 
+    <script src="../js/security.js"></script>
     <script>
         // ============================================
         // LOGIN METHOD FUNCTIONS
@@ -464,23 +465,52 @@
             document.querySelectorAll('.customer-otp').forEach(i => i.value = '');
         }
 
-        function customerLoginEmail() {
-            const email = document.getElementById('customerEmail').value.trim().toLowerCase();
+        async function customerLoginEmail() {
+            const email = sanitizeEmail(document.getElementById('customerEmail').value);
             const password = document.getElementById('customerPassword').value;
-            if (email !== 'customer@test.com' || password !== '123456') {
-                showError('❌ Wrong credentials');
+            
+            if (!email) {
+                showError('❌ Please enter a valid email address');
                 return;
             }
-            localStorage.setItem('currentUser', JSON.stringify({
-                id: 'cust_1',
-                fullname: 'John Doe',
-                email: 'customer@test.com',
-                phone: '9876543210',
-                role: 'customer'
-            }));
-            localStorage.setItem('userRole', 'customer');
-            showSuccess('✅ Login successful!');
-            setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
+            
+            // Hash the password for comparison
+            const hashedPassword = await hashPassword(password);
+            
+            // Check against demo credentials (demo password "123456" hashed)
+            const demoPasswordHash = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
+            if (email === 'customer@test.com' && hashedPassword === demoPasswordHash) {
+                localStorage.setItem('currentUser', JSON.stringify({
+                    id: 'cust_1',
+                    fullname: 'John Doe',
+                    email: 'customer@test.com',
+                    phone: '9876543210',
+                    role: 'customer'
+                }));
+                localStorage.setItem('userRole', 'customer');
+                showSuccess('✅ Login successful!');
+                setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
+                return;
+            }
+            
+            // Check against registered users
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(u => u.email === email && u.password === hashedPassword && u.role === 'customer');
+            
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify({
+                    id: user.id,
+                    fullname: user.fullname,
+                    email: user.email,
+                    phone: user.phone,
+                    role: 'customer'
+                }));
+                localStorage.setItem('userRole', 'customer');
+                showSuccess('✅ Login successful!');
+                setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
+            } else {
+                showError('❌ Wrong credentials');
+            }
         }
 
         // ============================================
@@ -532,25 +562,56 @@
             document.querySelectorAll('.driver-otp').forEach(i => i.value = '');
         }
 
-        function driverLoginEmail() {
-            const email = document.getElementById('driverEmail').value.trim().toLowerCase();
+        async function driverLoginEmail() {
+            const email = sanitizeEmail(document.getElementById('driverEmail').value);
             const password = document.getElementById('driverPassword').value;
-            if (email !== 'driver@test.com' || password !== '123456') {
-                showError('❌ Wrong credentials');
+            
+            if (!email) {
+                showError('❌ Please enter a valid email address');
                 return;
             }
-            localStorage.setItem('currentDriver', JSON.stringify({
-                id: 'drv_1',
-                name: 'Rajesh Driver',
-                email: 'driver@test.com',
-                phone: '8765432109',
-                vehicleType: 'economy',
-                vehicleNumber: 'RJ01AB1234',
-                role: 'driver'
-            }));
-            localStorage.setItem('userRole', 'driver');
-            showSuccess('✅ Login successful!');
-            setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
+            
+            // Hash the password for comparison
+            const hashedPassword = await hashPassword(password);
+            
+            // Check against demo credentials (demo password "123456" hashed)
+            const demoPasswordHash = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
+            if (email === 'driver@test.com' && hashedPassword === demoPasswordHash) {
+                localStorage.setItem('currentDriver', JSON.stringify({
+                    id: 'drv_1',
+                    name: 'Rajesh Driver',
+                    email: 'driver@test.com',
+                    phone: '8765432109',
+                    vehicleType: 'economy',
+                    vehicleNumber: 'RJ01AB1234',
+                    role: 'driver'
+                }));
+                localStorage.setItem('userRole', 'driver');
+                showSuccess('✅ Login successful!');
+                setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
+                return;
+            }
+            
+            // Check against registered drivers
+            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            const driver = drivers.find(d => d.email === email && d.password === hashedPassword && d.role === 'driver');
+            
+            if (driver) {
+                localStorage.setItem('currentDriver', JSON.stringify({
+                    id: driver.id,
+                    name: driver.name,
+                    email: driver.email,
+                    phone: driver.phone,
+                    vehicleType: 'economy',
+                    vehicleNumber: driver.vehicleNumber,
+                    role: 'driver'
+                }));
+                localStorage.setItem('userRole', 'driver');
+                showSuccess('✅ Login successful!');
+                setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
+            } else {
+                showError('❌ Wrong credentials');
+            }
         }
 
         // ============================================

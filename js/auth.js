@@ -1,3 +1,6 @@
+// Note: This file is currently not used by the HTML pages, which have inline scripts.
+// The security improvements should be applied to the inline scripts in the HTML files.
+
 // Check user type and show/hide driver fields
 document.querySelectorAll('input[name="userType"]')?.forEach(radio => {
     radio.addEventListener('change', function() {
@@ -9,15 +12,31 @@ document.querySelectorAll('input[name="userType"]')?.forEach(radio => {
 });
 
 // Handle Signup Form
-document.getElementById('signupForm')?.addEventListener('submit', function(e) {
+document.getElementById('signupForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const fullname = document.getElementById('fullname').value;
-    const email = document.getElementById('email').value;
-    const phone = document.getElementById('phone').value;
+    const fullname = sanitizeInput(document.getElementById('fullname').value);
+    const email = sanitizeEmail(document.getElementById('email').value);
+    const phone = sanitizePhone(document.getElementById('phone').value);
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const userType = document.querySelector('input[name="userType"]:checked').value;
+
+    // Validate sanitized inputs
+    if (!fullname) {
+        alert('Please enter a valid full name');
+        return;
+    }
+
+    if (!email) {
+        alert('Please enter a valid email address');
+        return;
+    }
+
+    if (!phone) {
+        alert('Please enter a valid 10-digit Indian phone number');
+        return;
+    }
 
     // Validation
     if (password !== confirmPassword) {
@@ -25,8 +44,10 @@ document.getElementById('signupForm')?.addEventListener('submit', function(e) {
         return;
     }
 
-    if (password.length < 6) {
-        alert('Password should be at least 6 characters long!');
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+        alert(passwordValidation.message);
         return;
     }
 
@@ -35,7 +56,7 @@ document.getElementById('signupForm')?.addEventListener('submit', function(e) {
         fullname,
         email,
         phone,
-        password: hashPassword(password),
+        password: await hashPassword(password),
         userType,
         createdAt: new Date().toISOString(),
         profilePicture: null,
@@ -44,7 +65,7 @@ document.getElementById('signupForm')?.addEventListener('submit', function(e) {
 
     // If driver, add license number
     if (userType === 'driver') {
-        userData.licenseNumber = document.getElementById('licenseNumber').value;
+        userData.licenseNumber = sanitizeInput(document.getElementById('licenseNumber').value);
         userData.vehicleDetails = null;
         userData.rating = 0;
         userData.earnings = 0;
@@ -67,14 +88,19 @@ document.getElementById('signupForm')?.addEventListener('submit', function(e) {
 });
 
 // Handle Login Form
-document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+document.getElementById('loginForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const email = document.getElementById('email').value;
+    const email = sanitizeEmail(document.getElementById('email').value);
     const password = document.getElementById('password').value;
 
+    if (!email) {
+        alert('Please enter a valid email address');
+        return;
+    }
+
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => u.email === email && u.password === hashPassword(password));
+    const user = users.find(u => u.email === email && u.password === await hashPassword(password));
 
     if (user) {
         // Save current user session
@@ -98,10 +124,8 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
     }
 });
 
-// Simple password hashing (for demo only, use proper hashing in production)
-function hashPassword(password) {
-    return btoa(password); // Base64 encoding (NOT secure, for demo only)
-}
+// Password hashing function has been moved to security.js
+// It now uses SHA-256 instead of Base64 encoding
 
 // Logout Function
 function logout() {
