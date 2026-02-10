@@ -1072,6 +1072,12 @@
             loadProfile();
             loadEarnings();
             loadRatings();
+            
+            // Start real-time sync for driver dashboard
+            setInterval(() => {
+                loadRides();
+                loadDashboard();
+            }, 5000); // Poll every 5 seconds for new ride requests
         });
 
         function loadDashboard() {
@@ -1104,17 +1110,39 @@
         }
 
         function loadRides() {
-            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            // Use shared database if available, otherwise fall back to localStorage
+            let bookings;
+            if (typeof BookingDB !== 'undefined' && BookingDB.getAll) {
+                bookings = BookingDB.getAll();
+            } else {
+                bookings = JSON.parse(localStorage.getItem('bookings')) || 
+                          JSON.parse(localStorage.getItem('goride_bookings')) || [];
+            }
+            
             const driverBookings = bookings.filter(b => b.driverId === currentDriver.id);
+            
+            // Also show unassigned pending bookings
+            const unassignedBookings = bookings.filter(b => 
+                b.status === 'pending' && !b.driverId
+            );
 
-            const pendingRides = driverBookings.filter(b => b.status === 'pending' || b.status === 'active');
+            const pendingRides = [...driverBookings.filter(b => 
+                b.status === 'pending' || b.status === 'confirmed' || 
+                b.status === 'driver_assigned' || b.status === 'active'
+            ), ...unassignedBookings.slice(0, 5)]; // Show max 5 unassigned
+            
             const completedRides = driverBookings.filter(b => b.status === 'completed');
 
             const pendingList = document.getElementById('pendingRidesList');
             if (pendingRides.length === 0) {
                 pendingList.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No pending rides. Check back soon!</p></div>`;
             } else {
-                pendingList.innerHTML = pendingRides.map(ride => `
+                pendingList.innerHTML = pendingRides.map(ride => {
+                    const isAssigned = ride.driverId === currentDriver.id;
+                    const buttonText = isAssigned ? 'Start Ride' : 'Accept';
+                    const buttonAction = isAssigned ? `startRide('${ride.id}')` : `acceptRideAction('${ride.id}')`;
+                    
+                    return `
                     <div class="ride-card pending">
                         <div class="ride-info">
                             <div class="ride-route"><i class="fas fa-location-dot"></i> ${ride.pickup} → ${ride.dropoff}</div>
@@ -1128,11 +1156,12 @@
                             </div>
                         </div>
                         <div class="ride-actions">
-                            <button class="ride-btn primary" onclick="acceptRideAction('${ride.id}')"><i class="fas fa-check"></i> Accept</button>
-                            <button class="ride-btn" onclick="declineRide('${ride.id}')"><i class="fas fa-times"></i> Decline</button>
+                            <button class="ride-btn primary" onclick="${buttonAction}"><i class="fas fa-check"></i> ${buttonText}</button>
+                            ${!isAssigned ? `<button class="ride-btn" onclick="declineRide('${ride.id}')"><i class="fas fa-times"></i> Decline</button>` : ''}
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
 
             const completedList = document.getElementById('completedRidesList');
@@ -1292,20 +1321,106 @@
         }
 
         function acceptRideAction(rideId) {
-            let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-            const idx = bookings.findIndex(b => b.id === rideId);
-            if (idx !== -1) {
-                bookings[idx].status = 'active';
-                localStorage.setItem('bookings', JSON.stringify(bookings));
-                loadRides();
-                loadDashboard();
+            // Use shared database if available
+            if (typeof BookingDB !== 'undefined' && BookingDB.update) {
+                const booking = BookingDB.getById(rideId);
+                if (booking) {
+                    BookingDB.update(rideId, {
+                        driverId: currentDriver.id,
+                        driverName: currentDriver.name,
+                        driverPhone: currentDriver.phone,
+                        driverVehicle: currentDriver.vehicle,
+                        status: 'driver_assigned',
+                        assignedAt: new Date().toISOString()
+                    });
+                }
+            } else {
+                // Fallback to localStorage
+                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const idx = bookings.findIndex(b => b.id === rideId);
+                if (idx !== -1) {
+                    bookings[idx].driverId = currentDriver.id;
+                    bookings[idx].driverName = currentDriver.name;
+                    bookings[idx].status = 'driver_assigned';
+                    bookings[idx].assignedAt = new Date().toISOString();
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                }
+            }
+            
+            loadRides();
+            loadDashboard();
+            
+            if (typeof showSuccessToast === 'function') {
+                showSuccessToast('Ride accepted! Customer has been notified.', 'Ride Accepted');
+            } else {
                 showSuccess('✅ Ride accepted!');
+            }
+        }
+
+        function startRide(rideId) {
+            // Update ride status to 'in_progress'
+            if (typeof BookingDB !== 'undefined' && BookingDB.update) {
+                BookingDB.update(rideId, {
+                    status: 'ride_started',
+                    startedAt: new Date().toISOString()
+                });
+            } else {
+                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const idx = bookings.findIndex(b => b.id === rideId);
+                if (idx !== -1) {
+                    bookings[idx].status = 'ride_started';
+                    bookings[idx].startedAt = new Date().toISOString();
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                }
+            }
+            
+            loadRides();
+            
+            if (typeof showSuccessToast === 'function') {
+                showSuccessToast('Ride has started. Have a safe journey!', 'Ride Started');
+            } else {
+                showSuccess('✅ Ride started!');
+            }
+            
+            // Simulate ride completion after 10 seconds (for demo)
+            setTimeout(() => {
+                completeRide(rideId);
+            }, 10000);
+        }
+        
+        function completeRide(rideId) {
+            if (typeof BookingDB !== 'undefined' && BookingDB.update) {
+                BookingDB.update(rideId, {
+                    status: 'completed',
+                    completedAt: new Date().toISOString(),
+                    duration: Math.floor(Math.random() * 30) + 15 + ' mins'
+                });
+            } else {
+                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const idx = bookings.findIndex(b => b.id === rideId);
+                if (idx !== -1) {
+                    bookings[idx].status = 'completed';
+                    bookings[idx].completedAt = new Date().toISOString();
+                    bookings[idx].duration = Math.floor(Math.random() * 30) + 15 + ' mins';
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                }
+            }
+            
+            loadRides();
+            loadDashboard();
+            
+            if (typeof showSuccessToast === 'function') {
+                showSuccessToast('Ride completed successfully!', 'Ride Completed');
             }
         }
 
         function declineRide(rideId) {
             if (confirm('Are you sure you want to decline this ride?')) {
-                showSuccess('❌ Ride declined');
+                if (typeof showWarningToast === 'function') {
+                    showWarningToast('Ride declined', 'Declined');
+                } else {
+                    showSuccess('❌ Ride declined');
+                }
             }
         }
 
@@ -1355,5 +1470,11 @@
 
         console.log('🚀 Driver Dashboard loaded');
     </script>
+    
+    <!-- Core System Scripts -->
+    <script src="../js/database.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/toast.js"></script>
+    <script src="../js/route-suggestions.js"></script>
 </body>
 </html>
