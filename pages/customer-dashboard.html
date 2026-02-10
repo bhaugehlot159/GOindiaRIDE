@@ -732,6 +732,66 @@
         </div>
     </div>
 
+    <!-- Payment Modal (Shows after ride completion) -->
+    <div class="modal" id="paymentModal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem;">
+                💳
+            </div>
+            <div class="modal-title" style="font-size: 1.8rem; color: #333; margin-bottom: 0.5rem;">Payment Required</div>
+            <div class="modal-text" style="color: #666; margin-bottom: 2rem;">
+                Your ride has been completed. Please complete the payment.
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h4 style="color: #333; margin-bottom: 1rem; font-size: 1.1rem;">Ride Summary</h4>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; color: #666;">
+                    <span>Pickup:</span>
+                    <strong id="paymentPickup" style="color: #333;">-</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; color: #666;">
+                    <span>Dropoff:</span>
+                    <strong id="paymentDropoff" style="color: #333;">-</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; color: #666;">
+                    <span>Distance:</span>
+                    <strong id="paymentDistance" style="color: #333;">-</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-top: 2px solid #ddd; margin-top: 0.5rem; font-size: 1.2rem;">
+                    <strong style="color: #333;">Total Fare:</strong>
+                    <strong id="paymentFare" style="color: #667eea; font-size: 1.5rem;">₹0</strong>
+                </div>
+            </div>
+
+            <h4 style="color: #333; margin-bottom: 1rem;">Select Payment Method</h4>
+            <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                <button class="payment-method-btn" onclick="selectPaymentMethod('upi')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">UPI</div>
+                    <div style="text-align: left;">
+                        <div style="font-weight: bold; color: #333;">UPI Payment</div>
+                        <div style="font-size: 0.85rem; color: #666;">Google Pay, PhonePe, Paytm</div>
+                    </div>
+                </button>
+                
+                <button class="payment-method-btn" onclick="selectPaymentMethod('card')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💳</div>
+                    <div style="text-align: left;">
+                        <div style="font-weight: bold; color: #333;">Credit/Debit Card</div>
+                        <div style="font-size: 0.85rem; color: #666;">Visa, Mastercard, Rupay</div>
+                    </div>
+                </button>
+                
+                <button class="payment-method-btn" onclick="selectPaymentMethod('cash')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💵</div>
+                    <div style="text-align: left;">
+                        <div style="font-weight: bold; color: #333;">Cash Payment</div>
+                        <div style="font-size: 0.85rem; color: #666;">Pay driver directly</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Receipt Modal -->
     <div class="modal receipt-modal" id="receiptModal">
         <div class="modal-content">
@@ -841,6 +901,12 @@
             loadRides();
             loadDonations();
             loadProfile();
+            
+            // Check for completed rides immediately
+            checkForCompletedRides();
+            
+            // Start real-time sync
+            startRealTimeSync();
         });
 
         // ============================================
@@ -873,7 +939,9 @@
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
 
-            const activeRides = customerBookings.filter(b => b.status === 'active');
+            const activeRides = customerBookings.filter(b => 
+                b.status !== 'completed' && b.status !== 'cancelled'
+            );
             const completedRides = customerBookings.filter(b => b.status === 'completed');
 
             // Active Rides
@@ -988,6 +1056,89 @@
             document.getElementById('profileName').textContent = currentUser.fullname;
             document.getElementById('profileEmail').textContent = currentUser.email;
             document.getElementById('profilePhone').textContent = currentUser.phone;
+        }
+
+        // ============================================
+        // PAYMENT SYSTEM
+        // ============================================
+
+        let currentRideForPayment = null;
+
+        function showPaymentModal(rideId) {
+            const rides = JSON.parse(localStorage.getItem('bookings')) || [];
+            const ride = rides.find(r => r.id === rideId);
+            
+            if (!ride) return;
+            
+            currentRideForPayment = rideId;
+            
+            document.getElementById('paymentPickup').textContent = ride.pickup;
+            document.getElementById('paymentDropoff').textContent = ride.dropoff;
+            document.getElementById('paymentDistance').textContent = (ride.distance || 15) + ' km';
+            document.getElementById('paymentFare').textContent = '₹' + ride.totalFare;
+            
+            document.getElementById('paymentModal').style.display = 'flex';
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function selectPaymentMethod(method) {
+            if (!currentRideForPayment) return;
+            
+            const rides = JSON.parse(localStorage.getItem('bookings')) || [];
+            const rideIdx = rides.findIndex(r => r.id === currentRideForPayment);
+            
+            if (rideIdx !== -1) {
+                rides[rideIdx].paymentMethod = method;
+                rides[rideIdx].paymentStatus = 'paid';
+                rides[rideIdx].paidAt = new Date().toISOString();
+                localStorage.setItem('bookings', JSON.stringify(rides));
+                
+                // Hide payment modal
+                document.getElementById('paymentModal').style.display = 'none';
+                document.getElementById('paymentModal').classList.remove('active');
+                
+                // Show success toast
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast(`Payment of ₹${rides[rideIdx].totalFare} completed successfully!`, 'Payment Successful');
+                }
+                
+                // Show optional donation suggestion after 1 second
+                setTimeout(() => {
+                    const showDonation = confirm('Would you like to make a small donation to help underprivileged drivers?');
+                    if (showDonation) {
+                        openDonationModal(currentRideForPayment);
+                    }
+                }, 1000);
+                
+                // Reload rides to update display
+                loadRides();
+            }
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            document.getElementById('paymentModal').classList.remove('active');
+        }
+
+        // Check for newly completed rides and show payment
+        function checkForCompletedRides() {
+            const rides = JSON.parse(localStorage.getItem('bookings')) || [];
+            const myRides = rides.filter(r => r.customerId === currentUser.id);
+            
+            myRides.forEach(ride => {
+                // If ride is completed and payment not done, show payment modal
+                if (ride.status === 'completed' && !ride.paymentStatus) {
+                    showPaymentModal(ride.id);
+                }
+            });
+        }
+
+        // Real-time sync - poll for updates every 5 seconds
+        function startRealTimeSync() {
+            setInterval(() => {
+                loadRides();
+                checkForCompletedRides();
+            }, 5000); // Poll every 5 seconds
         }
 
         // ============================================
@@ -1234,5 +1385,11 @@ Thank you for riding with us! 🚗
 
         console.log('🚀 Customer Dashboard loaded');
     </script>
+    
+    <!-- Core System Scripts -->
+    <script src="../js/database.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/toast.js"></script>
+    <script src="../js/route-suggestions.js"></script>
 </body>
 </html>
