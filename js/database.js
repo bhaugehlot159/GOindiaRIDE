@@ -11,7 +11,8 @@ const STORAGE_KEYS = {
     ADMIN: 'goride_admin',
     NOTIFICATIONS: 'goride_notifications',
     DONATIONS: 'goride_donations',
-    MESSAGES: 'goride_messages'
+    MESSAGES: 'goride_messages',
+    CHAT_INITIALIZED: 'goride_chat_initialized'
 };
 
 // Initialize demo data if not exists
@@ -318,7 +319,7 @@ const MessageDB = {
         const messages = this.getAll();
         const newMessage = {
             ...message,
-            id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11),
             timestamp: message.timestamp || new Date().toISOString(),
             read: message.read || false
         };

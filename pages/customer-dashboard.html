@@ -865,6 +865,23 @@
 
             <!-- Messages Tab -->
             <div class="tab-content" id="messagesTab">
+                <!-- Help Banner -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h3 style="margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        💬 Purani Chat Kaise Dekhen? (How to View Old Chats?)
+                    </h3>
+                    <p style="margin: 0; font-size: 0.95rem; line-height: 1.5;">
+                        <strong>📱 Steps to access your chat history:</strong><br>
+                        1️⃣ <strong>Messages Tab:</strong> Click on "Messages" tab to see all conversations<br>
+                        2️⃣ <strong>Select Chat:</strong> Click on any driver's name to open old conversation (purani chat)<br>
+                        3️⃣ <strong>View History:</strong> Scroll up to see all previous messages<br>
+                        4️⃣ <strong>Go Back:</strong> Click the ← back arrow to return to conversations list<br>
+                        <br>
+                        💡 <em>Tip: Unread messages will show a red "New" badge</em>
+                    </p>
+                </div>
+                
                 <div class="messages-container">
                     <div class="conversations-list" id="conversationsList">
                         <div class="empty-state">
@@ -874,7 +891,7 @@
                     </div>
                     <div class="chat-window" id="chatWindow" style="display: none;">
                         <div class="chat-header">
-                            <button onclick="closeChat()" class="back-btn">
+                            <button onclick="closeChat()" class="back-btn" title="Purani chat list par wapas jaye (Go back to chat list)">
                                 <i class="fas fa-arrow-left"></i>
                             </button>
                             <div class="chat-user-info">
@@ -1657,8 +1674,12 @@ Thank you for riding with us! 🚗
             if (conversations.length === 0) {
                 conversationsList.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-comments"></i>
-                        <p>No messages yet. Start chatting with your drivers!</p>
+                        <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #333; margin-bottom: 0.5rem;">Abhi koi purani chat nahi hai</h3>
+                        <p style="color: #666; margin-bottom: 1rem;">No previous chats yet. Book a ride to start messaging with drivers!</p>
+                        <a href="booking.html" style="color: #667eea; text-decoration: none; font-weight: bold;">
+                            📱 Book Your First Ride
+                        </a>
                     </div>
                 `;
                 return;
@@ -1732,8 +1753,12 @@ Thank you for riding with us! 🚗
             if (messages.length === 0) {
                 chatMessages.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-comment"></i>
-                        <p>No messages yet. Say hi! 👋</p>
+                        <i class="fas fa-comment" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #333; margin-bottom: 0.5rem;">Abhi koi message nahi hai</h3>
+                        <p style="color: #666;">No messages yet. Say hi! 👋</p>
+                        <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">
+                            💡 Type a message below to start the conversation
+                        </p>
                     </div>
                 `;
                 return;
