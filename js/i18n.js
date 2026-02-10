@@ -198,6 +198,8 @@ const translations = {
 };
 
 // Currency conversion rates (relative to INR)
+// Note: These are approximate rates. For production, consider using a live exchange rate API
+// Last updated: January 2026
 const currencyRates = {
     INR: { symbol: '₹', rate: 1, name: 'Indian Rupee' },
     USD: { symbol: '$', rate: 0.012, name: 'US Dollar' },
