@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Portal - GO India RIDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/driver-styles.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i>
+                <span>GO India RIDE</span>
+            </div>
+            <div class="nav-right">
+                <div class="night-mode-toggle" id="nightModeToggle">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="profile-icon" onclick="showProfile()">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <main class="main-content">
+        <!-- Status Toggle -->
+        <section class="status-section">
+            <div class="online-status-card">
+                <div class="status-info">
+                    <h2>Status</h2>
+                    <p id="statusText">Offline</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="onlineToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Today's Earnings -->
+        <section class="earnings-highlight">
+            <div class="earnings-card">
+                <i class="fas fa-rupee-sign"></i>
+                <div class="earnings-info">
+                    <p class="label">Today's Earnings</p>
+                    <h1 id="todayEarnings">₹0</h1>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="quick-stats">
+            <div class="stat-card">
+                <i class="fas fa-route"></i>
+                <div>
+                    <p class="stat-value" id="todayTrips">0</p>
+                    <p class="stat-label">Trips Today</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-star"></i>
+                <div>
+                    <p class="stat-value" id="driverRating">0.0</p>
+                    <p class="stat-label">Rating</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <p class="stat-value" id="onlineHours">0h</p>
+                    <p class="stat-label">Online</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Battery & Network Status -->
+        <section class="system-status">
+            <div class="status-item">
+                <i class="fas fa-battery-three-quarters" id="batteryIcon"></i>
+                <span id="batteryStatus">Checking...</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-signal" id="networkIcon"></i>
+                <span id="networkStatus">Checking...</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-location-dot" id="gpsIcon"></i>
+                <span id="gpsStatus">Checking...</span>
+            </div>
+        </section>
+
+        <!-- Fatigue Alert -->
+        <div id="fatigueAlert" class="fatigue-alert" style="display: none;">
+            <i class="fas fa-bed"></i>
+            <div class="fatigue-info">
+                <h3>Mandatory Rest Required</h3>
+                <p>You've driven for <span id="drivingHours">0</span> hours. Take rest for <span id="restTimer">0</span> minutes.</p>
+            </div>
+        </div>
+
+        <!-- Current Ride -->
+        <section id="currentRideSection" class="current-ride" style="display: none;">
+            <h2>Current Ride</h2>
+            <div class="ride-card">
+                <div class="ride-header">
+                    <span class="ride-id" id="currentRideId">#12345</span>
+                    <span class="ride-status" id="currentRideStatus">In Progress</span>
+                </div>
+                <div class="ride-details">
+                    <div class="location">
+                        <i class="fas fa-circle pickup"></i>
+                        <span id="pickupLocation">Loading...</span>
+                    </div>
+                    <div class="location">
+                        <i class="fas fa-circle destination"></i>
+                        <span id="dropLocation">Loading...</span>
+                    </div>
+                </div>
+                <div class="ride-actions">
+                    <button class="btn-navigate" onclick="navigateRoute()">
+                        <i class="fas fa-directions"></i> Navigate
+                    </button>
+                    <button class="btn-complete" onclick="completeRide()">
+                        <i class="fas fa-check"></i> Complete
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pending Ride Request -->
+        <div id="rideRequestModal" class="ride-request-modal" style="display: none;">
+            <div class="request-content">
+                <h2>New Ride Request</h2>
+                <div class="request-timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="requestTimer">30s</span>
+                </div>
+                <div class="request-details">
+                    <div class="request-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="requestPickup">Location loading...</span>
+                    </div>
+                    <div class="request-item">
+                        <i class="fas fa-flag"></i>
+                        <span id="requestDrop">Location loading...</span>
+                    </div>
+                    <div class="request-item">
+                        <i class="fas fa-rupee-sign"></i>
+                        <span id="requestFare">₹0</span>
+                    </div>
+                </div>
+                <div class="request-actions">
+                    <button class="btn-reject" onclick="rejectRequest()">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <button class="btn-accept" onclick="acceptRequest()">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Cards -->
+        <section class="features-grid">
+            <!-- KYC & Verification -->
+            <div class="feature-card" onclick="openKYC()">
+                <i class="fas fa-id-card"></i>
+                <h3>KYC Verification</h3>
+                <p class="feature-status" id="kycStatus">Pending</p>
+            </div>
+
+            <!-- Wallet -->
+            <div class="feature-card" onclick="openWallet()">
+                <i class="fas fa-wallet"></i>
+                <h3>Wallet</h3>
+                <p class="feature-balance" id="walletBalance">₹0</p>
+            </div>
+
+            <!-- Earnings -->
+            <div class="feature-card" onclick="openEarnings()">
+                <i class="fas fa-chart-line"></i>
+                <h3>Earnings</h3>
+                <p class="feature-desc">View Reports</p>
+            </div>
+
+            <!-- Documents -->
+            <div class="feature-card" onclick="openDocuments()">
+                <i class="fas fa-file-alt"></i>
+                <h3>Documents</h3>
+                <p class="feature-status" id="docStatus">0/6 Verified</p>
+            </div>
+
+            <!-- Trip History -->
+            <div class="feature-card" onclick="openTripHistory()">
+                <i class="fas fa-history"></i>
+                <h3>Trip History</h3>
+                <p class="feature-desc">View All Trips</p>
+            </div>
+
+            <!-- Safety Features -->
+            <div class="feature-card" onclick="openSafety()">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Safety</h3>
+                <p class="feature-desc">Speed, SOS, Health</p>
+            </div>
+
+            <!-- Telematics -->
+            <div class="feature-card" onclick="openTelematics()">
+                <i class="fas fa-gauge-high"></i>
+                <h3>Telematics</h3>
+                <p class="feature-status" id="drivingScore">0</p>
+            </div>
+
+            <!-- Language Skills -->
+            <div class="feature-card" onclick="openLanguages()">
+                <i class="fas fa-language"></i>
+                <h3>Languages</h3>
+                <p class="feature-status" id="languageCount">0 Languages</p>
+            </div>
+
+            <!-- Tax Summary -->
+            <div class="feature-card" onclick="openTaxes()">
+                <i class="fas fa-receipt"></i>
+                <h3>Tax Summary</h3>
+                <p class="feature-desc">Annual Report</p>
+            </div>
+
+            <!-- Security Deposit -->
+            <div class="feature-card" onclick="openDeposit()">
+                <i class="fas fa-shield"></i>
+                <h3>Deposit</h3>
+                <p class="feature-status" id="depositStatus">Not Paid</p>
+            </div>
+        </section>
+
+        <!-- SOS Button (Always Visible) -->
+        <button class="sos-button" onclick="triggerSOS()">
+            <i class="fas fa-exclamation-triangle"></i>
+            SOS
+        </button>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showHome()">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" onclick="openEarnings()">
+            <i class="fas fa-rupee-sign"></i>
+            <span>Earnings</span>
+        </button>
+        <button class="nav-item" onclick="openTripHistory()">
+            <i class="fas fa-route"></i>
+            <span>Trips</span>
+        </button>
+        <button class="nav-item" onclick="openProfile()">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </button>
+    </nav>
+
+    <!-- Modals Container -->
+    <div id="modalsContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/driver-portal.js"></script>
+    <script src="js/kyc-verification.js"></script>
+    <script src="js/wallet-system.js"></script>
+    <script src="js/safety-features.js"></script>
+</body>
+</html>
