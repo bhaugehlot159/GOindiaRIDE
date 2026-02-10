@@ -474,8 +474,12 @@
                 return;
             }
             
-            // Check against demo credentials first
-            if (email === 'customer@test.com' && password === '123456') {
+            // Hash the password for comparison
+            const hashedPassword = await hashPassword(password);
+            
+            // Check against demo credentials (demo password "123456" hashed)
+            const demoPasswordHash = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
+            if (email === 'customer@test.com' && hashedPassword === demoPasswordHash) {
                 localStorage.setItem('currentUser', JSON.stringify({
                     id: 'cust_1',
                     fullname: 'John Doe',
@@ -491,7 +495,6 @@
             
             // Check against registered users
             const users = JSON.parse(localStorage.getItem('users')) || [];
-            const hashedPassword = await hashPassword(password);
             const user = users.find(u => u.email === email && u.password === hashedPassword && u.role === 'customer');
             
             if (user) {
@@ -568,8 +571,12 @@
                 return;
             }
             
-            // Check against demo credentials first
-            if (email === 'driver@test.com' && password === '123456') {
+            // Hash the password for comparison
+            const hashedPassword = await hashPassword(password);
+            
+            // Check against demo credentials (demo password "123456" hashed)
+            const demoPasswordHash = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
+            if (email === 'driver@test.com' && hashedPassword === demoPasswordHash) {
                 localStorage.setItem('currentDriver', JSON.stringify({
                     id: 'drv_1',
                     name: 'Rajesh Driver',
@@ -587,7 +594,6 @@
             
             // Check against registered drivers
             const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-            const hashedPassword = await hashPassword(password);
             const driver = drivers.find(d => d.email === email && d.password === hashedPassword && d.role === 'driver');
             
             if (driver) {
