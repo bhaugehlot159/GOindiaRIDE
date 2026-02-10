@@ -572,6 +572,7 @@
         </div>
     </div>
 
+    <script src="../js/security.js"></script>
     <script>
         // Password Show/Hide for Signup
         function togglePasswordSignup(fieldId) {
@@ -622,36 +623,44 @@
         }
 
         // Form Submission
-        signupForm.addEventListener('submit', function(e) {
+        signupForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Validate inputs
-            if (!fullnameInput.value.trim()) {
-                showError('Please enter your full name');
+            // Get and sanitize inputs
+            const fullname = sanitizeInput(fullnameInput.value);
+            const email = sanitizeEmail(emailInput.value);
+            const phone = sanitizePhone(phoneInput.value);
+            const password = passwordInput.value;
+
+            // Validate sanitized inputs
+            if (!fullname) {
+                showError('Please enter a valid full name');
                 return;
             }
 
-            if (!emailInput.value.trim()) {
-                showError('Please enter your email');
+            if (!email) {
+                showError('Please enter a valid email address');
                 return;
             }
 
-            if (!phoneInput.value.trim()) {
-                showError('Please enter your phone number');
+            if (!phone) {
+                showError('Please enter a valid 10-digit Indian phone number');
                 return;
             }
 
-            if (!passwordInput.value) {
+            if (!password) {
                 showError('Please create a password');
                 return;
             }
 
-            if (passwordInput.value.length < 6) {
-                showError('Password must be at least 6 characters');
+            // Validate password strength
+            const passwordValidation = validatePassword(password);
+            if (!passwordValidation.isValid) {
+                showError(passwordValidation.message);
                 return;
             }
 
-            if (passwordInput.value !== confirmPasswordInput.value) {
+            if (password !== confirmPasswordInput.value) {
                 showError('Passwords do not match');
                 return;
             }
@@ -663,10 +672,6 @@
 
             // Get role
             const role = document.querySelector('input[name="role"]:checked').value;
-            const fullname = fullnameInput.value.trim();
-            const email = emailInput.value.trim().toLowerCase();
-            const phone = phoneInput.value.trim();
-            const password = passwordInput.value;
 
             console.log('📝 Signup attempt:', { role, fullname, email, phone });
 
@@ -676,8 +681,11 @@
             signupBtnText.innerHTML = '<span class="spinner"></span>Creating account...';
 
             // Simulate API
-            setTimeout(() => {
+            setTimeout(async () => {
                 try {
+                    // Hash the password
+                    const hashedPassword = await hashPassword(password);
+
                     // Get existing users
                     const users = JSON.parse(localStorage.getItem('users')) || [];
                     const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
@@ -702,7 +710,7 @@
                             fullname: fullname,
                             email: email,
                             phone: phone,
-                            password: password,
+                            password: hashedPassword,
                             role: 'customer',
                             createdAt: new Date().toISOString()
                         };
@@ -715,7 +723,7 @@
                             name: fullname,
                             email: email,
                             phone: phone,
-                            password: password,
+                            password: hashedPassword,
                             vehicleNumber: '',
                             role: 'driver',
                             createdAt: new Date().toISOString()

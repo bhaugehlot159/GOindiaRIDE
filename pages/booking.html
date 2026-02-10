@@ -1140,6 +1140,7 @@
         </div>
     </div>
 
+    <script src="../js/security.js"></script>
     <script>
         // ============================================
         // AUTHENTICATION CHECK
@@ -1247,13 +1248,14 @@
         function bookRide(e) {
             e.preventDefault();
 
-            const pickup = document.getElementById('pickup').value.trim();
-            const dropoff = document.getElementById('dropoff').value.trim();
+            // Sanitize all inputs
+            const pickup = sanitizeInput(document.getElementById('pickup').value);
+            const dropoff = sanitizeInput(document.getElementById('dropoff').value);
             const rideDate = document.getElementById('rideDate').value;
             const rideTime = document.getElementById('rideTime').value;
             const rideType = document.querySelector('input[name="rideType"]:checked').value;
             const passengers = document.getElementById('passengers').value;
-            const notes = document.getElementById('notes').value;
+            const notes = sanitizeInput(document.getElementById('notes').value);
 
             if (!pickup || !dropoff) {
                 showError('Please enter both pickup and dropoff locations');
