@@ -577,5 +577,6 @@ const locationsData = {
 };
 
 // Export flat location array for backward compatibility
+// This array is deprecated - use locationsData object for structured access
 window.LOCATIONS = [];
 window.locationsData = locationsData;

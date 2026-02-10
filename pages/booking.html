@@ -769,7 +769,9 @@
             position: relative;
         }
 
-        /* Smooth scrollbar for suggestions */
+        /* Smooth scrollbar for suggestions (webkit browsers only) */
+        /* Note: Custom scrollbar styling is only supported in webkit browsers (Chrome, Safari, Edge).
+           Firefox and other browsers will use their default scrollbar appearance. */
         .autocomplete-suggestions::-webkit-scrollbar {
             width: 8px;
         }
