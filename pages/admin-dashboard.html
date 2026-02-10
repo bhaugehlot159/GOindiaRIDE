@@ -109,23 +109,59 @@
         });
 
         function loadDashboardData() {
-            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-            const customers = JSON.parse(localStorage.getItem('users')) || [];
-            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            // Use shared database if available, otherwise fall back to localStorage
+            let bookings, customers, drivers;
+            
+            if (typeof BookingDB !== 'undefined' && BookingDB.getAll) {
+                bookings = BookingDB.getAll();
+            } else {
+                bookings = JSON.parse(localStorage.getItem('bookings')) || 
+                          JSON.parse(localStorage.getItem('goride_bookings')) || [];
+            }
+            
+            if (typeof DriverDB !== 'undefined' && DriverDB.getAll) {
+                drivers = DriverDB.getAll();
+            } else {
+                drivers = JSON.parse(localStorage.getItem('drivers')) || 
+                         JSON.parse(localStorage.getItem('goride_drivers')) || [];
+            }
+            
+            customers = JSON.parse(localStorage.getItem('users')) || 
+                       JSON.parse(localStorage.getItem('goride_users')) || [];
+            
             const completed = bookings.filter(b => b.status === 'completed').length;
-            const pending = bookings.filter(b => b.status === 'pending').length;
+            const pending = bookings.filter(b => 
+                b.status === 'pending' || 
+                b.status === 'confirmed' || 
+                b.status === 'driver_assigned' ||
+                b.status === 'ride_started'
+            ).length;
             const cancelled = bookings.filter(b => b.status === 'cancelled').length;
             const revenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
-            const activeDrv = drivers.filter(d => d.isOnline).length;
+            const activeDrv = drivers.filter(d => d.status === 'available' || d.isOnline).length;
+            
+            // Get total donations
+            let totalDonations = 0;
+            customers.forEach(c => {
+                const donations = JSON.parse(localStorage.getItem('customerDonations_' + c.id)) || [];
+                totalDonations += donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+            });
+            
             document.getElementById('totalBookings').textContent = bookings.length;
             document.getElementById('completedRides').textContent = completed;
             document.getElementById('pendingBookings').textContent = pending;
             document.getElementById('cancelledRides').textContent = cancelled;
-            document.getElementById('totalRevenue').textContent = '₹' + revenue;
-            document.getElementById('activeDrivers').textContent = activeDrv;
+            document.getElementById('totalRevenue').textContent = '₹' + Math.round(revenue);
+            document.getElementById('activeDrivers').textContent = activeDrv + ' / ' + drivers.length;
             document.getElementById('totalCustomers').textContent = customers.length;
-            document.getElementById('totalDonations').textContent = '₹0';
+            document.getElementById('totalDonations').textContent = '₹' + Math.round(totalDonations);
         }
+        
+        // Real-time sync for admin dashboard
+        // Poll every 30 seconds (admin doesn't need sub-second updates)
+        setInterval(() => {
+            loadDashboardData();
+        }, 30000);
 
         function showLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
@@ -151,5 +187,11 @@
             }
         }
     </script>
+    
+    <!-- Core System Scripts -->
+    <script src="../js/database.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/toast.js"></script>
+    <script src="../js/route-suggestions.js"></script>
 </body>
 </html>
