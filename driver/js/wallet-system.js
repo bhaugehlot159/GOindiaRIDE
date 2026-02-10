@@ -176,7 +176,7 @@ function processAddMoney(event) {
     
     setTimeout(() => {
         // Add money to wallet
-        addTransaction(TRANSACTION_TYPES.ADD_MONEY, amount, `Money added via ${paymentMethod.toUpperCase()}`);
+        addTransaction(TRANSACTION_TYPES.ADD_MONEY, amount, `Added via ${paymentMethod.toUpperCase()}`);
         
         showToast(`₹${amount} added to wallet successfully!`, 'success');
         

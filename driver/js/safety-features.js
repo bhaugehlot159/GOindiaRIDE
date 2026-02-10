@@ -1029,14 +1029,27 @@ function openTaxes() {
 
 // Get Taxes Content
 function getTaxesContent() {
-    const currentYear = new Date().getFullYear();
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-11
+    
+    // Indian financial year: April to March
+    let fyStart, fyEnd;
+    if (currentMonth >= 3) { // April (3) to December (11)
+        fyStart = currentYear;
+        fyEnd = currentYear + 1;
+    } else { // January (0) to March (2)
+        fyStart = currentYear - 1;
+        fyEnd = currentYear;
+    }
+    
     const earnings = calculateEarnings('month');
     const annualEarnings = earnings.total * 12; // Estimate
     
     return `
         <div class="tax-container">
             <div class="tax-year">
-                <h3>Financial Year ${currentYear - 1}-${currentYear}</h3>
+                <h3>Financial Year ${fyStart}-${fyEnd}</h3>
             </div>
             
             <div class="tax-summary">
