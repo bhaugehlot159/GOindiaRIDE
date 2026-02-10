@@ -14,11 +14,8 @@ function sanitizeInput(input) {
     // Convert to string if not already
     input = String(input);
     
-    // Remove HTML tags
+    // Remove HTML tags (including script tags)
     input = input.replace(/<[^>]*>/g, '');
-    
-    // Remove script tags and their content
-    input = input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     
     // Trim whitespace
     input = input.trim();
@@ -72,8 +69,8 @@ function sanitizePhone(phone) {
         phone = phone.substring(1);
     }
     
-    // Validate it's exactly 10 digits
-    if (phone.length !== 10 || !/^[6-9]\d{9}$/.test(phone)) {
+    // Validate it's exactly 10 digits starting with 6-9
+    if (!/^[6-9]\d{9}$/.test(phone)) {
         return '';
     }
     
