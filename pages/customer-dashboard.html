@@ -1104,10 +1104,8 @@
                 
                 // Show optional donation suggestion after 1 second
                 setTimeout(() => {
-                    const showDonation = confirm('Would you like to make a small donation to help underprivileged drivers?');
-                    if (showDonation) {
-                        openDonationModal(currentRideForPayment);
-                    }
+                    // Show donation modal instead of confirm dialog
+                    openDonationModal(currentRideForPayment);
                 }, 1000);
                 
                 // Reload rides to update display
@@ -1133,12 +1131,12 @@
             });
         }
 
-        // Real-time sync - poll for updates every 5 seconds
+        // Real-time sync - poll for updates every 10 seconds
         function startRealTimeSync() {
             setInterval(() => {
                 loadRides();
                 checkForCompletedRides();
-            }, 5000); // Poll every 5 seconds
+            }, 10000); // Poll every 10 seconds for customer dashboard
         }
 
         // ============================================

@@ -1074,10 +1074,11 @@
             loadRatings();
             
             // Start real-time sync for driver dashboard
+            // Poll every 15 seconds for new ride requests (more battery-friendly)
             setInterval(() => {
                 loadRides();
                 loadDashboard();
-            }, 5000); // Poll every 5 seconds for new ride requests
+            }, 15000);
         });
 
         function loadDashboard() {
@@ -1382,10 +1383,14 @@
                 showSuccess('✅ Ride started!');
             }
             
-            // Simulate ride completion after 10 seconds (for demo)
-            setTimeout(() => {
-                completeRide(rideId);
-            }, 10000);
+            // Note: In production, ride completion should be manually triggered by the driver
+            // For demo purposes, rides auto-complete after 30 seconds (can be disabled)
+            const DEMO_MODE = true; // Set to false in production
+            if (DEMO_MODE) {
+                setTimeout(() => {
+                    completeRide(rideId);
+                }, 30000); // 30 seconds for demo
+            }
         }
         
         function completeRide(rideId) {

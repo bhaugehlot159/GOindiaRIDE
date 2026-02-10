@@ -158,9 +158,10 @@
         }
         
         // Real-time sync for admin dashboard
+        // Poll every 30 seconds (admin doesn't need sub-second updates)
         setInterval(() => {
             loadDashboardData();
-        }, 5000); // Refresh every 5 seconds
+        }, 30000);
 
         function showLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
