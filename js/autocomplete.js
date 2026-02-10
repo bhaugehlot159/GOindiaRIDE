@@ -3,11 +3,15 @@
    ====================================== */
 
 class LocationAutocomplete {
-    constructor(inputElement, suggestionsElement) {
+    constructor(inputElement, suggestionsElement, options = {}) {
         this.input = inputElement;
         this.suggestionsBox = suggestionsElement;
         this.data = window.locationsData;
         this.currentFocus = -1;
+        
+        // Configurable options with defaults
+        this.minSearchLength = options.minSearchLength || 2;
+        this.maxResults = options.maxResults || 20;
         
         this.init();
     }
@@ -34,7 +38,7 @@ class LocationAutocomplete {
     handleInput(value) {
         this.closeSuggestions();
         
-        if (!value || value.length < 2) {
+        if (!value || value.length < this.minSearchLength) {
             return;
         }
         
@@ -229,7 +233,7 @@ class LocationAutocomplete {
             flattened.push(...results.others.slice(0, 3));
         }
         
-        return flattened.slice(0, 20); // Limit to 20 total items
+        return flattened.slice(0, this.maxResults);
     }
     
     displaySuggestions(suggestions) {
@@ -287,20 +291,20 @@ class LocationAutocomplete {
     handleKeyboard(e) {
         const items = this.suggestionsBox.querySelectorAll('.autocomplete-item');
         
-        if (e.keyCode === 40) { // Down arrow
+        if (e.key === 'ArrowDown') { // Down arrow
             e.preventDefault();
             this.currentFocus++;
             this.addActive(items);
-        } else if (e.keyCode === 38) { // Up arrow
+        } else if (e.key === 'ArrowUp') { // Up arrow
             e.preventDefault();
             this.currentFocus--;
             this.addActive(items);
-        } else if (e.keyCode === 13) { // Enter
+        } else if (e.key === 'Enter') { // Enter
             e.preventDefault();
             if (this.currentFocus > -1 && items[this.currentFocus]) {
                 items[this.currentFocus].click();
             }
-        } else if (e.keyCode === 27) { // Escape
+        } else if (e.key === 'Escape') { // Escape
             this.closeSuggestions();
         }
     }
