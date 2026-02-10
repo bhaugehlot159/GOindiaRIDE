@@ -704,6 +704,100 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ========================================
+           AUTOCOMPLETE LOCATION SUGGESTIONS
+           ======================================== */
+        
+        .autocomplete-suggestions {
+            position: absolute;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 350px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: calc(100% - 4px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            display: none;
+            margin-top: -2px;
+        }
+
+        .autocomplete-category {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .autocomplete-item {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.autocomplete-active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .autocomplete-item strong {
+            color: #764ba2;
+            font-weight: 700;
+        }
+
+        .autocomplete-no-results {
+            padding: 1rem;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .location-group {
+            position: relative;
+        }
+
+        /* Smooth scrollbar for suggestions */
+        .autocomplete-suggestions::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .autocomplete-suggestions::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        .autocomplete-suggestions::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+
+        /* Animation for suggestions appearance */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .autocomplete-suggestions {
+            animation: slideDown 0.2s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -755,15 +849,9 @@
                                     type="text" 
                                     id="pickup" 
                                     placeholder="Where are you? (Enter address or landmark)"
-                                    list="pickupSuggestions"
                                     required
+                                    autocomplete="off"
                                 >
-                                <datalist id="pickupSuggestions">
-                                    <option value="City Center, Jaipur">
-                                    <option value="Airport, Jaipur">
-                                    <option value="Railway Station, Jaipur">
-                                    <option value="Hawa Mahal, Jaipur">
-                                </datalist>
                             </div>
                         </div>
 
@@ -774,18 +862,12 @@
                                     type="text" 
                                     id="dropoff" 
                                     placeholder="Where to? (Enter address or landmark)"
-                                    list="dropoffSuggestions"
                                     required
+                                    autocomplete="off"
                                 >
                                 <button type="button" class="swap-btn" onclick="swapLocations()" title="Swap locations">
                                     <i class="fas fa-exchange-alt"></i>
                                 </button>
-                                <datalist id="dropoffSuggestions">
-                                    <option value="City Center, Jaipur">
-                                    <option value="Airport, Jaipur">
-                                    <option value="Railway Station, Jaipur">
-                                    <option value="Mall, Jaipur">
-                                </datalist>
                             </div>
                         </div>
                     </div>
@@ -1552,5 +1634,9 @@ Thank you for your generosity! ❤️
 
         console.log('🚀 Booking page loaded');
     </script>
+    
+    <!-- Location Data & Autocomplete Scripts -->
+    <script src="../js/locations.js"></script>
+    <script src="../js/autocomplete.js"></script>
 </body>
 </html>
