@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - GOindiaRIDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-taxi"></i>
+                <span>GOindiaRIDE</span>
+            </div>
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="sidebarSearch" placeholder="Search features...">
+        </div>
+
+        <div class="sidebar-menu" id="sidebarMenu">
+            <!-- Dashboard -->
+            <div class="menu-section">
+                <div class="menu-section-title">Main</div>
+                <a href="#dashboard" class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <!-- AI & Automation -->
+            <div class="menu-section">
+                <div class="menu-section-title">AI & Automation</div>
+                <a href="#ai-auto-block" class="menu-item" data-section="ai-auto-block">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>AI Auto-Block System</span>
+                </a>
+                <a href="#smart-fare" class="menu-item" data-section="smart-fare">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Smart Fare Control</span>
+                </a>
+                <a href="#demand-prediction" class="menu-item" data-section="demand-prediction">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Demand Prediction</span>
+                </a>
+                <a href="#auto-offer" class="menu-item" data-section="auto-offer">
+                    <i class="fas fa-bell"></i>
+                    <span>Auto-Offer System</span>
+                </a>
+                <a href="#speed-monitor" class="menu-item" data-section="speed-monitor">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Speed Monitor</span>
+                </a>
+                <a href="#driver-matching" class="menu-item" data-section="driver-matching">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Smart Driver Matching</span>
+                </a>
+                <a href="#fraud-detection" class="menu-item" data-section="fraud-detection">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Fraud Detection</span>
+                </a>
+                <a href="#maintenance-alerts" class="menu-item" data-section="maintenance-alerts">
+                    <i class="fas fa-wrench"></i>
+                    <span>Maintenance Alerts</span>
+                </a>
+            </div>
+
+            <!-- Financial -->
+            <div class="menu-section">
+                <div class="menu-section-title">Financial</div>
+                <a href="#affiliate-tracking" class="menu-item" data-section="affiliate-tracking">
+                    <i class="fas fa-handshake"></i>
+                    <span>Affiliate Commission</span>
+                </a>
+                <a href="#donation-reports" class="menu-item" data-section="donation-reports">
+                    <i class="fas fa-heart"></i>
+                    <span>Donation Reports</span>
+                </a>
+                <a href="#cancellation-earnings" class="menu-item" data-section="cancellation-earnings">
+                    <i class="fas fa-ban"></i>
+                    <span>Cancellation Earnings</span>
+                </a>
+                <a href="#tax-reports" class="menu-item" data-section="tax-reports">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Tax/GST Reports</span>
+                </a>
+                <a href="#insurance-fund" class="menu-item" data-section="insurance-fund">
+                    <i class="fas fa-umbrella"></i>
+                    <span>Insurance Fund</span>
+                </a>
+                <a href="#revenue-analytics" class="menu-item" data-section="revenue-analytics">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Revenue Analytics</span>
+                </a>
+                <a href="#driver-payout" class="menu-item" data-section="driver-payout">
+                    <i class="fas fa-money-check-alt"></i>
+                    <span>Driver Payout</span>
+                </a>
+                <a href="#expense-tracking" class="menu-item" data-section="expense-tracking">
+                    <i class="fas fa-receipt"></i>
+                    <span>Expense Tracking</span>
+                </a>
+            </div>
+
+            <!-- Safety & Monitoring -->
+            <div class="menu-section">
+                <div class="menu-section-title">Safety & Monitoring</div>
+                <a href="#health-monitor" class="menu-item" data-section="health-monitor">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Driver Health Monitor</span>
+                </a>
+                <a href="#live-tracking" class="menu-item" data-section="live-tracking">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Live Map Tracking</span>
+                </a>
+                <a href="#sos-alerts" class="menu-item" data-section="sos-alerts">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>SOS Alerts</span>
+                </a>
+                <a href="#document-verification" class="menu-item" data-section="document-verification">
+                    <i class="fas fa-id-card"></i>
+                    <span>Document Verification</span>
+                </a>
+                <a href="#demand-heatmap" class="menu-item" data-section="demand-heatmap">
+                    <i class="fas fa-fire"></i>
+                    <span>Demand Heat Map</span>
+                </a>
+                <a href="#virtual-escort" class="menu-item" data-section="virtual-escort">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Virtual Escort Control</span>
+                </a>
+                <a href="#background-check" class="menu-item" data-section="background-check">
+                    <i class="fas fa-user-check"></i>
+                    <span>Background Check</span>
+                </a>
+                <a href="#incident-reports" class="menu-item" data-section="incident-reports">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Incident Reports</span>
+                </a>
+            </div>
+
+            <!-- Management -->
+            <div class="menu-section">
+                <div class="menu-section-title">Management</div>
+                <a href="#leaderboard" class="menu-item" data-section="leaderboard">
+                    <i class="fas fa-trophy"></i>
+                    <span>Driver Leaderboard</span>
+                </a>
+                <a href="#vendor-management" class="menu-item" data-section="vendor-management">
+                    <i class="fas fa-truck"></i>
+                    <span>Vendor Management</span>
+                </a>
+                <a href="#service-alerts" class="menu-item" data-section="service-alerts">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Service Alerts</span>
+                </a>
+                <a href="#support-dashboard" class="menu-item" data-section="support-dashboard">
+                    <i class="fas fa-headset"></i>
+                    <span>Customer Support</span>
+                </a>
+                <a href="#driver-approval" class="menu-item" data-section="driver-approval">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Driver Approval</span>
+                </a>
+                <a href="#promo-offers" class="menu-item" data-section="promo-offers">
+                    <i class="fas fa-tags"></i>
+                    <span>Promotional Offers</span>
+                </a>
+                <a href="#system-config" class="menu-item" data-section="system-config">
+                    <i class="fas fa-cog"></i>
+                    <span>System Configuration</span>
+                </a>
+                <a href="#audit-logs" class="menu-item" data-section="audit-logs">
+                    <i class="fas fa-history"></i>
+                    <span>Audit Logs</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <div class="topbar-actions">
+                <button class="icon-btn" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">5</span>
+                </button>
+                <div class="admin-profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=667eea&color=fff" alt="Admin">
+                    <span>Admin</span>
+                </div>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area" id="contentArea">
+            <!-- Dashboard Section (Default) -->
+            <section id="section-dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>Welcome to Admin Portal</h2>
+                    <p>Comprehensive management system with 30+ features</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Users</div>
+                            <div class="stat-value" id="stat-users">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Active Drivers</div>
+                            <div class="stat-value" id="stat-drivers">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Bookings</div>
+                            <div class="stat-value" id="stat-bookings">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-value" id="stat-revenue">₹0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Revenue Trends</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Booking Status</h3>
+                        <canvas id="bookingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list" id="activityList">
+                        <!-- Activity items will be dynamically loaded -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI & Automation Sections -->
+            <section id="section-ai-auto-block" class="content-section"></section>
+            <section id="section-smart-fare" class="content-section"></section>
+            <section id="section-demand-prediction" class="content-section"></section>
+            <section id="section-auto-offer" class="content-section"></section>
+            <section id="section-speed-monitor" class="content-section"></section>
+            <section id="section-driver-matching" class="content-section"></section>
+            <section id="section-fraud-detection" class="content-section"></section>
+            <section id="section-maintenance-alerts" class="content-section"></section>
+
+            <!-- Financial Sections -->
+            <section id="section-affiliate-tracking" class="content-section"></section>
+            <section id="section-donation-reports" class="content-section"></section>
+            <section id="section-cancellation-earnings" class="content-section"></section>
+            <section id="section-tax-reports" class="content-section"></section>
+            <section id="section-insurance-fund" class="content-section"></section>
+            <section id="section-revenue-analytics" class="content-section"></section>
+            <section id="section-driver-payout" class="content-section"></section>
+            <section id="section-expense-tracking" class="content-section"></section>
+
+            <!-- Safety & Monitoring Sections -->
+            <section id="section-health-monitor" class="content-section"></section>
+            <section id="section-live-tracking" class="content-section"></section>
+            <section id="section-sos-alerts" class="content-section"></section>
+            <section id="section-document-verification" class="content-section"></section>
+            <section id="section-demand-heatmap" class="content-section"></section>
+            <section id="section-virtual-escort" class="content-section"></section>
+            <section id="section-background-check" class="content-section"></section>
+            <section id="section-incident-reports" class="content-section"></section>
+
+            <!-- Management Sections -->
+            <section id="section-leaderboard" class="content-section"></section>
+            <section id="section-vendor-management" class="content-section"></section>
+            <section id="section-service-alerts" class="content-section"></section>
+            <section id="section-support-dashboard" class="content-section"></section>
+            <section id="section-driver-approval" class="content-section"></section>
+            <section id="section-promo-offers" class="content-section"></section>
+            <section id="section-system-config" class="content-section"></section>
+            <section id="section-audit-logs" class="content-section"></section>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scripts -->
+    <script src="js/admin-portal.js"></script>
+    <script src="js/ai-features.js"></script>
+    <script src="js/financial-reports.js"></script>
+    <script src="js/safety-monitoring.js"></script>
+</body>
+</html>
