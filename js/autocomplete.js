@@ -326,28 +326,31 @@ class LocationAutocomplete {
     }
 }
 
-// Initialize autocomplete when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    const pickupInput = document.getElementById('pickup');
-    const dropoffInput = document.getElementById('dropoff');
+// Helper function to initialize autocomplete for an input
+function initializeAutocomplete(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
     
-    if (pickupInput) {
-        // Create suggestions container for pickup
-        const pickupSuggestions = document.createElement('div');
-        pickupSuggestions.id = 'pickupAutocomplete';
-        pickupSuggestions.className = 'autocomplete-suggestions';
-        pickupInput.parentNode.appendChild(pickupSuggestions);
-        
-        new LocationAutocomplete(pickupInput, pickupSuggestions);
-    }
+    // Create suggestions container
+    const suggestions = document.createElement('div');
+    suggestions.id = inputId + 'Autocomplete';
+    suggestions.className = 'autocomplete-suggestions';
+    input.parentNode.appendChild(suggestions);
     
-    if (dropoffInput) {
-        // Create suggestions container for dropoff
-        const dropoffSuggestions = document.createElement('div');
-        dropoffSuggestions.id = 'dropoffAutocomplete';
-        dropoffSuggestions.className = 'autocomplete-suggestions';
-        dropoffInput.parentNode.appendChild(dropoffSuggestions);
-        
-        new LocationAutocomplete(dropoffInput, dropoffSuggestions);
-    }
-});
+    // Initialize autocomplete
+    new LocationAutocomplete(input, suggestions);
+}
+
+// Initialize autocomplete when DOM is loaded or immediately if already loaded
+function initializeAllAutocomplete() {
+    initializeAutocomplete('pickup');
+    initializeAutocomplete('dropoff');
+}
+
+// Check if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAllAutocomplete);
+} else {
+    // DOM already loaded, initialize immediately
+    initializeAllAutocomplete();
+}
