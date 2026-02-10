@@ -14,8 +14,12 @@ function sanitizeInput(input) {
     // Convert to string if not already
     input = String(input);
     
-    // Remove HTML tags (including script tags)
-    input = input.replace(/<[^>]*>/g, '');
+    // Remove HTML tags iteratively to handle nested/malformed tags
+    let previousInput;
+    do {
+        previousInput = input;
+        input = input.replace(/<[^>]*>/g, '');
+    } while (input !== previousInput);
     
     // Trim whitespace
     input = input.trim();
