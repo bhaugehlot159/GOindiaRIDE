@@ -1040,6 +1040,9 @@
                     </p>
                 </div>
 
+                <!-- Route Highlights (Dynamic) -->
+                <div id="routeHighlightsContainer" style="display: none;"></div>
+
                 <!-- Matching Status -->
                 <div class="matching-card" id="matchingCard" style="display: none;">
                     <div class="matching-status">
@@ -1315,6 +1318,22 @@
         // LOCATION FUNCTIONS
         // ============================================
 
+        // Update route highlights when locations change
+        function updateRouteHighlights() {
+            const pickup = document.getElementById('pickup').value;
+            const dropoff = document.getElementById('dropoff').value;
+            
+            if (pickup && dropoff && typeof showRouteHighlights === 'function') {
+                showRouteHighlights(pickup, dropoff, 'routeHighlightsContainer');
+            }
+        }
+
+        // Add event listeners for location changes
+        document.getElementById('pickup').addEventListener('change', updateRouteHighlights);
+        document.getElementById('dropoff').addEventListener('change', updateRouteHighlights);
+        document.getElementById('pickup').addEventListener('blur', updateRouteHighlights);
+        document.getElementById('dropoff').addEventListener('blur', updateRouteHighlights);
+
         function swapLocations() {
             const pickup = document.getElementById('pickup').value;
             const dropoff = document.getElementById('dropoff').value;
@@ -1385,50 +1404,95 @@
             document.getElementById('bookingReference').textContent = `Reference: #${bookingId}`;
             document.getElementById('successModal').classList.add('active');
 
+            // Show success toast notification
+            if (typeof showSuccessToast === 'function') {
+                showSuccessToast(`Your ride has been confirmed! Booking ID: ${bookingId}`, 'Booking Confirmed');
+            }
+
+            // Auto-assign driver after 3 seconds
             setTimeout(() => {
                 assignDriver(bookingId);
             }, 3000);
 
-            setTimeout(() => {
-                completeRideAndShowDonation(bookingId);
-            }, 5000);
+            // Note: Donation popup removed from booking flow
+            // It will appear only after ride completion in customer dashboard
         }
 
         function assignDriver(bookingId) {
-            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+            // Show "Finding driver" animation
+            document.getElementById('matchingCard').style.display = 'block';
+            document.getElementById('driverDetails').classList.remove('show');
+            
+            // Try to use database.js auto-assign if available
+            if (typeof autoAssignDriver === 'function') {
+                const driver = autoAssignDriver(bookingId);
+                if (driver) {
+                    setTimeout(() => {
+                        updateDriverDisplay(driver, bookingId);
+                        if (typeof showSuccessToast === 'function') {
+                            showSuccessToast(`${driver.name} will be your driver. ETA: 5 minutes`, 'Driver Assigned');
+                        }
+                    }, 2000);
+                    return;
+                }
+            }
+            
+            // Fallback to local drivers
+            const drivers = JSON.parse(localStorage.getItem('goride_drivers')) || 
+                           JSON.parse(localStorage.getItem('drivers')) || [];
             
             if (drivers.length === 0) {
-                showError('No drivers available');
+                setTimeout(() => {
+                    document.getElementById('matchingCard').style.display = 'none';
+                    if (typeof showWarningToast === 'function') {
+                        showWarningToast('No drivers available at the moment. Please try again in a few minutes.', 'No Drivers Available');
+                    } else {
+                        showError('No drivers available');
+                    }
+                }, 2000);
                 return;
             }
 
             const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
 
-            let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-            const bookingIdx = bookings.findIndex(b => b.id === bookingId);
-            
-            if (bookingIdx !== -1) {
-                bookings[bookingIdx].driverId = randomDriver.id;
-                bookings[bookingIdx].driverName = randomDriver.name;
-                bookings[bookingIdx].driverRating = randomDriver.rating || 5.0;
-                bookings[bookingIdx].driverPhone = randomDriver.phone;
-                bookings[bookingIdx].vehicleType = randomDriver.vehicleType;
-                bookings[bookingIdx].vehicleNumber = randomDriver.vehicleNumber;
-                bookings[bookingIdx].driverETA = (Math.floor(Math.random() * 5) + 2) + ' mins';
-                bookings[bookingIdx].status = 'confirmed';
+            setTimeout(() => {
+                let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const bookingIdx = bookings.findIndex(b => b.id === bookingId);
                 
-                localStorage.setItem('bookings', JSON.stringify(bookings));
+                if (bookingIdx !== -1) {
+                    bookings[bookingIdx].driverId = randomDriver.id;
+                    bookings[bookingIdx].driverName = randomDriver.name;
+                    bookings[bookingIdx].driverRating = randomDriver.rating || 5.0;
+                    bookings[bookingIdx].driverPhone = randomDriver.phone;
+                    bookings[bookingIdx].vehicleType = randomDriver.vehicle?.type || randomDriver.vehicleType;
+                    bookings[bookingIdx].vehicleNumber = randomDriver.vehicle?.number || randomDriver.vehicleNumber;
+                    bookings[bookingIdx].driverETA = (Math.floor(Math.random() * 5) + 2) + ' mins';
+                    bookings[bookingIdx].status = 'confirmed';
+                    
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
 
-                document.getElementById('driverName').textContent = randomDriver.name;
-                document.getElementById('driverRating').textContent = `⭐⭐⭐⭐⭐ ${randomDriver.rating || 5.0}`;
-                document.getElementById('vehicleType').textContent = randomDriver.vehicleType;
-                document.getElementById('vehicleNumber').textContent = randomDriver.vehicleNumber;
-                document.getElementById('driverETA').textContent = bookings[bookingIdx].driverETA;
+                    updateDriverDisplay(randomDriver, bookingId);
+                    
+                    if (typeof showSuccessToast === 'function') {
+                        showSuccessToast(`${randomDriver.name} will be your driver. ETA: ${bookings[bookingIdx].driverETA}`, 'Driver Assigned');
+                    }
+                }
+            }, 2000);
+        }
+        
+        function updateDriverDisplay(driver, bookingId) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const booking = bookings.find(b => b.id === bookingId);
+            
+            document.getElementById('driverName').textContent = driver.name;
+            document.getElementById('driverRating').textContent = `⭐⭐⭐⭐⭐ ${driver.rating || 5.0}`;
+            document.getElementById('vehicleType').textContent = driver.vehicle?.model || driver.vehicleType || 'Car';
+            document.getElementById('vehicleNumber').textContent = driver.vehicle?.number || driver.vehicleNumber || 'RJ 01 AB 1234';
+            document.getElementById('driverETA').textContent = booking?.driverETA || '5 mins';
 
-                const initials = randomDriver.name.split(' ').map(n => n[0]).join('').toUpperCase();
-                document.getElementById('driverAvatar').textContent = initials;
-                document.getElementById('driverDetails').classList.add('show');
-            }
+            const initials = driver.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.getElementById('driverAvatar').textContent = initials;
+            document.getElementById('driverDetails').classList.add('show');
         }
 
         // 🎯 Complete ride and show donation
@@ -1636,6 +1700,12 @@ Thank you for your generosity! ❤️
 
         console.log('🚀 Booking page loaded');
     </script>
+    
+    <!-- Core System Scripts -->
+    <script src="../js/database.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/toast.js"></script>
+    <script src="../js/route-suggestions.js"></script>
     
     <!-- Location Data & Autocomplete Scripts -->
     <script src="../js/locations.js"></script>

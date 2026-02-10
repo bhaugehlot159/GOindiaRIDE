@@ -1,9 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
+  <!-- English (default) -->
   <url>
     <loc>https://bhaugehlot159.github.io/GOindiaRIDE/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://bhaugehlot159.github.io/GOindiaRIDE/" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://bhaugehlot159.github.io/GOindiaRIDE/hi/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://bhaugehlot159.github.io/GOindiaRIDE/fr/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://bhaugehlot159.github.io/GOindiaRIDE/de/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://bhaugehlot159.github.io/GOindiaRIDE/es/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://bhaugehlot159.github.io/GOindiaRIDE/ja/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://bhaugehlot159.github.io/GOindiaRIDE/zh/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://bhaugehlot159.github.io/GOindiaRIDE/ar/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://bhaugehlot159.github.io/GOindiaRIDE/" />
     <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Booking Page -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/booking.html</loc>
+    <priority>0.9</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Login Page -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/login.html</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Signup Page -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/signup.html</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Customer Dashboard -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/customer-dashboard.html</loc>
+    <priority>0.7</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Driver Dashboard -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/driver-dashboard.html</loc>
+    <priority>0.7</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Admin Dashboard -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/admin-dashboard.html</loc>
+    <priority>0.6</priority>
+    <changefreq>daily</changefreq>
   </url>
 
 </urlset>
