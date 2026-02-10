@@ -290,11 +290,12 @@ function submitDocument(event, docType) {
 }
 
 // Simulate Verification (Demo)
+// NOTE: This is demo/testing code. In production, replace with actual API calls to verification service
 function simulateVerification(docType) {
     const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
     
     if (kycData.documents[docType]) {
-        // 90% chance of approval
+        // Demo: 90% chance of approval (replace with actual API verification in production)
         const approved = Math.random() > 0.1;
         
         kycData.documents[docType].status = approved ? 'verified' : 'rejected';

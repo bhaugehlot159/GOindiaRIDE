@@ -435,6 +435,9 @@ function completeRide() {
     // Check fatigue
     checkFatigue();
     
+    // Save fare before clearing ride
+    const completedFare = driverState.currentRide.fare;
+    
     // Save trip
     saveTrip(driverState.currentRide);
     
@@ -445,7 +448,7 @@ function completeRide() {
     // Update dashboard
     updateDashboard();
     
-    showToast(`Ride completed! Earned ${driverState.currentRide?.fare || '₹0'}`, 'success');
+    showToast(`Ride completed! Earned ${completedFare}`, 'success');
     
     // Check for next request
     checkForRideRequests();
