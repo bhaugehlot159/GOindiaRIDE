@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Portal - GO India RIDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/customer-styles.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-taxi"></i>
+                <span>GO India RIDE</span>
+            </div>
+            <div class="nav-right">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="user-menu">
+                    <img src="https://via.placeholder.com/40" alt="User" class="user-avatar" id="userAvatar">
+                    <span class="user-name" id="userName">Guest</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Home Screen -->
+        <section id="homeSection" class="section active">
+            <!-- Quick Booking Card -->
+            <div class="quick-booking-card">
+                <h2>Where to?</h2>
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchLocation" placeholder="Search destination..." class="search-input">
+                </div>
+                
+                <!-- Recent Places -->
+                <div class="recent-places" id="recentPlaces">
+                    <h3><i class="fas fa-clock"></i> Recent Places</h3>
+                    <div class="places-list" id="recentPlacesList"></div>
+                </div>
+
+                <!-- Favorite Locations -->
+                <div class="favorite-locations" id="favoriteLocations">
+                    <h3><i class="fas fa-heart"></i> Favorites</h3>
+                    <div class="favorites-list" id="favoritesList"></div>
+                </div>
+            </div>
+
+            <!-- Booking Types -->
+            <div class="booking-types">
+                <h3>Select Ride Type</h3>
+                <div class="booking-type-grid">
+                    <button class="booking-type-btn" data-type="local">
+                        <i class="fas fa-city"></i>
+                        <span>Local</span>
+                        <small>Within city rides</small>
+                    </button>
+                    <button class="booking-type-btn" data-type="outstation">
+                        <i class="fas fa-map"></i>
+                        <span>Outstation</span>
+                        <small>Inter-city trips</small>
+                    </button>
+                    <button class="booking-type-btn" data-type="rental">
+                        <i class="fas fa-clock"></i>
+                        <span>Rental</span>
+                        <small>Hourly packages</small>
+                    </button>
+                    <button class="booking-type-btn" data-type="airport">
+                        <i class="fas fa-plane"></i>
+                        <span>Airport</span>
+                        <small>Pickup/Drop</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Offers Banner -->
+            <div class="offers-banner" id="offersBanner">
+                <div class="offer-card first-ride">
+                    <i class="fas fa-gift"></i>
+                    <div class="offer-content">
+                        <h4>First Ride Discount!</h4>
+                        <p>Get 5-7% off on your first booking</p>
+                        <span class="promo-code">Use: FIRST5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fare Calculator -->
+            <div class="fare-calculator">
+                <h3><i class="fas fa-calculator"></i> Fare Estimator</h3>
+                <button class="btn-secondary" id="openFareCalc">Calculate Fare</button>
+            </div>
+        </section>
+
+        <!-- Bookings Section -->
+        <section id="bookingsSection" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-alt"></i> My Bookings</h2>
+                <button class="btn-primary" id="scheduleBookingBtn">
+                    <i class="fas fa-clock"></i> Schedule Ride
+                </button>
+            </div>
+
+            <!-- Active Bookings -->
+            <div class="active-bookings" id="activeBookings">
+                <h3>Active Rides</h3>
+                <div id="activeBookingsList"></div>
+            </div>
+
+            <!-- Scheduled Bookings -->
+            <div class="scheduled-bookings" id="scheduledBookings">
+                <h3>Scheduled Rides</h3>
+                <div id="scheduledBookingsList"></div>
+            </div>
+
+            <!-- Ride History -->
+            <div class="ride-history" id="rideHistory">
+                <h3>Ride History</h3>
+                <div id="rideHistoryList"></div>
+            </div>
+        </section>
+
+        <!-- Wallet Section -->
+        <section id="walletSection" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-wallet"></i> My Wallet</h2>
+            </div>
+
+            <!-- Dual Wallet System -->
+            <div class="dual-wallet">
+                <div class="wallet-card payment-wallet">
+                    <div class="wallet-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="wallet-info">
+                        <h3>Payment Wallet</h3>
+                        <p class="wallet-balance">₹<span id="paymentBalance">0</span></p>
+                        <button class="btn-add-money" data-wallet="payment">Add Money</button>
+                    </div>
+                </div>
+                <div class="wallet-card donation-wallet">
+                    <div class="wallet-icon"><i class="fas fa-hands-helping"></i></div>
+                    <div class="wallet-info">
+                        <h3>Donation Wallet</h3>
+                        <p class="wallet-balance">₹<span id="donationBalance">0</span></p>
+                        <button class="btn-add-money" data-wallet="donation">Add Money</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="wallet-actions">
+                <button class="action-btn" id="transferWalletBtn">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transfer</span>
+                </button>
+                <button class="action-btn" id="donateBtn">
+                    <i class="fas fa-donate"></i>
+                    <span>Donate</span>
+                </button>
+                <button class="action-btn" id="rewardsBtn">
+                    <i class="fas fa-gift"></i>
+                    <span>Rewards</span>
+                </button>
+                <button class="action-btn" id="splitFareBtn">
+                    <i class="fas fa-users"></i>
+                    <span>Split Fare</span>
+                </button>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="transaction-history">
+                <h3>Recent Transactions</h3>
+                <div id="transactionList"></div>
+            </div>
+
+            <!-- Cashback & Rewards -->
+            <div class="rewards-section">
+                <h3>Cashback & Rewards</h3>
+                <div class="rewards-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-coins"></i>
+                        <span class="stat-value" id="rewardPoints">0</span>
+                        <span class="stat-label">Points</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-percentage"></i>
+                        <span class="stat-value" id="cashbackEarned">₹0</span>
+                        <span class="stat-label">Cashback</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tourism Section -->
+        <section id="tourismSection" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-landmark"></i> Tourism Guide</h2>
+            </div>
+
+            <!-- Digital Travel Card -->
+            <div class="travel-card" id="digitalTravelCard">
+                <div class="card-header">
+                    <h3>Digital Travel Card</h3>
+                    <i class="fas fa-id-card"></i>
+                </div>
+                <div class="card-content">
+                    <div class="qr-code" id="travelQR"></div>
+                    <div class="card-info">
+                        <p><strong>Name:</strong> <span id="travelName"></span></p>
+                        <p><strong>ID:</strong> <span id="travelID"></span></p>
+                        <p><strong>Valid Until:</strong> <span id="travelValidity"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tourism Features Grid -->
+            <div class="tourism-grid">
+                <div class="tourism-card" id="templeTimings">
+                    <i class="fas fa-om"></i>
+                    <h3>Temple Aarti Timings</h3>
+                    <p>Daily schedules & special events</p>
+                </div>
+                <div class="tourism-card" id="culturalGuide">
+                    <i class="fas fa-book"></i>
+                    <h3>Cultural Guide</h3>
+                    <p>Local customs & traditions</p>
+                </div>
+                <div class="tourism-card" id="eventsAlerts">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3>Local Events</h3>
+                    <p>Festivals & fairs</p>
+                </div>
+                <div class="tourism-card" id="tourPackages">
+                    <i class="fas fa-suitcase"></i>
+                    <h3>Tour Packages</h3>
+                    <p>Pre-made tour packages</p>
+                </div>
+                <div class="tourism-card" id="heritageWalks">
+                    <i class="fas fa-walking"></i>
+                    <h3>Heritage Walks</h3>
+                    <p>Walking tour routes</p>
+                </div>
+                <div class="tourism-card" id="foodGuide">
+                    <i class="fas fa-utensils"></i>
+                    <h3>Food Guide</h3>
+                    <p>Local cuisines & restaurants</p>
+                </div>
+                <div class="tourism-card" id="shoppingGuide">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>Shopping Guide</h3>
+                    <p>Markets & handicrafts</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profileSection" class="section">
+            <div class="section-header">
+                <h2><i class="fas fa-user"></i> My Profile</h2>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <img src="https://via.placeholder.com/100" alt="Profile" id="profileAvatar">
+                    <button class="edit-avatar"><i class="fas fa-camera"></i></button>
+                </div>
+                <div class="profile-info">
+                    <h3 id="profileName">Guest User</h3>
+                    <p id="profileEmail">guest@example.com</p>
+                    <p id="profilePhone">+91 XXXXXXXXXX</p>
+                </div>
+            </div>
+
+            <!-- Profile Options -->
+            <div class="profile-options">
+                <div class="option-item" id="ridePreferences">
+                    <i class="fas fa-cog"></i>
+                    <span>Ride Preferences</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="option-item" id="emergencyContacts">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>Emergency Contacts</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="option-item" id="notificationSettings">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="option-item" id="customerSupport">
+                    <i class="fas fa-headset"></i>
+                    <span>Customer Support</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="option-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-section="homeSection">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-btn" data-section="bookingsSection">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Bookings</span>
+        </button>
+        <button class="nav-btn" data-section="walletSection">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </button>
+        <button class="nav-btn" data-section="tourismSection">
+            <i class="fas fa-landmark"></i>
+            <span>Tourism</span>
+        </button>
+        <button class="nav-btn" data-section="profileSection">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </button>
+    </nav>
+
+    <!-- SOS Button (Floating) -->
+    <button class="sos-button" id="sosButton">
+        <i class="fas fa-exclamation-triangle"></i>
+        SOS
+    </button>
+
+    <!-- Modals -->
+    
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="bookingModalTitle">Book a Ride</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label>Pickup Location</label>
+                    <input type="text" id="pickupLocation" placeholder="Enter pickup location" required>
+                </div>
+                <div class="form-group">
+                    <label>Drop Location</label>
+                    <input type="text" id="dropLocation" placeholder="Enter drop location" required>
+                </div>
+                <div class="form-group">
+                    <label>Vehicle Type</label>
+                    <select id="vehicleType">
+                        <option value="sedan">Sedan</option>
+                        <option value="suv">SUV</option>
+                        <option value="mini">Mini</option>
+                        <option value="luxury">Luxury</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Preferences</label>
+                    <div class="preferences-grid">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="acPreference">
+                            <span>AC Required</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="luggageSpace">
+                            <span>Extra Luggage</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="farePreview" class="fare-preview"></div>
+                <button type="submit" class="btn-primary">Book Now</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Schedule Booking Modal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Schedule a Ride</h2>
+            <form id="scheduleForm">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="scheduleDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Time</label>
+                    <input type="time" id="scheduleTime" required>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="recurringRide">
+                        <span>Make it recurring</span>
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary">Schedule Ride</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Modal -->
+    <div id="sosModal" class="modal">
+        <div class="modal-content sos-modal-content">
+            <span class="close">&times;</span>
+            <h2 style="color: #e74c3c;">Emergency SOS</h2>
+            <div class="sos-buttons">
+                <a href="tel:100" class="sos-btn police">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Police</span>
+                    <small>100</small>
+                </a>
+                <a href="tel:108" class="sos-btn ambulance">
+                    <i class="fas fa-ambulance"></i>
+                    <span>Ambulance</span>
+                    <small>108</small>
+                </a>
+                <a href="tel:" class="sos-btn emergency" id="emergencyContactBtn">
+                    <i class="fas fa-phone"></i>
+                    <span>Emergency Contact</span>
+                    <small id="emergencyContactNumber">Add Contact</small>
+                </a>
+            </div>
+            <div class="location-share">
+                <h3>Share Location</h3>
+                <button class="btn-secondary" id="shareLocationBtn">
+                    <i class="fas fa-share-alt"></i> Share via WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div id="addMoneyModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Money</h2>
+            <div class="amount-options">
+                <button class="amount-btn" data-amount="100">₹100</button>
+                <button class="amount-btn" data-amount="250">₹250</button>
+                <button class="amount-btn" data-amount="500">₹500</button>
+                <button class="amount-btn" data-amount="1000">₹1000</button>
+                <button class="amount-btn" data-amount="2000">₹2000</button>
+                <button class="amount-btn" data-amount="5000">₹5000</button>
+            </div>
+            <div class="form-group">
+                <label>Custom Amount</label>
+                <input type="number" id="customAmount" placeholder="Enter amount">
+            </div>
+            <div class="payment-methods">
+                <h3>Payment Method</h3>
+                <label class="radio-label">
+                    <input type="radio" name="paymentMethod" value="upi" checked>
+                    <span>UPI</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="paymentMethod" value="card">
+                    <span>Credit/Debit Card</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="paymentMethod" value="netbanking">
+                    <span>Net Banking</span>
+                </label>
+            </div>
+            <button class="btn-primary" id="proceedPayment">Proceed to Payment</button>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Make a Donation</h2>
+            <div class="donation-options">
+                <h3>Select Temple/Charity</h3>
+                <select id="donationDestination">
+                    <option value="temple1">Jagdish Temple, Udaipur</option>
+                    <option value="temple2">Karni Mata Temple, Bikaner</option>
+                    <option value="temple3">Brahma Temple, Pushkar</option>
+                    <option value="charity1">Child Education Fund</option>
+                    <option value="charity2">Food for Poor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" id="donationAmount" placeholder="Enter donation amount">
+            </div>
+            <div class="donation-info">
+                <i class="fas fa-info-circle"></i>
+                <small>Tax deduction certificate will be sent via email</small>
+            </div>
+            <button class="btn-primary" id="proceedDonation">Donate Now</button>
+        </div>
+    </div>
+
+    <!-- Split Fare Modal -->
+    <div id="splitFareModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Split Fare</h2>
+            <div class="form-group">
+                <label>Total Fare</label>
+                <input type="number" id="totalFare" placeholder="Enter total fare">
+            </div>
+            <div class="form-group">
+                <label>Number of People</label>
+                <input type="number" id="numberOfPeople" value="2" min="2" max="10">
+            </div>
+            <div id="perPersonFare" class="fare-display"></div>
+            <div class="form-group">
+                <label>Invite via</label>
+                <button class="btn-secondary" id="inviteWhatsApp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ride Preferences Modal -->
+    <div id="preferencesModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ride Preferences</h2>
+            <div class="preference-option">
+                <label>AC Preference</label>
+                <select id="acPref">
+                    <option value="any">Any</option>
+                    <option value="ac">AC Only</option>
+                    <option value="nonac">Non-AC Only</option>
+                </select>
+            </div>
+            <div class="preference-option">
+                <label>Driver Gender Preference</label>
+                <select id="driverGenderPref">
+                    <option value="any">Any</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+            <div class="preference-option">
+                <label>Music Preference</label>
+                <select id="musicPref">
+                    <option value="any">Any</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No Music</option>
+                </select>
+            </div>
+            <button class="btn-primary" id="savePreferences">Save Preferences</button>
+        </div>
+    </div>
+
+    <!-- Live Trip Modal -->
+    <div id="liveTripModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Live Trip</h2>
+            <div class="trip-map" id="tripMap">
+                <div class="map-placeholder">Map will load here</div>
+            </div>
+            <div class="driver-info">
+                <img src="https://via.placeholder.com/50" alt="Driver">
+                <div>
+                    <h3 id="driverName">Driver Name</h3>
+                    <p id="vehicleDetails">Vehicle Details</p>
+                    <div class="driver-rating">
+                        <i class="fas fa-star"></i>
+                        <span id="driverRating">4.8</span>
+                    </div>
+                </div>
+            </div>
+            <div class="trip-actions">
+                <button class="btn-secondary" id="chatWithDriver">
+                    <i class="fas fa-comments"></i> Chat
+                </button>
+                <button class="btn-secondary" id="callDriver">
+                    <i class="fas fa-phone"></i> Call
+                </button>
+                <button class="btn-secondary" id="shareTrip">
+                    <i class="fas fa-share-alt"></i> Share Trip
+                </button>
+            </div>
+            <div class="ride-otp">
+                <h3>Ride OTP: <span id="rideOTP">0000</span></h3>
+                <small>Share this OTP with driver to start the ride</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chatModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Chat with Driver</h2>
+            <div class="chat-container" id="chatContainer">
+                <div class="chat-messages" id="chatMessages"></div>
+            </div>
+            <div class="quick-messages">
+                <button class="quick-msg-btn" data-msg="I'm waiting at pickup point">I'm at pickup</button>
+                <button class="quick-msg-btn" data-msg="Please hurry">Please hurry</button>
+                <button class="quick-msg-btn" data-msg="Thank you">Thank you</button>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Type a message...">
+                <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <div class="language-selector">
+                <label>Translate to:</label>
+                <select id="chatLanguage">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="mr">Marathi</option>
+                    <option value="gu">Gujarati</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Rate Your Ride</h2>
+            <div class="rating-section">
+                <div class="rating-item">
+                    <label>Cleanliness</label>
+                    <div class="stars" data-rating="cleanliness">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                </div>
+                <div class="rating-item">
+                    <label>Behavior</label>
+                    <div class="stars" data-rating="behavior">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                </div>
+                <div class="rating-item">
+                    <label>Punctuality</label>
+                    <div class="stars" data-rating="punctuality">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                </div>
+                <div class="rating-item">
+                    <label>Driving</label>
+                    <div class="stars" data-rating="driving">
+                        <i class="fas fa-star" data-value="1"></i>
+                        <i class="fas fa-star" data-value="2"></i>
+                        <i class="fas fa-star" data-value="3"></i>
+                        <i class="fas fa-star" data-value="4"></i>
+                        <i class="fas fa-star" data-value="5"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Written Feedback</label>
+                <textarea id="writtenFeedback" rows="4" placeholder="Share your experience..."></textarea>
+            </div>
+            <button class="btn-primary" id="submitFeedback">Submit Feedback</button>
+        </div>
+    </div>
+
+    <!-- Support Chat Modal -->
+    <div id="supportChatModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Customer Support</h2>
+            <div class="support-options">
+                <button class="support-option" data-category="booking">
+                    <i class="fas fa-calendar"></i>
+                    <span>Booking Issues</span>
+                </button>
+                <button class="support-option" data-category="payment">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payment Issues</span>
+                </button>
+                <button class="support-option" data-category="driver">
+                    <i class="fas fa-user"></i>
+                    <span>Driver Related</span>
+                </button>
+                <button class="support-option" data-category="other">
+                    <i class="fas fa-question"></i>
+                    <span>Other Issues</span>
+                </button>
+            </div>
+            <div class="faq-section">
+                <h3>Frequently Asked Questions</h3>
+                <div class="faq-item">
+                    <h4>How to cancel a booking?</h4>
+                    <p>Go to My Bookings, select the ride, and click Cancel.</p>
+                </div>
+                <div class="faq-item">
+                    <h4>Refund policy?</h4>
+                    <p>Refunds are processed within 5-7 business days.</p>
+                </div>
+            </div>
+            <button class="btn-primary" id="raiseTicket">Raise a Ticket</button>
+        </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div id="notificationPanel" class="notification-panel">
+        <div class="panel-header">
+            <h3>Notifications</h3>
+            <button class="close-panel">&times;</button>
+        </div>
+        <div class="notification-list" id="notificationList"></div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/customer-portal.js"></script>
+    <script src="js/booking-system.js"></script>
+    <script src="js/wallet-system.js"></script>
+    <script src="js/safety-features.js"></script>
+    <script src="js/tourism-guide.js"></script>
+</body>
+</html>
