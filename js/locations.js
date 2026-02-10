@@ -277,7 +277,7 @@ const locationsData = {
       landmarks: ["Saiji Ka Tanka", "Khinwsar"]
     },
     "Pali": {
-      forts: ["Ranakpur Jain Temple", "Bangur Museum"],
+      forts: [],
       temples: ["Ranakpur Jain Temple", "Om Banna Temple", "Parshuram Mahadev Temple"],
       tourist_places: ["Jawai Bandh", "Nimaj", "Bullet Baba Temple"],
       hospitals: ["District Hospital Pali"],
@@ -285,7 +285,7 @@ const locationsData = {
       airports: [],
       bus_stands: ["Pali Bus Stand"],
       markets: ["Station Road Market"],
-      landmarks: ["Jain Temple Complex"]
+      landmarks: ["Jain Temple Complex", "Bangur Museum"]
     },
     "Pratapgarh": {
       forts: ["Pratapgarh Fort", "Devgarh Palace"],
