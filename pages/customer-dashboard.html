@@ -1161,10 +1161,10 @@
             loadProfile();
             
             // Initialize demo chat (first time only)
-            const hasInitializedChat = localStorage.getItem('chat_initialized_' + currentUser.id);
+            const hasInitializedChat = localStorage.getItem(getChatInitKey(currentUser.id));
             if (!hasInitializedChat) {
                 startDemoChat();
-                localStorage.setItem('chat_initialized_' + currentUser.id, 'true');
+                localStorage.setItem(getChatInitKey(currentUser.id), 'true');
             }
             
             // Load messages
@@ -1651,6 +1651,21 @@ Thank you for riding with us! 🚗
         // ============================================
 
         let currentChatUser = null;
+        let demoResponseTimeout = null;
+
+        // Demo response configuration
+        const DEMO_RESPONSES = [
+            "I'll be there in 5 minutes!",
+            "On my way to pick you up!",
+            "Thanks for choosing GO India RIDE!",
+            "Have a safe journey!",
+            "Sure, I can help with that.",
+        ];
+
+        // Helper function to get chat initialization key
+        function getChatInitKey(userId) {
+            return `goride_chat_initialized_${userId}`;
+        }
 
         function loadMessages() {
             if (typeof MessageDB === 'undefined') {
@@ -1781,6 +1796,12 @@ Thank you for riding with us! 🚗
         }
 
         function closeChat() {
+            // Clear any pending demo response timeouts
+            if (demoResponseTimeout) {
+                clearTimeout(demoResponseTimeout);
+                demoResponseTimeout = null;
+            }
+            
             document.getElementById('conversationsList').style.display = 'block';
             document.getElementById('chatWindow').style.display = 'none';
             currentChatUser = null;
@@ -1808,26 +1829,27 @@ Thank you for riding with us! 🚗
             loadChatMessages(currentChatUser);
 
             // Simulate driver response (for demo purposes)
-            setTimeout(() => {
-                const demoResponses = [
-                    "I'll be there in 5 minutes!",
-                    "On my way to pick you up!",
-                    "Thanks for choosing GO India RIDE!",
-                    "Have a safe journey!",
-                    "Sure, I can help with that.",
-                ];
-                const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+            // Clear any existing timeout first
+            if (demoResponseTimeout) {
+                clearTimeout(demoResponseTimeout);
+            }
+            
+            const chatUserAtSendTime = currentChatUser; // Capture current user
+            demoResponseTimeout = setTimeout(() => {
+                const randomResponse = DEMO_RESPONSES[Math.floor(Math.random() * DEMO_RESPONSES.length)];
                 
                 MessageDB.create({
-                    senderId: currentChatUser,
+                    senderId: chatUserAtSendTime,
                     receiverId: currentUser.id,
                     content: randomResponse,
                     read: false
                 });
 
-                if (currentChatUser) {
+                // Only reload if still viewing the same chat
+                if (currentChatUser === chatUserAtSendTime) {
                     loadChatMessages(currentChatUser);
                 }
+                demoResponseTimeout = null;
             }, 2000);
         }
 
