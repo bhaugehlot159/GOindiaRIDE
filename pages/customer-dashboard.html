@@ -519,6 +519,204 @@
             opacity: 0.5;
         }
 
+        /* Messages/Chat Styles */
+        .messages-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            height: 600px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .conversations-list {
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .conversation-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .conversation-item .user-avatar {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .conversation-last-message {
+            color: #666;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-time {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .badge {
+            background: #dc3545;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .chat-window {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .chat-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            font-weight: bold;
+        }
+
+        .user-status {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .message.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .message.received .message-content {
+            background: white;
+            color: #333;
+        }
+
+        .message.sent .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.25rem;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            opacity: 0.9;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -545,6 +743,10 @@
 
             .donation-options {
                 grid-template-columns: 1fr;
+            }
+
+            .messages-container {
+                height: calc(100vh - 200px);
             }
         }
     </style>
@@ -629,6 +831,10 @@
                 <button class="tab-button" onclick="switchTab('history')">
                     <i class="fas fa-history"></i> Ride History
                 </button>
+                <button class="tab-button" onclick="switchTab('messages')">
+                    <i class="fas fa-comments"></i> Messages
+                    <span id="unreadBadge" class="badge" style="display: none;">0</span>
+                </button>
                 <button class="tab-button" onclick="switchTab('donations')">
                     <i class="fas fa-heart"></i> My Donations
                 </button>
@@ -653,6 +859,58 @@
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <p>No ride history yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Tab -->
+            <div class="tab-content" id="messagesTab">
+                <!-- Help Banner -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h3 style="margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        💬 Purani Chat Kaise Dekhen? (How to View Old Chats?)
+                    </h3>
+                    <p style="margin: 0; font-size: 0.95rem; line-height: 1.5;">
+                        <strong>📱 Steps to access your chat history:</strong><br>
+                        1️⃣ <strong>Messages Tab:</strong> Click on "Messages" tab to see all conversations<br>
+                        2️⃣ <strong>Select Chat:</strong> Click on any driver's name to open old conversation (purani chat)<br>
+                        3️⃣ <strong>View History:</strong> Scroll up to see all previous messages<br>
+                        4️⃣ <strong>Go Back:</strong> Click the ← back arrow to return to conversations list<br>
+                        <br>
+                        💡 <em>Tip: Unread messages will show a red "New" badge</em>
+                    </p>
+                </div>
+                
+                <div class="messages-container">
+                    <div class="conversations-list" id="conversationsList">
+                        <div class="empty-state">
+                            <i class="fas fa-comments"></i>
+                            <p>No messages yet</p>
+                        </div>
+                    </div>
+                    <div class="chat-window" id="chatWindow" style="display: none;">
+                        <div class="chat-header">
+                            <button onclick="closeChat()" class="back-btn" title="Purani chat list par wapas jaye (Go back to chat list)">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <div class="chat-user-info">
+                                <div class="user-avatar" id="chatUserAvatar">👨</div>
+                                <div>
+                                    <div class="user-name" id="chatUserName">Driver Name</div>
+                                    <div class="user-status" id="chatUserStatus">Online</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-messages" id="chatMessages">
+                            <!-- Messages will be loaded here -->
+                        </div>
+                        <div class="chat-input-container">
+                            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleMessageKeyPress(event)">
+                            <button onclick="sendMessage()" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -901,6 +1159,16 @@
             loadRides();
             loadDonations();
             loadProfile();
+            
+            // Initialize demo chat (first time only)
+            const hasInitializedChat = localStorage.getItem(getChatInitKey(currentUser.id));
+            if (!hasInitializedChat) {
+                startDemoChat();
+                localStorage.setItem(getChatInitKey(currentUser.id), 'true');
+            }
+            
+            // Load messages
+            loadMessages();
             
             // Check for completed rides immediately
             checkForCompletedRides();
@@ -1333,6 +1601,11 @@ Thank you for helping! ❤️
 
             document.getElementById(tabName + 'Tab').classList.add('active');
             event.target.classList.add('active');
+
+            // Load messages when switching to messages tab
+            if (tabName === 'messages') {
+                loadMessages();
+            }
         }
 
         // ============================================
@@ -1370,6 +1643,248 @@ Thank you for riding with us! 🚗
             const rating = prompt('Rate this ride (1-5 stars):');
             if (rating && rating >= 1 && rating <= 5) {
                 alert(`✅ Thanks for rating! You gave ${rating} stars.`);
+            }
+        }
+
+        // ============================================
+        // MESSAGES/CHAT FUNCTIONALITY
+        // ============================================
+
+        let currentChatUser = null;
+        let demoResponseTimeout = null;
+
+        // Demo response configuration
+        const DEMO_RESPONSES = [
+            "I'll be there in 5 minutes!",
+            "On my way to pick you up!",
+            "Thanks for choosing GO India RIDE!",
+            "Have a safe journey!",
+            "Sure, I can help with that.",
+        ];
+
+        // Helper function to get chat initialization key
+        function getChatInitKey(userId) {
+            return `goride_chat_initialized_${userId}`;
+        }
+
+        function loadMessages() {
+            if (typeof MessageDB === 'undefined') {
+                console.error('MessageDB not loaded');
+                return;
+            }
+
+            const conversations = MessageDB.getUserConversations(currentUser.id);
+            const conversationsList = document.getElementById('conversationsList');
+            
+            // Update unread badge
+            const unreadCount = MessageDB.getUnreadCount(currentUser.id);
+            const badge = document.getElementById('unreadBadge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            if (conversations.length === 0) {
+                conversationsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #333; margin-bottom: 0.5rem;">Abhi koi purani chat nahi hai</h3>
+                        <p style="color: #666; margin-bottom: 1rem;">No previous chats yet. Book a ride to start messaging with drivers!</p>
+                        <a href="booking.html" style="color: #667eea; text-decoration: none; font-weight: bold;">
+                            📱 Book Your First Ride
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            conversationsList.innerHTML = conversations.map(conv => {
+                // Get user info (driver)
+                const drivers = JSON.parse(localStorage.getItem('goride_drivers')) || [];
+                const driver = drivers.find(d => d.id === conv.userId);
+                const driverName = driver ? driver.name : 'Unknown Driver';
+                const driverAvatar = driver ? driver.photo : '👤';
+
+                return `
+                    <div class="conversation-item" onclick="openChat('${conv.userId}')">
+                        <div class="user-avatar">${driverAvatar}</div>
+                        <div class="conversation-info">
+                            <div class="conversation-name">${driverName}</div>
+                            <div class="conversation-last-message">${conv.lastMessage}</div>
+                        </div>
+                        <div>
+                            <div class="conversation-time">${formatTimestamp(conv.timestamp)}</div>
+                            ${conv.unread ? '<span class="badge">New</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openChat(driverId) {
+            currentChatUser = driverId;
+            
+            // Get driver info
+            const drivers = JSON.parse(localStorage.getItem('goride_drivers')) || [];
+            const driver = drivers.find(d => d.id === driverId);
+            
+            if (!driver) {
+                alert('Driver not found');
+                return;
+            }
+
+            // Update chat header
+            document.getElementById('chatUserAvatar').textContent = driver.photo;
+            document.getElementById('chatUserName').textContent = driver.name;
+            document.getElementById('chatUserStatus').textContent = driver.status === 'available' ? 'Available' : 'Busy';
+
+            // Show chat window
+            document.getElementById('conversationsList').style.display = 'none';
+            document.getElementById('chatWindow').style.display = 'flex';
+
+            // Mark messages as read
+            MessageDB.markConversationAsRead(currentUser.id, driverId);
+            
+            // Load messages
+            loadChatMessages(driverId);
+
+            // Update unread badge
+            const unreadCount = MessageDB.getUnreadCount(currentUser.id);
+            const badge = document.getElementById('unreadBadge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function loadChatMessages(driverId) {
+            const messages = MessageDB.getConversation(currentUser.id, driverId);
+            const chatMessages = document.getElementById('chatMessages');
+
+            if (messages.length === 0) {
+                chatMessages.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comment" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #333; margin-bottom: 0.5rem;">Abhi koi message nahi hai</h3>
+                        <p style="color: #666;">No messages yet. Say hi! 👋</p>
+                        <p style="color: #999; font-size: 0.9rem; margin-top: 0.5rem;">
+                            💡 Type a message below to start the conversation
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            chatMessages.innerHTML = messages.map(msg => {
+                const isSent = msg.senderId === currentUser.id;
+                return `
+                    <div class="message ${isSent ? 'sent' : 'received'}">
+                        <div class="message-content">
+                            ${msg.content}
+                            <div class="message-time">${formatTimestamp(msg.timestamp)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function closeChat() {
+            // Clear any pending demo response timeouts
+            if (demoResponseTimeout) {
+                clearTimeout(demoResponseTimeout);
+                demoResponseTimeout = null;
+            }
+            
+            document.getElementById('conversationsList').style.display = 'block';
+            document.getElementById('chatWindow').style.display = 'none';
+            currentChatUser = null;
+            loadMessages(); // Refresh conversations list
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+
+            if (!content || !currentChatUser) return;
+
+            // Create message
+            MessageDB.create({
+                senderId: currentUser.id,
+                receiverId: currentChatUser,
+                content: content,
+                read: false
+            });
+
+            // Clear input
+            input.value = '';
+
+            // Reload chat
+            loadChatMessages(currentChatUser);
+
+            // Simulate driver response (for demo purposes)
+            // Clear any existing timeout first
+            if (demoResponseTimeout) {
+                clearTimeout(demoResponseTimeout);
+            }
+            
+            const chatUserAtSendTime = currentChatUser; // Capture current user
+            demoResponseTimeout = setTimeout(() => {
+                const randomResponse = DEMO_RESPONSES[Math.floor(Math.random() * DEMO_RESPONSES.length)];
+                
+                MessageDB.create({
+                    senderId: chatUserAtSendTime,
+                    receiverId: currentUser.id,
+                    content: randomResponse,
+                    read: false
+                });
+
+                // Only reload if still viewing the same chat
+                if (currentChatUser === chatUserAtSendTime) {
+                    loadChatMessages(currentChatUser);
+                }
+                demoResponseTimeout = null;
+            }, 2000);
+        }
+
+        function handleMessageKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function startDemoChat() {
+            // Add a demo message for testing
+            const drivers = JSON.parse(localStorage.getItem('goride_drivers')) || [];
+            if (drivers.length > 0) {
+                const demoDriver = drivers[0];
+                MessageDB.create({
+                    senderId: demoDriver.id,
+                    receiverId: currentUser.id,
+                    content: "Hello! I'm your driver. Looking forward to serving you! 🚗",
+                    read: false
+                });
             }
         }
 

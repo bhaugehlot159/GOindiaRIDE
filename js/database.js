@@ -10,7 +10,9 @@ const STORAGE_KEYS = {
     BOOKINGS: 'goride_bookings',
     ADMIN: 'goride_admin',
     NOTIFICATIONS: 'goride_notifications',
-    DONATIONS: 'goride_donations'
+    DONATIONS: 'goride_donations',
+    MESSAGES: 'goride_messages',
+    CHAT_INITIALIZED: 'goride_chat_initialized'
 };
 
 // Initialize demo data if not exists
@@ -311,6 +313,93 @@ function startAutoStatusUpdates(bookingId) {
     updateNextStatus();
 }
 
+// CRUD Operations for Messages/Chat
+const MessageDB = {
+    create(message) {
+        const messages = this.getAll();
+        const newMessage = {
+            ...message,
+            id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11),
+            timestamp: message.timestamp || new Date().toISOString(),
+            read: message.read || false
+        };
+        messages.push(newMessage);
+        localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
+        return newMessage;
+    },
+
+    getAll() {
+        const messages = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+        return messages ? JSON.parse(messages) : [];
+    },
+
+    getConversation(userId, driverId) {
+        const messages = this.getAll();
+        return messages.filter(m => 
+            (m.senderId === userId && m.receiverId === driverId) ||
+            (m.senderId === driverId && m.receiverId === userId)
+        ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    },
+
+    getByUserId(userId) {
+        const messages = this.getAll();
+        return messages.filter(m => 
+            m.senderId === userId || m.receiverId === userId
+        );
+    },
+
+    getUnreadCount(userId) {
+        const messages = this.getAll();
+        return messages.filter(m => 
+            m.receiverId === userId && !m.read
+        ).length;
+    },
+
+    markAsRead(messageId) {
+        const messages = this.getAll();
+        const index = messages.findIndex(m => m.id === messageId);
+        if (index !== -1) {
+            messages[index].read = true;
+            localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
+        }
+    },
+
+    markConversationAsRead(userId, otherUserId) {
+        const messages = this.getAll();
+        let updated = false;
+        messages.forEach(m => {
+            if (m.receiverId === userId && m.senderId === otherUserId && !m.read) {
+                m.read = true;
+                updated = true;
+            }
+        });
+        if (updated) {
+            localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
+        }
+    },
+
+    getUserConversations(userId) {
+        const messages = this.getByUserId(userId);
+        const conversations = {};
+        
+        messages.forEach(msg => {
+            const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+            if (!conversations[otherUserId] || new Date(msg.timestamp) > new Date(conversations[otherUserId].timestamp)) {
+                conversations[otherUserId] = {
+                    userId: otherUserId,
+                    lastMessage: msg.content,
+                    timestamp: msg.timestamp,
+                    unread: msg.receiverId === userId && !msg.read
+                };
+            }
+        });
+        
+        return Object.values(conversations).sort((a, b) => 
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+    }
+};
+
 // Initialize database on load
 initializeDatabase();
 
@@ -320,6 +409,7 @@ if (typeof module !== 'undefined' && module.exports) {
         BookingDB,
         DriverDB,
         NotificationDB,
+        MessageDB,
         autoAssignDriver,
         startAutoStatusUpdates
     };
