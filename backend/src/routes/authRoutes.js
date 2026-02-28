@@ -7,33 +7,40 @@ const { getClientIp, getDeviceMeta, getCountry } = require('../utils/device');
 const { calculateLoginRisk, detectLoginAnomaly } = require('../services/riskService');
 const { loginLimiter, otpLimiter } = require('../middleware/rateLimiters');
 const { restrictAdminIp, requireAdmin2FA } = require('../middleware/adminSecurityMiddleware');
+const { honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck } = require('../middleware/botProtectionMiddleware');
+const { proxyVpnRiskCheck } = require('../middleware/networkIntelMiddleware');
+const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const env = require('../config/env');
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
+router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
+  const { name, email, phone, password, role } = req.body;
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'name, email, password are required' });
+  if (!name || !email || !phone || !password) {
+    return res.status(400).json({ message: 'name, email, phone, password are required' });
   }
 
   if (!validator.isEmail(email)) {
     return res.status(400).json({ message: 'Invalid email' });
   }
 
-  const existing = await User.findOne({ email });
+  if (!validator.isMobilePhone(phone, 'en-IN')) {
+    return res.status(400).json({ message: 'Invalid phone' });
+  }
+
+  const existing = await User.findOne({ $or: [{ email }, { phone }] });
   if (existing) {
-    return res.status(409).json({ message: 'Email already registered' });
+    return res.status(409).json({ message: 'Email or phone already registered' });
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await User.create({ name, email, passwordHash, role: role === 'admin' ? 'admin' : 'user' });
+  const user = await User.create({ name, email, phone, passwordHash, role: role === 'admin' ? 'admin' : 'user' });
 
-  return res.status(201).json({ id: user._id, email: user.email, role: user.role });
+  return res.status(201).json({ id: user._id, email: user.email, phone: user.phone, role: user.role });
 });
 
-router.post('/login', loginLimiter, async (req, res) => {
+router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, proxyVpnRiskCheck, async (req, res) => {
   const { email, password } = req.body;
   const ip = getClientIp(req);
   const country = getCountry(req);
@@ -67,12 +74,15 @@ router.post('/login', loginLimiter, async (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const isNewDevice = !user.knownDevices.includes(device.fingerprint);
+  const trustedDevice = user.trustedDevices.find((item) => item.fingerprint === device.fingerprint);
+  const isNewDevice = !trustedDevice;
   const geoMismatch = country !== 'unknown' && user.lastLoginIp && user.lastLoginIp !== ip;
   const riskScore = await calculateLoginRisk({ email, ip, isNewDevice });
 
   if (riskScore > 70) {
     user.isTemporarilyBannedUntil = new Date(Date.now() + 30 * 60 * 1000);
+    user.riskScore = riskScore;
+    user.lastRiskUpdate = new Date();
     await user.save();
     await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'fail', reason: `Blocked risk score ${riskScore}` });
     return res.status(403).json({ message: 'Login blocked due to high risk score' });
@@ -81,12 +91,38 @@ router.post('/login', loginLimiter, async (req, res) => {
   user.failedLoginAttempts = 0;
   user.accountLockedUntil = null;
   user.lastLoginIp = ip;
-  if (isNewDevice) user.knownDevices.push(device.fingerprint);
+  user.riskScore = riskScore;
+  user.lastRiskUpdate = new Date();
+
+  if (isNewDevice) {
+    user.knownDevices.push(device.fingerprint);
+    user.trustedDevices.push({ fingerprint: device.fingerprint, trustScore: 30 });
+  } else {
+    trustedDevice.trustScore = Math.min(100, trustedDevice.trustScore + 5);
+    trustedDevice.lastSeenAt = new Date();
+  }
 
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
   user.refreshToken = refreshToken;
   await user.save();
+
+  await trackBehaviorEvent({
+    userId: user._id,
+    eventType: 'login',
+    ip,
+    city: req.headers['x-city'] || 'unknown',
+    deviceFingerprint: device.fingerprint,
+    metadata: { country }
+  });
+
+  const behavior = await evaluateBehaviorRisk(user._id);
+  if (behavior.score > 70) {
+    user.isTemporarilyBannedUntil = new Date(Date.now() + 30 * 60 * 1000);
+    user.riskScore = behavior.score;
+    user.lastRiskUpdate = new Date();
+    await user.save();
+  }
 
   await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'success', reason: geoMismatch || isNewDevice ? 'Extra verification advised' : 'ok' });
 
@@ -97,14 +133,15 @@ router.post('/login', loginLimiter, async (req, res) => {
     maxAge: 30 * 24 * 60 * 60 * 1000
   });
 
-  return res.json({
+  return res.status(200).json({
     accessToken,
     role: user.role,
-    requiresExtraOtp: isNewDevice || geoMismatch
+    riskScore: user.riskScore,
+    requiresExtraOtp: isNewDevice || geoMismatch || behavior.score >= 40
   });
 });
 
-router.post('/admin/login', loginLimiter, restrictAdminIp, requireAdmin2FA, async (req, res, next) => {
+router.post('/admin/login', loginLimiter, restrictAdminIp, requireAdmin2FA, honeypotCheck, submissionTimingCheck, proxyVpnRiskCheck, async (req, res, next) => {
   req.body.role = 'admin';
   next();
 }, async (req, res) => {
@@ -114,7 +151,7 @@ router.post('/admin/login', loginLimiter, restrictAdminIp, requireAdmin2FA, asyn
     return res.status(401).json({ message: 'Invalid admin credentials' });
   }
   const accessToken = signAccessToken(user);
-  return res.json({ accessToken, role: user.role });
+  return res.status(200).json({ accessToken, role: user.role });
 });
 
 router.post('/refresh-token', async (req, res) => {
@@ -130,7 +167,7 @@ router.post('/refresh-token', async (req, res) => {
     }
 
     const accessToken = signAccessToken(user);
-    return res.json({ accessToken });
+    return res.status(200).json({ accessToken });
   } catch (error) {
     return res.status(401).json({ message: 'Invalid refresh token' });
   }
@@ -141,7 +178,7 @@ router.post('/otp/verify', otpLimiter, async (req, res) => {
   if (otp !== '111111') {
     return res.status(401).json({ message: 'Invalid OTP' });
   }
-  return res.json({ message: 'OTP verified' });
+  return res.status(200).json({ message: 'OTP verified' });
 });
 
 module.exports = router;

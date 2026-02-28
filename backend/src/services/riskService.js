@@ -1,5 +1,6 @@
 const LoginLog = require('../models/LoginLog');
 const Booking = require('../models/Booking');
+const User = require('../models/User');
 
 async function calculateLoginRisk({ email, ip, isNewDevice, failedOtpAttempts = 0 }) {
   const failedAttempts = await LoginLog.countDocuments({
@@ -60,8 +61,31 @@ async function detectBookingFraud({ userId, ip, cardHash }) {
   };
 }
 
+async function detectFakeRideSignals({ ip, deviceFingerprint, referralCode, cardHash }) {
+  const [ipBulkAccounts, sameCardAcrossUsers, referralBurst] = await Promise.all([
+    User.countDocuments({ lastLoginIp: ip }),
+    Booking.aggregate([
+      { $match: { cardHash, createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } },
+      { $group: { _id: '$userId' } },
+      { $count: 'users' }
+    ]),
+    Booking.countDocuments({ referralCode, createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } })
+  ]);
+
+  const cardAcrossUsers = sameCardAcrossUsers[0]?.users || 0;
+  const referralAbuse = referralCode && referralBurst >= 8;
+
+  return {
+    suspicious: ipBulkAccounts >= 5 || cardAcrossUsers >= 4 || referralAbuse || Boolean(deviceFingerprint && deviceFingerprint.includes('emulator')),
+    ipBulkAccounts,
+    cardAcrossUsers,
+    referralBurst
+  };
+}
+
 module.exports = {
   calculateLoginRisk,
   detectLoginAnomaly,
-  detectBookingFraud
+  detectBookingFraud,
+  detectFakeRideSignals
 };
