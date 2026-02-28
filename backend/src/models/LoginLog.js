@@ -10,6 +10,6 @@ const loginLogSchema = new mongoose.Schema({
   country: { type: String },
   status: { type: String, enum: ['success', 'fail'], required: true },
   reason: { type: String }
-}, { timestamps: true });
+}, { timestamps: true, strict: true });
 
 module.exports = mongoose.model('LoginLog', loginLogSchema);

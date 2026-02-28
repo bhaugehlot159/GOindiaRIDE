@@ -10,6 +10,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const env = require('./config/env');
 const { globalLimiter } = require('./middleware/rateLimiters');
+const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 app.disable('x-powered-by');
@@ -45,12 +46,15 @@ app.use(mongoSanitize());
 app.use(xssClean());
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.status(200).json({ status: 'ok' });
 });
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/bookings', bookingRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 module.exports = app;

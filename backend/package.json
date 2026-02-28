@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:restart": "pm2 restart goindiaride-backend",
+    "pm2:stop": "pm2 stop goindiaride-backend",
     "test": "node --test"
   },
   "dependencies": {
@@ -19,6 +22,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.1",
+    "pm2": "^5.4.2",
     "ua-parser-js": "^1.0.38",
     "validator": "^13.12.0",
     "xss-clean": "^0.1.4"

@@ -5,6 +5,6 @@ const adminActionLogSchema = new mongoose.Schema({
   action: { type: String, required: true },
   ip: { type: String },
   meta: { type: Object }
-}, { timestamps: true });
+}, { timestamps: true, strict: true });
 
 module.exports = mongoose.model('AdminActionLog', adminActionLogSchema);

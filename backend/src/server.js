@@ -1,17 +1,18 @@
 const app = require('./app');
 const env = require('./config/env');
 const { connectDb } = require('./config/db');
+const logger = require('./utils/logger');
 
 async function start() {
   await connectDb();
   app.listen(env.port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Secure backend running on port ${env.port}`);
+    logger.info('Secure backend started', { port: env.port });
   });
 }
 
 start().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error('Failed to start server', error);
+  logger.error('Failed to start server', {
+    error: process.env.NODE_ENV === 'production' ? 'startup_failure' : error.message
+  });
   process.exit(1);
 });

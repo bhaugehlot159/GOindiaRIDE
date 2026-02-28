@@ -1,6 +1,6 @@
 # GO India RIDE Secure Backend
 
-This backend layer was added without removing existing files and includes Level 1-5 security controls requested.
+This backend layer was added without removing existing files and includes Level 1-10 security controls requested.
 
 ## Setup
 
@@ -34,5 +34,12 @@ This backend layer was added without removing existing files and includes Level 
 - Login anomaly detection (high IP velocity).
 - Booking fraud pattern detection (same card/ip/rapid cancel).
 - Admin 2FA placeholder OTP + admin IP restriction + admin action logs.
+- DB hardening: strict mongoose schema validation + phone/booking indexes.
+- Production hardening: structured logger, sanitized error responses, PM2 ecosystem.
+- Behavior AI: booking/login behavior tracking, midnight spike and ride-velocity checks.
+- Device/network intelligence: trust score updates, proxy/VPN heuristic checks, honeypot + timing + reCAPTCHA token requirement.
 
-> Note: OTP verification and geo-country detection are skeleton logic and should be wired to production OTP/email/IP intelligence providers.
+## Operations
+- Atlas backup and security runbook: `docs/security-operations.md`
+
+> Note: OTP verification, reCAPTCHA verification, and geo-country intelligence are skeleton logic and should be wired to production providers.
