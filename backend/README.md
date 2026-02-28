@@ -38,8 +38,14 @@ This backend layer was added without removing existing files and includes Level 
 - Production hardening: structured logger, sanitized error responses, PM2 ecosystem.
 - Behavior AI: booking/login behavior tracking, midnight spike and ride-velocity checks.
 - Device/network intelligence: trust score updates, proxy/VPN heuristic checks, honeypot + timing + reCAPTCHA token requirement.
+- Level 11: CSRF protection (`csurf`), API request signature verification, replay-attack guard, and fare tamper detection.
+- Level 12: security event collection (`securityLogs`), admin security dashboard stats, auto security alerts for critical events.
+- Level 13: secure cookies, query-rate monitor, and smart lockdown mode.
+- Level 14: future-AI extension hooks documented in architecture diagram.
+- Level 15: HTTPS/TLS/Cloudflare/WAF production guidance in runbook.
 
 ## Operations
 - Atlas backup and security runbook: `docs/security-operations.md`
+- Complete architecture diagram: `docs/security-architecture.md`
 
 > Note: OTP verification, reCAPTCHA verification, and geo-country intelligence are skeleton logic and should be wired to production providers.
