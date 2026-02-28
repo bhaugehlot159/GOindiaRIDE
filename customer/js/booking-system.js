@@ -96,6 +96,27 @@ function handleBookingSubmit() {
         
         // Save booking
         saveBooking(booking);
+
+        // Connect customer booking to driver and admin portals via shared notifications
+        if (window.PortalConnector) {
+            PortalConnector.createNotification({
+                type: 'new_booking',
+                title: 'New Ride Booking',
+                message: `Customer booked ride: ${pickup} → ${drop}`,
+                booking,
+                sourcePortal: 'customer',
+                targetPortals: ['driver', 'admin']
+            });
+
+            PortalConnector.createNotification({
+                type: 'booking_confirmed',
+                title: 'Booking Confirmed',
+                message: `Your booking ${booking.id} is confirmed`,
+                booking,
+                sourcePortal: 'customer',
+                targetPortals: ['customer']
+            });
+        }
         
         CustomerPortal.hideLoading();
         CustomerPortal.closeModal('bookingModal');

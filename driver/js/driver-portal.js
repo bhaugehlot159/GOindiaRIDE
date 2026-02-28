@@ -21,7 +21,8 @@ let driverState = {
     location: null,
     batteryLevel: 100,
     networkStatus: 'good',
-    restRequired: false
+    restRequired: false,
+    pendingRequest: null
 };
 
 // Initialize on page load
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkSystemStatus();
     loadDemoData();
     startStatusMonitoring();
+    setupPortalNotifications();
 });
 
 // Initialize Driver Data
@@ -314,6 +316,26 @@ function toggleNightMode() {
     showToast(preferences.nightMode ? 'Night mode enabled' : 'Night mode disabled', 'info');
 }
 
+
+// Setup cross-portal notifications
+function setupPortalNotifications() {
+    if (!window.PortalConnector) return;
+
+    PortalConnector.setActivePortal('driver');
+    PortalConnector.listen('driver', (notification) => {
+        if (notification.type !== 'new_booking' || !notification.booking) {
+            showToast(notification.message || 'New notification received', 'info');
+            return;
+        }
+
+        showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
+
+        if (driverState.isOnline && !driverState.currentRide) {
+            showRideRequest(notification.booking);
+        }
+    });
+}
+
 // Check for Ride Requests (Demo)
 function checkForRideRequests() {
     if (!driverState.isOnline) return;
@@ -328,17 +350,25 @@ function checkForRideRequests() {
 }
 
 // Show Ride Request
-function showRideRequest() {
+function showRideRequest(bookingData = null) {
     const modal = document.getElementById('rideRequestModal');
     modal.style.display = 'flex';
-    
-    // Demo data
-    const pickups = ['Jaipur Railway Station', 'Airport', 'Hawa Mahal', 'City Palace', 'Amber Fort'];
-    const drops = ['Hotel Taj', 'Airport', 'Pink City', 'Bus Stand', 'Mall Road'];
-    
-    document.getElementById('requestPickup').textContent = pickups[Math.floor(Math.random() * pickups.length)];
-    document.getElementById('requestDrop').textContent = drops[Math.floor(Math.random() * drops.length)];
-    document.getElementById('requestFare').textContent = `₹${(Math.random() * 500 + 100).toFixed(0)}`;
+
+    if (bookingData) {
+        driverState.pendingRequest = bookingData;
+        document.getElementById('requestPickup').textContent = bookingData.pickup;
+        document.getElementById('requestDrop').textContent = bookingData.drop;
+        document.getElementById('requestFare').textContent = `₹${Number(bookingData.finalFare || bookingData.fare || 0).toFixed(0)}`;
+    } else {
+        // Demo data
+        const pickups = ['Jaipur Railway Station', 'Airport', 'Hawa Mahal', 'City Palace', 'Amber Fort'];
+        const drops = ['Hotel Taj', 'Airport', 'Pink City', 'Bus Stand', 'Mall Road'];
+
+        driverState.pendingRequest = null;
+        document.getElementById('requestPickup').textContent = pickups[Math.floor(Math.random() * pickups.length)];
+        document.getElementById('requestDrop').textContent = drops[Math.floor(Math.random() * drops.length)];
+        document.getElementById('requestFare').textContent = `₹${(Math.random() * 500 + 100).toFixed(0)}`;
+    }
     
     // Start countdown
     let timeLeft = 30;
@@ -368,7 +398,7 @@ function acceptRequest() {
     
     // Create ride
     driverState.currentRide = {
-        id: '#' + Math.floor(Math.random() * 100000),
+        id: driverState.pendingRequest ? driverState.pendingRequest.id : ('#' + Math.floor(Math.random() * 100000)),
         pickup: document.getElementById('requestPickup').textContent,
         drop: document.getElementById('requestDrop').textContent,
         fare: document.getElementById('requestFare').textContent,
@@ -386,6 +416,7 @@ function acceptRequest() {
     document.getElementById('dropLocation').textContent = driverState.currentRide.drop;
     
     showToast('Ride accepted! Navigate to pickup location.', 'success');
+    driverState.pendingRequest = null;
     saveDriverData();
 }
 
@@ -396,6 +427,7 @@ function rejectRequest() {
     }
     
     document.getElementById('rideRequestModal').style.display = 'none';
+    driverState.pendingRequest = null;
     showToast('Ride request rejected', 'info');
     
     // Check for next request
