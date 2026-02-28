@@ -18,3 +18,6 @@
 | Admin | 7654321098 | 123456 |
 
 ## 📂 File Structure
+
+## 🔐 Security Backend
+- Added a secure Node.js backend in `backend/` with JWT auth, RBAC, Helmet, rate limiting, Mongo sanitize, XSS clean, strict CORS, account lock, risk scoring, and fraud/anomaly checks.
