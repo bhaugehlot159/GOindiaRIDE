@@ -6,6 +6,8 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
+const { verifyFareIntegrity } = require('../middleware/fareIntegrityMiddleware');
+const { logSecurityEvent } = require('../services/securityLogService');
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ async function continuousRiskGate(req, res, next) {
   return next();
 }
 
-router.post('/', authenticate, continuousRiskGate, async (req, res) => {
+router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (req, res) => {
   const { cardToken, distanceKm = 0, amount = 0, referralCode = '' } = req.body;
   if (!cardToken) {
     return res.status(400).json({ message: 'cardToken is required' });
@@ -46,6 +48,7 @@ router.post('/', authenticate, continuousRiskGate, async (req, res) => {
       riskScore: 90,
       lastRiskUpdate: new Date()
     });
+    await logSecurityEvent({ userId: req.user.id, action: 'fake_ride_detected', ip, riskScore: 90, result: 'blocked', metadata: fakeRideSignals });
     return res.status(403).json({ message: 'Fake-ride or promo-abuse pattern detected', fakeRideSignals });
   }
 
@@ -55,11 +58,12 @@ router.post('/', authenticate, continuousRiskGate, async (req, res) => {
       riskScore: 85,
       lastRiskUpdate: new Date()
     });
+    await logSecurityEvent({ userId: req.user.id, action: 'booking_fraud_detected', ip, riskScore: 85, result: 'blocked', metadata: fraud });
     return res.status(403).json({ message: 'Fraud pattern detected, temporary ban applied', fraud });
   }
 
   const bookingId = `BK${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  const booking = await Booking.create({ userId: req.user.id, bookingId, cardHash, ip, distanceKm, amount, referralCode, status: 'created' });
+  const booking = await Booking.create({ userId: req.user.id, bookingId, cardHash, ip, distanceKm, amount: req.recalculatedFare, referralCode, status: 'created' });
 
   await trackBehaviorEvent({
     userId: req.user.id,

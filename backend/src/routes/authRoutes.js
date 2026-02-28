@@ -11,6 +11,8 @@ const { honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck } = require
 const { proxyVpnRiskCheck } = require('../middleware/networkIntelMiddleware');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const env = require('../config/env');
+const { logSecurityEvent } = require('../services/securityLogService');
+const { sendSecurityAlert } = require('../services/alertService');
 
 const router = express.Router();
 
@@ -71,6 +73,10 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, proxyV
     }
     await user.save();
     await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'fail', reason: 'Wrong password' });
+    await logSecurityEvent({ userId: user._id, action: 'failed_login', ip, riskScore: user.riskScore || 0, result: 'flagged' });
+    if (user.failedLoginAttempts >= 3) {
+      await sendSecurityAlert({ type: 'multiple_failed_login', payload: { email, ip, attempts: user.failedLoginAttempts } });
+    }
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
@@ -85,6 +91,8 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, proxyV
     user.lastRiskUpdate = new Date();
     await user.save();
     await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'fail', reason: `Blocked risk score ${riskScore}` });
+    await logSecurityEvent({ userId: user._id, action: 'user_blocked', ip, riskScore, result: 'blocked' });
+    await sendSecurityAlert({ type: 'high_risk_block', payload: { email, ip, riskScore } });
     return res.status(403).json({ message: 'Login blocked due to high risk score' });
   }
 
@@ -122,6 +130,10 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, proxyV
     user.riskScore = behavior.score;
     user.lastRiskUpdate = new Date();
     await user.save();
+    await logSecurityEvent({ userId: user._id, action: 'behavior_high_risk', ip, riskScore: behavior.score, result: 'flagged' });
+    if (behavior.score > 80) {
+      await sendSecurityAlert({ type: 'risk_score_over_80', payload: { email, ip, riskScore: behavior.score } });
+    }
   }
 
   await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'success', reason: geoMismatch || isNewDevice ? 'Extra verification advised' : 'ok' });
@@ -151,6 +163,8 @@ router.post('/admin/login', loginLimiter, restrictAdminIp, requireAdmin2FA, hone
     return res.status(401).json({ message: 'Invalid admin credentials' });
   }
   const accessToken = signAccessToken(user);
+  await logSecurityEvent({ userId: user._id, action: 'admin_login', ip: getClientIp(req), riskScore: user.riskScore || 0, result: 'allowed' });
+  await sendSecurityAlert({ type: 'admin_login', payload: { adminEmail: user.email, ip: getClientIp(req) } });
   return res.status(200).json({ accessToken, role: user.role });
 });
 
