@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSOSButton();
     loadUserData();
     loadDemoData();
+    setupPortalNotifications();
 });
 
 /**
@@ -35,6 +36,24 @@ function initializePortal() {
     // Set active section
     const activeSection = localStorage.getItem('goindiaride_active_section') || 'homeSection';
     showSection(activeSection);
+}
+
+
+/**
+ * Setup cross-portal notifications (customer/driver/admin)
+ */
+function setupPortalNotifications() {
+    if (!window.PortalConnector) return;
+
+    PortalConnector.setActivePortal('customer');
+    PortalConnector.listen('customer', (notification) => {
+        if (notification.type === 'booking_confirmed') {
+            showToast(`Booking ID ${notification.booking.id} confirmed`, 'success');
+            return;
+        }
+
+        showToast(notification.message || 'New notification received', 'info');
+    });
 }
 
 /**

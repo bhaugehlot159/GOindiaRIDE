@@ -130,6 +130,38 @@ function hideLoading() {
     document.getElementById('loadingOverlay').classList.remove('active');
 }
 
+
+// Setup cross-portal notifications
+function setupPortalNotifications() {
+    if (!window.PortalConnector) return;
+
+    PortalConnector.setActivePortal('admin');
+    PortalConnector.listen('admin', (notification) => {
+        if (notification.type === 'new_booking' && notification.booking) {
+            showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
+
+            const adminBookings = getDemoData('Bookings');
+            adminBookings.unshift({
+                id: notification.booking.id,
+                customerId: 0,
+                driverId: 0,
+                from: notification.booking.pickup,
+                to: notification.booking.drop,
+                fare: Number(notification.booking.finalFare || notification.booking.fare || 0),
+                status: 'new',
+                date: new Date().toISOString().slice(0, 10)
+            });
+            localStorage.setItem('adminDemoBookings', JSON.stringify(adminBookings));
+
+            logAdminAction('NEW_BOOKING_ALERT', `Booking ${notification.booking.id} from customer portal`);
+            updateDashboardStats();
+            return;
+        }
+
+        showToast(notification.message || 'New notification received', 'info');
+    });
+}
+
 // Initialize Demo Data
 function initializeDemoData() {
     // Check if demo data already exists
@@ -453,6 +485,9 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Load recent activity
     loadRecentActivity();
+
+    // Listen for customer/driver/admin shared notifications
+    setupPortalNotifications();
     
     // Log admin login
     logAdminAction('LOGIN', 'Admin logged into portal');
