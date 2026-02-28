@@ -1,0 +1,34 @@
+{
+  "name": "goindiaride-secure-backend",
+  "version": "1.0.0",
+  "description": "Security-first backend for GO India RIDE",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:restart": "pm2 restart goindiaride-backend",
+    "pm2:stop": "pm2 stop goindiaride-backend",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.6.1",
+    "pm2": "^5.4.2",
+    "ua-parser-js": "^1.0.38",
+    "validator": "^13.12.0",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "supertest": "^7.0.0"
+  }
+}
