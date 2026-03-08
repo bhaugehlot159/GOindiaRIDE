@@ -1,21 +1,26 @@
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const mongoSanitize = require('express-mongo-sanitize');
-const xssClean = require('xss-clean');
+const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const hpp = require('hpp');
+const mongoSanitize = require('express-mongo-sanitize');
+
+const env = require('./config/env');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const admin2faRoutes = require('./routes/admin2faRoutes');
+const securityRoutes = require('./routes/securityRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
-const env = require('./config/env');
 const { globalLimiter } = require('./middleware/rateLimiters');
+const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
+const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
+const { csrfShieldMiddleware, issueCsrfToken } = require('./middleware/csrfShieldMiddleware');
 const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware');
-const { csrfProtection } = require('./middleware/csrfProtectionMiddleware');
-const { verifyApiSignature } = require('./middleware/requestSignatureMiddleware');
-const { databaseQueryRateMonitor, smartLockdown } = require('./middleware/lockdownMiddleware');
 
 const app = express();
+
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
@@ -26,43 +31,75 @@ app.use((req, res, next) => {
   return next();
 });
 
+app.use(cookieParser());
+app.use(apiSecurityHeadersMiddleware());
+
 app.use(helmet({
-  frameguard: { action: 'deny' },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  xssFilter: true
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false
 }));
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
+const allowedOrigins = new Set([
+  env.corsOrigin,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
+]);
 
 app.use(cors({
-  origin: env.corsOrigin,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error('CORS blocked by security policy'));
+  },
   credentials: true
 }));
 
-app.use(express.json({ limit: '1mb' }));
-app.use(cookieParser());
-app.use(databaseQueryRateMonitor);
-app.use(smartLockdown);
-app.use(globalLimiter);
-app.use(mongoSanitize());
-app.use(xssClean());
+app.use(express.json({ limit: `${env.maxJsonBodyKb}kb` }));
+app.use(express.urlencoded({ extended: false, limit: `${env.maxJsonBodyKb}kb` }));
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  return res.status(200).json({ status: 'ok', security: 'hardened' });
 });
 
-app.use('/api', verifyApiSignature);
-app.get('/api/security/csrf-token', csrfProtection, (req, res) => {
-  return res.status(200).json({ csrfToken: req.csrfToken() });
+app.use('/api', globalLimiter);
+app.use('/api', requestThreatShieldMiddleware({
+  autoBlockScore: env.requestAutoBlockScore,
+  incidentScore: env.requestIncidentScore
+}));
+
+const strictCsrfShield = csrfShieldMiddleware({
+  strict: env.strictSecurityMode,
+  cookieName: env.csrfCookieName,
+  tokenTtlMs: env.csrfTokenTtlMinutes * 60 * 1000
 });
 
-app.use('/api/auth', csrfProtection, authRoutes);
+app.get('/api/security/csrf-token', (req, res) => {
+  const csrfToken = issueCsrfToken(req, res, {
+    cookieName: env.csrfCookieName,
+    tokenTtlMs: env.csrfTokenTtlMinutes * 60 * 1000
+  });
+
+  return res.status(200).json({
+    csrfToken,
+    ttlMinutes: env.csrfTokenTtlMinutes
+  });
+});
+
+app.use('/api/admin', strictCsrfShield);
+app.use('/api/bookings', strictCsrfShield);
+app.use('/api/security', strictCsrfShield);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/bookings', csrfProtection, bookingRoutes);
+app.use('/api/admin', admin2faRoutes);
+app.use('/api/security', securityRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

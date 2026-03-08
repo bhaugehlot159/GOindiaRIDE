@@ -11,6 +11,13 @@ requiredEnv.forEach((name) => {
   }
 });
 
+function splitCsv(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 module.exports = {
   port: Number(process.env.PORT || 5000),
   mongoUri: process.env.MONGO_URI,
@@ -22,5 +29,14 @@ module.exports = {
   corsOrigin: process.env.CORS_ORIGIN || 'https://goindiaride.in',
   accessTokenTtl: process.env.ACCESS_TOKEN_TTL || '15m',
   refreshTokenTtl: process.env.REFRESH_TOKEN_TTL || '30d',
-  adminAllowedIps: (process.env.ADMIN_ALLOWED_IPS || '').split(',').map((ip) => ip.trim()).filter(Boolean)
+  adminAllowedIps: splitCsv(process.env.ADMIN_ALLOWED_IPS),
+  admin2FASecret: process.env.ADMIN_2FA_SECRET,
+
+  strictSecurityMode: String(process.env.STRICT_SECURITY_MODE || 'true').toLowerCase() === 'true',
+  maxJsonBodyKb: Number(process.env.MAX_JSON_BODY_KB || 128),
+  requestAutoBlockScore: Number(process.env.REQUEST_AUTO_BLOCK_SCORE || 85),
+  requestIncidentScore: Number(process.env.REQUEST_INCIDENT_SCORE || 55),
+  securityAllowedOrigins: splitCsv(process.env.SECURITY_ALLOWED_ORIGINS),
+  csrfCookieName: String(process.env.CSRF_COOKIE_NAME || 'gir_csrf_token'),
+  csrfTokenTtlMinutes: Number(process.env.CSRF_TOKEN_TTL_MINUTES || 720)
 };
