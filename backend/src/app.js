@@ -1,45 +1,99 @@
-const xss = require("xss-clean");
+const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
-const mongoSanitize = require("express-mongo-sanitize");
+const mongoSanitize = require('express-mongo-sanitize');
 
+const env = require('./config/env');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const admin2faRoutes = require('./routes/admin2faRoutes');
 const securityRoutes = require('./routes/securityRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const { globalLimiter } = require('./middleware/rateLimiters');
+const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
+const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
+const { csrfShieldMiddleware, issueCsrfToken } = require('./middleware/csrfShieldMiddleware');
+const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 
-app.use(cookieParser());
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
 
-app.use(helmet());
+app.use(cookieParser());
+app.use(apiSecurityHeadersMiddleware());
+
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false
+}));
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 min
-  message: "Too many requests, please try again later."
-});
+const allowedOrigins = new Set([
+  env.corsOrigin,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
+]);
 
-// app.use('/api', limiter);
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error('CORS blocked by security policy'));
+  },
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: `${env.maxJsonBodyKb}kb` }));
+app.use(express.urlencoded({ extended: false, limit: `${env.maxJsonBodyKb}kb` }));
+
+app.get('/health', (req, res) => {
+  return res.status(200).json({ status: 'ok', security: 'hardened' });
+});
+
+app.use('/api', globalLimiter);
+app.use('/api', requestThreatShieldMiddleware({
+  autoBlockScore: env.requestAutoBlockScore,
+  incidentScore: env.requestIncidentScore
+}));
+
+const strictCsrfShield = csrfShieldMiddleware({
+  strict: env.strictSecurityMode,
+  cookieName: env.csrfCookieName,
+  tokenTtlMs: env.csrfTokenTtlMinutes * 60 * 1000
+});
+
+app.get('/api/security/csrf-token', (req, res) => {
+  const csrfToken = issueCsrfToken(req, res, {
+    cookieName: env.csrfCookieName,
+    tokenTtlMs: env.csrfTokenTtlMinutes * 60 * 1000
+  });
+
+  return res.status(200).json({
+    csrfToken,
+    ttlMinutes: env.csrfTokenTtlMinutes
+  });
+});
+
+app.use('/api/admin', strictCsrfShield);
+app.use('/api/bookings', strictCsrfShield);
+app.use('/api/security', strictCsrfShield);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', admin2faRoutes);
 app.use('/api/security', securityRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 module.exports = app;
