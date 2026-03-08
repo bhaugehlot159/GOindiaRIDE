@@ -21,6 +21,10 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="GO India RIDE - Your Trusted Ride Partner">
     <meta name="twitter:description" content="Safe, Affordable Rides for International & Domestic Travelers">
+    <meta http-equiv="Content-Security-Policy-Report-Only" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https:;">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), microphone=(), camera=()">
+    <meta name="security-monitor" content="AI Auto Detective Enabled">
     
     <!-- Hreflang Tags -->
     <link rel="alternate" hreflang="en" href="https://goindiaride.com/">
@@ -481,7 +485,94 @@
             border-top: 1px solid #444;
             padding-top: 2rem;
         }
+        /* AI Security Section */
+        .ai-security-section {
+            padding: 4rem 2rem;
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 70%, #334155 100%);
+            color: #e2e8f0;
+        }
 
+        .ai-security-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .ai-security-header h2 {
+            font-size: 2.4rem;
+            margin-bottom: 0.8rem;
+            color: #f8fafc;
+        }
+
+        .ai-security-header p {
+            font-size: 1rem;
+            color: #cbd5e1;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .ai-security-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .ai-security-point {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .ai-security-point i {
+            color: #38bdf8;
+            font-size: 1.2rem;
+        }
+
+        .ai-security-widget-card {
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            border-radius: 14px;
+            padding: 1.2rem;
+            max-width: 920px;
+            margin: 0 auto;
+        }
+
+        .ai-security-live-score,
+        .ai-security-live-level,
+        .ai-security-live-fingerprint {
+            margin-bottom: 0.7rem;
+            font-size: 0.95rem;
+        }
+
+        .ai-level-low { color: #86efac; }
+        .ai-level-medium { color: #facc15; }
+        .ai-level-high { color: #fb923c; }
+        .ai-level-critical { color: #f87171; }
+
+        .ai-security-live-feed {
+            list-style: none;
+            margin-top: 0.8rem;
+            border-top: 1px dashed rgba(148, 163, 184, 0.35);
+            padding-top: 0.8rem;
+        }
+
+        .ai-security-live-feed li {
+            padding: 0.45rem 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .ai-security-live-feed li span {
+            display: inline-block;
+            min-width: 90px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -530,6 +621,7 @@
                 <a href="#features" data-lang="nav.features">Features</a>
                 <a href="#how-it-works" data-lang="nav.how">How It Works</a>
                 <a href="#pricing" data-lang="nav.pricing">Pricing</a>
+                <a href="#ai-security">AI Security</a>
                 <a href="#contact" data-lang="nav.contact">Contact</a>
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login">Login</a>
@@ -740,6 +832,45 @@
         </div>
     </section>
 
+        <!-- AI Security Shield -->
+    <section class="ai-security-section" id="ai-security">
+        <div class="container">
+            <div class="ai-security-header">
+                <h2><i class="fas fa-user-shield"></i> AI Auto-Detective Security Shield</h2>
+                <p>GO India RIDE now runs real-time anomaly intelligence: bot burst detection, payload tamper scans, device-risk fingerprinting, and automatic protective response before ride fraud can spread.</p>
+            </div>
+
+            <div class="ai-security-points">
+                <div class="ai-security-point">
+                    <i class="fas fa-brain"></i>
+                    <span>Behavior AI scoring per session</span>
+                </div>
+                <div class="ai-security-point">
+                    <i class="fas fa-fingerprint"></i>
+                    <span>Device takeover & spoof detection</span>
+                </div>
+                <div class="ai-security-point">
+                    <i class="fas fa-shield-virus"></i>
+                    <span>Auto lock on high-risk actions</span>
+                </div>
+                <div class="ai-security-point">
+                    <i class="fas fa-tower-broadcast"></i>
+                    <span>Live incident feed for admin response</span>
+                </div>
+            </div>
+
+            <div class="ai-security-widget-card">
+                <div id="ai-security-widget">
+                    <div class="ai-security-live-score"><strong>Risk Score:</strong> Initializing...</div>
+                    <div class="ai-security-live-level"><strong>Threat Level:</strong> Initializing...</div>
+                    <div class="ai-security-live-fingerprint"><strong>Device Fingerprint:</strong> Detecting...</div>
+                    <ul class="ai-security-live-feed">
+                        <li>AI auto-detective booting...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
     <!-- Stats Section -->
     <section class="stats">
         <div class="container">
@@ -904,6 +1035,7 @@
         </div>
     </footer>
 
+    <script src="./js/ai-auto-detective.js"></script>
     <script src="./js/app.js"></script>
     <script>
         // Go to booking page

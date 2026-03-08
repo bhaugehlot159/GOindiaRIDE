@@ -21,3 +21,17 @@
 - Maintain a rolling blacklist for suspicious proxy/VPN ranges.
 - Keep ASN deny list updated quarterly.
 - Enforce reCAPTCHA token and honeypot checks on sensitive forms.
+
+## AI Auto-Detective Incident Pipeline (Level 11)
+- Ingest incident telemetry via `POST /api/security/event`.
+- Use `aiSecurityDetectiveService` to score multi-signal risk:
+  - login burst / credential stuffing velocity
+  - impossible-travel behavioral signal
+  - booking velocity and cancellation abuse
+  - trusted-device takeover anomalies
+- Persist incidents in `SecurityIncident` collection for audit and SOC workflows.
+- Use `GET /api/security/pulse` for 24-hour severity and top event-type view.
+- Use `GET /api/security/incidents` and `PATCH /api/security/incidents/:incidentId` for triage.
+- Auto-response policy:
+  - score `>= 75`: temporary protective hold
+  - score `>= 90`: temporary protective ban and incident escalation
