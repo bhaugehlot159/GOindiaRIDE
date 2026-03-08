@@ -1,60 +1,45 @@
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const mongoSanitize = require('express-mongo-sanitize');
-const xssClean = require('xss-clean');
+const xss = require("xss-clean");
 const cookieParser = require('cookie-parser');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const mongoSanitize = require("express-mongo-sanitize");
+
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
-const env = require('./config/env');
-const { globalLimiter } = require('./middleware/rateLimiters');
-const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware');
+const admin2faRoutes = require('./routes/admin2faRoutes');
+const securityRoutes = require('./routes/securityRoutes');
 
 const app = express();
-app.disable('x-powered-by');
-app.set('trust proxy', 1);
 
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
-    return res.redirect(`https://${req.headers.host}${req.url}`);
-  }
-  return next();
+app.use(cookieParser());
+
+app.use(helmet());
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per 15 min
+  message: "Too many requests, please try again later."
 });
 
-app.use(helmet({
-  frameguard: { action: 'deny' },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  xssFilter: true
-}));
-
+// app.use('/api', limiter);
 app.use(cors({
-  origin: env.corsOrigin,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  origin: "http://localhost:5173",
   credentials: true
 }));
 
-app.use(express.json({ limit: '1mb' }));
-app.use(cookieParser());
-app.use(globalLimiter);
-app.use(mongoSanitize());
-app.use(xssClean());
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+app.use(express.json());
 
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/bookings', bookingRoutes);
-
-app.use(notFoundHandler);
-app.use(errorHandler);
+app.use('/api/admin', admin2faRoutes);
+app.use('/api/security', securityRoutes);
 
 module.exports = app;
