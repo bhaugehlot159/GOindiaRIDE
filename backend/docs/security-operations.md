@@ -35,3 +35,18 @@
 - Auto-response policy:
   - score `>= 75`: temporary protective hold
   - score `>= 90`: temporary protective ban and incident escalation
+
+## Zero-Trust Route Hardening (Level 12)
+- Every protected API route should apply:
+  1. `authenticate`
+  2. `buildSessionSecurityGuard(...)`
+  3. role/accountType authorization guard
+- `requestThreatShieldMiddleware` at `/api` now performs request intelligence and temporary block actions.
+- Critical admin operations should use `adminCriticalLimiter` and audit logging.
+- Booking write routes enforce device fingerprint and risk-based OTP step-up.
+
+## Zero-Trust API Shield (Level 13)
+- piSecurityHeadersMiddleware now adds request-id correlation and strict security headers for each API response.
+- Sensitive APIs (/api/admin, /api/bookings, /api/security) are protected with CSRF shield middleware.
+- Fetch CSRF token before sensitive state changes from GET /api/security/csrf-token and pass it as x-csrf-token.
+- In strict mode, admin OTP validation is tied to DB-stored Google Authenticator secret for admin accounts.
