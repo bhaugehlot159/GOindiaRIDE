@@ -24,6 +24,13 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(`https://${req.headers.host}${req.url}`);
+  }
+  return next();
+});
+
 app.use(cookieParser());
 app.use(apiSecurityHeadersMiddleware());
 
@@ -88,6 +95,7 @@ app.use('/api/security', strictCsrfShield);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', admin2faRoutes);
 app.use('/api/security', securityRoutes);

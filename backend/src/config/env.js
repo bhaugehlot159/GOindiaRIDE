@@ -25,6 +25,7 @@ module.exports = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
   firebaseKey: process.env.FIREBASE_KEY,
   recaptchaSecret: process.env.RECAPTCHA_SECRET,
+  apiSignatureSecret: process.env.API_SIGNATURE_SECRET || process.env.JWT_SECRET,
   corsOrigin: process.env.CORS_ORIGIN || 'https://goindiaride.in',
   accessTokenTtl: process.env.ACCESS_TOKEN_TTL || '15m',
   refreshTokenTtl: process.env.REFRESH_TOKEN_TTL || '30d',
