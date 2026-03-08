@@ -14,7 +14,6 @@ const bookingSchema = new mongoose.Schema({
   strict: true
 });
 
-bookingSchema.index({ bookingId: 1 });
 bookingSchema.index({ userId: 1, createdAt: -1 });
 bookingSchema.index({ ip: 1, createdAt: -1 });
 

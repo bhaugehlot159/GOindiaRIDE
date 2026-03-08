@@ -35,7 +35,6 @@ const userSchema = new mongoose.Schema({
   strict: true
 });
 
-userSchema.index({ phone: 1 });
 userSchema.index({ email: 1, phone: 1 });
 
 module.exports = mongoose.model('User', userSchema);
