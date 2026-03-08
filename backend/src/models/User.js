@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
   trustedDevices: [{
     fingerprint: { type: String, required: true },
     trustScore: { type: Number, default: 50, min: 0, max: 100 },
+    approvalStatus: { type: String, enum: ['pending', 'approved'], default: 'approved' },
+    approvalRequired: { type: Boolean, default: false },
+    approvedAt: { type: Date, default: null },
+    isBlocked: { type: Boolean, default: false },
     firstSeenAt: { type: Date, default: Date.now },
     lastSeenAt: { type: Date, default: Date.now }
   }],
