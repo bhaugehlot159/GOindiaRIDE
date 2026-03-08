@@ -50,3 +50,9 @@
 - Sensitive APIs (/api/admin, /api/bookings, /api/security) are protected with CSRF shield middleware.
 - Fetch CSRF token before sensitive state changes from GET /api/security/csrf-token and pass it as x-csrf-token.
 - In strict mode, admin OTP validation is tied to DB-stored Google Authenticator secret for admin accounts.
+## Global Security Foundation (Level 15)
+- Enforce HTTPS Everywhere at edge and origin.
+- Minimum TLS version: 1.2; prefer TLS 1.3.
+- Use strong cipher suites managed by Cloudflare.
+- Enable Cloudflare WAF managed rules for SQLi/XSS/path traversal.
+- Enable bot fight mode + geo blocking + adaptive rate limiting.
