@@ -232,4 +232,35 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
   }
 });
 
+
+router.get('/my-risk', authenticate, async (req, res) => {
+  try {
+    const user = getUserContext(req);
+    if (!user.id) {
+      return res.status(401).json({ message: 'Invalid user context' });
+    }
+
+    const [latestIncidents, severitySummary] = await Promise.all([
+      SecurityIncident.find({ userId: user.id })
+        .sort({ createdAt: -1 })
+        .limit(15)
+        .select('incidentId eventType riskScore severity status recommendedAction createdAt')
+        .lean(),
+      SecurityIncident.aggregate([
+        { $match: { userId: user.id } },
+        { $group: { _id: '$severity', count: { $sum: 1 } } }
+      ])
+    ]);
+
+    return res.status(200).json({
+      message: 'My risk profile fetched',
+      count: latestIncidents.length,
+      severitySummary,
+      incidents: latestIncidents
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch user risk profile' });
+  }
+});
 module.exports = router;
+

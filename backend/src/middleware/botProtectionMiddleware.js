@@ -14,10 +14,18 @@ function submissionTimingCheck(req, res, next) {
 }
 
 function recaptchaPresenceCheck(req, res, next) {
+
+  // ✅ Development mode में reCAPTCHA skip
+  if (process.env.NODE_ENV !== 'production') {
+    return next();
+  }
+
   const token = req.body?.recaptchaToken || req.headers['x-recaptcha-token'];
+
   if (!token) {
     return res.status(400).json({ message: 'reCAPTCHA token required' });
   }
+
   return next();
 }
 
