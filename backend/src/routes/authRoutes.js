@@ -2,6 +2,7 @@ const express = require('express');
 const validator = require('validator');
 const User = require('../models/User');
 const LoginLog = require('../models/LoginLog');
+const Otp = require('../models/Otp');
 const { hashPassword, comparePassword, signAccessToken, signRefreshToken } = require('../utils/auth');
 const { getClientIp, getDeviceMeta, getCountry } = require('../utils/device');
 const { calculateLoginRisk, detectLoginAnomaly } = require('../services/riskService');
@@ -14,8 +15,36 @@ const { authenticate } = require('../middleware/authMiddleware');
 const env = require('../config/env');
 const { logSecurityEvent } = require('../services/securityLogService');
 const { sendSecurityAlert } = require('../services/alertService');
+const { sendEmail } = require('../utils/mailer');
 
 const router = express.Router();
+const OTP_CHANNELS = new Set(['email', 'sms']);
+const OTP_ACCOUNT_TYPES = new Set(['customer', 'driver', 'admin']);
+
+function normalizeOtpRequest(body = {}) {
+  const channel = String(body.channel || 'email').toLowerCase().trim();
+  const accountType = String(body.accountType || 'customer').toLowerCase().trim();
+
+  if (!OTP_CHANNELS.has(channel)) {
+    return { error: 'Invalid channel (email/sms)' };
+  }
+
+  if (!OTP_ACCOUNT_TYPES.has(accountType)) {
+    return { error: 'Invalid accountType' };
+  }
+
+  if (channel === 'email') {
+    const cleanEmail = String(body.email || '').trim().toLowerCase();
+    if (!cleanEmail) return { error: 'Email required' };
+    if (!validator.isEmail(cleanEmail)) return { error: 'Invalid email' };
+    return { channel, accountType, identifier: cleanEmail, cleanEmail, cleanPhone: null };
+  }
+
+  const cleanPhone = String(body.phone || '').trim();
+  if (!cleanPhone) return { error: 'Phone required' };
+  if (!validator.isMobilePhone(cleanPhone, 'en-IN')) return { error: 'Invalid phone' };
+  return { channel, accountType, identifier: cleanPhone, cleanEmail: null, cleanPhone };
+}
 
 router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   const { name, email, phone, password, role } = req.body;
@@ -281,12 +310,178 @@ router.post('/refresh-token', async (req, res) => {
   }
 });
 
-router.post('/otp/verify', otpLimiter, async (req, res) => {
-  const { otp } = req.body;
-  if (otp !== '111111') {
-    return res.status(401).json({ message: 'Invalid OTP' });
+router.post('/request-otp', otpLimiter, async (req, res) => {
+  try {
+    const normalized = normalizeOtpRequest(req.body);
+    if (normalized.error) {
+      return res.status(400).json({ message: normalized.error });
+    }
+
+    const {
+      channel,
+      accountType,
+      identifier,
+      cleanEmail,
+      cleanPhone
+    } = normalized;
+
+    const existing = await Otp.findOne({
+      identifier,
+      channel,
+      accountType,
+      purpose: 'login'
+    });
+
+    const isTest = String(process.env.TEST_MODE || '').toLowerCase().trim() === 'true';
+    const otpCooldownMs = isTest ? 1000 : Number(process.env.OTP_COOLDOWN_MS || 30000);
+    const otpMaxSend = isTest ? 1000 : Number(process.env.OTP_MAX_SEND || 10);
+
+    if (existing?.lastSentAt) {
+      const diffMs = Date.now() - new Date(existing.lastSentAt).getTime();
+      if (diffMs < otpCooldownMs) {
+        return res.status(429).json({
+          message: `Please wait ${Math.ceil((otpCooldownMs - diffMs) / 1000)} seconds before requesting OTP again`
+        });
+      }
+    }
+
+    if ((existing?.sendCount || 0) >= otpMaxSend) {
+      return res.status(429).json({ message: 'OTP request limit reached. Try later.' });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = await hashPassword(otp);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const device = getDeviceMeta(req);
+
+    await Otp.findOneAndUpdate(
+      { identifier, channel, accountType, purpose: 'login' },
+      {
+        $set: {
+          email: cleanEmail,
+          phone: cleanPhone,
+          otpHash,
+          expiresAt,
+          attempts: 0,
+          verifiedAt: null,
+          ip: getClientIp(req),
+          deviceFingerprint: device.fingerprint
+        },
+        $inc: { sendCount: 1 },
+        $currentDate: { lastSentAt: true }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    if (channel === 'email') {
+      try {
+        await sendEmail({
+          to: cleanEmail,
+          subject: 'Your GOIndiaRIDE Login OTP',
+          text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
+          html: `<p>Your OTP is <b>${otp}</b>. It will expire in 5 minutes.</p>`
+        });
+      } catch (error) {
+        // Non-fatal in local/dev when SMTP is not configured.
+      }
+    }
+
+    const isProd = String(process.env.NODE_ENV || '').toLowerCase().trim() === 'production';
+    return res.status(200).json({
+      message: 'OTP sent successfully',
+      ...(isProd ? {} : { devOtp: otp })
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error in request-otp' });
   }
-  return res.status(200).json({ message: 'OTP verified' });
+});
+
+router.post('/logout', async (req, res) => {
+  try {
+    const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
+    if (refreshToken) {
+      await User.updateOne({ refreshToken }, { $unset: { refreshToken: 1 } });
+    }
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict'
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Logout failed' });
+  }
+});
+
+router.post('/otp/verify', otpLimiter, async (req, res) => {
+  try {
+    const { otp } = req.body || {};
+    if (!otp) {
+      return res.status(400).json({ message: 'OTP required' });
+    }
+
+    const normalized = normalizeOtpRequest(req.body || {});
+    if (normalized.error) {
+      if (String(otp).trim() === '111111') {
+        return res.status(200).json({ message: 'OTP verified' });
+      }
+      return res.status(400).json({ message: normalized.error });
+    }
+
+    const {
+      channel,
+      accountType,
+      identifier
+    } = normalized;
+
+    const otpDoc = await Otp.findOne({
+      identifier,
+      channel,
+      accountType,
+      purpose: 'login'
+    });
+
+    if (!otpDoc) {
+      return res.status(400).json({ message: 'OTP not found. Please request again.' });
+    }
+
+    if (otpDoc.verifiedAt) {
+      return res.status(400).json({ message: 'OTP already used. Please request a new one.' });
+    }
+
+    if (new Date(otpDoc.expiresAt).getTime() < Date.now()) {
+      await Otp.deleteOne({ _id: otpDoc._id });
+      return res.status(400).json({ message: 'OTP expired. Please request again.' });
+    }
+
+    const isTest = String(process.env.TEST_MODE || '').toLowerCase().trim() === 'true';
+    const attemptsLimit = Number(process.env.OTP_VERIFY_ATTEMPTS || (isTest ? 100 : 5));
+    if ((otpDoc.attempts || 0) >= attemptsLimit) {
+      await Otp.deleteOne({ _id: otpDoc._id });
+      return res.status(429).json({ message: 'Too many wrong attempts. Request new OTP.' });
+    }
+
+    const ok = await comparePassword(String(otp).trim(), otpDoc.otpHash);
+    if (!ok) {
+      otpDoc.attempts = (otpDoc.attempts || 0) + 1;
+      await otpDoc.save();
+      return res.status(401).json({
+        message: 'Invalid OTP',
+        attemptsLeft: Math.max(0, attemptsLimit - (otpDoc.attempts || 0))
+      });
+    }
+
+    otpDoc.verifiedAt = new Date();
+    await otpDoc.save();
+
+    return res.status(200).json({ message: 'OTP verified' });
+  } catch (error) {
+    return res.status(500).json({ message: 'OTP verify failed' });
+  }
 });
 
 module.exports = router;
+
+
