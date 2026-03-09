@@ -1,8 +1,15 @@
-#root {
+﻿#root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+}
+
+:root {
+  --india-saffron: #ff9933;
+  --india-green: #138808;
+  --india-navy: #0b1f3a;
+  --india-ivory: #f8f6ef;
 }
 
 .logo {
@@ -42,9 +49,10 @@
 }
 
 .tricolor-text {
-  background: linear-gradient(90deg, #ff9933, #ffffff 45%, #138808);
+  background: linear-gradient(90deg, var(--india-saffron) 0%, #ffbe66 30%, var(--india-navy) 52%, var(--india-green) 82%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .glass-card {
@@ -78,4 +86,15 @@
   background-image: linear-gradient(rgba(11, 31, 58, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(11, 31, 58, 0.05) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+.portal-card-dark {
+  color: #eef6ff;
+}
+
+.portal-card-dark p,
+.portal-card-dark h3,
+.portal-card-dark li,
+.portal-card-dark span {
+  color: inherit;
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -54,7 +54,7 @@
 
         /* Navbar */
         .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0B1F3A 0%, #138808 100%);
             color: white;
             padding: 1rem 0;
             position: sticky;
@@ -125,12 +125,12 @@
 
         .btn-login:hover {
             background: white;
-            color: #667eea;
+            color: #0B1F3A;
         }
 
         .btn-signup {
             background: white;
-            color: #667eea;
+            color: #0B1F3A;
         }
 
         .btn-signup:hover {
@@ -140,7 +140,7 @@
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0B1F3A 0%, #138808 100%);
             color: white;
             padding: 4rem 2rem;
             text-align: center;
@@ -204,7 +204,7 @@
 
         .btn-primary {
             background: white;
-            color: #667eea;
+            color: #0B1F3A;
         }
 
         .btn-primary:hover {
@@ -220,7 +220,7 @@
 
         .btn-secondary:hover {
             background: white;
-            color: #667eea;
+            color: #0B1F3A;
         }
 
         /* Container */
@@ -265,7 +265,7 @@
 
         .feature-card i {
             font-size: 3rem;
-            color: #667eea;
+            color: #0B1F3A;
             margin-bottom: 1rem;
         }
 
@@ -282,7 +282,7 @@
         /* Stats Section */
         .stats {
             padding: 4rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0B1F3A 0%, #138808 100%);
             color: white;
         }
 
@@ -330,7 +330,7 @@
         .step-number {
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0B1F3A 0%, #138808 100%);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -391,7 +391,7 @@
 
         .pricing-card .price {
             font-size: 2.5rem;
-            color: #667eea;
+            color: #0B1F3A;
             margin-bottom: 1rem;
             font-weight: bold;
         }
@@ -417,7 +417,7 @@
         .pricing-card button {
             width: 100%;
             padding: 0.8rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0B1F3A 0%, #138808 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -433,7 +433,7 @@
         /* CTA Section */
         .cta {
             padding: 4rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0B1F3A 0%, #138808 100%);
             color: white;
             text-align: center;
         }
@@ -573,6 +573,153 @@
             color: #94a3b8;
             font-size: 0.8rem;
         }
+
+        /* TRI-COLOR OVERRIDES FOR HOMEPAGE (ADDITIVE) */
+        :root {
+            --india-saffron: #ff9933;
+            --india-green: #138808;
+            --india-navy: #0b1f3a;
+            --india-ivory: #f8f6ef;
+        }
+
+        .navbar,
+        .hero {
+            background: linear-gradient(125deg, var(--india-saffron) 0%, #fff7ed 42%, var(--india-green) 100%);
+            color: var(--india-navy);
+        }
+
+        .navbar {
+            border-bottom: 1px solid rgba(11, 31, 58, 0.14);
+        }
+
+        .navbar-links a,
+        .navbar .logo,
+        .hero h1,
+        .hero p {
+            color: var(--india-navy);
+            opacity: 1;
+        }
+
+        .btn-login {
+            color: var(--india-navy);
+            border-color: rgba(11, 31, 58, 0.32);
+            background: rgba(255, 255, 255, 0.66);
+        }
+
+        .btn-login:hover {
+            background: var(--india-navy);
+            color: #fff;
+        }
+
+        .btn-signup,
+        .btn-primary {
+            background: var(--india-navy);
+            color: #fff;
+        }
+
+        .btn-signup:hover,
+        .btn-primary:hover {
+            background: #142f57;
+        }
+
+        .btn-secondary {
+            border-color: var(--india-navy);
+            color: var(--india-navy);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .btn-secondary:hover {
+            background: var(--india-navy);
+            color: #fff;
+        }
+
+        .hero::before {
+            opacity: 0.25;
+        }
+
+        .ai-automation-section {
+            padding: 4rem 2rem;
+            background: linear-gradient(145deg, #fffaf0 0%, #f7fbf8 55%, #eef5ff 100%);
+        }
+
+        .ai-automation-header {
+            text-align: center;
+            margin-bottom: 1.4rem;
+        }
+
+        .ai-automation-header h2 {
+            color: var(--india-navy);
+            font-size: 2rem;
+        }
+
+        .ai-automation-header p {
+            color: rgba(11, 31, 58, 0.76);
+            max-width: 900px;
+            margin: 0.7rem auto 0;
+        }
+
+        .ai-automation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .ai-automation-card {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(11, 31, 58, 0.12);
+            border-radius: 14px;
+            padding: 1rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .ai-automation-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            font-weight: 700;
+            color: var(--india-navy);
+        }
+
+        .ai-automation-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .ai-status-healthy {
+            color: #0f766e;
+            background: #ccfbf1;
+            border-color: #99f6e4;
+        }
+
+        .ai-status-elevated {
+            color: #b45309;
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+
+        .ai-status-critical {
+            color: #b91c1c;
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        .ai-automation-card p {
+            color: rgba(11, 31, 58, 0.75);
+            font-size: 0.9rem;
+            margin-top: 0.55rem;
+        }
+
+        .ai-automation-meta {
+            margin-top: 1rem;
+            text-align: right;
+            font-size: 0.76rem;
+            color: rgba(11, 31, 58, 0.6);
+        }
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -622,6 +769,7 @@
                 <a href="#how-it-works" data-lang="nav.how">How It Works</a>
                 <a href="#pricing" data-lang="nav.pricing">Pricing</a>
                 <a href="#ai-security">AI Security</a>
+                <a href="#ai-automation">AI Automation</a>
                 <a href="#contact" data-lang="nav.contact">Contact</a>
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login">Login</a>
@@ -654,9 +802,9 @@
     </section>
 
     <!-- Welcome International Travelers Banner -->
-    <section style="background: white; padding: 2rem; text-align: center; border-bottom: 4px solid #667eea;">
+    <section style="background: white; padding: 2rem; text-align: center; border-bottom: 4px solid #0B1F3A;">
         <div class="container">
-            <h2 style="color: #667eea; font-size: 2rem; margin-bottom: 1rem;">
+            <h2 style="color: #0B1F3A; font-size: 2rem; margin-bottom: 1rem;">
                 🌍 <span data-lang="banner.welcome">Welcome International Travelers!</span> 🌍
             </h2>
             <p style="color: #666; font-size: 1.1rem; max-width: 800px; margin: 0 auto;" data-lang="banner.text">Experience safe and comfortable rides across India with English-speaking drivers</p>
@@ -685,17 +833,17 @@
             <h2 style="text-align: center; color: #333; margin-bottom: 2rem;">Popular Services for Travelers</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
                 <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <i class="fas fa-plane" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+                    <i class="fas fa-plane" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
                     <h3 style="color: #333; margin-bottom: 0.5rem;" data-lang="services.airport">Airport Pickup</h3>
                     <p style="color: #666; font-size: 0.9rem;">Direct transfers from Jaipur International Airport</p>
                 </div>
                 <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <i class="fas fa-hotel" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+                    <i class="fas fa-hotel" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
                     <h3 style="color: #333; margin-bottom: 0.5rem;" data-lang="services.hotel">Hotel Transfer</h3>
                     <p style="color: #666; font-size: 0.9rem;">Comfortable rides between hotels and attractions</p>
                 </div>
                 <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <i class="fas fa-landmark" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+                    <i class="fas fa-landmark" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
                     <h3 style="color: #333; margin-bottom: 0.5rem;" data-lang="services.tour">City Tour</h3>
                     <p style="color: #666; font-size: 0.9rem;">Explore Rajasthan's heritage with local drivers</p>
                 </div>
@@ -708,43 +856,43 @@
         <div class="container">
             <h2 style="text-align: center; color: #333; margin-bottom: 2rem;">🗺️ Popular Tourist Routes</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; max-width: 1000px; margin: 0 auto;">
-                <div style="padding: 1rem; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
                     <div>
                         <div style="font-weight: bold; color: #333;">Delhi Airport → Jaipur</div>
                         <div style="font-size: 0.85rem; color: #666;">280 km • 4.5 hours</div>
                     </div>
                 </div>
-                <div style="padding: 1rem; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
                     <div>
                         <div style="font-weight: bold; color: #333;">Jaipur → Agra (Taj Mahal)</div>
                         <div style="font-size: 0.85rem; color: #666;">240 km • 4 hours</div>
                     </div>
                 </div>
-                <div style="padding: 1rem; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
                     <div>
                         <div style="font-weight: bold; color: #333;">Jaipur → Udaipur</div>
                         <div style="font-size: 0.85rem; color: #666;">395 km • 6.5 hours</div>
                     </div>
                 </div>
-                <div style="padding: 1rem; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
                     <div>
                         <div style="font-weight: bold; color: #333;">Jaipur → Jodhpur</div>
                         <div style="font-size: 0.85rem; color: #666;">335 km • 5.5 hours</div>
                     </div>
                 </div>
-                <div style="padding: 1rem; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
                     <div>
                         <div style="font-weight: bold; color: #333;">Jodhpur → Jaisalmer</div>
                         <div style="font-size: 0.85rem; color: #666;">285 km • 5 hours</div>
                     </div>
                 </div>
-                <div style="padding: 1rem; border: 2px solid #667eea; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #667eea; font-size: 1.5rem;"></i>
+                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
+                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
                     <div>
                         <div style="font-weight: bold; color: #333;">Udaipur → Mount Abu</div>
                         <div style="font-size: 0.85rem; color: #666;">165 km • 3 hours</div>
@@ -871,6 +1019,41 @@
             </div>
         </div>
     </section>
+    <section class="ai-automation-section" id="ai-automation">
+        <div class="container">
+            <div class="ai-automation-header">
+                <h2><i class="fas fa-robot"></i> Automatic AI Control Center</h2>
+                <p>Customer, driver, and admin workflows are now monitored by automatic AI modules for dispatch, fare checks, fraud watch, SOS routing, and device trust control.</p>
+            </div>
+            <div class="ai-automation-grid" id="aiAutomationGrid">
+                <div class="ai-automation-card">
+                    <div class="ai-automation-title">AI Auto Dispatch <span class="ai-automation-status ai-status-healthy">healthy</span></div>
+                    <p>Nearest trusted driver assignment with active risk checks.</p>
+                </div>
+                <div class="ai-automation-card">
+                    <div class="ai-automation-title">Fraud Firewall <span class="ai-automation-status ai-status-healthy">healthy</span></div>
+                    <p>Auto detection for rapid booking, cancel abuse, and risky sessions.</p>
+                </div>
+                <div class="ai-automation-card">
+                    <div class="ai-automation-title">Smart Fare Guard <span class="ai-automation-status ai-status-healthy">healthy</span></div>
+                    <p>Verifies fare hash, distance consistency, and surcharge integrity.</p>
+                </div>
+                <div class="ai-automation-card">
+                    <div class="ai-automation-title">Emergency AI Router <span class="ai-automation-status ai-status-healthy">healthy</span></div>
+                    <p>Sends SOS events to admin and driver channels with priority levels.</p>
+                </div>
+                <div class="ai-automation-card">
+                    <div class="ai-automation-title">Device Trust AI <span class="ai-automation-status ai-status-healthy">healthy</span></div>
+                    <p>Unknown devices get additional verification before full access.</p>
+                </div>
+                <div class="ai-automation-card">
+                    <div class="ai-automation-title">Compliance Watch <span class="ai-automation-status ai-status-healthy">healthy</span></div>
+                    <p>Background checks for safety and security controls across portals.</p>
+                </div>
+            </div>
+            <div class="ai-automation-meta" id="aiAutomationMeta">Auto refresh: waiting...</div>
+        </div>
+    </section>
     <!-- Stats Section -->
     <section class="stats">
         <div class="container">
@@ -930,7 +1113,7 @@
             <h2>Ride Types & Pricing</h2>
             <div class="pricing-cards">
                 <div class="pricing-card">
-                    <i class="fas fa-car" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+                    <i class="fas fa-car" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
                     <h3>Economy</h3>
                     <p style="color: #666; margin-bottom: 1rem;">Budget-friendly rides</p>
                     <div class="price">₹50<span style="font-size: 1rem; color: #666;">/km</span></div>
@@ -1036,6 +1219,7 @@
     </footer>
 
     <script src="./js/ai-auto-detective.js"></script>
+    <script src="./js/ai-automation-orchestrator.js"></script>
     <script src="./js/app.js"></script>
     <script>
         // Go to booking page
@@ -1094,3 +1278,9 @@
     <script src="./js/toast.js"></script>
 </body>
 </html>
+
+
+
+
+
+

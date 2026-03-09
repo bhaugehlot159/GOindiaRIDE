@@ -1,9 +1,10 @@
-console.log("AUTH ROUTES LOADED FROM:", __filename);
+﻿console.log("AUTH ROUTES LOADED FROM:", __filename);
 const QRCode = require("qrcode");
 const speakeasy = require("speakeasy");
 const express = require('express');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const Otp = require("../models/Otp");
 const { sendEmail } = require("../utils/mailer");
 const validator = require('validator');
@@ -11,7 +12,11 @@ const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
 const authenticate = auth.authenticate || auth;
 const LoginLog = require('../models/LoginLog');
-const { hashPassword, comparePassword, signAccessToken, signRefreshToken, hashToken } = require('../utils/auth');
+const authUtils = require('../utils/auth');
+const { hashPassword, comparePassword, signAccessToken, signRefreshToken } = authUtils;
+const hashToken = typeof authUtils.hashToken === 'function'
+  ? authUtils.hashToken
+  : (token) => crypto.createHash('sha256').update(String(token)).digest('hex');
 const { getClientIp, getDeviceMeta, getCountry } = require('../utils/device');
 const { calculateLoginRisk, detectLoginAnomaly } = require('../services/riskService');
 const { loginLimiter, otpLimiter } = require("../middleware/rateLimiters");
@@ -2354,5 +2359,6 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
 });
 
 module.exports = router;
+
 
 

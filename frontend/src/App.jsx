@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
 
@@ -10,10 +10,12 @@ const portalCards = [
     tag: "Safe rides, transparent fares",
     gradient: "from-[#FF9933] to-[#FFC46B]",
     bullets: [
-      "Real-time fare preview incl. toll & night charges",
-      "SOS with police + ambulance routes",
+      "Real-time fare preview incl. toll and night charges",
+      "SOS with police and ambulance routes",
       "Multi-language (Hindi / English / Rajasthani)",
     ],
+    actionPath: "/dashboard",
+    dark: false,
   },
   {
     title: "Driver Portal",
@@ -21,19 +23,23 @@ const portalCards = [
     gradient: "from-[#138808] to-[#6AD182]",
     bullets: [
       "Document vault with expiry alerts",
-      "Security deposit tracker & earnings board",
-      "Ratings + penalties insight",
+      "Security deposit tracker and earnings board",
+      "Ratings and penalties insight",
     ],
+    actionPath: "/driver",
+    dark: false,
   },
   {
     title: "Admin Command",
     tag: "Audit-ready governance",
     gradient: "from-[#0B1F3A] to-[#0f3c6e]",
     bullets: [
-      "AI auto-dispatch & fraud flags",
-      "RBAC with IP allow-list + 2FA",
-      "Smart lockdown + rate controls",
+      "AI auto-dispatch and fraud flags",
+      "RBAC with IP allow-list and 2FA",
+      "Smart lockdown and rate controls",
     ],
+    actionPath: "/admin",
+    dark: true,
   },
 ];
 
@@ -46,12 +52,57 @@ const securityHighlights = [
   {
     title: "Secure-by-default",
     detail:
-      "Helmet, CORS whitelist (goindiaride.in), Mongo sanitize, XSS clean, CSRF shield.",
+      "Helmet, CORS whitelist (goindiaride.in), Mongo sanitize, XSS clean, and CSRF shield.",
   },
   {
     title: "Ops Ready",
     detail:
       "PM2 restarts, error scrubbing, request signature and replay protection baseline.",
+  },
+];
+
+const aiAutomationDefaults = [
+  {
+    id: "dispatch",
+    title: "AI Auto Dispatch",
+    mode: "Auto",
+    status: "healthy",
+    detail: "Assigns nearest verified driver with rating and risk filters.",
+  },
+  {
+    id: "fraud",
+    title: "Fraud Firewall",
+    mode: "Auto",
+    status: "healthy",
+    detail: "Flags rapid booking, card misuse, and suspicious cancel bursts.",
+  },
+  {
+    id: "fare",
+    title: "Smart Fare Guard",
+    mode: "Auto",
+    status: "healthy",
+    detail: "Checks distance, toll, night charges, and fare hash integrity.",
+  },
+  {
+    id: "sos",
+    title: "Emergency AI Router",
+    mode: "Auto",
+    status: "healthy",
+    detail: "Broadcasts SOS to admin and driver with incident priority.",
+  },
+  {
+    id: "device",
+    title: "Device Trust AI",
+    mode: "Auto",
+    status: "healthy",
+    detail: "Approves known devices and sends unknown devices to verification.",
+  },
+  {
+    id: "compliance",
+    title: "Compliance Watch",
+    mode: "Auto",
+    status: "healthy",
+    detail: "Monitors document expiry and security posture in all portals.",
   },
 ];
 
@@ -69,9 +120,36 @@ function formatNotificationTime(value) {
   });
 }
 
+function resolvePortalPath({ token, role, accountType }) {
+  if (!token) return "/login";
+
+  if (role === "admin" || accountType === "admin") {
+    return "/admin";
+  }
+
+  if (accountType === "driver") {
+    return "/driver";
+  }
+
+  return "/dashboard";
+}
+
+function getStatusStyle(status) {
+  if (status === "critical") {
+    return "bg-red-100 text-red-700 border-red-200";
+  }
+  if (status === "elevated") {
+    return "bg-amber-100 text-amber-700 border-amber-200";
+  }
+  return "bg-emerald-100 text-emerald-700 border-emerald-200";
+}
+
 function Landing() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role") || "user";
+  const accountType = localStorage.getItem("accountType") || "customer";
+  const openPath = resolvePortalPath({ token, role, accountType });
 
   return (
     <div className="min-h-screen relative text-[#0B1F3A]">
@@ -95,7 +173,7 @@ function Landing() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => navigate(token ? "/dashboard" : "/login")}
+              onClick={() => navigate(openPath)}
               className="px-4 py-2 rounded-full bg-[#0B1F3A] text-white shadow-lg hover:scale-105 transition"
             >
               {token ? "Open Dashboard" : "Secure Login"}
@@ -133,13 +211,13 @@ function Landing() {
           {portalCards.map((card) => (
             <div
               key={card.title}
-              className={`glass-card rounded-2xl p-6 border shadow-md bg-gradient-to-br ${card.gradient} text-[#0B1F3A]`}
+              className={`glass-card rounded-2xl p-6 border shadow-md bg-gradient-to-br ${card.gradient} ${card.dark ? "portal-card-dark" : "text-[#0B1F3A]"}`}
             >
-              <p className="text-xs uppercase tracking-[0.15em] text-[#0B1F3A]/70 mb-2">
+              <p className={`text-xs uppercase tracking-[0.15em] mb-2 ${card.dark ? "text-white/80" : "text-[#0B1F3A]/70"}`}>
                 {card.tag}
               </p>
               <h3 className="text-xl font-bold mb-3">{card.title}</h3>
-              <ul className="space-y-2 text-sm text-[#0B1F3A]/90">
+              <ul className={`space-y-2 text-sm ${card.dark ? "text-white/95" : "text-[#0B1F3A]/90"}`}>
                 {card.bullets.map((item) => (
                   <li key={item} className="flex gap-2">
                     <span className="text-lg">*</span>
@@ -148,8 +226,8 @@ function Landing() {
                 ))}
               </ul>
               <button
-                onClick={() => navigate("/login")}
-                className="mt-4 inline-flex items-center justify-center px-3 py-2 rounded-full bg-[#0B1F3A] text-white text-sm hover:scale-105 transition"
+                onClick={() => navigate(token ? card.actionPath : "/login")}
+                className={`mt-4 inline-flex items-center justify-center px-3 py-2 rounded-full text-sm hover:scale-105 transition ${card.dark ? "bg-white text-[#0B1F3A]" : "bg-[#0B1F3A] text-white"}`}
               >
                 Enter {card.title}
               </button>
@@ -167,6 +245,26 @@ function Landing() {
               <p className="text-sm text-[#0B1F3A]/80 mt-2">{item.detail}</p>
             </div>
           ))}
+        </section>
+
+        <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/10">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <h3 className="text-lg font-bold text-[#0B1F3A]">AI Automation Stack</h3>
+            <span className="text-xs uppercase tracking-[0.16em] text-[#0B1F3A]/60">Auto monitored</span>
+          </div>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 text-left">
+            {aiAutomationDefaults.map((item) => (
+              <div key={item.id} className="rounded-xl border border-[#0B1F3A]/10 bg-white/80 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-[#0B1F3A]">{item.title}</p>
+                  <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full border ${getStatusStyle(item.status)}`}>
+                    {item.mode}
+                  </span>
+                </div>
+                <p className="text-xs text-[#0B1F3A]/70 mt-2">{item.detail}</p>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
     </div>
@@ -198,14 +296,19 @@ function Login() {
         return;
       }
 
-      localStorage.setItem("token", data.accessToken);
-      localStorage.setItem("role", data.role);
+      const resolvedAccountType = data.accountType || (data.role === "admin" ? "admin" : "customer");
 
-      if (data.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      localStorage.setItem("token", data.accessToken);
+      localStorage.setItem("role", data.role || "user");
+      localStorage.setItem("accountType", resolvedAccountType);
+
+      navigate(
+        resolvePortalPath({
+          token: data.accessToken,
+          role: data.role || "user",
+          accountType: resolvedAccountType,
+        })
+      );
     } catch {
       setError("Network error, please retry.");
     } finally {
@@ -258,7 +361,7 @@ function Login() {
             </button>
 
             <p className="text-xs text-center text-[#0B1F3A]/70">
-              2FA and OTP will trigger automatically if enabled on your account.
+              2FA and OTP trigger automatically if enabled on your account.
             </p>
           </div>
         </div>
@@ -270,6 +373,7 @@ function Login() {
 function Dashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role") || "user";
+  const accountType = localStorage.getItem("accountType") || (role === "admin" ? "admin" : "customer");
   const token = localStorage.getItem("token");
 
   const [notifications, setNotifications] = useState([]);
@@ -280,21 +384,26 @@ function Dashboard() {
   const [markingAllRead, setMarkingAllRead] = useState(false);
   const [bookingActionState, setBookingActionState] = useState({
     loading: false,
-    success: '',
-    error: ''
+    success: "",
+    error: "",
   });
   const [sosState, setSosState] = useState({
     loading: false,
-    channel: '',
-    success: '',
-    error: ''
+    channel: "",
+    success: "",
+    error: "",
   });
+  const [aiSummary, setAiSummary] = useState(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiSummaryError, setAiSummaryError] = useState("");
 
   const chips = [
     "AI anomaly watch active",
-    "CSP + CORS hardened",
+    "CSP and CORS hardened",
     "Device fingerprinting ready",
   ];
+
+  const portalLabel = role === "admin" ? "Admin" : accountType === "driver" ? "Driver" : "Customer";
 
   const loadNotifications = useCallback(async ({ silent = false } = {}) => {
     if (!token) return;
@@ -330,6 +439,39 @@ function Dashboard() {
     }
   }, [token]);
 
+  const loadAiSummary = useCallback(async ({ silent = false } = {}) => {
+    if (!token) return;
+
+    if (!silent) {
+      setAiSummaryLoading(true);
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/security/automation/summary`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Automation summary unavailable");
+      }
+
+      setAiSummary(data);
+      setAiSummaryError("");
+    } catch (error) {
+      if (!silent) {
+        setAiSummaryError(error.message || "Unable to load AI summary");
+      }
+    } finally {
+      if (!silent) {
+        setAiSummaryLoading(false);
+      }
+    }
+  }, [token]);
+
   useEffect(() => {
     let active = true;
 
@@ -348,6 +490,33 @@ function Dashboard() {
       clearInterval(timer);
     };
   }, [loadNotifications]);
+
+  useEffect(() => {
+    let active = true;
+
+    const run = async (silent = false) => {
+      if (!active) return;
+      await loadAiSummary({ silent });
+    };
+
+    run(false);
+    const timer = setInterval(() => {
+      run(true);
+    }, 30000);
+
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [loadAiSummary]);
+
+  const automationModules = useMemo(() => {
+    if (Array.isArray(aiSummary?.modules) && aiSummary.modules.length) {
+      return aiSummary.modules;
+    }
+
+    return aiAutomationDefaults;
+  }, [aiSummary]);
 
   const markAllNotificationsRead = async () => {
     if (!token || unreadCount === 0) return;
@@ -419,7 +588,7 @@ function Dashboard() {
   const createDemoBooking = async () => {
     if (!token) return;
 
-    setBookingActionState({ loading: true, success: '', error: '' });
+    setBookingActionState({ loading: true, success: "", error: "" });
     try {
       const quoteResponse = await fetch(`${API_BASE_URL}/api/bookings/quote?distanceKm=18`, {
         method: "GET",
@@ -437,7 +606,7 @@ function Dashboard() {
         distanceKm: quoteData.distanceKm,
         amount: quoteData.amount,
         fareHash: quoteData.fareHash,
-        referralCode: "DEMO"
+        referralCode: "DEMO",
       };
 
       const bookingResponse = await fetch(`${API_BASE_URL}/api/bookings`, {
@@ -457,14 +626,14 @@ function Dashboard() {
       setBookingActionState({
         loading: false,
         success: `Demo booking created: ${bookingData.bookingId}`,
-        error: ''
+        error: "",
       });
       loadNotifications({ silent: false });
     } catch (error) {
       setBookingActionState({
         loading: false,
-        success: '',
-        error: error.message || "Could not create demo booking"
+        success: "",
+        error: error.message || "Could not create demo booking",
       });
     }
   };
@@ -472,7 +641,7 @@ function Dashboard() {
   const triggerSos = async (channel) => {
     if (!token) return;
 
-    setSosState({ loading: true, channel, success: '', error: '' });
+    setSosState({ loading: true, channel, success: "", error: "" });
     try {
       const response = await fetch(`${API_BASE_URL}/api/security/sos`, {
         method: "POST",
@@ -484,8 +653,8 @@ function Dashboard() {
           channel,
           note: `Dashboard quick SOS (${channel})`,
           location: {
-            address: "Dashboard quick action"
-          }
+            address: "Dashboard quick action",
+          },
         }),
       });
 
@@ -498,16 +667,17 @@ function Dashboard() {
         loading: false,
         channel,
         success: `SOS sent (${channel}). Incident: ${data.incidentId}`,
-        error: ''
+        error: "",
       });
 
       loadNotifications({ silent: false });
+      loadAiSummary({ silent: true });
     } catch (error) {
       setSosState({
         loading: false,
         channel,
-        success: '',
-        error: error.message || "SOS request failed"
+        success: "",
+        error: error.message || "SOS request failed",
       });
     }
   };
@@ -515,6 +685,7 @@ function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("accountType");
     navigate("/");
   };
 
@@ -528,10 +699,10 @@ function Dashboard() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-[#0B1F3A]/70 mb-2">
-                {role === "admin" ? "Admin" : "User"} cockpit
+                {portalLabel} cockpit
               </p>
               <h2 className="text-3xl font-bold tricolor-text mb-3">
-                {role === "admin" ? "Admin Dashboard" : "User Dashboard"}
+                {portalLabel} Dashboard
               </h2>
               <div className="flex flex-wrap gap-2 text-xs">
                 {chips.map((chip) => (
@@ -690,6 +861,58 @@ function Dashboard() {
           </div>
         </div>
 
+        <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+            <div>
+              <p className="text-sm font-semibold text-[#0B1F3A]">Automatic AI Control Center</p>
+              <p className="text-xs text-[#0B1F3A]/65">Unified AI status for customer, driver, and admin portals.</p>
+            </div>
+            <button
+              onClick={() => loadAiSummary({ silent: false })}
+              className="self-start md:self-auto text-xs px-3 py-1.5 rounded-full bg-[#0B1F3A] text-white"
+              disabled={aiSummaryLoading}
+            >
+              {aiSummaryLoading ? "Refreshing..." : "Refresh AI status"}
+            </button>
+          </div>
+
+          {aiSummaryError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mb-3">
+              {aiSummaryError}
+            </p>
+          )}
+
+          <div className="grid md:grid-cols-3 gap-3 mb-4">
+            <div className="rounded-xl border border-[#0B1F3A]/10 bg-white/80 p-3 text-left">
+              <p className="text-xs uppercase text-[#0B1F3A]/60">Incidents (24h)</p>
+              <p className="text-2xl font-bold text-[#0B1F3A]">{Number(aiSummary?.window?.incidents24h || 0)}</p>
+            </div>
+            <div className="rounded-xl border border-[#0B1F3A]/10 bg-white/80 p-3 text-left">
+              <p className="text-xs uppercase text-[#0B1F3A]/60">High risk users</p>
+              <p className="text-2xl font-bold text-[#0B1F3A]">{Number(aiSummary?.window?.highRiskUsers || 0)}</p>
+            </div>
+            <div className="rounded-xl border border-[#0B1F3A]/10 bg-white/80 p-3 text-left">
+              <p className="text-xs uppercase text-[#0B1F3A]/60">Auto bans active</p>
+              <p className="text-2xl font-bold text-[#0B1F3A]">{Number(aiSummary?.window?.activeBans || 0)}</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 text-left">
+            {automationModules.map((item) => (
+              <div key={item.id || item.title} className="rounded-xl border border-[#0B1F3A]/10 bg-white/85 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-[#0B1F3A]">{item.title}</p>
+                  <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full border ${getStatusStyle(item.status || "healthy")}`}>
+                    {(item.status || "healthy").toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-xs text-[#0B1F3A]/70 mt-2">{item.detail}</p>
+                <p className="text-[11px] text-[#0B1F3A]/55 mt-2">{item.mode || "Auto"}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <div className="flex gap-3">
           <button
             onClick={() => navigate("/")}
@@ -713,6 +936,10 @@ function AdminDashboard() {
   return <Dashboard />;
 }
 
+function DriverDashboard() {
+  return <Dashboard />;
+}
+
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -731,7 +958,22 @@ function App() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/customer"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/driver"
+        element={
+          <ProtectedRoute>
+            <DriverDashboard />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/admin"
         element={
@@ -745,9 +987,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-

@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 
 const auth = require('../middleware/authMiddleware');
 const authenticate = auth.authenticate || auth;
@@ -61,6 +61,57 @@ function normalizeSosLocation(input) {
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null
   };
+}
+
+function buildAutomationModules(windowStats) {
+  const criticalIncidents = Number(windowStats.criticalIncidents || 0);
+  const highRiskUsers = Number(windowStats.highRiskUsers || 0);
+  const activeBans = Number(windowStats.activeBans || 0);
+
+  return [
+    {
+      id: 'dispatch',
+      title: 'AI Auto Dispatch',
+      mode: 'Auto',
+      status: criticalIncidents > 0 ? 'elevated' : 'healthy',
+      detail: 'Assigns nearest verified driver using trust, risk, and availability filters.'
+    },
+    {
+      id: 'fraud',
+      title: 'Fraud Firewall',
+      mode: 'Auto',
+      status: highRiskUsers > 0 ? 'elevated' : 'healthy',
+      detail: 'Tracks suspicious booking velocity and cancel abuse signals.'
+    },
+    {
+      id: 'fare',
+      title: 'Smart Fare Guard',
+      mode: 'Auto',
+      status: 'healthy',
+      detail: 'Protects fare integrity using backend fare hash verification.'
+    },
+    {
+      id: 'sos',
+      title: 'Emergency AI Router',
+      mode: 'Auto',
+      status: criticalIncidents >= 3 ? 'critical' : (criticalIncidents > 0 ? 'elevated' : 'healthy'),
+      detail: 'Routes SOS incidents to admin and driver channels with priority labels.'
+    },
+    {
+      id: 'device',
+      title: 'Device Trust AI',
+      mode: 'Auto',
+      status: activeBans > 0 ? 'elevated' : 'healthy',
+      detail: 'Applies device approval and temporary ban controls for risky sessions.'
+    },
+    {
+      id: 'compliance',
+      title: 'Compliance Watch',
+      mode: 'Auto',
+      status: 'healthy',
+      detail: 'Monitors security posture and control coverage across all portals.'
+    }
+  ];
 }
 
 async function createEmergencyNotifications({
@@ -347,6 +398,49 @@ router.post('/sos', authenticate, async (req, res) => {
   }
 });
 
+router.get('/automation/summary', authenticate, async (req, res) => {
+  try {
+    const since = new Date(Date.now() - (24 * 60 * 60 * 1000));
+
+    const [incidents24h, criticalIncidents, openIncidents, highRiskUsers, activeBans, topIncident] = await Promise.all([
+      SecurityIncident.countDocuments({ createdAt: { $gte: since } }),
+      SecurityIncident.countDocuments({ createdAt: { $gte: since }, severity: 'critical' }),
+      SecurityIncident.countDocuments({ status: { $in: ['open', 'investigating'] } }),
+      User.countDocuments({ riskScore: { $gte: 70 } }),
+      User.countDocuments({ isTemporarilyBannedUntil: { $gt: new Date() } }),
+      SecurityIncident.findOne({ createdAt: { $gte: since } })
+        .sort({ riskScore: -1, createdAt: -1 })
+        .select('incidentId eventType severity riskScore createdAt')
+        .lean()
+    ]);
+
+    const windowStats = {
+      incidents24h,
+      criticalIncidents,
+      openIncidents,
+      highRiskUsers,
+      activeBans
+    };
+
+    return res.status(200).json({
+      generatedAt: new Date().toISOString(),
+      window: windowStats,
+      modules: buildAutomationModules(windowStats),
+      focus: topIncident
+        ? {
+            incidentId: topIncident.incidentId,
+            eventType: topIncident.eventType,
+            severity: topIncident.severity,
+            riskScore: topIncident.riskScore,
+            createdAt: topIncident.createdAt
+          }
+        : null
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch automation summary' });
+  }
+});
+
 router.get('/incidents', authenticate, requireAdmin, async (req, res) => {
   try {
     const limit = Math.min(Math.max(Number(req.query?.limit) || 25, 1), 200);
@@ -467,5 +561,7 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
 });
 
 module.exports = router;
+
+
 
 
