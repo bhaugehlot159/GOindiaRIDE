@@ -7,3 +7,4 @@ ADMIN 2FA ROUTES LOADED
 (node:18836) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 {"time":"2026-03-09T03:15:45.091Z","level":"info","message":"Secure backend started","port":5000}
+^C^C
