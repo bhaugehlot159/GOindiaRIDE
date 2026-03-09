@@ -255,8 +255,28 @@ function setCurrency(currency) {
 function updatePageLanguage() {
     document.querySelectorAll('[data-lang]').forEach(element => {
         const key = element.getAttribute('data-lang');
-        const translation = t(key);
-        
+        let translation = t(key);
+
+        if (typeof translation !== 'string') {
+            translation = String(translation || '');
+        }
+
+        if (translation === key) {
+            const englishFallback = translations.en[key];
+            if (typeof englishFallback === 'string' && englishFallback.trim()) {
+                translation = englishFallback;
+            }
+        }
+
+        if (!translation.trim()) {
+            const englishFallback = translations.en[key];
+            if (typeof englishFallback === 'string' && englishFallback.trim()) {
+                translation = englishFallback;
+            } else {
+                return;
+            }
+        }
+
         if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
             element.placeholder = translation;
         } else {
@@ -287,7 +307,7 @@ function createLanguageSwitcher() {
     };
     
     let html = '<div class="language-switcher" style="position: relative; display: inline-block;">';
-    html += `<button class="lang-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 1.2rem;">`;
+    html += `<button class="lang-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 1.05rem; font-weight: 700;">`;
     html += `${flags[currentLang]} ▼</button>`;
     html += '<div class="lang-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 200px; z-index: 1000;">';
     
@@ -303,7 +323,7 @@ function createLanguageSwitcher() {
 // Create currency switcher HTML
 function createCurrencySwitcher() {
     let html = '<div class="currency-switcher" style="position: relative; display: inline-block; margin-left: 1rem;">';
-    html += `<button class="currency-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">`;
+    html += `<button class="currency-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 700;">`;
     html += `${currencyRates[currentCurrency].symbol} ${currentCurrency} ▼</button>`;
     html += '<div class="currency-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 150px; z-index: 1000;">';
     

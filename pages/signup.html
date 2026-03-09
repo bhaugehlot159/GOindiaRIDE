@@ -365,6 +365,38 @@
             cursor: pointer;
         }
 
+
+        .driver-only-fields {
+            display: none;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #d8e4ff;
+            border-radius: 12px;
+            background: #f8fbff;
+        }
+
+        .driver-only-fields.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .driver-only-fields h3 {
+            color: #1f3a66;
+            font-size: 1.05rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .driver-only-fields p {
+            color: #5f6e85;
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+        }
+
+        .required-dot {
+            color: #d32f2f;
+            font-weight: bold;
+            margin-left: 0.2rem;
+        }
         @media (max-width: 768px) {
             .signup-container {
                 grid-template-columns: 1fr;
@@ -511,6 +543,46 @@
                     </div>
                 </div>
 
+
+                <!-- Driver-only Verification Fields -->
+                <div class="driver-only-fields" id="driverOnlyFields">
+                    <h3>Driver Verification Details</h3>
+                    <p>Driver signup ke liye valid driving license compulsory hai.</p>
+
+                    <div class="form-group">
+                        <label for="drivingLicenseNumber">
+                            Driving License Number
+                            <span class="required-dot">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-id-card"></i>
+                            <input
+                                type="text"
+                                id="drivingLicenseNumber"
+                                name="drivingLicenseNumber"
+                                placeholder="Ex: RJ1420110012345"
+                                maxlength="20"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="licenseExpiry">
+                            License Expiry Date
+                            <span class="required-dot">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-check"></i>
+                            <input
+                                type="date"
+                                id="licenseExpiry"
+                                name="licenseExpiry"
+                            >
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Password with Show/Hide -->
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -593,9 +665,14 @@
 
         // Elements
         const signupForm = document.getElementById('signupForm');
+        const roleCustomerInput = document.getElementById('roleCustomer');
+        const roleDriverInput = document.getElementById('roleDriver');
         const fullnameInput = document.getElementById('fullname');
         const emailInput = document.getElementById('email');
         const phoneInput = document.getElementById('phone');
+        const driverOnlyFields = document.getElementById('driverOnlyFields');
+        const drivingLicenseNumberInput = document.getElementById('drivingLicenseNumber');
+        const licenseExpiryInput = document.getElementById('licenseExpiry');
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const termsCheckbox = document.getElementById('terms');
@@ -621,6 +698,33 @@
         function goToLogin() {
             window.location.href = './login.html';
         }
+
+        function sanitizeDrivingLicense(value) {
+            return sanitizeInput(value).toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20);
+        }
+
+        function validateDrivingLicense(value) {
+            const compact = String(value || '').replace(/-/g, '');
+            return /^[A-Z]{2}[0-9]{2}[A-Z0-9]{8,14}$/.test(compact);
+        }
+
+        function toggleDriverFields() {
+            const isDriver = roleDriverInput.checked;
+            driverOnlyFields.classList.toggle('show', isDriver);
+
+            drivingLicenseNumberInput.required = isDriver;
+            licenseExpiryInput.required = isDriver;
+
+            if (!isDriver) {
+                drivingLicenseNumberInput.value = '';
+                licenseExpiryInput.value = '';
+            }
+        }
+
+        roleCustomerInput.addEventListener('change', toggleDriverFields);
+        roleDriverInput.addEventListener('change', toggleDriverFields);
+        toggleDriverFields();
+
 
         // Form Submission
         signupForm.addEventListener('submit', async function(e) {
@@ -672,6 +776,36 @@
 
             // Get role
             const role = document.querySelector('input[name="role"]:checked').value;
+            let drivingLicenseNumber = '';
+            let licenseExpiry = '';
+
+            if (role === 'driver') {
+                drivingLicenseNumber = sanitizeDrivingLicense(drivingLicenseNumberInput.value);
+                licenseExpiry = sanitizeInput(licenseExpiryInput.value);
+                drivingLicenseNumberInput.value = drivingLicenseNumber;
+
+                if (!drivingLicenseNumber) {
+                    showError('Driver signup ke liye driving license number required hai.');
+                    return;
+                }
+
+                if (!validateDrivingLicense(drivingLicenseNumber)) {
+                    showError('Please enter a valid driving license number.');
+                    return;
+                }
+
+                if (!licenseExpiry) {
+                    showError('Please select driving license expiry date.');
+                    return;
+                }
+
+                const expiryDate = new Date(licenseExpiry + 'T23:59:59');
+                if (Number.isNaN(expiryDate.getTime()) || expiryDate < new Date()) {
+                    showError('Driving license expiry valid future date honi chahiye.');
+                    return;
+                }
+            }
+
 
             console.log('📝 Signup attempt:', { role, fullname, email, phone });
 
@@ -724,6 +858,9 @@
                             email: email,
                             phone: phone,
                             password: hashedPassword,
+                            drivingLicenseNumber: drivingLicenseNumber,
+                            drivingLicenseExpiry: licenseExpiry,
+                            licenseVerified: false,
                             vehicleNumber: '',
                             role: 'driver',
                             createdAt: new Date().toISOString()

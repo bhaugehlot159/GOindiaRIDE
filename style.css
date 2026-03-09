@@ -520,6 +520,23 @@ footer {
   color: #ffffff;
 }
 
+.navbar-links .btn-login,
+.navbar-links .btn-signup {
+  min-width: 96px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.navbar-links .btn-login {
+  color: var(--india-navy);
+}
+
+.navbar-links .btn-signup,
+.navbar-links .btn-signup:hover,
+.navbar-links .btn-signup:focus {
+  color: #ffffff;
+}
+
 .btn-signup:hover,
 .btn-primary:hover {
   background: #142f57;
