@@ -1,6 +1,8 @@
 # DRIVER FEATURES (Folder-wise)
 # Source: COMPLETE-FEATURES-LIST.txt
-# Total lines mapped: 132
+# Total lines mapped: 141
+# Non-empty lines mapped: 122
+# Likely multi-point lines: 4
 
 ## SECTION B: DRIVER PORTAL (ड्राइवर पोर्टल)
 
@@ -133,3 +135,12 @@
 - Driver loyalty rewards program
 
 ---
+
+Driver portel
+Bahut kam commission or upar dikhaya jaye  ki dusari company se nam matra commission kata jayega
+ Vehicle detials full verify
+Driver details full verified 
+Language all lang option 
+Driver photo add option 
+
+

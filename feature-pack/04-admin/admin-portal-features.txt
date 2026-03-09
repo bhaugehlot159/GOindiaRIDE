@@ -1,6 +1,8 @@
 # ADMIN FEATURES (Folder-wise)
 # Source: COMPLETE-FEATURES-LIST.txt
-# Total lines mapped: 306
+# Total lines mapped: 322
+# Non-empty lines mapped: 280
+# Likely multi-point lines: 6
 
 ## SECTION C: ADMIN PORTAL (एडमिन पोर्टल)
 
@@ -307,3 +309,19 @@
 - Accident support fund
 
 ---
+
+Admin portal 
+In tino portal ko aapas me connect karna hai jisase jisme keval costumer jab booking dale tab admin or driver dono ke paas notification mile 
+Time time se alrt milana chahiye sabhi ficher ke
+Costumer or driver v sabhi ka control admin ke paas ho 
+Or isme jitana ho sake utne sabhi ai system dalne hai
+Sabhi portal me adhik se adhik ai system dalne hai
+Or puri website automatic banani hai
+Or hamari website ko international brand ke rup me banani hai us hisab se adhik se adhik ficher dalne hai jo other contry ke parpase se fichar jodna hai
+
+
+***********************************
+
+
+meri website ka desh board ko or name ko india ke tirange  ke color me banao or ise is tarah se banao ki log adhik se adhik aakrshit ho
+

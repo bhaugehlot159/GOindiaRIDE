@@ -1,6 +1,8 @@
 # ADDITIONAL FEATURES (Folder-wise)
 # Source: COMPLETE-FEATURES-LIST.txt
-# Total lines mapped: 102
+# Total lines mapped: 60
+# Non-empty lines mapped: 50
+# Likely multi-point lines: 1
 
 ## SECTION D: अतिरिक्त फीचर्स (ADDITIONAL FEATURES)
 
@@ -60,46 +62,4 @@
 
 
 **********************************************************************************************************
-
-
-Driver portel
-Bahut kam commission or upar dikhaya jaye  ki dusari company se nam matra commission kata jayega
- Vehicle detials full verify
-Driver details full verified 
-Language all lang option 
-Driver photo add option 
-
-
-
-Customer portal 
-Fare eastimate real calculate 
-Timeming ke anusar auto bill ganaret ho
-Km ke anusar bill automatic generating ho
-Ride type me sabhi gadiya k naam jese sedan , suv,innova,cresta,other sabhi ke name
-One way or out station day rental or airport pickup or round trip city local trip or side seen 
-Career option sabhi no wala bhi add kena 
-fuel option
-Pickup location to drop location auto generate kilomiter hona chahiye 
-Customer emergency option police or ambulance dono option hone chahiye 
-Customer k liya toll parking night charge extra customer ko phela hi dekhna chahiye 
-Cancellation refund ka option 
-Advance payment option 
-Or cash ka bhi option 
-80km speed ka rules dikhna chahiye 
-Costumer ke liye booking payment offer karne ka option jisase customer saggese kar sake ki me ye payment kar sakta hu
-
-Admin portal 
-In tino portal ko aapas me connect karna hai jisase jisme keval costumer jab booking dale tab admin or driver dono ke paas notification mile 
-Time time se alrt milana chahiye sabhi ficher ke
-Costumer or driver v sabhi ka control admin ke paas ho 
-Or isme jitana ho sake utne sabhi ai system dalne hai
-Sabhi portal me adhik se adhik ai system dalne hai
-Or puri website automatic banani hai
-Or hamari website ko international brand ke rup me banani hai us hisab se adhik se adhik ficher dalne hai jo other contry ke parpase se fichar jodna hai
-
-
-***********************************
-
-
-meri website ka desh board ko or name ko india ke tirange  ke color me banao or ise is tarah se banao ki log adhik se adhik aakrshit ho
 
