@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - GO India RIDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #333; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; overflow-y: auto; z-index: 1000; }
+        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 20px; }
+        .sidebar-logo h2 { font-size: 1.4rem; }
+        .menu-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.8); }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .topbar { position: fixed; top: 0; left: 260px; right: 0; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); z-index: 999; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .admin-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .logout-btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .main-content { margin-left: 260px; margin-top: 70px; padding: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-top: 4px solid #667eea; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #333; margin-top: 10px; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); }
+        .modal-title { font-size: 1.5rem; color: #333; margin: 15px 0; font-weight: 600; }
+        .modal-text { color: #666; margin-bottom: 30px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .modal-btn.yes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .modal-btn.no { background: #f0f0f0; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <h2><i class="fas fa-taxi"></i> GO India RIDE</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item"><i class="fas fa-chart-line"></i> Dashboard</div>
+            <div class="menu-item"><i class="fas fa-calendar-alt"></i> Bookings</div>
+            <div class="menu-item"><i class="fas fa-users"></i> Customers</div>
+            <div class="menu-item"><i class="fas fa-car"></i> Drivers</div>
+            <div class="menu-item"><i class="fas fa-money-bill"></i> Earnings</div>
+            <div class="menu-item"><i class="fas fa-file-alt"></i> Reports</div>
+            <div class="menu-item"><i class="fas fa-cog"></i> Settings</div>
+        </div>
+    </div>
+
+    <div class="topbar">
+        <div class="topbar-left"><h1>Dashboard</h1></div>
+        <div class="topbar-right">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="admin-avatar" id="adminAvatar">A</div>
+                <div>
+                    <div style="font-weight: 600;" id="adminName">Admin</div>
+                    <small style="color: #999;">Administrator</small>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="showLogoutModal()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h2>Welcome to Admin Dashboard</h2>
+        <p style="color: #999; margin-bottom: 30px;">Manage your GO India RIDE platform efficiently</p>
+        <div class="stats-grid">
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Bookings</div><div class="stat-value" id="totalBookings">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Completed Rides</div><div class="stat-value" id="completedRides">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Pending Bookings</div><div class="stat-value" id="pendingBookings">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Cancelled Rides</div><div class="stat-value" id="cancelledRides">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Revenue</div><div class="stat-value" id="totalRevenue">₹0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Active Drivers</div><div class="stat-value" id="activeDrivers">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Customers</div><div class="stat-value" id="totalCustomers">0</div></div>
+            <div class="stat-card"><div style="color: #999; font-size: 0.9rem;">Total Donations</div><div class="stat-value" id="totalDonations">₹0</div></div>
+        </div>
+    </div>
+
+    <div class="modal" id="logoutModal">
+        <div class="modal-content">
+            <div style="font-size: 3rem; color: #f5a623;">❓</div>
+            <div class="modal-title">Confirm Logout</div>
+            <div class="modal-text">Are you sure you want to logout from your admin account?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn yes" onclick="confirmLogout()">Yes, Logout</button>
+                <button class="modal-btn no" onclick="cancelLogout()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const admin = localStorage.getItem('currentAdmin');
+            const role = localStorage.getItem('userRole');
+            if (!admin || role !== 'admin') {
+                window.location.href = '/pages/login.html';
+                return;
+            }
+            try {
+                const adminData = JSON.parse(admin);
+                document.getElementById('adminName').textContent = adminData.name || 'Admin';
+                document.getElementById('adminAvatar').textContent = (adminData.name || 'A')[0].toUpperCase();
+            } catch (e) {
+                window.location.href = '/pages/login.html';
+            }
+            loadDashboardData();
+        });
+
+        function loadDashboardData() {
+            // Use shared database if available, otherwise fall back to localStorage
+            let bookings, customers, drivers;
+            
+            if (typeof BookingDB !== 'undefined' && BookingDB.getAll) {
+                bookings = BookingDB.getAll();
+            } else {
+                bookings = JSON.parse(localStorage.getItem('bookings')) || 
+                          JSON.parse(localStorage.getItem('goride_bookings')) || [];
+            }
+            
+            if (typeof DriverDB !== 'undefined' && DriverDB.getAll) {
+                drivers = DriverDB.getAll();
+            } else {
+                drivers = JSON.parse(localStorage.getItem('drivers')) || 
+                         JSON.parse(localStorage.getItem('goride_drivers')) || [];
+            }
+            
+            customers = JSON.parse(localStorage.getItem('users')) || 
+                       JSON.parse(localStorage.getItem('goride_users')) || [];
+            
+            const completed = bookings.filter(b => b.status === 'completed').length;
+            const pending = bookings.filter(b => 
+                b.status === 'pending' || 
+                b.status === 'confirmed' || 
+                b.status === 'driver_assigned' ||
+                b.status === 'ride_started'
+            ).length;
+            const cancelled = bookings.filter(b => b.status === 'cancelled').length;
+            const revenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
+            const activeDrv = drivers.filter(d => d.status === 'available' || d.isOnline).length;
+            
+            // Get total donations
+            let totalDonations = 0;
+            customers.forEach(c => {
+                const donations = JSON.parse(localStorage.getItem('customerDonations_' + c.id)) || [];
+                totalDonations += donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+            });
+            
+            document.getElementById('totalBookings').textContent = bookings.length;
+            document.getElementById('completedRides').textContent = completed;
+            document.getElementById('pendingBookings').textContent = pending;
+            document.getElementById('cancelledRides').textContent = cancelled;
+            document.getElementById('totalRevenue').textContent = '₹' + Math.round(revenue);
+            document.getElementById('activeDrivers').textContent = activeDrv + ' / ' + drivers.length;
+            document.getElementById('totalCustomers').textContent = customers.length;
+            document.getElementById('totalDonations').textContent = '₹' + Math.round(totalDonations);
+        }
+        
+        // Real-time sync for admin dashboard
+        // Poll every 30 seconds (admin doesn't need sub-second updates)
+        setInterval(() => {
+            loadDashboardData();
+        }, 30000);
+
+        function showLogoutModal() {
+            document.getElementById('logoutModal').classList.add('active');
+        }
+
+        function cancelLogout() {
+            document.getElementById('logoutModal').classList.remove('active');
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('admin2FAEmail');
+            localStorage.removeItem('admin2FAOTP');
+            localStorage.removeItem('admin2FAMethod');
+            window.location.href = '/pages/login.html';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('logoutModal');
+            if (event.target === modal) {
+                cancelLogout();
+            }
+        }
+    </script>
+    
+    <!-- Core System Scripts -->
+    <script src="../js/database.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/toast.js"></script>
+    <script src="../js/route-suggestions.js"></script>
+</body>
+</html>
