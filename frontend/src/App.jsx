@@ -278,6 +278,11 @@ function Dashboard() {
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [notificationError, setNotificationError] = useState("");
   const [markingAllRead, setMarkingAllRead] = useState(false);
+  const [bookingActionState, setBookingActionState] = useState({
+    loading: false,
+    success: '',
+    error: ''
+  });
 
   const chips = [
     "AI anomaly watch active",
@@ -402,6 +407,59 @@ function Dashboard() {
       setUnreadCount((prev) => Math.max(prev - 1, 0));
     } catch (error) {
       setNotificationError(error.message || "Unable to update notification");
+    }
+  };
+
+  const createDemoBooking = async () => {
+    if (!token) return;
+
+    setBookingActionState({ loading: true, success: '', error: '' });
+    try {
+      const quoteResponse = await fetch(`${API_BASE_URL}/api/bookings/quote?distanceKm=18`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const quoteData = await quoteResponse.json();
+      if (!quoteResponse.ok) {
+        throw new Error(quoteData.message || "Quote service unavailable");
+      }
+
+      const bookingPayload = {
+        cardToken: `demo_card_${Date.now()}`,
+        distanceKm: quoteData.distanceKm,
+        amount: quoteData.amount,
+        fareHash: quoteData.fareHash,
+        referralCode: "DEMO"
+      };
+
+      const bookingResponse = await fetch(`${API_BASE_URL}/api/bookings`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      const bookingData = await bookingResponse.json();
+      if (!bookingResponse.ok) {
+        throw new Error(bookingData.message || "Booking failed");
+      }
+
+      setBookingActionState({
+        loading: false,
+        success: `Demo booking created: ${bookingData.bookingId}`,
+        error: ''
+      });
+      loadNotifications({ silent: false });
+    } catch (error) {
+      setBookingActionState({
+        loading: false,
+        success: '',
+        error: error.message || "Could not create demo booking"
+      });
     }
   };
 
@@ -535,10 +593,23 @@ function Dashboard() {
             </p>
           </div>
           <div className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/20">
-            <p className="text-sm font-semibold text-[#0B1F3A]">Next up</p>
+            <p className="text-sm font-semibold text-[#0B1F3A]">Booking trigger</p>
             <p className="text-xs text-[#0B1F3A]/70 mt-2">
-              Booking timeline, SOS, and live tracking cards are now ready for portal-level wiring.
+              Create a demo booking to test customer to admin to driver alert pipeline.
             </p>
+            <button
+              onClick={createDemoBooking}
+              disabled={bookingActionState.loading}
+              className="mt-3 px-3 py-2 rounded-lg bg-[#0B1F3A] text-white text-xs disabled:opacity-50"
+            >
+              {bookingActionState.loading ? "Creating..." : "Create demo booking"}
+            </button>
+            {bookingActionState.success && (
+              <p className="text-[11px] text-green-700 mt-2">{bookingActionState.success}</p>
+            )}
+            {bookingActionState.error && (
+              <p className="text-[11px] text-red-600 mt-2">{bookingActionState.error}</p>
+            )}
           </div>
         </div>
 
@@ -597,6 +668,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

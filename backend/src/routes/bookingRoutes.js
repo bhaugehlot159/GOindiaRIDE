@@ -6,7 +6,7 @@ const Booking = require('../models/Booking');
 const User = require('../models/User');
 const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
-const { verifyFareIntegrity } = require('../middleware/fareIntegrityMiddleware');
+const { verifyFareIntegrity, computeFareHash } = require('../middleware/fareIntegrityMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
 const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 
@@ -24,6 +24,21 @@ async function continuousRiskGate(req, res, next) {
   }
   return next();
 }
+
+router.get('/quote', authenticate, continuousRiskGate, async (req, res) => {
+  const parsedDistance = Number(req.query.distanceKm || req.query.distance || 10);
+  const distanceKm = Number.isFinite(parsedDistance) ? Math.max(parsedDistance, 1) : 10;
+  const normalizedDistance = Number(distanceKm.toFixed(2));
+  const amount = Number((normalizedDistance * 12).toFixed(2));
+  const fareHash = computeFareHash({ distanceKm: normalizedDistance, amount });
+
+  return res.status(200).json({
+    distanceKm: normalizedDistance,
+    amount,
+    fareHash,
+    currency: 'INR'
+  });
+});
 
 router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (req, res) => {
   const { cardToken, distanceKm = 0, amount = 0, referralCode = '' } = req.body;
@@ -154,4 +169,5 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
 });
 
 module.exports = router;
+
 
