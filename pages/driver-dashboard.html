@@ -733,6 +733,42 @@
                 gap: 1rem;
             }
         }
+
+
+        /* India tricolor branding (additive enhancement) */
+        .india-tricolor-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.06em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+        }
+
+        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-white { color: #FFFFFF; }
+        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-ashoka {
+            color: #000080;
+            font-size: 0.95em;
+            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+        }
+
+        .india-tricolor-dashboard {
+            background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+        }
+
+        .india-attract-glow {
+            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
     </style>
 </head>
 <body>
@@ -1053,17 +1089,17 @@
 
         window.addEventListener('load', function() {
             console.log('📄 Driver Dashboard Loading');
-            
+
             const storedDriver = localStorage.getItem('currentDriver');
             const storedRole = localStorage.getItem('userRole');
-            
+
             if (!storedDriver || storedRole !== 'driver') {
                 console.log('❌ Not logged in');
                 alert('❌ Please login as driver first');
                 window.location.href = '/pages/login.html';
                 return;
             }
-            
+
             currentDriver = JSON.parse(storedDriver);
             console.log('✅ Driver logged in:', currentDriver.name);
 
@@ -1072,7 +1108,7 @@
             loadProfile();
             loadEarnings();
             loadRatings();
-            
+
             // Start real-time sync for driver dashboard
             // Poll every 15 seconds for new ride requests (more battery-friendly)
             setInterval(() => {
@@ -1116,22 +1152,22 @@
             if (typeof BookingDB !== 'undefined' && BookingDB.getAll) {
                 bookings = BookingDB.getAll();
             } else {
-                bookings = JSON.parse(localStorage.getItem('bookings')) || 
+                bookings = JSON.parse(localStorage.getItem('bookings')) ||
                           JSON.parse(localStorage.getItem('goride_bookings')) || [];
             }
-            
+
             const driverBookings = bookings.filter(b => b.driverId === currentDriver.id);
-            
+
             // Also show unassigned pending bookings
-            const unassignedBookings = bookings.filter(b => 
+            const unassignedBookings = bookings.filter(b =>
                 b.status === 'pending' && !b.driverId
             );
 
-            const pendingRides = [...driverBookings.filter(b => 
-                b.status === 'pending' || b.status === 'confirmed' || 
+            const pendingRides = [...driverBookings.filter(b =>
+                b.status === 'pending' || b.status === 'confirmed' ||
                 b.status === 'driver_assigned' || b.status === 'active'
             ), ...unassignedBookings.slice(0, 5)]; // Show max 5 unassigned
-            
+
             const completedRides = driverBookings.filter(b => b.status === 'completed');
 
             const pendingList = document.getElementById('pendingRidesList');
@@ -1142,7 +1178,7 @@
                     const isAssigned = ride.driverId === currentDriver.id;
                     const buttonText = isAssigned ? 'Start Ride' : 'Accept';
                     const buttonAction = isAssigned ? `startRide('${ride.id}')` : `acceptRideAction('${ride.id}')`;
-                    
+
                     return `
                     <div class="ride-card pending">
                         <div class="ride-info">
@@ -1347,10 +1383,10 @@
                     localStorage.setItem('bookings', JSON.stringify(bookings));
                 }
             }
-            
+
             loadRides();
             loadDashboard();
-            
+
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('Ride accepted! Customer has been notified.', 'Ride Accepted');
             } else {
@@ -1374,15 +1410,15 @@
                     localStorage.setItem('bookings', JSON.stringify(bookings));
                 }
             }
-            
+
             loadRides();
-            
+
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('Ride has started. Have a safe journey!', 'Ride Started');
             } else {
                 showSuccess('✅ Ride started!');
             }
-            
+
             // Note: In production, ride completion should be manually triggered by the driver
             // For demo purposes, rides auto-complete after 30 seconds (can be disabled)
             const DEMO_MODE = true; // Set to false in production
@@ -1392,7 +1428,7 @@
                 }, 30000); // 30 seconds for demo
             }
         }
-        
+
         function completeRide(rideId) {
             if (typeof BookingDB !== 'undefined' && BookingDB.update) {
                 BookingDB.update(rideId, {
@@ -1410,10 +1446,10 @@
                     localStorage.setItem('bookings', JSON.stringify(bookings));
                 }
             }
-            
+
             loadRides();
             loadDashboard();
-            
+
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('Ride completed successfully!', 'Ride Completed');
             }
@@ -1475,11 +1511,43 @@
 
         console.log('🚀 Driver Dashboard loaded');
     </script>
-    
+
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+
+    <script>
+        (function applyIndiaBranding() {
+            const tricolorBrand = '<span class="india-tricolor-text"><span class="tri-saffron">GO</span> <span class="tri-white">India</span> <span class="tri-ashoka">●</span> <span class="tri-green">RIDE</span></span>';
+
+            const logoSelectors = ['.navbar-logo', '.sidebar-logo h2'];
+            logoSelectors.forEach((selector) => {
+                const node = document.querySelector(selector);
+                if (!node || node.dataset.indiaBrandApplied === 'true') return;
+
+                const iconHtml = node.querySelector('i') ? node.querySelector('i').outerHTML + ' ' : '';
+                node.innerHTML = `${iconHtml}${tricolorBrand}`;
+                node.dataset.indiaBrandApplied = 'true';
+            });
+
+            const dashboardTitleCandidates = Array.from(document.querySelectorAll('h1, h2'));
+            dashboardTitleCandidates.forEach((heading) => {
+                if (!heading || heading.dataset.indiaDashApplied === 'true') return;
+                const txt = (heading.textContent || '').trim().toLowerCase();
+                if (txt.includes('dashboard')) {
+                    heading.classList.add('india-tricolor-dashboard');
+                    heading.dataset.indiaDashApplied = 'true';
+                }
+            });
+
+            ['.navbar', '.topbar', '.header-section'].forEach((selector) => {
+                const section = document.querySelector(selector);
+                if (section) section.classList.add('india-attract-glow');
+            });
+        })();
+    </script>
+
 </body>
 </html>

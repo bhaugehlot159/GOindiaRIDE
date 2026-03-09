@@ -749,6 +749,42 @@
                 height: calc(100vh - 200px);
             }
         }
+
+
+        /* India tricolor branding (additive enhancement) */
+        .india-tricolor-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.06em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+        }
+
+        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-white { color: #FFFFFF; }
+        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-ashoka {
+            color: #000080;
+            font-size: 0.95em;
+            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+        }
+
+        .india-tricolor-dashboard {
+            background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+        }
+
+        .india-attract-glow {
+            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
     </style>
 </head>
 <body>
@@ -881,7 +917,7 @@
                         💡 <em>Tip: Unread messages will show a red "New" badge</em>
                     </p>
                 </div>
-                
+
                 <div class="messages-container">
                     <div class="conversations-list" id="conversationsList">
                         <div class="empty-state">
@@ -1030,7 +1066,7 @@
                         <div style="font-size: 0.85rem; color: #666;">Google Pay, PhonePe, Paytm</div>
                     </div>
                 </button>
-                
+
                 <button class="payment-method-btn" onclick="selectPaymentMethod('card')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
                     <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💳</div>
                     <div style="text-align: left;">
@@ -1038,7 +1074,7 @@
                         <div style="font-size: 0.85rem; color: #666;">Visa, Mastercard, Rupay</div>
                     </div>
                 </button>
-                
+
                 <button class="payment-method-btn" onclick="selectPaymentMethod('cash')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
                     <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💵</div>
                     <div style="text-align: left;">
@@ -1159,20 +1195,20 @@
             loadRides();
             loadDonations();
             loadProfile();
-            
+
             // Initialize demo chat (first time only)
             const hasInitializedChat = localStorage.getItem(getChatInitKey(currentUser.id));
             if (!hasInitializedChat) {
                 startDemoChat();
                 localStorage.setItem(getChatInitKey(currentUser.id), 'true');
             }
-            
+
             // Load messages
             loadMessages();
-            
+
             // Check for completed rides immediately
             checkForCompletedRides();
-            
+
             // Start real-time sync
             startRealTimeSync();
         });
@@ -1207,7 +1243,7 @@
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
 
-            const activeRides = customerBookings.filter(b => 
+            const activeRides = customerBookings.filter(b =>
                 b.status !== 'completed' && b.status !== 'cancelled'
             );
             const completedRides = customerBookings.filter(b => b.status === 'completed');
@@ -1335,47 +1371,47 @@
         function showPaymentModal(rideId) {
             const rides = JSON.parse(localStorage.getItem('bookings')) || [];
             const ride = rides.find(r => r.id === rideId);
-            
+
             if (!ride) return;
-            
+
             currentRideForPayment = rideId;
-            
+
             document.getElementById('paymentPickup').textContent = ride.pickup;
             document.getElementById('paymentDropoff').textContent = ride.dropoff;
             document.getElementById('paymentDistance').textContent = (ride.distance || 15) + ' km';
             document.getElementById('paymentFare').textContent = '₹' + ride.totalFare;
-            
+
             document.getElementById('paymentModal').style.display = 'flex';
             document.getElementById('paymentModal').classList.add('active');
         }
 
         function selectPaymentMethod(method) {
             if (!currentRideForPayment) return;
-            
+
             const rides = JSON.parse(localStorage.getItem('bookings')) || [];
             const rideIdx = rides.findIndex(r => r.id === currentRideForPayment);
-            
+
             if (rideIdx !== -1) {
                 rides[rideIdx].paymentMethod = method;
                 rides[rideIdx].paymentStatus = 'paid';
                 rides[rideIdx].paidAt = new Date().toISOString();
                 localStorage.setItem('bookings', JSON.stringify(rides));
-                
+
                 // Hide payment modal
                 document.getElementById('paymentModal').style.display = 'none';
                 document.getElementById('paymentModal').classList.remove('active');
-                
+
                 // Show success toast
                 if (typeof showSuccessToast === 'function') {
                     showSuccessToast(`Payment of ₹${rides[rideIdx].totalFare} completed successfully!`, 'Payment Successful');
                 }
-                
+
                 // Show optional donation suggestion after 1 second
                 setTimeout(() => {
                     // Show donation modal instead of confirm dialog
                     openDonationModal(currentRideForPayment);
                 }, 1000);
-                
+
                 // Reload rides to update display
                 loadRides();
             }
@@ -1390,7 +1426,7 @@
         function checkForCompletedRides() {
             const rides = JSON.parse(localStorage.getItem('bookings')) || [];
             const myRides = rides.filter(r => r.customerId === currentUser.id);
-            
+
             myRides.forEach(ride => {
                 // If ride is completed and payment not done, show payment modal
                 if (ride.status === 'completed' && !ride.paymentStatus) {
@@ -1557,7 +1593,7 @@ Thank you for your generosity! ❤️
 
         function shareReceipt() {
             const receiptText = `I just donated ₹${document.getElementById('receiptDonation').textContent} through GO India RIDE to help underprivileged drivers! 🙏❤️ #GoIndiaRide #HelpingDrivers`;
-            
+
             if (navigator.share) {
                 navigator.share({
                     title: 'GO India RIDE Donation',
@@ -1675,7 +1711,7 @@ Thank you for riding with us! 🚗
 
             const conversations = MessageDB.getUserConversations(currentUser.id);
             const conversationsList = document.getElementById('conversationsList');
-            
+
             // Update unread badge
             const unreadCount = MessageDB.getUnreadCount(currentUser.id);
             const badge = document.getElementById('unreadBadge');
@@ -1725,11 +1761,11 @@ Thank you for riding with us! 🚗
 
         function openChat(driverId) {
             currentChatUser = driverId;
-            
+
             // Get driver info
             const drivers = JSON.parse(localStorage.getItem('goride_drivers')) || [];
             const driver = drivers.find(d => d.id === driverId);
-            
+
             if (!driver) {
                 alert('Driver not found');
                 return;
@@ -1746,7 +1782,7 @@ Thank you for riding with us! 🚗
 
             // Mark messages as read
             MessageDB.markConversationAsRead(currentUser.id, driverId);
-            
+
             // Load messages
             loadChatMessages(driverId);
 
@@ -1801,7 +1837,7 @@ Thank you for riding with us! 🚗
                 clearTimeout(demoResponseTimeout);
                 demoResponseTimeout = null;
             }
-            
+
             document.getElementById('conversationsList').style.display = 'block';
             document.getElementById('chatWindow').style.display = 'none';
             currentChatUser = null;
@@ -1833,11 +1869,11 @@ Thank you for riding with us! 🚗
             if (demoResponseTimeout) {
                 clearTimeout(demoResponseTimeout);
             }
-            
+
             const chatUserAtSendTime = currentChatUser; // Capture current user
             demoResponseTimeout = setTimeout(() => {
                 const randomResponse = DEMO_RESPONSES[Math.floor(Math.random() * DEMO_RESPONSES.length)];
-                
+
                 MessageDB.create({
                     senderId: chatUserAtSendTime,
                     receiverId: currentUser.id,
@@ -1898,11 +1934,43 @@ Thank you for riding with us! 🚗
 
         console.log('🚀 Customer Dashboard loaded');
     </script>
-    
+
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+
+    <script>
+        (function applyIndiaBranding() {
+            const tricolorBrand = '<span class="india-tricolor-text"><span class="tri-saffron">GO</span> <span class="tri-white">India</span> <span class="tri-ashoka">●</span> <span class="tri-green">RIDE</span></span>';
+
+            const logoSelectors = ['.navbar-logo', '.sidebar-logo h2'];
+            logoSelectors.forEach((selector) => {
+                const node = document.querySelector(selector);
+                if (!node || node.dataset.indiaBrandApplied === 'true') return;
+
+                const iconHtml = node.querySelector('i') ? node.querySelector('i').outerHTML + ' ' : '';
+                node.innerHTML = `${iconHtml}${tricolorBrand}`;
+                node.dataset.indiaBrandApplied = 'true';
+            });
+
+            const dashboardTitleCandidates = Array.from(document.querySelectorAll('h1, h2'));
+            dashboardTitleCandidates.forEach((heading) => {
+                if (!heading || heading.dataset.indiaDashApplied === 'true') return;
+                const txt = (heading.textContent || '').trim().toLowerCase();
+                if (txt.includes('dashboard')) {
+                    heading.classList.add('india-tricolor-dashboard');
+                    heading.dataset.indiaDashApplied = 'true';
+                }
+            });
+
+            ['.navbar', '.topbar', '.header-section'].forEach((selector) => {
+                const section = document.querySelector(selector);
+                if (section) section.classList.add('india-attract-glow');
+            });
+        })();
+    </script>
+
 </body>
 </html>
