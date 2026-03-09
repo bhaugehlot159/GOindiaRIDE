@@ -769,6 +769,31 @@
             border: 1px solid rgba(255,255,255,0.25);
         }
 
+
+
+        .portal-alerts-panel {
+            margin-top: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e7ecf6;
+            padding: 14px;
+        }
+
+        .portal-alerts-title {
+            font-weight: 700;
+            color: #1f2d3d;
+            margin-bottom: 8px;
+        }
+
+        .portal-alert-item {
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #f8fbff;
+            border: 1px solid #e4ebf8;
+            margin-bottom: 7px;
+        }
+
+        .portal-alert-meta { color: #667085; font-size: 0.8rem; margin-top: 3px; }
     </style>
 </head>
 <body>
@@ -1108,12 +1133,15 @@
             loadProfile();
             loadEarnings();
             loadRatings();
+            ensureDriverAlertsPanel();
+            renderDriverAlerts();
 
             // Start real-time sync for driver dashboard
             // Poll every 15 seconds for new ride requests (more battery-friendly)
             setInterval(() => {
                 loadRides();
                 loadDashboard();
+                renderDriverAlerts();
             }, 15000);
         });
 
@@ -1349,6 +1377,33 @@
             closeEditProfileModal();
         }
 
+        function renderDriverAlerts() {
+            const host = document.getElementById('driverAlertsPanel');
+            if (!host || typeof PortalAlerts === 'undefined') return;
+
+            const alerts = PortalAlerts.getAlertsForRole('driver').slice(0, 5);
+            host.innerHTML = alerts.length
+                ? alerts.map((a) => `
+                    <div class="portal-alert-item">
+                        <strong>${a.title}</strong><div>${a.message}</div>
+                        <div class="portal-alert-meta">${PortalAlerts.timeAgo(a.createdAt)}${a.rideId ? ` • Ride ${a.rideId}` : ''}</div>
+                    </div>
+                `).join('')
+                : '<div class="portal-alert-item">No driver alerts right now.</div>';
+        }
+
+        function ensureDriverAlertsPanel() {
+            if (document.getElementById('driverAlertsPanel')) return;
+            const header = document.querySelector('.header-section');
+            if (!header) return;
+
+            const panel = document.createElement('div');
+            panel.className = 'portal-alerts-panel';
+            panel.innerHTML = '<div class="portal-alerts-title">🔔 Driver Alerts</div><div id="driverAlertsPanel"></div>';
+            header.appendChild(panel);
+            renderDriverAlerts();
+        }
+
         function editVehicle() {
             alert('🚗 Vehicle edit feature coming soon!');
         }
@@ -1387,6 +1442,17 @@
             loadRides();
             loadDashboard();
 
+            if (typeof PortalAlerts !== 'undefined') {
+                PortalAlerts.pushAlert({
+                    title: 'Driver Assigned',
+                    message: `${currentDriver.name} accepted ride request.`,
+                    rideId: rideId,
+                    type: 'success',
+                    roles: ['admin', 'customer', 'driver']
+                });
+                renderDriverAlerts();
+            }
+
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('Ride accepted! Customer has been notified.', 'Ride Accepted');
             } else {
@@ -1412,6 +1478,17 @@
             }
 
             loadRides();
+
+            if (typeof PortalAlerts !== 'undefined') {
+                PortalAlerts.pushAlert({
+                    title: 'Ride Started',
+                    message: `${currentDriver.name} started the trip.`,
+                    rideId: rideId,
+                    type: 'info',
+                    roles: ['admin', 'customer', 'driver']
+                });
+                renderDriverAlerts();
+            }
 
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('Ride has started. Have a safe journey!', 'Ride Started');
@@ -1449,6 +1526,17 @@
 
             loadRides();
             loadDashboard();
+
+            if (typeof PortalAlerts !== 'undefined') {
+                PortalAlerts.pushAlert({
+                    title: 'Ride Completed',
+                    message: `${currentDriver.name} completed the trip successfully.`,
+                    rideId: rideId,
+                    type: 'success',
+                    roles: ['admin', 'customer', 'driver']
+                });
+                renderDriverAlerts();
+            }
 
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast('Ride completed successfully!', 'Ride Completed');
@@ -1517,6 +1605,7 @@
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+    <script src="../js/portal-alerts.js"></script>
 
     <script>
         (function applyIndiaBranding() {

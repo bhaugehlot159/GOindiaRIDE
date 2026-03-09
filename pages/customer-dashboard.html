@@ -144,6 +144,42 @@
             font-size: 1.5rem;
         }
 
+        .emergency-panel {
+            margin-top: 1rem;
+            border: 1px solid #ffd6d6;
+            background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .emergency-title {
+            font-weight: 800;
+            color: #b71c1c;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .emergency-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .emergency-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 0.65rem 0.95rem;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .emergency-btn.police { background: #0d47a1; }
+        .emergency-btn.ambulance { background: #c62828; }
+        .emergency-btn.sos { background: #6a1b9a; }
+
         /* Stats Cards */
         .stats-grid {
             display: grid;
@@ -785,6 +821,31 @@
             border: 1px solid rgba(255,255,255,0.25);
         }
 
+
+
+        .portal-alerts-panel {
+            margin-top: 1rem;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e7ecf6;
+            padding: 14px;
+        }
+
+        .portal-alerts-title {
+            font-weight: 700;
+            color: #1f2d3d;
+            margin-bottom: 8px;
+        }
+
+        .portal-alert-item {
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #f8fbff;
+            border: 1px solid #e4ebf8;
+            margin-bottom: 7px;
+        }
+
+        .portal-alert-meta { color: #667085; font-size: 0.8rem; margin-top: 3px; }
     </style>
 </head>
 <body>
@@ -830,6 +891,15 @@
                         <i class="fas fa-user-circle"></i>
                         Profile
                     </button>
+                </div>
+            </div>
+
+            <div class="emergency-panel">
+                <div class="emergency-title"><i class="fas fa-shield-alt"></i> Emergency Support (Police / Ambulance)</div>
+                <div class="emergency-actions">
+                    <button class="emergency-btn police" onclick="triggerEmergencyHelp('police')"><i class="fas fa-user-shield"></i> Police 100 / 112</button>
+                    <button class="emergency-btn ambulance" onclick="triggerEmergencyHelp('ambulance')"><i class="fas fa-ambulance"></i> Ambulance 108 / 102</button>
+                    <button class="emergency-btn sos" onclick="triggerEmergencyHelp('sos')"><i class="fas fa-bell"></i> SOS Alert to Admin</button>
                 </div>
             </div>
         </div>
@@ -1166,9 +1236,9 @@
     </div>
 
     <script>
-        // ============================================
+        // ----------------------------------------====
         // AUTHENTICATION CHECK
-        // ============================================
+        // ----------------------------------------====
 
         function checkAuth() {
             const userRole = localStorage.getItem('userRole');
@@ -1195,6 +1265,8 @@
             loadRides();
             loadDonations();
             loadProfile();
+            ensureCustomerAlertsPanel();
+            renderCustomerAlerts();
 
             // Initialize demo chat (first time only)
             const hasInitializedChat = localStorage.getItem(getChatInitKey(currentUser.id));
@@ -1213,9 +1285,9 @@
             startRealTimeSync();
         });
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD DASHBOARD
-        // ============================================
+        // ----------------------------------------====
 
         function loadDashboard() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
@@ -1235,9 +1307,9 @@
             document.getElementById('userAvatar').textContent = initials;
         }
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD RIDES
-        // ============================================
+        // ----------------------------------------====
 
         function loadRides() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
@@ -1314,9 +1386,9 @@
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD DONATIONS
-        // ============================================
+        // ----------------------------------------====
 
         function loadDonations() {
             const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
@@ -1352,9 +1424,9 @@
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD PROFILE
-        // ============================================
+        // ----------------------------------------====
 
         function loadProfile() {
             document.getElementById('profileName').textContent = currentUser.fullname;
@@ -1362,9 +1434,9 @@
             document.getElementById('profilePhone').textContent = currentUser.phone;
         }
 
-        // ============================================
+        // ----------------------------------------====
         // PAYMENT SYSTEM
-        // ============================================
+        // ----------------------------------------====
 
         let currentRideForPayment = null;
 
@@ -1440,12 +1512,40 @@
             setInterval(() => {
                 loadRides();
                 checkForCompletedRides();
+                renderCustomerAlerts();
             }, 10000); // Poll every 10 seconds for customer dashboard
         }
 
-        // ============================================
+        function renderCustomerAlerts() {
+            const host = document.getElementById('customerAlertsPanel');
+            if (!host || typeof PortalAlerts === 'undefined') return;
+
+            const alerts = PortalAlerts.getAlertsForRole('customer').slice(0, 5);
+            host.innerHTML = alerts.length
+                ? alerts.map((a) => `
+                    <div class="portal-alert-item">
+                        <strong>${a.title}</strong><div>${a.message}</div>
+                        <div class="portal-alert-meta">${PortalAlerts.timeAgo(a.createdAt)}${a.rideId ? ` • Ride ${a.rideId}` : ''}</div>
+                    </div>
+                `).join('')
+                : '<div class="portal-alert-item">No customer alerts right now.</div>';
+        }
+
+        function ensureCustomerAlertsPanel() {
+            if (document.getElementById('customerAlertsPanel')) return;
+            const header = document.querySelector('.header-section');
+            if (!header) return;
+
+            const panel = document.createElement('div');
+            panel.className = 'portal-alerts-panel';
+            panel.innerHTML = '<div class="portal-alerts-title">🔔 Live Ride Alerts</div><div id="customerAlertsPanel"></div>';
+            header.appendChild(panel);
+            renderCustomerAlerts();
+        }
+
+        // ----------------------------------------====
         // DONATION SYSTEM
-        // ============================================
+        // ----------------------------------------====
 
         function openDonations() {
             window.location.href = './donations.html';
@@ -1555,24 +1655,24 @@
             const receiptText = `
 GO INDIA RIDE - DONATION RECEIPT
 
-========================
+------------------------
 RIDE DETAILS
-========================
+------------------------
 Pickup: ${document.getElementById('receiptPickup').textContent}
 Dropoff: ${document.getElementById('receiptDropoff').textContent}
 Ride Fare: ${document.getElementById('receiptFare').textContent}
 
-========================
+------------------------
 DONATION DETAILS
-========================
+------------------------
 Donation Amount: ${document.getElementById('receiptDonation').textContent}
 Beneficiary: ${document.getElementById('receiptBeneficiary').textContent}
 Reference ID: ${document.getElementById('receiptRefId').textContent}
 Date: ${new Date().toLocaleString()}
 
-========================
+------------------------
 SUMMARY
-========================
+------------------------
 Ride Amount: ${document.getElementById('receiptRideAmount').textContent}
 + Donation: ${document.getElementById('receiptDonationAmount').textContent}
 Total Paid: ${document.getElementById('receiptTotal').textContent}
@@ -1611,7 +1711,7 @@ Thank you for your generosity! ❤️
             if (donation) {
                 alert(`
 Donation Receipt
-================
+----------------
 Amount: ₹${donation.amount}
 Beneficiary: ${donation.beneficiary}
 Date: ${new Date(donation.createdAt).toLocaleString()}
@@ -1622,9 +1722,9 @@ Thank you for helping! ❤️
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // TAB SWITCHING
-        // ============================================
+        // ----------------------------------------====
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1648,6 +1748,43 @@ Thank you for helping! ❤️
         // OTHER FUNCTIONS
         // ============================================
 
+        function notifyEmergencyAction(message, title = 'Emergency') {
+            if (typeof showWarningToast === 'function') {
+                showWarningToast(message, title);
+            } else {
+                alert(message);
+            }
+        }
+
+        function triggerEmergencyHelp(kind) {
+            const emergencyMap = {
+                police: { number: '112', label: 'Police', dialable: true },
+                ambulance: { number: '108', label: 'Ambulance', dialable: true },
+                sos: { number: null, label: 'SOS Alert', dialable: false }
+            };
+
+            const info = emergencyMap[kind] || emergencyMap.sos;
+            const who = (currentUser && currentUser.fullname) ? currentUser.fullname : 'Customer';
+
+            if (typeof PortalAlerts !== 'undefined') {
+                PortalAlerts.pushAlert({
+                    title: `Emergency: ${info.label}`,
+                    message: `${who} triggered emergency support from customer dashboard.`,
+                    type: 'danger',
+                    roles: ['admin', 'driver', 'customer']
+                });
+                renderCustomerAlerts();
+            }
+
+            if (info.dialable && info.number) {
+                notifyEmergencyAction(`${info.label} help requested. Dialing ${info.number}...`);
+                window.location.href = `tel:${info.number}`;
+                return;
+            }
+
+            notifyEmergencyAction('SOS alert sent to Admin & Driver network.', 'SOS Triggered');
+        }
+
         function goToBooking() {
             window.location.href = './booking.html';
         }
@@ -1662,7 +1799,7 @@ Thank you for helping! ❤️
             if (ride) {
                 alert(`
 Ride Receipt
-============
+------------
 From: ${ride.pickup}
 To: ${ride.dropoff}
 Type: ${ride.rideType}
@@ -1682,9 +1819,9 @@ Thank you for riding with us! 🚗
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // MESSAGES/CHAT FUNCTIONALITY
-        // ============================================
+        // ----------------------------------------====
 
         let currentChatUser = null;
         let demoResponseTimeout = null;
@@ -1940,6 +2077,7 @@ Thank you for riding with us! 🚗
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+    <script src="../js/portal-alerts.js"></script>
 
     <script>
         (function applyIndiaBranding() {

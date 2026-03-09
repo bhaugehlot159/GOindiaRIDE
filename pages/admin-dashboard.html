@@ -67,6 +67,33 @@
             border: 1px solid rgba(255,255,255,0.25);
         }
 
+
+
+        .portal-alerts-panel {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .portal-alerts-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1f2d3d;
+        }
+
+        .portal-alert-item {
+            border: 1px solid #e8ecf3;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #fafcff;
+        }
+
+        .portal-alert-item strong { color: #0b3d91; }
+        .portal-alert-meta { color: #667085; font-size: 0.82rem; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -142,6 +169,8 @@
                 window.location.href = '/pages/login.html';
             }
             loadDashboardData();
+            ensureAdminAlertsPanel();
+            renderAdminAlerts();
         });
 
         function loadDashboardData() {
@@ -197,7 +226,37 @@
         // Poll every 30 seconds (admin doesn't need sub-second updates)
         setInterval(() => {
             loadDashboardData();
+            ensureAdminAlertsPanel();
+            renderAdminAlerts();
         }, 30000);
+
+
+        function renderAdminAlerts() {
+            const host = document.getElementById('adminAlertsPanel');
+            if (!host || typeof PortalAlerts === 'undefined') return;
+
+            const alerts = PortalAlerts.getAlertsForRole('admin').slice(0, 6);
+            host.innerHTML = alerts.length
+                ? alerts.map((a) => `
+                    <div class="portal-alert-item">
+                        <strong>${a.title}</strong><div>${a.message}</div>
+                        <div class="portal-alert-meta">${PortalAlerts.timeAgo(a.createdAt)}${a.rideId ? ` • Ride ${a.rideId}` : ''}</div>
+                    </div>
+                `).join('')
+                : '<div class="portal-alert-item">No live alerts yet.</div>';
+        }
+
+        function ensureAdminAlertsPanel() {
+            if (document.getElementById('adminAlertsPanel')) return;
+            const container = document.querySelector('.main-content');
+            if (!container) return;
+
+            const panel = document.createElement('div');
+            panel.className = 'portal-alerts-panel';
+            panel.innerHTML = '<div class="portal-alerts-title">🔔 Live Platform Alerts (Admin Control)</div><div id="adminAlertsPanel"></div>';
+            container.appendChild(panel);
+            renderAdminAlerts();
+        }
 
         function showLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
@@ -229,6 +288,7 @@
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+    <script src="../js/portal-alerts.js"></script>
 
     <script>
         (function applyIndiaBranding() {
