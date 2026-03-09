@@ -144,6 +144,42 @@
             font-size: 1.5rem;
         }
 
+        .emergency-panel {
+            margin-top: 1rem;
+            border: 1px solid #ffd6d6;
+            background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .emergency-title {
+            font-weight: 800;
+            color: #b71c1c;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .emergency-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .emergency-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 0.65rem 0.95rem;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .emergency-btn.police { background: #0d47a1; }
+        .emergency-btn.ambulance { background: #c62828; }
+        .emergency-btn.sos { background: #6a1b9a; }
+
         /* Stats Cards */
         .stats-grid {
             display: grid;
@@ -855,6 +891,15 @@
                         <i class="fas fa-user-circle"></i>
                         Profile
                     </button>
+                </div>
+            </div>
+
+            <div class="emergency-panel">
+                <div class="emergency-title"><i class="fas fa-shield-alt"></i> Emergency Support (Police / Ambulance)</div>
+                <div class="emergency-actions">
+                    <button class="emergency-btn police" onclick="triggerEmergencyHelp('police')"><i class="fas fa-user-shield"></i> Police 100 / 112</button>
+                    <button class="emergency-btn ambulance" onclick="triggerEmergencyHelp('ambulance')"><i class="fas fa-ambulance"></i> Ambulance 108 / 102</button>
+                    <button class="emergency-btn sos" onclick="triggerEmergencyHelp('sos')"><i class="fas fa-bell"></i> SOS Alert to Admin</button>
                 </div>
             </div>
         </div>
@@ -1702,6 +1747,43 @@ Thank you for helping! ❤️
         // ============================================
         // OTHER FUNCTIONS
         // ============================================
+
+        function triggerEmergencyHelp(kind) {
+            const emergencyMap = {
+                police: { number: '112', label: 'Police' },
+                ambulance: { number: '108', label: 'Ambulance' },
+                sos: { number: null, label: 'SOS Alert' }
+            };
+
+            const info = emergencyMap[kind] || emergencyMap.sos;
+            const who = (currentUser && currentUser.fullname) ? currentUser.fullname : 'Customer';
+
+            if (typeof PortalAlerts !== 'undefined') {
+                PortalAlerts.pushAlert({
+                    title: `Emergency: ${info.label}`,
+                    message: `${who} triggered emergency support from customer dashboard.`,
+                    type: 'danger',
+                    roles: ['admin', 'driver', 'customer']
+                });
+                renderCustomerAlerts();
+            }
+
+            if (kind === 'police' || kind === 'ambulance') {
+                if (typeof showWarningToast === 'function') {
+                    showWarningToast(`${info.label} help requested. Dialing ${info.number}...`, 'Emergency');
+                } else {
+                    alert(`${info.label} help requested. Dialing ${info.number}...`);
+                }
+                window.location.href = `tel:${info.number}`;
+                return;
+            }
+
+            if (typeof showWarningToast === 'function') {
+                showWarningToast('SOS alert sent to Admin & Driver network.', 'SOS Triggered');
+            } else {
+                alert('SOS alert sent to Admin & Driver network.');
+            }
+        }
 
         function goToBooking() {
             window.location.href = './booking.html';
