@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Someone Today - GO India RIDE Foundation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .navbar-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .navbar-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .hero-stat {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .hero-stat-label {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stories Grid */
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .story-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .story-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .story-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+        }
+
+        .story-content {
+            padding: 2rem;
+        }
+
+        .story-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .story-name {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .story-role {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .impact-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .story-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .story-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar {
+            background: #eee;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .donate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .donate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Donation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .donation-amounts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .amount-option {
+            display: none;
+        }
+
+        .amount-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .amount-option:checked + .amount-label {
+            border-color: #667eea;
+            background: #f0f4ff;
+            color: #667eea;
+        }
+
+        .amount-label:hover {
+            border-color: #667eea;
+        }
+
+        .amount-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .amount-help {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .impact-info {
+            background: #e8f5e9;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #4caf50;
+        }
+
+        .impact-title {
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .impact-text {
+            color: #558b2f;
+            font-size: 0.9rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Success Modal */
+        .success-modal-content {
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #4caf50;
+            margin-bottom: 1rem;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-text {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.7rem 1.5rem;
+            border: 2px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        /* Messages */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .stories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .donation-amounts {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <i class="fas fa-heart"></i>
+                GO India RIDE Foundation
+            </div>
+            <div class="navbar-right">
+                <button class="navbar-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>🌍 Change Lives, One Ride at a Time</h1>
+            <p>Help underprivileged drivers and passengers get better opportunities through education, healthcare, and support</p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="totalDonations">₹0</div>
+                    <div class="hero-stat-label">Total Raised</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="totalDonors">0</div>
+                    <div class="hero-stat-label">Donors Worldwide</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="peopleBenefited">0</div>
+                    <div class="hero-stat-label">People Helped</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="projectsActive">0</div>
+                    <div class="hero-stat-label">Active Projects</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h3 style="margin-bottom: 1.5rem; color: #333;">Filter by Category</h3>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterStories('all')">All Stories</button>
+                <button class="filter-btn" onclick="filterStories('education')">Education</button>
+                <button class="filter-btn" onclick="filterStories('healthcare')">Healthcare</button>
+                <button class="filter-btn" onclick="filterStories('emergency')">Emergency Relief</button>
+                <button class="filter-btn" onclick="filterStories('livelihood')">Livelihood</button>
+            </div>
+        </div>
+
+        <!-- Stories Grid -->
+        <div class="stories-grid" id="storiesGrid">
+            <!-- Stories will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div class="modal" id="donationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Help <span id="storyName"></span></h2>
+                <button class="modal-close" onclick="closeDonationModal()">&times;</button>
+            </div>
+
+            <form id="donationForm" onsubmit="processDonation(event)">
+                <!-- Donation Story -->
+                <div style="background: #f9f9f9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <h4 style="color: #333; margin-bottom: 0.5rem;" id="storyTitle"></h4>
+                    <p style="color: #666; line-height: 1.6;" id="storyFullDescription"></p>
+                </div>
+
+                <!-- Select Amount -->
+                <div class="form-group">
+                    <label>Choose Your Donation Amount</label>
+                    <div class="donation-amounts">
+                        <div>
+                            <input type="radio" name="amount" id="amount100" value="100" class="amount-option" checked>
+                            <label for="amount100" class="amount-label">
+                                <div class="amount-value">₹100</div>
+                                <div class="amount-help">Meal for 2</div>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input type="radio" name="amount" id="amount250" value="250" class="amount-option">
+                            <label for="amount250" class="amount-label">
+                                <div class="amount-value">₹250</div>
+                                <div class="amount-help">School supplies</div>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input type="radio" name="amount" id="amount500" value="500" class="amount-option">
+                            <label for="amount500" class="amount-label">
+                                <div class="amount-value">₹500</div>
+                                <div class="amount-help">Medical kit</div>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input type="radio" name="amount" id="amount1000" value="1000" class="amount-option">
+                            <label for="amount1000" class="amount-label">
+                                <div class="amount-value">₹1000</div>
+                                <div class="amount-help">Monthly support</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Amount -->
+                <div class="form-group">
+                    <label for="customAmount">Or Enter Custom Amount (₹)</label>
+                    <input type="number" id="customAmount" min="1" placeholder="₹" onchange="selectCustomAmount()">
+                </div>
+
+                <!-- Donor Details -->
+                <div class="form-group">
+                    <label for="donorName">Your Name</label>
+                    <input type="text" id="donorName" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="donorEmail">Your Email</label>
+                    <input type="email" id="donorEmail" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="donorPhone">Your Phone (Optional)</label>
+                    <input type="tel" id="donorPhone" placeholder="Enter your phone number">
+                </div>
+
+                <!-- Country Selection -->
+                <div class="form-group">
+                    <label for="donorCountry">Your Country</label>
+                    <select id="donorCountry" required>
+                        <option value="">Select Country</option>
+                        <option value="IN" selected>India</option>
+                        <option value="US">United States</option>
+                        <option value="UK">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="AE">United Arab Emirates</option>
+                        <option value="SG">Singapore</option>
+                        <option value="MY">Malaysia</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select Payment Method</option>
+                        <option value="card">Debit/Credit Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="netbanking">Net Banking</option>
+                        <option value="wallet">Digital Wallet</option>
+                        <option value="paypal">PayPal</option>
+                    </select>
+                </div>
+
+                <!-- Impact Info -->
+                <div class="impact-info" id="impactInfo">
+                    <div class="impact-title">💪 Your Impact</div>
+                    <div class="impact-text">
+                        Your donation of <strong id="donationDisplayAmount">₹100</strong> will directly help 
+                        <strong id="impactStatement">provide meals to families in need</strong>
+                    </div>
+                </div>
+
+                <!-- Anonymous Donation -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="anonymousDonation">
+                        <span>Donate Anonymously</span>
+                    </label>
+                </div>
+
+                <!-- Message to Beneficiary -->
+                <div class="form-group">
+                    <label for="donationMessage">Message to Beneficiary (Optional)</label>
+                    <textarea 
+                        id="donationMessage" 
+                        rows="3"
+                        placeholder="Send a message of encouragement..."
+                        style="width: 100%; padding: 0.9rem; border: 2px solid #ddd; border-radius: 8px; font-family: inherit;"
+                    ></textarea>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-heart"></i>
+                    Donate Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content success-modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="success-title">Thank You! 🙏</div>
+            <div class="success-text" id="successMessage"></div>
+            <button class="close-btn" onclick="closeSuccessModal()">Continue Helping</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STORIES DATA
+        // ============================================
+
+        const stories = [
+            {
+                id: 1,
+                name: 'Rajesh Kumar',
+                role: 'Struggling Driver',
+                emoji: '👨‍💼',
+                category: 'livelihood',
+                title: 'Helping Rajesh Get Back on Wheels',
+                shortDescription: 'Rajesh lost his vehicle in an accident. Help him rebuild his livelihood.',
+                fullDescription: `Rajesh Kumar, 38, has been driving for 15 years. Last month, his car was hit by a truck. He lost his only source of income and is unable to afford repairs.
+
+His wife is a homemaker and his two children study in government school. Without his vehicle, his family faces hunger and uncertainty.
+
+Your donation will help:
+✓ Repair his vehicle (₹20,000 needed)
+✓ Medical treatment for his injuries
+✓ Temporary family support during recovery
+
+Every rupee directly impacts his family's survival.`,
+                targetAmount: 20000,
+                raisedAmount: 8500,
+                donors: 45,
+                impactStatement: 'repair his vehicle and support his family',
+                impactBenefit: '₹100 = 1 day of meals for his family'
+            },
+            {
+                id: 2,
+                name: 'Priya Sharma',
+                role: 'Aspiring Student',
+                emoji: '👧',
+                category: 'education',
+                title: 'Education Changes Everything',
+                shortDescription: 'Priya\'s father is a driver. Help her pursue engineering dreams.',
+                fullDescription: `Priya Sharma, 16, is the daughter of a daily-wage driver. She's brilliant in school with 92% grades but cannot afford engineering college.
+
+Her father earns ₹400/day and struggles to provide basic education. Engineering fees are ₹4 lakhs - impossible for her family.
+
+But Priya dreams of becoming an engineer and breaking the cycle of poverty.
+
+Your donation will help:
+✓ Pay her engineering college fees
+✓ Provide study materials and laptops
+✓ Transport and accommodation support
+
+Education is the only way to break poverty. Your donation changes her future forever.`,
+                targetAmount: 400000,
+                raisedAmount: 125000,
+                donors: 280,
+                impactStatement: 'provide quality education for her engineering dreams',
+                impactBenefit: '₹250 = 1 month of college fees'
+            },
+            {
+                id: 3,
+                name: 'Suresh Singh',
+                role: 'Patient in Crisis',
+                emoji: '🏥',
+                category: 'healthcare',
+                title: 'Fighting Cancer, Choosing Hope',
+                shortDescription: 'Suresh is a driver fighting cancer. Help him access treatment.',
+                fullDescription: `Suresh Singh, 45, is a GO India RIDE driver. He was recently diagnosed with cancer and needs immediate chemotherapy.
+
+Cancer treatment costs ₹3 lakhs. Suresh earns ₹500/day and has no savings. His wife works as a domestic help. They live paycheck to paycheck.
+
+Without treatment, his condition will worsen. With treatment, he has an 70% survival chance.
+
+Your donation will help:
+✓ Cover chemotherapy costs (₹3,00,000)
+✓ Hospital admission and tests
+✓ Post-recovery care and medicines
+
+Every donation brings him closer to recovery and returning to his family.`,
+                targetAmount: 300000,
+                raisedAmount: 95000,
+                donors: 156,
+                impactStatement: 'provide life-saving cancer treatment',
+                impactBenefit: '₹500 = 2 chemotherapy sessions'
+            },
+            {
+                id: 4,
+                name: 'Fatima Khan',
+                role: 'Widow & Mother',
+                emoji: '👩',
+                category: 'emergency',
+                title: 'A Mother\'s Second Chance',
+                shortDescription: 'Fatima lost her husband. Help her family survive this tragedy.',
+                fullDescription: `Fatima Khan, 34, lost her husband (a driver) in a road accident 2 months ago. She's left with two young children - ages 8 and 12.
+
+No savings. No income. Her children haven't been to school in 2 months. They're hungry most days.
+
+She's desperate, but not broken. She wants to learn a skill and provide for her children. She needs emergency financial support to rebuild.
+
+Your donation will help:
+✓ Immediate monthly food and shelter (₹15,000)
+✓ Vocational training for Fatima (₹8,000)
+✓ School fees and supplies for children (₹10,000)
+
+Help Fatima reclaim her dignity and provide a future for her children.`,
+                targetAmount: 50000,
+                raisedAmount: 28000,
+                donors: 95,
+                impactStatement: 'provide emergency relief and vocational training',
+                impactBenefit: '₹100 = 10 meals for her children'
+            },
+            {
+                id: 5,
+                name: 'Deepak Verma',
+                role: 'Senior Driver',
+                emoji: '👴',
+                category: 'healthcare',
+                title: 'Elderly Care with Dignity',
+                shortDescription: 'Deepak is 65 and needs medical care. Help him age with dignity.',
+                fullDescription: `Deepak Verma, 65, has been a driver for 40 years. Age and long working hours have taken a toll. He has diabetes, hypertension, and needs regular dialysis.
+
+His pension is only ₹2,000/month - not enough for medicines costing ₹5,000/month. His children live abroad and he refuses to burden them.
+
+He's losing hope, but he deserves respect and care for his lifetime of hard work.
+
+Your donation will help:
+✓ Monthly dialysis treatments (₹8,000)
+✓ Essential medicines (₹5,000)
+✓ Nutritious diet and care support (₹3,000)
+
+Every elderly person deserves dignity. Help Deepak live his final years with care and respect.`,
+                targetAmount: 150000,
+                raisedAmount: 52000,
+                donors: 110,
+                impactStatement: 'provide essential medical care for his health',
+                impactBenefit: '₹250 = 1 week of medicines'
+            },
+            {
+                id: 6,
+                name: 'Zara Patel',
+                role: 'Orphaned Child',
+                emoji: '👦',
+                category: 'education',
+                title: 'From Orphanage to Dreams',
+                shortDescription: 'Zara lost both parents. Help her build a future through education.',
+                fullDescription: `Zara Patel, 12, lost both parents in a car accident 3 years ago. He lives in an orphanage with 40 other children.
+
+He's a brilliant student with top marks, but the orphanage cannot afford quality education. Teachers are unmotivated and resources are limited.
+
+Zara dreams of becoming a doctor - to help other children like him who've lost everything.
+
+Your donation will help:
+✓ Transfer him to a quality private school (₹50,000/year)
+✓ Provide study materials and coaching (₹15,000)
+✓ Health checkups and nutrition support (₹10,000)
+
+Help Zara transform his tragedy into a mission to help others.`,
+                targetAmount: 200000,
+                raisedAmount: 68000,
+                donors: 145,
+                impactStatement: 'provide quality education and support',
+                impactBenefit: '₹100 = school books and materials'
+            },
+            {
+                id: 7,
+                name: 'Anita Devi',
+                role: 'Domestic Worker',
+                emoji: '👩‍🍳',
+                category: 'livelihood',
+                title: 'Breaking Free from Abuse',
+                shortDescription: 'Anita escaped domestic violence. Help her rebuild her life.',
+                fullDescription: `Anita Devi, 28, escaped a abusive marriage with her 2 children. She's now living in a women's shelter with nothing.
+
+She's skilled in cooking and sewing but lacks capital to start her own small business. A tailoring unit would cost ₹15,000 - an impossible amount for her.
+
+With a small sewing business, she can earn ₹800/day and provide her children with dignity and hope.
+
+Your donation will help:
+✓ Sewing machine and materials (₹15,000)
+✓ Business registration and training (₹3,000)
+✓ Living expenses while starting business (₹10,000)
+
+Help Anita become independent and a role model for her children.`,
+                targetAmount: 40000,
+                raisedAmount: 18000,
+                donors: 65,
+                impactStatement: 'help her start a small tailoring business',
+                impactBenefit: '₹100 = sewing materials for 1 project'
+            },
+            {
+                id: 8,
+                name: 'Arjun Singh',
+                role: 'Physically Disabled',
+                emoji: '♿',
+                category: 'livelihood',
+                title: 'Breaking Barriers, Not Dreams',
+                shortDescription: 'Arjun lost his legs in an accident. Help him become independent.',
+                fullDescription: `Arjun Singh, 32, lost both his legs in a road accident 5 years ago. He was a confident driver - now confined to bed.
+
+He's depressed and his family is poor. But Arjun has not given up. He wants to learn a skill that doesn't require walking - like computer programming.
+
+Online training costs ₹25,000. His family cannot afford it. They need him to regain his self-respect and independence.
+
+Your donation will help:
+✓ Online programming course (₹25,000)
+✓ Laptop and internet setup (₹30,000)
+✓ Job placement support (₹5,000)
+
+Help Arjun prove that disability is just a limitation of the body, not the mind.`,
+                targetAmount: 80000,
+                raisedAmount: 42000,
+                donors: 98,
+                impactStatement: 'help him learn programming and become independent',
+                impactBenefit: '₹250 = 1 month of online course'
+            }
+        ];
+
+        // ============================================
+        // LOAD STORIES
+        // ============================================
+
+        let currentFilter = 'all';
+        let donations = JSON.parse(localStorage.getItem('donations')) || [];
+
+        window.addEventListener('load', function() {
+            loadStories();
+            updateStats();
+        });
+
+        function loadStories() {
+            const storiesGrid = document.getElementById('storiesGrid');
+            const filtered = currentFilter === 'all' 
+                ? stories 
+                : stories.filter(s => s.category === currentFilter);
+
+            storiesGrid.innerHTML = filtered.map(story => `
+                <div class="story-card" onclick="openDonationModal('${story.id}')">
+                    <div class="story-image">${story.emoji}</div>
+                    <div class="story-content">
+                        <div class="story-header">
+                            <div>
+                                <div class="story-name">${story.name}</div>
+                                <div class="story-role">${story.role}</div>
+                            </div>
+                            <div class="impact-badge">${story.category.toUpperCase()}</div>
+                        </div>
+
+                        <div class="story-description">${story.title}</div>
+                        <p style="color: #999; font-size: 0.9rem; margin-bottom: 1rem;">${story.shortDescription}</p>
+
+                        <div class="story-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">₹${story.raisedAmount.toLocaleString()}</div>
+                                <div class="stat-label">Raised</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${story.donors}</div>
+                                <div class="stat-label">Donors</div>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(story.raisedAmount / story.targetAmount) * 100}%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span>${Math.round((story.raisedAmount / story.targetAmount) * 100)}% of ₹${story.targetAmount.toLocaleString()} goal</span>
+                        </div>
+
+                        <button class="donate-btn" onclick="event.stopPropagation(); openDonationModal('${story.id}')">
+                            <i class="fas fa-heart"></i>
+                            Donate Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterStories(category) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadStories();
+        }
+
+        // ============================================
+        // DONATION MODAL
+        // ============================================
+
+        function openDonationModal(storyId) {
+            const story = stories.find(s => s.id == storyId);
+            if (!story) return;
+
+            document.getElementById('storyName').textContent = story.name;
+            document.getElementById('storyTitle').textContent = story.title;
+            document.getElementById('storyFullDescription').textContent = story.fullDescription;
+            document.getElementById('impactStatement').textContent = story.impactStatement;
+            document.getElementById('donationDisplayAmount').textContent = '₹100';
+            document.getElementById('donationModal').dataset.storyId = storyId;
+
+            // Reset form
+            document.getElementById('donationForm').reset();
+            document.getElementById('amount100').checked = true;
+            document.getElementById('donorCountry').value = 'IN';
+
+            document.getElementById('donationModal').classList.add('active');
+        }
+
+        function closeDonationModal() {
+            document.getElementById('donationModal').classList.remove('active');
+        }
+
+        function selectCustomAmount() {
+            const customAmount = document.getElementById('customAmount').value;
+            if (customAmount && customAmount > 0) {
+                document.querySelectorAll('input[name="amount"]').forEach(el => el.checked = false);
+                updateDonationDisplay(customAmount);
+            }
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'amount') {
+                updateDonationDisplay(e.target.value);
+            }
+        });
+
+        function updateDonationDisplay(amount) {
+            document.getElementById('donationDisplayAmount').textContent = `₹${amount}`;
+        }
+
+        // ============================================
+        // DONATION PROCESSING
+        // ============================================
+
+        function processDonation(e) {
+            e.preventDefault();
+
+            const storyId = document.getElementById('donationModal').dataset.storyId;
+            const amount = document.getElementById('customAmount').value || 
+                          document.querySelector('input[name="amount"]:checked').value;
+            const donorName = document.getElementById('donorName').value;
+            const donorEmail = document.getElementById('donorEmail').value;
+            const donorPhone = document.getElementById('donorPhone').value;
+            const donorCountry = document.getElementById('donorCountry').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const anonymous = document.getElementById('anonymousDonation').checked;
+            const message = document.getElementById('donationMessage').value;
+
+            // Validate
+            if (!amount || !donorName || !donorEmail || !paymentMethod) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            // Create donation record
+            const donation = {
+                id: 'DON' + Date.now(),
+                storyId: storyId,
+                amount: parseInt(amount),
+                donorName: anonymous ? 'Anonymous Donor' : donorName,
+                donorEmail: anonymous ? 'anonymous@donation.com' : donorEmail,
+                donorPhone: donorPhone,
+                donorCountry: donorCountry,
+                paymentMethod: paymentMethod,
+                message: message,
+                createdAt: new Date().toISOString(),
+                status: 'completed'
+            };
+
+            // Save donation
+            donations.push(donation);
+            localStorage.setItem('donations', JSON.stringify(donations));
+
+            // Update story raised amount
+            const storyIndex = stories.findIndex(s => s.id == storyId);
+            if (storyIndex !== -1) {
+                stories[storyIndex].raisedAmount += parseInt(amount);
+                stories[storyIndex].donors += 1;
+            }
+
+            // Show success modal
+            const story = stories.find(s => s.id == storyId);
+            document.getElementById('successMessage').innerHTML = `
+                <div style="text-align: center;">
+                    <p style="font-size: 1.1rem; margin-bottom: 1rem;">
+                        Your donation of <strong>₹${amount}</strong> has been received successfully!
+                    </p>
+                    <p style="color: #666; margin-bottom: 1rem;">
+                        You're helping ${story.name} with ${story.impactStatement}
+                    </p>
+                    <p style="color: #999; font-size: 0.9rem;">
+                        A confirmation has been sent to ${donorEmail}
+                    </p>
+                </div>
+            `;
+
+            closeDonationModal();
+            document.getElementById('successModal').classList.add('active');
+            loadStories();
+            updateStats();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+        }
+
+        // ============================================
+        // STATISTICS
+        // ============================================
+
+        function updateStats() {
+            const totalDonations = donations.reduce((sum, d) => sum + d.amount, 0);
+            const uniqueDonors = new Set(donations.map(d => d.donorEmail)).size;
+            const peopleBenefited = donations.length * 5; // Assumed 5 people per donation
+            const projectsActive = stories.length;
+
+            document.getElementById('totalDonations').textContent = `₹${totalDonations.toLocaleString()}`;
+            document.getElementById('totalDonors').textContent = uniqueDonors;
+            document.getElementById('peopleBenefited').textContent = peopleBenefited;
+            document.getElementById('projectsActive').textContent = projectsActive;
+        }
+
+        // ============================================
+        // UTILITY
+        // ============================================
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Close modals on background click
+        window.onclick = (e) => {
+            if (e.target === document.getElementById('donationModal')) {
+                closeDonationModal();
+            }
+            if (e.target === document.getElementById('successModal')) {
+                closeSuccessModal();
+            }
+        }
+
+        console.log('🚀 Donations page loaded');
+    </script>
+</body>
+</html>

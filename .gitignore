@@ -3,3 +3,5 @@ backend/node_modules/
 .env
 backend/.env
 npm-debug.log*
+
+_exports/*.tar
