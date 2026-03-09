@@ -8,6 +8,7 @@ const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskS
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const { verifyFareIntegrity } = require('../middleware/fareIntegrityMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
+const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 
 const router = express.Router();
 
@@ -80,7 +81,32 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     lastRiskUpdate: new Date()
   });
 
-  return res.status(201).json({ bookingId: booking.bookingId, status: booking.status, riskScore: behavior.score });
+  let notificationSummary = null;
+  try {
+    notificationSummary = await createBookingPortalNotifications({
+      bookingId: booking.bookingId,
+      amount: req.recalculatedFare,
+      distanceKm,
+      action: 'created',
+      customerId: req.user.id
+    });
+  } catch (error) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'booking_portal_notification_failed',
+      ip,
+      riskScore: Math.max(behavior.score, 0),
+      result: 'warning',
+      metadata: { message: error.message, bookingId: booking.bookingId }
+    });
+  }
+
+  return res.status(201).json({
+    bookingId: booking.bookingId,
+    status: booking.status,
+    riskScore: behavior.score,
+    notifications: notificationSummary
+  });
 });
 
 router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) => {
@@ -91,15 +117,41 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
   );
   if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
+  const ip = getClientIp(req);
   await trackBehaviorEvent({
     userId: req.user.id,
     eventType: 'booking_cancel',
-    ip: getClientIp(req),
+    ip,
     city: req.headers['x-city'] || 'unknown',
     metadata: { bookingId: booking.bookingId }
   });
 
-  return res.status(200).json({ bookingId: booking.bookingId, status: booking.status });
+  let notificationSummary = null;
+  try {
+    notificationSummary = await createBookingPortalNotifications({
+      bookingId: booking.bookingId,
+      amount: booking.amount,
+      distanceKm: booking.distanceKm,
+      action: 'cancelled',
+      customerId: req.user.id
+    });
+  } catch (error) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'booking_cancel_notification_failed',
+      ip,
+      riskScore: 0,
+      result: 'warning',
+      metadata: { message: error.message, bookingId: booking.bookingId }
+    });
+  }
+
+  return res.status(200).json({
+    bookingId: booking.bookingId,
+    status: booking.status,
+    notifications: notificationSummary
+  });
 });
 
 module.exports = router;
+

@@ -22,7 +22,7 @@ async function authenticate(req, res, next) {
       return res.status(403).json({ message: 'Temporarily banned due to suspicious activity' });
     }
 
-    req.user = { id: user._id.toString(), role: user.role, email: user.email };
+    req.user = { id: user._id.toString(), role: user.role, accountType: user.accountType, email: user.email };
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
@@ -45,3 +45,4 @@ module.exports = {
   authenticate,
   authorizeRole
 };
+

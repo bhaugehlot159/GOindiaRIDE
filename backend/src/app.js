@@ -13,6 +13,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const admin2faRoutes = require('./routes/admin2faRoutes');
 const securityRoutes = require('./routes/securityRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
@@ -92,6 +93,7 @@ app.get('/api/security/csrf-token', (req, res) => {
 app.use('/api/admin', strictCsrfShield);
 app.use('/api/bookings', strictCsrfShield);
 app.use('/api/security', strictCsrfShield);
+app.use('/api/notifications', strictCsrfShield);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -100,8 +102,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin', admin2faRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 module.exports = app;
+
