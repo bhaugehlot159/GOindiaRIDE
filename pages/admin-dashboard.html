@@ -31,6 +31,42 @@
         .modal-btn { padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
         .modal-btn.yes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
         .modal-btn.no { background: #f0f0f0; color: #333; }
+
+
+        /* India tricolor branding (additive enhancement) */
+        .india-tricolor-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.06em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+        }
+
+        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-white { color: #FFFFFF; }
+        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-ashoka {
+            color: #000080;
+            font-size: 0.95em;
+            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+        }
+
+        .india-tricolor-dashboard {
+            background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+        }
+
+        .india-attract-glow {
+            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
     </style>
 </head>
 <body>
@@ -111,42 +147,42 @@
         function loadDashboardData() {
             // Use shared database if available, otherwise fall back to localStorage
             let bookings, customers, drivers;
-            
+
             if (typeof BookingDB !== 'undefined' && BookingDB.getAll) {
                 bookings = BookingDB.getAll();
             } else {
-                bookings = JSON.parse(localStorage.getItem('bookings')) || 
+                bookings = JSON.parse(localStorage.getItem('bookings')) ||
                           JSON.parse(localStorage.getItem('goride_bookings')) || [];
             }
-            
+
             if (typeof DriverDB !== 'undefined' && DriverDB.getAll) {
                 drivers = DriverDB.getAll();
             } else {
-                drivers = JSON.parse(localStorage.getItem('drivers')) || 
+                drivers = JSON.parse(localStorage.getItem('drivers')) ||
                          JSON.parse(localStorage.getItem('goride_drivers')) || [];
             }
-            
-            customers = JSON.parse(localStorage.getItem('users')) || 
+
+            customers = JSON.parse(localStorage.getItem('users')) ||
                        JSON.parse(localStorage.getItem('goride_users')) || [];
-            
+
             const completed = bookings.filter(b => b.status === 'completed').length;
-            const pending = bookings.filter(b => 
-                b.status === 'pending' || 
-                b.status === 'confirmed' || 
+            const pending = bookings.filter(b =>
+                b.status === 'pending' ||
+                b.status === 'confirmed' ||
                 b.status === 'driver_assigned' ||
                 b.status === 'ride_started'
             ).length;
             const cancelled = bookings.filter(b => b.status === 'cancelled').length;
             const revenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
             const activeDrv = drivers.filter(d => d.status === 'available' || d.isOnline).length;
-            
+
             // Get total donations
             let totalDonations = 0;
             customers.forEach(c => {
                 const donations = JSON.parse(localStorage.getItem('customerDonations_' + c.id)) || [];
                 totalDonations += donations.reduce((sum, d) => sum + (d.amount || 0), 0);
             });
-            
+
             document.getElementById('totalBookings').textContent = bookings.length;
             document.getElementById('completedRides').textContent = completed;
             document.getElementById('pendingBookings').textContent = pending;
@@ -156,7 +192,7 @@
             document.getElementById('totalCustomers').textContent = customers.length;
             document.getElementById('totalDonations').textContent = '₹' + Math.round(totalDonations);
         }
-        
+
         // Real-time sync for admin dashboard
         // Poll every 30 seconds (admin doesn't need sub-second updates)
         setInterval(() => {
@@ -187,11 +223,43 @@
             }
         }
     </script>
-    
+
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+
+    <script>
+        (function applyIndiaBranding() {
+            const tricolorBrand = '<span class="india-tricolor-text"><span class="tri-saffron">GO</span> <span class="tri-white">India</span> <span class="tri-ashoka">●</span> <span class="tri-green">RIDE</span></span>';
+
+            const logoSelectors = ['.navbar-logo', '.sidebar-logo h2'];
+            logoSelectors.forEach((selector) => {
+                const node = document.querySelector(selector);
+                if (!node || node.dataset.indiaBrandApplied === 'true') return;
+
+                const iconHtml = node.querySelector('i') ? node.querySelector('i').outerHTML + ' ' : '';
+                node.innerHTML = `${iconHtml}${tricolorBrand}`;
+                node.dataset.indiaBrandApplied = 'true';
+            });
+
+            const dashboardTitleCandidates = Array.from(document.querySelectorAll('h1, h2'));
+            dashboardTitleCandidates.forEach((heading) => {
+                if (!heading || heading.dataset.indiaDashApplied === 'true') return;
+                const txt = (heading.textContent || '').trim().toLowerCase();
+                if (txt.includes('dashboard')) {
+                    heading.classList.add('india-tricolor-dashboard');
+                    heading.dataset.indiaDashApplied = 'true';
+                }
+            });
+
+            ['.navbar', '.topbar', '.header-section'].forEach((selector) => {
+                const section = document.querySelector(selector);
+                if (section) section.classList.add('india-attract-glow');
+            });
+        })();
+    </script>
+
 </body>
 </html>
