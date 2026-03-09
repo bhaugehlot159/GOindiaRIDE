@@ -31,6 +31,69 @@
         .modal-btn { padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
         .modal-btn.yes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
         .modal-btn.no { background: #f0f0f0; color: #333; }
+
+
+        /* India tricolor branding (additive enhancement) */
+        .india-tricolor-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.06em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+        }
+
+        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-white { color: #FFFFFF; }
+        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-ashoka {
+            color: #000080;
+            font-size: 0.95em;
+            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+        }
+
+        .india-tricolor-dashboard {
+            background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+        }
+
+        .india-attract-glow {
+            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+
+
+        .portal-alerts-panel {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .portal-alerts-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1f2d3d;
+        }
+
+        .portal-alert-item {
+            border: 1px solid #e8ecf3;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #fafcff;
+        }
+
+        .portal-alert-item strong { color: #0b3d91; }
+        .portal-alert-meta { color: #667085; font-size: 0.82rem; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -106,47 +169,49 @@
                 window.location.href = '/pages/login.html';
             }
             loadDashboardData();
+            ensureAdminAlertsPanel();
+            renderAdminAlerts();
         });
 
         function loadDashboardData() {
             // Use shared database if available, otherwise fall back to localStorage
             let bookings, customers, drivers;
-            
+
             if (typeof BookingDB !== 'undefined' && BookingDB.getAll) {
                 bookings = BookingDB.getAll();
             } else {
-                bookings = JSON.parse(localStorage.getItem('bookings')) || 
+                bookings = JSON.parse(localStorage.getItem('bookings')) ||
                           JSON.parse(localStorage.getItem('goride_bookings')) || [];
             }
-            
+
             if (typeof DriverDB !== 'undefined' && DriverDB.getAll) {
                 drivers = DriverDB.getAll();
             } else {
-                drivers = JSON.parse(localStorage.getItem('drivers')) || 
+                drivers = JSON.parse(localStorage.getItem('drivers')) ||
                          JSON.parse(localStorage.getItem('goride_drivers')) || [];
             }
-            
-            customers = JSON.parse(localStorage.getItem('users')) || 
+
+            customers = JSON.parse(localStorage.getItem('users')) ||
                        JSON.parse(localStorage.getItem('goride_users')) || [];
-            
+
             const completed = bookings.filter(b => b.status === 'completed').length;
-            const pending = bookings.filter(b => 
-                b.status === 'pending' || 
-                b.status === 'confirmed' || 
+            const pending = bookings.filter(b =>
+                b.status === 'pending' ||
+                b.status === 'confirmed' ||
                 b.status === 'driver_assigned' ||
                 b.status === 'ride_started'
             ).length;
             const cancelled = bookings.filter(b => b.status === 'cancelled').length;
             const revenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.totalFare || 0), 0);
             const activeDrv = drivers.filter(d => d.status === 'available' || d.isOnline).length;
-            
+
             // Get total donations
             let totalDonations = 0;
             customers.forEach(c => {
                 const donations = JSON.parse(localStorage.getItem('customerDonations_' + c.id)) || [];
                 totalDonations += donations.reduce((sum, d) => sum + (d.amount || 0), 0);
             });
-            
+
             document.getElementById('totalBookings').textContent = bookings.length;
             document.getElementById('completedRides').textContent = completed;
             document.getElementById('pendingBookings').textContent = pending;
@@ -156,12 +221,42 @@
             document.getElementById('totalCustomers').textContent = customers.length;
             document.getElementById('totalDonations').textContent = '₹' + Math.round(totalDonations);
         }
-        
+
         // Real-time sync for admin dashboard
         // Poll every 30 seconds (admin doesn't need sub-second updates)
         setInterval(() => {
             loadDashboardData();
+            ensureAdminAlertsPanel();
+            renderAdminAlerts();
         }, 30000);
+
+
+        function renderAdminAlerts() {
+            const host = document.getElementById('adminAlertsPanel');
+            if (!host || typeof PortalAlerts === 'undefined') return;
+
+            const alerts = PortalAlerts.getAlertsForRole('admin').slice(0, 6);
+            host.innerHTML = alerts.length
+                ? alerts.map((a) => `
+                    <div class="portal-alert-item">
+                        <strong>${a.title}</strong><div>${a.message}</div>
+                        <div class="portal-alert-meta">${PortalAlerts.timeAgo(a.createdAt)}${a.rideId ? ` • Ride ${a.rideId}` : ''}</div>
+                    </div>
+                `).join('')
+                : '<div class="portal-alert-item">No live alerts yet.</div>';
+        }
+
+        function ensureAdminAlertsPanel() {
+            if (document.getElementById('adminAlertsPanel')) return;
+            const container = document.querySelector('.main-content');
+            if (!container) return;
+
+            const panel = document.createElement('div');
+            panel.className = 'portal-alerts-panel';
+            panel.innerHTML = '<div class="portal-alerts-title">🔔 Live Platform Alerts (Admin Control)</div><div id="adminAlertsPanel"></div>';
+            container.appendChild(panel);
+            renderAdminAlerts();
+        }
 
         function showLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
@@ -187,11 +282,44 @@
             }
         }
     </script>
-    
+
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+    <script src="../js/portal-alerts.js"></script>
+
+    <script>
+        (function applyIndiaBranding() {
+            const tricolorBrand = '<span class="india-tricolor-text"><span class="tri-saffron">GO</span> <span class="tri-white">India</span> <span class="tri-ashoka">●</span> <span class="tri-green">RIDE</span></span>';
+
+            const logoSelectors = ['.navbar-logo', '.sidebar-logo h2'];
+            logoSelectors.forEach((selector) => {
+                const node = document.querySelector(selector);
+                if (!node || node.dataset.indiaBrandApplied === 'true') return;
+
+                const iconHtml = node.querySelector('i') ? node.querySelector('i').outerHTML + ' ' : '';
+                node.innerHTML = `${iconHtml}${tricolorBrand}`;
+                node.dataset.indiaBrandApplied = 'true';
+            });
+
+            const dashboardTitleCandidates = Array.from(document.querySelectorAll('h1, h2'));
+            dashboardTitleCandidates.forEach((heading) => {
+                if (!heading || heading.dataset.indiaDashApplied === 'true') return;
+                const txt = (heading.textContent || '').trim().toLowerCase();
+                if (txt.includes('dashboard')) {
+                    heading.classList.add('india-tricolor-dashboard');
+                    heading.dataset.indiaDashApplied = 'true';
+                }
+            });
+
+            ['.navbar', '.topbar', '.header-section'].forEach((selector) => {
+                const section = document.querySelector(selector);
+                if (section) section.classList.add('india-attract-glow');
+            });
+        })();
+    </script>
+
 </body>
 </html>
