@@ -1236,9 +1236,9 @@
     </div>
 
     <script>
-        // ============================================
+        // ----------------------------------------====
         // AUTHENTICATION CHECK
-        // ============================================
+        // ----------------------------------------====
 
         function checkAuth() {
             const userRole = localStorage.getItem('userRole');
@@ -1285,9 +1285,9 @@
             startRealTimeSync();
         });
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD DASHBOARD
-        // ============================================
+        // ----------------------------------------====
 
         function loadDashboard() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
@@ -1307,9 +1307,9 @@
             document.getElementById('userAvatar').textContent = initials;
         }
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD RIDES
-        // ============================================
+        // ----------------------------------------====
 
         function loadRides() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
@@ -1386,9 +1386,9 @@
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD DONATIONS
-        // ============================================
+        // ----------------------------------------====
 
         function loadDonations() {
             const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
@@ -1424,9 +1424,9 @@
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // LOAD PROFILE
-        // ============================================
+        // ----------------------------------------====
 
         function loadProfile() {
             document.getElementById('profileName').textContent = currentUser.fullname;
@@ -1434,9 +1434,9 @@
             document.getElementById('profilePhone').textContent = currentUser.phone;
         }
 
-        // ============================================
+        // ----------------------------------------====
         // PAYMENT SYSTEM
-        // ============================================
+        // ----------------------------------------====
 
         let currentRideForPayment = null;
 
@@ -1543,9 +1543,9 @@
             renderCustomerAlerts();
         }
 
-        // ============================================
+        // ----------------------------------------====
         // DONATION SYSTEM
-        // ============================================
+        // ----------------------------------------====
 
         function openDonations() {
             window.location.href = './donations.html';
@@ -1655,24 +1655,24 @@
             const receiptText = `
 GO INDIA RIDE - DONATION RECEIPT
 
-========================
+------------------------
 RIDE DETAILS
-========================
+------------------------
 Pickup: ${document.getElementById('receiptPickup').textContent}
 Dropoff: ${document.getElementById('receiptDropoff').textContent}
 Ride Fare: ${document.getElementById('receiptFare').textContent}
 
-========================
+------------------------
 DONATION DETAILS
-========================
+------------------------
 Donation Amount: ${document.getElementById('receiptDonation').textContent}
 Beneficiary: ${document.getElementById('receiptBeneficiary').textContent}
 Reference ID: ${document.getElementById('receiptRefId').textContent}
 Date: ${new Date().toLocaleString()}
 
-========================
+------------------------
 SUMMARY
-========================
+------------------------
 Ride Amount: ${document.getElementById('receiptRideAmount').textContent}
 + Donation: ${document.getElementById('receiptDonationAmount').textContent}
 Total Paid: ${document.getElementById('receiptTotal').textContent}
@@ -1711,7 +1711,7 @@ Thank you for your generosity! ❤️
             if (donation) {
                 alert(`
 Donation Receipt
-================
+----------------
 Amount: ₹${donation.amount}
 Beneficiary: ${donation.beneficiary}
 Date: ${new Date(donation.createdAt).toLocaleString()}
@@ -1722,9 +1722,9 @@ Thank you for helping! ❤️
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // TAB SWITCHING
-        // ============================================
+        // ----------------------------------------====
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1744,9 +1744,9 @@ Thank you for helping! ❤️
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // OTHER FUNCTIONS
-        // ============================================
+        // ----------------------------------------====
 
         function triggerEmergencyHelp(kind) {
             const emergencyMap = {
@@ -1799,7 +1799,7 @@ Thank you for helping! ❤️
             if (ride) {
                 alert(`
 Ride Receipt
-============
+------------
 From: ${ride.pickup}
 To: ${ride.dropoff}
 Type: ${ride.rideType}
@@ -1819,9 +1819,9 @@ Thank you for riding with us! 🚗
             }
         }
 
-        // ============================================
+        // ----------------------------------------====
         // MESSAGES/CHAT FUNCTIONALITY
-        // ============================================
+        // ----------------------------------------====
 
         let currentChatUser = null;
         let demoResponseTimeout = null;
