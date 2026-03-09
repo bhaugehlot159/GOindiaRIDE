@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const portalCards = [
   {
@@ -39,7 +41,7 @@ const securityHighlights = [
   {
     title: "AI Risk Engine",
     detail:
-      "Login/device/IP scoring with auto-lock, OTP escalation & geo checks.",
+      "Login/device/IP scoring with auto-lock, OTP escalation and geo checks.",
   },
   {
     title: "Secure-by-default",
@@ -49,9 +51,23 @@ const securityHighlights = [
   {
     title: "Ops Ready",
     detail:
-      "PM2 restarts, error scrubbing, request signature & replay protection baseline.",
+      "PM2 restarts, error scrubbing, request signature and replay protection baseline.",
   },
 ];
+
+function formatNotificationTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function Landing() {
   const navigate = useNavigate();
@@ -72,7 +88,9 @@ function Landing() {
               <p className="text-xs uppercase tracking-[0.25em] text-[#0B1F3A]/70">
                 GoIndiaRide
               </p>
-              <h1 className="text-3xl font-black tricolor-text">Bharat Mobility Cloud</h1>
+              <h1 className="text-3xl font-black tricolor-text">
+                Bharat Mobility Cloud
+              </h1>
             </div>
           </div>
           <div className="flex gap-3">
@@ -100,13 +118,13 @@ function Landing() {
           </h2>
           <div className="flex flex-wrap gap-3 text-sm">
             <span className="px-3 py-1 rounded-full bg-white/70 border border-[#FF9933]/40 text-[#0B1F3A]">
-              XSS • CSRF • Signature verification
+              XSS and CSRF and signature verification
             </span>
             <span className="px-3 py-1 rounded-full bg-white/70 border border-[#138808]/40 text-[#0B1F3A]">
-              Device fingerprint + geo checks
+              Device fingerprint and geo checks
             </span>
             <span className="px-3 py-1 rounded-full bg-white/70 border border-[#0B1F3A]/20 text-[#0B1F3A]">
-              AI dispatch & anomaly alerts
+              AI dispatch and anomaly alerts
             </span>
           </div>
         </section>
@@ -124,7 +142,7 @@ function Landing() {
               <ul className="space-y-2 text-sm text-[#0B1F3A]/90">
                 {card.bullets.map((item) => (
                   <li key={item} className="flex gap-2">
-                    <span className="text-lg">•</span>
+                    <span className="text-lg">*</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -166,7 +184,7 @@ function Login() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -188,7 +206,7 @@ function Login() {
       } else {
         navigate("/dashboard");
       }
-    } catch (err) {
+    } catch {
       setError("Network error, please retry.");
     } finally {
       setLoading(false);
@@ -240,7 +258,7 @@ function Login() {
             </button>
 
             <p className="text-xs text-center text-[#0B1F3A]/70">
-              2FA & OTP will trigger automatically if enabled on your account.
+              2FA and OTP will trigger automatically if enabled on your account.
             </p>
           </div>
         </div>
@@ -252,18 +270,253 @@ function Login() {
 function Dashboard() {
   const navigate = useNavigate();
   const role = localStorage.getItem("role") || "user";
+  const token = localStorage.getItem("token");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/");
-  };
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
+  const [markingAllRead, setMarkingAllRead] = useState(false);
+  const [bookingActionState, setBookingActionState] = useState({
+    loading: false,
+    success: '',
+    error: ''
+  });
+  const [sosState, setSosState] = useState({
+    loading: false,
+    channel: '',
+    success: '',
+    error: ''
+  });
 
   const chips = [
     "AI anomaly watch active",
     "CSP + CORS hardened",
     "Device fingerprinting ready",
   ];
+
+  const loadNotifications = useCallback(async ({ silent = false } = {}) => {
+    if (!token) return;
+
+    if (!silent) {
+      setNotificationLoading(true);
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notifications?limit=8`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to load notifications");
+      }
+
+      setNotifications(Array.isArray(data.items) ? data.items : []);
+      setUnreadCount(Number(data.unreadCount || 0));
+      setNotificationError("");
+    } catch (error) {
+      if (!silent) {
+        setNotificationError(error.message || "Notifications unavailable");
+      }
+    } finally {
+      if (!silent) {
+        setNotificationLoading(false);
+      }
+    }
+  }, [token]);
+
+  useEffect(() => {
+    let active = true;
+
+    const run = async (silent = false) => {
+      if (!active) return;
+      await loadNotifications({ silent });
+    };
+
+    run(false);
+    const timer = setInterval(() => {
+      run(true);
+    }, 15000);
+
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [loadNotifications]);
+
+  const markAllNotificationsRead = async () => {
+    if (!token || unreadCount === 0) return;
+
+    setMarkingAllRead(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update notifications");
+      }
+
+      setNotifications((prev) =>
+        prev.map((item) => ({
+          ...item,
+          isRead: true,
+        }))
+      );
+      setUnreadCount(0);
+      setNotificationError("");
+    } catch (error) {
+      setNotificationError(error.message || "Failed to mark notifications");
+    } finally {
+      setMarkingAllRead(false);
+    }
+  };
+
+  const markOneNotificationRead = async (id, isRead) => {
+    if (!token || !id || isRead) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to mark notification");
+      }
+
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item._id === id
+            ? {
+                ...item,
+                isRead: true,
+                readAt: data.readAt || new Date().toISOString(),
+              }
+            : item
+        )
+      );
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
+    } catch (error) {
+      setNotificationError(error.message || "Unable to update notification");
+    }
+  };
+
+  const createDemoBooking = async () => {
+    if (!token) return;
+
+    setBookingActionState({ loading: true, success: '', error: '' });
+    try {
+      const quoteResponse = await fetch(`${API_BASE_URL}/api/bookings/quote?distanceKm=18`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const quoteData = await quoteResponse.json();
+      if (!quoteResponse.ok) {
+        throw new Error(quoteData.message || "Quote service unavailable");
+      }
+
+      const bookingPayload = {
+        cardToken: `demo_card_${Date.now()}`,
+        distanceKm: quoteData.distanceKm,
+        amount: quoteData.amount,
+        fareHash: quoteData.fareHash,
+        referralCode: "DEMO"
+      };
+
+      const bookingResponse = await fetch(`${API_BASE_URL}/api/bookings`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      const bookingData = await bookingResponse.json();
+      if (!bookingResponse.ok) {
+        throw new Error(bookingData.message || "Booking failed");
+      }
+
+      setBookingActionState({
+        loading: false,
+        success: `Demo booking created: ${bookingData.bookingId}`,
+        error: ''
+      });
+      loadNotifications({ silent: false });
+    } catch (error) {
+      setBookingActionState({
+        loading: false,
+        success: '',
+        error: error.message || "Could not create demo booking"
+      });
+    }
+  };
+
+  const triggerSos = async (channel) => {
+    if (!token) return;
+
+    setSosState({ loading: true, channel, success: '', error: '' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/security/sos`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channel,
+          note: `Dashboard quick SOS (${channel})`,
+          location: {
+            address: "Dashboard quick action"
+          }
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to trigger SOS");
+      }
+
+      setSosState({
+        loading: false,
+        channel,
+        success: `SOS sent (${channel}). Incident: ${data.incidentId}`,
+        error: ''
+      });
+
+      loadNotifications({ silent: false });
+    } catch (error) {
+      setSosState({
+        loading: false,
+        channel,
+        success: '',
+        error: error.message || "SOS request failed"
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen relative text-[#0B1F3A]">
@@ -272,25 +525,110 @@ function Dashboard() {
       <div className="absolute inset-0 bg-white/65 backdrop-blur-sm" />
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-10 space-y-6">
         <div className="glass-card rounded-2xl p-6 border border-[#0B1F3A]/10 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.2em] text-[#0B1F3A]/70 mb-2">
-            {role === "admin" ? "Admin" : "User"} cockpit
-          </p>
-          <h2 className="text-3xl font-bold tricolor-text mb-3">
-            {role === "admin" ? "Admin Dashboard 🛡️" : "User Dashboard 🚀"}
-          </h2>
-          <div className="flex flex-wrap gap-2 text-xs">
-            {chips.map((chip) => (
-              <span
-                key={chip}
-                className="px-3 py-1 rounded-full bg-white/80 border border-[#0B1F3A]/10"
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-[#0B1F3A]/70 mb-2">
+                {role === "admin" ? "Admin" : "User"} cockpit
+              </p>
+              <h2 className="text-3xl font-bold tricolor-text mb-3">
+                {role === "admin" ? "Admin Dashboard" : "User Dashboard"}
+              </h2>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {chips.map((chip) => (
+                  <span
+                    key={chip}
+                    className="px-3 py-1 rounded-full bg-white/80 border border-[#0B1F3A]/10"
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative self-start">
+              <button
+                onClick={() => setNotificationOpen((prev) => !prev)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0B1F3A] text-white shadow-md"
               >
-                {chip}
-              </span>
-            ))}
+                <span aria-hidden="true">🔔</span>
+                <span>Alerts</span>
+                {unreadCount > 0 && (
+                  <span className="min-w-6 h-6 px-2 rounded-full bg-[#FF9933] text-[#0B1F3A] text-xs font-bold grid place-items-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationOpen && (
+                <div className="absolute right-0 mt-3 w-[22rem] max-w-[90vw] glass-card rounded-2xl p-4 border border-[#0B1F3A]/15 shadow-2xl z-30 text-left">
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <p className="text-sm font-semibold text-[#0B1F3A]">
+                      Live Notifications
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => loadNotifications({ silent: false })}
+                        className="text-xs px-2 py-1 rounded bg-white border border-[#0B1F3A]/20"
+                      >
+                        Refresh
+                      </button>
+                      <button
+                        onClick={markAllNotificationsRead}
+                        disabled={markingAllRead || unreadCount === 0}
+                        className="text-xs px-2 py-1 rounded bg-[#0B1F3A] text-white disabled:opacity-50"
+                      >
+                        {markingAllRead ? "Saving..." : "Mark all read"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {notificationLoading && notifications.length === 0 && (
+                    <p className="text-xs text-[#0B1F3A]/70">Loading alerts...</p>
+                  )}
+
+                  {notificationError && (
+                    <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mb-2">
+                      {notificationError}
+                    </p>
+                  )}
+
+                  {!notificationLoading && notifications.length === 0 && !notificationError && (
+                    <p className="text-xs text-[#0B1F3A]/70">No alerts yet.</p>
+                  )}
+
+                  <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    {notifications.map((item) => (
+                      <button
+                        key={item._id}
+                        onClick={() => markOneNotificationRead(item._id, item.isRead)}
+                        className={`w-full text-left rounded-xl border p-3 transition ${
+                          item.isRead
+                            ? "border-[#0B1F3A]/10 bg-white/70"
+                            : "border-[#FF9933]/50 bg-[#fff5e8]"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-semibold text-[#0B1F3A]">
+                            {item.title || "Notification"}
+                          </p>
+                          {!item.isRead && (
+                            <span className="w-2 h-2 rounded-full bg-[#FF9933] mt-1" />
+                          )}
+                        </div>
+                        <p className="text-xs text-[#0B1F3A]/80 mt-1">{item.message}</p>
+                        <p className="text-[11px] text-[#0B1F3A]/60 mt-2">
+                          {formatNotificationTime(item.createdAt)}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="glass-card rounded-2xl p-4 border border-[#FF9933]/40 ring-saffron">
             <p className="text-sm font-semibold text-[#0B1F3A]">Security posture</p>
             <p className="text-xs text-[#0B1F3A]/70 mt-2">
@@ -298,16 +636,57 @@ function Dashboard() {
             </p>
           </div>
           <div className="glass-card rounded-2xl p-4 border border-[#138808]/40 ring-green">
-            <p className="text-sm font-semibold text-[#0B1F3A]">Risk & devices</p>
+            <p className="text-sm font-semibold text-[#0B1F3A]">Risk and devices</p>
             <p className="text-xs text-[#0B1F3A]/70 mt-2">
               Device fingerprinting, geo checks and anomaly bans are wired into the login flow.
             </p>
           </div>
           <div className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/20">
-            <p className="text-sm font-semibold text-[#0B1F3A]">Next up</p>
+            <p className="text-sm font-semibold text-[#0B1F3A]">Booking trigger</p>
             <p className="text-xs text-[#0B1F3A]/70 mt-2">
-              Booking timeline, SOS, and live tracking cards will slot here once backend endpoints are ready.
+              Create a demo booking to test customer to admin to driver alert pipeline.
             </p>
+            <button
+              onClick={createDemoBooking}
+              disabled={bookingActionState.loading}
+              className="mt-3 px-3 py-2 rounded-lg bg-[#0B1F3A] text-white text-xs disabled:opacity-50"
+            >
+              {bookingActionState.loading ? "Creating..." : "Create demo booking"}
+            </button>
+            {bookingActionState.success && (
+              <p className="text-[11px] text-green-700 mt-2">{bookingActionState.success}</p>
+            )}
+            {bookingActionState.error && (
+              <p className="text-[11px] text-red-600 mt-2">{bookingActionState.error}</p>
+            )}
+          </div>
+          <div className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/20">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Emergency SOS</p>
+            <p className="text-xs text-[#0B1F3A]/70 mt-2">
+              Trigger emergency alert to admin and nearby driver channels.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => triggerSos("police")}
+                disabled={sosState.loading}
+                className="px-3 py-2 rounded-lg bg-[#b91c1c] text-white text-xs disabled:opacity-50"
+              >
+                {sosState.loading && sosState.channel === "police" ? "Sending..." : "Police"}
+              </button>
+              <button
+                onClick={() => triggerSos("ambulance")}
+                disabled={sosState.loading}
+                className="px-3 py-2 rounded-lg bg-[#0f766e] text-white text-xs disabled:opacity-50"
+              >
+                {sosState.loading && sosState.channel === "ambulance" ? "Sending..." : "Ambulance"}
+              </button>
+            </div>
+            {sosState.success && (
+              <p className="text-[11px] text-green-700 mt-2">{sosState.success}</p>
+            )}
+            {sosState.error && (
+              <p className="text-[11px] text-red-600 mt-2">{sosState.error}</p>
+            )}
           </div>
         </div>
 
@@ -366,4 +745,9 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
 
