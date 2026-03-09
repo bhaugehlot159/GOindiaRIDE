@@ -131,29 +131,80 @@ function hideLoading() {
 }
 
 
+function upsertAdminBookingFromNotification(booking, fallbackStatus) {
+    if (!booking || !booking.id) return null;
+
+    const adminBookings = getDemoData('Bookings');
+    const bookingId = String(booking.id);
+    const idx = adminBookings.findIndex((item) => String(item.id) === bookingId);
+
+    const normalized = {
+        id: booking.id,
+        customerId: booking.customerId || 0,
+        driverId: booking.driverId || 0,
+        from: booking.pickup || booking.from || 'N/A',
+        to: booking.drop || booking.to || 'N/A',
+        fare: Number(booking.finalFare || booking.fare || 0),
+        status: booking.status || fallbackStatus || 'new',
+        date: (booking.timestamp || booking.createdAt || new Date().toISOString()).slice(0, 10),
+        updatedAt: new Date().toISOString()
+    };
+
+    if (idx === -1) {
+        adminBookings.unshift(normalized);
+    } else {
+        adminBookings[idx] = { ...adminBookings[idx], ...normalized };
+    }
+
+    localStorage.setItem('adminDemoBookings', JSON.stringify(adminBookings));
+    return normalized;
+}
+
+function updateAdminBookingStatusFromNotification(notification, nextStatus) {
+    if (!notification || !notification.booking) return null;
+
+    return upsertAdminBookingFromNotification({
+        ...notification.booking,
+        status: nextStatus
+    }, nextStatus);
+}
+
 // Setup cross-portal notifications
 function setupPortalNotifications() {
     if (!window.PortalConnector) return;
 
     PortalConnector.setActivePortal('admin');
     PortalConnector.listen('admin', (notification) => {
+        if (!notification) return;
+
         if (notification.type === 'new_booking' && notification.booking) {
+            upsertAdminBookingFromNotification(notification.booking, 'new');
             showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
+            logAdminAction('NEW_BOOKING_ALERT', `Booking ${notification.booking.id} from ${notification.sourcePortal || 'portal'}`);
+            updateDashboardStats();
+            return;
+        }
 
-            const adminBookings = getDemoData('Bookings');
-            adminBookings.unshift({
-                id: notification.booking.id,
-                customerId: 0,
-                driverId: 0,
-                from: notification.booking.pickup,
-                to: notification.booking.drop,
-                fare: Number(notification.booking.finalFare || notification.booking.fare || 0),
-                status: 'new',
-                date: new Date().toISOString().slice(0, 10)
-            });
-            localStorage.setItem('adminDemoBookings', JSON.stringify(adminBookings));
+        if (notification.type === 'driver_assigned' && notification.booking) {
+            updateAdminBookingStatusFromNotification(notification, 'driver_assigned');
+            showToast(`Driver assigned for booking ${notification.booking.id}`, 'success');
+            logAdminAction('BOOKING_DRIVER_ASSIGNED', `Booking ${notification.booking.id} accepted by driver`);
+            updateDashboardStats();
+            return;
+        }
 
-            logAdminAction('NEW_BOOKING_ALERT', `Booking ${notification.booking.id} from customer portal`);
+        if (notification.type === 'booking_rejected' && notification.booking) {
+            updateAdminBookingStatusFromNotification(notification, 'pending_reassignment');
+            showToast(`Booking ${notification.booking.id} moved to reassignment queue`, 'warning');
+            logAdminAction('BOOKING_REASSIGNED', `Booking ${notification.booking.id} rejected by driver`);
+            updateDashboardStats();
+            return;
+        }
+
+        if (notification.type === 'ride_completed' && notification.booking) {
+            updateAdminBookingStatusFromNotification(notification, 'completed');
+            showToast(`Ride ${notification.booking.id} completed`, 'success');
+            logAdminAction('RIDE_COMPLETED', `Ride ${notification.booking.id} completed`);
             updateDashboardStats();
             return;
         }
@@ -161,7 +212,6 @@ function setupPortalNotifications() {
         showToast(notification.message || 'New notification received', 'info');
     });
 }
-
 // Initialize Demo Data
 function initializeDemoData() {
     // Check if demo data already exists

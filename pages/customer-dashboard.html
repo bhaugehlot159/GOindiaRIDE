@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2078,6 +2078,8 @@ Thank you for riding with us! 🚗
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
+    <script src="../js/portal-connector.js"></script>
+    <script src="../js/ai-system/authenticity-engine.js"></script>
     <script src="../js/ai-system/core.js"></script>
     <script src="../js/ai-system/customer-mode.js"></script>
 
@@ -2112,7 +2114,34 @@ Thank you for riding with us! 🚗
         })();
     </script>
 
+    <script>
+        (function connectCustomerPortalNotifications() {
+            if (!window.PortalConnector) return;
+
+            PortalConnector.setActivePortal('customer');
+            PortalConnector.listen('customer', (notification) => {
+                if (!notification) return;
+
+                if (window.PortalAlerts && typeof PortalAlerts.pushAlert === 'function') {
+                    PortalAlerts.pushAlert({
+                        title: notification.title || 'Customer Update',
+                        message: notification.message || 'New update available',
+                        type: notification.type === 'error' ? 'danger' : (notification.type || 'info'),
+                        rideId: notification.booking && notification.booking.id ? notification.booking.id : null,
+                        roles: ['customer']
+                    });
+                }
+
+                if (typeof renderCustomerAlerts === 'function') {
+                    renderCustomerAlerts();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
+
+
+
 
 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1606,6 +1606,8 @@
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
+    <script src="../js/portal-connector.js"></script>
+    <script src="../js/ai-system/authenticity-engine.js"></script>
     <script src="../js/ai-system/core.js"></script>
     <script src="../js/ai-system/driver-mode.js"></script>
 
@@ -1640,7 +1642,34 @@
         })();
     </script>
 
+    <script>
+        (function connectDriverPortalNotifications() {
+            if (!window.PortalConnector) return;
+
+            PortalConnector.setActivePortal('driver');
+            PortalConnector.listen('driver', (notification) => {
+                if (!notification) return;
+
+                if (window.PortalAlerts && typeof PortalAlerts.pushAlert === 'function') {
+                    PortalAlerts.pushAlert({
+                        title: notification.title || 'Driver Update',
+                        message: notification.message || 'New update available',
+                        type: notification.type === 'error' ? 'danger' : (notification.type || 'info'),
+                        rideId: notification.booking && notification.booking.id ? notification.booking.id : null,
+                        roles: ['driver']
+                    });
+                }
+
+                if (typeof renderDriverAlerts === 'function') {
+                    renderDriverAlerts();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
+
+
+
 
 

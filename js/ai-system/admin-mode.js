@@ -1,4 +1,4 @@
-﻿(function initAdminAIAutoSystem() {
+(function initAdminAIAutoSystem() {
     "use strict";
 
     function boot() {
@@ -47,6 +47,12 @@
                         status: summary.activeDrivers < 2 && summary.totalDrivers > 0 ? "elevated" : "healthy",
                         detail: "Monitors live driver availability and escalates low-capacity operating zones.",
                         action: "Action: Capacity alert engine refreshed",
+                    },
+                    {
+                        title: "Fake vs Real Session AI",
+                        status: summary.authenticityStatus || "elevated",
+                        detail: "Flags fake admin sessions and raises inspection priority.",
+                        action: "Action: " + String(summary.authenticityLabel || "review").replace(/_/g, " "),
                     },
                 ];
             },

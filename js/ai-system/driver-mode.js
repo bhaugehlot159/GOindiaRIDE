@@ -1,4 +1,4 @@
-﻿(function initDriverAIAutoSystem() {
+(function initDriverAIAutoSystem() {
     "use strict";
 
     function boot() {
@@ -52,6 +52,12 @@
                         status: summary.pendingBookings >= 9 ? "elevated" : "healthy",
                         detail: "Flags overload windows and auto suggests break intervals.",
                         action: "Action: Shift safety window updated",
+                    },
+                    {
+                        title: "Fake vs Real Session AI",
+                        status: summary.authenticityStatus || "elevated",
+                        detail: "Detects fake device behavior before assigning sensitive driver actions.",
+                        action: "Action: " + String(summary.authenticityLabel || "review").replace(/_/g, " "),
                     },
                 ];
             },

@@ -1,4 +1,4 @@
-﻿(function initGoIndiaAIAutoCore(global) {
+(function initGoIndiaAIAutoCore(global) {
     "use strict";
 
     if (!global || global.GoIndiaAIAutoCore) {
@@ -67,6 +67,47 @@
         return "healthy";
     }
 
+    function getAuthenticitySnapshot(mode) {
+        const normalizedMode = String(mode || "public").toLowerCase();
+
+        if (global.GoIndiaAuthenticityEngine && typeof global.GoIndiaAuthenticityEngine.assessSession === "function") {
+            try {
+                const snapshot = global.GoIndiaAuthenticityEngine.assessSession(normalizedMode);
+                if (snapshot && typeof snapshot === "object") {
+                    return snapshot;
+                }
+            } catch (error) {
+                // ignore
+            }
+        }
+
+        let rawState = null;
+        try {
+            rawState = JSON.parse(localStorage.getItem("goindia_ai_auth_state_v1") || "{}");
+        } catch (error) {
+            rawState = {};
+        }
+
+        const modeState = (rawState && rawState[normalizedMode]) || {};
+        const score = Number(modeState.score);
+        const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : 62;
+
+        let label = "review";
+        if (safeScore >= 70) label = "real";
+        else if (safeScore < 45) label = "fake_suspected";
+
+        return {
+            mode: normalizedMode,
+            score: safeScore,
+            label,
+            status: label === "real" ? "healthy" : label === "review" ? "elevated" : "critical",
+            isTrusted: label === "real",
+            updatedAt: modeState.updatedAt || new Date().toISOString(),
+            metrics: modeState.metrics || {},
+            flags: modeState.flags || [],
+        };
+    }
+
     function getRecentIncidents(mode, hours) {
         const windowMs = Math.max(1, Number(hours || 24)) * 60 * 60 * 1000;
         const now = Date.now();
@@ -100,6 +141,7 @@
     function evaluateMode(mode) {
         const normalizedMode = String(mode || "customer").toLowerCase();
         const incidents = getRecentIncidents(normalizedMode, 24);
+        const authenticity = getAuthenticitySnapshot(normalizedMode);
         const allBookings = readFirstArray(BOOKING_KEYS);
         const allDrivers = readFirstArray(DRIVER_KEYS);
         const allUsers = readFirstArray(USER_KEYS);
@@ -131,6 +173,14 @@
         const baseRisk = incidents.slice(0, 16).reduce((sum, incident) => sum + severityWeight(incident.level), 0);
 
         let risk = baseRisk;
+
+        if (authenticity.label === "fake_suspected") {
+            risk += 28;
+        } else if (authenticity.label === "review") {
+            risk += 10;
+        } else {
+            risk = Math.max(0, risk - 6);
+        }
 
         if (normalizedMode === "customer") {
             const totalResolved = completedBookings + cancelledBookings;
@@ -186,6 +236,11 @@
             totalUsers: allUsers.length,
             expiredLicenses,
             unverifiedLicenses,
+            authenticityScore: authenticity.score,
+            authenticityLabel: authenticity.label,
+            authenticityStatus: authenticity.status,
+            authenticityTrusted: Boolean(authenticity.isTrusted),
+            authenticityFlags: Array.isArray(authenticity.flags) ? authenticity.flags.slice(0, 5) : [],
             refreshedAt: new Date().toISOString(),
         };
     }
@@ -383,6 +438,12 @@
                     detail: "Generates shift-time suggestions and auto warns on low-yield ride bands.",
                     action: "Action: Shift recommendation updated",
                 },
+                {
+                    title: "Fake vs Real Detector",
+                    status: summary.authenticityStatus || "elevated",
+                    detail: "Driver session authenticity AI checks behavior and form-bot signals.",
+                    action:                         "Action: " + String(summary.authenticityLabel || "review").replace(/_/g, " ") + " gate",
+                },
             ];
         }
 
@@ -406,6 +467,12 @@
                     detail: "Checks driver document and portal security posture from one control layer.",
                     action: "Action: Compliance digest generated",
                 },
+                {
+                    title: "Fake vs Real Detector",
+                    status: summary.authenticityStatus || "elevated",
+                    detail: "Admin session authenticity guard highlights potentially fake or scripted access.",
+                    action:                         "Action: " + String(summary.authenticityLabel || "review").replace(/_/g, " ") + " inspection",
+                },
             ];
         }
 
@@ -427,6 +494,12 @@
                 status: summary.criticalIncidents > 0 ? "elevated" : "healthy",
                 detail: "Routes SOS and anomaly alerts to nearest verified response chain.",
                 action: "Action: Emergency graph synced",
+            },
+            {
+                title: "Fake vs Real Detector",
+                status: summary.authenticityStatus || "elevated",
+                detail: "Customer session authenticity AI checks fake signup/login and scripted actions.",
+                action:                     "Action: " + String(summary.authenticityLabel || "review").replace(/_/g, " ") + " verification",
             },
         ];
     }
@@ -455,6 +528,7 @@
             { label: "Incidents (24h)", value: summary.incidents24h },
             { label: "Pending rides", value: summary.pendingBookings },
             { label: "Critical", value: summary.criticalIncidents },
+            { label: "Session authenticity", value: summary.authenticityScore || 0 },
         ];
 
         const metricHtml = metrics
@@ -556,6 +630,7 @@
         mount,
         evaluateMode,
         getRecentIncidents,
+        getAuthenticitySnapshot,
         statusFromScore,
     };
 })(window);

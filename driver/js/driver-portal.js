@@ -317,25 +317,85 @@ function toggleNightMode() {
 }
 
 
+const SHARED_BOOKING_KEYS = ['goindiaride_active_bookings', 'bookings', 'goride_bookings'];
+
+function getDriverDisplayName() {
+    const savedData = JSON.parse(localStorage.getItem(STORAGE_KEYS.DRIVER_DATA) || '{}');
+    return savedData.name || savedData.fullName || savedData.driverName || 'Driver';
+}
+
+function broadcastPortalNotification(payload) {
+    if (!window.PortalConnector) return;
+
+    if (typeof PortalConnector.broadcastToAll === 'function') {
+        PortalConnector.broadcastToAll(payload);
+        return;
+    }
+
+    PortalConnector.createNotification({
+        ...payload,
+        targetPortals: ['customer', 'driver', 'admin']
+    });
+}
+
+function updateSharedBookingStatus(bookingId, updates) {
+    if (!bookingId || !updates || typeof updates !== 'object') return false;
+
+    let updated = false;
+
+    SHARED_BOOKING_KEYS.forEach((key) => {
+        try {
+            const bookings = JSON.parse(localStorage.getItem(key) || '[]');
+            if (!Array.isArray(bookings) || bookings.length === 0) return;
+
+            const index = bookings.findIndex((item) => String(item.id) === String(bookingId));
+            if (index === -1) return;
+
+            bookings[index] = { ...bookings[index], ...updates };
+            localStorage.setItem(key, JSON.stringify(bookings));
+            updated = true;
+        } catch (error) {
+            // ignore
+        }
+    });
+
+    return updated;
+}
+
 // Setup cross-portal notifications
 function setupPortalNotifications() {
     if (!window.PortalConnector) return;
 
     PortalConnector.setActivePortal('driver');
     PortalConnector.listen('driver', (notification) => {
-        if (notification.type !== 'new_booking' || !notification.booking) {
-            showToast(notification.message || 'New notification received', 'info');
+        if (!notification) return;
+
+        if (notification.sourcePortal === 'driver') {
             return;
         }
 
-        showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
+        if (notification.type === 'new_booking' && notification.booking) {
+            showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
 
-        if (driverState.isOnline && !driverState.currentRide) {
-            showRideRequest(notification.booking);
+            if (driverState.isOnline && !driverState.currentRide) {
+                showRideRequest(notification.booking);
+            }
+            return;
         }
+
+        if (notification.type === 'driver_assigned' && notification.booking) {
+            showToast(`Booking ${notification.booking.id} assigned to a driver`, 'success');
+            return;
+        }
+
+        if (notification.type === 'ride_completed' && notification.booking) {
+            showToast(`Ride ${notification.booking.id} completed`, 'success');
+            return;
+        }
+
+        showToast(notification.message || 'New notification received', 'info');
     });
 }
-
 // Check for Ride Requests (Demo)
 function checkForRideRequests() {
     if (!driverState.isOnline) return;
@@ -388,52 +448,100 @@ function showRideRequest(bookingData = null) {
 
 // Accept Ride Request
 function acceptRequest() {
+    const acceptedBooking = driverState.pendingRequest ? { ...driverState.pendingRequest } : null;
+
     // Clear timer
     if (driverState.requestTimer) {
         clearInterval(driverState.requestTimer);
     }
-    
+
     // Hide modal
     document.getElementById('rideRequestModal').style.display = 'none';
-    
+
     // Create ride
     driverState.currentRide = {
-        id: driverState.pendingRequest ? driverState.pendingRequest.id : ('#' + Math.floor(Math.random() * 100000)),
+        id: acceptedBooking && acceptedBooking.id ? acceptedBooking.id : ('#' + Math.floor(Math.random() * 100000)),
         pickup: document.getElementById('requestPickup').textContent,
         drop: document.getElementById('requestDrop').textContent,
         fare: document.getElementById('requestFare').textContent,
         status: 'Accepted',
         startTime: Date.now()
     };
-    
+
     // Show current ride section
     const rideSection = document.getElementById('currentRideSection');
     rideSection.style.display = 'block';
-    
+
     document.getElementById('currentRideId').textContent = driverState.currentRide.id;
     document.getElementById('currentRideStatus').textContent = 'Going to Pickup';
     document.getElementById('pickupLocation').textContent = driverState.currentRide.pickup;
     document.getElementById('dropLocation').textContent = driverState.currentRide.drop;
-    
+
+    if (acceptedBooking && acceptedBooking.id) {
+        const assignedAt = new Date().toISOString();
+        const driverName = getDriverDisplayName();
+
+        updateSharedBookingStatus(acceptedBooking.id, {
+            status: 'driver_assigned',
+            driverName,
+            assignedAt,
+            driverAcceptedAt: assignedAt
+        });
+
+        broadcastPortalNotification({
+            type: 'driver_assigned',
+            title: 'Driver Assigned',
+            message: `Driver accepted booking ${acceptedBooking.id}: ${driverState.currentRide.pickup} → ${driverState.currentRide.drop}`,
+            booking: { ...acceptedBooking, status: 'driver_assigned', driverName, assignedAt },
+            sourcePortal: 'driver',
+            metadata: {
+                stage: 'driver_assigned',
+                bookingId: acceptedBooking.id,
+                driverName
+            }
+        });
+    }
+
     showToast('Ride accepted! Navigate to pickup location.', 'success');
     driverState.pendingRequest = null;
     saveDriverData();
 }
-
 // Reject Ride Request
 function rejectRequest() {
+    const rejectedBooking = driverState.pendingRequest ? { ...driverState.pendingRequest } : null;
+
     if (driverState.requestTimer) {
         clearInterval(driverState.requestTimer);
     }
-    
+
     document.getElementById('rideRequestModal').style.display = 'none';
     driverState.pendingRequest = null;
     showToast('Ride request rejected', 'info');
-    
+
+    if (rejectedBooking && rejectedBooking.id) {
+        const rejectedAt = new Date().toISOString();
+
+        updateSharedBookingStatus(rejectedBooking.id, {
+            status: 'pending_reassignment',
+            driverRejectedAt: rejectedAt
+        });
+
+        broadcastPortalNotification({
+            type: 'booking_rejected',
+            title: 'Booking Reassigned',
+            message: `Booking ${rejectedBooking.id} was rejected by a driver and moved for reassignment`,
+            booking: { ...rejectedBooking, status: 'pending_reassignment', driverRejectedAt: rejectedAt },
+            sourcePortal: 'driver',
+            metadata: {
+                stage: 'driver_rejected',
+                bookingId: rejectedBooking.id
+            }
+        });
+    }
+
     // Check for next request
     checkForRideRequests();
 }
-
 // Navigate Route
 function navigateRoute() {
     if (!driverState.location) {
@@ -453,41 +561,63 @@ function navigateRoute() {
 // Complete Ride
 function completeRide() {
     if (!driverState.currentRide) return;
-    
+
+    const completedRide = { ...driverState.currentRide };
+
     // Calculate earnings
     const fareAmount = parseFloat(driverState.currentRide.fare.replace('₹', ''));
     driverState.todayEarnings += fareAmount;
     driverState.todayTrips++;
-    
+
     // Update driving hours
     const drivingTime = (Date.now() - driverState.currentRide.startTime) / (1000 * 60 * 60);
     driverState.drivingHours += drivingTime;
     driverState.onlineHours += drivingTime;
-    
+
     // Check fatigue
     checkFatigue();
-    
+
     // Save fare before clearing ride
     const completedFare = driverState.currentRide.fare;
-    
+
     // Save trip
     saveTrip(driverState.currentRide);
-    
+
+    if (completedRide.id) {
+        const completedAt = new Date().toISOString();
+
+        updateSharedBookingStatus(completedRide.id, {
+            status: 'completed',
+            completedAt
+        });
+
+        broadcastPortalNotification({
+            type: 'ride_completed',
+            title: 'Ride Completed',
+            message: `Ride ${completedRide.id} completed successfully`,
+            booking: { ...completedRide, status: 'completed', completedAt },
+            sourcePortal: 'driver',
+            metadata: {
+                stage: 'ride_completed',
+                bookingId: completedRide.id
+            }
+        });
+    }
+
     // Clear current ride
     driverState.currentRide = null;
     document.getElementById('currentRideSection').style.display = 'none';
-    
+
     // Update dashboard
     updateDashboard();
-    
+
     showToast(`Ride completed! Earned ${completedFare}`, 'success');
-    
+
     // Check for next request
     checkForRideRequests();
-    
+
     saveDriverData();
 }
-
 // Check Fatigue
 function checkFatigue() {
     if (driverState.drivingHours >= 8) {
@@ -669,3 +799,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+

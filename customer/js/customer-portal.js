@@ -47,15 +47,31 @@ function setupPortalNotifications() {
 
     PortalConnector.setActivePortal('customer');
     PortalConnector.listen('customer', (notification) => {
-        if (notification.type === 'booking_confirmed') {
-            showToast(`Booking ID ${notification.booking.id} confirmed`, 'success');
+        if (!notification) return;
+
+        if (notification.type === 'booking_confirmed' && notification.booking) {
+            showToast(`Booking ${notification.booking.id} confirmed. Driver matching started.`, 'success');
+            return;
+        }
+
+        if (notification.type === 'driver_assigned' && notification.booking) {
+            showToast(`Driver assigned for booking ${notification.booking.id}.`, 'success');
+            return;
+        }
+
+        if (notification.type === 'booking_rejected' && notification.booking) {
+            showToast(`Booking ${notification.booking.id} is being reassigned to another driver.`, 'warning');
+            return;
+        }
+
+        if (notification.type === 'ride_completed' && notification.booking) {
+            showToast(`Ride ${notification.booking.id} completed. Please rate your trip.`, 'success');
             return;
         }
 
         showToast(notification.message || 'New notification received', 'info');
     });
 }
-
 /**
  * Setup navigation between sections
  */

@@ -1348,6 +1348,20 @@
         // BOOKING FUNCTION
         // ============================================
 
+        function broadcastPortalNotification(payload) {
+            if (!window.PortalConnector || !payload) return;
+
+            if (typeof PortalConnector.broadcastToAll === 'function') {
+                PortalConnector.broadcastToAll(payload);
+                return;
+            }
+
+            PortalConnector.createNotification({
+                ...payload,
+                targetPortals: ['customer', 'driver', 'admin']
+            });
+        }
+
         function bookRide(e) {
             e.preventDefault();
 
@@ -1398,6 +1412,30 @@
             let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             bookings.push(booking);
             localStorage.setItem('bookings', JSON.stringify(bookings));
+
+            broadcastPortalNotification({
+                type: 'new_booking',
+                title: 'New Ride Booking',
+                message: `Customer booked ride: ${booking.pickup} → ${booking.dropoff}`,
+                booking,
+                sourcePortal: 'customer',
+                metadata: {
+                    stage: 'created',
+                    bookingId: booking.id
+                }
+            });
+
+            broadcastPortalNotification({
+                type: 'booking_confirmed',
+                title: 'Booking Confirmed',
+                message: `Booking ${booking.id} confirmed and waiting for driver assignment`,
+                booking,
+                sourcePortal: 'customer',
+                metadata: {
+                    stage: 'confirmed',
+                    bookingId: booking.id
+                }
+            });
 
             console.log('✅ Booking created:', booking);
 
@@ -1471,6 +1509,20 @@
                     
                     localStorage.setItem('bookings', JSON.stringify(bookings));
 
+                    const assignedBooking = bookings[bookingIdx];
+                    broadcastPortalNotification({
+                        type: 'driver_assigned',
+                        title: 'Driver Assigned',
+                        message: `Driver ${randomDriver.name} assigned to booking ${assignedBooking.id}`,
+                        booking: assignedBooking,
+                        sourcePortal: 'driver',
+                        metadata: {
+                            stage: 'driver_assigned',
+                            bookingId: assignedBooking.id,
+                            driverId: randomDriver.id
+                        }
+                    });
+
                     updateDriverDisplay(randomDriver, bookingId);
                     
                     if (typeof showSuccessToast === 'function') {
@@ -1504,6 +1556,19 @@
                 bookings[idx].status = 'completed';
                 bookings[idx].duration = Math.floor(Math.random() * 30) + 10 + ' mins';
                 localStorage.setItem('bookings', JSON.stringify(bookings));
+
+                const completedBooking = bookings[idx];
+                broadcastPortalNotification({
+                    type: 'ride_completed',
+                    title: 'Ride Completed',
+                    message: `Ride ${completedBooking.id} completed successfully`,
+                    booking: completedBooking,
+                    sourcePortal: 'driver',
+                    metadata: {
+                        stage: 'ride_completed',
+                        bookingId: completedBooking.id
+                    }
+                });
 
                 setTimeout(() => {
                     document.getElementById('successModal').classList.remove('active');
@@ -1706,9 +1771,15 @@ Thank you for your generosity! ❤️
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
+    <script src="../js/portal-connector.js"></script>
+    <script src="../js/ai-system/authenticity-engine.js"></script>
+    <script src="../js/ai-system/core.js"></script>
+    <script src="../js/ai-system/public-mode.js"></script>
     
     <!-- Location Data & Autocomplete Scripts -->
     <script src="../js/locations.js"></script>
     <script src="../js/autocomplete.js"></script>
 </body>
 </html>
+
+

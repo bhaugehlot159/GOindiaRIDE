@@ -97,24 +97,42 @@ function handleBookingSubmit() {
         // Save booking
         saveBooking(booking);
 
-        // Connect customer booking to driver and admin portals via shared notifications
+        // Broadcast booking lifecycle to all portals (customer/driver/admin)
         if (window.PortalConnector) {
-            PortalConnector.createNotification({
+            const notifyAllPortals = (payload) => {
+                if (typeof PortalConnector.broadcastToAll === 'function') {
+                    PortalConnector.broadcastToAll(payload);
+                    return;
+                }
+
+                PortalConnector.createNotification({
+                    ...payload,
+                    targetPortals: ['customer', 'driver', 'admin']
+                });
+            };
+
+            notifyAllPortals({
                 type: 'new_booking',
                 title: 'New Ride Booking',
                 message: `Customer booked ride: ${pickup} → ${drop}`,
                 booking,
                 sourcePortal: 'customer',
-                targetPortals: ['driver', 'admin']
+                metadata: {
+                    stage: 'created',
+                    bookingId: booking.id
+                }
             });
 
-            PortalConnector.createNotification({
+            notifyAllPortals({
                 type: 'booking_confirmed',
                 title: 'Booking Confirmed',
-                message: `Your booking ${booking.id} is confirmed`,
+                message: `Booking ${booking.id} confirmed and driver matching started`,
                 booking,
                 sourcePortal: 'customer',
-                targetPortals: ['customer']
+                metadata: {
+                    stage: 'confirmed',
+                    bookingId: booking.id
+                }
             });
         }
         

@@ -1,4 +1,4 @@
-﻿(function initCustomerAIAutoSystem() {
+(function initCustomerAIAutoSystem() {
     "use strict";
 
     function boot() {
@@ -52,6 +52,12 @@
                         status: summary.cancelledBookings >= 6 ? "elevated" : "healthy",
                         detail: "Auto generates coupon and support nudges for customers at cancellation risk.",
                         action: "Action: Retention suggestions refreshed",
+                    },
+                    {
+                        title: "Fake vs Real Session AI",
+                        status: summary.authenticityStatus || "elevated",
+                        detail: "Detects fake scripted usage and keeps genuine customer sessions trusted.",
+                        action: "Action: " + String(summary.authenticityLabel || "review").replace(/_/g, " "),
                     },
                 ];
             },
