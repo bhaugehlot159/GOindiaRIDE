@@ -283,6 +283,12 @@ function Dashboard() {
     success: '',
     error: ''
   });
+  const [sosState, setSosState] = useState({
+    loading: false,
+    channel: '',
+    success: '',
+    error: ''
+  });
 
   const chips = [
     "AI anomaly watch active",
@@ -463,6 +469,49 @@ function Dashboard() {
     }
   };
 
+  const triggerSos = async (channel) => {
+    if (!token) return;
+
+    setSosState({ loading: true, channel, success: '', error: '' });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/security/sos`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channel,
+          note: `Dashboard quick SOS (${channel})`,
+          location: {
+            address: "Dashboard quick action"
+          }
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to trigger SOS");
+      }
+
+      setSosState({
+        loading: false,
+        channel,
+        success: `SOS sent (${channel}). Incident: ${data.incidentId}`,
+        error: ''
+      });
+
+      loadNotifications({ silent: false });
+    } catch (error) {
+      setSosState({
+        loading: false,
+        channel,
+        success: '',
+        error: error.message || "SOS request failed"
+      });
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -579,7 +628,7 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="glass-card rounded-2xl p-4 border border-[#FF9933]/40 ring-saffron">
             <p className="text-sm font-semibold text-[#0B1F3A]">Security posture</p>
             <p className="text-xs text-[#0B1F3A]/70 mt-2">
@@ -609,6 +658,34 @@ function Dashboard() {
             )}
             {bookingActionState.error && (
               <p className="text-[11px] text-red-600 mt-2">{bookingActionState.error}</p>
+            )}
+          </div>
+          <div className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/20">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Emergency SOS</p>
+            <p className="text-xs text-[#0B1F3A]/70 mt-2">
+              Trigger emergency alert to admin and nearby driver channels.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => triggerSos("police")}
+                disabled={sosState.loading}
+                className="px-3 py-2 rounded-lg bg-[#b91c1c] text-white text-xs disabled:opacity-50"
+              >
+                {sosState.loading && sosState.channel === "police" ? "Sending..." : "Police"}
+              </button>
+              <button
+                onClick={() => triggerSos("ambulance")}
+                disabled={sosState.loading}
+                className="px-3 py-2 rounded-lg bg-[#0f766e] text-white text-xs disabled:opacity-50"
+              >
+                {sosState.loading && sosState.channel === "ambulance" ? "Sending..." : "Ambulance"}
+              </button>
+            </div>
+            {sosState.success && (
+              <p className="text-[11px] text-green-700 mt-2">{sosState.success}</p>
+            )}
+            {sosState.error && (
+              <p className="text-[11px] text-red-600 mt-2">{sosState.error}</p>
             )}
           </div>
         </div>
@@ -668,6 +745,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 

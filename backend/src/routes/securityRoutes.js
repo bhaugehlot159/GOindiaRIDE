@@ -5,6 +5,9 @@ const authenticate = auth.authenticate || auth;
 const SecurityIncident = require('../models/SecurityIncident');
 const { getClientIp } = require('../utils/device');
 const { trackBehaviorEvent } = require('../services/behaviorService');
+const { logSecurityEvent } = require('../services/securityLogService');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
 const { evaluateAiThreat, applyAutoResponse } = require('../services/aiSecurityDetectiveService');
 
 const router = express.Router();
@@ -31,6 +34,133 @@ function normalizeMetadata(metadata) {
     return {};
   }
   return Object.fromEntries(Object.entries(metadata).slice(0, 25));
+}
+
+function normalizeSosChannel(value) {
+  const normalized = String(value || 'both').trim().toLowerCase();
+  if (normalized === 'police' || normalized === 'ambulance' || normalized === 'both') {
+    return normalized;
+  }
+  return null;
+}
+
+function normalizeSosLocation(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return {
+      address: null,
+      lat: null,
+      lng: null
+    };
+  }
+
+  const lat = Number(input.lat);
+  const lng = Number(input.lng);
+
+  return {
+    address: input.address ? String(input.address).trim().slice(0, 160) : null,
+    lat: Number.isFinite(lat) ? lat : null,
+    lng: Number.isFinite(lng) ? lng : null
+  };
+}
+
+async function createEmergencyNotifications({
+  channel,
+  requesterId,
+  requesterRole,
+  requesterEmail,
+  bookingId,
+  note,
+  location,
+  incidentId
+}) {
+  const [admins, drivers] = await Promise.all([
+    User.find({ $or: [{ role: 'admin' }, { accountType: 'admin' }] }).select('_id').lean(),
+    User.find({ accountType: 'driver' }).select('_id').lean()
+  ]);
+
+  const titleByChannel = {
+    police: 'Emergency SOS - Police',
+    ambulance: 'Emergency SOS - Ambulance',
+    both: 'Emergency SOS - Police and Ambulance'
+  };
+
+  const locationText = location.address ? ` near ${location.address}` : '';
+  const noteText = note ? ` Note: ${note}` : '';
+  const bookingText = bookingId ? ` Booking ${bookingId}.` : '';
+  const requesterText = requesterEmail || requesterId;
+
+  const message = `SOS triggered by ${requesterRole} (${requesterText})${locationText}.${bookingText}${noteText}`.trim();
+
+  const docs = [];
+
+  admins.forEach((item) => {
+    docs.push({
+      userId: item._id,
+      audience: 'admin',
+      bookingId,
+      type: 'emergency_sos',
+      title: titleByChannel[channel],
+      message,
+      metadata: {
+        incidentId,
+        channel,
+        location,
+        note,
+        requesterRole
+      }
+    });
+  });
+
+  drivers.forEach((item) => {
+    docs.push({
+      userId: item._id,
+      audience: 'driver',
+      bookingId,
+      type: 'emergency_sos',
+      title: titleByChannel[channel],
+      message,
+      metadata: {
+        incidentId,
+        channel,
+        location,
+        note,
+        requesterRole
+      }
+    });
+  });
+
+  if (!docs.length) {
+    await Notification.create({
+      userId: null,
+      audience: 'admin',
+      bookingId,
+      type: 'emergency_sos',
+      title: titleByChannel[channel],
+      message,
+      metadata: {
+        incidentId,
+        channel,
+        location,
+        note,
+        requesterRole,
+        fallback: true
+      }
+    });
+
+    return {
+      adminCount: 1,
+      driverCount: 0,
+      fallback: true
+    };
+  }
+
+  await Notification.insertMany(docs, { ordered: false });
+
+  return {
+    adminCount: admins.length,
+    driverCount: drivers.length,
+    fallback: false
+  };
 }
 
 router.post('/event', authenticate, async (req, res) => {
@@ -110,6 +240,110 @@ router.post('/event', authenticate, async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to evaluate security incident' });
+  }
+});
+
+router.post('/sos', authenticate, async (req, res) => {
+  try {
+    const user = getUserContext(req);
+    if (!user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const channel = normalizeSosChannel(req.body?.channel);
+    if (!channel) {
+      return res.status(400).json({ message: 'channel must be police, ambulance or both' });
+    }
+
+    const bookingIdValue = req.body?.bookingId;
+    const bookingId = bookingIdValue ? String(bookingIdValue).trim().slice(0, 64) : null;
+    const note = String(req.body?.note || '').trim().slice(0, 240);
+    const location = normalizeSosLocation(req.body?.location);
+    const ip = getClientIp(req);
+
+    const riskScore = channel === 'both' ? 95 : 90;
+
+    const incident = await SecurityIncident.create({
+      source: 'client',
+      eventType: `sos_${channel}`,
+      userId: user.id,
+      email: user.email,
+      ip,
+      city: location.address || req.headers['x-city'] || 'unknown',
+      deviceFingerprint: req.body?.deviceFingerprint || req.headers['x-device-fingerprint'] || null,
+      riskScore,
+      severity: 'critical',
+      recommendedAction: 'dispatch_emergency_support',
+      autoResponse: {
+        action: 'notify_admin_and_driver',
+        applied: true,
+        note: 'Emergency broadcast generated'
+      },
+      signals: {
+        sos: true,
+        channel,
+        hasLocation: Boolean(location.address || (location.lat !== null && location.lng !== null))
+      },
+      metadata: {
+        bookingId,
+        note,
+        location
+      },
+      timeline: [
+        {
+          action: 'sos_triggered',
+          note: `SOS ${channel} triggered`,
+          actorId: user.id
+        }
+      ]
+    });
+
+    const notificationSummary = await createEmergencyNotifications({
+      channel,
+      requesterId: user.id,
+      requesterRole: user.role,
+      requesterEmail: user.email,
+      bookingId,
+      note,
+      location,
+      incidentId: incident.incidentId
+    });
+
+    await trackBehaviorEvent({
+      userId: user.id,
+      eventType: 'sos_trigger',
+      ip,
+      city: location.address || req.headers['x-city'] || 'unknown',
+      deviceFingerprint: req.body?.deviceFingerprint || req.headers['x-device-fingerprint'] || null,
+      metadata: {
+        channel,
+        incidentId: incident.incidentId,
+        bookingId
+      }
+    });
+
+    await logSecurityEvent({
+      userId: user.id,
+      action: 'sos_triggered',
+      ip,
+      riskScore,
+      result: 'flagged',
+      metadata: {
+        channel,
+        incidentId: incident.incidentId,
+        bookingId,
+        location
+      }
+    });
+
+    return res.status(201).json({
+      incidentId: incident.incidentId,
+      channel,
+      severity: incident.severity,
+      notificationSummary
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to trigger SOS' });
   }
 });
 
@@ -233,3 +467,5 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
 });
 
 module.exports = router;
+
+
