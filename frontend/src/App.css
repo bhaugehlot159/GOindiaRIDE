@@ -40,3 +40,42 @@
 .read-the-docs {
   color: #888;
 }
+
+.tricolor-text {
+  background: linear-gradient(90deg, #ff9933, #ffffff 45%, #138808);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+.border-saffron {
+  border-color: #ff9933;
+}
+
+.border-green {
+  border-color: #138808;
+}
+
+.ring-saffron {
+  box-shadow: 0 10px 30px rgba(255, 153, 51, 0.25);
+}
+
+.ring-green {
+  box-shadow: 0 10px 30px rgba(19, 136, 8, 0.25);
+}
+
+.grid-highlight {
+  background: linear-gradient(135deg, rgba(255, 153, 51, 0.1), rgba(19, 136, 8, 0.1));
+}
+
+.dash-grid {
+  background-image: linear-gradient(rgba(11, 31, 58, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 31, 58, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
