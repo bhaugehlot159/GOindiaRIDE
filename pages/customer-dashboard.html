@@ -1744,15 +1744,23 @@ Thank you for helping! ❤️
             }
         }
 
-        // ----------------------------------------====
+        // ============================================
         // OTHER FUNCTIONS
-        // ----------------------------------------====
+        // ============================================
+
+        function notifyEmergencyAction(message, title = 'Emergency') {
+            if (typeof showWarningToast === 'function') {
+                showWarningToast(message, title);
+            } else {
+                alert(message);
+            }
+        }
 
         function triggerEmergencyHelp(kind) {
             const emergencyMap = {
-                police: { number: '112', label: 'Police' },
-                ambulance: { number: '108', label: 'Ambulance' },
-                sos: { number: null, label: 'SOS Alert' }
+                police: { number: '112', label: 'Police', dialable: true },
+                ambulance: { number: '108', label: 'Ambulance', dialable: true },
+                sos: { number: null, label: 'SOS Alert', dialable: false }
             };
 
             const info = emergencyMap[kind] || emergencyMap.sos;
@@ -1768,21 +1776,13 @@ Thank you for helping! ❤️
                 renderCustomerAlerts();
             }
 
-            if (kind === 'police' || kind === 'ambulance') {
-                if (typeof showWarningToast === 'function') {
-                    showWarningToast(`${info.label} help requested. Dialing ${info.number}...`, 'Emergency');
-                } else {
-                    alert(`${info.label} help requested. Dialing ${info.number}...`);
-                }
+            if (info.dialable && info.number) {
+                notifyEmergencyAction(`${info.label} help requested. Dialing ${info.number}...`);
                 window.location.href = `tel:${info.number}`;
                 return;
             }
 
-            if (typeof showWarningToast === 'function') {
-                showWarningToast('SOS alert sent to Admin & Driver network.', 'SOS Triggered');
-            } else {
-                alert('SOS alert sent to Admin & Driver network.');
-            }
+            notifyEmergencyAction('SOS alert sent to Admin & Driver network.', 'SOS Triggered');
         }
 
         function goToBooking() {
