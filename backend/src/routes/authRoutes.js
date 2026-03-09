@@ -1,4 +1,4 @@
-﻿console.log("AUTH ROUTES LOADED FROM:", __filename);
+console.log("AUTH ROUTES LOADED FROM:", __filename);
 const QRCode = require("qrcode");
 const speakeasy = require("speakeasy");
 const express = require('express');
@@ -1707,7 +1707,7 @@ router.post("/trusted-devices/reject", _requireAccessToken(env), async (req, res
       });
     }
 
-    const userId = req_auth?.id || req_auth?.sub;
+    const userId = req._auth?.id || req._auth?.sub;
 
     if (!userId) {
       return res.status(401).json({
@@ -1922,7 +1922,7 @@ router.post("/trusted-devices/overview", _requireAccessToken(env), async (req, r
 // ==============================
 router.post("/trusted-devices/approved", _requireAccessToken(env), async (req, res) => {
   try {
-    const userId = req_auth?.id || req_auth?.sub;
+    const userId = req._auth?.id || req._auth?.sub;
 
     if (!userId) {
       return res.status(401).json({
@@ -1984,7 +1984,7 @@ router.post("/trusted-devices/approved", _requireAccessToken(env), async (req, r
 // ==============================
 router.post("/trusted-devices/blocked", _requireAccessToken(env), async (req, res) => {
   try {
-    const userId = req_auth?.id || req_auth?.sub;
+    const userId = req._auth?.id || req._auth?.sub;
 
     if (!userId) {
       return res.status(401).json({
@@ -2042,7 +2042,7 @@ router.post("/trusted-devices/blocked", _requireAccessToken(env), async (req, re
 // ==============================
 router.post("/trusted-devices/rejected", _requireAccessToken(env), async (req, res) => {
   try {
-    const userId = req_auth?.id || req_auth?.sub;
+    const userId = req._auth?.id || req._auth?.sub;
 
     if (!userId) {
       return res.status(401).json({
@@ -2182,7 +2182,7 @@ router.post("/trusted-devices/unblock", _requireAccessToken(env), async (req, re
       });
     }
 
-    const userId = req_auth?.id || req_auth?.sub || req_auth?._id;
+    const userId = req._auth?.id || req._auth?.sub || req._auth?._id;
 
     if (!userId) {
       return res.status(401).json({
@@ -2267,7 +2267,7 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
       });
     }
 
-    const userId = req_auth?.id || req_auth?.sub || req_auth?._id;
+    const userId = req._auth?.id || req._auth?.sub || req._auth?._id;
 
     if (!userId) {
       return res.status(401).json({
@@ -2354,4 +2354,5 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
 });
 
 module.exports = router;
+
 
