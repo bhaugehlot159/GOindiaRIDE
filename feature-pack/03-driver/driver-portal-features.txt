@@ -1,0 +1,135 @@
+# DRIVER FEATURES (Folder-wise)
+# Source: COMPLETE-FEATURES-LIST.txt
+# Total lines mapped: 132
+
+## SECTION B: DRIVER PORTAL (ड्राइवर पोर्टल)
+
+### 1. ड्राइवर रजिस्ट्रेशन (Driver Registration)
+- ड्राइवर login हो (signup साइड कर सके) - Driver can signup and login
+- Driver name, photo, phone, email
+- Address details
+- Driving experience years
+- Languages known
+
+### 2. वाहन की जानकारी (Vehicle Information)  
+- ड्राइवर की गाड़ी की पूरी जानकारी फोटो का ऑप्शन - Complete vehicle info with photos
+- Vehicle model, make, year
+- Vehicle number/registration
+- Vehicle type (Hatchback/Sedan/SUV/etc.)
+- Vehicle color
+- 4-angle vehicle photos (front, back, left, right sides)
+- Seating capacity
+- AC/Non-AC
+- Vehicle features
+
+### 3. KYC और डॉक्यूमेंट अपलोड (KYC & Document Upload)
+- ड्राइवर लाभ हो केसे समझ ड्राइवर को पूरी जानकारी - Driver should understand complete benefits
+- Driving License upload
+- RC (Registration Certificate) upload
+- Insurance papers upload
+- PAN card upload
+- Aadhar card upload
+- सभी Document Upload करने का ऑप्शन - All document upload option
+- Police verification certificate (optional)
+- Address proof
+- Bank account details for payments
+
+### 4. सिक्योरिटी डिपॉजिट (Security Deposit)
+- ड्राइवर के लिए Security Amount deposit का ऑप्शन होना चाहिए
+- Rs. 5000 security deposit (online payment)
+- 3 महीनों की सिक्योरिटी lockout (online) - 3 months security lock period
+- Deposit refund policy after verification period
+- Deposit status tracking
+
+### 5. वेरिफिकेशन प्रोसेस (Verification Process)
+- Admin approval required
+- Document verification by admin
+- Background check (optional)
+- 3-month verification period
+- Status updates (pending/approved/rejected)
+- Rejection reason display
+
+### 6. बुकिंग मैनेजमेंट (Booking Management)
+- बुकिंग का notification मिले - Booking notifications
+- New booking alerts (real-time)
+- Booking details view (pickup, drop, customer info, fare)
+- बुकिंग के स्वीकार करने का ऑप्शन होना चाहिए - Accept booking option
+- Reject booking option
+- Auto-reject after 5 minutes
+- Current active bookings list
+- Booking history
+
+### 7. पिकअप और ड्रॉप लोकेशन (Pickup & Drop Location)
+- ड्राइवर को pickup location & drop location
+- Google Maps navigation integration
+- Customer contact (call/message option)
+- ड्राइवर के पास pickup post पर जाने के बाद arrival - Arrival confirmation
+- Start trip button
+- End trip button
+- Trip route tracking
+
+### 8. कैंसलेशन और पेनल्टी (Cancellation & Penalty)
+- बुकिंग cancelled नहीं होगी (Driver cannot cancel easily)
+- High penalty for driver cancellation
+- Valid cancellation reasons
+- Cancellation impact on rating
+- Multiple cancellation = temporary block
+
+### 9. अर्निंग्स और पेमेंट (Earnings & Payment)
+- खर्च डिटेल - Expense details
+- Today's earnings
+- Weekly earnings
+- Monthly earnings
+- Trip-wise earning breakdown
+- Commission structure (80% driver, 20% platform)
+- Pending payments (cash collected from customers)
+- Withdrawal request option
+- Bank transfer (3-5 business days)
+- Payment history
+- Earnings report (PDF/Excel download)
+
+### 10. रेटिंग और फीडबैक (Rating & Feedback)
+- Overall driver rating (1-5 stars)
+- Customer reviews display
+- Rating breakdown
+- Performance metrics
+- Tips received from customers
+- Badges and rewards for good performance
+- Driver of the Month leaderboard
+
+### 11. वाहन मेंटेनेंस ट्रैकिंग (Vehicle Maintenance)
+- Kilometer tracking (daily/total)
+- Service alert at 10,000 KM
+- Last service date
+- Next service due date
+- Maintenance log/history
+- Expense tracking (fuel, repairs)
+- टाइम और किलोमीटर का ऑप्शन - Time and kilometer option
+
+### 12. डॉक्यूमेंट एक्सपायरी अलर्ट (Document Expiry Alerts)
+- RC expiry alert (15 days before)
+- Insurance expiry alert (15 days before)
+- License renewal reminder
+- Pollution certificate reminder
+- Auto-block if documents expire
+- Renewal notification
+
+### 13. ड्राइवर सपोर्ट (Driver Support)
+- Help center
+- Report technical issues
+- Emergency support (accident, breakdown)
+- Legal support
+- Training resources
+- Community forum
+- Chat with admin
+
+### 14. अतिरिक्त फीचर्स (Additional Features)
+- Driver availability status (online/offline)
+- Driver dashboard with stats
+- Earnings calculator
+- Fuel expense tracker
+- ड्राइवर के लिए किस कानूनी नियम व शर्ते जो लागू हो सके - Legal rules and terms for drivers
+- Family Insurance Fund (health insurance for driver's family from trip earnings)
+- Driver loyalty rewards program
+
+---

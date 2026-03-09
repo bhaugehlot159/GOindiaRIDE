@@ -1,0 +1,141 @@
+# CUSTOMER FEATURES (Folder-wise)
+# Source: COMPLETE-FEATURES-LIST.txt
+# Total lines mapped: 138
+
+## SECTION A: CUSTOMER PORTAL (ग्राहक पोर्टल)
+
+### 1. यूजर रजिस्ट्रेशन और ऑथेंटिकेशन
+- यूजर रजिस्ट्रेशन होनी चाहिए (User Registration & Profile System)
+- OTP की बुकिंग करने का ऑप्शन (OTP-based booking/login)
+- सभी पर्सनल डिटेल व ब्लॉक डिटेल के नाम सहित (Personal details with block details and names)
+- Email/Password login
+- Phone number verification (OTP)
+- Google/Facebook social login
+- User profile with photo upload
+- Document upload (ID proof) - optional
+
+### 2. स्थल और इतिहास (Tourist Places & History)
+- सभी स्थलों के पुराने इतिहास सहित होना चाहिए (Historical information for all places)
+- राजस्थान के ऐतिहासिक स्थलों की फोटो, इतिहास और मंदिरों की आरती का समय
+- Temple aarti timings
+- Entry fees information
+- Opening/closing timings
+- Photo gallery of real trips
+- Best time to visit recommendations
+
+### 3. बुकिंग सिस्टम (Booking System)
+- आने के लिए एक संबंध करने का ऑप्शन होना चाहिए (Contact/booking option)
+- Pick-up location search with auto-suggestions
+- Drop location search with auto-suggestions  
+- राजस्थान के सभी छोटे व बड़े जगहों के नाम पुरे (All Rajasthan places - big and small)
+- Vehicle type selection (Hatchback, Sedan, SUV, Tempo Traveller, Bus)
+- Date and time picker (minimum 2 hours advance)
+- Passenger details (name, phone, email)
+- Special requirements/notes field
+- Fare calculator (real-time estimation)
+- Payment method selection
+- Booking confirmation with booking ID
+
+### 4. फेयर कैलकुलेशन (Fare Calculation)
+- Distance-based fare calculation
+- Vehicle type-based pricing
+- Base fare + Per KM charges
+- GST calculation (5%)
+- Breakdown display (base + distance + GST)
+- Multiple vehicle options with price comparison
+- Peak hours surge pricing
+- Discount code application
+
+### 5. पेमेंट सिस्टम (Payment System)
+- इंटरनेशनल मोड (PayPal) - International payment support
+- UPI payments
+- Credit/Debit cards
+- Net banking
+- Wallets (Paytm, PhonePe, etc.)
+- Cash on delivery option
+- GOindiaRIDE wallet (preloaded balance)
+- Payment history tracking
+- Auto-receipt generation
+
+### 6. राइड हिस्ट्री और मैनेजमेंट (Ride Management)
+- Complete ride history (all past bookings)
+- Trip details (distance, time, cost)
+- Ride cancellation option (24hrs पहली बुकिंग पर 5 से 5% तक डिस्काउंट मिले)
+- Cancellation before 24 hours - full refund
+- Cancellation 12-24 hours - 50% refund
+- Less than 12 hours - no refund
+- Invoice/receipt download (PDF)
+- Rebook previous trips (one-click repeat)
+- Favorite routes saving
+
+### 7. रेटिंग और रिव्यू (Rating & Reviews)
+- Driver rating (1-5 stars)
+- Written review/feedback
+- Photo upload from trip
+- View other customer reviews
+- Report issues/complaints
+- Rate vehicle condition
+- Rate punctuality
+
+### 8. सेफ्टी और सपोर्ट (Safety & Support Features)
+- Emergency SOS button (instant alert to admin and police)
+- Share ride details via WhatsApp
+- Live location sharing with family/friends
+- Add 3 emergency contacts
+- 24/7 customer support
+- Chat support
+- Help center/FAQs
+- Insurance information display
+
+### 9. पर्यटन सुविधाएं (Tourism Features)
+- Restaurant recommendations (verified restaurants with ratings)
+- Shop/Post office/Hotel की जानकारी (Shops, post offices, hotels info)
+- Handicraft shops information
+- Local food spots guide
+- Cultural events calendar
+- Festival information
+- Best photo spots suggestions
+- Travel tips and guides
+
+### 10. प्रोमो कोड और डिस्काउंट (Promo Codes & Offers)
+- Discount coupon codes
+- First ride discount
+- Referral program (refer and earn)
+- Loyalty points system
+- Seasonal offers (Diwali, Holi, etc.)
+- Group booking discounts
+- Festival special offers
+
+### 11. यूजर डैशबोर्ड (User Dashboard)
+- Upcoming bookings
+- Completed trips count
+- Total distance traveled
+- Total money spent
+- Loyalty points balance
+- Wallet balance
+- Saved favorite locations
+- Emergency contacts list
+
+### 12. नोटिफिकेशन सिस्टम (Notifications)
+- Booking confirmation notifications
+- Driver assignment alert
+- Driver arrival notification
+- Trip start/end notifications
+- Payment success alerts
+- Promo code/offer notifications
+- Festival season reminders
+
+### 13. अतिरिक्त फीचर्स (Additional Features)
+- Multi-language support (Hindi, English, Rajasthani)
+- Trip before preview (unique) - देखना की सुविधा होनी चाहिए
+- Real trip photos (असली अमीरता) - actual customer trip photos
+- "Why come back again" section
+- "Why trust us" section
+- Emotional connect content
+- Conversion-focused design
+- Social proof (testimonials, reviews)
+- "Experience, not Ride" section
+- Payment & money trust badges
+- भाषा सम्बंधित (Language communication support)
+
+---

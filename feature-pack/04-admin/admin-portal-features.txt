@@ -1,0 +1,309 @@
+# ADMIN FEATURES (Folder-wise)
+# Source: COMPLETE-FEATURES-LIST.txt
+# Total lines mapped: 306
+
+## SECTION C: ADMIN PORTAL (एडमिन पोर्टल)
+
+### 1. डैशबोर्ड (Main Dashboard)
+- Real-time statistics (bookings, revenue, active drivers)
+- Today's total bookings
+- Today's revenue
+- Active drivers count
+- Active customers count
+- Pending verifications
+- Recent activities timeline
+- Revenue charts (daily/weekly/monthly)
+- Heat map (high demand areas in Rajasthan)
+- Live map with all active taxis GPS location
+
+### 2. बुकिंग मैनेजमेंट (Booking Management)
+- All bookings list (pending/confirmed/completed/cancelled)
+- Filter by date, customer, driver, status
+- Search bookings
+- View complete booking details
+- Manual driver assignment (if AI fails)
+- Fare adjustment option
+- Cancel bookings
+- Refund processing
+- Booking reports (PDF/Excel)
+- Export data
+
+### 3. ड्राइवर मैनेजमेंट (Driver Management)
+- All drivers list
+- Filter: Active/Pending/Blocked drivers
+- Driver profile view (complete details)
+- Document verification center
+- View/Download documents (DL, RC, Insurance, etc.)
+- Approve/Reject new drivers
+- Block/Unblock drivers
+- Security deposit tracking (Rs. 5000 per driver total balance)
+- 3-month verification period tracking
+- Auto-unblock after 90 days
+- Driver performance analytics
+- Rating and reviews management
+- Payout processing
+
+### 4. कस्टमर मैनेजमेंट (Customer Management)
+- All customers list
+- Customer profile details
+- Booking history per customer
+- Wallet balance management
+- Block/Unblock problematic users
+- Refund management
+- Customer complaints view
+- Activity tracking
+
+### 5. पेमेंट और फाइनेंस (Payment & Financial Management)
+- All transactions list
+- Revenue analytics (real-time data)
+- Daily/Weekly/Monthly revenue breakdown
+- Payment gateway status
+- Pending settlements with drivers
+- Refund queue processing
+- Commission tracking (20% platform fee)
+- **Affiliate Commission (होटल, रेस्टोरेंट और हैंडीक्राफ्ट शॉप्स से आने वाले कमीशन)**
+- Hotel booking commission tracking
+- Restaurant referral commission
+- Shop referral earnings
+- Commission split (admin and driver share)
+- **Donation Report (दान के लिए इकट्ठा हुए पैसों का अलग हिसाब)**
+- Donation wallet separate tracking
+- Donation usage reports
+- Emergency fund management
+- **Cancellation Earnings (ग्राहकों से कटे हुए कैंसलेशन चार्ज)**
+- Cancellation charges collected from customers
+- Driver penalties collected
+- GST/Tax reports (auto-calculation for every trip)
+- Profit/Loss statements
+- Financial reports export
+
+### 6. AI और ऑटो-कंट्रोल (AI & Auto-Control Features)
+- **AI Auto-Dispatch System**
+  - Automatic driver assignment based on distance, rating, vehicle availability
+  - Success rate tracking
+  - Fallback logic configuration
+  
+- **Demand Prediction (डिमांड प्रेडिक्शन)**
+  - City-wise demand forecast
+  - Historical data analysis
+  - Festival season prediction
+  - 7-day advance forecast
+  - Peak hours identification
+  
+- **Smart Fare Control (स्मार्ट फेयर कंट्रोल)**
+  - Dynamic pricing based on demand
+  - Auto-increase fare during high demand
+  - Auto-decrease fare during low demand
+  - Peak hours surge pricing configuration
+  - Competitor pricing tracking
+  
+- **Driver Health Monitoring (ड्राइवर हेल्थ मॉनिटरिंग)**
+  - Continuous driving time tracking
+  - Fatigue detection (4+ hours continuous driving alert)
+  - Over-speeding reports
+  - Night driving limits
+  - Mandatory break enforcement
+  - Performance degradation alerts
+  
+- **Auto-Block System (ऑटो-ब्लॉक सिस्टम)**
+  - 3-month verification rule tracking
+  - Auto-block drivers with expired documents
+  - Auto-block low-rated drivers (below 3 stars)
+  - Complaint-based auto-investigation
+  - Auto-unblock after document renewal
+  - Admin override option
+
+### 7. फ्रॉड डिटेक्शन (Fraud Detection & Prevention)
+- **Wallet Fraud Alert (वॉलेट फ्रॉड अलर्ट)**
+  - Suspicious transaction detection
+  - Auto wallet freeze on fraud suspicion
+  - Pattern recognition for unusual activities
+  - Multiple account detection
+  - Fake booking detection
+  - AI-based document verification
+  - Admin alerts for suspicious activities
+
+### 8. सेफ्टी और मॉनिटरिंग (Safety & Live Monitoring)
+- **Live Map (लाइव मैप)**
+  - All active taxis real-time GPS location on single screen
+  - Route tracking
+  - Speed monitoring
+  
+- **Emergency SOS System (इमरजेंसी अलर्ट)**
+  - Instant alert when customer/driver presses SOS
+  - Siren notification to admin
+  - GPS location of emergency
+  - Quick action panel
+  - Police coordination system
+  
+- **Heat Map (हीट मैप)**
+  - District-wise pending bookings visualization
+  - High-demand area identification
+  - Resource allocation suggestions
+  
+- **Virtual Escort (वर्चुअल एस्कॉर्ट)**
+  - Special monitoring for solo female travelers
+  - International tourist trip tracking
+  - Step-by-step trip monitoring
+  - Route deviation alerts
+  - Incident reporting
+  - Insurance claim processing
+
+### 9. कंटेंट मैनेजमेंट (Content Management System)
+- **Tourist Places Management**
+  - Add/Edit/Delete Rajasthan tourist places
+  - Upload historical information
+  - Update timings, entry fees
+  - Photo gallery management
+  - Temple aarti timings update
+  - Best time to visit information
+  
+- **Partner Management (पार्टनर और वेंडर मैनेजमेंट)**
+  - Hotel database management
+  - Hotel/Shop rating tracking (ग्राहकों ने किस होटल को सबसे ज्यादा पसंद किया)
+  - Restaurant recommendations list
+  - Shopping guide (handicraft shops)
+  - Vendor agreement tracking
+  - Agreement expiry alerts
+  - Commission rate management
+  - Partner performance analytics
+  
+- **Suggestions Engine (सुझाव इंजन)**
+  - Edit best hotels list shown to customers
+  - Edit best shops list
+  - Recommendation algorithm tuning
+  - Featured partners management
+
+### 10. प्रोमो कोड मैनेजमेंट (Promo Code Management)
+- Create new promo codes
+- Set discount (percentage or flat)
+- Validity period setting
+- Usage limit configuration
+- Per-user limit
+- Target specific users or all
+- Seasonal offers creation
+- Referral program settings
+- Usage analytics
+- Active/Inactive toggle
+
+### 11. वाहन और किराया सेटिंग्स (Vehicle & Fare Settings)
+- Vehicle types management
+- Base fare per vehicle type
+- Per KM rate setting
+- Minimum fare configuration
+- GST rate setting
+- Peak hours pricing
+- Route-based package pricing
+- Surge pricing rules
+- Fare calculator configuration
+
+### 12. रिपोर्ट्स और एनालिटिक्स (Reports & Analytics)
+- Daily/Weekly/Monthly reports
+- Revenue reports
+- Booking trends analysis
+- Driver performance reports
+- Customer analytics
+- Most popular routes
+- Peak hours analysis
+- Conversion rate tracking
+- Export to PDF/Excel
+
+### 13. सपोर्ट टिकट मैनेजमेंट (Support & Ticket Management)
+- All support tickets (customers + drivers)
+- Ticket priority (High/Medium/Low)
+- Assign to team members
+- Status tracking (Open/In-Progress/Resolved)
+- Response time monitoring
+- Live chat system
+- Email response integration
+- FAQ management
+
+### 14. सेटिंग्स और कॉन्फ़िगरेशन (Settings & Configuration)
+- Admin user management
+- Role-based access control
+- Payment gateway settings
+- SMS/Email notification templates
+- Platform commission percentage
+- Cancellation policy settings
+- Refund rules configuration
+- System logs viewing
+- Backup and restore
+
+### 15. AI मार्केटिंग ऑटोमेशन (AI Marketing Automation)
+- **Predictive Booking (पूर्वानुमान बुकिंग)**
+  - Historical pattern analysis
+  - Last year same date comparison
+  - Festival season predictions
+  - Fleet requirement forecasting (e.g., "50 और गाड़ियों की जरूरत पड़ेगी")
+  
+- **Auto-Offer System (ऑटो-ऑफर सिस्टम)**
+  - Idle vehicle detection (2 hours empty)
+  - Auto-send 10% discount to nearby customers
+  - Smart notification targeting
+  
+- **Re-engagement Campaigns**
+  - Inactive user identification
+  - Personalized offer generation
+  - Automated email/SMS campaigns
+
+### 16. स्मार्ट रूट ऑप्टिमाइजेशन (Smart Route Optimization)
+- **Multi-Point Routing**
+  - Same direction booking clubbing
+  - Carpool suggestion (2 bookings in 1 big vehicle)
+  - Fuel saving calculation
+  - Profit increase projection
+  
+- **Return Trip Logic**
+  - Identify empty return trips
+  - Auto-suggest return bookings
+  - Route optimization for return journey
+  - Driver positioning strategy
+
+### 17. इन्वेंटरी और एसेट मैनेजमेंट (Inventory & Asset Management)
+- All vehicles tracking
+- Kilometer-wise service alerts
+- Service history per vehicle
+- Maintenance schedule management
+- Tire change reminders
+- Document expiry tracking (bulk view)
+- Vehicle status (Active/Under Maintenance/Blocked)
+- Fleet performance analytics
+
+### 18. इंटरनेशनल फीचर्स (International Features)
+- **Language Bridge**
+  - Real-time translation system (Hindi ↔ English ↔ German ↔ French ↔ Spanish)
+  - Live chat translation
+  - Voice translation support
+  
+- **Cultural Guide AI**
+  - Location-triggered audio history (automatic play near forts/temples)
+  - Multi-language audio content
+  - Historical facts and stories
+  - Photo spot suggestions
+  - Cultural etiquette information
+
+### 19. ड्राइवर रिटेंशन (Driver Loyalty & Retention)
+- **Driver Leaderboard**
+  - Top drivers by rating
+  - Top drivers by trips
+  - "Driver of the Month" badge
+  - Automatic bonus allocation
+  - Public recognition
+  
+- **Family Insurance Fund**
+  - Auto-deduct small amount from each trip
+  - Health insurance for driver families
+  - Fund balance tracking
+  - Claim processing
+
+### 20. कंप्लायंस और लीगल (Compliance & Legal)
+- Tax calculation and reports
+- GST filing reports
+- Government compliance tracking
+- Driver verification records
+- Insurance tracking
+- Legal document repository
+- Emergency fund management (separate from donation)
+- Accident support fund
+
+---
