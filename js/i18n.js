@@ -305,33 +305,44 @@ function createLanguageSwitcher() {
         zh: '🇨🇳',
         ar: '🇸🇦'
     };
-    
+
+    const languageNames = {
+        en: 'English',
+        hi: 'Hindi',
+        fr: 'French',
+        de: 'German',
+        es: 'Spanish',
+        ja: 'Japanese',
+        zh: 'Chinese',
+        ar: 'Arabic'
+    };
+
     let html = '<div class="language-switcher" style="position: relative; display: inline-block;">';
-    html += `<button class="lang-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 1.05rem; font-weight: 700;">`;
-    html += `${flags[currentLang]} ▼</button>`;
-    html += '<div class="lang-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 200px; z-index: 1000;">';
-    
+    html += `<button class="lang-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; white-space: nowrap;">`;
+    html += `${flags[currentLang]} ${languageNames[currentLang] || currentLang.toUpperCase()} ▼</button>`;
+    html += '<div class="lang-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 180px; max-width: calc(100vw - 24px); z-index: 1000;">';
+
     Object.keys(flags).forEach(lang => {
-        html += `<button class="lang-option" data-lang="${lang}" style="display: block; width: 100%; text-align: left; padding: 0.8rem 1rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: #333; transition: all 0.3s;">`;
-        html += `${flags[lang]} ${translations[lang]?.['hero.title'] || lang.toUpperCase()}</button>`;
+        html += `<button class="lang-option" data-lang="${lang}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #333; transition: all 0.3s;">`;
+        html += `${flags[lang]} ${languageNames[lang] || lang.toUpperCase()}</button>`;
     });
-    
+
     html += '</div></div>';
     return html;
 }
 
 // Create currency switcher HTML
 function createCurrencySwitcher() {
-    let html = '<div class="currency-switcher" style="position: relative; display: inline-block; margin-left: 1rem;">';
-    html += `<button class="currency-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 700;">`;
-    html += `${currencyRates[currentCurrency].symbol} ${currentCurrency} ▼</button>`;
-    html += '<div class="currency-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 150px; z-index: 1000;">';
-    
+    let html = '<div class="currency-switcher" style="position: relative; display: inline-block;">';
+    html += `<button class="currency-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.9rem; white-space: nowrap;">`;
+    html += `${currencyRates[currentCurrency].symbol} ${currencyRates[currentCurrency].name} ▼</button>`;
+    html += '<div class="currency-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 210px; max-width: calc(100vw - 24px); z-index: 1000;">';
+
     Object.keys(currencyRates).forEach(curr => {
-        html += `<button class="currency-option" data-currency="${curr}" style="display: block; width: 100%; text-align: left; padding: 0.8rem 1rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #333; transition: all 0.3s;">`;
-        html += `${currencyRates[curr].symbol} ${curr}</button>`;
+        html += `<button class="currency-option" data-currency="${curr}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.88rem; color: #333; transition: all 0.3s;">`;
+        html += `${currencyRates[curr].symbol} ${currencyRates[curr].name} (${curr})</button>`;
     });
-    
+
     html += '</div></div>';
     return html;
 }
@@ -342,9 +353,12 @@ function initI18n() {
     const navbarRight = document.querySelector('.navbar-links') || document.querySelector('.navbar-right');
     if (navbarRight) {
         const switchersDiv = document.createElement('div');
+        switchersDiv.className = 'navbar-switchers';
         switchersDiv.style.display = 'flex';
         switchersDiv.style.alignItems = 'center';
         switchersDiv.style.gap = '0.5rem';
+        switchersDiv.style.flexWrap = 'wrap';
+        switchersDiv.style.maxWidth = '100%';
         switchersDiv.innerHTML = createLanguageSwitcher() + createCurrencySwitcher();
         navbarRight.appendChild(switchersDiv);
         
@@ -421,3 +435,4 @@ if (typeof module !== 'undefined' && module.exports) {
         currentCurrency
     };
 }
+

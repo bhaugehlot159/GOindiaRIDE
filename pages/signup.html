@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -547,7 +547,8 @@
                             type="tel" 
                             id="phone" 
                             name="phone" 
-                            placeholder="Enter your phone number"
+                            placeholder="Enter mobile number (India or international)"
+                            maxlength="16"
                             required
                         >
                     </div>
@@ -572,6 +573,24 @@
                                 name="drivingLicenseNumber"
                                 placeholder="Ex: RJ1420110012345"
                                 maxlength="20"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="licenseHolderName">
+                            Name on Driving License
+                            <span class="required-dot">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user-check"></i>
+                            <input
+                                type="text"
+                                id="licenseHolderName"
+                                name="licenseHolderName"
+                                placeholder="Name exactly as license"
+                                maxlength="80"
                                 autocomplete="off"
                             >
                         </div>
@@ -685,6 +704,7 @@
         const phoneInput = document.getElementById('phone');
         const driverOnlyFields = document.getElementById('driverOnlyFields');
         const drivingLicenseNumberInput = document.getElementById('drivingLicenseNumber');
+        const licenseHolderNameInput = document.getElementById('licenseHolderName');
         const licenseExpiryInput = document.getElementById('licenseExpiry');
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
@@ -716,6 +736,36 @@
             return sanitizeInput(value).toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 20);
         }
 
+        function normalizePhoneForStorage(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+
+            let normalized = raw.replace(/\s+/g, '');
+            if (normalized.startsWith('00')) {
+                normalized = '+' + normalized.slice(2);
+            }
+
+            if (normalized.startsWith('+')) {
+                const digits = normalized.slice(1).replace(/\D/g, '');
+                if (digits.length < 8 || digits.length > 15) return '';
+                return '+' + digits;
+            }
+
+            const digitsOnly = normalized.replace(/\D/g, '');
+            if (digitsOnly.length === 10 && /^[6-9]/.test(digitsOnly)) {
+                return '+91' + digitsOnly;
+            }
+            if (digitsOnly.length >= 8 && digitsOnly.length <= 15) {
+                return '+' + digitsOnly;
+            }
+
+            return '';
+        }
+
+        function normalizeNameForMatch(value) {
+            return sanitizeInput(value).toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
         function validateDrivingLicense(value) {
             const compact = String(value || '').replace(/-/g, '');
             return /^[A-Z]{2}[0-9]{2}[A-Z0-9]{8,14}$/.test(compact);
@@ -726,10 +776,12 @@
             driverOnlyFields.classList.toggle('show', isDriver);
 
             drivingLicenseNumberInput.required = isDriver;
+            licenseHolderNameInput.required = isDriver;
             licenseExpiryInput.required = isDriver;
 
             if (!isDriver) {
                 drivingLicenseNumberInput.value = '';
+                licenseHolderNameInput.value = '';
                 licenseExpiryInput.value = '';
             }
         }
@@ -746,7 +798,7 @@
             // Get and sanitize inputs
             const fullname = sanitizeInput(fullnameInput.value);
             const email = sanitizeEmail(emailInput.value);
-            const phone = sanitizePhone(phoneInput.value);
+            const phone = normalizePhoneForStorage(phoneInput.value);
             const password = passwordInput.value;
 
             // Validate sanitized inputs
@@ -761,7 +813,7 @@
             }
 
             if (!phone) {
-                showError('Please enter a valid 10-digit Indian phone number');
+                showError('Please enter a valid phone number with country code (example: +919876543210).');
                 return;
             }
 
@@ -790,12 +842,15 @@
             // Get role
             const role = document.querySelector('input[name="role"]:checked').value;
             let drivingLicenseNumber = '';
+            let licenseHolderName = '';
             let licenseExpiry = '';
 
             if (role === 'driver') {
                 drivingLicenseNumber = sanitizeDrivingLicense(drivingLicenseNumberInput.value);
+                licenseHolderName = sanitizeInput(licenseHolderNameInput.value);
                 licenseExpiry = sanitizeInput(licenseExpiryInput.value);
                 drivingLicenseNumberInput.value = drivingLicenseNumber;
+                licenseHolderNameInput.value = licenseHolderName;
 
                 if (!drivingLicenseNumber) {
                     showError('Driver signup ke liye driving license number required hai.');
@@ -804,6 +859,16 @@
 
                 if (!validateDrivingLicense(drivingLicenseNumber)) {
                     showError('Please enter a valid driving license number.');
+                    return;
+                }
+
+                if (!licenseHolderName) {
+                    showError('Driving license par jo name hai, woh required hai.');
+                    return;
+                }
+
+                if (normalizeNameForMatch(licenseHolderName) !== normalizeNameForMatch(fullname)) {
+                    showError('Driver name aur driving license name match hona compulsory hai.');
                     return;
                 }
 
@@ -830,6 +895,23 @@
             // Simulate API
             setTimeout(async () => {
                 try {
+                    if (window.GoIndiaAuthenticityEngine && typeof GoIndiaAuthenticityEngine.registerAction === 'function') {
+                        const authScore = GoIndiaAuthenticityEngine.registerAction('signup', 'account_signup_attempt', {
+                            role,
+                            email,
+                            phone,
+                            drivingLicenseNumber: role === 'driver' ? drivingLicenseNumber : null
+                        });
+
+                        if (authScore && Number(authScore.score || 0) < 30) {
+                            signupForm.style.opacity = '1';
+                            signupForm.style.pointerEvents = 'auto';
+                            signupBtnText.textContent = 'Create Account';
+                            showError('Security check failed. Please contact support for manual verification.');
+                            return;
+                        }
+                    }
+
                     // Hash the password
                     const hashedPassword = await hashPassword(password);
 
@@ -837,16 +919,18 @@
                     const users = JSON.parse(localStorage.getItem('users')) || [];
                     const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
 
-                    // Check if email already exists
-                    const emailExists = users.some(u => u.email === email) || 
-                                       drivers.some(d => d.email === email);
-                    
-                    if (emailExists) {
+                    const allAccounts = [...users, ...drivers];
+                    const emailExists = allAccounts.some((account) => sanitizeEmail(account.email || '') === email);
+                    const phoneExists = allAccounts.some((account) => normalizePhoneForStorage(account.phone || account.mobile || '') === phone);
+                    const licenseExists = role === 'driver' && drivers.some((driver) =>
+                        sanitizeDrivingLicense(driver.drivingLicenseNumber || '') === drivingLicenseNumber
+                    );
+
+                    if (emailExists || phoneExists || licenseExists) {
                         signupForm.style.opacity = '1';
                         signupForm.style.pointerEvents = 'auto';
                         signupBtnText.textContent = 'Create Account';
-                        showError('Email already registered. Please login instead.');
-                        console.log('❌ Email already exists');
+                        showError('Account already exists with same email / phone / license. Please login or use forgot password.');
                         return;
                     }
 
@@ -863,6 +947,7 @@
                         };
                         users.push(newUser);
                         localStorage.setItem('users', JSON.stringify(users));
+                        localStorage.setItem('goride_users', JSON.stringify(users));
                         console.log('✅ Customer account created:', newUser);
                     } else if (role === 'driver') {
                         const newDriver = {
@@ -872,6 +957,7 @@
                             phone: phone,
                             password: hashedPassword,
                             drivingLicenseNumber: drivingLicenseNumber,
+                            licenseHolderName: licenseHolderName,
                             drivingLicenseExpiry: licenseExpiry,
                             licenseVerified: false,
                             vehicleNumber: '',
@@ -880,6 +966,7 @@
                         };
                         drivers.push(newDriver);
                         localStorage.setItem('drivers', JSON.stringify(drivers));
+                        localStorage.setItem('goride_drivers', JSON.stringify(drivers));
                         console.log('✅ Driver account created:', newDriver);
                     }
 
@@ -904,4 +991,6 @@
     </script>
 </body>
 </html>
+
+
 
