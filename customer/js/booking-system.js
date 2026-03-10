@@ -73,7 +73,13 @@ function setupBookingForm() {
         driverOnlyDuration.addEventListener('input', calculateFarePreview);
     }
 
+    if (typeof initializeAutocomplete === 'function') {
+        initializeAutocomplete('pickupLocation');
+        initializeAutocomplete('dropLocation');
+    }
+
     updateBookingModeUI();
+    estimateDistanceForBooking();
 }
 
 function getBookingModeSelection() {
@@ -114,6 +120,36 @@ function updateBookingModeUI() {
         label.textContent = 'Duration';
     }
 }
+
+function getVehicleRate(vehicleType) {
+    const rates = {
+        mini: 8,
+        sedan: 12,
+        suv: 18,
+        luxury: 25
+    };
+
+    return rates[vehicleType] || rates.sedan;
+}
+
+function formatBookingModeLabel(mode, duration) {
+    const normalized = String(mode || 'standard');
+
+    if (normalized === 'driver_only_hourly') {
+        return `Driver Only - Hourly (${duration} hr)`;
+    }
+
+    if (normalized === 'driver_only_fullday') {
+        return `Driver Only - Full Day (${duration} day)`;
+    }
+
+    if (normalized === 'driver_only_multiday') {
+        return `Driver Only - Multi Day (${duration} days)`;
+    }
+
+    return 'Standard Ride';
+}
+
 function scheduleDistanceEstimate() {
     if (distanceEstimateTimer) {
         clearTimeout(distanceEstimateTimer);
@@ -286,22 +322,28 @@ function calculateFarePreview() {
     const isFirstBooking = localStorage.getItem('goindiaride_user_type') === 'new';
     const discount = isFirstBooking ? fare * 0.05 : 0;
     const finalFare = fare - discount;
-    
+    const perKmRate = getVehicleRate(vehicleType);
+    const distanceValue = Number(lastEstimatedDistanceKm || 0);
+
     const preview = document.getElementById('farePreview');
     preview.innerHTML = `
         <h4>Fare Estimate</h4>
         <div style="margin: 1rem 0;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                 <span>Distance:</span>
-                <span>${lastEstimatedDistanceKm} km (${String(lastDistanceSource || 'fallback').replace(/_/g, ' ')})</span>
+                <span>${distanceValue.toFixed(1)} km (${String(lastDistanceSource || 'fallback').replace(/_/g, ' ')})</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Vehicle Rate:</span>
+                <span>₹${perKmRate}/km</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Booking Mode:</span>
+                <span>${formatBookingModeLabel(bookingMode, bookingModeDuration)}</span>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                 <span>Base Fare:</span>
                 <span>₹${fare.toFixed(0)}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                <span>Booking Mode:</span>
-                <span>${bookingMode.replace(/_/g, ' ')}${bookingMode === 'standard' ? '' : ' x ' + bookingModeDuration}</span>
             </div>
             ${isFirstBooking ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #06A77D;">
@@ -314,7 +356,7 @@ function calculateFarePreview() {
                 <span>₹${finalFare.toFixed(0)}</span>
             </div>
         </div>
-        <small style="color: var(--text-light);">*Actual fare may vary based on traffic and route</small>
+        <small style="color: var(--text-light);">*Distance-based estimate. Final fare depends on route + traffic.</small>
     `;
 }
 
@@ -324,15 +366,7 @@ function calculateFarePreview() {
 function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDistanceKm, bookingMode = 'standard', bookingModeDuration = 1) {
     const distance = Number(distanceKm) > 0 ? Number(distanceKm) : 5;
     const duration = Math.max(1, Number(bookingModeDuration) || 1);
-
-    const rates = {
-        mini: 8,
-        sedan: 12,
-        suv: 18,
-        luxury: 25
-    };
-
-    const rate = rates[vehicleType] || rates.sedan;
+    const rate = getVehicleRate(vehicleType);
 
     if (bookingMode === 'driver_only_hourly') {
         const hourlyRates = { mini: 180, sedan: 240, suv: 340, luxury: 520 };
@@ -351,7 +385,7 @@ function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDist
 
     const distanceFare = distance * rate;
     const baseCharge = 50;
-    return distanceFare + baseCharge;
+    return Math.max(70, distanceFare + baseCharge);
 }
 
 /**
@@ -748,36 +782,51 @@ function showFareCalculatorModal() {
             <div id="fareResult" style="margin-top: 1rem;"></div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
-    // Setup close button
+
+    if (typeof initializeAutocomplete === 'function') {
+        initializeAutocomplete('calcFrom');
+        initializeAutocomplete('calcTo');
+    }
+
     modal.querySelector('.close').addEventListener('click', () => modal.remove());
     modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
     });
-    
-    // Setup calculate button
-    modal.querySelector('#calculateFare').addEventListener('click', function() {
+
+    modal.querySelector('#calculateFare').addEventListener('click', async function() {
         const from = document.getElementById('calcFrom').value;
         const to = document.getElementById('calcTo').value;
         const vehicle = document.getElementById('calcVehicle').value;
-        
+
         if (!from || !to) {
             CustomerPortal.showToast('Please enter both locations', 'error');
             return;
         }
-        
-        const fare = calculateFare(from, to, vehicle);
+
+        let estimate = { km: 5, source: 'fallback' };
+        try {
+            if (window.LocationDistanceEstimator && typeof LocationDistanceEstimator.estimateDistanceKm === 'function') {
+                estimate = await LocationDistanceEstimator.estimateDistanceKm(from, to);
+            }
+        } catch (error) {
+            estimate = { km: 5, source: 'fallback' };
+        }
+
+        const km = Number(estimate.km || 5);
+        const fare = calculateFare(from, to, vehicle, km, 'standard', 1);
         const result = document.getElementById('fareResult');
-        
+
         result.innerHTML = `
             <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; text-align: center;">
                 <h3>Estimated Fare</h3>
                 <p style="font-size: 2rem; font-weight: bold; color: var(--primary-color); margin: 1rem 0;">
                     ₹${fare.toFixed(0)}
                 </p>
-                <small style="color: var(--text-light);">*Actual fare may vary</small>
+                <p style="margin: 0.25rem 0; color: var(--text-dark);">Distance: <strong>${km.toFixed(1)} km</strong></p>
+                <p style="margin: 0.25rem 0; color: var(--text-dark);">Rate: <strong>₹${getVehicleRate(vehicle)}/km</strong></p>
+                <small style="color: var(--text-light);">Source: ${String(estimate.source || 'fallback').replace(/_/g, ' ')}</small>
             </div>
         `;
     });

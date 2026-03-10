@@ -49,6 +49,24 @@ const KYC_DOCUMENTS = {
         required: true,
         fields: ['certificateNumber', 'expiryDate']
     },
+    VEHICLE_PERMIT: {
+        name: 'Vehicle Permit',
+        icon: 'fa-file-contract',
+        required: true,
+        fields: ['permitNumber', 'expiryDate']
+    },
+    ROAD_TAX: {
+        name: 'Road Tax Receipt',
+        icon: 'fa-receipt',
+        required: true,
+        fields: ['taxReceiptNumber', 'expiryDate']
+    },
+    VEHICLE_PHOTOS: {
+        name: 'Vehicle Photos',
+        icon: 'fa-images',
+        required: true,
+        fields: ['vehicleFrontPhotoRef', 'vehicleBackPhotoRef']
+    },
     GUIDE_CERT: {
         name: 'Guide Certification',
         icon: 'fa-user-graduate',
@@ -75,27 +93,331 @@ const LANGUAGES = [
 
 // Proficiency levels
 const PROFICIENCY_LEVELS = ['Basic', 'Fluent', 'Native'];
+const ADMIN_DOCUMENT_QUEUE_KEY = 'goindiaride_admin_document_queue_v1';
+const DRIVER_FALLBACK_ID = 'default_driver';
+
+function getDriverProfile() {
+    try {
+        const currentDriver = JSON.parse(localStorage.getItem('currentDriver') || '{}');
+        if (currentDriver && currentDriver.id) {
+            return currentDriver;
+        }
+    } catch (error) {
+        // ignore
+    }
+
+    try {
+        const driverData = JSON.parse(localStorage.getItem('driver_data') || '{}');
+        if (driverData && driverData.id) {
+            return driverData;
+        }
+    } catch (error) {
+        // ignore
+    }
+
+    return { id: DRIVER_FALLBACK_ID, name: 'Driver' };
+}
+
+function getDriverKycStorageKey(driverId) {
+    return 'kyc_data_' + String(driverId || DRIVER_FALLBACK_ID);
+}
+
+function requiredDocumentKeys() {
+    return Object.entries(KYC_DOCUMENTS)
+        .filter(([, value]) => Boolean(value.required))
+        .map(([key]) => key);
+}
+
+function createKycSkeleton() {
+    return {
+        verified: false,
+        trustScore: 0,
+        documents: {},
+        languages: [],
+        requiredVerifiedCount: 0,
+        requiredTotalCount: requiredDocumentKeys().length,
+        updatedAt: Date.now()
+    };
+}
+
+function ensureKycShape(raw) {
+    const kycData = raw && typeof raw === 'object' ? raw : createKycSkeleton();
+
+    if (!kycData.documents || typeof kycData.documents !== 'object') {
+        kycData.documents = {};
+    }
+    if (!Array.isArray(kycData.languages)) {
+        kycData.languages = [];
+    }
+
+    const requiredKeys = requiredDocumentKeys();
+    const verifiedCount = requiredKeys.filter((key) => {
+        return kycData.documents[key] && kycData.documents[key].status === 'verified';
+    }).length;
+
+    kycData.requiredTotalCount = requiredKeys.length;
+    kycData.requiredVerifiedCount = verifiedCount;
+    kycData.verified = verifiedCount === requiredKeys.length;
+
+    if (!Number.isFinite(Number(kycData.trustScore))) {
+        kycData.trustScore = kycData.verified ? 98 : Math.max(40, verifiedCount * 8);
+    }
+
+    return kycData;
+}
+
+function loadKycData() {
+    const driver = getDriverProfile();
+    const storageKey = getDriverKycStorageKey(driver.id);
+
+    try {
+        const scopedRaw = localStorage.getItem(storageKey);
+        if (scopedRaw) {
+            return ensureKycShape(JSON.parse(scopedRaw));
+        }
+    } catch (error) {
+        // ignore and fallback
+    }
+
+    try {
+        const legacyRaw = localStorage.getItem('kyc_data');
+        if (legacyRaw) {
+            const legacy = ensureKycShape(JSON.parse(legacyRaw));
+            localStorage.setItem(storageKey, JSON.stringify(legacy));
+            return legacy;
+        }
+    } catch (error) {
+        // ignore and fallback
+    }
+
+    return createKycSkeleton();
+}
+
+function syncDriverRegistry(kycData) {
+    try {
+        const driver = getDriverProfile();
+        const drivers = JSON.parse(localStorage.getItem('drivers') || '[]');
+
+        if (!Array.isArray(drivers) || !driver.id) {
+            return;
+        }
+
+        const index = drivers.findIndex((item) => String(item.id) === String(driver.id));
+        if (index === -1) {
+            return;
+        }
+
+        drivers[index] = {
+            ...drivers[index],
+            kycVerified: Boolean(kycData.verified),
+            trustScore: Number(kycData.trustScore || 0),
+            documentsVerifiedCount: Number(kycData.requiredVerifiedCount || 0),
+            documentsRequiredCount: Number(kycData.requiredTotalCount || requiredDocumentKeys().length),
+            kycUpdatedAt: new Date().toISOString()
+        };
+
+        localStorage.setItem('drivers', JSON.stringify(drivers));
+    } catch (error) {
+        // ignore
+    }
+}
+
+function saveKycData(rawData) {
+    const kycData = ensureKycShape(rawData);
+    const driver = getDriverProfile();
+    const storageKey = getDriverKycStorageKey(driver.id);
+
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(kycData));
+        localStorage.setItem('kyc_data', JSON.stringify(kycData));
+    } catch (error) {
+        // ignore
+    }
+
+    syncDriverRegistry(kycData);
+}
+
+function sanitizeText(value) {
+    return String(value || '').trim();
+}
+
+function getDocumentLabel(docType) {
+    return KYC_DOCUMENTS[docType] ? KYC_DOCUMENTS[docType].name : String(docType || 'Document');
+}
+
+function runAutomaticAIDocumentScreening(docType, docData) {
+    const checks = [];
+    const scoreParts = [];
+
+    const fileName = sanitizeText(docData.fileName).toLowerCase();
+    const extension = fileName.includes('.') ? fileName.split('.').pop() : '';
+    const size = Number(docData.fileSize || 0);
+    const hasExpiry = Boolean(docData.expiryDate);
+
+    const allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+    if (!allowed.includes(extension)) {
+        checks.push('Unsupported file format');
+        scoreParts.push(-35);
+    } else {
+        scoreParts.push(18);
+    }
+
+    if (size < 12 * 1024) {
+        checks.push('File too small for verification');
+        scoreParts.push(-30);
+    } else if (size > 15 * 1024 * 1024) {
+        checks.push('File too large, likely invalid upload');
+        scoreParts.push(-20);
+    } else {
+        scoreParts.push(16);
+    }
+
+    const textFields = Object.entries(docData)
+        .filter(([key, value]) => key !== 'fileData' && typeof value === 'string' && key !== 'fileName')
+        .map(([, value]) => sanitizeText(value))
+        .join(' ');
+
+    if (!textFields || textFields.length < 6) {
+        checks.push('Document fields incomplete');
+        scoreParts.push(-28);
+    } else {
+        scoreParts.push(14);
+    }
+
+    if (hasExpiry) {
+        const expiryDate = new Date(docData.expiryDate + 'T23:59:59');
+        const daysLeft = Math.ceil((expiryDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+        if (Number.isFinite(daysLeft) && daysLeft < 0) {
+            checks.push('Document already expired');
+            scoreParts.push(-38);
+        } else if (Number.isFinite(daysLeft) && daysLeft <= 30) {
+            checks.push('Document near expiry');
+            scoreParts.push(-12);
+        } else {
+            scoreParts.push(12);
+        }
+    }
+
+    if (docType === 'DRIVING_LICENSE') {
+        const normalized = sanitizeText(docData.licenseNumber).replace(/-/g, '').toUpperCase();
+        if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]{8,16}$/.test(normalized)) {
+            checks.push('Driving license format mismatch');
+            scoreParts.push(-30);
+        } else {
+            scoreParts.push(20);
+        }
+    }
+
+    if (docType === 'AADHAAR') {
+        const normalized = sanitizeText(docData.aadhaarNumber).replace(/\s+/g, '');
+        if (!/^[0-9]{12}$/.test(normalized)) {
+            checks.push('Aadhaar number invalid');
+            scoreParts.push(-26);
+        } else {
+            scoreParts.push(18);
+        }
+    }
+
+    if (docType === 'PAN') {
+        const normalized = sanitizeText(docData.panNumber).toUpperCase();
+        if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(normalized)) {
+            checks.push('PAN format invalid');
+            scoreParts.push(-24);
+        } else {
+            scoreParts.push(18);
+        }
+    }
+
+    const finalScore = Math.max(0, Math.min(100, Math.round(50 + scoreParts.reduce((sum, item) => sum + item, 0) / 2)));
+    let decision = 'approve';
+
+    if (finalScore < 45) {
+        decision = 'reject';
+    } else if (finalScore < 70) {
+        decision = 'review';
+    }
+
+    return {
+        score: finalScore,
+        decision,
+        reason: checks.length ? checks.join(', ') : 'Document structure and metadata look valid'
+    };
+}
+
+function queueForAdminReview(docType, docData) {
+    const driver = getDriverProfile();
+    let queue = [];
+
+    try {
+        const raw = JSON.parse(localStorage.getItem(ADMIN_DOCUMENT_QUEUE_KEY) || '[]');
+        queue = Array.isArray(raw) ? raw : [];
+    } catch (error) {
+        queue = [];
+    }
+
+    const existingIndex = queue.findIndex((item) => {
+        return String(item.driverId) === String(driver.id) && String(item.docType) === String(docType);
+    });
+
+    const entry = {
+        id: existingIndex !== -1 ? queue[existingIndex].id : ('queue_' + Date.now() + '_' + Math.floor(Math.random() * 10000)),
+        driverId: driver.id || DRIVER_FALLBACK_ID,
+        driverName: driver.name || driver.fullname || 'Driver',
+        docType,
+        docName: getDocumentLabel(docType),
+        status: 'pending_admin',
+        fileName: docData.fileName || '',
+        fileSize: Number(docData.fileSize || 0),
+        aiScore: Number(docData.aiScore || 0),
+        aiDecision: docData.aiDecision || 'review',
+        aiReason: docData.aiReason || '',
+        submittedAt: new Date().toISOString()
+    };
+
+    if (existingIndex === -1) {
+        queue.unshift(entry);
+    } else {
+        queue[existingIndex] = { ...queue[existingIndex], ...entry };
+    }
+
+    localStorage.setItem(ADMIN_DOCUMENT_QUEUE_KEY, JSON.stringify(queue));
+
+    if (window.PortalConnector && typeof PortalConnector.broadcastToAll === 'function') {
+        PortalConnector.broadcastToAll({
+            type: 'driver_document_submitted',
+            title: 'Driver Document Submitted',
+            message: entry.driverName + ' uploaded ' + entry.docName + ' for admin approval',
+            sourcePortal: 'driver',
+            metadata: {
+                driverId: entry.driverId,
+                docType: entry.docType,
+                aiScore: entry.aiScore
+            }
+        });
+    }
+}
 
 function getDocumentStatusMeta(status) {
     const value = String(status || 'pending').toLowerCase();
 
     if (value === 'verified') {
-        return { className: 'success', label: '? Verified' };
+        return { className: 'success', label: 'Verified' };
     }
 
     if (value === 'rejected' || value === 'rejected_ai') {
-        return { className: 'danger', label: '? Rejected' };
+        return { className: 'danger', label: 'Rejected' };
     }
 
     if (value === 'pending_admin') {
-        return { className: 'warning', label: '? Pending Admin Approval' };
+        return { className: 'warning', label: 'Pending Admin Approval' };
     }
 
     if (value === 'ai_review') {
-        return { className: 'warning', label: '?? AI Review Required' };
+        return { className: 'warning', label: 'AI Review Required' };
     }
 
-    return { className: 'warning', label: '? Pending' };
+    return { className: 'warning', label: 'Pending' };
 }
 
 // Open KYC Modal
@@ -127,7 +449,7 @@ function getKYCContent() {
     for (const [key, doc] of Object.entries(KYC_DOCUMENTS)) {
         const docData = kycData.documents?.[key] || {};
         const status = docData.status || 'pending';
-        const statusClass = status === 'verified' ? 'success' : status === 'rejected' ? 'danger' : 'warning';
+        const statusMeta = getDocumentStatusMeta(status);
         
         html += `
             <div class="document-card">
@@ -137,7 +459,7 @@ function getKYCContent() {
                     ${doc.required ? '<span class="required">*</span>' : ''}
                 </div>
                 <div class="doc-status badge-${statusMeta.className}">
-                    ${status === 'verified' ? '✓ Verified' : status === 'rejected' ? '✗ Rejected' : '⏳ Pending'}
+                    ${statusMeta.label}
                 </div>
                 ${docData.expiryDate ? `<p class="doc-expiry">Expires: ${new Date(docData.expiryDate).toLocaleDateString()}</p>` : ''}
                 ${docData.rejectionReason ? `<p class="rejection-reason">${docData.rejectionReason}</p>` : ''}
@@ -303,13 +625,17 @@ function submitDocument(event, docType) {
         }
 
         kycData.documents[docType] = docData;
-        updateDocumentStatus(kycData);
-        saveKycData(kycData);
+        const normalizedKyc = updateDocumentStatus(kycData);
+        saveKycData(normalizedKyc);
 
         if (aiResult.decision === 'reject') {
             showToast(KYC_DOCUMENTS[docType].name + ' rejected by AI screening. Re-upload clear valid document.', 'error');
         } else {
             showToast(KYC_DOCUMENTS[docType].name + ' uploaded. AI score ' + aiResult.score + '. Sent to admin for final approval.', 'success');
+        }
+
+        if (normalizedKyc.verified) {
+            showToast('All mandatory documents verified. KYC complete.', 'success');
         }
 
         closeAllModals();
@@ -322,23 +648,29 @@ function submitDocument(event, docType) {
 }
 
 // Update Document Status
-function updateDocumentStatus(kycData) {
-    const requiredDocs = Object.entries(KYC_DOCUMENTS).filter(([_, doc]) => doc.required);
-    const verifiedDocs = requiredDocs.filter(([key, _]) => kycData.documents?.[key]?.status === 'verified');
-    
-    // Update document count
+function updateDocumentStatus(rawData) {
+    const kycData = ensureKycShape(rawData);
+    const requiredDocs = requiredDocumentKeys();
+    const verifiedDocs = requiredDocs.filter((key) => kycData.documents?.[key]?.status === 'verified');
+
+    kycData.requiredVerifiedCount = verifiedDocs.length;
+    kycData.requiredTotalCount = requiredDocs.length;
+    kycData.verified = verifiedDocs.length === requiredDocs.length;
+
+    if (kycData.verified) {
+        kycData.trustScore = Math.max(95, Number(kycData.trustScore || 0));
+        kycData.verifiedAt = Date.now();
+    } else {
+        kycData.trustScore = Math.max(35, Math.min(94, verifiedDocs.length * 8 + 30));
+        delete kycData.verifiedAt;
+    }
+
     const docStatus = document.getElementById('docStatus');
     if (docStatus) {
         docStatus.textContent = `${verifiedDocs.length}/${requiredDocs.length} Verified`;
     }
-    
-    // Check if all required documents are verified
-    if (verifiedDocs.length === requiredDocs.length) {
-        kycData.verified = true;
-        kycData.trustScore = 95;
-        kycData.verifiedAt = Date.now();
-        showToast('KYC verification complete! You can now go online.', 'success');
-    }
+
+    return kycData;
 }
 
 // Open Languages Modal
@@ -447,6 +779,19 @@ function saveLanguages() {
 function openDocuments() {
     openKYC(); // Same as KYC modal
 }
+
+function refreshKycSummaryWidgets() {
+    const normalized = updateDocumentStatus(loadKycData());
+    saveKycData(normalized);
+
+    if (typeof updateKYCStatus === 'function') {
+        updateKYCStatus();
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    refreshKycSummaryWidgets();
+});
 
 // Create Modal Helper
 function createModal(title, content) {

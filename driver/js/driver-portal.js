@@ -393,6 +393,29 @@ function setupPortalNotifications() {
             return;
         }
 
+        if (notification.type === 'driver_document_approved' || notification.type === 'driver_document_rejected') {
+            const currentDriver = JSON.parse(localStorage.getItem('currentDriver') || '{}');
+            const targetDriverId = notification.metadata && notification.metadata.driverId ? String(notification.metadata.driverId) : '';
+
+            if (!targetDriverId || String(currentDriver.id || '') === targetDriverId) {
+                showToast(notification.message || 'Document status updated by admin', notification.type === 'driver_document_approved' ? 'success' : 'warning');
+                if (typeof refreshKycSummaryWidgets === 'function') {
+                    refreshKycSummaryWidgets();
+                }
+            }
+            return;
+        }
+
+        if (notification.type === 'driver_approval_update') {
+            const currentDriver = JSON.parse(localStorage.getItem('currentDriver') || '{}');
+            const targetDriverId = notification.metadata && notification.metadata.driverId ? String(notification.metadata.driverId) : '';
+
+            if (!targetDriverId || String(currentDriver.id || '') === targetDriverId) {
+                showToast(notification.message || 'Driver approval status updated', 'info');
+            }
+            return;
+        }
+
         showToast(notification.message || 'New notification received', 'info');
     });
 }
@@ -808,17 +831,39 @@ function openDriverOnlyBooking() {
         </div>
     `;
 
-    createModal('Driver Only Booking Option', content);
+    const modal = createModal('Driver Only Booking Option', content);
+    const container = document.getElementById('modalsContainer');
+    if (container && modal) {
+        container.appendChild(modal);
+    }
 }
 
 function enableDriverOnlyPackages() {
     localStorage.setItem('driver_only_packages_enabled', 'true');
     showToast('Driver-only booking packages enabled', 'success');
+
+    if (window.PortalConnector && typeof PortalConnector.broadcastToAll === 'function') {
+        PortalConnector.broadcastToAll({
+            type: 'driver_package_status',
+            title: 'Driver Package Availability',
+            message: 'Driver-only package availability enabled',
+            sourcePortal: 'driver'
+        });
+    }
 }
 
 function disableDriverOnlyPackages() {
     localStorage.setItem('driver_only_packages_enabled', 'false');
     showToast('Driver-only booking packages disabled', 'warning');
+
+    if (window.PortalConnector && typeof PortalConnector.broadcastToAll === 'function') {
+        PortalConnector.broadcastToAll({
+            type: 'driver_package_status',
+            title: 'Driver Package Availability',
+            message: 'Driver-only package availability disabled',
+            sourcePortal: 'driver'
+        });
+    }
 }
 // Add animation keyframes
 const style = document.createElement('style');

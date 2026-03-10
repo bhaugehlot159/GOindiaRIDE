@@ -209,6 +209,34 @@ function setupPortalNotifications() {
             return;
         }
 
+        if (notification.type === 'driver_document_submitted') {
+            showToast(notification.message || 'New driver document submitted for review', 'info');
+            logAdminAction('DOC_SUBMITTED', notification.message || 'Driver document submitted');
+            if (typeof refreshDocumentVerificationSection === 'function') {
+                refreshDocumentVerificationSection();
+            }
+            return;
+        }
+
+        if (notification.type === 'driver_document_approved' || notification.type === 'driver_document_rejected') {
+            showToast(notification.message || 'Driver document decision updated', notification.type === 'driver_document_approved' ? 'success' : 'warning');
+            if (typeof refreshDocumentVerificationSection === 'function') {
+                refreshDocumentVerificationSection();
+            }
+            if (typeof refreshDriverApprovalSection === 'function') {
+                refreshDriverApprovalSection();
+            }
+            return;
+        }
+
+        if (notification.type === 'driver_approval_update') {
+            showToast(notification.message || 'Driver approval updated', 'info');
+            if (typeof refreshDriverApprovalSection === 'function') {
+                refreshDriverApprovalSection();
+            }
+            return;
+        }
+
         showToast(notification.message || 'New notification received', 'info');
     });
 }

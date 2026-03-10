@@ -184,6 +184,9 @@
             border-radius: 10px;
             font-size: 1rem;
             font-family: inherit;
+            color: #1f2937;
+            background: #ffffff;
+            -webkit-text-fill-color: #1f2937;
             transition: all 0.3s;
         }
 
@@ -196,6 +199,13 @@
 
         .form-group input::placeholder {
             color: #bbb;
+        }
+        .form-group input:-webkit-autofill,
+        .form-group input:-webkit-autofill:hover,
+        .form-group input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #1f2937;
+            transition: background-color 9999s ease-in-out 0s;
+            box-shadow: 0 0 0px 1000px #ffffff inset;
         }
 
         .input-with-icon {

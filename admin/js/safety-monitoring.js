@@ -45,6 +45,19 @@ function saveAdminDocumentQueue(queue) {
     localStorage.setItem(ADMIN_DOCUMENT_QUEUE_KEY, JSON.stringify(queue));
 }
 
+function notifyAllPortals(payload) {
+    if (!window.PortalConnector) return;
+
+    if (typeof PortalConnector.broadcastToAll === 'function') {
+        PortalConnector.broadcastToAll(payload);
+        return;
+    }
+
+    PortalConnector.createNotification({
+        ...(payload || {}),
+        targetPortals: ['customer', 'driver', 'admin']
+    });
+}
 function getDriverKycStorageKey(driverId) {
     return 'kyc_data_' + String(driverId || 'default');
 }
@@ -210,11 +223,24 @@ function adminApproveDocument(queueId) {
     saveAdminDocumentQueue(queue);
     showToast('Document approved', 'success');
 
+    notifyAllPortals({
+        type: 'driver_document_approved',
+        title: 'Driver Document Approved',
+        message: (entry.driverName || 'Driver') + ' document approved: ' + (entry.docName || entry.docType),
+        sourcePortal: 'admin',
+        metadata: {
+            driverId: entry.driverId,
+            docType: entry.docType,
+            status: 'approved'
+        }
+    });
+
     if (typeof logAdminAction === 'function') {
         logAdminAction('DOC_APPROVED', (entry.driverName || 'Driver') + ' - ' + (entry.docName || entry.docType));
     }
 
     refreshDocumentVerificationSection();
+    refreshDriverApprovalSection();
 }
 
 function adminRejectDocument(queueId) {
@@ -257,11 +283,25 @@ function adminRejectDocument(queueId) {
     saveAdminDocumentQueue(queue);
     showToast('Document rejected', 'warning');
 
+    notifyAllPortals({
+        type: 'driver_document_rejected',
+        title: 'Driver Document Rejected',
+        message: (entry.driverName || 'Driver') + ' document rejected: ' + (entry.docName || entry.docType),
+        sourcePortal: 'admin',
+        metadata: {
+            driverId: entry.driverId,
+            docType: entry.docType,
+            status: 'rejected',
+            reason: reason
+        }
+    });
+
     if (typeof logAdminAction === 'function') {
         logAdminAction('DOC_REJECTED', (entry.driverName || 'Driver') + ' - ' + (entry.docName || entry.docType) + ' - ' + reason);
     }
 
     refreshDocumentVerificationSection();
+    refreshDriverApprovalSection();
 }
 
 function refreshDocumentVerificationSection() {
@@ -305,8 +345,203 @@ function createSupportDashboardContent() {
     return `<div class="section-header"><h2>Customer Support Dashboard</h2><p>Manage support tickets</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #feca57;"><i class="fas fa-ticket-alt"></i></div><div class="stat-content"><div class="stat-label">Open Tickets</div><div class="stat-value">23</div></div></div></div><div class="card mt-20"><h3>Recent Tickets</h3><table class="data-table"><thead><tr><th>ID</th><th>Customer</th><th>Issue</th><th>Status</th></tr></thead><tbody><tr><td>#TKT001</td><td>Rajesh Kumar</td><td>Payment Issue</td><td><span class="status-badge status-pending">Open</span></td></tr></tbody></table></div>`;
 }
 
+function normalizeDriverApprovalStatus(driver) {
+    const raw = String(driver && (driver.approvalStatus || driver.status) || '').toLowerCase();
+
+    if (['approved', 'active', 'verified', 'available', 'on-trip', 'online'].includes(raw)) return 'approved';
+    if (['rejected', 'blocked'].includes(raw)) return 'rejected';
+    if (['suspended'].includes(raw)) return 'suspended';
+
+    return 'pending';
+}
+
+function getDriverApplications() {
+    let drivers = [];
+
+    try {
+        const rows = JSON.parse(localStorage.getItem('drivers') || '[]');
+        if (Array.isArray(rows) && rows.length) {
+            drivers = rows;
+        }
+    } catch (error) {
+        drivers = [];
+    }
+
+    if (!drivers.length) {
+        const fallback = getDemoData('Drivers');
+        if (Array.isArray(fallback)) {
+            drivers = fallback.map((driver) => ({
+                ...driver,
+                id: driver.id || ('demo_driver_' + Math.floor(Math.random() * 100000)),
+                phone: driver.phone || '',
+                approvalStatus: driver.status === 'blocked' ? 'rejected' : 'approved'
+            }));
+        }
+    }
+
+    return drivers.map((driver) => {
+        const kyc = loadDriverKyc(driver.id);
+        const requiredTotal = Number(kyc.requiredTotalCount || REQUIRED_DRIVER_DOC_TYPES.length);
+        const verifiedCount = Number(kyc.requiredVerifiedCount || 0);
+
+        return {
+            ...driver,
+            approvalStatus: normalizeDriverApprovalStatus(driver),
+            docsVerified: verifiedCount,
+            docsRequired: requiredTotal,
+            trustScore: Number(driver.trustScore || kyc.trustScore || 0),
+            kycVerified: Boolean(driver.kycVerified || kyc.verified)
+        };
+    });
+}
+
+function saveDriverApplications(drivers) {
+    localStorage.setItem('drivers', JSON.stringify(drivers));
+}
+
+function updateDriverApprovalStatus(driverId, nextStatus, reason) {
+    const drivers = getDriverApplications();
+    const idx = drivers.findIndex((item) => String(item.id) === String(driverId));
+
+    if (idx === -1) {
+        showToast('Driver not found', 'error');
+        return;
+    }
+
+    const nowIso = new Date().toISOString();
+
+    drivers[idx] = {
+        ...drivers[idx],
+        approvalStatus: nextStatus,
+        status: nextStatus === 'approved' ? 'available' : (nextStatus === 'suspended' ? 'offline' : 'blocked'),
+        approvalUpdatedAt: nowIso,
+        approvalReason: reason || ''
+    };
+
+    saveDriverApplications(drivers);
+
+    notifyAllPortals({
+        type: 'driver_approval_update',
+        title: 'Driver Approval Updated',
+        message: 'Driver ' + (drivers[idx].name || 'Driver') + ' status changed to ' + nextStatus,
+        sourcePortal: 'admin',
+        metadata: {
+            driverId: drivers[idx].id,
+            status: nextStatus,
+            reason: reason || ''
+        }
+    });
+
+    if (typeof logAdminAction === 'function') {
+        logAdminAction('DRIVER_APPROVAL_' + nextStatus.toUpperCase(), (drivers[idx].name || 'Driver') + (reason ? ' - ' + reason : ''));
+    }
+
+    refreshDriverApprovalSection();
+}
+
+function approveDriverApplication(driverId) {
+    updateDriverApprovalStatus(driverId, 'approved', 'Approved by admin');
+    showToast('Driver approved successfully', 'success');
+}
+
+function rejectDriverApplication(driverId) {
+    const reason = prompt('Reason for rejection:', 'Document mismatch or verification failed');
+    if (!reason) return;
+
+    updateDriverApprovalStatus(driverId, 'rejected', reason);
+    showToast('Driver rejected', 'warning');
+}
+
+function suspendDriverAccount(driverId) {
+    const reason = prompt('Reason for suspension:', 'Policy violation');
+    if (!reason) return;
+
+    updateDriverApprovalStatus(driverId, 'suspended', reason);
+    showToast('Driver suspended', 'warning');
+}
+
 function createDriverApprovalContent() {
-    return `<div class="section-header"><h2>Driver Approval Workflow</h2><p>Review new driver applications</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #feca57;"><i class="fas fa-user-clock"></i></div><div class="stat-content"><div class="stat-label">Pending</div><div class="stat-value">12</div></div></div></div><div class="card mt-20"><h3>Applications</h3><table class="data-table"><thead><tr><th>Name</th><th>Phone</th><th>Actions</th></tr></thead><tbody><tr><td>Vikram Singh</td><td>+91 98765-12345</td><td><button class="btn btn-success">Approve</button></td></tr></tbody></table></div>`;
+    const drivers = getDriverApplications();
+    const pending = drivers.filter((driver) => driver.approvalStatus === 'pending');
+    const approved = drivers.filter((driver) => driver.approvalStatus === 'approved');
+    const rejected = drivers.filter((driver) => driver.approvalStatus === 'rejected');
+    const suspended = drivers.filter((driver) => driver.approvalStatus === 'suspended');
+
+    const rows = drivers.map((driver) => {
+        const status = driver.approvalStatus;
+        const statusClass = status === 'approved' ? 'status-active' : status === 'pending' ? 'status-pending' : 'status-blocked';
+        const kycText = `${driver.docsVerified}/${driver.docsRequired}`;
+
+        return `
+            <tr>
+                <td>${driver.name || 'Driver'}</td>
+                <td>${driver.phone || '-'}</td>
+                <td>${kycText}</td>
+                <td>${driver.trustScore || 0}</td>
+                <td><span class="status-badge ${statusClass}">${status}</span></td>
+                <td>
+                    <button class="btn btn-success" onclick="approveDriverApplication('${driver.id}')">Approve</button>
+                    <button class="btn btn-danger" onclick="rejectDriverApplication('${driver.id}')">Reject</button>
+                    <button class="btn btn-secondary" onclick="suspendDriverAccount('${driver.id}')">Suspend</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div class="section-header">
+            <h2>Driver Approval Workflow</h2>
+            <p>KYC + document verification, approval, rejection and suspension controls</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #feca57;"><i class="fas fa-user-clock"></i></div>
+                <div class="stat-content"><div class="stat-label">Pending</div><div class="stat-value">${pending.length}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #43e97b;"><i class="fas fa-user-check"></i></div>
+                <div class="stat-content"><div class="stat-label">Approved</div><div class="stat-value">${approved.length}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #ff6b6b;"><i class="fas fa-user-times"></i></div>
+                <div class="stat-content"><div class="stat-label">Rejected</div><div class="stat-value">${rejected.length}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #6366f1;"><i class="fas fa-user-slash"></i></div>
+                <div class="stat-content"><div class="stat-label">Suspended</div><div class="stat-value">${suspended.length}</div></div>
+            </div>
+        </div>
+
+        <div class="card mt-20">
+            <div class="flex-between mb-20">
+                <h3>Driver Applications</h3>
+                <button class="btn btn-secondary" onclick="refreshDriverApprovalSection()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>KYC Docs</th>
+                        <th>Trust</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows || '<tr><td colspan="6">No driver applications found</td></tr>'}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function refreshDriverApprovalSection() {
+    const section = document.getElementById('section-driver-approval');
+    if (!section || !section.classList.contains('active')) return;
+
+    section.innerHTML = createDriverApprovalContent();
 }
 
 function createPromoOffersContent() {
@@ -506,6 +741,9 @@ function initializeSafetyFeatures(sectionId) {
     }
     if (sectionId === 'compliance-center') {
         setTimeout(refreshComplianceCenterSection, 100);
+    }
+    if (sectionId === 'driver-approval') {
+        setTimeout(refreshDriverApprovalSection, 100);
     }
 }
 
