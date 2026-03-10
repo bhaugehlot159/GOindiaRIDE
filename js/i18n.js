@@ -1,4 +1,4 @@
-﻿/**
+/**
  * GO India RIDE - Internationalization (i18n) System
  * Multi-language and currency support
  */
@@ -209,7 +209,23 @@ const translations = {
     id: {},
     ms: {},
     fa: {},
-    ur: {}
+    ur: {},
+    mr: {},
+    gu: {},
+    pa: {},
+    ta: {},
+    te: {},
+    kn: {},
+    ml: {},
+    or: {},
+    as: {},
+    pl: {},
+    sv: {},
+    no: {},
+    da: {},
+    fi: {},
+    he: {},
+    uk: {}
 };
 
 // Currency conversion rates (relative to INR)
@@ -217,12 +233,68 @@ const translations = {
 // Last updated: January 2026
 const currencyRates = {
     INR: { symbol: '₹', rate: 1, name: 'Indian Rupee' },
-    USD: { symbol: '$', rate: 0.012, name: 'US Dollar' },
+    USD: { symbol: '$', rate: 0.012, name: 'United States Dollar' },
     EUR: { symbol: '€', rate: 0.011, name: 'Euro' },
-    GBP: { symbol: '£', rate: 0.0095, name: 'British Pound' },
+    GBP: { symbol: '£', rate: 0.0095, name: 'British Pound Sterling' },
     AED: { symbol: 'د.إ', rate: 0.044, name: 'UAE Dirham' },
-    JPY: { symbol: '¥', rate: 1.78, name: 'Japanese Yen' }
+    SAR: { symbol: '﷼', rate: 0.045, name: 'Saudi Riyal' },
+    QAR: { symbol: '﷼', rate: 0.044, name: 'Qatari Riyal' },
+    KWD: { symbol: 'KD', rate: 0.0037, name: 'Kuwaiti Dinar' },
+    OMR: { symbol: '﷼', rate: 0.0046, name: 'Omani Rial' },
+    SGD: { symbol: 'S$', rate: 0.016, name: 'Singapore Dollar' },
+    AUD: { symbol: 'A$', rate: 0.019, name: 'Australian Dollar' },
+    CAD: { symbol: 'C$', rate: 0.016, name: 'Canadian Dollar' },
+    NZD: { symbol: 'NZ$', rate: 0.021, name: 'New Zealand Dollar' },
+    CHF: { symbol: 'CHF', rate: 0.011, name: 'Swiss Franc' },
+    JPY: { symbol: '¥', rate: 1.78, name: 'Japanese Yen' },
+    CNY: { symbol: '¥', rate: 0.086, name: 'Chinese Yuan' },
+    HKD: { symbol: 'HK$', rate: 0.095, name: 'Hong Kong Dollar' },
+    THB: { symbol: '฿', rate: 0.42, name: 'Thai Baht' },
+    IDR: { symbol: 'Rp', rate: 195, name: 'Indonesian Rupiah' },
+    MYR: { symbol: 'RM', rate: 0.053, name: 'Malaysian Ringgit' },
+    ZAR: { symbol: 'R', rate: 0.22, name: 'South African Rand' },
+    RUB: { symbol: '₽', rate: 1.09, name: 'Russian Ruble' }
 };
+
+const languageCatalog = [
+    { code: 'en', flag: '🇬🇧', name: 'English' },
+    { code: 'hi', flag: '🇮🇳', name: 'Hindi' },
+    { code: 'bn', flag: '🇧🇩', name: 'Bengali' },
+    { code: 'mr', flag: '🇮🇳', name: 'Marathi' },
+    { code: 'gu', flag: '🇮🇳', name: 'Gujarati' },
+    { code: 'pa', flag: '🇮🇳', name: 'Punjabi' },
+    { code: 'ta', flag: '🇮🇳', name: 'Tamil' },
+    { code: 'te', flag: '🇮🇳', name: 'Telugu' },
+    { code: 'kn', flag: '🇮🇳', name: 'Kannada' },
+    { code: 'ml', flag: '🇮🇳', name: 'Malayalam' },
+    { code: 'or', flag: '🇮🇳', name: 'Odia' },
+    { code: 'as', flag: '🇮🇳', name: 'Assamese' },
+    { code: 'ar', flag: '🇸🇦', name: 'Arabic' },
+    { code: 'fr', flag: '🇫🇷', name: 'French' },
+    { code: 'de', flag: '🇩🇪', name: 'German' },
+    { code: 'es', flag: '🇪🇸', name: 'Spanish' },
+    { code: 'pt', flag: '🇵🇹', name: 'Portuguese' },
+    { code: 'ru', flag: '🇷🇺', name: 'Russian' },
+    { code: 'ja', flag: '🇯🇵', name: 'Japanese' },
+    { code: 'ko', flag: '🇰🇷', name: 'Korean' },
+    { code: 'zh', flag: '🇨🇳', name: 'Chinese' },
+    { code: 'it', flag: '🇮🇹', name: 'Italian' },
+    { code: 'tr', flag: '🇹🇷', name: 'Turkish' },
+    { code: 'nl', flag: '🇳🇱', name: 'Dutch' },
+    { code: 'pl', flag: '🇵🇱', name: 'Polish' },
+    { code: 'sv', flag: '🇸🇪', name: 'Swedish' },
+    { code: 'no', flag: '🇳🇴', name: 'Norwegian' },
+    { code: 'da', flag: '🇩🇰', name: 'Danish' },
+    { code: 'fi', flag: '🇫🇮', name: 'Finnish' },
+    { code: 'he', flag: '🇮🇱', name: 'Hebrew' },
+    { code: 'fa', flag: '🇮🇷', name: 'Persian' },
+    { code: 'ur', flag: '🇵🇰', name: 'Urdu' },
+    { code: 'uk', flag: '🇺🇦', name: 'Ukrainian' },
+    { code: 'vi', flag: '🇻🇳', name: 'Vietnamese' },
+    { code: 'id', flag: '🇮🇩', name: 'Indonesian' },
+    { code: 'ms', flag: '🇲🇾', name: 'Malay' },
+    { code: 'th', flag: '🇹🇭', name: 'Thai' }
+];
 
 // Current language and currency
 let currentLang = localStorage.getItem('goride_language') || 'en';
@@ -253,7 +325,11 @@ function setLanguage(lang) {
     if (translations[lang]) {
         currentLang = lang;
         localStorage.setItem('goride_language', lang);
+        if (typeof document !== 'undefined' && document.documentElement) {
+            document.documentElement.setAttribute('lang', lang);
+        }
         updatePageLanguage();
+        updateSwitcherButtonLabels();
     }
 }
 
@@ -263,9 +339,9 @@ function setCurrency(currency) {
         currentCurrency = currency;
         localStorage.setItem('goride_currency', currency);
         updatePageCurrency();
+        updateSwitcherButtonLabels();
     }
 }
-
 // Update all elements with data-lang attribute
 function updatePageLanguage() {
     document.querySelectorAll('[data-lang]').forEach(element => {
@@ -315,40 +391,70 @@ function updatePageCurrency() {
     });
 }
 
+function ensureI18nStyles() {
+    if (typeof document === 'undefined' || document.getElementById('goi-i18n-style')) {
+        return;
+    }
+
+    const style = document.createElement('style');
+    style.id = 'goi-i18n-style';
+    style.textContent = `
+        .switcher-compact { display: none; }
+
+        @media (max-width: 768px) {
+            .switcher-full { display: none; }
+            .switcher-compact { display: inline; }
+            .navbar-switchers .lang-btn,
+            .navbar-switchers .currency-btn {
+                width: 100%;
+                justify-content: space-between;
+                display: inline-flex;
+                align-items: center;
+            }
+            .navbar-switchers .language-switcher,
+            .navbar-switchers .currency-switcher {
+                width: 100%;
+            }
+            .navbar-switchers .lang-dropdown,
+            .navbar-switchers .currency-dropdown {
+                left: 0;
+                right: 0;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+function getLanguageMeta(code) {
+    return languageCatalog.find((item) => item.code === code) || languageCatalog[0];
+}
+
+function updateSwitcherButtonLabels() {
+    const langBtn = document.querySelector('.lang-btn');
+    const currencyBtn = document.querySelector('.currency-btn');
+
+    if (langBtn) {
+        const selectedLanguage = getLanguageMeta(currentLang);
+        langBtn.innerHTML = `<span class="switcher-full">${selectedLanguage.flag} ${selectedLanguage.name}</span><span class="switcher-compact">${selectedLanguage.flag} Language</span> ▼`;
+    }
+
+    if (currencyBtn) {
+        const selectedCurrency = currencyRates[currentCurrency] ? currentCurrency : 'INR';
+        const currencyInfo = currencyRates[selectedCurrency];
+        currencyBtn.innerHTML = `<span class="switcher-full">${currencyInfo.symbol} ${currencyInfo.name}</span><span class="switcher-compact">${currencyInfo.symbol} Currency</span> ▼`;
+    }
+}
+
 // Create language switcher HTML
 function createLanguageSwitcher() {
-    const languageOptions = [
-        { code: 'en', flag: '🇬🇧', name: 'English' },
-        { code: 'hi', flag: '🇮🇳', name: 'Hindi' },
-        { code: 'bn', flag: '🇧🇩', name: 'Bengali' },
-        { code: 'ar', flag: '🇸🇦', name: 'Arabic' },
-        { code: 'fr', flag: '🇫🇷', name: 'French' },
-        { code: 'de', flag: '🇩🇪', name: 'German' },
-        { code: 'es', flag: '🇪🇸', name: 'Spanish' },
-        { code: 'pt', flag: '🇵🇹', name: 'Portuguese' },
-        { code: 'ru', flag: '🇷🇺', name: 'Russian' },
-        { code: 'ja', flag: '🇯🇵', name: 'Japanese' },
-        { code: 'ko', flag: '🇰🇷', name: 'Korean' },
-        { code: 'zh', flag: '🇨🇳', name: 'Chinese' },
-        { code: 'it', flag: '🇮🇹', name: 'Italian' },
-        { code: 'tr', flag: '🇹🇷', name: 'Turkish' },
-        { code: 'nl', flag: '🇳🇱', name: 'Dutch' },
-        { code: 'th', flag: '🇹🇭', name: 'Thai' },
-        { code: 'vi', flag: '🇻🇳', name: 'Vietnamese' },
-        { code: 'id', flag: '🇮🇩', name: 'Indonesian' },
-        { code: 'ms', flag: '🇲🇾', name: 'Malay' },
-        { code: 'fa', flag: '🇮🇷', name: 'Persian' },
-        { code: 'ur', flag: '🇵🇰', name: 'Urdu' }
-    ];
-
-    const selectedLanguage = languageOptions.find((item) => item.code === currentLang) || languageOptions[0];
+    const selectedLanguage = getLanguageMeta(currentLang);
 
     let html = '<div class="language-switcher" style="position: relative; display: inline-block;">';
-    html += `<button class="lang-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; white-space: nowrap;">`;
-    html += `${selectedLanguage.flag} ${selectedLanguage.name} ▼</button>`;
-    html += '<div class="lang-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 180px; max-width: calc(100vw - 24px); z-index: 1000;">';
+    html += `<button class="lang-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; white-space: nowrap;"><span class="switcher-full">${selectedLanguage.flag} ${selectedLanguage.name}</span><span class="switcher-compact">${selectedLanguage.flag} Language</span> ▼</button>`;
+    html += '<div class="lang-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 220px; max-width: min(94vw, 260px); max-height: 60vh; overflow-y: auto; z-index: 1000;">';
 
-    languageOptions.forEach((language) => {
+    languageCatalog.forEach((language) => {
         html += `<button class="lang-option" data-lang-code="${language.code}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #333; transition: all 0.3s;">`;
         html += `${language.flag} ${language.name}</button>`;
     });
@@ -360,35 +466,39 @@ function createLanguageSwitcher() {
 // Create currency switcher HTML
 function createCurrencySwitcher() {
     const selectedCurrency = currencyRates[currentCurrency] ? currentCurrency : 'INR';
+    const selectedInfo = currencyRates[selectedCurrency];
 
     let html = '<div class="currency-switcher" style="position: relative; display: inline-block;">';
-    html += `<button class="currency-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.9rem; white-space: nowrap;">`;
-    html += `${currencyRates[selectedCurrency].symbol} ${currencyRates[selectedCurrency].name} ▼</button>`;
-    html += '<div class="currency-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 210px; max-width: calc(100vw - 24px); z-index: 1000;">';
+    html += `<button class="currency-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.9rem; white-space: nowrap;"><span class="switcher-full">${selectedInfo.symbol} ${selectedInfo.name}</span><span class="switcher-compact">${selectedInfo.symbol} Currency</span> ▼</button>`;
+    html += '<div class="currency-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 260px; max-width: min(94vw, 300px); max-height: 60vh; overflow-y: auto; z-index: 1000;">';
 
-    Object.keys(currencyRates).forEach(curr => {
+    Object.keys(currencyRates).forEach((curr) => {
+        const data = currencyRates[curr];
         html += `<button class="currency-option" data-currency-code="${curr}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.88rem; color: #333; transition: all 0.3s;">`;
-        html += `${currencyRates[curr].symbol} ${currencyRates[curr].name} (${curr})</button>`;
+        html += `${data.symbol} ${data.name} (${curr})</button>`;
     });
 
     html += '</div></div>';
     return html;
 }
-
 // Initialize i18n system
 function initI18n() {
+    ensureI18nStyles();
     // Add switchers to navbar if exists
     const navbarRight = document.querySelector('.navbar-links') || document.querySelector('.navbar-right');
     if (navbarRight) {
-        const switchersDiv = document.createElement('div');
-        switchersDiv.className = 'navbar-switchers';
-        switchersDiv.style.display = 'flex';
-        switchersDiv.style.alignItems = 'center';
-        switchersDiv.style.gap = '0.5rem';
-        switchersDiv.style.flexWrap = 'wrap';
-        switchersDiv.style.maxWidth = '100%';
+        let switchersDiv = navbarRight.querySelector('.navbar-switchers');
+        if (!switchersDiv) {
+            switchersDiv = document.createElement('div');
+            switchersDiv.className = 'navbar-switchers';
+            switchersDiv.style.display = 'flex';
+            switchersDiv.style.alignItems = 'center';
+            switchersDiv.style.gap = '0.5rem';
+            switchersDiv.style.flexWrap = 'wrap';
+            switchersDiv.style.maxWidth = '100%';
+            navbarRight.appendChild(switchersDiv);
+        }
         switchersDiv.innerHTML = createLanguageSwitcher() + createCurrencySwitcher();
-        navbarRight.appendChild(switchersDiv);
         
         // Add event listeners
         const langBtn = switchersDiv.querySelector('.lang-btn');
@@ -439,8 +549,12 @@ function initI18n() {
     }
     
     // Update page with current language and currency
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.setAttribute('lang', currentLang);
+    }
     updatePageLanguage();
     updatePageCurrency();
+    updateSwitcherButtonLabels();
 }
 
 // Initialize on DOM load

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="GO India RIDE">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff9933" />
+      <stop offset="50%" stop-color="#f8f6ef" />
+      <stop offset="100%" stop-color="#138808" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="30" fill="url(#g)" />
+  <rect x="24" y="24" width="144" height="144" rx="24" fill="rgba(11,31,58,0.88)" />
+  <path d="M56 112h80v16H56z" fill="#f8f6ef" />
+  <path d="M64 86h64l10 18H54z" fill="#f8f6ef" />
+  <circle cx="72" cy="130" r="10" fill="#ff9933" />
+  <circle cx="120" cy="130" r="10" fill="#138808" />
+  <text x="96" y="64" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#f8f6ef">GIR</text>
+</svg>
