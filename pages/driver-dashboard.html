@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -811,10 +811,8 @@
                         <i class="fas fa-circle"></i> Online
                     </button>
                 </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
-                </button>
+                <button class="logout-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
     </nav>
@@ -1584,7 +1582,11 @@
             setTimeout(() => document.getElementById('errorMessage').classList.remove('show'), 3000);
         }
 
-                function logout() {
+                function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        function logout() {
             if (confirm('Logout?')) {
                 localStorage.removeItem('currentDriver');
                 localStorage.removeItem('userRole');
@@ -1668,6 +1670,7 @@
     </script>
 </body>
 </html>
+
 
 
 

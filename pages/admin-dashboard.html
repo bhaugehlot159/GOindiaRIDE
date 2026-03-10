@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -122,6 +122,7 @@
                     <small style="color: #999;">Administrator</small>
                 </div>
             </div>
+            <button class="logout-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
             <button class="logout-btn" onclick="showLogoutModal()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
@@ -258,6 +259,10 @@
             renderAdminAlerts();
         }
 
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
         function showLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
         }
@@ -355,6 +360,7 @@
     </script>
 </body>
 </html>
+
 
 
 

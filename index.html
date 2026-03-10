@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -38,6 +38,10 @@
     <link rel="alternate" hreflang="x-default" href="https://goindiaride.com/">
     
     <link rel="stylesheet" href="./style.css">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <meta name="theme-color" content="#0b1f3a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -872,7 +876,10 @@
                 <a href="./pages/signup.html" class="btn-secondary">
                     <i class="fas fa-user-plus"></i>
                     <span data-lang="hero.driver">Become a Driver</span>
-                </a>
+                </a>                <button id="installAppBtn" class="btn-secondary" style="display: none;" type="button">
+                    <i class="fas fa-download"></i>
+                    <span>Install App</span>
+                </button>
             </div>
         </div>
     </section>
@@ -1318,6 +1325,48 @@
             });
         });
 
+        let deferredInstallPrompt = null;
+        const installAppBtn = document.getElementById('installAppBtn');
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            deferredInstallPrompt = event;
+            if (installAppBtn) {
+                installAppBtn.style.display = 'inline-flex';
+            }
+        });
+
+        if (installAppBtn) {
+            installAppBtn.addEventListener('click', async () => {
+                if (!deferredInstallPrompt) {
+                    alert('Install option abhi available nahi hai. Browser menu se Add to Home Screen use karein.');
+                    return;
+                }
+
+                deferredInstallPrompt.prompt();
+                const choice = await deferredInstallPrompt.userChoice;
+                if (choice && choice.outcome === 'accepted') {
+                    installAppBtn.style.display = 'none';
+                }
+                deferredInstallPrompt = null;
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            deferredInstallPrompt = null;
+            if (installAppBtn) {
+                installAppBtn.style.display = 'none';
+            }
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((error) => {
+                    console.warn('Service worker registration failed:', error);
+                });
+            });
+        }
+
         console.log('✅ Homepage loaded successfully!');
     </script>
     
@@ -1358,4 +1407,8 @@
     <script src="./js/toast.js"></script>
 </body>
 </html>
+
+
+
+
 

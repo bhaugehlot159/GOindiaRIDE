@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GO India RIDE - Internationalization (i18n) System
  * Multi-language and currency support
  */
@@ -194,7 +194,22 @@ const translations = {
         'trust.tourists': 'آمن للسياح',
         'trust.english': 'سائقون يتحدثون الإنجليزية',
         'booking.confirm': 'تأكيد الحجز'
-    }
+    },
+
+    // International coverage (falls back to English where key is missing)
+    bn: {},
+    pt: {},
+    ru: {},
+    ko: {},
+    it: {},
+    tr: {},
+    nl: {},
+    th: {},
+    vi: {},
+    id: {},
+    ms: {},
+    fa: {},
+    ur: {}
 };
 
 // Currency conversion rates (relative to INR)
@@ -254,6 +269,10 @@ function setCurrency(currency) {
 // Update all elements with data-lang attribute
 function updatePageLanguage() {
     document.querySelectorAll('[data-lang]').forEach(element => {
+        if (element.closest('.language-switcher') || element.closest('.currency-switcher')) {
+            return;
+        }
+
         const key = element.getAttribute('data-lang');
         let translation = t(key);
 
@@ -289,42 +308,49 @@ function updatePageLanguage() {
 function updatePageCurrency() {
     document.querySelectorAll('[data-currency]').forEach(element => {
         const amountINR = parseFloat(element.getAttribute('data-currency'));
+        if (!Number.isFinite(amountINR)) {
+            return;
+        }
         element.textContent = convertCurrency(amountINR);
     });
 }
 
 // Create language switcher HTML
 function createLanguageSwitcher() {
-    const flags = {
-        en: '🇬🇧',
-        hi: '🇮🇳',
-        fr: '🇫🇷',
-        de: '🇩🇪',
-        es: '🇪🇸',
-        ja: '🇯🇵',
-        zh: '🇨🇳',
-        ar: '🇸🇦'
-    };
+    const languageOptions = [
+        { code: 'en', flag: '🇬🇧', name: 'English' },
+        { code: 'hi', flag: '🇮🇳', name: 'Hindi' },
+        { code: 'bn', flag: '🇧🇩', name: 'Bengali' },
+        { code: 'ar', flag: '🇸🇦', name: 'Arabic' },
+        { code: 'fr', flag: '🇫🇷', name: 'French' },
+        { code: 'de', flag: '🇩🇪', name: 'German' },
+        { code: 'es', flag: '🇪🇸', name: 'Spanish' },
+        { code: 'pt', flag: '🇵🇹', name: 'Portuguese' },
+        { code: 'ru', flag: '🇷🇺', name: 'Russian' },
+        { code: 'ja', flag: '🇯🇵', name: 'Japanese' },
+        { code: 'ko', flag: '🇰🇷', name: 'Korean' },
+        { code: 'zh', flag: '🇨🇳', name: 'Chinese' },
+        { code: 'it', flag: '🇮🇹', name: 'Italian' },
+        { code: 'tr', flag: '🇹🇷', name: 'Turkish' },
+        { code: 'nl', flag: '🇳🇱', name: 'Dutch' },
+        { code: 'th', flag: '🇹🇭', name: 'Thai' },
+        { code: 'vi', flag: '🇻🇳', name: 'Vietnamese' },
+        { code: 'id', flag: '🇮🇩', name: 'Indonesian' },
+        { code: 'ms', flag: '🇲🇾', name: 'Malay' },
+        { code: 'fa', flag: '🇮🇷', name: 'Persian' },
+        { code: 'ur', flag: '🇵🇰', name: 'Urdu' }
+    ];
 
-    const languageNames = {
-        en: 'English',
-        hi: 'Hindi',
-        fr: 'French',
-        de: 'German',
-        es: 'Spanish',
-        ja: 'Japanese',
-        zh: 'Chinese',
-        ar: 'Arabic'
-    };
+    const selectedLanguage = languageOptions.find((item) => item.code === currentLang) || languageOptions[0];
 
     let html = '<div class="language-switcher" style="position: relative; display: inline-block;">';
     html += `<button class="lang-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; white-space: nowrap;">`;
-    html += `${flags[currentLang]} ${languageNames[currentLang] || currentLang.toUpperCase()} ▼</button>`;
+    html += `${selectedLanguage.flag} ${selectedLanguage.name} ▼</button>`;
     html += '<div class="lang-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 180px; max-width: calc(100vw - 24px); z-index: 1000;">';
 
-    Object.keys(flags).forEach(lang => {
-        html += `<button class="lang-option" data-lang="${lang}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #333; transition: all 0.3s;">`;
-        html += `${flags[lang]} ${languageNames[lang] || lang.toUpperCase()}</button>`;
+    languageOptions.forEach((language) => {
+        html += `<button class="lang-option" data-lang-code="${language.code}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.9rem; color: #333; transition: all 0.3s;">`;
+        html += `${language.flag} ${language.name}</button>`;
     });
 
     html += '</div></div>';
@@ -333,13 +359,15 @@ function createLanguageSwitcher() {
 
 // Create currency switcher HTML
 function createCurrencySwitcher() {
+    const selectedCurrency = currencyRates[currentCurrency] ? currentCurrency : 'INR';
+
     let html = '<div class="currency-switcher" style="position: relative; display: inline-block;">';
     html += `<button class="currency-btn" style="background: rgba(255,255,255,0.78); border: 1px solid rgba(11,31,58,0.22); color: #0B1F3A; padding: 0.42rem 0.65rem; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.9rem; white-space: nowrap;">`;
-    html += `${currencyRates[currentCurrency].symbol} ${currencyRates[currentCurrency].name} ▼</button>`;
+    html += `${currencyRates[selectedCurrency].symbol} ${currencyRates[selectedCurrency].name} ▼</button>`;
     html += '<div class="currency-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); margin-top: 0.5rem; min-width: 210px; max-width: calc(100vw - 24px); z-index: 1000;">';
 
     Object.keys(currencyRates).forEach(curr => {
-        html += `<button class="currency-option" data-currency="${curr}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.88rem; color: #333; transition: all 0.3s;">`;
+        html += `<button class="currency-option" data-currency-code="${curr}" style="display: block; width: 100%; text-align: left; padding: 0.7rem 0.85rem; border: none; background: none; cursor: pointer; font-size: 0.88rem; color: #333; transition: all 0.3s;">`;
         html += `${currencyRates[curr].symbol} ${currencyRates[curr].name} (${curr})</button>`;
     });
 
@@ -372,7 +400,7 @@ function initI18n() {
         
         switchersDiv.querySelectorAll('.lang-option').forEach(btn => {
             btn.addEventListener('click', () => {
-                setLanguage(btn.getAttribute('data-lang'));
+                setLanguage(btn.getAttribute('data-lang-code'));
                 langDropdown.style.display = 'none';
             });
             btn.addEventListener('mouseenter', function() {
@@ -392,7 +420,7 @@ function initI18n() {
         
         switchersDiv.querySelectorAll('.currency-option').forEach(btn => {
             btn.addEventListener('click', () => {
-                setCurrency(btn.getAttribute('data-currency'));
+                setCurrency(btn.getAttribute('data-currency-code'));
                 currencyDropdown.style.display = 'none';
             });
             btn.addEventListener('mouseenter', function() {
@@ -435,4 +463,6 @@ if (typeof module !== 'undefined' && module.exports) {
         currentCurrency
     };
 }
+
+
 

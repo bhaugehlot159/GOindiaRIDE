@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -861,10 +861,8 @@
                     <div class="user-avatar" id="userAvatar">C</div>
                     <span id="userName">Customer</span>
                 </div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
-                </button>
+                <button class="logout-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
     </nav>
@@ -2061,6 +2059,10 @@ Thank you for riding with us! 🚗
             }
         }
 
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('currentUser');
@@ -2140,6 +2142,8 @@ Thank you for riding with us! 🚗
     </script>
 </body>
 </html>
+
+
 
 
 
