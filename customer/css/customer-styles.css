@@ -1,4 +1,4 @@
-/* =============================================
+﻿/* =============================================
    GO India RIDE - Customer Portal Styles
    Mobile-First Design with Rajasthani Theme
    ============================================= */
@@ -916,6 +916,60 @@ body {
     margin-bottom: 1.5rem;
 }
 
+#bookingForm .form-group {
+    position: relative;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(11, 31, 58, 0.15);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(11, 31, 58, 0.12);
+    z-index: 1200;
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+}
+
+.autocomplete-category {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5a6b7b;
+    background: #f3f6fb;
+    border-bottom: 1px solid rgba(11, 31, 58, 0.08);
+}
+
+.autocomplete-item {
+    padding: 0.7rem 0.8rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(11, 31, 58, 0.08);
+    color: #0b1f3a;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.autocomplete-active {
+    background: #eef4ff;
+}
+
+.autocomplete-item strong {
+    color: #0f6a2f;
+}
+
+.autocomplete-no-results {
+    padding: 0.8rem;
+    color: #6c7a89;
+    font-size: 0.86rem;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
@@ -1478,3 +1532,4 @@ body {
         display: none !important;
     }
 }
+

@@ -1,6 +1,6 @@
-/**
+﻿/**
  * GO India RIDE - Shared Database Layer
- * Simulates a database using localStorage for all portals (Customer, Driver, Admin)
+ * Shared persistence layer using localStorage for all portals (Customer, Driver, Admin)
  */
 
 // Storage keys
@@ -15,54 +15,22 @@ const STORAGE_KEYS = {
     CHAT_INITIALIZED: 'goride_chat_initialized'
 };
 
-// Initialize demo data if not exists
+// Initialize persistent storage buckets for production usage
 function initializeDatabase() {
-    // Initialize demo drivers if not exists
-    if (!localStorage.getItem(STORAGE_KEYS.DRIVERS)) {
-        const demoDrivers = [
-            {
-                id: 'driver_1',
-                name: 'Rajesh Kumar',
-                phone: '+91-9876543210',
-                vehicle: { type: 'Economy', model: 'Maruti Swift', number: 'RJ14AB1234' },
-                rating: 4.8,
-                photo: '👨',
-                status: 'available',
-                location: { district: 'Jaipur', lat: 26.9124, lng: 75.7873 }
-            },
-            {
-                id: 'driver_2',
-                name: 'Suresh Singh',
-                phone: '+91-9876543211',
-                vehicle: { type: 'Premium', model: 'Honda City', number: 'RJ14CD5678' },
-                rating: 4.9,
-                photo: '👨‍🦱',
-                status: 'available',
-                location: { district: 'Jaipur', lat: 26.9024, lng: 75.7973 }
-            },
-            {
-                id: 'driver_3',
-                name: 'Amit Sharma',
-                phone: '+91-9876543212',
-                vehicle: { type: 'Economy', model: 'Hyundai i20', number: 'RJ14EF9012' },
-                rating: 4.7,
-                photo: '👨‍🦰',
-                status: 'available',
-                location: { district: 'Jodhpur', lat: 26.2389, lng: 73.0243 }
-            },
-            {
-                id: 'driver_4',
-                name: 'Vijay Patel',
-                phone: '+91-9876543213',
-                vehicle: { type: 'SUV', model: 'Mahindra XUV', number: 'RJ14GH3456' },
-                rating: 4.6,
-                photo: '🧔',
-                status: 'available',
-                location: { district: 'Udaipur', lat: 24.5854, lng: 73.7125 }
-            }
-        ];
-        localStorage.setItem(STORAGE_KEYS.DRIVERS, JSON.stringify(demoDrivers));
-    }
+    const defaults = {
+        [STORAGE_KEYS.USERS]: [],
+        [STORAGE_KEYS.DRIVERS]: [],
+        [STORAGE_KEYS.BOOKINGS]: [],
+        [STORAGE_KEYS.NOTIFICATIONS]: [],
+        [STORAGE_KEYS.DONATIONS]: [],
+        [STORAGE_KEYS.MESSAGES]: []
+    };
+
+    Object.entries(defaults).forEach(([key, value]) => {
+        if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+    });
 }
 
 // CRUD Operations for Bookings
@@ -414,3 +382,4 @@ if (typeof module !== 'undefined' && module.exports) {
         startAutoStatusUpdates
     };
 }
+

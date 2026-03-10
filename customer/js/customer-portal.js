@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GO India RIDE - Customer Portal Main JavaScript
  * Handles navigation, theme, user management, and core functionality
  */
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupModals();
     setupSOSButton();
     loadUserData();
-    loadDemoData();
+    loadPortalData();
     setupPortalNotifications();
 });
 
@@ -335,7 +335,7 @@ function getValidityDate() {
 /**
  * Load demo data
  */
-function loadDemoData() {
+function loadPortalData() {
     loadFavoriteLocations();
     loadRecentPlaces();
     loadWalletBalance();
@@ -350,17 +350,15 @@ function loadDemoData() {
  */
 function loadFavoriteLocations() {
     const favorites = JSON.parse(localStorage.getItem('goindiaride_favorites') || '[]');
-    
-    // Add demo favorites if empty
-    if (favorites.length === 0) {
-        favorites.push(
-            { icon: 'fa-home', name: 'Home', address: 'Jaipur, Rajasthan' },
-            { icon: 'fa-briefcase', name: 'Work', address: 'M.I. Road, Jaipur' }
-        );
-        localStorage.setItem('goindiaride_favorites', JSON.stringify(favorites));
-    }
-    
+
     const favoritesList = document.getElementById('favoritesList');
+    if (!favoritesList) return;
+
+    if (favorites.length === 0) {
+        favoritesList.innerHTML = '<p style="color: var(--text-light);">No saved favorite locations yet.</p>';
+        return;
+    }
+
     favoritesList.innerHTML = favorites.map(fav => `
         <div class="favorite-item">
             <i class="fas ${fav.icon}"></i>
@@ -368,24 +366,20 @@ function loadFavoriteLocations() {
         </div>
     `).join('');
 }
-
 /**
  * Load recent places
  */
 function loadRecentPlaces() {
     const recent = JSON.parse(localStorage.getItem('goindiaride_recent_places') || '[]');
-    
-    // Add demo recent places if empty
-    if (recent.length === 0) {
-        recent.push(
-            { name: 'Hawa Mahal', time: '2 days ago' },
-            { name: 'City Palace', time: '5 days ago' },
-            { name: 'Amber Fort', time: '1 week ago' }
-        );
-        localStorage.setItem('goindiaride_recent_places', JSON.stringify(recent));
-    }
-    
+
     const recentList = document.getElementById('recentPlacesList');
+    if (!recentList) return;
+
+    if (recent.length === 0) {
+        recentList.innerHTML = '<p style="color: var(--text-light);">No recent places yet.</p>';
+        return;
+    }
+
     recentList.innerHTML = recent.slice(0, 5).map(place => `
         <div class="place-item">
             <i class="fas fa-map-marker-alt"></i>
@@ -393,7 +387,6 @@ function loadRecentPlaces() {
         </div>
     `).join('');
 }
-
 /**
  * Load wallet balance
  */
@@ -409,18 +402,15 @@ function loadWalletBalance() {
  */
 function loadTransactions() {
     const transactions = JSON.parse(localStorage.getItem('goindiaride_transactions') || '[]');
-    
-    // Add demo transactions if empty
-    if (transactions.length === 0) {
-        transactions.push(
-            { type: 'ride', amount: -250, date: '2024-02-08', description: 'Ride to Hawa Mahal' },
-            { type: 'added', amount: 500, date: '2024-02-07', description: 'Added to wallet' },
-            { type: 'cashback', amount: 25, date: '2024-02-06', description: 'Cashback earned' }
-        );
-        localStorage.setItem('goindiaride_transactions', JSON.stringify(transactions));
-    }
-    
+
     const transactionList = document.getElementById('transactionList');
+    if (!transactionList) return;
+
+    if (transactions.length === 0) {
+        transactionList.innerHTML = '<p style="color: var(--text-light);">No wallet transactions yet.</p>';
+        return;
+    }
+
     transactionList.innerHTML = transactions.slice(0, 10).map(txn => `
         <div class="transaction-item">
             <div>
@@ -434,7 +424,6 @@ function loadTransactions() {
         </div>
     `).join('');
 }
-
 /**
  * Get transaction icon
  */
@@ -453,35 +442,15 @@ function getTransactionIcon(type) {
  */
 function loadRideHistory() {
     const rides = JSON.parse(localStorage.getItem('goindiaride_ride_history') || '[]');
-    
-    // Add demo rides if empty
-    if (rides.length === 0) {
-        rides.push(
-            {
-                id: 'RIDE001',
-                from: 'Jaipur Airport',
-                to: 'City Palace',
-                date: '2024-02-08',
-                fare: 350,
-                status: 'completed',
-                driver: 'Rajesh Kumar',
-                rating: 5
-            },
-            {
-                id: 'RIDE002',
-                from: 'Hotel',
-                to: 'Hawa Mahal',
-                date: '2024-02-07',
-                fare: 250,
-                status: 'completed',
-                driver: 'Suresh Sharma',
-                rating: 4
-            }
-        );
-        localStorage.setItem('goindiaride_ride_history', JSON.stringify(rides));
-    }
-    
+
     const rideHistoryList = document.getElementById('rideHistoryList');
+    if (!rideHistoryList) return;
+
+    if (rides.length === 0) {
+        rideHistoryList.innerHTML = '<p style="color: var(--text-light);">No completed rides yet.</p>';
+        return;
+    }
+
     rideHistoryList.innerHTML = rides.slice(0, 10).map(ride => `
         <div class="ride-item">
             <div>
@@ -492,7 +461,7 @@ function loadRideHistory() {
                     <small>${ride.driver}</small>
                 </div>
                 <div class="driver-rating">
-                    ${'⭐'.repeat(ride.rating)}
+                    ${'⭐'.repeat(ride.rating || 0)}
                 </div>
             </div>
             <button class="btn-secondary" onclick="rebookRide('${ride.id}')">
@@ -501,7 +470,6 @@ function loadRideHistory() {
         </div>
     `).join('');
 }
-
 /**
  * Rebook a previous ride
  */
@@ -519,19 +487,11 @@ function rebookRide(rideId) {
  * Load rewards
  */
 function loadRewards() {
-    const rewards = JSON.parse(localStorage.getItem('goindiaride_rewards') || '{"points": 0, "cashback": 0}');
-    
-    // Set demo rewards if empty
-    if (rewards.points === 0) {
-        rewards.points = 150;
-        rewards.cashback = 75;
-        localStorage.setItem('goindiaride_rewards', JSON.stringify(rewards));
-    }
-    
-    document.getElementById('rewardPoints').textContent = rewards.points;
-    document.getElementById('cashbackEarned').textContent = '₹' + rewards.cashback;
-}
+    const rewards = JSON.parse(localStorage.getItem('goindiaride_rewards') || '{"points": 0, "cashback": 0}' );
 
+    document.getElementById('rewardPoints').textContent = rewards.points || 0;
+    document.getElementById('cashbackEarned').textContent = '₹' + (rewards.cashback || 0);
+}
 /**
  * Setup tourism cards
  */
@@ -907,3 +867,4 @@ window.CustomerPortal = {
     rebookRide,
     bookTourPackage
 };
+

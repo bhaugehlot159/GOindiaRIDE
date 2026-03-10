@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1264,6 +1264,7 @@
             document.getElementById('rideTime').value = timeString;
 
             updateFare();
+            updateDistanceEstimate();
         });
 
         // ============================================
@@ -1328,11 +1329,59 @@
             }
         }
 
+        let distanceEstimateToken = 0;
+
+        async function updateDistanceEstimate() {
+            const pickup = sanitizeInput(document.getElementById('pickup').value).trim();
+            const dropoff = sanitizeInput(document.getElementById('dropoff').value).trim();
+            const sourceNode = document.getElementById('distanceSource');
+
+            if (!pickup || !dropoff) {
+                document.getElementById('distanceKm').textContent = '5';
+                if (sourceNode) sourceNode.textContent = 'Awaiting route';
+                updateFare();
+                return;
+            }
+
+            const token = ++distanceEstimateToken;
+            if (sourceNode) sourceNode.textContent = 'Calculating...';
+
+            try {
+                if (window.LocationDistanceEstimator && typeof LocationDistanceEstimator.estimateDistanceKm === 'function') {
+                    const estimate = await LocationDistanceEstimator.estimateDistanceKm(pickup, dropoff);
+                    if (token !== distanceEstimateToken) return;
+
+                    const km = Number(estimate && estimate.km);
+                    const finalKm = Number.isFinite(km) && km > 0 ? Math.max(1, Math.round(km)) : 5;
+                    document.getElementById('distanceKm').textContent = String(finalKm);
+
+                    if (sourceNode) {
+                        sourceNode.textContent = String((estimate && estimate.source) || 'fallback').replace(/_/g, ' ');
+                    }
+                } else {
+                    document.getElementById('distanceKm').textContent = '5';
+                    if (sourceNode) sourceNode.textContent = 'fallback';
+                }
+            } catch (error) {
+                document.getElementById('distanceKm').textContent = '5';
+                if (sourceNode) sourceNode.textContent = 'fallback';
+            }
+
+            updateFare();
+        }
+
+        function handleLocationUpdated() {
+            updateRouteHighlights();
+            updateDistanceEstimate();
+        }
+
         // Add event listeners for location changes
-        document.getElementById('pickup').addEventListener('change', updateRouteHighlights);
-        document.getElementById('dropoff').addEventListener('change', updateRouteHighlights);
-        document.getElementById('pickup').addEventListener('blur', updateRouteHighlights);
-        document.getElementById('dropoff').addEventListener('blur', updateRouteHighlights);
+        document.getElementById('pickup').addEventListener('change', handleLocationUpdated);
+        document.getElementById('dropoff').addEventListener('change', handleLocationUpdated);
+        document.getElementById('pickup').addEventListener('blur', handleLocationUpdated);
+        document.getElementById('dropoff').addEventListener('blur', handleLocationUpdated);
+        document.getElementById('pickup').addEventListener('input', handleLocationUpdated);
+        document.getElementById('dropoff').addEventListener('input', handleLocationUpdated);
 
         function swapLocations() {
             const pickup = document.getElementById('pickup').value;
@@ -1342,6 +1391,7 @@
             document.getElementById('dropoff').value = pickup;
 
             updateFare();
+            updateDistanceEstimate();
         }
 
         // ============================================
@@ -1770,6 +1820,7 @@ Thank you for your generosity! ❤️
     <script src="../js/database.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
+    <script src="../js/location-distance.js"></script>
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-connector.js"></script>
     <script src="../js/ai-system/authenticity-engine.js"></script>
@@ -1781,5 +1832,12 @@ Thank you for your generosity! ❤️
     <script src="../js/autocomplete.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 

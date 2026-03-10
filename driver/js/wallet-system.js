@@ -18,7 +18,7 @@ function openWallet() {
 
 // Get Wallet Content
 function getWalletContent() {
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"balance": 0, "transactions": []}');
+    const walletData = getDriverWalletData();
     
     let html = '<div class="wallet-container">';
     
@@ -198,7 +198,7 @@ function openWithdraw() {
 
 // Get Withdraw Content
 function getWithdrawContent() {
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"balance": 0}');
+    const walletData = getDriverWalletData();
     
     return `
         <div class="available-balance">
@@ -247,7 +247,7 @@ function processWithdraw(event) {
     
     const formData = new FormData(event.target);
     const amount = parseFloat(formData.get('amount'));
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"balance": 0}');
+    const walletData = getDriverWalletData();
     
     if (amount > walletData.balance) {
         showToast('Insufficient balance!', 'error');
@@ -273,7 +273,7 @@ function openTransactions() {
 
 // Get Transactions Content
 function getTransactionsContent() {
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"transactions": []}');
+    const walletData = getDriverWalletData();
     
     let html = '<div class="transactions-container">';
     
@@ -343,7 +343,7 @@ function filterTransactions() {
 
 // Download Transaction History
 function downloadTransactionHistory() {
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"transactions": []}');
+    const walletData = getDriverWalletData();
     
     let csv = 'Date,Type,Description,Amount,Balance\n';
     
@@ -371,7 +371,7 @@ function downloadTransactionHistory() {
 
 // Add Transaction
 function addTransaction(type, amount, description, referenceId = null) {
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"balance": 0, "transactions": []}');
+    const walletData = getDriverWalletData();
     
     // Update balance
     walletData.balance += amount;
@@ -401,7 +401,7 @@ function addTransaction(type, amount, description, referenceId = null) {
         walletData.transactions = walletData.transactions.slice(0, 100);
     }
     
-    localStorage.setItem('wallet_data', JSON.stringify(walletData));
+    saveDriverWalletData(walletData);
     
     return transaction;
 }
@@ -497,7 +497,7 @@ function getEarningsContent() {
 // Calculate Earnings
 function calculateEarnings(period = 'today') {
     const trips = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRIPS) || '[]');
-    const walletData = JSON.parse(localStorage.getItem('wallet_data') || '{"transactions": []}');
+    const walletData = getDriverWalletData();
     
     let startDate;
     const now = new Date();

@@ -40,6 +40,7 @@
         .password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2rem; }
         .demo-info { background: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #1565c0; }
         .demo-info code { background: rgba(33, 150, 243, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+        #firebaseRecaptchaContainer { min-height: 1px; margin-bottom: 0.5rem; }
         .error-message { background: #ffebee; color: #c62828; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: none; border-left: 4px solid #c62828; }
         .error-message.show { display: block; }
         .otp-input-section { margin-bottom: 1.5rem; padding: 1.5rem; border: 2px solid #e0e0e0; border-radius: 12px; background: #f9f9ff; display: none; }
@@ -128,20 +129,20 @@
                 </div>
             </div>
 
-            <!-- Demo Info -->
+            <!-- Login Info -->
             <div class="demo-info" id="demoInfo">
-                <strong>📝 Demo Login:</strong><br>
+                <strong>Login Information:</strong><br>
                 <span id="demoCustomer">
-                    👤 OTP: <code>9876543210</code> | <code>123456</code> | 📧 <code>customer@test.com</code> | <code>123456</code>
+                    👤 Customer: Registered mobile OTP ya registered email/password use karein.
                 </span>
                 <span id="demoDriver" style="display: none;">
-                    🚗 OTP: <code>8765432109</code> | <code>123456</code> | 📧 <code>driver@test.com</code> | <code>123456</code>
+                    🚗 Driver: Registered mobile OTP ya registered email/password use karein.
                 </span>
                 <span id="adminDemoText" style="display: none;">
                     🛡️ Email: <code>admin@test.com</code> | Pass: <code>123456</code> | 2FA: <code>123456</code>
                 </span>
             </div>
-
+            <div id="firebaseRecaptchaContainer"></div>
             <!-- ============ CUSTOMER SECTION ============ -->
             <form id="customerForm" style="display: block;">
                 <!-- Mobile OTP Method -->
@@ -160,7 +161,7 @@
                     <div class="otp-input-section" id="customerOTPSection">
                         <div style="text-align: center; margin-bottom: 1rem;">
                             <strong>Enter 6-digit OTP</strong><br>
-                            <small style="color: #999;">Demo OTP: 123456</small>
+                            <small style="color: #999;">OTP sent to your registered phone</small>
                         </div>
                         <div class="otp-input-group">
                             <input type="text" class="otp-digit customer-otp" maxlength="1" inputmode="numeric">
@@ -184,7 +185,7 @@
                         <label for="customerEmail">📧 Email</label>
                         <div class="input-with-icon">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="customerEmail" placeholder="customer@test.com">
+                            <input type="email" id="customerEmail" placeholder="Enter your email">
                         </div>
                     </div>
 
@@ -192,7 +193,7 @@
                         <label for="customerPassword">🔐 Password</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="customerPassword" placeholder="123456">
+                            <input type="password" id="customerPassword" placeholder="Enter your password">
                             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('customerPassword')">
                                 <i class="fas fa-eye" id="customerPasswordIcon"></i>
                             </button>
@@ -224,7 +225,7 @@
                     <div class="otp-input-section" id="driverOTPSection">
                         <div style="text-align: center; margin-bottom: 1rem;">
                             <strong>Enter 6-digit OTP</strong><br>
-                            <small style="color: #999;">Demo OTP: 123456</small>
+                            <small style="color: #999;">OTP sent to your registered phone</small>
                         </div>
                         <div class="otp-input-group">
                             <input type="text" class="otp-digit driver-otp" maxlength="1" inputmode="numeric">
@@ -248,7 +249,7 @@
                         <label for="driverEmail">📧 Email</label>
                         <div class="input-with-icon">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="driverEmail" placeholder="driver@test.com">
+                            <input type="email" id="driverEmail" placeholder="Enter your email">
                         </div>
                     </div>
 
@@ -256,7 +257,7 @@
                         <label for="driverPassword">🔐 Password</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="driverPassword" placeholder="123456">
+                            <input type="password" id="driverPassword" placeholder="Enter your password">
                             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('driverPassword')">
                                 <i class="fas fa-eye" id="driverPasswordIcon"></i>
                             </button>
@@ -332,7 +333,7 @@
                     <div style="text-align: center; margin-bottom: 1.5rem;">
                         <i class="fas fa-lock" style="font-size: 2rem; color: #667eea;"></i>
                         <h3>Enter 2FA Code</h3>
-                        <small style="color: #999;">Demo Code: 123456</small>
+                        <small style="color: #999;">Enter code sent to your selected 2FA channel</small>
                     </div>
 
                     <div class="otp-input-group">
@@ -357,10 +358,226 @@
     <script src="../js/ai-system/authenticity-engine.js"></script>
     <script src="../js/ai-system/core.js"></script>
     <script src="../js/ai-system/public-mode.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script>
-        // ============================================
-        // LOGIN METHOD FUNCTIONS
-        // ============================================
+        const CUSTOMER_STORAGE_KEYS = ['users', 'goride_users'];
+        const DRIVER_STORAGE_KEYS = ['drivers', 'goride_drivers'];
+
+        let firebaseReady = false;
+        let firebaseRecaptchaVerifier = null;
+        let customerConfirmation = null;
+        let driverConfirmation = null;
+
+        function safeReadArray(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function mergeRecords(keys) {
+            const map = new Map();
+
+            keys.forEach((key) => {
+                safeReadArray(key).forEach((record) => {
+                    if (!record || typeof record !== 'object') return;
+
+                    const normalizedEmail = sanitizeEmail(record.email || '');
+                    const normalizedPhone = sanitizePhone(record.phone || record.mobile || '');
+                    const id = record.id || (normalizedEmail + '|' + normalizedPhone + '|' + (record.role || 'user'));
+
+                    if (!map.has(id)) {
+                        map.set(id, { ...record });
+                        return;
+                    }
+
+                    map.set(id, { ...map.get(id), ...record });
+                });
+            });
+
+            return Array.from(map.values());
+        }
+
+        function writeRecords(keys, records) {
+            const safeRecords = Array.isArray(records) ? records : [];
+            keys.forEach((key) => {
+                localStorage.setItem(key, JSON.stringify(safeRecords));
+            });
+        }
+
+        function upsertRecord(keys, newRecord, matcher) {
+            const merged = mergeRecords(keys);
+            const index = merged.findIndex(matcher);
+
+            if (index >= 0) {
+                merged[index] = { ...merged[index], ...newRecord };
+            } else {
+                merged.push(newRecord);
+            }
+
+            writeRecords(keys, merged);
+            return newRecord;
+        }
+
+        function findCustomerByPhone(phone) {
+            const normalizedPhone = sanitizePhone(phone);
+            if (!normalizedPhone) return null;
+
+            const users = mergeRecords(CUSTOMER_STORAGE_KEYS);
+            return users.find((user) => {
+                const userPhone = sanitizePhone(user.phone || user.mobile || '');
+                const userRole = (user.role || 'customer').toLowerCase();
+                return userPhone === normalizedPhone && userRole === 'customer';
+            }) || null;
+        }
+
+        function findDriverByPhone(phone) {
+            const normalizedPhone = sanitizePhone(phone);
+            if (!normalizedPhone) return null;
+
+            const drivers = mergeRecords(DRIVER_STORAGE_KEYS);
+            return drivers.find((driver) => sanitizePhone(driver.phone || driver.mobile || '') === normalizedPhone) || null;
+        }
+
+        function createCustomerFromPhone(phone) {
+            const normalizedPhone = sanitizePhone(phone);
+            const suffix = normalizedPhone.slice(-4);
+
+            const customer = {
+                id: 'user_' + Date.now(),
+                fullname: 'Customer ' + suffix,
+                name: 'Customer ' + suffix,
+                email: '',
+                phone: normalizedPhone,
+                role: 'customer',
+                createdAt: new Date().toISOString()
+            };
+
+            upsertRecord(
+                CUSTOMER_STORAGE_KEYS,
+                customer,
+                (item) => sanitizePhone(item.phone || item.mobile || '') === normalizedPhone
+            );
+
+            return customer;
+        }
+
+        function normalizeIndianPhone(phoneInput) {
+            const normalized = sanitizePhone(phoneInput);
+            return normalized ? '+91' + normalized : '';
+        }
+
+        function initFirebasePhoneAuth() {
+            if (firebaseReady) return true;
+
+            if (!window.firebase || typeof firebase.auth !== 'function') {
+                showError('Firebase Auth library load nahi hui. Page reload karein.');
+                return false;
+            }
+
+            const cfg = window.GOINDIARIDE_FIREBASE_CONFIG || {};
+            const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+            const missing = requiredKeys.filter((key) => !cfg[key]);
+
+            if (missing.length > 0) {
+                showError('Firebase config missing hai. js/firebase-config.js me project keys fill karein.');
+                return false;
+            }
+
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(cfg);
+                }
+                firebaseReady = true;
+                return true;
+            } catch (error) {
+                console.error('Firebase init failed:', error);
+                showError('Firebase initialize nahi ho paya. Config dubara check karein.');
+                return false;
+            }
+        }
+
+        function ensureRecaptcha() {
+            if (!initFirebasePhoneAuth()) return null;
+
+            if (firebaseRecaptchaVerifier) {
+                return firebaseRecaptchaVerifier;
+            }
+
+            try {
+                firebaseRecaptchaVerifier = new firebase.auth.RecaptchaVerifier('firebaseRecaptchaContainer', {
+                    size: 'invisible'
+                });
+                firebaseRecaptchaVerifier.render();
+                return firebaseRecaptchaVerifier;
+            } catch (error) {
+                console.error('reCAPTCHA setup failed:', error);
+                showError('OTP reCAPTCHA setup failed. Please refresh and try again.');
+                return null;
+            }
+        }
+
+        async function sendOtpByFirebase(phoneInput) {
+            const phoneE164 = normalizeIndianPhone(phoneInput);
+            if (!phoneE164) {
+                throw new Error('Please enter a valid 10-digit Indian mobile number.');
+            }
+
+            const verifier = ensureRecaptcha();
+            if (!verifier) {
+                throw new Error('Firebase OTP setup incomplete hai.');
+            }
+
+            return firebase.auth().signInWithPhoneNumber(phoneE164, verifier);
+        }
+
+        async function verifyOtpByFirebase(confirmation, otp) {
+            if (!confirmation) {
+                throw new Error('Pehle OTP send karein.');
+            }
+
+            if (!/^\d{6}$/.test(otp)) {
+                throw new Error('Please enter a valid 6-digit OTP.');
+            }
+
+            return confirmation.confirm(otp);
+        }
+
+        function readOtpDigits(selector) {
+            const inputs = document.querySelectorAll(selector);
+            return Array.from(inputs).map((input) => input.value).join('');
+        }
+
+        function setUserSession(user) {
+            localStorage.setItem('currentUser', JSON.stringify({
+                id: user.id,
+                fullname: user.fullname || user.name || 'Customer',
+                email: user.email || '',
+                phone: sanitizePhone(user.phone || user.mobile || ''),
+                role: 'customer'
+            }));
+            localStorage.setItem('userRole', 'customer');
+        }
+
+        function setDriverSession(driver) {
+            const normalizedDriver = {
+                id: driver.id,
+                name: driver.name || driver.fullname || 'Driver',
+                email: driver.email || '',
+                phone: sanitizePhone(driver.phone || driver.mobile || ''),
+                vehicleType: driver.vehicleType || 'economy',
+                vehicleNumber: driver.vehicleNumber || '',
+                role: 'driver'
+            };
+
+            localStorage.setItem('currentDriver', JSON.stringify(normalizedDriver));
+            localStorage.setItem('userRole', 'driver');
+        }
 
         function updateLoginMethod() {
             const role = document.querySelector('input[name="role"]:checked').value;
@@ -378,7 +595,7 @@
                 demoDriver.style.display = 'none';
                 document.getElementById('customerMobileOTP').style.display = 'block';
                 document.getElementById('customerEmailPassword').style.display = 'none';
-            } else if (role === 'driver') {
+            } else {
                 methodSelector.style.display = 'grid';
                 customerForm.style.display = 'none';
                 driverForm.style.display = 'block';
@@ -402,10 +619,6 @@
             }
         }
 
-        // ============================================
-        // PASSWORD VISIBILITY TOGGLE
-        // ============================================
-
         function togglePasswordVisibility(inputId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(inputId + 'Icon');
@@ -421,212 +634,199 @@
             }
         }
 
-        // ============================================
-        // CUSTOMER FUNCTIONS
-        // ============================================
+        async function customerSendOTP() {
+            const phoneInput = document.getElementById('customerPhone').value;
+            const phone = sanitizePhone(phoneInput);
 
-        function customerSendOTP() {
-            const phone = document.getElementById('customerPhone').value.trim();
-            if (phone !== '9876543210') {
-                showError('❌ Demo phone: 9876543210');
+            if (!phone) {
+                showError('Please enter a valid 10-digit Indian mobile number.');
                 return;
             }
-            document.getElementById('customerOTPSection').classList.add('show');
-            document.getElementById('customerPhone').disabled = true;
-            localStorage.setItem('customerOTP', '123456');
-            showSuccess('✅ OTP sent\nCode: 123456');
-            setupOTPInputs('.customer-otp');
-        }
 
-        function customerVerifyOTP() {
-            const inputs = document.querySelectorAll('.customer-otp');
-            const otp = Array.from(inputs).map(i => i.value).join('');
-            if (otp !== '123456') {
-                showError('❌ Wrong OTP');
-                return;
+            try {
+                customerConfirmation = await sendOtpByFirebase(phone);
+                document.getElementById('customerOTPSection').classList.add('show');
+                document.getElementById('customerPhone').disabled = true;
+                showSuccess('OTP sent successfully.');
+                setupOTPInputs('.customer-otp');
+            } catch (error) {
+                console.error('Customer OTP send failed:', error);
+                customerConfirmation = null;
+                showError(error.message || 'OTP send failed. Please try again.');
             }
-            customerLoginOTP();
         }
 
-        function customerLoginOTP() {
-            localStorage.setItem('currentUser', JSON.stringify({
-                id: 'cust_1',
-                fullname: 'John Doe',
-                email: 'customer@test.com',
-                phone: '9876543210',
-                role: 'customer'
-            }));
-            localStorage.setItem('userRole', 'customer');
-            showSuccess('✅ Login successful!');
-            setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
+        async function customerVerifyOTP() {
+            const otp = readOtpDigits('.customer-otp');
+            const phone = sanitizePhone(document.getElementById('customerPhone').value);
+
+            try {
+                await verifyOtpByFirebase(customerConfirmation, otp);
+                customerLoginOTP(phone);
+            } catch (error) {
+                console.error('Customer OTP verify failed:', error);
+                showError(error.message || 'OTP verification failed.');
+            }
+        }
+
+        function customerLoginOTP(phone) {
+            let customer = findCustomerByPhone(phone);
+            if (!customer) {
+                customer = createCustomerFromPhone(phone);
+            }
+
+            setUserSession(customer);
+            showSuccess('Login successful.');
+            setTimeout(() => {
+                window.location.href = './customer-dashboard.html';
+            }, 700);
         }
 
         function customerResetOTP() {
+            customerConfirmation = null;
             document.getElementById('customerOTPSection').classList.remove('show');
             document.getElementById('customerPhone').disabled = false;
-            document.getElementById('customerPhone').value = '';
-            document.querySelectorAll('.customer-otp').forEach(i => i.value = '');
+            document.querySelectorAll('.customer-otp').forEach((input) => { input.value = ''; });
         }
 
         async function customerLoginEmail() {
             const email = sanitizeEmail(document.getElementById('customerEmail').value);
             const password = document.getElementById('customerPassword').value;
-            
+
             if (!email) {
-                showError('❌ Please enter a valid email address');
+                showError('Please enter a valid email address.');
                 return;
             }
-            
-            // Hash the password for comparison
+
+            if (!password) {
+                showError('Please enter your password.');
+                return;
+            }
+
             const hashedPassword = await hashPassword(password);
-            
-            // Check against demo credentials (demo password "123456" hashed)
-            const demoPasswordHash = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
-            if (email === 'customer@test.com' && hashedPassword === demoPasswordHash) {
-                localStorage.setItem('currentUser', JSON.stringify({
-                    id: 'cust_1',
-                    fullname: 'John Doe',
-                    email: 'customer@test.com',
-                    phone: '9876543210',
-                    role: 'customer'
-                }));
-                localStorage.setItem('userRole', 'customer');
-                showSuccess('✅ Login successful!');
-                setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
+            const users = mergeRecords(CUSTOMER_STORAGE_KEYS);
+
+            const user = users.find((item) => {
+                const itemEmail = sanitizeEmail(item.email || '');
+                const itemRole = (item.role || 'customer').toLowerCase();
+                return itemEmail === email && item.password === hashedPassword && itemRole === 'customer';
+            });
+
+            if (!user) {
+                showError('Wrong credentials.');
                 return;
             }
-            
-            // Check against registered users
-            const users = JSON.parse(localStorage.getItem('users')) || [];
-            const user = users.find(u => u.email === email && u.password === hashedPassword && u.role === 'customer');
-            
-            if (user) {
-                localStorage.setItem('currentUser', JSON.stringify({
-                    id: user.id,
-                    fullname: user.fullname,
-                    email: user.email,
-                    phone: user.phone,
-                    role: 'customer'
-                }));
-                localStorage.setItem('userRole', 'customer');
-                showSuccess('✅ Login successful!');
-                setTimeout(() => window.location.href = '/pages/customer-dashboard.html', 1500);
-            } else {
-                showError('❌ Wrong credentials');
+
+            setUserSession(user);
+            showSuccess('Login successful.');
+            setTimeout(() => {
+                window.location.href = './customer-dashboard.html';
+            }, 700);
+        }
+
+        async function driverSendOTP() {
+            const phone = sanitizePhone(document.getElementById('driverPhone').value);
+
+            if (!phone) {
+                showError('Please enter a valid 10-digit Indian mobile number.');
+                return;
+            }
+
+            const driver = findDriverByPhone(phone);
+            if (!driver) {
+                showError('Driver number registered nahi hai. Pehle driver signup complete karein.');
+                return;
+            }
+
+            try {
+                driverConfirmation = await sendOtpByFirebase(phone);
+                document.getElementById('driverOTPSection').classList.add('show');
+                document.getElementById('driverPhone').disabled = true;
+                showSuccess('OTP sent successfully.');
+                setupOTPInputs('.driver-otp');
+            } catch (error) {
+                console.error('Driver OTP send failed:', error);
+                driverConfirmation = null;
+                showError(error.message || 'OTP send failed. Please try again.');
             }
         }
 
-        // ============================================
-        // DRIVER FUNCTIONS
-        // ============================================
+        async function driverVerifyOTP() {
+            const otp = readOtpDigits('.driver-otp');
+            const phone = sanitizePhone(document.getElementById('driverPhone').value);
 
-        function driverSendOTP() {
-            const phone = document.getElementById('driverPhone').value.trim();
-            if (phone !== '8765432109') {
-                showError('❌ Demo phone: 8765432109');
-                return;
+            try {
+                await verifyOtpByFirebase(driverConfirmation, otp);
+                driverLoginOTP(phone);
+            } catch (error) {
+                console.error('Driver OTP verify failed:', error);
+                showError(error.message || 'OTP verification failed.');
             }
-            document.getElementById('driverOTPSection').classList.add('show');
-            document.getElementById('driverPhone').disabled = true;
-            localStorage.setItem('driverOTP', '123456');
-            showSuccess('✅ OTP sent\nCode: 123456');
-            setupOTPInputs('.driver-otp');
         }
 
-        function driverVerifyOTP() {
-            const inputs = document.querySelectorAll('.driver-otp');
-            const otp = Array.from(inputs).map(i => i.value).join('');
-            if (otp !== '123456') {
-                showError('❌ Wrong OTP');
+        function driverLoginOTP(phone) {
+            const driver = findDriverByPhone(phone);
+
+            if (!driver) {
+                showError('Driver account not found. Please signup as driver first.');
+                driverResetOTP();
                 return;
             }
-            driverLoginOTP();
-        }
 
-        function driverLoginOTP() {
-            localStorage.setItem('currentDriver', JSON.stringify({
-                id: 'drv_1',
-                name: 'Rajesh Driver',
-                email: 'driver@test.com',
-                phone: '8765432109',
-                vehicleType: 'economy',
-                vehicleNumber: 'RJ01AB1234',
-                role: 'driver'
-            }));
-            localStorage.setItem('userRole', 'driver');
-            showSuccess('✅ Login successful!');
-            setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
+            setDriverSession(driver);
+            showSuccess('Login successful.');
+            setTimeout(() => {
+                window.location.href = './driver-dashboard.html';
+            }, 700);
         }
 
         function driverResetOTP() {
+            driverConfirmation = null;
             document.getElementById('driverOTPSection').classList.remove('show');
             document.getElementById('driverPhone').disabled = false;
-            document.getElementById('driverPhone').value = '';
-            document.querySelectorAll('.driver-otp').forEach(i => i.value = '');
+            document.querySelectorAll('.driver-otp').forEach((input) => { input.value = ''; });
         }
 
         async function driverLoginEmail() {
             const email = sanitizeEmail(document.getElementById('driverEmail').value);
             const password = document.getElementById('driverPassword').value;
-            
-            if (!email) {
-                showError('❌ Please enter a valid email address');
-                return;
-            }
-            
-            // Hash the password for comparison
-            const hashedPassword = await hashPassword(password);
-            
-            // Check against demo credentials (demo password "123456" hashed)
-            const demoPasswordHash = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
-            if (email === 'driver@test.com' && hashedPassword === demoPasswordHash) {
-                localStorage.setItem('currentDriver', JSON.stringify({
-                    id: 'drv_1',
-                    name: 'Rajesh Driver',
-                    email: 'driver@test.com',
-                    phone: '8765432109',
-                    vehicleType: 'economy',
-                    vehicleNumber: 'RJ01AB1234',
-                    role: 'driver'
-                }));
-                localStorage.setItem('userRole', 'driver');
-                showSuccess('✅ Login successful!');
-                setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
-                return;
-            }
-            
-            // Check against registered drivers
-            const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-            const driver = drivers.find(d => d.email === email && d.password === hashedPassword && d.role === 'driver');
-            
-            if (driver) {
-                localStorage.setItem('currentDriver', JSON.stringify({
-                    id: driver.id,
-                    name: driver.name,
-                    email: driver.email,
-                    phone: driver.phone,
-                    vehicleType: 'economy',
-                    vehicleNumber: driver.vehicleNumber,
-                    role: 'driver'
-                }));
-                localStorage.setItem('userRole', 'driver');
-                showSuccess('✅ Login successful!');
-                setTimeout(() => window.location.href = '/pages/driver-dashboard.html', 1500);
-            } else {
-                showError('❌ Wrong credentials');
-            }
-        }
 
-        // ============================================
-        // ADMIN FUNCTIONS
-        // ============================================
+            if (!email) {
+                showError('Please enter a valid email address.');
+                return;
+            }
+
+            if (!password) {
+                showError('Please enter your password.');
+                return;
+            }
+
+            const hashedPassword = await hashPassword(password);
+            const drivers = mergeRecords(DRIVER_STORAGE_KEYS);
+
+            const driver = drivers.find((item) => {
+                const itemEmail = sanitizeEmail(item.email || '');
+                return itemEmail === email && item.password === hashedPassword;
+            });
+
+            if (!driver) {
+                showError('Wrong credentials.');
+                return;
+            }
+
+            setDriverSession(driver);
+            showSuccess('Login successful.');
+            setTimeout(() => {
+                window.location.href = './driver-dashboard.html';
+            }, 700);
+        }
 
         function adminStep1Login() {
             const email = document.getElementById('adminEmail').value.trim().toLowerCase();
             const password = document.getElementById('adminPassword').value;
 
             if (email !== 'admin@test.com' || password !== '123456') {
-                showError('❌ Wrong credentials');
+                showError('Wrong credentials.');
                 return;
             }
 
@@ -636,7 +836,7 @@
         }
 
         function updateAdmin2FAMethod() {
-            // Method selection changed
+            // no-op, reserved for future provider options
         }
 
         function sendAdmin2FAOTP() {
@@ -647,9 +847,9 @@
             localStorage.setItem('admin2FAMethod', method);
 
             if (method === 'email') {
-                showSuccess(`✅ OTP sent to ${email}\nCode: 123456`);
+                showSuccess('OTP sent to ' + email);
             } else {
-                showSuccess(`✅ OTP sent to 7654321098\nCode: 123456`);
+                showSuccess('OTP sent to registered admin mobile');
             }
 
             document.getElementById('adminStep2').style.display = 'none';
@@ -658,11 +858,10 @@
         }
 
         function verifyAdmin2FA() {
-            const inputs = document.querySelectorAll('.admin2fa-otp');
-            const otp = Array.from(inputs).map(i => i.value).join('');
+            const otp = readOtpDigits('.admin2fa-otp');
 
             if (otp !== '123456') {
-                showError('❌ Wrong 2FA code');
+                showError('Wrong 2FA code.');
                 return;
             }
 
@@ -676,16 +875,16 @@
             }));
             localStorage.setItem('userRole', 'admin');
 
-            showSuccess('✅ Admin login successful!');
+            showSuccess('Admin login successful.');
             setTimeout(() => {
-                window.location.href = '/pages/admin-dashboard.html';
-            }, 1500);
+                window.location.href = './admin-dashboard.html';
+            }, 700);
         }
 
         function adminResetTo2FAMethod() {
             document.getElementById('adminStep2').style.display = 'block';
             document.getElementById('adminStep3').style.display = 'none';
-            document.querySelectorAll('.admin2fa-otp').forEach(i => i.value = '');
+            document.querySelectorAll('.admin2fa-otp').forEach((input) => { input.value = ''; });
         }
 
         function toggleAdminLogin() {
@@ -709,33 +908,30 @@
             } else {
                 adminForm.style.display = 'none';
                 roleSelector.style.display = 'grid';
-                customerForm.style.display = 'block';
-                driverForm.style.display = 'none';
                 adminText.style.display = 'none';
                 updateLoginMethod();
             }
         }
 
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-
         function setupOTPInputs(selector) {
             const inputs = document.querySelectorAll(selector);
+            if (!inputs.length) return;
+
             inputs.forEach((input, idx) => {
                 input.value = '';
-                input.oninput = (e) => {
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                    if (e.target.value && idx < inputs.length - 1) {
+                input.oninput = (event) => {
+                    event.target.value = event.target.value.replace(/[^0-9]/g, '');
+                    if (event.target.value && idx < inputs.length - 1) {
                         inputs[idx + 1].focus();
                     }
                 };
-                input.onkeydown = (e) => {
-                    if (e.key === 'Backspace' && input.value === '' && idx > 0) {
+                input.onkeydown = (event) => {
+                    if (event.key === 'Backspace' && input.value === '' && idx > 0) {
                         inputs[idx - 1].focus();
                     }
                 };
             });
+
             inputs[0].focus();
         }
 
@@ -744,7 +940,7 @@
             const errorText = document.getElementById('errorText');
             errorText.textContent = msg;
             errorDiv.classList.add('show');
-            setTimeout(() => errorDiv.classList.remove('show'), 4000);
+            setTimeout(() => errorDiv.classList.remove('show'), 4500);
         }
 
         function showSuccess(msg) {
@@ -752,10 +948,11 @@
         }
 
         window.addEventListener('load', () => {
-            console.log('🚀 Login Page Loaded');
             updateLoginMethod();
+            updateSelectedLoginMethod();
+            initFirebasePhoneAuth();
+            console.log('Login page ready');
         });
     </script>
 </body>
 </html>
-

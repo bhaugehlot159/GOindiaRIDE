@@ -6,7 +6,7 @@ class LocationAutocomplete {
     constructor(inputElement, suggestionsElement, options = {}) {
         this.input = inputElement;
         this.suggestionsBox = suggestionsElement;
-        this.data = window.locationsData;
+        this.data = window.locationsData || { states: {}, rajasthan: {} };
         this.currentFocus = -1;
         
         // Configurable options with defaults
@@ -53,6 +53,11 @@ class LocationAutocomplete {
     }
     
     searchLocations(query) {
+        const hasStates = this.data && this.data.states && typeof this.data.states === 'object';
+        const hasRajasthan = this.data && this.data.rajasthan && typeof this.data.rajasthan === 'object';
+        if (!hasStates && !hasRajasthan) {
+            return [];
+        }
         const results = {
             states: [],
             cities: [],
@@ -329,22 +334,28 @@ class LocationAutocomplete {
 // Helper function to initialize autocomplete for an input
 function initializeAutocomplete(inputId) {
     const input = document.getElementById(inputId);
-    if (!input) return;
-    
-    // Create suggestions container
-    const suggestions = document.createElement('div');
-    suggestions.id = inputId + 'Autocomplete';
-    suggestions.className = 'autocomplete-suggestions';
-    input.parentNode.appendChild(suggestions);
-    
+    if (!input || !input.parentNode) return;
+
+    const existing = document.getElementById(inputId + 'Autocomplete');
+    const suggestions = existing || document.createElement('div');
+
+    if (!existing) {
+        suggestions.id = inputId + 'Autocomplete';
+        suggestions.className = 'autocomplete-suggestions';
+        input.parentNode.appendChild(suggestions);
+    }
+
+    if (input.dataset.autocompleteReady === '1') return;
+    input.dataset.autocompleteReady = '1';
+
     // Initialize autocomplete
     new LocationAutocomplete(input, suggestions);
 }
 
 // Initialize autocomplete when DOM is loaded or immediately if already loaded
 function initializeAllAutocomplete() {
-    initializeAutocomplete('pickup');
-    initializeAutocomplete('dropoff');
+    const ids = ['pickup', 'dropoff', 'pickupLocation', 'dropLocation', 'searchLocation', 'calcFrom', 'calcTo'];
+    ids.forEach((id) => initializeAutocomplete(id));
 }
 
 // Check if DOM is already loaded

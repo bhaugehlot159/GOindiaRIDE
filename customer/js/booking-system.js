@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFareCalculator();
 });
 
+let lastEstimatedDistanceKm = 5;
+let lastDistanceSource = 'fallback';
+let distanceEstimateTimer = null;
+let distanceRequestToken = 0;
+
 /**
  * Initialize booking system
  */
@@ -42,14 +47,66 @@ function setupBookingForm() {
     const pickup = document.getElementById('pickupLocation');
     const drop = document.getElementById('dropLocation');
     const vehicleType = document.getElementById('vehicleType');
-    
-    [pickup, drop, vehicleType].forEach(input => {
-        if (input) {
-            input.addEventListener('change', calculateFarePreview);
-        }
+
+    [pickup, drop].forEach((input) => {
+        if (!input) return;
+        input.addEventListener('change', scheduleDistanceEstimate);
+        input.addEventListener('blur', scheduleDistanceEstimate);
+        input.addEventListener('input', scheduleDistanceEstimate);
     });
+
+    if (vehicleType) {
+        vehicleType.addEventListener('change', calculateFarePreview);
+    }
 }
 
+function scheduleDistanceEstimate() {
+    if (distanceEstimateTimer) {
+        clearTimeout(distanceEstimateTimer);
+    }
+
+    distanceEstimateTimer = setTimeout(() => {
+        estimateDistanceForBooking();
+    }, 300);
+}
+
+async function estimateDistanceForBooking() {
+    const pickup = document.getElementById('pickupLocation')?.value?.trim() || '';
+    const drop = document.getElementById('dropLocation')?.value?.trim() || '';
+
+    if (!pickup || !drop) {
+        lastEstimatedDistanceKm = 5;
+        lastDistanceSource = 'fallback';
+        calculateFarePreview();
+        return;
+    }
+
+    const token = ++distanceRequestToken;
+
+    try {
+        if (window.LocationDistanceEstimator && typeof LocationDistanceEstimator.estimateDistanceKm === 'function') {
+            const estimate = await LocationDistanceEstimator.estimateDistanceKm(pickup, drop);
+            if (token !== distanceRequestToken) return;
+
+            const km = Number(estimate && estimate.km);
+            if (Number.isFinite(km) && km > 0) {
+                lastEstimatedDistanceKm = Math.max(1, Math.round(km));
+                lastDistanceSource = estimate.source || 'fallback';
+            } else {
+                lastEstimatedDistanceKm = 5;
+                lastDistanceSource = 'fallback';
+            }
+        } else {
+            lastEstimatedDistanceKm = 5;
+            lastDistanceSource = 'fallback';
+        }
+    } catch (error) {
+        lastEstimatedDistanceKm = 5;
+        lastDistanceSource = 'fallback';
+    }
+
+    calculateFarePreview();
+}
 /**
  * Handle booking submission
  */
@@ -81,7 +138,8 @@ function handleBookingSubmit() {
             luggageSpace,
             status: 'searching',
             timestamp: new Date().toISOString(),
-            fare: calculateFare(pickup, drop, vehicleType),
+            distanceKm: lastEstimatedDistanceKm,
+            fare: calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm),
             discount: isFirstBooking ? 5 : 0,
             otp: generateOTP()
         };
@@ -166,7 +224,7 @@ function calculateFarePreview() {
     
     if (!pickup || !drop) return;
     
-    const fare = calculateFare(pickup, drop, vehicleType);
+    const fare = calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm);
     const isFirstBooking = localStorage.getItem('goindiaride_user_type') === 'new';
     const discount = isFirstBooking ? fare * 0.05 : 0;
     const finalFare = fare - discount;
@@ -175,6 +233,10 @@ function calculateFarePreview() {
     preview.innerHTML = `
         <h4>Fare Estimate</h4>
         <div style="margin: 1rem 0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Distance:</span>
+                <span>${lastEstimatedDistanceKm} km (${String(lastDistanceSource || 'fallback').replace(/_/g, ' ')})</span>
+            </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                 <span>Base Fare:</span>
                 <span>₹${fare.toFixed(0)}</span>
@@ -197,12 +259,9 @@ function calculateFarePreview() {
 /**
  * Calculate fare based on distance and vehicle type
  */
-function calculateFare(pickup, drop, vehicleType) {
-    // Simulate distance calculation (in production, use actual maps API)
-    const baseDistance = 10; // km
-    const randomVariation = Math.random() * 10;
-    const distance = baseDistance + randomVariation;
-    
+function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDistanceKm) {
+    const distance = Number(distanceKm) > 0 ? Number(distanceKm) : 5;
+
     // Vehicle type rates per km
     const rates = {
         'mini': 8,
@@ -210,14 +269,14 @@ function calculateFare(pickup, drop, vehicleType) {
         'suv': 18,
         'luxury': 25
     };
-    
+
     const rate = rates[vehicleType] || rates['sedan'];
-    const baseFare = distance * rate;
-    
+    const distanceFare = distance * rate;
+
     // Add base charge
     const baseCharge = 50;
-    
-    return baseFare + baseCharge;
+
+    return distanceFare + baseCharge;
 }
 
 /**
@@ -266,14 +325,22 @@ function loadActiveBookings() {
  * Open live trip modal
  */
 function openLiveTripModal(booking) {
-    // Generate demo driver data
-    const drivers = [
-        { name: 'Rajesh Kumar', vehicle: 'Maruti Swift - RJ14AB1234', rating: 4.8, phone: '+91 98765 43210' },
-        { name: 'Suresh Sharma', vehicle: 'Honda City - RJ14CD5678', rating: 4.9, phone: '+91 98765 43211' },
-        { name: 'Mahesh Patel', vehicle: 'Toyota Innova - RJ14EF9012', rating: 4.7, phone: '+91 98765 43212' }
-    ];
-    
-    const driver = drivers[Math.floor(Math.random() * drivers.length)];
+    const registeredDrivers = JSON.parse(localStorage.getItem('drivers') || '[]');
+    const activeDriver = registeredDrivers.find((item) => item.status === 'available') || registeredDrivers[0] || null;
+
+    const driver = activeDriver
+        ? {
+            name: activeDriver.name || 'Assigned Driver',
+            vehicle: (activeDriver.vehicleModel || 'Vehicle') + ' - ' + (activeDriver.vehicleNumber || 'Pending'),
+            rating: Number(activeDriver.rating || 4.7).toFixed(1),
+            phone: activeDriver.phone || '+91 **********'
+        }
+        : {
+            name: 'Assigned Driver',
+            vehicle: 'Vehicle details will appear soon',
+            rating: '4.7',
+            phone: '+91 **********'
+        };
     
     // Update modal content
     document.getElementById('driverName').textContent = driver.name;
@@ -354,7 +421,7 @@ function openChatModal(driver) {
 function loadChatMessages(driver) {
     const chatMessages = document.getElementById('chatMessages');
     
-    // Demo messages
+    // Seeded chat messages
     const messages = [
         { type: 'received', text: `Hello! I'm ${driver.name}, your driver for today.`, time: '10:30 AM' },
         { type: 'received', text: 'I will reach in 5 minutes.', time: '10:31 AM' }
@@ -655,7 +722,7 @@ function addToRideHistory(booking) {
         date: new Date(booking.timestamp).toLocaleDateString(),
         fare: booking.finalFare,
         status: 'completed',
-        driver: 'Demo Driver',
+        driver: booking.driverName || 'Assigned Driver',
         rating: 0
     };
     

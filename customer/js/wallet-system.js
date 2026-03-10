@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GO India RIDE - Wallet System
  * Handles dual wallet, payments, donations, cashback, and split fare
  */
@@ -17,15 +17,16 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initializeWalletSystem() {
     console.log('Wallet system initialized');
-    
-    // Initialize wallet if not exists
-    const wallet = JSON.parse(localStorage.getItem('goindiaride_wallet') || '{"payment": 0, "donation": 0}');
-    
-    if (!wallet.payment) wallet.payment = 500; // Demo balance
-    if (!wallet.donation) wallet.donation = 200; // Demo balance
-    
-    localStorage.setItem('goindiaride_wallet', JSON.stringify(wallet));
-    
+
+    const ownerId = getCustomerWalletOwnerId();
+
+    if (window.WalletCore) {
+        WalletCore.getWallet('customer', ownerId);
+        WalletCore.getWallet('donation', 'pool');
+    }
+
+    syncLegacyWalletSnapshot();
+
     // Update UI
     updateWalletUI();
 }
@@ -34,8 +35,8 @@ function initializeWalletSystem() {
  * Update wallet UI
  */
 function updateWalletUI() {
-    const wallet = JSON.parse(localStorage.getItem('goindiaride_wallet') || '{"payment": 0, "donation": 0}');
-    
+    const wallet = getWalletSnapshot();
+
     document.getElementById('paymentBalance').textContent = wallet.payment.toFixed(0);
     document.getElementById('donationBalance').textContent = wallet.donation.toFixed(0);
 }
@@ -59,52 +60,75 @@ function setupPaymentHandlers() {
  */
 function handleAddMoney() {
     const customAmount = document.getElementById('customAmount').value;
-    const amount = parseInt(customAmount);
-    
+    const amount = parseInt(customAmount, 10);
+
     if (!amount || amount < 10) {
-        CustomerPortal.showToast('Please enter valid amount (minimum ₹10)', 'error');
+        CustomerPortal.showToast('Please enter valid amount (minimum ?10)', 'error');
         return;
     }
-    
+
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
     const walletType = document.getElementById('addMoneyModal').getAttribute('data-wallet-type');
-    
-    CustomerPortal.showLoading();
-    
-    // Simulate payment processing
-    setTimeout(() => {
-        // Update wallet balance
-        const wallet = JSON.parse(localStorage.getItem('goindiaride_wallet') || '{"payment": 0, "donation": 0}');
-        
-        if (walletType === 'payment') {
-            wallet.payment = (wallet.payment || 0) + amount;
-        } else if (walletType === 'donation') {
-            wallet.donation = (wallet.donation || 0) + amount;
-        }
-        
-        localStorage.setItem('goindiaride_wallet', JSON.stringify(wallet));
-        
-        // Add transaction
-        addTransaction({
-            type: 'added',
-            amount: amount,
-            description: `Added to ${walletType} wallet via ${paymentMethod}`,
-            date: new Date().toLocaleDateString()
-        });
-        
-        // Update UI
-        updateWalletUI();
-        
-        CustomerPortal.hideLoading();
-        CustomerPortal.closeModal('addMoneyModal');
-        CustomerPortal.showToast(`₹${amount} added successfully!`, 'success');
-        
-        // Clear form
-        document.getElementById('customAmount').value = '';
-        document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
-    }, 2000);
-}
 
+    CustomerPortal.showLoading();
+
+    // Simulate gateway processing
+    setTimeout(() => {
+        try {
+            if (window.WalletCore) {
+                const ownerId = getCustomerWalletOwnerId();
+
+                if (walletType === 'payment') {
+                    WalletCore.credit({
+                        type: 'customer',
+                        ownerId,
+                        amount,
+                        description: 'Wallet top-up via ' + paymentMethod,
+                        actorRole: 'customer',
+                        paymentMode: paymentMethod
+                    });
+                } else if (walletType === 'donation') {
+                    WalletCore.credit({
+                        type: 'donation',
+                        ownerId: 'pool',
+                        amount,
+                        description: 'Donation pool funding via ' + paymentMethod,
+                        actorRole: 'customer',
+                        paymentMode: paymentMethod
+                    });
+                }
+
+                syncLegacyWalletSnapshot();
+            } else {
+                const wallet = JSON.parse(localStorage.getItem('goindiaride_wallet') || '{"payment": 0, "donation": 0}');
+                if (walletType === 'payment') {
+                    wallet.payment = (wallet.payment || 0) + amount;
+                } else if (walletType === 'donation') {
+                    wallet.donation = (wallet.donation || 0) + amount;
+                }
+                localStorage.setItem('goindiaride_wallet', JSON.stringify(wallet));
+            }
+
+            addTransaction({
+                type: 'added',
+                amount,
+                description: 'Added to ' + walletType + ' wallet via ' + paymentMethod,
+                date: new Date().toLocaleDateString()
+            });
+
+            updateWalletUI();
+            CustomerPortal.hideLoading();
+            CustomerPortal.closeModal('addMoneyModal');
+            CustomerPortal.showToast('?' + amount + ' added successfully!', 'success');
+
+            document.getElementById('customAmount').value = '';
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
+        } catch (error) {
+            CustomerPortal.hideLoading();
+            CustomerPortal.showToast(error.message || 'Wallet update failed', 'error');
+        }
+    }, 1200);
+}
 /**
  * Add transaction
  */
@@ -185,61 +209,72 @@ function setupDonationHandlers() {
  * Handle donation
  */
 function handleDonation() {
-    const amount = parseInt(document.getElementById('donationAmount').value);
+    const amount = parseInt(document.getElementById('donationAmount').value, 10);
     const destination = document.getElementById('donationDestination');
     const destinationName = destination.options[destination.selectedIndex].text;
-    
-    if (!amount || amount < 10) {
-        CustomerPortal.showToast('Please enter valid donation amount (minimum ₹10)', 'error');
-        return;
-    }
-    
-    // Check donation wallet balance
-    const wallet = JSON.parse(localStorage.getItem('goindiaride_wallet') || '{"payment": 0, "donation": 0}');
-    
-    if (wallet.donation < amount) {
-        CustomerPortal.showToast('Insufficient balance in donation wallet. Please add money first.', 'error');
-        return;
-    }
-    
-    CustomerPortal.showLoading();
-    
-    // Process donation
-    setTimeout(() => {
-        // Deduct from donation wallet
-        wallet.donation -= amount;
-        localStorage.setItem('goindiaride_wallet', JSON.stringify(wallet));
-        
-        // Add transaction
-        addTransaction({
-            type: 'donation',
-            amount: -amount,
-            description: `Donated to ${destinationName}`,
-            date: new Date().toLocaleDateString()
-        });
-        
-        // Save donation record
-        saveDonationRecord({
-            amount,
-            destination: destinationName,
-            date: new Date().toISOString(),
-            receiptId: 'DON' + Date.now()
-        });
-        
-        // Update UI
-        updateWalletUI();
-        
-        CustomerPortal.hideLoading();
-        CustomerPortal.closeModal('donationModal');
-        
-        // Show success with receipt info
-        showDonationSuccess(amount, destinationName);
-        
-        // Clear form
-        document.getElementById('donationAmount').value = '';
-    }, 2000);
-}
 
+    if (!amount || amount < 10) {
+        CustomerPortal.showToast('Please enter valid donation amount (minimum ?10)', 'error');
+        return;
+    }
+
+    const wallet = getWalletSnapshot();
+
+    if (wallet.payment < amount) {
+        CustomerPortal.showToast('Insufficient customer wallet balance. Please add money first.', 'error');
+        return;
+    }
+
+    CustomerPortal.showLoading();
+
+    setTimeout(() => {
+        try {
+            if (window.WalletCore) {
+                const ownerId = getCustomerWalletOwnerId();
+
+                WalletCore.transfer({
+                    fromType: 'customer',
+                    fromOwnerId: ownerId,
+                    toType: 'donation',
+                    toOwnerId: 'pool',
+                    amount,
+                    description: 'Donation to ' + destinationName,
+                    actorRole: 'customer'
+                });
+
+                syncLegacyWalletSnapshot();
+            } else {
+                const legacy = JSON.parse(localStorage.getItem('goindiaride_wallet') || '{"payment": 0, "donation": 0}');
+                legacy.payment -= amount;
+                legacy.donation += amount;
+                localStorage.setItem('goindiaride_wallet', JSON.stringify(legacy));
+            }
+
+            addTransaction({
+                type: 'donation',
+                amount: -amount,
+                description: 'Donated to ' + destinationName,
+                date: new Date().toLocaleDateString()
+            });
+
+            saveDonationRecord({
+                amount,
+                destination: destinationName,
+                date: new Date().toISOString(),
+                receiptId: 'DON' + Date.now()
+            });
+
+            updateWalletUI();
+            CustomerPortal.hideLoading();
+            CustomerPortal.closeModal('donationModal');
+            showDonationSuccess(amount, destinationName);
+            document.getElementById('donationAmount').value = '';
+        } catch (error) {
+            CustomerPortal.hideLoading();
+            CustomerPortal.showToast(error.message || 'Donation failed', 'error');
+        }
+    }, 1200);
+}
 /**
  * Save donation record
  */
@@ -577,3 +612,4 @@ window.WalletSystem = {
     addTransaction,
     redeemPoints
 };
+

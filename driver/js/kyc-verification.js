@@ -76,6 +76,28 @@ const LANGUAGES = [
 // Proficiency levels
 const PROFICIENCY_LEVELS = ['Basic', 'Fluent', 'Native'];
 
+function getDocumentStatusMeta(status) {
+    const value = String(status || 'pending').toLowerCase();
+
+    if (value === 'verified') {
+        return { className: 'success', label: '? Verified' };
+    }
+
+    if (value === 'rejected' || value === 'rejected_ai') {
+        return { className: 'danger', label: '? Rejected' };
+    }
+
+    if (value === 'pending_admin') {
+        return { className: 'warning', label: '? Pending Admin Approval' };
+    }
+
+    if (value === 'ai_review') {
+        return { className: 'warning', label: '?? AI Review Required' };
+    }
+
+    return { className: 'warning', label: '? Pending' };
+}
+
 // Open KYC Modal
 function openKYC() {
     const modal = createModal('KYC Verification', getKYCContent());
@@ -84,7 +106,7 @@ function openKYC() {
 
 // Get KYC Content
 function getKYCContent() {
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const kycData = loadKycData();
     
     let html = '<div class="kyc-container">';
     
@@ -114,7 +136,7 @@ function getKYCContent() {
                     <h4>${doc.name}</h4>
                     ${doc.required ? '<span class="required">*</span>' : ''}
                 </div>
-                <div class="doc-status badge-${statusClass}">
+                <div class="doc-status badge-${statusMeta.className}">
                     ${status === 'verified' ? '✓ Verified' : status === 'rejected' ? '✗ Rejected' : '⏳ Pending'}
                 </div>
                 ${docData.expiryDate ? `<p class="doc-expiry">Expires: ${new Date(docData.expiryDate).toLocaleDateString()}</p>` : ''}
@@ -175,7 +197,7 @@ function uploadDocument(docType) {
 // Get Upload Document Content
 function getUploadDocumentContent(docType) {
     const doc = KYC_DOCUMENTS[docType];
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const kycData = loadKycData();
     const docData = kycData.documents?.[docType] || {};
     
     let html = `<form id="uploadForm-${docType}" onsubmit="submitDocument(event, '${docType}')">`;
@@ -229,92 +251,73 @@ function handleFileSelect(event, docType) {
 // Submit Document
 function submitDocument(event, docType) {
     event.preventDefault();
-    
+
     const form = event.target;
     const formData = new FormData(form);
-    
-    // Get KYC data
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+
+    const kycData = loadKycData();
     if (!kycData.documents) {
         kycData.documents = {};
     }
-    
-    // Save document data
+
     const docData = {
-        status: 'pending',
+        status: 'pending_admin',
         uploadedAt: Date.now(),
         uploaded: true
     };
-    
-    // Add form fields
+
     for (const [key, value] of formData.entries()) {
         docData[key] = value;
     }
-    
-    // Add file info
-    const fileInput = document.getElementById(`file-${docType}`);
-    if (fileInput?.files[0]) {
-        docData.fileName = fileInput.files[0].name;
-        docData.fileSize = fileInput.files[0].size;
-        
-        // Read file as base64 (for demo)
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            docData.fileData = e.target.result;
-            saveDocumentData();
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    } else {
-        saveDocumentData();
-    }
-    
-    function saveDocumentData() {
-        kycData.documents[docType] = docData;
-        
-        // Update document count
-        updateDocumentStatus(kycData);
-        
-        localStorage.setItem('kyc_data', JSON.stringify(kycData));
-        
-        showToast(`${KYC_DOCUMENTS[docType].name} uploaded successfully!`, 'success');
-        
-        // Close modals
-        closeAllModals();
-        
-        // Reopen KYC modal to show updated status
-        setTimeout(() => openKYC(), 300);
-        
-        // Simulate verification after 2 seconds (demo)
-        setTimeout(() => simulateVerification(docType), 2000);
-    }
-}
 
-// Simulate Verification (Demo)
-// NOTE: This is demo/testing code. In production, replace with actual API calls to verification service
-function simulateVerification(docType) {
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
-    
-    if (kycData.documents[docType]) {
-        // Demo: 90% chance of approval (replace with actual API verification in production)
-        const approved = Math.random() > 0.1;
-        
-        kycData.documents[docType].status = approved ? 'verified' : 'rejected';
-        
-        if (!approved) {
-            kycData.documents[docType].rejectionReason = 'Document not clear. Please upload a better quality image.';
+    const fileInput = document.getElementById(`file-${docType}`);
+
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        showToast('Please upload a document file.', 'error');
+        return;
+    }
+
+    docData.fileName = fileInput.files[0].name;
+    docData.fileSize = fileInput.files[0].size;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        docData.fileData = e.target.result;
+        finalizeDocumentSubmission();
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+
+    function finalizeDocumentSubmission() {
+        const aiResult = runAutomaticAIDocumentScreening(docType, docData);
+        docData.aiDecision = aiResult.decision;
+        docData.aiScore = aiResult.score;
+        docData.aiReason = aiResult.reason;
+
+        if (aiResult.decision === 'reject') {
+            docData.status = 'rejected_ai';
+            docData.rejectionReason = 'AI verification failed: ' + aiResult.reason;
+        } else {
+            docData.status = 'pending_admin';
+            docData.rejectionReason = '';
+            queueForAdminReview(docType, docData);
         }
-        
-        // Update verification status
+
+        kycData.documents[docType] = docData;
         updateDocumentStatus(kycData);
-        
-        localStorage.setItem('kyc_data', JSON.stringify(kycData));
-        
-        showToast(
-            approved ? `${KYC_DOCUMENTS[docType].name} verified!` : `${KYC_DOCUMENTS[docType].name} rejected. Please re-upload.`,
-            approved ? 'success' : 'error'
-        );
-        
-        updateKYCStatus();
+        saveKycData(kycData);
+
+        if (aiResult.decision === 'reject') {
+            showToast(KYC_DOCUMENTS[docType].name + ' rejected by AI screening. Re-upload clear valid document.', 'error');
+        } else {
+            showToast(KYC_DOCUMENTS[docType].name + ' uploaded. AI score ' + aiResult.score + '. Sent to admin for final approval.', 'success');
+        }
+
+        closeAllModals();
+        setTimeout(() => openKYC(), 250);
+
+        if (typeof updateKYCStatus === 'function') {
+            updateKYCStatus();
+        }
     }
 }
 
@@ -346,7 +349,7 @@ function openLanguagesModal() {
 
 // Get Languages Content
 function getLanguagesContent() {
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const kycData = loadKycData();
     const selectedLanguages = kycData.languages || [];
     
     let html = '<div class="languages-form">';
@@ -383,7 +386,7 @@ function getLanguagesContent() {
 // Toggle Language
 function toggleLanguage(code, name) {
     const checkbox = document.getElementById(`lang-${code}`);
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const kycData = loadKycData();
     
     if (!kycData.languages) {
         kycData.languages = [];
@@ -403,7 +406,7 @@ function toggleLanguage(code, name) {
         kycData.languages = kycData.languages.filter(l => l.code !== code);
     }
     
-    localStorage.setItem('kyc_data', JSON.stringify(kycData));
+    saveKycData(kycData);
     
     // Refresh modal
     closeAllModals();
@@ -413,18 +416,18 @@ function toggleLanguage(code, name) {
 // Update Proficiency
 function updateProficiency(code) {
     const select = document.getElementById(`prof-${code}`);
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const kycData = loadKycData();
     
     const lang = kycData.languages.find(l => l.code === code);
     if (lang) {
         lang.proficiency = select.value;
-        localStorage.setItem('kyc_data', JSON.stringify(kycData));
+        saveKycData(kycData);
     }
 }
 
 // Save Languages
 function saveLanguages() {
-    const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const kycData = loadKycData();
     const count = kycData.languages?.length || 0;
     
     // Update UI

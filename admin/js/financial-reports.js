@@ -1,4 +1,4 @@
-// ===== Financial Features =====
+﻿// ===== Financial Features =====
 
 // 1. Affiliate Commission Tracking
 function createAffiliateTrackingContent() {
@@ -937,4 +937,131 @@ function processAllPayouts() {
 
 function showAddExpenseForm() {
     showToast('Add expense form (to be implemented)', 'info');
+}
+
+function renderAdminWalletControl() {
+    if (!window.WalletCore) {
+        return '<div class="card mt-20"><h3>Unified Wallet Control</h3><p>WalletCore not loaded.</p></div>';
+    }
+
+    const wallets = WalletCore.listWallets();
+    const modes = WalletCore.getPaymentModes();
+
+    const rows = wallets.map((wallet) => `
+        <tr>
+            <td>${wallet.type}</td>
+            <td>${wallet.ownerId}</td>
+            <td>₹${Number(wallet.balance || 0).toFixed(2)}</td>
+            <td>
+                <button class="btn btn-success" onclick="adminWalletAdjust('${wallet.type}', '${wallet.ownerId}', 'credit')">Add</button>
+                <button class="btn btn-warning" onclick="adminWalletAdjust('${wallet.type}', '${wallet.ownerId}', 'debit')">Withdraw</button>
+            </td>
+        </tr>
+    `).join('');
+
+    const modeRows = modes.map((mode) => `
+        <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0;">
+            <input type="checkbox" data-mode-id="${mode.id}" ${mode.enabled ? 'checked' : ''}>
+            <span>${mode.label}</span>
+        </label>
+    `).join('');
+
+    return `
+        <div class="card mt-20">
+            <div class="flex-between mb-20">
+                <h3>Unified Wallet Control (Admin)</h3>
+                <button class="btn btn-primary" onclick="refreshWalletControlSection()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Wallet Type</th>
+                        <th>Owner</th>
+                        <th>Balance</th>
+                        <th>Admin Controls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows || '<tr><td colspan="4">No wallets available</td></tr>'}
+                </tbody>
+            </table>
+
+            <div class="card mt-20" style="background:#f8fafc;">
+                <h4>Payment Modes Control</h4>
+                <p style="margin-bottom:0.75rem; color:#64748b;">Enable/disable payment methods globally.</p>
+                <div id="paymentModesAdminList">${modeRows}</div>
+                <button class="btn btn-success" style="margin-top:0.75rem;" onclick="adminSavePaymentModes()">Save Payment Modes</button>
+            </div>
+        </div>
+    `;
+}
+
+function adminWalletAdjust(type, ownerId, action) {
+    if (!window.WalletCore) return;
+
+    const amountInput = prompt((action === 'credit' ? 'Add amount' : 'Withdraw amount') + ' for ' + type + ' wallet (' + ownerId + '):');
+    const amount = Number(amountInput || 0);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        showToast('Enter a valid amount', 'error');
+        return;
+    }
+
+    try {
+        if (action === 'credit') {
+            WalletCore.credit({
+                type,
+                ownerId,
+                amount,
+                actorRole: 'admin',
+                description: 'Admin wallet credit'
+            });
+        } else {
+            WalletCore.debit({
+                type,
+                ownerId,
+                amount,
+                actorRole: 'admin',
+                description: 'Admin wallet debit'
+            });
+        }
+
+        showToast('Wallet updated', 'success');
+        logAdminAction('WALLET_' + action.toUpperCase(), type + ':' + ownerId + ' amount=' + amount);
+        refreshWalletControlSection();
+    } catch (error) {
+        showToast(error.message || 'Wallet update failed', 'error');
+    }
+}
+
+function adminSavePaymentModes() {
+    if (!window.WalletCore) return;
+
+    const container = document.getElementById('paymentModesAdminList');
+    if (!container) return;
+
+    const currentModes = WalletCore.getPaymentModes();
+    const updatedModes = currentModes.map((mode) => {
+        const input = container.querySelector('[data-mode-id="' + mode.id + '"]');
+        return {
+            ...mode,
+            enabled: Boolean(input && input.checked)
+        };
+    });
+
+    try {
+        WalletCore.setPaymentModes(updatedModes, 'admin');
+        showToast('Payment modes updated', 'success');
+        logAdminAction('PAYMENT_MODES_UPDATED', JSON.stringify(updatedModes));
+    } catch (error) {
+        showToast(error.message || 'Could not save payment modes', 'error');
+    }
+}
+
+function refreshWalletControlSection() {
+    const section = document.getElementById('section-driver-payout');
+    if (!section || !section.classList.contains('active')) return;
+
+    section.innerHTML = createDriverPayoutContent();
 }
