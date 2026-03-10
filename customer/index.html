@@ -354,6 +354,19 @@
                     <input type="text" id="dropLocation" placeholder="Enter drop location" required>
                 </div>
                 <div class="form-group">
+                    <label>Booking Mode</label>
+                    <select id="bookingMode">
+                        <option value="standard">Standard Ride</option>
+                        <option value="driver_only_hourly">Driver Only - Hourly</option>
+                        <option value="driver_only_fullday">Driver Only - Full Day</option>
+                        <option value="driver_only_multiday">Driver Only - Multi Day</option>
+                    </select>
+                </div>
+                <div class="form-group" id="driverOnlyDurationGroup" style="display: none;">
+                    <label id="driverOnlyDurationLabel">Duration</label>
+                    <input type="number" id="driverOnlyDuration" min="1" value="1">
+                </div>
+                <div class="form-group">
                     <label>Vehicle Type</label>
                     <select id="vehicleType">
                         <option value="sedan">Sedan</option>

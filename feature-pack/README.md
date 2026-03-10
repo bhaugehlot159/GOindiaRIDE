@@ -1,4 +1,4 @@
-﻿# Complete Feature Pack (No Point Missed)
+# Complete Feature Pack (No Point Missed)
 
 This folder keeps the full `COMPLETE-FEATURES-LIST.txt` in folder-wise format without deleting any old setup.
 
@@ -24,3 +24,7 @@ node tools/folderize-features.cjs
 ```
 
 This regeneration maps every line from source to an indexed item (`L0001` style), so no line is skipped.
+
+
+## Enterprise compliance expansion
+- `feature-pack/08-enterprise-compliance/README.md`

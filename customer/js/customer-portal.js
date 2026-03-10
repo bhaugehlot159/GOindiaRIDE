@@ -1,4 +1,4 @@
-﻿/**
+/**
  * GO India RIDE - Customer Portal Main JavaScript
  * Handles navigation, theme, user management, and core functionality
  */
@@ -749,6 +749,13 @@ function openBookingModal(type, prefillData = null) {
     }
     
     openModal('bookingModal');
+
+    if (typeof updateBookingModeUI === 'function') {
+        updateBookingModeUI();
+    }
+    if (typeof calculateFarePreview === 'function') {
+        calculateFarePreview();
+    }
 }
 
 /**
@@ -867,4 +874,3 @@ window.CustomerPortal = {
     rebookRide,
     bookTourPackage
 };
-

@@ -1,4 +1,4 @@
-﻿// ===== Safety & Monitoring Features + Management Features =====
+// ===== Safety & Monitoring Features + Management Features =====
 
 // This file contains all 8 Safety & Monitoring features plus 8 Management features
 // Total: 16 additional features for the admin portal
@@ -321,10 +321,191 @@ function createAuditLogsContent() {
     return `<div class="section-header"><h2>Audit Logs</h2><p>Track all admin actions</p></div><div class="card"><h3>Activity Logs</h3><table class="data-table"><thead><tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Details</th></tr></thead><tbody id="auditLogsList"><tr><td>Loading...</td><td>-</td><td>-</td><td>-</td></tr></tbody></table></div>`;
 }
 
+
+const COMPLIANCE_DOCS_STORAGE_KEY = 'goindiaride_compliance_docs_v1';
+
+function getComplianceDocuments() {
+    try {
+        const docs = JSON.parse(localStorage.getItem(COMPLIANCE_DOCS_STORAGE_KEY) || '[]');
+        return Array.isArray(docs) ? docs : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveComplianceDocuments(docs) {
+    localStorage.setItem(COMPLIANCE_DOCS_STORAGE_KEY, JSON.stringify(docs));
+}
+
+function uploadComplianceDocument() {
+    const categoryNode = document.getElementById('complianceDocCategory');
+    const titleNode = document.getElementById('complianceDocTitle');
+    const fileNode = document.getElementById('complianceDocFile');
+
+    if (!categoryNode || !titleNode || !fileNode) return;
+
+    const category = String(categoryNode.value || '').trim();
+    const title = String(titleNode.value || '').trim();
+    const file = fileNode.files && fileNode.files[0] ? fileNode.files[0] : null;
+
+    if (!category || !title || !file) {
+        showToast('Category, title, and file are required', 'error');
+        return;
+    }
+
+    const docs = getComplianceDocuments();
+    docs.unshift({
+        id: 'cmp_' + Date.now(),
+        category,
+        title,
+        fileName: file.name,
+        fileSizeKb: Math.max(1, Math.round(file.size / 1024)),
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: 'admin'
+    });
+
+    saveComplianceDocuments(docs);
+
+    titleNode.value = '';
+    fileNode.value = '';
+    showToast('Compliance document metadata saved', 'success');
+
+    if (typeof logAdminAction === 'function') {
+        logAdminAction('COMPLIANCE_DOC_UPLOADED', category + ' - ' + title);
+    }
+
+    refreshComplianceCenterSection();
+}
+
+function removeComplianceDocument(docId) {
+    const docs = getComplianceDocuments();
+    const filtered = docs.filter((item) => item.id !== docId);
+
+    if (filtered.length === docs.length) return;
+
+    saveComplianceDocuments(filtered);
+    showToast('Compliance document removed', 'warning');
+
+    if (typeof logAdminAction === 'function') {
+        logAdminAction('COMPLIANCE_DOC_REMOVED', docId);
+    }
+
+    refreshComplianceCenterSection();
+}
+
+function createComplianceCenterContent() {
+    const docs = getComplianceDocuments();
+
+    const rows = docs.map((doc) => `
+        <tr>
+            <td>${doc.category}</td>
+            <td>${doc.title}</td>
+            <td>${doc.fileName}</td>
+            <td>${doc.fileSizeKb} KB</td>
+            <td>${new Date(doc.uploadedAt).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-danger" onclick="removeComplianceDocument('${doc.id}')">Remove</button>
+            </td>
+        </tr>
+    `).join('');
+
+    return `
+        <div class="section-header">
+            <h2>Compliance Center</h2>
+            <p>ISO 27001 + SOC 2 + GDPR documentation control and audit evidence register</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #4facfe;"><i class="fas fa-file-shield"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Compliance Docs</div>
+                    <div class="stat-value">${docs.length}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #43e97b;"><i class="fas fa-certificate"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Standards</div>
+                    <div class="stat-value">ISO/SOC/GDPR</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #feca57;"><i class="fas fa-road"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">Roadmap</div>
+                    <div class="stat-value">4 Phases</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-20">
+            <h3>Upload Compliance Document</h3>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select id="complianceDocCategory" class="form-select">
+                    <option value="ISO27001">ISO 27001</option>
+                    <option value="SOC2">SOC 2</option>
+                    <option value="GDPR">GDPR</option>
+                    <option value="Investor">Investor Compliance</option>
+                    <option value="Security">Security Evidence</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input id="complianceDocTitle" class="form-input" type="text" placeholder="Policy or report title">
+            </div>
+            <div class="form-group">
+                <label class="form-label">File</label>
+                <input id="complianceDocFile" class="form-input" type="file" accept=".pdf,.doc,.docx,.txt,.md">
+            </div>
+            <button class="btn btn-primary" onclick="uploadComplianceDocument()"><i class="fas fa-upload"></i> Save Document</button>
+        </div>
+
+        <div class="card mt-20">
+            <h3>Uploaded Compliance Documents</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Title</th>
+                        <th>File</th>
+                        <th>Size</th>
+                        <th>Uploaded At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows || '<tr><td colspan="6">No compliance docs uploaded yet</td></tr>'}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card mt-20">
+            <h3>Control Coverage Checklist</h3>
+            <ul>
+                <li>ISO 27001: ISMS scope, risk register, access control, incident response, backup, vendor security</li>
+                <li>SOC 2: Security, availability, processing integrity, confidentiality, privacy</li>
+                <li>GDPR: Privacy notice, DPA, DSR workflow, cookie policy, 72-hour breach SOP</li>
+                <li>Investor section: ISO/SOC/GDPR roadmap with milestone dates</li>
+            </ul>
+        </div>
+    `;
+}
+
+function refreshComplianceCenterSection() {
+    const section = document.getElementById('section-compliance-center');
+    if (!section || !section.classList.contains('active')) return;
+
+    section.innerHTML = createComplianceCenterContent();
+}
 // Initialize Safety & Management Features
 function initializeSafetyFeatures(sectionId) {
     if (sectionId === 'audit-logs') {
         setTimeout(loadAuditLogs, 100);
+    }
+    if (sectionId === 'compliance-center') {
+        setTimeout(refreshComplianceCenterSection, 100);
     }
 }
 
@@ -342,4 +523,3 @@ function loadAuditLogs() {
         `).join('');
     }
 }
-

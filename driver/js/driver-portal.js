@@ -773,6 +773,53 @@ function showProfile() {
     openProfile();
 }
 
+
+function openDriverOnlyBooking() {
+    if (typeof createModal !== 'function') {
+        showToast('Driver only booking panel loading...', 'info');
+        return;
+    }
+
+    const content = `
+        <div class="driver-only-booking-panel">
+            <p style="margin-bottom: 12px;">Manage driver-only package availability for customer requests.</p>
+            <div class="stats-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+                <div class="stat-card" style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;">
+                    <h4 style="margin:0 0 8px 0;">Hourly</h4>
+                    <p style="margin:0;">Recommended for city trips</p>
+                </div>
+                <div class="stat-card" style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;">
+                    <h4 style="margin:0 0 8px 0;">Full Day</h4>
+                    <p style="margin:0;">Ideal for business and tourism</p>
+                </div>
+                <div class="stat-card" style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;">
+                    <h4 style="margin:0 0 8px 0;">Multi Day</h4>
+                    <p style="margin:0;">Outstation and extended bookings</p>
+                </div>
+                <div class="stat-card" style="padding:12px;border:1px solid #e5e7eb;border-radius:10px;">
+                    <h4 style="margin:0 0 8px 0;">Outstation</h4>
+                    <p style="margin:0;">Long route and city transfer</p>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-primary" onclick="enableDriverOnlyPackages()">Enable Packages</button>
+                <button class="btn-secondary" onclick="disableDriverOnlyPackages()">Disable Packages</button>
+            </div>
+        </div>
+    `;
+
+    createModal('Driver Only Booking Option', content);
+}
+
+function enableDriverOnlyPackages() {
+    localStorage.setItem('driver_only_packages_enabled', 'true');
+    showToast('Driver-only booking packages enabled', 'success');
+}
+
+function disableDriverOnlyPackages() {
+    localStorage.setItem('driver_only_packages_enabled', 'false');
+    showToast('Driver-only booking packages disabled', 'warning');
+}
 // Add animation keyframes
 const style = document.createElement('style');
 style.textContent = `
@@ -799,4 +846,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-

@@ -60,4 +60,36 @@
     <changefreq>daily</changefreq>
   </url>
 
+
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/privacy-policy.html</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/terms-and-conditions.html</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/refund-policy.html</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/driver-agreement.html</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/gdpr-notice.html</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/cookie-policy.html</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

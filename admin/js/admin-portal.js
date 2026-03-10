@@ -379,6 +379,9 @@ function loadSectionContent(sectionId, targetSection) {
             case 'audit-logs':
                 content = createAuditLogsContent();
                 break;
+            case 'compliance-center':
+                content = createComplianceCenterContent();
+                break;
             default:
                 content = '<div class="section-header"><h2>Section Not Found</h2></div>';
         }
@@ -405,7 +408,7 @@ function initializeSectionFeatures(sectionId) {
     }
     if (typeof initializeSafetyFeatures === 'function' && 
         ['health-monitor', 'live-tracking', 'sos-alerts', 'document-verification', 
-         'demand-heatmap', 'virtual-escort', 'background-check', 'incident-reports'].includes(sectionId)) {
+         'demand-heatmap', 'virtual-escort', 'background-check', 'incident-reports', 'compliance-center'].includes(sectionId)) {
         initializeSafetyFeatures(sectionId);
     }
 }

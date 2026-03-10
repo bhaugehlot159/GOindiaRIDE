@@ -47,6 +47,8 @@ function setupBookingForm() {
     const pickup = document.getElementById('pickupLocation');
     const drop = document.getElementById('dropLocation');
     const vehicleType = document.getElementById('vehicleType');
+    const bookingMode = document.getElementById('bookingMode');
+    const driverOnlyDuration = document.getElementById('driverOnlyDuration');
 
     [pickup, drop].forEach((input) => {
         if (!input) return;
@@ -58,8 +60,60 @@ function setupBookingForm() {
     if (vehicleType) {
         vehicleType.addEventListener('change', calculateFarePreview);
     }
+
+    if (bookingMode) {
+        bookingMode.addEventListener('change', () => {
+            updateBookingModeUI();
+            calculateFarePreview();
+        });
+    }
+
+    if (driverOnlyDuration) {
+        driverOnlyDuration.addEventListener('change', calculateFarePreview);
+        driverOnlyDuration.addEventListener('input', calculateFarePreview);
+    }
+
+    updateBookingModeUI();
 }
 
+function getBookingModeSelection() {
+    const modeNode = document.getElementById('bookingMode');
+    const durationNode = document.getElementById('driverOnlyDuration');
+
+    const mode = modeNode ? String(modeNode.value || 'standard') : 'standard';
+    const duration = durationNode ? Math.max(1, Number(durationNode.value || 1)) : 1;
+
+    return { mode, duration };
+}
+
+function updateBookingModeUI() {
+    const group = document.getElementById('driverOnlyDurationGroup');
+    const label = document.getElementById('driverOnlyDurationLabel');
+    const input = document.getElementById('driverOnlyDuration');
+    const { mode } = getBookingModeSelection();
+
+    if (!group || !label || !input) return;
+
+    if (mode === 'driver_only_hourly') {
+        group.style.display = 'block';
+        label.textContent = 'Hours';
+        input.min = '1';
+        if (!input.value) input.value = '4';
+    } else if (mode === 'driver_only_fullday') {
+        group.style.display = 'block';
+        label.textContent = 'Days';
+        input.min = '1';
+        if (!input.value) input.value = '1';
+    } else if (mode === 'driver_only_multiday') {
+        group.style.display = 'block';
+        label.textContent = 'Days';
+        input.min = '2';
+        if (Number(input.value || 0) < 2) input.value = '2';
+    } else {
+        group.style.display = 'none';
+        label.textContent = 'Duration';
+    }
+}
 function scheduleDistanceEstimate() {
     if (distanceEstimateTimer) {
         clearTimeout(distanceEstimateTimer);
@@ -114,6 +168,7 @@ function handleBookingSubmit() {
     const pickup = document.getElementById('pickupLocation').value;
     const drop = document.getElementById('dropLocation').value;
     const vehicleType = document.getElementById('vehicleType').value;
+    const { mode: bookingMode, duration: bookingModeDuration } = getBookingModeSelection();
     const acPreference = document.getElementById('acPreference').checked;
     const luggageSpace = document.getElementById('luggageSpace').checked;
     
@@ -134,12 +189,14 @@ function handleBookingSubmit() {
             pickup,
             drop,
             vehicleType,
+            bookingMode,
+            bookingModeDuration,
             acPreference,
             luggageSpace,
             status: 'searching',
             timestamp: new Date().toISOString(),
             distanceKm: lastEstimatedDistanceKm,
-            fare: calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm),
+            fare: calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration),
             discount: isFirstBooking ? 5 : 0,
             otp: generateOTP()
         };
@@ -221,10 +278,11 @@ function calculateFarePreview() {
     const pickup = document.getElementById('pickupLocation').value;
     const drop = document.getElementById('dropLocation').value;
     const vehicleType = document.getElementById('vehicleType').value;
-    
+    const { mode: bookingMode, duration: bookingModeDuration } = getBookingModeSelection();
+
     if (!pickup || !drop) return;
-    
-    const fare = calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm);
+
+    const fare = calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration);
     const isFirstBooking = localStorage.getItem('goindiaride_user_type') === 'new';
     const discount = isFirstBooking ? fare * 0.05 : 0;
     const finalFare = fare - discount;
@@ -240,6 +298,10 @@ function calculateFarePreview() {
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                 <span>Base Fare:</span>
                 <span>₹${fare.toFixed(0)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Booking Mode:</span>
+                <span>${bookingMode.replace(/_/g, ' ')}${bookingMode === 'standard' ? '' : ' x ' + bookingModeDuration}</span>
             </div>
             ${isFirstBooking ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #06A77D;">
@@ -259,23 +321,36 @@ function calculateFarePreview() {
 /**
  * Calculate fare based on distance and vehicle type
  */
-function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDistanceKm) {
+function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDistanceKm, bookingMode = 'standard', bookingModeDuration = 1) {
     const distance = Number(distanceKm) > 0 ? Number(distanceKm) : 5;
+    const duration = Math.max(1, Number(bookingModeDuration) || 1);
 
-    // Vehicle type rates per km
     const rates = {
-        'mini': 8,
-        'sedan': 12,
-        'suv': 18,
-        'luxury': 25
+        mini: 8,
+        sedan: 12,
+        suv: 18,
+        luxury: 25
     };
 
-    const rate = rates[vehicleType] || rates['sedan'];
+    const rate = rates[vehicleType] || rates.sedan;
+
+    if (bookingMode === 'driver_only_hourly') {
+        const hourlyRates = { mini: 180, sedan: 240, suv: 340, luxury: 520 };
+        return duration * (hourlyRates[vehicleType] || hourlyRates.sedan);
+    }
+
+    if (bookingMode === 'driver_only_fullday') {
+        const dailyRates = { mini: 1600, sedan: 2200, suv: 3200, luxury: 5200 };
+        return duration * (dailyRates[vehicleType] || dailyRates.sedan);
+    }
+
+    if (bookingMode === 'driver_only_multiday') {
+        const multiDayRates = { mini: 1500, sedan: 2100, suv: 3000, luxury: 4900 };
+        return duration * (multiDayRates[vehicleType] || multiDayRates.sedan);
+    }
+
     const distanceFare = distance * rate;
-
-    // Add base charge
     const baseCharge = 50;
-
     return distanceFare + baseCharge;
 }
 
