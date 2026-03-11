@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v1';
+const CACHE_NAME = 'goindiaride-pwa-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -27,6 +27,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Keep HTML/pages fresh so latest deploy appears immediately.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    );
     return;
   }
 
