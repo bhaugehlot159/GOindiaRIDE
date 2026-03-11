@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -735,6 +735,184 @@
         }
 
 
+
+        .wallet-mode-banner {
+            background: #f8fbff;
+            border: 1px solid #d9e7ff;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            color: #18417f;
+            font-size: 0.92rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-panel-card {
+            background: #fff;
+            border: 1px solid #e5ecff;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .wallet-panel-card h4 {
+            color: #5a6a85;
+            font-size: 0.86rem;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .wallet-panel-value {
+            color: #0b1f3a;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .wallet-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-form-card {
+            background: #fff;
+            border: 1px solid #e5ecff;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .wallet-form-card h3 {
+            margin-bottom: 0.8rem;
+            color: #0b1f3a;
+        }
+
+        .wallet-field {
+            margin-bottom: 0.75rem;
+        }
+
+        .wallet-field label {
+            display: block;
+            color: #5a6a85;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .wallet-field input,
+        .wallet-field select,
+        .wallet-field textarea {
+            width: 100%;
+            border: 1px solid #d6dff0;
+            border-radius: 8px;
+            padding: 0.65rem 0.75rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: #fff;
+        }
+
+        .wallet-field textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+
+        .wallet-form-note {
+            font-size: 0.82rem;
+            color: #6f7b8f;
+            margin-top: 0.25rem;
+        }
+
+        .wallet-inline-btn {
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .wallet-inline-btn.secondary {
+            background: #fff;
+            color: #415488;
+            border: 1px solid #cad8f7;
+        }
+
+        .wallet-ledger-card {
+            background: #fff;
+            border: 1px solid #e5ecff;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-ledger-title {
+            color: #0b1f3a;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .wallet-ledger-list {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .wallet-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            border: 1px solid #edf2fb;
+            border-radius: 10px;
+            padding: 0.7rem 0.75rem;
+            background: #f9fbff;
+        }
+
+        .wallet-row-main {
+            color: #0b1f3a;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .wallet-row-sub {
+            color: #6b7990;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .wallet-row-amount {
+            white-space: nowrap;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .wallet-row-amount.credit {
+            color: #0f8a53;
+        }
+
+        .wallet-row-amount.debit {
+            color: #c62828;
+        }
+
+        .wallet-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.25rem 0.65rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid #d0e7ff;
+            background: #edf6ff;
+            color: #1857a7;
+        }
         /* India tricolor branding (additive enhancement) */
         .india-tricolor-text {
             display: inline-flex;
@@ -856,6 +1034,11 @@
                 <div class="subtext">From <span id="totalRides">0</span> rides</div>
             </div>
             <div class="stat-card">
+                <h3>Wallet Balance</h3>
+                <div class="value" id="driverWalletBalanceSummary">₹0</div>
+                <div class="subtext">Admin approval needed for withdrawal payouts</div>
+            </div>
+            <div class="stat-card">
                 <h3>Rating</h3>
                 <div class="value" id="avgRating">5.0 ⭐</div>
                 <div class="subtext" id="ratingCount">0 ratings</div>
@@ -864,19 +1047,22 @@
 
         <div class="tabs">
             <div class="tab-buttons">
-                <button class="tab-button active" onclick="switchTab('rides')">
+                <button class="tab-button active" onclick="switchTab('rides', this)">
                     <i class="fas fa-car"></i> Pending Rides
                 </button>
-                <button class="tab-button" onclick="switchTab('completed')">
+                <button class="tab-button" onclick="switchTab('completed', this)">
                     <i class="fas fa-check-circle"></i> Completed
                 </button>
-                <button class="tab-button" onclick="switchTab('earnings')">
+                <button class="tab-button" onclick="switchTab('earnings', this)">
                     <i class="fas fa-money-bill"></i> Earnings
                 </button>
-                <button class="tab-button" onclick="switchTab('profile')">
+                <button class="tab-button" onclick="switchTab('wallet', this)">
+                    <i class="fas fa-wallet"></i> Wallet
+                </button>
+                <button class="tab-button" onclick="switchTab('profile', this)">
                     <i class="fas fa-user"></i> Profile
                 </button>
-                <button class="tab-button" onclick="switchTab('ratings')">
+                <button class="tab-button" onclick="switchTab('ratings', this)">
                     <i class="fas fa-star"></i> Ratings
                 </button>
             </div>
@@ -930,6 +1116,74 @@
                 </div>
             </div>
 
+            <div class="tab-content" id="walletTab">
+                <div class="wallet-mode-banner" id="driverWalletModeStatus">Checking secure wallet mode...</div>
+
+                <div class="wallet-grid">
+                    <div class="wallet-panel-card">
+                        <h4>Driver Wallet Balance</h4>
+                        <div class="wallet-panel-value" id="driverWalletTabBalance">₹0.00</div>
+                        <div class="wallet-form-note">Live wallet for top-up, earnings, and payouts.</div>
+                    </div>
+                    <div class="wallet-panel-card">
+                        <h4>Pending Withdrawal Requests</h4>
+                        <div class="wallet-panel-value" id="driverWalletPendingCount">0</div>
+                        <div class="wallet-form-note">Every withdrawal is request-based and admin-approved only.</div>
+                    </div>
+                </div>
+
+                <div class="wallet-actions-grid">
+                    <div class="wallet-form-card">
+                        <h3><i class="fas fa-plus-circle"></i> Add Money</h3>
+                        <div class="wallet-field">
+                            <label for="driverWalletAddAmount">Amount</label>
+                            <input type="number" id="driverWalletAddAmount" min="10" placeholder="Enter amount">
+                        </div>
+                        <div class="wallet-field">
+                            <label for="driverWalletAddMethod">Payment Method</label>
+                            <select id="driverWalletAddMethod"></select>
+                        </div>
+                        <div class="wallet-field">
+                            <label for="driverWalletGatewayRef">Gateway Reference / UTR</label>
+                            <input type="text" id="driverWalletGatewayRef" placeholder="Enter transaction reference">
+                        </div>
+                        <button class="wallet-inline-btn" onclick="handleDriverWalletAddMoney()">Add Money (Live)</button>
+                        <div class="wallet-form-note">On successful confirmation, funds settle into admin-controlled settlement flow.</div>
+                    </div>
+
+                    <div class="wallet-form-card">
+                        <h3><i class="fas fa-arrow-up"></i> Withdrawal Request</h3>
+                        <div class="wallet-field">
+                            <label for="driverWalletWithdrawAmount">Amount</label>
+                            <input type="number" id="driverWalletWithdrawAmount" min="100" placeholder="Enter amount">
+                        </div>
+                        <div class="wallet-field">
+                            <label for="driverWalletWithdrawMethod">Method</label>
+                            <select id="driverWalletWithdrawMethod"></select>
+                        </div>
+                        <div class="wallet-field">
+                            <label for="driverWalletWithdrawDestination">Destination</label>
+                            <input type="text" id="driverWalletWithdrawDestination" placeholder="UPI ID / Bank / IBAN / SWIFT">
+                        </div>
+                        <div class="wallet-field">
+                            <label for="driverWalletWithdrawNote">Note (Optional)</label>
+                            <textarea id="driverWalletWithdrawNote" placeholder="Add context for admin verification"></textarea>
+                        </div>
+                        <button class="wallet-inline-btn secondary" onclick="handleDriverWalletWithdrawalRequest()">Submit Withdrawal Request</button>
+                        <div class="wallet-form-note">Driver cannot self-approve. Admin review and approval is mandatory.</div>
+                    </div>
+                </div>
+
+                <div class="wallet-ledger-card">
+                    <div class="wallet-ledger-title">Wallet Transactions</div>
+                    <div id="driverWalletTransactionList" class="wallet-ledger-list"></div>
+                </div>
+
+                <div class="wallet-ledger-card">
+                    <div class="wallet-ledger-title">Withdrawal Requests</div>
+                    <div id="driverWalletWithdrawalList" class="wallet-ledger-list"></div>
+                </div>
+            </div>
             <div class="tab-content" id="profileTab">
                 <div class="profile-section">
                     <div class="profile-info">
@@ -1109,8 +1363,10 @@
     <script>
                 let currentDriver = null;
         let isOnline = true;
+        let secureDriverWalletSnapshot = null;
+        let secureDriverWalletSyncedAt = 0;
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', async function() {
             console.log('📄 Driver Dashboard Loading');
 
             const storedDriver = localStorage.getItem('currentDriver');
@@ -1126,24 +1382,31 @@
             currentDriver = JSON.parse(storedDriver);
             console.log('✅ Driver logged in:', currentDriver.name);
 
-            loadDashboard();
+            await loadDashboard();
             loadRides();
             loadProfile();
             loadEarnings();
             loadRatings();
             ensureDriverAlertsPanel();
             renderDriverAlerts();
+            await initializeDriverWalletView();
 
-            // Start real-time sync for driver dashboard
-            // Poll every 15 seconds for new ride requests (more battery-friendly)
-            setInterval(() => {
+            setInterval(async () => {
                 loadRides();
-                loadDashboard();
+                await loadDashboard();
                 renderDriverAlerts();
+                const walletTab = document.getElementById('walletTab');
+                if (walletTab && walletTab.classList.contains('active')) {
+                    await renderDriverWalletPanel({ forceSync: false });
+                }
             }, 15000);
         });
 
-        function loadDashboard() {
+        async function loadDashboard() {
+            if (isSecureDriverWalletMode()) {
+                await refreshSecureDriverWalletSnapshot(false);
+            }
+
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const driverBookings = bookings.filter(b => b.driverId === currentDriver.id);
             const completedBookings = driverBookings.filter(b => b.status === 'completed');
@@ -1170,6 +1433,323 @@
 
             const initials = currentDriver.name.split(' ').map(n => n[0]).join('').toUpperCase();
             document.getElementById('userAvatar').textContent = initials;
+
+            const walletSummaryNode = document.getElementById('driverWalletBalanceSummary');
+            if (walletSummaryNode) {
+                const snapshot = getDriverWalletSnapshot();
+                walletSummaryNode.textContent = formatWalletCurrency(snapshot.driverBalance || 0);
+            }
+        }
+
+        function formatWalletCurrency(amount) {
+            const value = Number(amount || 0);
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        function getDriverWalletOwnerId() {
+            if (!currentDriver) return 'driver_default';
+            return String(currentDriver.id || currentDriver.driverId || 'driver_default');
+        }
+
+        function isSecureDriverWalletMode() {
+            return Boolean(
+                window.WalletCore &&
+                typeof WalletCore.isSecureBackendReady === 'function' &&
+                WalletCore.isSecureBackendReady()
+            );
+        }
+
+        function syncDriverLegacyWalletStore(balance, transactions = []) {
+            const normalizedBalance = Number(balance || 0);
+            const legacyRows = Array.isArray(transactions)
+                ? transactions.map((row) => ({
+                    type: row.source || row.action || row.type || 'wallet_entry',
+                    amount: Number(row.amount || 0),
+                    description: row.description || row.methodLabel || row.method || 'Wallet transaction',
+                    date: row.createdAt || row.date || new Date().toISOString()
+                }))
+                : [];
+
+            localStorage.setItem('wallet_data', JSON.stringify({
+                balance: normalizedBalance,
+                transactions: legacyRows.slice(0, 100)
+            }));
+        }
+
+        async function refreshSecureDriverWalletSnapshot(forceSync = false) {
+            if (!isSecureDriverWalletMode() || !window.WalletCore || typeof WalletCore.fetchSecureWalletSnapshot !== 'function') {
+                return null;
+            }
+
+            if (!forceSync && secureDriverWalletSnapshot && Date.now() - secureDriverWalletSyncedAt < 15000) {
+                return secureDriverWalletSnapshot;
+            }
+
+            try {
+                const payload = await WalletCore.fetchSecureWalletSnapshot();
+                secureDriverWalletSnapshot = payload || null;
+                secureDriverWalletSyncedAt = Date.now();
+                return secureDriverWalletSnapshot;
+            } catch (error) {
+                console.warn('Secure driver wallet snapshot failed:', error);
+                return secureDriverWalletSnapshot;
+            }
+        }
+
+        function getDriverWalletSnapshot() {
+            if (secureDriverWalletSnapshot && secureDriverWalletSnapshot.wallet) {
+                const driverBalance = Number(secureDriverWalletSnapshot.wallet.balance || 0);
+                syncDriverLegacyWalletStore(driverBalance, secureDriverWalletSnapshot.transactions || []);
+                return {
+                    driverBalance
+                };
+            }
+
+            const ownerId = getDriverWalletOwnerId();
+            if (window.WalletCore && typeof WalletCore.getWallet === 'function') {
+                const wallet = WalletCore.getWallet('driver', ownerId);
+                syncDriverLegacyWalletStore(wallet.balance || 0, WalletCore.getTransactions({ walletType: 'driver', ownerId }).slice(0, 30));
+                return {
+                    driverBalance: Number(wallet.balance || 0)
+                };
+            }
+
+            const fallback = JSON.parse(localStorage.getItem('wallet_data') || '{"balance":0}');
+            return {
+                driverBalance: Number(fallback.balance || 0)
+            };
+        }
+
+        async function getDriverWalletMethodOptions(flow) {
+            if (isSecureDriverWalletMode() && window.WalletCore && typeof WalletCore.fetchSecurePaymentModes === 'function') {
+                try {
+                    const secureModes = await WalletCore.fetchSecurePaymentModes(flow);
+                    if (Array.isArray(secureModes) && secureModes.length) {
+                        return secureModes.map((mode) => ({
+                            id: String(mode.id || ''),
+                            label: String(mode.label || mode.id || 'Payment Mode')
+                        }));
+                    }
+                } catch (error) {
+                    console.warn('Driver wallet payment mode fetch failed:', error);
+                }
+            }
+
+            if (flow === 'withdrawal') {
+                return [
+                    { id: 'imps', label: 'IMPS Transfer (India)' },
+                    { id: 'neft_rtgs', label: 'NEFT / RTGS (India)' },
+                    { id: 'paypal', label: 'PayPal (International)' },
+                    { id: 'swift_wire', label: 'SWIFT Wire (International)' },
+                    { id: 'sepa', label: 'SEPA Transfer (International)' },
+                    { id: 'ach', label: 'ACH Transfer (International)' },
+                    { id: 'wise', label: 'Wise Transfer (International)' }
+                ];
+            }
+
+            return [
+                { id: 'upi_intent', label: 'UPI Intent (India)' },
+                { id: 'upi_qr', label: 'UPI QR Scan (India)' },
+                { id: 'bharat_qr', label: 'Bharat QR (India)' },
+                { id: 'rupay_card', label: 'RuPay Card (India)' },
+                { id: 'net_banking', label: 'Net Banking (India)' },
+                { id: 'razorpay', label: 'Razorpay Gateway (India)' },
+                { id: 'cashfree', label: 'Cashfree Gateway (India)' },
+                { id: 'visa_master_amex', label: 'Visa / MasterCard / Amex (Global)' },
+                { id: 'stripe_cards', label: 'Stripe Cards (International)' },
+                { id: 'paypal', label: 'PayPal (International)' },
+                { id: 'apple_pay', label: 'Apple Pay (International)' },
+                { id: 'google_pay_intl', label: 'Google Pay International' },
+                { id: 'alipay', label: 'Alipay (International)' },
+                { id: 'wechat_pay', label: 'WeChat Pay (International)' }
+            ];
+        }
+
+        async function renderDriverWalletMethodOptions() {
+            const addSelect = document.getElementById('driverWalletAddMethod');
+            const withdrawSelect = document.getElementById('driverWalletWithdrawMethod');
+            if (!addSelect || !withdrawSelect) return;
+
+            const addModes = await getDriverWalletMethodOptions('add_money');
+            const withdrawModes = await getDriverWalletMethodOptions('withdrawal');
+
+            addSelect.innerHTML = addModes.map((mode) => `<option value="${mode.id}">${mode.label}</option>`).join('');
+            withdrawSelect.innerHTML = withdrawModes.map((mode) => `<option value="${mode.id}">${mode.label}</option>`).join('');
+        }
+
+        async function renderDriverWalletPanel(options = {}) {
+            const modeNode = document.getElementById('driverWalletModeStatus');
+            const balanceNode = document.getElementById('driverWalletTabBalance');
+            const pendingNode = document.getElementById('driverWalletPendingCount');
+            const txNode = document.getElementById('driverWalletTransactionList');
+            const withdrawNode = document.getElementById('driverWalletWithdrawalList');
+
+            if (!balanceNode || !pendingNode || !txNode || !withdrawNode) return;
+
+            const liveMode = isSecureDriverWalletMode();
+            if (modeNode) {
+                modeNode.textContent = liveMode
+                    ? 'LIVE secure backend mode active. Payment methods and withdrawal approvals are controlled by admin.'
+                    : 'Secure backend session not found. Please login again to use live wallet actions.';
+                modeNode.style.color = liveMode ? '#0b8f5d' : '#b54708';
+            }
+
+            if (liveMode) {
+                await refreshSecureDriverWalletSnapshot(Boolean(options.forceSync));
+            }
+
+            const ownerId = getDriverWalletOwnerId();
+            const snapshot = getDriverWalletSnapshot();
+            balanceNode.textContent = formatWalletCurrency(snapshot.driverBalance || 0);
+
+            let txRows = [];
+            if (liveMode && secureDriverWalletSnapshot && Array.isArray(secureDriverWalletSnapshot.transactions)) {
+                txRows = secureDriverWalletSnapshot.transactions.slice(0, 15);
+            } else if (window.WalletCore && typeof WalletCore.getTransactions === 'function') {
+                txRows = WalletCore.getTransactions({ walletType: 'driver', ownerId }).slice(0, 15);
+            } else {
+                const fallback = JSON.parse(localStorage.getItem('wallet_data') || '{}');
+                txRows = Array.isArray(fallback.transactions) ? fallback.transactions : [];
+            }
+
+            if (!txRows.length) {
+                txNode.innerHTML = '<div class="empty-state"><p>No wallet transactions yet.</p></div>';
+            } else {
+                txNode.innerHTML = txRows.map((row) => {
+                    const action = String(row.action || row.type || row.source || '').toLowerCase();
+                    const direction = String(row.direction || '').toLowerCase();
+                    const isCredit = direction === 'credit' || ['credit', 'transfer_in', 'topup_confirmed', 'payment_settlement', 'earning', 'add_money'].includes(action);
+                    const amount = Number(row.amount || 0);
+                    const label = row.description || row.source || row.type || 'Wallet entry';
+                    const time = new Date(row.createdAt || row.date || Date.now()).toLocaleString();
+                    return `<div class="wallet-row"><div><div class="wallet-row-main">${label}</div><div class="wallet-row-sub">${time}</div></div><div class="wallet-row-amount ${isCredit ? 'credit' : 'debit'}">${isCredit ? '+' : '-'}${formatWalletCurrency(Math.abs(amount))}</div></div>`;
+                }).join('');
+            }
+
+            let withdrawalRows = [];
+            if (liveMode && secureDriverWalletSnapshot && Array.isArray(secureDriverWalletSnapshot.withdrawals)) {
+                withdrawalRows = secureDriverWalletSnapshot.withdrawals.slice(0, 15);
+            } else if (window.WalletCore && typeof WalletCore.getWithdrawalRequests === 'function') {
+                withdrawalRows = WalletCore.getWithdrawalRequests({ walletType: 'driver', ownerId }).slice(0, 15);
+            }
+
+            pendingNode.textContent = String(withdrawalRows.filter((row) => String(row.status || '').toLowerCase() === 'pending_admin_approval').length);
+
+            if (!withdrawalRows.length) {
+                withdrawNode.innerHTML = '<div class="empty-state"><p>No withdrawal request yet.</p></div>';
+            } else {
+                withdrawNode.innerHTML = withdrawalRows.map((row) => {
+                    const status = String(row.status || 'pending').replaceAll('_', ' ').toUpperCase();
+                    const method = row.methodLabel || row.method || 'Withdrawal';
+                    const time = new Date(row.createdAt || Date.now()).toLocaleString();
+                    return `<div class="wallet-row"><div><div class="wallet-row-main">${method} <span class="wallet-badge">${status}</span></div><div class="wallet-row-sub">${time}</div></div><div class="wallet-row-amount debit">-${formatWalletCurrency(row.amount || 0)}</div></div>`;
+                }).join('');
+            }
+        }
+
+        async function initializeDriverWalletView() {
+            await renderDriverWalletMethodOptions();
+            await renderDriverWalletPanel({ forceSync: true });
+        }
+
+        async function handleDriverWalletAddMoney() {
+            const amount = Number.parseFloat(document.getElementById('driverWalletAddAmount')?.value || 0);
+            const method = String(document.getElementById('driverWalletAddMethod')?.value || '').trim();
+            const providerReference = String(document.getElementById('driverWalletGatewayRef')?.value || '').trim();
+
+            if (!isSecureDriverWalletMode()) {
+                showError('Secure backend session required. Please login again.');
+                return;
+            }
+            if (!Number.isFinite(amount) || amount < 10) {
+                showError('Please enter valid amount (minimum Rs 10).');
+                return;
+            }
+            if (!method) {
+                showError('Please select payment method.');
+                return;
+            }
+            if (providerReference.length < 5) {
+                showError('Gateway reference / UTR is required for secure confirmation.');
+                return;
+            }
+
+            try {
+                const clientReference = `DRVTOPUP_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+                const orderPayload = await WalletCore.createSecureTopupOrder({
+                    amount,
+                    paymentMode: method,
+                    currency: 'INR',
+                    clientReference
+                });
+
+                const order = orderPayload.order || orderPayload;
+                const orderId = order.orderId || order.id;
+                if (!orderId) {
+                    throw new Error('Top-up order response invalid.');
+                }
+
+                await WalletCore.confirmSecureTopupOrder({
+                    orderId,
+                    providerReference
+                });
+
+                document.getElementById('driverWalletAddAmount').value = '';
+                document.getElementById('driverWalletGatewayRef').value = '';
+                await refreshSecureDriverWalletSnapshot(true);
+                await renderDriverWalletPanel({ forceSync: false });
+                await loadDashboard();
+                showSuccess('Wallet top-up confirmed. Settlement is controlled by admin wallet flow.');
+            } catch (error) {
+                showError(error.message || 'Wallet top-up failed.');
+            }
+        }
+
+        async function handleDriverWalletWithdrawalRequest() {
+            const amount = Number.parseFloat(document.getElementById('driverWalletWithdrawAmount')?.value || 0);
+            const method = String(document.getElementById('driverWalletWithdrawMethod')?.value || '').trim();
+            const destination = String(document.getElementById('driverWalletWithdrawDestination')?.value || '').trim();
+            const notes = String(document.getElementById('driverWalletWithdrawNote')?.value || '').trim();
+
+            if (!isSecureDriverWalletMode()) {
+                showError('Secure backend session required. Please login again.');
+                return;
+            }
+            if (!Number.isFinite(amount) || amount < 100) {
+                showError('Withdrawal amount minimum Rs 100 required.');
+                return;
+            }
+            if (!method) {
+                showError('Please select withdrawal method.');
+                return;
+            }
+            if (destination.length < 4) {
+                showError('Please enter valid withdrawal destination.');
+                return;
+            }
+
+            try {
+                await WalletCore.createSecureWithdrawalRequest({
+                    amount,
+                    method,
+                    destination,
+                    notes
+                });
+
+                document.getElementById('driverWalletWithdrawAmount').value = '';
+                document.getElementById('driverWalletWithdrawDestination').value = '';
+                document.getElementById('driverWalletWithdrawNote').value = '';
+                await refreshSecureDriverWalletSnapshot(true);
+                await renderDriverWalletPanel({ forceSync: false });
+                await loadDashboard();
+                showSuccess('Withdrawal request submitted. Admin approval is required before payout.');
+            } catch (error) {
+                showError(error.message || 'Withdrawal request failed.');
+            }
         }
 
         function loadRides() {
@@ -1338,14 +1918,28 @@
             }
         }
 
-        function switchTab(tabName) {
+        function switchTab(tabName, buttonNode) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
 
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            event.target.classList.add('active');
-        }
+            const targetTab = document.getElementById(tabName + 'Tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
 
+            if (buttonNode) {
+                buttonNode.classList.add('active');
+            } else {
+                const fallbackBtn = document.querySelector(`.tab-button[onclick*="'${tabName}'"]`);
+                if (fallbackBtn) fallbackBtn.classList.add('active');
+            }
+
+            if (tabName === 'wallet') {
+                renderDriverWalletPanel({ forceSync: true }).catch((error) => {
+                    console.warn('Driver wallet render failed:', error);
+                });
+            }
+        }
         function openEditProfileModal() {
             document.getElementById('editProfileModal').classList.add('active');
         }
@@ -1607,6 +2201,7 @@
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
+    <script src="../js/wallet-core.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
@@ -1675,6 +2270,16 @@
     <script src="../js/global-ui.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
 
 
