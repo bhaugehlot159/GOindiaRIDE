@@ -219,6 +219,133 @@
             margin-top: 0.5rem;
         }
 
+        /* Wallet tab */
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-panel-card {
+            background: #fff;
+            border: 1px solid #e6ecff;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .wallet-panel-card h4 {
+            color: #5f6b7a;
+            font-size: 0.9rem;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+        }
+
+        .wallet-panel-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0b1f3a;
+        }
+
+        .wallet-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-form-card {
+            background: #fff;
+            border: 1px solid #e6ecff;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .wallet-form-card h3 {
+            margin-bottom: 0.8rem;
+            color: #0b1f3a;
+        }
+
+        .wallet-field {
+            margin-bottom: 0.75rem;
+        }
+
+        .wallet-field label {
+            display: block;
+            color: #5f6b7a;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .wallet-field input,
+        .wallet-field select,
+        .wallet-field textarea {
+            width: 100%;
+            border: 1px solid #d7dfed;
+            border-radius: 8px;
+            padding: 0.65rem 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .wallet-field textarea {
+            min-height: 72px;
+            resize: vertical;
+        }
+
+        .wallet-ledger-card {
+            background: #fff;
+            border: 1px solid #e6ecff;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wallet-ledger-title {
+            font-size: 1rem;
+            color: #0b1f3a;
+            margin-bottom: 0.75rem;
+        }
+
+        .wallet-ledger-list {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .wallet-row {
+            border: 1px solid #edf2fb;
+            border-radius: 10px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            background: #f9fbff;
+        }
+
+        .wallet-row-main {
+            color: #0b1f3a;
+            font-weight: 600;
+        }
+
+        .wallet-row-sub {
+            color: #6c7a8b;
+            font-size: 0.82rem;
+            margin-top: 0.2rem;
+        }
+
+        .wallet-row-amount {
+            font-weight: 700;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        .wallet-row-amount.credit {
+            color: #127241;
+        }
+
+        .wallet-row-amount.debit {
+            color: #c62828;
+        }
         /* Tabs */
         .tabs {
             background: white;
@@ -929,20 +1056,23 @@
         <!-- Tabs Section -->
         <div class="tabs">
             <div class="tab-buttons">
-                <button class="tab-button active" onclick="switchTab('active')">
+                <button class="tab-button active" data-tab="active" onclick="switchTab('active')">
                     <i class="fas fa-car"></i> Active Rides
                 </button>
-                <button class="tab-button" onclick="switchTab('history')">
+                <button class="tab-button" data-tab="history" onclick="switchTab('history')">
                     <i class="fas fa-history"></i> Ride History
                 </button>
-                <button class="tab-button" onclick="switchTab('messages')">
+                <button class="tab-button" data-tab="wallet" onclick="switchTab('wallet')">
+                    <i class="fas fa-wallet"></i> Wallet
+                </button>
+                <button class="tab-button" data-tab="messages" onclick="switchTab('messages')">
                     <i class="fas fa-comments"></i> Messages
                     <span id="unreadBadge" class="badge" style="display: none;">0</span>
                 </button>
-                <button class="tab-button" onclick="switchTab('donations')">
+                <button class="tab-button" data-tab="donations" onclick="switchTab('donations')">
                     <i class="fas fa-heart"></i> My Donations
                 </button>
-                <button class="tab-button" onclick="switchTab('profile')">
+                <button class="tab-button" data-tab="profile" onclick="switchTab('profile')">
                     <i class="fas fa-user"></i> Profile
                 </button>
             </div>
@@ -1019,6 +1149,69 @@
                 </div>
             </div>
 
+            <!-- Wallet Tab -->
+            <div class="tab-content" id="walletTab">
+                <div class="wallet-grid">
+                    <div class="wallet-panel-card">
+                        <h4>Customer Wallet Balance</h4>
+                        <div class="wallet-panel-value" id="customerWalletTabBalance">Rs 0.00</div>
+                    </div>
+                    <div class="wallet-panel-card">
+                        <h4>Donation Wallet Pool</h4>
+                        <div class="wallet-panel-value" id="donationWalletTabBalance">Rs 0.00</div>
+                    </div>
+                </div>
+
+                <div class="wallet-actions-grid">
+                    <div class="wallet-form-card">
+                        <h3>Add Money</h3>
+                        <div class="wallet-field">
+                            <label for="walletAddAmount">Amount</label>
+                            <input type="number" id="walletAddAmount" min="10" placeholder="Enter amount">
+                        </div>
+                        <div class="wallet-field">
+                            <label for="walletAddMethod">Payment Method</label>
+                            <select id="walletAddMethod"></select>
+                        </div>
+                        <button class="ride-btn primary" onclick="handleWalletAddMoney()">
+                            <i class="fas fa-plus-circle"></i> Add Money
+                        </button>
+                    </div>
+
+                    <div class="wallet-form-card">
+                        <h3>Withdrawal Request</h3>
+                        <div class="wallet-field">
+                            <label for="walletWithdrawAmount">Amount</label>
+                            <input type="number" id="walletWithdrawAmount" min="100" placeholder="Enter amount">
+                        </div>
+                        <div class="wallet-field">
+                            <label for="walletWithdrawMethod">Method</label>
+                            <select id="walletWithdrawMethod"></select>
+                        </div>
+                        <div class="wallet-field">
+                            <label for="walletWithdrawDestination">Destination</label>
+                            <input type="text" id="walletWithdrawDestination" placeholder="UPI / Bank / IBAN / SWIFT">
+                        </div>
+                        <div class="wallet-field">
+                            <label for="walletWithdrawNote">Note (Optional)</label>
+                            <textarea id="walletWithdrawNote" placeholder="Add note for admin verification"></textarea>
+                        </div>
+                        <button class="ride-btn primary" onclick="handleWalletWithdrawalRequest()">
+                            <i class="fas fa-paper-plane"></i> Submit Request
+                        </button>
+                    </div>
+                </div>
+
+                <div class="wallet-ledger-card">
+                    <div class="wallet-ledger-title">Wallet Transactions</div>
+                    <div id="walletTransactionList" class="wallet-ledger-list"></div>
+                </div>
+
+                <div class="wallet-ledger-card">
+                    <div class="wallet-ledger-title">Withdrawal Requests</div>
+                    <div id="walletWithdrawalList" class="wallet-ledger-list"></div>
+                </div>
+            </div>
             <!-- Donations Tab -->
             <div class="tab-content" id="donationsTab">
                 <div id="donationsList" class="ride-list">
@@ -1260,6 +1453,7 @@
             if (!currentUser) return;
 
             loadDashboard();
+            initializeWalletView();
             loadRides();
             loadDonations();
             loadProfile();
@@ -1293,10 +1487,10 @@
             const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
 
             const totalDonationAmount = donations.reduce((sum, d) => sum + d.amount, 0);
-            const wallet = JSON.parse(localStorage.getItem(`wallet_${currentUser.id}`)) || { balance: 0 };
+            const walletSnapshot = getWalletSnapshotForDashboard();
 
             document.getElementById('totalRides').textContent = customerBookings.length;
-            document.getElementById('walletBalance').textContent = `₹${wallet.balance}`;
+            document.getElementById('walletBalance').textContent = formatInr(walletSnapshot.customerBalance);
             document.getElementById('donationContributed').textContent = `₹${totalDonationAmount}`;
             document.getElementById('welcomeMsg').textContent = `Welcome, ${currentUser.fullname}!`;
             document.getElementById('userName').textContent = currentUser.fullname;
@@ -1308,6 +1502,257 @@
         // ----------------------------------------====
         // LOAD RIDES
         // ----------------------------------------====
+
+        function getCustomerWalletOwnerId() {
+            if (!currentUser) return "customer_default";
+            return String(currentUser.id || currentUser.userId || "customer_default");
+        }
+
+        function formatInr(amount) {
+            const value = Number(amount || 0);
+            return new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        function syncLegacyWalletStore(balance) {
+            const ownerId = getCustomerWalletOwnerId();
+            const walletKey = "wallet_" + ownerId;
+            const existing = JSON.parse(localStorage.getItem(walletKey) || "{}");
+            localStorage.setItem(walletKey, JSON.stringify({
+                balance: Number(balance || 0),
+                transactions: Array.isArray(existing.transactions) ? existing.transactions : []
+            }));
+        }
+
+        function getWalletSnapshotForDashboard() {
+            const ownerId = getCustomerWalletOwnerId();
+
+            if (window.WalletCore && typeof WalletCore.getWallet === "function") {
+                const customerWallet = WalletCore.getWallet("customer", ownerId);
+                const donationWallet = WalletCore.getWallet("donation", "pool");
+                syncLegacyWalletStore(Number(customerWallet.balance || 0));
+                return {
+                    customerBalance: Number(customerWallet.balance || 0),
+                    donationBalance: Number(donationWallet.balance || 0)
+                };
+            }
+
+            const legacy = JSON.parse(localStorage.getItem("wallet_" + ownerId) || '{"balance":0}');
+            return {
+                customerBalance: Number(legacy.balance || 0),
+                donationBalance: 0
+            };
+        }
+
+        function getWalletMethodOptions(flow) {
+            if (window.WalletCore && typeof WalletCore.getEnabledPaymentModes === "function") {
+                const modes = WalletCore.getEnabledPaymentModes({ flow: flow });
+                if (Array.isArray(modes) && modes.length) {
+                    return modes.map((mode) => ({
+                        id: String(mode.id || ""),
+                        label: String(mode.label || mode.id || "Payment Mode")
+                    }));
+                }
+            }
+
+            if (flow === "withdrawal") {
+                return [
+                    { id: "upi", label: "UPI" },
+                    { id: "imps", label: "IMPS" },
+                    { id: "neft_rtgs", label: "NEFT/RTGS" },
+                    { id: "swift_wire", label: "SWIFT Wire" }
+                ];
+            }
+
+            return [
+                { id: "upi", label: "UPI" },
+                { id: "debit_card", label: "Debit/Credit Card" },
+                { id: "netbanking", label: "Net Banking" },
+                { id: "paypal", label: "PayPal" }
+            ];
+        }
+
+        function renderWalletMethodOptions() {
+            const addSelect = document.getElementById("walletAddMethod");
+            const withdrawSelect = document.getElementById("walletWithdrawMethod");
+            if (!addSelect || !withdrawSelect) return;
+
+            const addModes = getWalletMethodOptions("add_money");
+            const withdrawModes = getWalletMethodOptions("withdrawal");
+            addSelect.innerHTML = addModes.map((mode) => "<option value=\"" + mode.id + "\">" + mode.label + "</option>").join("");
+            withdrawSelect.innerHTML = withdrawModes.map((mode) => "<option value=\"" + mode.id + "\">" + mode.label + "</option>").join("");
+        }
+
+        function renderWalletPanel() {
+            const ownerId = getCustomerWalletOwnerId();
+            const balanceNode = document.getElementById("customerWalletTabBalance");
+            const donationNode = document.getElementById("donationWalletTabBalance");
+            const txNode = document.getElementById("walletTransactionList");
+            const requestNode = document.getElementById("walletWithdrawalList");
+            if (!balanceNode || !donationNode || !txNode || !requestNode) return;
+
+            const snapshot = getWalletSnapshotForDashboard();
+            balanceNode.textContent = formatInr(snapshot.customerBalance);
+            donationNode.textContent = formatInr(snapshot.donationBalance);
+
+            let txRows = [];
+            if (window.WalletCore && typeof WalletCore.getTransactions === "function") {
+                txRows = WalletCore.getTransactions({ walletType: "customer", ownerId: ownerId }).slice(0, 12);
+            } else {
+                const legacy = JSON.parse(localStorage.getItem("wallet_" + ownerId) || "{}");
+                txRows = Array.isArray(legacy.transactions) ? legacy.transactions : [];
+            }
+
+            if (!txRows.length) {
+                txNode.innerHTML = "<div class=\"empty-state\"><p>No wallet transactions yet.</p></div>";
+            } else {
+                txNode.innerHTML = txRows.map((row) => {
+                    const action = String(row.action || row.type || "").toLowerCase();
+                    const isCredit = ["credit", "transfer_in", "cashback", "added"].includes(action);
+                    const amount = Number(row.amount || 0);
+                    const cssClass = isCredit ? "credit" : "debit";
+                    const sign = isCredit ? "+" : "-";
+                    const label = row.description || row.type || "Wallet entry";
+                    const time = new Date(row.createdAt || row.date || Date.now()).toLocaleString();
+                    return "<div class=\"wallet-row\"><div><div class=\"wallet-row-main\">" + label + "</div><div class=\"wallet-row-sub\">" + time + "</div></div><div class=\"wallet-row-amount " + cssClass + "\">" + sign + formatInr(Math.abs(amount)) + "</div></div>";
+                }).join("");
+            }
+
+            let withdrawalRows = [];
+            if (window.WalletCore && typeof WalletCore.getWithdrawalRequests === "function") {
+                withdrawalRows = WalletCore.getWithdrawalRequests({ walletType: "customer", ownerId: ownerId }).slice(0, 12);
+            }
+
+            if (!withdrawalRows.length) {
+                requestNode.innerHTML = "<div class=\"empty-state\"><p>No withdrawal request yet.</p></div>";
+            } else {
+                requestNode.innerHTML = withdrawalRows.map((row) => {
+                    const status = String(row.status || "pending").replaceAll("_", " ").toUpperCase();
+                    const time = new Date(row.createdAt || Date.now()).toLocaleString();
+                    return "<div class=\"wallet-row\"><div><div class=\"wallet-row-main\">" + (row.methodLabel || row.method || "Withdrawal") + " - " + status + "</div><div class=\"wallet-row-sub\">" + time + "</div></div><div class=\"wallet-row-amount debit\">-" + formatInr(row.amount || 0) + "</div></div>";
+                }).join("");
+            }
+        }
+
+        function initializeWalletView() {
+            renderWalletMethodOptions();
+            renderWalletPanel();
+        }
+
+        function handleWalletAddMoney() {
+            const amount = Number.parseFloat(document.getElementById("walletAddAmount")?.value || 0);
+            const method = String(document.getElementById("walletAddMethod")?.value || "").trim();
+            const ownerId = getCustomerWalletOwnerId();
+
+            if (!Number.isFinite(amount) || amount < 10) {
+                alert("Please enter valid amount (minimum Rs 10).");
+                return;
+            }
+            if (!method) {
+                alert("Please select payment method.");
+                return;
+            }
+
+            try {
+                if (window.WalletCore && typeof WalletCore.credit === "function") {
+                    WalletCore.credit({
+                        type: "customer",
+                        ownerId: ownerId,
+                        amount: amount,
+                        description: "Customer wallet top-up via " + method,
+                        actorRole: "customer",
+                        actorId: ownerId,
+                        paymentMode: method
+                    });
+
+                    if (typeof WalletCore.settlePaymentToAdmin === "function") {
+                        WalletCore.settlePaymentToAdmin({
+                            amount: amount,
+                            sourceType: "customer",
+                            sourceOwnerId: ownerId,
+                            paymentMode: method,
+                            description: "Customer top-up auto settlement",
+                            actorId: ownerId
+                        });
+                    }
+
+                    syncLegacyWalletStore(WalletCore.getWallet("customer", ownerId).balance);
+                } else {
+                    const walletKey = "wallet_" + ownerId;
+                    const legacy = JSON.parse(localStorage.getItem(walletKey) || '{"balance":0,"transactions":[]}');
+                    legacy.balance = Number(legacy.balance || 0) + amount;
+                    legacy.transactions = Array.isArray(legacy.transactions) ? legacy.transactions : [];
+                    legacy.transactions.unshift({
+                        type: "added",
+                        amount: amount,
+                        description: "Wallet top-up via " + method,
+                        date: new Date().toISOString()
+                    });
+                    localStorage.setItem(walletKey, JSON.stringify(legacy));
+                }
+
+                document.getElementById("walletAddAmount").value = "";
+                loadDashboard();
+                renderWalletPanel();
+                alert("Wallet top-up successful.");
+            } catch (error) {
+                alert(error.message || "Wallet top-up failed.");
+            }
+        }
+
+        function handleWalletWithdrawalRequest() {
+            const amount = Number.parseFloat(document.getElementById("walletWithdrawAmount")?.value || 0);
+            const method = String(document.getElementById("walletWithdrawMethod")?.value || "").trim();
+            const destination = String(document.getElementById("walletWithdrawDestination")?.value || "").trim();
+            const notes = String(document.getElementById("walletWithdrawNote")?.value || "").trim();
+            const ownerId = getCustomerWalletOwnerId();
+
+            if (!Number.isFinite(amount) || amount < 100) {
+                alert("Withdrawal amount minimum Rs 100 required.");
+                return;
+            }
+            if (!method) {
+                alert("Please select withdrawal method.");
+                return;
+            }
+            if (destination.length < 4) {
+                alert("Please enter valid withdrawal destination.");
+                return;
+            }
+
+            try {
+                if (window.WalletCore && typeof WalletCore.createWithdrawalRequest === "function") {
+                    WalletCore.createWithdrawalRequest({
+                        walletType: "customer",
+                        ownerId: ownerId,
+                        amount: amount,
+                        method: method,
+                        destination: destination,
+                        notes: notes,
+                        actorRole: "customer",
+                        actorId: ownerId,
+                        metadata: {
+                            source: "customer_dashboard",
+                            userAgent: navigator.userAgent
+                        }
+                    });
+                } else {
+                    alert("Wallet core not available. Please refresh the page.");
+                    return;
+                }
+
+                document.getElementById("walletWithdrawAmount").value = "";
+                document.getElementById("walletWithdrawDestination").value = "";
+                document.getElementById("walletWithdrawNote").value = "";
+                renderWalletPanel();
+                alert("Withdrawal request submitted. Admin approval required.");
+            } catch (error) {
+                alert(error.message || "Withdrawal request failed.");
+            }
+        }
 
         function loadRides() {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
@@ -1733,12 +2178,23 @@ Thank you for helping! ❤️
                 btn.classList.remove('active');
             });
 
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            event.target.classList.add('active');
+            const tabPanel = document.getElementById(tabName + 'Tab');
+            if (tabPanel) {
+                tabPanel.classList.add('active');
+            }
 
-            // Load messages when switching to messages tab
+            const activeButton = document.querySelector('.tab-button[data-tab="' + tabName + '"]');
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+
             if (tabName === 'messages') {
                 loadMessages();
+            }
+
+            if (tabName === 'wallet') {
+                renderWalletMethodOptions();
+                renderWalletPanel();
             }
         }
 
@@ -2076,6 +2532,7 @@ Thank you for riding with us! 🚗
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
+    <script src="../js/wallet-core.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
