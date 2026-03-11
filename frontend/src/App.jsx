@@ -171,7 +171,8 @@ function Landing() {
               </h1>
             </div>
           </div>
-          <div className="flex gap-3">
+          
+        <div className="flex gap-3">
             <button
               onClick={() => navigate(openPath)}
               className="px-4 py-2 rounded-full bg-[#0B1F3A] text-white shadow-lg hover:scale-105 transition"
@@ -629,6 +630,17 @@ function Dashboard() {
   const [aiSummary, setAiSummary] = useState(null);
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiSummaryError, setAiSummaryError] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+    adminOtp: "",
+  });
+  const [passwordAction, setPasswordAction] = useState({
+    loading: false,
+    success: "",
+    error: "",
+  });
 
   const chips = [
     "AI anomaly watch active",
@@ -637,6 +649,7 @@ function Dashboard() {
   ];
 
   const portalLabel = role === "admin" ? "Admin" : accountType === "driver" ? "Driver" : "Customer";
+  const isAdminPortal = role === "admin" || accountType === "admin";
 
   const loadNotifications = useCallback(async ({ silent = false } = {}) => {
     if (!token) return;
@@ -915,6 +928,57 @@ function Dashboard() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!token) return;
+
+    setPasswordAction({ loading: true, success: "", error: "" });
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordAction({ loading: false, success: "", error: "All password fields are required" });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordAction({ loading: false, success: "", error: "New password and confirm password must match" });
+      return;
+    }
+
+    if (isAdminPortal && !passwordForm.adminOtp.trim()) {
+      setPasswordAction({ loading: false, success: "", error: "Admin OTP is required" });
+      return;
+    }
+
+    try {
+      const payload = {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      };
+
+      if (isAdminPortal) {
+        payload.adminOtp = passwordForm.adminOtp.trim();
+        payload.otp = passwordForm.adminOtp.trim();
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Password change failed");
+      }
+
+      setPasswordAction({ loading: false, success: data.message || "Password updated successfully", error: "" });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "", adminOtp: "" });
+    } catch (error) {
+      setPasswordAction({ loading: false, success: "", error: error.message || "Password change failed" });
+    }
+  };
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -1146,6 +1210,78 @@ function Dashboard() {
           </div>
         </section>
 
+        <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <div>
+              <p className="text-sm font-semibold text-[#0B1F3A]">Change Password</p>
+              <p className="text-xs text-[#0B1F3A]/65">Secure password update for {portalLabel} account</p>
+            </div>
+            {isAdminPortal && (
+              <span className="text-[11px] px-2 py-1 rounded-full border border-[#0B1F3A]/20 bg-white/70 text-[#0B1F3A]">
+                Admin OTP required
+              </span>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            <input
+              type="password"
+              placeholder="Current password"
+              className="w-full p-3 rounded-xl border border-[#0B1F3A]/10 bg-white/85"
+              value={passwordForm.currentPassword}
+              onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+            />
+            <input
+              type="password"
+              placeholder="New password"
+              className="w-full p-3 rounded-xl border border-[#0B1F3A]/10 bg-white/85"
+              value={passwordForm.newPassword}
+              onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+            />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              className="w-full p-3 rounded-xl border border-[#0B1F3A]/10 bg-white/85"
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+            />
+            {isAdminPortal && (
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Admin OTP"
+                className="w-full p-3 rounded-xl border border-[#0B1F3A]/10 bg-white/85"
+                value={passwordForm.adminOtp}
+                onChange={(e) => setPasswordForm((prev) => ({ ...prev, adminOtp: e.target.value }))}
+              />
+            )}
+          </div>
+
+          <div className="mt-3 flex items-center gap-3 flex-wrap">
+            <button
+              onClick={handleChangePassword}
+              disabled={passwordAction.loading}
+              className="px-4 py-2 rounded-full bg-[#0B1F3A] text-white text-sm disabled:opacity-60"
+            >
+              {passwordAction.loading ? "Updating..." : "Update Password"}
+            </button>
+            <span className="text-[11px] text-[#0B1F3A]/60">
+              Use 8+ chars with upper, lower, number and special character.
+            </span>
+          </div>
+
+          {passwordAction.error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mt-3">
+              {passwordAction.error}
+            </p>
+          )}
+
+          {passwordAction.success && (
+            <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-2 mt-3">
+              {passwordAction.success}
+            </p>
+          )}
+        </section>
         <div className="flex gap-3">
           <button
             onClick={() => navigate("/")}
