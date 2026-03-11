@@ -1,4 +1,4 @@
-﻿// ===== Financial Features =====
+// ===== Financial Features =====
 
 // 1. Affiliate Commission Tracking
 function createAffiliateTrackingContent() {
@@ -611,6 +611,7 @@ function createDriverPayoutContent() {
                 </tbody>
             </table>
         </div>
+        ${renderAdminWalletControl()}
     `;
 }
 
@@ -966,6 +967,24 @@ function renderAdminWalletControl() {
         </label>
     `).join('');
 
+    const pendingWithdrawals = typeof WalletCore.getWithdrawalRequests === 'function'
+        ? WalletCore.getWithdrawalRequests({ walletType: 'customer', status: 'pending_admin_approval' })
+        : [];
+
+    const withdrawalRows = pendingWithdrawals.map((request) => `
+        <tr>
+            <td>${request.id}</td>
+            <td>${request.ownerId}</td>
+            <td>${request.methodLabel || request.method || '-'}</td>
+            <td>₹${Number(request.amount || 0).toFixed(2)}</td>
+            <td>${new Date(request.createdAt).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-success" onclick="adminReviewWithdrawalRequest('${request.id}', 'approved')">Approve</button>
+                <button class="btn btn-danger" onclick="adminReviewWithdrawalRequest('${request.id}', 'rejected')">Reject</button>
+            </td>
+        </tr>
+    `).join('');
+
     return `
         <div class="card mt-20">
             <div class="flex-between mb-20">
@@ -992,6 +1011,28 @@ function renderAdminWalletControl() {
                 <p style="margin-bottom:0.75rem; color:#64748b;">Enable/disable payment methods globally.</p>
                 <div id="paymentModesAdminList">${modeRows}</div>
                 <button class="btn btn-success" style="margin-top:0.75rem;" onclick="adminSavePaymentModes()">Save Payment Modes</button>
+            </div>
+
+            <div class="card mt-20" style="background:#f8fafc;">
+                <div class="flex-between mb-20">
+                    <h4>Customer Withdrawal Approvals</h4>
+                    <button class="btn btn-primary" onclick="refreshWalletControlSection()">Refresh Queue</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Customer</th>
+                            <th>Method</th>
+                            <th>Amount</th>
+                            <th>Requested At</th>
+                            <th>Admin Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${withdrawalRows || '<tr><td colspan="6">No pending withdrawal requests</td></tr>'}
+                    </tbody>
+                </table>
             </div>
         </div>
     `;
@@ -1035,6 +1076,33 @@ function adminWalletAdjust(type, ownerId, action) {
     }
 }
 
+
+function adminReviewWithdrawalRequest(requestId, decision) {
+    if (!window.WalletCore || typeof WalletCore.reviewWithdrawalRequest !== 'function') {
+        showToast('Withdrawal workflow not available', 'error');
+        return;
+    }
+
+    const safeDecision = decision === 'approved' ? 'approved' : 'rejected';
+    const remarks = prompt('Remarks for ' + safeDecision + ' request ' + requestId + ' (optional):') || '';
+
+    try {
+        const currentAdmin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+        WalletCore.reviewWithdrawalRequest({
+            requestId,
+            decision: safeDecision,
+            remarks,
+            actorRole: 'admin',
+            actorId: currentAdmin.id || 'admin'
+        });
+
+        showToast('Withdrawal request ' + safeDecision + ' successfully', 'success');
+        logAdminAction('WITHDRAWAL_' + safeDecision.toUpperCase(), 'request=' + requestId);
+        refreshWalletControlSection();
+    } catch (error) {
+        showToast(error.message || 'Could not review withdrawal request', 'error');
+    }
+}
 function adminSavePaymentModes() {
     if (!window.WalletCore) return;
 

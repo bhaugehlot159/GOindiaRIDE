@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -158,6 +158,10 @@
                     <i class="fas fa-exchange-alt"></i>
                     <span>Transfer</span>
                 </button>
+                <button class="action-btn" id="withdrawWalletBtn">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Withdraw</span>
+                </button>
                 <button class="action-btn" id="donateBtn">
                     <i class="fas fa-donate"></i>
                     <span>Donate</span>
@@ -176,6 +180,11 @@
             <div class="transaction-history">
                 <h3>Recent Transactions</h3>
                 <div id="transactionList"></div>
+            </div>
+
+            <div class="transaction-history">
+                <h3>Withdrawal Requests</h3>
+                <div id="withdrawalRequestList"></div>
             </div>
 
             <!-- Cashback & Rewards -->
@@ -469,20 +478,52 @@
             </div>
             <div class="payment-methods">
                 <h3>Payment Method</h3>
-                <label class="radio-label">
-                    <input type="radio" name="paymentMethod" value="upi" checked>
-                    <span>UPI</span>
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="paymentMethod" value="card">
-                    <span>Credit/Debit Card</span>
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="paymentMethod" value="netbanking">
-                    <span>Net Banking</span>
-                </label>
+                <div id="walletPaymentMethods">
+                    <label class="radio-label">
+                        <input type="radio" name="paymentMethod" value="upi" checked>
+                        <span>UPI</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="paymentMethod" value="debit_card">
+                        <span>Debit/Credit Card</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="paymentMethod" value="netbanking">
+                        <span>Net Banking</span>
+                    </label>
+                </div>
             </div>
             <button class="btn-primary" id="proceedPayment">Proceed to Payment</button>
+        </div>
+    </div>
+
+
+    <!-- Withdraw Modal -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Withdraw from Wallet</h2>
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" id="withdrawAmount" placeholder="Enter amount (minimum ₹100)">
+            </div>
+            <div class="form-group">
+                <label>Withdrawal Method</label>
+                <select id="withdrawMethod"></select>
+            </div>
+            <div class="form-group">
+                <label>Destination Details (UPI ID / Bank / IBAN / SWIFT)</label>
+                <input type="text" id="withdrawDestination" placeholder="Enter payout destination">
+            </div>
+            <div class="form-group">
+                <label>Remarks (Optional)</label>
+                <textarea id="withdrawNotes" rows="3" placeholder="Add note for admin verification"></textarea>
+            </div>
+            <div class="donation-info">
+                <i class="fas fa-shield-alt"></i>
+                <small>Withdrawal request will be processed only after admin security verification.</small>
+            </div>
+            <button class="btn-primary" id="requestWithdrawalBtn">Submit Withdrawal Request</button>
         </div>
     </div>
 

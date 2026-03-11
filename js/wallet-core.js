@@ -1,4 +1,4 @@
-﻿/* ======================================
+/* ======================================
    CENTRAL WALLET CORE
    Wallet types: customer, driver, admin, donation
    Admin has full control over add/withdraw/payment modes.
@@ -7,20 +7,64 @@
 (function initWalletCore() {
     const WALLET_STORAGE_KEY = 'goindiaride_wallet_store_v1';
     const PAYMENT_MODE_KEY = 'goindiaride_payment_modes_v1';
-    const TX_LIMIT = 200;
+    const WITHDRAWAL_REQUEST_KEY = 'goindiaride_wallet_withdrawals_v1';
+    const WALLET_SECURITY_LOG_KEY = 'goindiaride_wallet_security_logs_v1';
+    const TX_LIMIT = 300;
+
+    const WITHDRAWAL_LIMITS = {
+        min: 100,
+        max: 100000,
+        dailyMax: 200000
+    };
 
     const DEFAULT_PAYMENT_MODES = [
-        { id: 'upi', label: 'UPI', enabled: true },
-        { id: 'card', label: 'Card', enabled: true },
-        { id: 'netbanking', label: 'Net Banking', enabled: true },
-        { id: 'wallet', label: 'Wallet', enabled: true },
-        { id: 'cash', label: 'Cash', enabled: true }
+        // India
+        { id: 'upi', label: 'UPI', enabled: true, region: 'india', flows: ['add_money', 'ride_payment', 'refund'] },
+        { id: 'upi_qr', label: 'UPI QR Scan', enabled: true, region: 'india', flows: ['add_money'] },
+        { id: 'bharat_qr', label: 'Bharat QR', enabled: true, region: 'india', flows: ['add_money'] },
+        { id: 'debit_card', label: 'Debit Card', enabled: true, region: 'india', flows: ['add_money', 'ride_payment', 'refund'] },
+        { id: 'credit_card', label: 'Credit Card', enabled: true, region: 'india', flows: ['add_money', 'ride_payment', 'refund'] },
+        { id: 'netbanking', label: 'Net Banking', enabled: true, region: 'india', flows: ['add_money', 'withdrawal'] },
+        { id: 'imps', label: 'IMPS', enabled: true, region: 'india', flows: ['withdrawal'] },
+        { id: 'neft_rtgs', label: 'NEFT/RTGS', enabled: true, region: 'india', flows: ['withdrawal'] },
+        { id: 'paytm_wallet', label: 'Paytm Wallet', enabled: true, region: 'india', flows: ['add_money', 'ride_payment'] },
+        { id: 'phonepe_wallet', label: 'PhonePe Wallet', enabled: true, region: 'india', flows: ['add_money', 'ride_payment'] },
+        { id: 'googlepay_wallet', label: 'Google Pay Wallet', enabled: true, region: 'india', flows: ['add_money', 'ride_payment'] },
+
+        // International
+        { id: 'stripe_cards', label: 'Stripe (Cards)', enabled: true, region: 'international', flows: ['add_money', 'ride_payment', 'refund'] },
+        { id: 'paypal', label: 'PayPal', enabled: true, region: 'international', flows: ['add_money', 'withdrawal', 'refund'] },
+        { id: 'wise', label: 'Wise Transfer', enabled: true, region: 'international', flows: ['withdrawal'] },
+        { id: 'swift_wire', label: 'SWIFT Wire', enabled: true, region: 'international', flows: ['withdrawal'] },
+        { id: 'sepa', label: 'SEPA Transfer', enabled: true, region: 'international', flows: ['withdrawal'] },
+        { id: 'apple_pay', label: 'Apple Pay', enabled: true, region: 'international', flows: ['add_money', 'ride_payment'] },
+        { id: 'google_pay_intl', label: 'Google Pay (International)', enabled: true, region: 'international', flows: ['add_money', 'ride_payment'] },
+        { id: 'alipay', label: 'Alipay', enabled: true, region: 'international', flows: ['add_money', 'ride_payment'] },
+        { id: 'wechat_pay', label: 'WeChat Pay', enabled: true, region: 'international', flows: ['add_money', 'ride_payment'] },
+        { id: 'international_qr', label: 'International QR', enabled: true, region: 'international', flows: ['add_money'] }
     ];
 
     const allowedTypes = ['customer', 'driver', 'admin', 'donation'];
 
     function nowIso() {
         return new Date().toISOString();
+    }
+
+    function parseJsonSafely(raw, fallback) {
+        try {
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : fallback;
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function sanitizeText(value, maxLen = 180) {
+        return String(value || '')
+            .replace(/[<>]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, maxLen);
     }
 
     function getActiveRole() {
@@ -31,39 +75,18 @@
         const role = getActiveRole();
 
         if (role === 'driver') {
-            try {
-                return JSON.parse(localStorage.getItem('currentDriver') || '{}');
-            } catch (error) {
-                return {};
-            }
+            return parseJsonSafely(localStorage.getItem('currentDriver') || '{}', {});
         }
 
         if (role === 'admin') {
-            try {
-                return JSON.parse(localStorage.getItem('currentAdmin') || '{}');
-            } catch (error) {
-                return {};
-            }
+            return parseJsonSafely(localStorage.getItem('currentAdmin') || '{}', {});
         }
 
-        try {
-            return JSON.parse(localStorage.getItem('currentUser') || '{}');
-        } catch (error) {
-            return {};
-        }
+        return parseJsonSafely(localStorage.getItem('currentUser') || '{}', {});
     }
 
     function ensureStore() {
-        let store;
-        try {
-            store = JSON.parse(localStorage.getItem(WALLET_STORAGE_KEY) || '{}');
-        } catch (error) {
-            store = {};
-        }
-
-        if (!store || typeof store !== 'object') {
-            store = {};
-        }
+        let store = parseJsonSafely(localStorage.getItem(WALLET_STORAGE_KEY) || '{}', {});
 
         if (!store.wallets || typeof store.wallets !== 'object') {
             store.wallets = {};
@@ -79,6 +102,18 @@
 
     function saveStore(store) {
         localStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(store));
+    }
+
+    function ensureWithdrawalStore() {
+        const rows = parseJsonSafely(localStorage.getItem(WITHDRAWAL_REQUEST_KEY) || '[]', []);
+        const validRows = Array.isArray(rows) ? rows : [];
+        localStorage.setItem(WITHDRAWAL_REQUEST_KEY, JSON.stringify(validRows));
+        return validRows;
+    }
+
+    function saveWithdrawalStore(rows) {
+        const safeRows = Array.isArray(rows) ? rows : [];
+        localStorage.setItem(WITHDRAWAL_REQUEST_KEY, JSON.stringify(safeRows));
     }
 
     function walletId(type, ownerId) {
@@ -162,6 +197,22 @@
         }
     }
 
+    function ensureSecurityLog() {
+        const rows = parseJsonSafely(localStorage.getItem(WALLET_SECURITY_LOG_KEY) || '[]', []);
+        return Array.isArray(rows) ? rows : [];
+    }
+
+    function recordSecurityEvent(event) {
+        const rows = ensureSecurityLog();
+        rows.unshift({
+            id: `WSEC_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+            createdAt: nowIso(),
+            severity: 'info',
+            ...event
+        });
+        localStorage.setItem(WALLET_SECURITY_LOG_KEY, JSON.stringify(rows.slice(0, 500)));
+    }
+
     function mutateBalance({ type, ownerId, amount, action, description, actorRole, actorId, paymentMode }) {
         validateType(type);
 
@@ -169,6 +220,12 @@
         const normalizedRole = String(actorRole || getActiveRole() || '').toLowerCase();
 
         if (!canMutateWallet(normalizedRole, type, normalizedOwner, action)) {
+            recordSecurityEvent({
+                severity: 'warning',
+                source: 'wallet_core',
+                eventType: 'permission_denied',
+                details: `Role ${normalizedRole || 'unknown'} tried ${action} on ${type}:${normalizedOwner}`
+            });
             throw new Error('You do not have permission to manage this wallet.');
         }
 
@@ -195,6 +252,12 @@
         const wallet = store.wallets[id];
 
         if (action === 'debit' && wallet.balance < numericAmount) {
+            recordSecurityEvent({
+                severity: 'warning',
+                source: 'wallet_core',
+                eventType: 'insufficient_balance',
+                details: `Debit rejected for ${id}. requested=${numericAmount}, balance=${wallet.balance}`
+            });
             throw new Error('Insufficient balance.');
         }
 
@@ -209,7 +272,7 @@
             ownerId: normalizedOwner,
             action,
             amount: numericAmount,
-            description: description || `${action} ${numericAmount}`,
+            description: sanitizeText(description || `${action} ${numericAmount}`),
             actorRole: normalizedRole || 'unknown',
             actorId: actorId || resolveOwnerForRole(normalizedRole, null),
             paymentMode: paymentMode || null
@@ -225,6 +288,12 @@
         const toOwner = normalizeOwnerId(toType, toOwnerId);
 
         if (!canMutateWallet(normalizedRole, fromType, fromOwner, 'debit') || !canMutateWallet(normalizedRole, toType, toOwner, 'credit')) {
+            recordSecurityEvent({
+                severity: 'warning',
+                source: 'wallet_core',
+                eventType: 'transfer_permission_denied',
+                details: `Role ${normalizedRole || 'unknown'} transfer denied ${fromType}:${fromOwner} -> ${toType}:${toOwner}`
+            });
             throw new Error('You do not have permission to transfer between these wallets.');
         }
 
@@ -277,7 +346,7 @@
             ownerId: fromOwner,
             action: 'transfer_out',
             amount: numericAmount,
-            description: description || `Transfer to ${toId}`,
+            description: sanitizeText(description || `Transfer to ${toId}`),
             actorRole: normalizedRole || 'unknown',
             actorId: actorId || resolveOwnerForRole(normalizedRole, null),
             linkedWalletId: toId
@@ -289,7 +358,7 @@
             ownerId: toOwner,
             action: 'transfer_in',
             amount: numericAmount,
-            description: description || `Transfer from ${fromId}`,
+            description: sanitizeText(description || `Transfer from ${fromId}`),
             actorRole: normalizedRole || 'unknown',
             actorId: actorId || resolveOwnerForRole(normalizedRole, null),
             linkedWalletId: fromId
@@ -318,21 +387,55 @@
             rows = rows.filter((item) => String(item.ownerId) === String(filters.ownerId));
         }
 
+        if (filters.action) {
+            rows = rows.filter((item) => String(item.action) === String(filters.action));
+        }
+
         return rows;
     }
 
-    function getPaymentModes() {
-        try {
-            const modes = JSON.parse(localStorage.getItem(PAYMENT_MODE_KEY) || '[]');
-            if (Array.isArray(modes) && modes.length > 0) {
-                return modes;
-            }
-        } catch (error) {
-            // Ignore parsing error and reset with defaults.
+    function normalizePaymentMode(mode) {
+        const source = mode && typeof mode === 'object' ? mode : {};
+        const normalized = {
+            id: sanitizeText(source.id || '', 40).toLowerCase(),
+            label: sanitizeText(source.label || source.id || 'Payment Mode', 80),
+            enabled: source.enabled !== false,
+            region: sanitizeText(source.region || 'global', 20).toLowerCase(),
+            flows: Array.isArray(source.flows) && source.flows.length > 0
+                ? source.flows.map((flow) => sanitizeText(flow, 40).toLowerCase()).filter(Boolean)
+                : ['add_money', 'ride_payment', 'withdrawal', 'refund']
+        };
+
+        if (!normalized.id) {
+            normalized.id = `mode_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         }
 
-        localStorage.setItem(PAYMENT_MODE_KEY, JSON.stringify(DEFAULT_PAYMENT_MODES));
-        return DEFAULT_PAYMENT_MODES;
+        return normalized;
+    }
+
+    function getPaymentModes() {
+        const stored = parseJsonSafely(localStorage.getItem(PAYMENT_MODE_KEY) || '[]', []);
+        if (Array.isArray(stored) && stored.length > 0) {
+            const normalized = stored.map(normalizePaymentMode);
+            localStorage.setItem(PAYMENT_MODE_KEY, JSON.stringify(normalized));
+            return normalized;
+        }
+
+        const defaults = DEFAULT_PAYMENT_MODES.map(normalizePaymentMode);
+        localStorage.setItem(PAYMENT_MODE_KEY, JSON.stringify(defaults));
+        return defaults;
+    }
+
+    function getEnabledPaymentModes(filters = {}) {
+        const flow = sanitizeText(filters.flow || '', 40).toLowerCase();
+        const region = sanitizeText(filters.region || '', 20).toLowerCase();
+
+        return getPaymentModes().filter((mode) => {
+            if (!mode.enabled) return false;
+            if (flow && !(mode.flows || []).includes(flow)) return false;
+            if (region && mode.region !== region && mode.region !== 'global') return false;
+            return true;
+        });
     }
 
     function setPaymentModes(modes, actorRole) {
@@ -345,8 +448,291 @@
             throw new Error('Payment mode list is empty.');
         }
 
-        localStorage.setItem(PAYMENT_MODE_KEY, JSON.stringify(modes));
-        return modes;
+        const normalized = modes.map(normalizePaymentMode);
+        localStorage.setItem(PAYMENT_MODE_KEY, JSON.stringify(normalized));
+        return normalized;
+    }
+
+    function getWithdrawalRequests(filters = {}) {
+        let rows = ensureWithdrawalStore();
+
+        if (filters.walletType) {
+            rows = rows.filter((row) => String(row.walletType) === String(filters.walletType));
+        }
+
+        if (filters.ownerId) {
+            rows = rows.filter((row) => String(row.ownerId) === String(filters.ownerId));
+        }
+
+        if (filters.status) {
+            rows = rows.filter((row) => String(row.status) === String(filters.status));
+        }
+
+        return rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    function getTodayTotalWithdrawRequestAmount(walletType, ownerId) {
+        const today = new Date();
+        const y = today.getUTCFullYear();
+        const m = today.getUTCMonth();
+        const d = today.getUTCDate();
+
+        const rows = getWithdrawalRequests({
+            walletType,
+            ownerId
+        }).filter((row) => {
+            const createdAt = new Date(row.createdAt);
+            return createdAt.getUTCFullYear() === y && createdAt.getUTCMonth() === m && createdAt.getUTCDate() === d;
+        });
+
+        return rows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    }
+
+    function createWithdrawalRequest({
+        walletType,
+        ownerId,
+        amount,
+        method,
+        destination,
+        notes,
+        actorRole,
+        actorId,
+        metadata
+    }) {
+        const type = walletType || 'customer';
+        validateType(type);
+        if (type === 'admin' || type === 'donation') {
+            throw new Error('Withdrawal request is allowed only for customer/driver wallet.');
+        }
+
+        const normalizedOwner = normalizeOwnerId(type, ownerId);
+        const normalizedRole = String(actorRole || getActiveRole() || '').toLowerCase();
+
+        if (!canMutateWallet(normalizedRole, type, normalizedOwner, 'debit')) {
+            recordSecurityEvent({
+                severity: 'warning',
+                source: 'wallet_core',
+                eventType: 'withdraw_request_denied',
+                details: `Role ${normalizedRole || 'unknown'} cannot request withdrawal for ${type}:${normalizedOwner}`
+            });
+            throw new Error('You do not have permission to request withdrawal for this wallet.');
+        }
+
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount < WITHDRAWAL_LIMITS.min || numericAmount > WITHDRAWAL_LIMITS.max) {
+            throw new Error(`Withdrawal amount must be between ${WITHDRAWAL_LIMITS.min} and ${WITHDRAWAL_LIMITS.max}.`);
+        }
+
+        const wallet = ensureWallet(type, normalizedOwner);
+        if (wallet.balance < numericAmount) {
+            throw new Error('Insufficient balance.');
+        }
+
+        const todayRequested = getTodayTotalWithdrawRequestAmount(type, normalizedOwner);
+        if (todayRequested + numericAmount > WITHDRAWAL_LIMITS.dailyMax) {
+            throw new Error(`Daily withdrawal request limit exceeded (${WITHDRAWAL_LIMITS.dailyMax}).`);
+        }
+
+        const methodId = sanitizeText(method || '', 40).toLowerCase();
+        const allowedMethods = getEnabledPaymentModes({ flow: 'withdrawal' });
+        const methodInfo = allowedMethods.find((mode) => mode.id === methodId);
+        if (!methodInfo) {
+            throw new Error('Selected withdrawal method is not enabled by admin.');
+        }
+
+        const request = {
+            id: `WDR_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+            walletType: type,
+            ownerId: normalizedOwner,
+            amount: numericAmount,
+            method: methodInfo.id,
+            methodLabel: methodInfo.label,
+            destination: sanitizeText(destination, 160),
+            notes: sanitizeText(notes, 240),
+            status: 'pending_admin_approval',
+            createdAt: nowIso(),
+            updatedAt: nowIso(),
+            actorRole: normalizedRole || 'unknown',
+            actorId: actorId || resolveOwnerForRole(normalizedRole, null),
+            metadata: metadata || {}
+        };
+
+        const rows = ensureWithdrawalStore();
+        rows.unshift(request);
+        saveWithdrawalStore(rows);
+
+        const store = ensureStore();
+        writeTransaction(store, {
+            walletId: walletId(type, normalizedOwner),
+            walletType: type,
+            ownerId: normalizedOwner,
+            action: 'withdraw_request',
+            amount: numericAmount,
+            description: `Withdrawal requested via ${methodInfo.label}`,
+            actorRole: normalizedRole || 'unknown',
+            actorId: actorId || resolveOwnerForRole(normalizedRole, null),
+            paymentMode: methodInfo.id,
+            requestId: request.id
+        });
+        saveStore(store);
+
+        if (numericAmount >= 50000) {
+            recordSecurityEvent({
+                severity: 'warning',
+                source: 'wallet_core',
+                eventType: 'high_value_withdrawal_request',
+                details: `${type}:${normalizedOwner} requested ${numericAmount} via ${methodInfo.id}`
+            });
+        }
+
+        return request;
+    }
+
+    function reviewWithdrawalRequest({ requestId, decision, remarks, actorRole, actorId }) {
+        const role = String(actorRole || getActiveRole() || '').toLowerCase();
+        if (role !== 'admin') {
+            throw new Error('Only admin can review withdrawal requests.');
+        }
+
+        const normalizedDecision = String(decision || '').toLowerCase();
+        if (normalizedDecision !== 'approved' && normalizedDecision !== 'rejected') {
+            throw new Error('Decision must be approved or rejected.');
+        }
+
+        const rows = ensureWithdrawalStore();
+        const idx = rows.findIndex((row) => row.id === requestId);
+        if (idx < 0) {
+            throw new Error('Withdrawal request not found.');
+        }
+
+        const request = rows[idx];
+        if (request.status !== 'pending_admin_approval') {
+            throw new Error('Withdrawal request already reviewed.');
+        }
+
+        const store = ensureStore();
+        const sourceType = request.walletType;
+        const sourceOwner = normalizeOwnerId(sourceType, request.ownerId);
+        const sourceWalletId = walletId(sourceType, sourceOwner);
+        const adminWalletId = walletId('admin', 'platform');
+
+        if (!store.wallets[sourceWalletId]) {
+            store.wallets[sourceWalletId] = ensureWallet(sourceType, sourceOwner);
+        }
+        if (!store.wallets[adminWalletId]) {
+            store.wallets[adminWalletId] = ensureWallet('admin', 'platform');
+        }
+
+        if (normalizedDecision === 'approved') {
+            if (store.wallets[sourceWalletId].balance < Number(request.amount)) {
+                throw new Error('Customer/driver wallet has insufficient balance for withdrawal.');
+            }
+
+            if (store.wallets[adminWalletId].balance < Number(request.amount)) {
+                throw new Error('Admin settlement wallet has insufficient balance. Add funds first.');
+            }
+
+            store.wallets[sourceWalletId].balance -= Number(request.amount);
+            store.wallets[sourceWalletId].updatedAt = nowIso();
+
+            store.wallets[adminWalletId].balance -= Number(request.amount);
+            store.wallets[adminWalletId].updatedAt = nowIso();
+
+            writeTransaction(store, {
+                walletId: sourceWalletId,
+                walletType: sourceType,
+                ownerId: sourceOwner,
+                action: 'withdrawal_approved',
+                amount: Number(request.amount),
+                description: `Withdrawal approved by admin (${request.methodLabel})`,
+                actorRole: 'admin',
+                actorId: actorId || resolveOwnerForRole('admin', null),
+                paymentMode: request.method,
+                requestId: request.id
+            });
+
+            writeTransaction(store, {
+                walletId: adminWalletId,
+                walletType: 'admin',
+                ownerId: 'platform',
+                action: 'payout_processed',
+                amount: Number(request.amount),
+                description: `Payout sent for ${sourceType}:${sourceOwner}`,
+                actorRole: 'admin',
+                actorId: actorId || resolveOwnerForRole('admin', null),
+                paymentMode: request.method,
+                requestId: request.id
+            });
+        } else {
+            writeTransaction(store, {
+                walletId: sourceWalletId,
+                walletType: sourceType,
+                ownerId: sourceOwner,
+                action: 'withdrawal_rejected',
+                amount: Number(request.amount),
+                description: 'Withdrawal rejected by admin',
+                actorRole: 'admin',
+                actorId: actorId || resolveOwnerForRole('admin', null),
+                paymentMode: request.method,
+                requestId: request.id
+            });
+        }
+
+        request.status = normalizedDecision;
+        request.reviewedAt = nowIso();
+        request.updatedAt = nowIso();
+        request.reviewedBy = actorId || resolveOwnerForRole('admin', null);
+        request.remarks = sanitizeText(remarks || '', 240);
+
+        rows[idx] = request;
+        saveWithdrawalStore(rows);
+        saveStore(store);
+        return request;
+    }
+
+    function settlePaymentToAdmin({
+        amount,
+        sourceType,
+        sourceOwnerId,
+        paymentMode,
+        description,
+        actorId
+    }) {
+        const numericAmount = Number(amount);
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+            throw new Error('Invalid amount for admin settlement.');
+        }
+
+        const adminWallet = mutateBalance({
+            type: 'admin',
+            ownerId: 'platform',
+            amount: numericAmount,
+            action: 'credit',
+            description: description || 'Auto payment settlement to admin wallet',
+            actorRole: 'admin',
+            actorId: actorId || 'system_settlement',
+            paymentMode
+        });
+
+        const normalizedSourceType = allowedTypes.includes(sourceType) ? sourceType : 'customer';
+        const normalizedSourceOwner = normalizeOwnerId(normalizedSourceType, sourceOwnerId);
+
+        const store = ensureStore();
+        writeTransaction(store, {
+            walletId: walletId(normalizedSourceType, normalizedSourceOwner),
+            walletType: normalizedSourceType,
+            ownerId: normalizedSourceOwner,
+            action: 'settled_to_admin',
+            amount: numericAmount,
+            description: sanitizeText(description || 'Payment captured and settled to admin wallet'),
+            actorRole: 'system',
+            actorId: actorId || 'system_settlement',
+            paymentMode: paymentMode || null,
+            linkedWalletId: walletId('admin', 'platform')
+        });
+        saveStore(store);
+
+        return adminWallet;
     }
 
     function getWallet(type, ownerId) {
@@ -356,6 +742,9 @@
     function bootstrapDefaults() {
         ensureWallet('donation', 'pool');
         ensureWallet('admin', 'platform');
+        getPaymentModes();
+        ensureWithdrawalStore();
+        ensureSecurityLog();
     }
 
     bootstrapDefaults();
@@ -365,7 +754,16 @@
         listWallets,
         getTransactions,
         getPaymentModes,
+        getEnabledPaymentModes,
         setPaymentModes,
+        getWithdrawalRequests,
+        createWithdrawalRequest,
+        reviewWithdrawalRequest,
+        settlePaymentToAdmin,
+        getSecurityEvents() {
+            return ensureSecurityLog();
+        },
+        recordSecurityEvent,
         credit(payload) {
             return mutateBalance({ ...payload, action: 'credit' });
         },
