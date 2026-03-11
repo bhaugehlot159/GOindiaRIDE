@@ -49,3 +49,34 @@ This backend layer was added without removing existing files and includes Level 
 - Complete architecture diagram: `docs/security-architecture.md`
 
 > Note: OTP verification, reCAPTCHA verification, and geo-country intelligence are skeleton logic and should be wired to production providers.
+
+## Secure Wallet & Payment API
+
+This release adds a production-ready wallet backend (/api/wallet) with Mongo persistence:
+
+- Customer/Driver/Admin/Donation wallet ledgers
+- Global payment mode control (India + International)
+- Secure top-up order + confirmation flow (provider reference required)
+- Withdrawal request flow with admin approval
+- Auto settlement entry in admin wallet
+- CSRF + JWT protected mutating routes
+- High-value payment security logging
+
+### Key routes
+- GET /api/wallet/my - current account wallet snapshot
+- POST /api/wallet/topup/order - create secure top-up order
+- POST /api/wallet/topup/confirm - confirm top-up by provider reference
+- POST /api/wallet/withdrawals - submit withdrawal request
+- GET /api/wallet/withdrawals - list user withdrawal requests
+- GET /api/wallet/admin/overview - admin wallet control overview
+- POST /api/wallet/admin/withdrawals/:requestId/review - approve/reject withdrawals
+- PUT /api/wallet/admin/payment-modes - admin payment mode control
+
+### Go live checklist
+1. Set all live gateway secrets in .env (Razorpay/Stripe/PayPal/Cashfree).
+2. Run backend on HTTPS domain and set CORS_ORIGIN + SECURITY_ALLOWED_ORIGINS.
+3. Ensure frontend stores valid ccessToken after login.
+4. Configure webhook verification using PAYMENT_WEBHOOK_SECRET.
+5. Use PM2 (
+pm run pm2:start) behind reverse proxy (Nginx/Cloudflare).
+

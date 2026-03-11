@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v2';
+const CACHE_NAME = 'goindiaride-pwa-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -68,3 +68,4 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1151,6 +1151,11 @@
 
             <!-- Wallet Tab -->
             <div class="tab-content" id="walletTab">
+                <div class="wallet-ledger-card" style="margin-bottom:1rem;">
+                    <div class="wallet-ledger-title">Payment Engine Status</div>
+                    <div id="walletModeStatus" class="wallet-row-main">Checking secure payment mode...</div>
+                    <div class="wallet-row-sub">Live mode uses backend API verification, CSRF token, and admin settlement wallet.</div>
+                </div>
                 <div class="wallet-grid">
                     <div class="wallet-panel-card">
                         <h4>Customer Wallet Balance</h4>
@@ -1448,12 +1453,11 @@
         let selectedDonationAmount = 0;
         let currentRideForDonation = null;
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', async function() {
             currentUser = checkAuth();
             if (!currentUser) return;
-
-            loadDashboard();
-            initializeWalletView();
+            await loadDashboard();
+            await initializeWalletView();
             loadRides();
             loadDonations();
             loadProfile();
@@ -1481,7 +1485,11 @@
         // LOAD DASHBOARD
         // ----------------------------------------====
 
-        function loadDashboard() {
+        async function loadDashboard() {
+            if (typeof isSecureWalletMode === 'function' && isSecureWalletMode()) {
+                await refreshSecureWalletSnapshot(false);
+            }
+
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const customerBookings = bookings.filter(b => b.customerId === currentUser.id);
             const donations = JSON.parse(localStorage.getItem('customerDonations_' + currentUser.id)) || [];
@@ -1503,36 +1511,77 @@
         // LOAD RIDES
         // ----------------------------------------====
 
+        let secureWalletSnapshot = null;
+        let secureWalletSyncedAt = 0;
+
+        function isSecureWalletMode() {
+            return Boolean(
+                window.WalletCore &&
+                typeof WalletCore.isSecureBackendReady === 'function' &&
+                WalletCore.isSecureBackendReady()
+            );
+        }
+
         function getCustomerWalletOwnerId() {
-            if (!currentUser) return "customer_default";
-            return String(currentUser.id || currentUser.userId || "customer_default");
+            if (!currentUser) return 'customer_default';
+            return String(currentUser.id || currentUser.userId || 'customer_default');
         }
 
         function formatInr(amount) {
             const value = Number(amount || 0);
-            return new Intl.NumberFormat("en-IN", {
-                style: "currency",
-                currency: "INR",
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
                 maximumFractionDigits: 2
             }).format(value);
         }
 
         function syncLegacyWalletStore(balance) {
             const ownerId = getCustomerWalletOwnerId();
-            const walletKey = "wallet_" + ownerId;
-            const existing = JSON.parse(localStorage.getItem(walletKey) || "{}");
+            const walletKey = 'wallet_' + ownerId;
+            const existing = JSON.parse(localStorage.getItem(walletKey) || '{}');
             localStorage.setItem(walletKey, JSON.stringify({
                 balance: Number(balance || 0),
                 transactions: Array.isArray(existing.transactions) ? existing.transactions : []
             }));
         }
 
+        async function refreshSecureWalletSnapshot(forceSync = false) {
+            if (!isSecureWalletMode() || !window.WalletCore || typeof WalletCore.fetchSecureWalletSnapshot !== 'function') {
+                return null;
+            }
+
+            if (!forceSync && secureWalletSnapshot && Date.now() - secureWalletSyncedAt < 15000) {
+                return secureWalletSnapshot;
+            }
+
+            try {
+                const payload = await WalletCore.fetchSecureWalletSnapshot();
+                secureWalletSnapshot = payload || null;
+                secureWalletSyncedAt = Date.now();
+                return secureWalletSnapshot;
+            } catch (error) {
+                console.warn('Secure wallet snapshot failed:', error);
+                return secureWalletSnapshot;
+            }
+        }
+
         function getWalletSnapshotForDashboard() {
+            if (secureWalletSnapshot && secureWalletSnapshot.wallet) {
+                const customerBalance = Number(secureWalletSnapshot.wallet.balance || 0);
+                const donationBalance = Number((secureWalletSnapshot.donationWallet && secureWalletSnapshot.donationWallet.balance) || 0);
+                syncLegacyWalletStore(customerBalance);
+                return {
+                    customerBalance,
+                    donationBalance
+                };
+            }
+
             const ownerId = getCustomerWalletOwnerId();
 
-            if (window.WalletCore && typeof WalletCore.getWallet === "function") {
-                const customerWallet = WalletCore.getWallet("customer", ownerId);
-                const donationWallet = WalletCore.getWallet("donation", "pool");
+            if (window.WalletCore && typeof WalletCore.getWallet === 'function') {
+                const customerWallet = WalletCore.getWallet('customer', ownerId);
+                const donationWallet = WalletCore.getWallet('donation', 'pool');
                 syncLegacyWalletStore(Number(customerWallet.balance || 0));
                 return {
                     customerBalance: Number(customerWallet.balance || 0),
@@ -1540,217 +1589,292 @@
                 };
             }
 
-            const legacy = JSON.parse(localStorage.getItem("wallet_" + ownerId) || '{"balance":0}');
+            const legacy = JSON.parse(localStorage.getItem('wallet_' + ownerId) || '{"balance":0}');
             return {
                 customerBalance: Number(legacy.balance || 0),
                 donationBalance: 0
             };
         }
 
-        function getWalletMethodOptions(flow) {
-            if (window.WalletCore && typeof WalletCore.getEnabledPaymentModes === "function") {
+        async function getWalletMethodOptions(flow) {
+            if (isSecureWalletMode() && window.WalletCore && typeof WalletCore.fetchSecurePaymentModes === 'function') {
+                try {
+                    const secureModes = await WalletCore.fetchSecurePaymentModes(flow);
+                    if (Array.isArray(secureModes) && secureModes.length) {
+                        return secureModes.map((mode) => ({
+                            id: String(mode.id || ''),
+                            label: String(mode.label || mode.id || 'Payment Mode')
+                        }));
+                    }
+                } catch (error) {
+                    console.warn('Secure payment mode fetch failed:', error);
+                }
+            }
+
+            if (window.WalletCore && typeof WalletCore.getEnabledPaymentModes === 'function') {
                 const modes = WalletCore.getEnabledPaymentModes({ flow: flow });
                 if (Array.isArray(modes) && modes.length) {
                     return modes.map((mode) => ({
-                        id: String(mode.id || ""),
-                        label: String(mode.label || mode.id || "Payment Mode")
+                        id: String(mode.id || ''),
+                        label: String(mode.label || mode.id || 'Payment Mode')
                     }));
                 }
             }
 
-            if (flow === "withdrawal") {
+            if (flow === 'withdrawal') {
                 return [
-                    { id: "upi", label: "UPI" },
-                    { id: "imps", label: "IMPS" },
-                    { id: "neft_rtgs", label: "NEFT/RTGS" },
-                    { id: "swift_wire", label: "SWIFT Wire" }
+                    { id: 'upi', label: 'UPI' },
+                    { id: 'imps', label: 'IMPS' },
+                    { id: 'neft_rtgs', label: 'NEFT/RTGS' },
+                    { id: 'swift_wire', label: 'SWIFT Wire' }
                 ];
             }
 
             return [
-                { id: "upi", label: "UPI" },
-                { id: "debit_card", label: "Debit/Credit Card" },
-                { id: "netbanking", label: "Net Banking" },
-                { id: "paypal", label: "PayPal" }
+                { id: 'upi', label: 'UPI' },
+                { id: 'debit_card', label: 'Debit/Credit Card' },
+                { id: 'netbanking', label: 'Net Banking' },
+                { id: 'paypal', label: 'PayPal' }
             ];
         }
 
-        function renderWalletMethodOptions() {
-            const addSelect = document.getElementById("walletAddMethod");
-            const withdrawSelect = document.getElementById("walletWithdrawMethod");
+        async function renderWalletMethodOptions() {
+            const addSelect = document.getElementById('walletAddMethod');
+            const withdrawSelect = document.getElementById('walletWithdrawMethod');
             if (!addSelect || !withdrawSelect) return;
 
-            const addModes = getWalletMethodOptions("add_money");
-            const withdrawModes = getWalletMethodOptions("withdrawal");
-            addSelect.innerHTML = addModes.map((mode) => "<option value=\"" + mode.id + "\">" + mode.label + "</option>").join("");
-            withdrawSelect.innerHTML = withdrawModes.map((mode) => "<option value=\"" + mode.id + "\">" + mode.label + "</option>").join("");
+            const addModes = await getWalletMethodOptions('add_money');
+            const withdrawModes = await getWalletMethodOptions('withdrawal');
+
+            addSelect.innerHTML = addModes.map((mode) => '<option value="' + mode.id + '">' + mode.label + '</option>').join('');
+            withdrawSelect.innerHTML = withdrawModes.map((mode) => '<option value="' + mode.id + '">' + mode.label + '</option>').join('');
         }
 
-        function renderWalletPanel() {
+        async function renderWalletPanel(options = {}) {
             const ownerId = getCustomerWalletOwnerId();
-            const balanceNode = document.getElementById("customerWalletTabBalance");
-            const donationNode = document.getElementById("donationWalletTabBalance");
-            const txNode = document.getElementById("walletTransactionList");
-            const requestNode = document.getElementById("walletWithdrawalList");
+            const forceSync = Boolean(options.forceSync);
+            const balanceNode = document.getElementById('customerWalletTabBalance');
+            const donationNode = document.getElementById('donationWalletTabBalance');
+            const txNode = document.getElementById('walletTransactionList');
+            const requestNode = document.getElementById('walletWithdrawalList');
+            const modeNode = document.getElementById('walletModeStatus');
             if (!balanceNode || !donationNode || !txNode || !requestNode) return;
+
+            if (modeNode) {
+                const live = isSecureWalletMode();
+                modeNode.textContent = live
+                    ? 'LIVE Secure Backend mode active (CSRF + token + server wallet).'
+                    : 'Fallback local wallet mode active (login token not available).';
+                modeNode.style.color = live ? '#0b8f5d' : '#c05621';
+            }
+
+            if (isSecureWalletMode()) {
+                await refreshSecureWalletSnapshot(forceSync);
+            }
 
             const snapshot = getWalletSnapshotForDashboard();
             balanceNode.textContent = formatInr(snapshot.customerBalance);
             donationNode.textContent = formatInr(snapshot.donationBalance);
 
             let txRows = [];
-            if (window.WalletCore && typeof WalletCore.getTransactions === "function") {
-                txRows = WalletCore.getTransactions({ walletType: "customer", ownerId: ownerId }).slice(0, 12);
+            if (isSecureWalletMode() && secureWalletSnapshot && Array.isArray(secureWalletSnapshot.transactions)) {
+                txRows = secureWalletSnapshot.transactions.slice(0, 12);
+            } else if (window.WalletCore && typeof WalletCore.getTransactions === 'function') {
+                txRows = WalletCore.getTransactions({ walletType: 'customer', ownerId: ownerId }).slice(0, 12);
             } else {
-                const legacy = JSON.parse(localStorage.getItem("wallet_" + ownerId) || "{}");
+                const legacy = JSON.parse(localStorage.getItem('wallet_' + ownerId) || '{}');
                 txRows = Array.isArray(legacy.transactions) ? legacy.transactions : [];
             }
 
             if (!txRows.length) {
-                txNode.innerHTML = "<div class=\"empty-state\"><p>No wallet transactions yet.</p></div>";
+                txNode.innerHTML = '<div class="empty-state"><p>No wallet transactions yet.</p></div>';
             } else {
                 txNode.innerHTML = txRows.map((row) => {
-                    const action = String(row.action || row.type || "").toLowerCase();
-                    const isCredit = ["credit", "transfer_in", "cashback", "added"].includes(action);
+                    const action = String(row.action || row.type || row.source || '').toLowerCase();
+                    const direction = String(row.direction || '').toLowerCase();
+                    const isCredit = direction === 'credit' || ['credit', 'transfer_in', 'cashback', 'added', 'topup_confirmed', 'payment_settlement'].includes(action);
                     const amount = Number(row.amount || 0);
-                    const cssClass = isCredit ? "credit" : "debit";
-                    const sign = isCredit ? "+" : "-";
-                    const label = row.description || row.type || "Wallet entry";
+                    const cssClass = isCredit ? 'credit' : 'debit';
+                    const sign = isCredit ? '+' : '-';
+                    const label = row.description || row.type || row.source || 'Wallet entry';
                     const time = new Date(row.createdAt || row.date || Date.now()).toLocaleString();
-                    return "<div class=\"wallet-row\"><div><div class=\"wallet-row-main\">" + label + "</div><div class=\"wallet-row-sub\">" + time + "</div></div><div class=\"wallet-row-amount " + cssClass + "\">" + sign + formatInr(Math.abs(amount)) + "</div></div>";
-                }).join("");
+                    return '<div class="wallet-row"><div><div class="wallet-row-main">' + label + '</div><div class="wallet-row-sub">' + time + '</div></div><div class="wallet-row-amount ' + cssClass + '">' + sign + formatInr(Math.abs(amount)) + '</div></div>';
+                }).join('');
             }
 
             let withdrawalRows = [];
-            if (window.WalletCore && typeof WalletCore.getWithdrawalRequests === "function") {
-                withdrawalRows = WalletCore.getWithdrawalRequests({ walletType: "customer", ownerId: ownerId }).slice(0, 12);
+            if (isSecureWalletMode() && secureWalletSnapshot && Array.isArray(secureWalletSnapshot.withdrawals)) {
+                withdrawalRows = secureWalletSnapshot.withdrawals.slice(0, 12);
+            } else if (window.WalletCore && typeof WalletCore.getWithdrawalRequests === 'function') {
+                withdrawalRows = WalletCore.getWithdrawalRequests({ walletType: 'customer', ownerId: ownerId }).slice(0, 12);
             }
 
             if (!withdrawalRows.length) {
-                requestNode.innerHTML = "<div class=\"empty-state\"><p>No withdrawal request yet.</p></div>";
+                requestNode.innerHTML = '<div class="empty-state"><p>No withdrawal request yet.</p></div>';
             } else {
                 requestNode.innerHTML = withdrawalRows.map((row) => {
-                    const status = String(row.status || "pending").replaceAll("_", " ").toUpperCase();
+                    const status = String(row.status || 'pending').replaceAll('_', ' ').toUpperCase();
                     const time = new Date(row.createdAt || Date.now()).toLocaleString();
-                    return "<div class=\"wallet-row\"><div><div class=\"wallet-row-main\">" + (row.methodLabel || row.method || "Withdrawal") + " - " + status + "</div><div class=\"wallet-row-sub\">" + time + "</div></div><div class=\"wallet-row-amount debit\">-" + formatInr(row.amount || 0) + "</div></div>";
-                }).join("");
+                    return '<div class="wallet-row"><div><div class="wallet-row-main">' + (row.methodLabel || row.method || 'Withdrawal') + ' - ' + status + '</div><div class="wallet-row-sub">' + time + '</div></div><div class="wallet-row-amount debit">-' + formatInr(row.amount || 0) + '</div></div>';
+                }).join('');
             }
         }
 
-        function initializeWalletView() {
-            renderWalletMethodOptions();
-            renderWalletPanel();
+        async function initializeWalletView() {
+            if (isSecureWalletMode()) {
+                await refreshSecureWalletSnapshot(true);
+            }
+
+            await renderWalletMethodOptions();
+            await renderWalletPanel({ forceSync: false });
         }
 
-        function handleWalletAddMoney() {
-            const amount = Number.parseFloat(document.getElementById("walletAddAmount")?.value || 0);
-            const method = String(document.getElementById("walletAddMethod")?.value || "").trim();
+        async function handleWalletAddMoney() {
+            const amount = Number.parseFloat(document.getElementById('walletAddAmount')?.value || 0);
+            const method = String(document.getElementById('walletAddMethod')?.value || '').trim();
             const ownerId = getCustomerWalletOwnerId();
 
             if (!Number.isFinite(amount) || amount < 10) {
-                alert("Please enter valid amount (minimum Rs 10).");
+                alert('Please enter valid amount (minimum Rs 10).');
                 return;
             }
             if (!method) {
-                alert("Please select payment method.");
+                alert('Please select payment method.');
                 return;
             }
 
             try {
-                if (window.WalletCore && typeof WalletCore.credit === "function") {
+                if (isSecureWalletMode() && window.WalletCore && typeof WalletCore.createSecureTopupOrder === 'function') {
+                    const clientReference = 'WEBTOPUP_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+                    const orderPayload = await WalletCore.createSecureTopupOrder({
+                        amount,
+                        paymentMode: method,
+                        currency: 'INR',
+                        clientReference
+                    });
+
+                    const order = orderPayload.order || orderPayload;
+                    const orderId = order.orderId || order.id;
+
+                    if (!orderId) {
+                        throw new Error('Top-up order response invalid.');
+                    }
+
+                    const providerReference = prompt('Payment gateway reference / UTR enter karein (secure settlement):', '');
+                    if (!providerReference || providerReference.trim().length < 5) {
+                        alert('Top-up order created. Complete payment and re-submit with valid gateway reference.');
+                        return;
+                    }
+
+                    await WalletCore.confirmSecureTopupOrder({
+                        orderId,
+                        providerReference: providerReference.trim()
+                    });
+
+                    await refreshSecureWalletSnapshot(true);
+                } else if (window.WalletCore && typeof WalletCore.credit === 'function') {
                     WalletCore.credit({
-                        type: "customer",
+                        type: 'customer',
                         ownerId: ownerId,
                         amount: amount,
-                        description: "Customer wallet top-up via " + method,
-                        actorRole: "customer",
+                        description: 'Customer wallet top-up via ' + method,
+                        actorRole: 'customer',
                         actorId: ownerId,
                         paymentMode: method
                     });
 
-                    if (typeof WalletCore.settlePaymentToAdmin === "function") {
+                    if (typeof WalletCore.settlePaymentToAdmin === 'function') {
                         WalletCore.settlePaymentToAdmin({
                             amount: amount,
-                            sourceType: "customer",
+                            sourceType: 'customer',
                             sourceOwnerId: ownerId,
                             paymentMode: method,
-                            description: "Customer top-up auto settlement",
+                            description: 'Customer top-up auto settlement',
                             actorId: ownerId
                         });
                     }
 
-                    syncLegacyWalletStore(WalletCore.getWallet("customer", ownerId).balance);
+                    syncLegacyWalletStore(WalletCore.getWallet('customer', ownerId).balance);
                 } else {
-                    const walletKey = "wallet_" + ownerId;
+                    const walletKey = 'wallet_' + ownerId;
                     const legacy = JSON.parse(localStorage.getItem(walletKey) || '{"balance":0,"transactions":[]}');
                     legacy.balance = Number(legacy.balance || 0) + amount;
                     legacy.transactions = Array.isArray(legacy.transactions) ? legacy.transactions : [];
                     legacy.transactions.unshift({
-                        type: "added",
+                        type: 'added',
                         amount: amount,
-                        description: "Wallet top-up via " + method,
+                        description: 'Wallet top-up via ' + method,
                         date: new Date().toISOString()
                     });
                     localStorage.setItem(walletKey, JSON.stringify(legacy));
                 }
 
-                document.getElementById("walletAddAmount").value = "";
-                loadDashboard();
-                renderWalletPanel();
-                alert("Wallet top-up successful.");
+                document.getElementById('walletAddAmount').value = '';
+                await loadDashboard();
+                await renderWalletPanel({ forceSync: false });
+                alert('Wallet top-up successful.');
             } catch (error) {
-                alert(error.message || "Wallet top-up failed.");
+                alert(error.message || 'Wallet top-up failed.');
             }
         }
 
-        function handleWalletWithdrawalRequest() {
-            const amount = Number.parseFloat(document.getElementById("walletWithdrawAmount")?.value || 0);
-            const method = String(document.getElementById("walletWithdrawMethod")?.value || "").trim();
-            const destination = String(document.getElementById("walletWithdrawDestination")?.value || "").trim();
-            const notes = String(document.getElementById("walletWithdrawNote")?.value || "").trim();
+        async function handleWalletWithdrawalRequest() {
+            const amount = Number.parseFloat(document.getElementById('walletWithdrawAmount')?.value || 0);
+            const method = String(document.getElementById('walletWithdrawMethod')?.value || '').trim();
+            const destination = String(document.getElementById('walletWithdrawDestination')?.value || '').trim();
+            const notes = String(document.getElementById('walletWithdrawNote')?.value || '').trim();
             const ownerId = getCustomerWalletOwnerId();
 
             if (!Number.isFinite(amount) || amount < 100) {
-                alert("Withdrawal amount minimum Rs 100 required.");
+                alert('Withdrawal amount minimum Rs 100 required.');
                 return;
             }
             if (!method) {
-                alert("Please select withdrawal method.");
+                alert('Please select withdrawal method.');
                 return;
             }
             if (destination.length < 4) {
-                alert("Please enter valid withdrawal destination.");
+                alert('Please enter valid withdrawal destination.');
                 return;
             }
 
             try {
-                if (window.WalletCore && typeof WalletCore.createWithdrawalRequest === "function") {
+                if (isSecureWalletMode() && window.WalletCore && typeof WalletCore.createSecureWithdrawalRequest === 'function') {
+                    await WalletCore.createSecureWithdrawalRequest({
+                        amount,
+                        method,
+                        destination,
+                        notes
+                    });
+
+                    await refreshSecureWalletSnapshot(true);
+                } else if (window.WalletCore && typeof WalletCore.createWithdrawalRequest === 'function') {
                     WalletCore.createWithdrawalRequest({
-                        walletType: "customer",
+                        walletType: 'customer',
                         ownerId: ownerId,
                         amount: amount,
                         method: method,
                         destination: destination,
                         notes: notes,
-                        actorRole: "customer",
+                        actorRole: 'customer',
                         actorId: ownerId,
                         metadata: {
-                            source: "customer_dashboard",
+                            source: 'customer_dashboard',
                             userAgent: navigator.userAgent
                         }
                     });
                 } else {
-                    alert("Wallet core not available. Please refresh the page.");
+                    alert('Wallet core not available. Please refresh the page.');
                     return;
                 }
 
-                document.getElementById("walletWithdrawAmount").value = "";
-                document.getElementById("walletWithdrawDestination").value = "";
-                document.getElementById("walletWithdrawNote").value = "";
-                renderWalletPanel();
-                alert("Withdrawal request submitted. Admin approval required.");
+                document.getElementById('walletWithdrawAmount').value = '';
+                document.getElementById('walletWithdrawDestination').value = '';
+                document.getElementById('walletWithdrawNote').value = '';
+                await renderWalletPanel({ forceSync: false });
+                alert('Withdrawal request submitted. Admin approval required.');
             } catch (error) {
-                alert(error.message || "Withdrawal request failed.");
+                alert(error.message || 'Withdrawal request failed.');
             }
         }
 
@@ -2022,7 +2146,7 @@
             }
         });
 
-        function submitDonation() {
+        async function submitDonation() {
             const customAmount = document.getElementById('customDonationAmount').value;
             const amount = customAmount ? parseInt(customAmount) : selectedDonationAmount;
 
@@ -2057,6 +2181,10 @@
             localStorage.setItem(`wallet_${currentUser.id}`, JSON.stringify(wallet));
 
             // Get ride details for receipt
+            if (typeof isSecureWalletMode === 'function' && isSecureWalletMode()) {
+                await refreshSecureWalletSnapshot(false);
+            }
+
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const ride = bookings.find(b => b.id === currentRideForDonation);
 
@@ -2193,8 +2321,9 @@ Thank you for helping! ❤️
             }
 
             if (tabName === 'wallet') {
-                renderWalletMethodOptions();
-                renderWalletPanel();
+                renderWalletMethodOptions()
+                    .then(() => renderWalletPanel({ forceSync: true }))
+                    .catch((error) => console.warn('Wallet render failed:', error));
             }
         }
 
@@ -2247,7 +2376,11 @@ Thank you for helping! ❤️
             alert('📍 Live tracking coming soon!');
         }
 
-        function viewReceipt(rideId) {
+        async function viewReceipt(rideId) {
+            if (typeof isSecureWalletMode === 'function' && isSecureWalletMode()) {
+                await refreshSecureWalletSnapshot(false);
+            }
+
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const ride = bookings.find(b => b.id === rideId);
             if (ride) {
@@ -2523,6 +2656,9 @@ Thank you for riding with us! 🚗
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('userRole');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('token');
                 window.location.href = './login.html';
             }
         }
@@ -2601,6 +2737,15 @@ Thank you for riding with us! 🚗
     <script src="../js/global-ui.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 

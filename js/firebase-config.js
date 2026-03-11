@@ -9,3 +9,8 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
     appId: '1:1086303809008:web:4325934708c7770c2d4135',
     measurementId: 'G-LJSEHPM2XH'
 };
+
+
+// Backend API base for secure wallet/payment flows.
+window.GOINDIARIDE_API_BASE = window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+

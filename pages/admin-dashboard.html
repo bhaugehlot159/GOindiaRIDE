@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -274,6 +274,9 @@
         function confirmLogout() {
             localStorage.removeItem('currentAdmin');
             localStorage.removeItem('userRole');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('token');
             localStorage.removeItem('admin2FAEmail');
             localStorage.removeItem('admin2FAOTP');
             localStorage.removeItem('admin2FAMethod');
@@ -362,6 +365,7 @@
     <script src="../js/global-ui.js"></script>
 </body>
 </html>
+
 
 
 

@@ -45,6 +45,8 @@
     ];
 
     const allowedTypes = ['customer', 'driver', 'admin', 'donation'];
+    const API_BASE_OVERRIDE_KEY = 'goindiaride_api_base';
+    let secureCsrfCache = { token: null, fetchedAt: 0 };
 
     function nowIso() {
         return new Date().toISOString();
@@ -739,6 +741,249 @@
         return ensureWallet(type, normalizeOwnerId(type, ownerId));
     }
 
+    function getAccessToken() {
+        return (
+            localStorage.getItem('accessToken') ||
+            localStorage.getItem('authToken') ||
+            localStorage.getItem('token') ||
+            ''
+        ).trim();
+    }
+
+    function getApiBaseUrl() {
+        const explicit = sanitizeText(window.GOINDIARIDE_API_BASE || '', 300) || sanitizeText(localStorage.getItem(API_BASE_OVERRIDE_KEY) || '', 300);
+        if (explicit) {
+            return explicit.replace(/\/$/, '');
+        }
+
+        const host = String(window.location.hostname || '').toLowerCase();
+        if (host === 'localhost' || host === '127.0.0.1') {
+            return 'http://localhost:5000';
+        }
+
+        return String(window.location.origin || '').replace(/\/$/, '');
+    }
+
+    function isSecureBackendReady() {
+        return Boolean(getAccessToken()) && Boolean(getApiBaseUrl());
+    }
+
+    async function fetchCsrfToken(forceRefresh = false) {
+        if (!forceRefresh && secureCsrfCache.token && Date.now() - secureCsrfCache.fetchedAt < 10 * 60 * 1000) {
+            return secureCsrfCache.token;
+        }
+
+        const response = await fetch(`${getApiBaseUrl()}/api/security/csrf-token`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                Accept: 'application/json'
+            }
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.csrfToken) {
+            throw new Error(payload.message || 'Unable to fetch CSRF token');
+        }
+
+        secureCsrfCache = {
+            token: payload.csrfToken,
+            fetchedAt: Date.now()
+        };
+
+        return secureCsrfCache.token;
+    }
+
+    async function secureWalletRequest(path, options = {}) {
+        const token = getAccessToken();
+        if (!token) {
+            throw new Error('Secure wallet session not found. Please login again.');
+        }
+
+        const method = String(options.method || 'GET').toUpperCase();
+        const body = options.body || null;
+        const withCsrf = Boolean(options.withCsrf || (method !== 'GET' && method !== 'HEAD'));
+
+        const headers = {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+            ...(options.headers || {})
+        };
+
+        if (body) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        if (withCsrf) {
+            headers['x-csrf-token'] = await fetchCsrfToken(false);
+        }
+
+        const doRequest = async () => {
+            const response = await fetch(`${getApiBaseUrl()}${path}`, {
+                method,
+                credentials: 'include',
+                headers,
+                body: body ? JSON.stringify(body) : undefined
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const error = new Error(payload.message || `Secure wallet request failed (${response.status})`);
+                error.status = response.status;
+                throw error;
+            }
+
+            return payload;
+        };
+
+        try {
+            return await doRequest();
+        } catch (error) {
+            const csrfLikely = Number(error.status) === 403 && String(error.message || '').toLowerCase().includes('csrf');
+            if (csrfLikely && withCsrf) {
+                headers['x-csrf-token'] = await fetchCsrfToken(true);
+                return doRequest();
+            }
+
+            throw error;
+        }
+    }
+
+    async function fetchSecureWalletSnapshot() {
+        return secureWalletRequest('/api/wallet/my', {
+            method: 'GET',
+            withCsrf: false
+        });
+    }
+
+    async function fetchSecurePaymentModes(flow) {
+        const normalizedFlow = sanitizeText(flow || '', 40).toLowerCase();
+        const suffix = normalizedFlow ? `?flow=${encodeURIComponent(normalizedFlow)}` : '';
+        const payload = await secureWalletRequest(`/api/wallet/payment-modes${suffix}`, {
+            method: 'GET',
+            withCsrf: false
+        });
+
+        const rows = Array.isArray(payload.rows) ? payload.rows : [];
+        return rows.map((row) => ({
+            id: String(row.modeId || row.id || ''),
+            label: String(row.label || row.modeId || 'Payment Mode'),
+            enabled: Boolean(row.enabled),
+            region: String(row.region || 'global'),
+            flows: Array.isArray(row.flows) ? row.flows : []
+        }));
+    }
+
+    async function createSecureTopupOrder({ amount, paymentMode, currency, clientReference }) {
+        return secureWalletRequest('/api/wallet/topup/order', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                amount,
+                paymentMode,
+                currency: currency || 'INR',
+                clientReference: clientReference || null
+            }
+        });
+    }
+
+    async function confirmSecureTopupOrder({ orderId, providerReference }) {
+        return secureWalletRequest('/api/wallet/topup/confirm', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                orderId,
+                providerReference
+            }
+        });
+    }
+
+    async function createSecureWithdrawalRequest({ amount, method, destination, notes }) {
+        return secureWalletRequest('/api/wallet/withdrawals', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                amount,
+                method,
+                destination,
+                notes: notes || ''
+            }
+        });
+    }
+
+    async function fetchSecureWalletTransactions({ walletType, ownerId, limit = 50 } = {}) {
+        const params = new URLSearchParams();
+        if (walletType) params.set('walletType', walletType);
+        if (ownerId) params.set('ownerId', ownerId);
+        params.set('limit', String(limit));
+
+        const payload = await secureWalletRequest(`/api/wallet/transactions?${params.toString()}`, {
+            method: 'GET',
+            withCsrf: false
+        });
+
+        return Array.isArray(payload.rows) ? payload.rows : [];
+    }
+
+    async function fetchSecureWithdrawalRequests({ walletType, ownerId, status } = {}) {
+        const params = new URLSearchParams();
+        if (walletType) params.set('walletType', walletType);
+        if (ownerId) params.set('ownerId', ownerId);
+        if (status) params.set('status', status);
+
+        const query = params.toString();
+        const payload = await secureWalletRequest(`/api/wallet/withdrawals${query ? `?${query}` : ''}`, {
+            method: 'GET',
+            withCsrf: false
+        });
+
+        return Array.isArray(payload.rows) ? payload.rows : [];
+    }
+
+    async function fetchSecureAdminWalletOverview() {
+        return secureWalletRequest('/api/wallet/admin/overview', {
+            method: 'GET',
+            withCsrf: false
+        });
+    }
+
+    async function fetchSecureAdminWithdrawalQueue(status) {
+        const suffix = status ? `?status=${encodeURIComponent(status)}` : '';
+        return secureWalletRequest(`/api/wallet/admin/withdrawals${suffix}`, {
+            method: 'GET',
+            withCsrf: false
+        });
+    }
+
+    async function reviewSecureWithdrawalRequest({ requestId, decision, remarks }) {
+        return secureWalletRequest(`/api/wallet/admin/withdrawals/${encodeURIComponent(requestId)}/review`, {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                decision,
+                remarks: remarks || ''
+            }
+        });
+    }
+
+    async function updateSecurePaymentModes(modes) {
+        return secureWalletRequest('/api/wallet/admin/payment-modes', {
+            method: 'PUT',
+            withCsrf: true,
+            body: {
+                modes
+            }
+        });
+    }
+
+    async function adjustSecureWallet(payload) {
+        return secureWalletRequest('/api/wallet/admin/wallet-adjust', {
+            method: 'POST',
+            withCsrf: true,
+            body: payload || {}
+        });
+    }
+
     function bootstrapDefaults() {
         ensureWallet('donation', 'pool');
         ensureWallet('admin', 'platform');
@@ -772,6 +1017,27 @@
         },
         transfer,
         resolveOwnerForRole,
-        walletId
+        walletId,
+
+        // Secure backend mode (production API)
+        isSecureBackendReady,
+        getApiBaseUrl,
+        secureWalletRequest,
+        fetchSecureWalletSnapshot,
+        fetchSecurePaymentModes,
+        fetchSecureWalletTransactions,
+        fetchSecureWithdrawalRequests,
+        createSecureTopupOrder,
+        confirmSecureTopupOrder,
+        createSecureWithdrawalRequest,
+        fetchSecureAdminWalletOverview,
+        fetchSecureAdminWithdrawalQueue,
+        reviewSecureWithdrawalRequest,
+        updateSecurePaymentModes,
+        adjustSecureWallet
     };
 })();
+
+
+
+

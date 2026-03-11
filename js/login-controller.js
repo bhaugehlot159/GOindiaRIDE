@@ -1,4 +1,4 @@
-﻿const CUSTOMER_STORAGE_KEYS=['users','goride_users'];
+const CUSTOMER_STORAGE_KEYS=['users','goride_users'];
 const DRIVER_STORAGE_KEYS=['drivers','goride_drivers'];
 const CUSTOMER_READ_STORAGE_KEYS=[...new Set([...CUSTOMER_STORAGE_KEYS,'customers','goindiaride_users','goindiaride_customers'])];
 const DRIVER_READ_STORAGE_KEYS=[...new Set([...DRIVER_STORAGE_KEYS,'goindiaride_drivers'])];
@@ -63,6 +63,72 @@ function normalizeIdentifier(v){
   const email=sanitizeEmail(raw); if(email)return{kind:'email',value:email};
   const phone=normalizePhoneForLookup(raw); if(phone)return{kind:'phone',value:phone};
   return{kind:'unknown',value:''};
+}
+function saveBackendAccessToken(token){
+  const normalized=String(token||'').trim();
+  if(!normalized)return;
+  localStorage.setItem('accessToken',normalized);
+  localStorage.setItem('authToken',normalized);
+  localStorage.setItem('token',normalized);
+}
+function clearBackendAccessToken(){
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
+}
+function getBackendApiBase(){
+  const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
+  const fromStorage=sanitizeInput(localStorage.getItem('goindiaride_api_base')||'');
+  const base=fromWindow||fromStorage;
+  if(base)return base.replace(/\/$/, '');
+  const host=String(window.location.hostname||'').toLowerCase();
+  if(host==='localhost'||host==='127.0.0.1')return 'http://localhost:5000';
+  return String(window.location.origin||'').replace(/\/$/, '');
+}
+async function callBackendAuth(path,payload){
+  const url=getBackendApiBase()+path;
+  try{
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},credentials:'include',body:JSON.stringify(payload||{})});
+    const data=await res.json().catch(()=>({}));
+    return{ok:res.ok,status:res.status,data};
+  }catch(error){
+    return{ok:false,status:0,data:{message:error.message||'Network error'}};
+  }
+}
+async function syncBackendSessionForLocalAccount({record,password,role}){
+  const email=sanitizeEmail(record?.email||'');
+  const phone=normalizePhoneForLookup(record?.phone||record?.mobile||'');
+  const name=sanitizeInput(record?.fullname||record?.name||'GoIndiaRide User');
+  const plainPassword=String(password||'').trim();
+  const accountType=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
+  if(!email||!phone||!plainPassword)return{synced:false,reason:'missing_identity'};
+
+  const loginPayload={email,password:plainPassword,website:'',submittedAt:Date.now()-1500};
+  let loginResult=await callBackendAuth('/api/auth/login',loginPayload);
+
+  if(!loginResult.ok&&(loginResult.status===401||loginResult.status===404||loginResult.status===409)){
+    await callBackendAuth('/api/auth/register',{
+      name,
+      email,
+      phone,
+      password:plainPassword,
+      role:'user',
+      accountType,
+      website:'',
+      submittedAt:Date.now()-1500,
+      recaptchaToken:'local-sync-token'
+    });
+
+    loginResult=await callBackendAuth('/api/auth/login',loginPayload);
+  }
+
+  if(loginResult.ok&&loginResult.data&&loginResult.data.accessToken){
+    saveBackendAccessToken(loginResult.data.accessToken);
+    localStorage.setItem('goindiaride_auth_mode','secure_backend');
+    return{synced:true};
+  }
+
+  return{synced:false,reason:loginResult.data?.message||'backend_auth_failed'};
 }
 function getStoreKeysByRole(role){return String(role||'customer').toLowerCase()==='driver'?DRIVER_STORAGE_KEYS:CUSTOMER_STORAGE_KEYS;}
 function getReadKeysByRole(role){return String(role||'customer').toLowerCase()==='driver'?DRIVER_READ_STORAGE_KEYS:CUSTOMER_READ_STORAGE_KEYS;}
@@ -252,6 +318,8 @@ async function customerLoginEmail(){
   }
   const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:account.record.id,email});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:account.record.id,email,score:Number(risk.score||0)});return;}
+  const backendSync=await syncBackendSessionForLocalAccount({record:account.record,password,role:'customer'});
+  if(!backendSync.synced){console.warn('Backend wallet session not synced:',backendSync.reason||'unknown');}
   setUserSession(account.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
 }
 
@@ -292,6 +360,8 @@ async function driverLoginEmail(){
   }
   const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:account.record.id,email});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:account.record.id,email,score:Number(risk.score||0)});return;}
+  const backendSync=await syncBackendSessionForLocalAccount({record:account.record,password,role:'driver'});
+  if(!backendSync.synced){console.warn('Backend wallet session not synced:',backendSync.reason||'unknown');}
   setDriverSession(account.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
 }
 async function adminStep1Login(){
@@ -395,3 +465,6 @@ function showError(msg){const errorDiv=document.getElementById('errorMessage');c
 function showSuccess(msg){alert(msg);}
 
 window.addEventListener('load',async()=>{await ensureAdminProfile();updateLoginMethod();initFirebasePhoneAuth();initializeAdminAccessGate();console.log('Login page ready');});
+
+
+

@@ -1,4 +1,4 @@
-﻿console.log("AUTH ROUTES LOADED FROM:", __filename);
+console.log("AUTH ROUTES LOADED FROM:", __filename);
 const QRCode = require("qrcode");
 const speakeasy = require("speakeasy");
 const express = require('express');
@@ -115,7 +115,7 @@ function getDeviceApprovalResult(user, deviceFingerprint) {
 }
 
 router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
-  const { name, email, phone, password, role } = req.body;
+  const { name, email, phone, password, role, accountType } = req.body;
 
   if (!name || !email || !phone || !password) {
     return res.status(400).json({ message: 'name, email, phone, password are required' });
@@ -125,7 +125,7 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
     return res.status(400).json({ message: 'Invalid email' });
   }
 
-  if (!validator.isMobilePhone(phone, 'en-IN')) {
+  if (!validator.isMobilePhone(String(phone), 'any', { strictMode: false })) {
     return res.status(400).json({ message: 'Invalid phone' });
   }
 
@@ -135,9 +135,17 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await User.create({ name, email, phone, passwordHash, role: role === 'admin' ? 'admin' : 'user' });
+  const normalizedAccountType = role === 'admin' ? 'admin' : (String(accountType || role || '').toLowerCase() === 'driver' ? 'driver' : 'customer');
+  const user = await User.create({
+    name,
+    email,
+    phone,
+    passwordHash,
+    role: role === 'admin' ? 'admin' : 'user',
+    accountType: normalizedAccountType
+  });
 
-  return res.status(201).json({ id: user._id, email: user.email, phone: user.phone, role: user.role });
+  return res.status(201).json({ id: user._id, email: user.email, phone: user.phone, role: user.role, accountType: user.accountType });
 });
 
 router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, proxyVpnRiskCheck, async (req, res) => {
@@ -2359,6 +2367,7 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
 });
 
 module.exports = router;
+
 
 
 
