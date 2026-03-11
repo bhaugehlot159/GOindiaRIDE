@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
 
@@ -274,21 +274,43 @@ function Landing() {
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState("customer");
+  const [adminOtp, setAdminOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const isAdminMode = accountType === "admin";
 
   const handleLogin = async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const endpoint = isAdminMode ? "/api/auth/admin/login" : "/api/auth/login";
+      const payload = {
+        email: email.trim().toLowerCase(),
+        password,
+        submittedAt: Date.now() - 1500,
+      };
+
+      if (isAdminMode) {
+        payload.adminOtp = adminOtp.trim();
+        payload.otp = adminOtp.trim();
+      } else {
+        payload.accountType = accountType;
+      }
+
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
 
       if (!res.ok || !data.accessToken) {
         setError(data.message || "Login failed");
@@ -296,7 +318,9 @@ function Login() {
         return;
       }
 
-      const resolvedAccountType = data.accountType || (data.role === "admin" ? "admin" : "customer");
+      const resolvedAccountType =
+        data.accountType ||
+        (data.role === "admin" ? "admin" : accountType || "customer");
 
       localStorage.setItem("token", data.accessToken);
       localStorage.setItem("role", data.role || "user");
@@ -330,6 +354,19 @@ function Login() {
           </h2>
 
           <div className="space-y-3">
+            <select
+              className="w-full p-3 rounded-xl border border-[#0B1F3A]/10 bg-white/80"
+              value={accountType}
+              onChange={(e) => {
+                setAccountType(e.target.value);
+                setError("");
+              }}
+            >
+              <option value="customer">Customer Login</option>
+              <option value="driver">Driver Login</option>
+              <option value="admin">Admin Login</option>
+            </select>
+
             <input
               type="email"
               placeholder="Email"
@@ -346,6 +383,17 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
+            {isAdminMode && (
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Admin OTP (Google Authenticator)"
+                className="w-full p-3 rounded-xl border border-[#0B1F3A]/10 bg-white/80"
+                value={adminOtp}
+                onChange={(e) => setAdminOtp(e.target.value)}
+              />
+            )}
+
             {error && (
               <p className="text-red-600 text-sm bg-red-50 border border-red-100 rounded-lg p-2">
                 {error}
@@ -361,7 +409,9 @@ function Login() {
             </button>
 
             <p className="text-xs text-center text-[#0B1F3A]/70">
-              2FA and OTP trigger automatically if enabled on your account.
+              {isAdminMode
+                ? "Admin login requires OTP (Google Authenticator or ADMIN_2FA_SECRET)."
+                : "2FA and OTP trigger automatically if enabled on your account."}
             </p>
           </div>
         </div>
