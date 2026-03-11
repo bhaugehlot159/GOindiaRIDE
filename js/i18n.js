@@ -314,6 +314,7 @@ const googleLanguageMap = {
     zh: 'zh-CN',
     he: 'iw'
 };
+const GOOGLE_TRANSLATE_ENABLED = typeof window !== 'undefined' && window.GOINDIA_ENABLE_GOOGLE_TRANSLATE === true;
 
 let currentLang = localStorage.getItem('goride_language') || 'en';
 let currentCurrency = localStorage.getItem('goride_currency') || 'INR';
@@ -338,6 +339,7 @@ function getIncludedGoogleLanguages() {
 }
 
 function setGoogleTranslateCookie(langCode) {
+    if (!GOOGLE_TRANSLATE_ENABLED) return;
     if (typeof document === 'undefined') return;
 
     const googleCode = toGoogleLanguageCode(langCode);
@@ -351,6 +353,7 @@ function setGoogleTranslateCookie(langCode) {
 }
 
 function ensureGoogleTranslateContainer() {
+    if (!GOOGLE_TRANSLATE_ENABLED) return;
     if (typeof document === 'undefined') return;
 
     if (!document.getElementById(GOOGLE_TRANSLATE_CONTAINER_ID)) {
@@ -367,6 +370,7 @@ function ensureGoogleTranslateContainer() {
 }
 
 function initGoogleTranslateElement() {
+    if (!GOOGLE_TRANSLATE_ENABLED) return;
     if (googleTranslateInitialized) return;
 
     if (!window.google || !window.google.translate || !window.google.translate.TranslateElement) {
@@ -392,6 +396,7 @@ function initGoogleTranslateElement() {
 }
 
 function ensureGoogleTranslateLoaded() {
+    if (!GOOGLE_TRANSLATE_ENABLED) return;
     if (typeof document === 'undefined' || typeof window === 'undefined') return;
 
     ensureGoogleTranslateContainer();
@@ -407,7 +412,9 @@ function ensureGoogleTranslateLoaded() {
 
     window.googleTranslateElementInit = function googleTranslateElementInit() {
         initGoogleTranslateElement();
-        applyGoogleTranslateSelection(currentLang);
+        if (GOOGLE_TRANSLATE_ENABLED) {
+            applyGoogleTranslateSelection(currentLang);
+        }
     };
 
     const script = document.createElement('script');
@@ -422,6 +429,7 @@ function ensureGoogleTranslateLoaded() {
 }
 
 function applyGoogleTranslateSelection(langCode) {
+    if (!GOOGLE_TRANSLATE_ENABLED) return;
     if (typeof document === 'undefined') return;
 
     const googleCode = toGoogleLanguageCode(langCode);
@@ -584,10 +592,20 @@ function ensureI18nStyles() {
         .switcher-compact { display: none; }
 
         #goog-gt-tt,
+        #goog-gt-vt,
         .goog-te-banner-frame,
         .goog-te-balloon-frame,
         .goog-tooltip,
         .goog-text-highlight {
+            display: none !important;
+        }
+
+        iframe.goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        body > .skiptranslate {
             display: none !important;
         }
 
@@ -633,6 +651,18 @@ function ensureI18nStyles() {
 
 function initI18n() {
     ensureI18nStyles();
+
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.classList.add('notranslate');
+        document.documentElement.setAttribute('translate', 'no');
+    }
+
+    if (typeof document !== 'undefined' && !document.querySelector('meta[name="google"][content="notranslate"]')) {
+        const meta = document.createElement('meta');
+        meta.name = 'google';
+        meta.content = 'notranslate';
+        document.head.appendChild(meta);
+    }
 
     const navbarRight = document.querySelector('.navbar-links') || document.querySelector('.navbar-right');
     if (navbarRight) {

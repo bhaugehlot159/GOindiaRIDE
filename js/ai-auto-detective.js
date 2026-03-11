@@ -7,6 +7,15 @@
     const MAX_INCIDENTS = 120;
     const SCORE_DECAY_INTERVAL_MS = 15000;
     const SCORE_DECAY_VALUE = 1;
+    const MAX_SCRIPT_NODES_PER_MUTATION = 30;
+    const trustedScriptPrefixes = [
+        location.origin,
+        'https://cdnjs.cloudflare.com',
+        'https://www.gstatic.com',
+        'https://translate.google.com',
+        'https://translate.googleapis.com'
+    ];
+    const inspectedScriptSources = new Set();
 
     const state = {
         score: 0,
@@ -358,22 +367,28 @@
 
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (!node || node.nodeType !== 1) return;
+                const nodes = Array.from(mutation.addedNodes || []);
+                if (!nodes.length) return;
 
-                    if (node.tagName === 'SCRIPT') {
-                        const src = node.getAttribute('src') || '';
-                        if (src && !src.startsWith('/') && !src.startsWith(location.origin) && !src.startsWith('https://cdnjs.cloudflare.com')) {
-                            state.liveSignals.scriptInjection += 1;
-                            recordIncident({
-                                type: 'unauthorized_script_injection',
-                                level: 'critical',
-                                delta: 30,
-                                message: 'Unauthorized script source detected and flagged.',
-                                evidence: { src }
-                            });
-                        }
-                    }
+                nodes.slice(0, MAX_SCRIPT_NODES_PER_MUTATION).forEach((node) => {
+                    if (!node || node.nodeType !== 1 || node.tagName !== 'SCRIPT') return;
+
+                    const src = node.getAttribute('src') || '';
+                    if (!src || src.startsWith('/')) return;
+                    if (inspectedScriptSources.has(src)) return;
+
+                    inspectedScriptSources.add(src);
+                    const trusted = trustedScriptPrefixes.some((prefix) => src.startsWith(prefix));
+                    if (trusted) return;
+
+                    state.liveSignals.scriptInjection += 1;
+                    recordIncident({
+                        type: 'unauthorized_script_injection',
+                        level: 'critical',
+                        delta: 30,
+                        message: 'Unauthorized script source detected and flagged.',
+                        evidence: { src }
+                    });
                 });
             });
         });
