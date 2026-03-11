@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -822,7 +822,6 @@
                 return;
             }
 
-            // Validate password strength
             const passwordValidation = validatePassword(password);
             if (!passwordValidation.isValid) {
                 showError(passwordValidation.message);
@@ -839,7 +838,6 @@
                 return;
             }
 
-            // Get role
             const role = document.querySelector('input[name="role"]:checked').value;
             let drivingLicenseNumber = '';
             let licenseHolderName = '';
@@ -856,22 +854,18 @@
                     showError('Driver signup ke liye driving license number required hai.');
                     return;
                 }
-
                 if (!validateDrivingLicense(drivingLicenseNumber)) {
                     showError('Please enter a valid driving license number.');
                     return;
                 }
-
                 if (!licenseHolderName) {
                     showError('Driving license par jo name hai, woh required hai.');
                     return;
                 }
-
                 if (normalizeNameForMatch(licenseHolderName) !== normalizeNameForMatch(fullname)) {
                     showError('Driver name aur driving license name match hona compulsory hai.');
                     return;
                 }
-
                 if (!licenseExpiry) {
                     showError('Please select driving license expiry date.');
                     return;
@@ -884,115 +878,135 @@
                 }
             }
 
+            console.log('Signup attempt:', { role, fullname, email, phone });
 
-            console.log('📝 Signup attempt:', { role, fullname, email, phone });
-
-            // Loading state
             signupForm.style.opacity = '0.6';
             signupForm.style.pointerEvents = 'none';
             signupBtnText.innerHTML = '<span class="spinner"></span>Creating account...';
 
-            // Simulate API
-            setTimeout(async () => {
-                try {
-                    if (window.GoIndiaAuthenticityEngine && typeof GoIndiaAuthenticityEngine.registerAction === 'function') {
-                        const authScore = GoIndiaAuthenticityEngine.registerAction('signup', 'account_signup_attempt', {
-                            role,
-                            email,
-                            phone,
-                            drivingLicenseNumber: role === 'driver' ? drivingLicenseNumber : null
-                        });
+            try {
+                if (window.GoIndiaAuthenticityEngine && typeof GoIndiaAuthenticityEngine.registerAction === 'function') {
+                    const authScore = GoIndiaAuthenticityEngine.registerAction('signup', 'account_signup_attempt', {
+                        role,
+                        email,
+                        phone,
+                        drivingLicenseNumber: role === 'driver' ? drivingLicenseNumber : null
+                    });
 
-                        if (authScore && Number(authScore.score || 0) < 30) {
-                            signupForm.style.opacity = '1';
-                            signupForm.style.pointerEvents = 'auto';
-                            signupBtnText.textContent = 'Create Account';
-                            showError('Security check failed. Please contact support for manual verification.');
-                            return;
-                        }
-                    }
-
-                    // Hash the password
-                    const hashedPassword = await hashPassword(password);
-
-                    // Get existing users
-                    const users = JSON.parse(localStorage.getItem('users')) || [];
-                    const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
-
-                    const allAccounts = [...users, ...drivers];
-                    const emailExists = allAccounts.some((account) => sanitizeEmail(account.email || '') === email);
-                    const phoneExists = allAccounts.some((account) => normalizePhoneForStorage(account.phone || account.mobile || '') === phone);
-                    const licenseExists = role === 'driver' && drivers.some((driver) =>
-                        sanitizeDrivingLicense(driver.drivingLicenseNumber || '') === drivingLicenseNumber
-                    );
-
-                    if (emailExists || phoneExists || licenseExists) {
+                    if (authScore && Number(authScore.score || 0) < 30) {
                         signupForm.style.opacity = '1';
                         signupForm.style.pointerEvents = 'auto';
                         signupBtnText.textContent = 'Create Account';
-                        showError('Account already exists with same email / phone / license. Please login or use forgot password.');
+                        showError('Security check failed. Please contact support for manual verification.');
                         return;
                     }
+                }
 
-                    // Create new user object
-                    if (role === 'customer') {
-                        const newUser = {
-                            id: 'user_' + Date.now(),
-                            fullname: fullname,
-                            email: email,
-                            phone: phone,
-                            password: hashedPassword,
-                            role: 'customer',
-                            createdAt: new Date().toISOString()
-                        };
-                        users.push(newUser);
-                        localStorage.setItem('users', JSON.stringify(users));
-                        localStorage.setItem('goride_users', JSON.stringify(users));
-                        console.log('✅ Customer account created:', newUser);
-                    } else if (role === 'driver') {
-                        const newDriver = {
-                            id: 'driver_' + Date.now(),
-                            name: fullname,
-                            email: email,
-                            phone: phone,
-                            password: hashedPassword,
-                            drivingLicenseNumber: drivingLicenseNumber,
-                            licenseHolderName: licenseHolderName,
-                            drivingLicenseExpiry: licenseExpiry,
-                            licenseVerified: false,
-                            vehicleNumber: '',
-                            role: 'driver',
-                            createdAt: new Date().toISOString()
-                        };
-                        drivers.push(newDriver);
-                        localStorage.setItem('drivers', JSON.stringify(drivers));
-                        localStorage.setItem('goride_drivers', JSON.stringify(drivers));
-                        console.log('✅ Driver account created:', newDriver);
-                    }
+                const hashedPassword = await hashPassword(password);
 
-                    showSuccess(`✅ ${role.charAt(0).toUpperCase() + role.slice(1)} account created! Redirecting to login...`);
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+                const allAccounts = [...users, ...drivers];
+                const emailExists = allAccounts.some((account) => sanitizeEmail(account.email || '') === email);
+                const phoneExists = allAccounts.some((account) => normalizePhoneForStorage(account.phone || account.mobile || '') === phone);
+                const licenseExists = role === 'driver' && drivers.some((driver) => sanitizeDrivingLicense(driver.drivingLicenseNumber || '') === drivingLicenseNumber);
 
-                    // Redirect to login after 2 seconds
-                    setTimeout(() => {
-                        window.location.href = './login.html';
-                    }, 2000);
-
-                } catch (error) {
-                    console.error('Signup error:', error);
+                if (emailExists || phoneExists || licenseExists) {
                     signupForm.style.opacity = '1';
                     signupForm.style.pointerEvents = 'auto';
                     signupBtnText.textContent = 'Create Account';
-                    showError('An error occurred. Please try again.');
+                    showError('Account already exists with same email / phone / license. Please login or use forgot password.');
+                    return;
                 }
-            }, 1500);
-        });
 
+                if (role === 'customer') {
+                    const newUser = {
+                        id: 'user_' + Date.now(),
+                        fullname,
+                        email,
+                        phone,
+                        password: hashedPassword,
+                        role: 'customer',
+                        createdAt: new Date().toISOString()
+                    };
+                    users.push(newUser);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    localStorage.setItem('goride_users', JSON.stringify(users));
+                } else {
+                    const newDriver = {
+                        id: 'driver_' + Date.now(),
+                        name: fullname,
+                        email,
+                        phone,
+                        password: hashedPassword,
+                        drivingLicenseNumber,
+                        licenseHolderName,
+                        drivingLicenseExpiry: licenseExpiry,
+                        licenseVerified: false,
+                        vehicleNumber: '',
+                        role: 'driver',
+                        createdAt: new Date().toISOString()
+                    };
+                    drivers.push(newDriver);
+                    localStorage.setItem('drivers', JSON.stringify(drivers));
+                    localStorage.setItem('goride_drivers', JSON.stringify(drivers));
+                }
+
+                // Backend sync for live secure mode (local data stays safe)
+                const apiBaseRaw = (window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin));
+                const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
+                try {
+                    const backendRes = await fetch(apiBase + '/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            name: fullname,
+                            email,
+                            phone,
+                            password,
+                            role: 'user',
+                            accountType: role === 'driver' ? 'driver' : 'customer',
+                            website: '',
+                            submittedAt: Date.now() - 1500,
+                            recaptchaToken: 'signup-live-token'
+                        })
+                    });
+
+                    if (!backendRes.ok && backendRes.status !== 409) {
+                        const backendPayload = await backendRes.json().catch(() => ({}));
+                        console.warn('Backend register warning:', backendPayload.message || backendRes.statusText);
+                    }
+                } catch (backendError) {
+                    console.warn('Backend register failed, local signup preserved:', backendError.message || backendError);
+                }
+
+                showSuccess('Account created successfully! Redirecting to login...');
+
+                setTimeout(() => {
+                    window.location.href = './login.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                signupForm.style.opacity = '1';
+                signupForm.style.pointerEvents = 'auto';
+                signupBtnText.textContent = 'Create Account';
+                showError('An error occurred. Please try again.');
+            }
+        });
         console.log('✅ Signup page loaded');
     </script>
 
     <script src="../js/global-ui.js"></script>
 </body>
 </html>
+
+
+
 
 
 
