@@ -1,5 +1,7 @@
 ﻿const CUSTOMER_STORAGE_KEYS=['users','goride_users'];
 const DRIVER_STORAGE_KEYS=['drivers','goride_drivers'];
+const CUSTOMER_READ_STORAGE_KEYS=[...new Set([...CUSTOMER_STORAGE_KEYS,'customers','goindiaride_users','goindiaride_customers'])];
+const DRIVER_READ_STORAGE_KEYS=[...new Set([...DRIVER_STORAGE_KEYS,'goindiaride_drivers'])];
 const ADMIN_PROFILE_KEY='goindiaride_admin_profile';
 const ADMIN_SESSION_KEY='goindiaride_admin_session';
 const ADMIN_FAILURE_KEY='goindiaride_admin_failures';
@@ -22,6 +24,16 @@ function safeReadArray(key){
 }
 function safeReadObject(key,fallback={}){
   try{const raw=localStorage.getItem(key);const parsed=raw?JSON.parse(raw):fallback;return parsed&&typeof parsed==='object'?parsed:fallback;}catch(e){return fallback;}
+}
+function isCustomerRecord(record){
+  if(!record||typeof record!=='object')return false;
+  const role=String(record.role||record.userType||'customer').toLowerCase();
+  return ['customer','user','passenger','rider','client'].includes(role);
+}
+function isDriverRecord(record){
+  if(!record||typeof record!=='object')return false;
+  const role=String(record.role||record.userType||'driver').toLowerCase();
+  return ['driver','captain','chauffeur'].includes(role);
 }
 function mergeRecords(keys){
   const map=new Map();
@@ -53,22 +65,42 @@ function normalizeIdentifier(v){
   return{kind:'unknown',value:''};
 }
 function getStoreKeysByRole(role){return String(role||'customer').toLowerCase()==='driver'?DRIVER_STORAGE_KEYS:CUSTOMER_STORAGE_KEYS;}
+function getReadKeysByRole(role){return String(role||'customer').toLowerCase()==='driver'?DRIVER_READ_STORAGE_KEYS:CUSTOMER_READ_STORAGE_KEYS;}
+function matchesRoleRecord(role,record){
+  return String(role||'customer').toLowerCase()==='driver'?isDriverRecord(record):isCustomerRecord(record);
+}
+function isSameAccount(a,b){
+  if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;
+  if(a.id&&b.id&&String(a.id)===String(b.id))return true;
+  const emailA=sanitizeEmail(a.email||'');
+  const emailB=sanitizeEmail(b.email||'');
+  if(emailA&&emailB&&emailA===emailB)return true;
+  return isPhoneMatch(a.phone||a.mobile||'',b.phone||b.mobile||'');
+}
 function findAccountByIdentifier(role,identifierInput){
   const safeRole=String(role||'customer').toLowerCase();
   const storeKeys=getStoreKeysByRole(safeRole);
-  const records=mergeRecords(storeKeys);
+  const canonicalRecords=mergeRecords(storeKeys);
+  const records=mergeRecords(getReadKeysByRole(safeRole));
   const identifier=typeof identifierInput==='object'&&identifierInput?identifierInput:normalizeIdentifier(identifierInput);
-  const index=records.findIndex((r)=>{
+  const record=records.find((r)=>{
     if(!r||typeof r!=='object')return false;
-    if(safeRole==='customer'&&String(r.role||'customer').toLowerCase()!=='customer')return false;
+    if(!matchesRoleRecord(safeRole,r))return false;
     if(identifier.kind==='email')return sanitizeEmail(r.email||'')===identifier.value;
     if(identifier.kind==='phone')return isPhoneMatch(r.phone||r.mobile||'',identifier.value);
     return false;
   });
-  return{index,record:index>=0?records[index]:null,records,storeKeys,identifier};
+  const index=record?canonicalRecords.findIndex((item)=>isSameAccount(item,record)):-1;
+  return{index,record:record||null,records:canonicalRecords,storeKeys,identifier};
 }
-function findCustomerByPhone(phone){return mergeRecords(CUSTOMER_STORAGE_KEYS).find((u)=>String(u.role||'customer').toLowerCase()==='customer'&&isPhoneMatch(phone,u.phone||u.mobile||''))||null;}
-function findDriverByPhone(phone){return mergeRecords(DRIVER_STORAGE_KEYS).find((d)=>isPhoneMatch(phone,d.phone||d.mobile||''))||null;}
+function findCustomerByPhone(phone){return mergeRecords(CUSTOMER_READ_STORAGE_KEYS).find((u)=>isCustomerRecord(u)&&isPhoneMatch(phone,u.phone||u.mobile||''))||null;}
+function findDriverByPhone(phone){return mergeRecords(DRIVER_READ_STORAGE_KEYS).find((d)=>isDriverRecord(d)&&isPhoneMatch(phone,d.phone||d.mobile||''))||null;}
+async function verifyPasswordForLogin(enteredPassword,storedPassword){
+  const hashed=await hashPassword(enteredPassword);
+  if(storedPassword===hashed)return{isValid:true,needsMigration:false,hashed};
+  if(typeof storedPassword==='string'&&storedPassword===enteredPassword)return{isValid:true,needsMigration:true,hashed};
+  return{isValid:false,needsMigration:false,hashed};
+}
 function evaluateLoginRisk(action,payload={}){
   if(!window.GoIndiaAuthenticityEngine||typeof GoIndiaAuthenticityEngine.registerAction!=='function')return null;
   try{return GoIndiaAuthenticityEngine.registerAction('login',action,payload);}catch(e){console.warn('risk unavailable',e);return null;}
@@ -210,7 +242,14 @@ async function customerLoginEmail(){
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
   const account=findAccountByIdentifier('customer',email);
   if(!account.record){showError('Account not found. Signup compulsory hai.');return;}
-  const hashed=await hashPassword(password);if(account.record.password!==hashed){showError('Wrong credentials.');return;}
+  const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
+  if(passwordCheck.needsMigration){
+    const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+    if(account.index>=0)account.records[account.index]=updatedRecord;
+    else account.records.push(updatedRecord);
+    writeRecords(account.storeKeys,account.records);
+  }
   const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:account.record.id,email});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:account.record.id,email,score:Number(risk.score||0)});return;}
   setUserSession(account.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
@@ -243,7 +282,14 @@ async function driverLoginEmail(){
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
   const account=findAccountByIdentifier('driver',email);
   if(!account.record){showError('Driver account not found. Signup compulsory hai.');return;}
-  const hashed=await hashPassword(password);if(account.record.password!==hashed){showError('Wrong credentials.');return;}
+  const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
+  if(passwordCheck.needsMigration){
+    const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+    if(account.index>=0)account.records[account.index]=updatedRecord;
+    else account.records.push(updatedRecord);
+    writeRecords(account.storeKeys,account.records);
+  }
   const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:account.record.id,email});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:account.record.id,email,score:Number(risk.score||0)});return;}
   setDriverSession(account.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
@@ -325,8 +371,10 @@ async function handleForgotPasswordReset(){
   const passValidation=validatePassword(newPassword);if(!passValidation.isValid){showError(passValidation.message);return;}
   if(newPassword!==confirm){showError('New password and confirm password do not match.');return;}
   const account=findAccountByIdentifier(role,identifier);
-  if(!account.record||account.index<0){showError('Account not found. New account create nahi hoga, sirf registered account reset hota hai.');return;}
-  account.records[account.index]={...account.records[account.index],password:await hashPassword(newPassword),passwordUpdatedAt:new Date().toISOString()};
+  if(!account.record){showError('Account not found. New account create nahi hoga, sirf registered account reset hota hai.');return;}
+  const updatedRecord={...account.record,password:await hashPassword(newPassword),passwordUpdatedAt:new Date().toISOString()};
+  if(account.index>=0)account.records[account.index]=updatedRecord;
+  else account.records.push(updatedRecord);
   writeRecords(account.storeKeys,account.records);
   notifyAdminSecurityEvent('Password reset',role+' account password reset completed.',{role,accountId:account.record.id,identifierKind:account.identifier.kind});
   showSuccess('Password reset successful. Ab aap login kar sakte hain.');
