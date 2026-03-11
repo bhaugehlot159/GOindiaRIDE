@@ -29,6 +29,7 @@ const env = require('../config/env');
 const router = express.Router();
 
 const DEVICE_APPROVAL_ENABLED = true;
+const PASSWORD_RESET_PURPOSE = 'password_reset';
 
 function findTrustedDevice(user, deviceFingerprint) {
   if (!user || !Array.isArray(user.trustedDevices) || !deviceFingerprint) return null;
@@ -114,6 +115,22 @@ function getDeviceApprovalResult(user, deviceFingerprint) {
   };
 }
 
+function normalizeAccountType(rawValue) {
+  const normalized = String(rawValue || '').trim().toLowerCase();
+  if (normalized === 'admin') return 'admin';
+  if (normalized === 'driver') return 'driver';
+  return 'customer';
+}
+
+function isStrongPassword(value) {
+  const password = String(value || '');
+  if (password.length < 8) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/\d/.test(password)) return false;
+  if (!/[^A-Za-z0-9]/.test(password)) return false;
+  return true;
+}
 router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   const { name, email, phone, password, role, accountType } = req.body;
 
@@ -1139,6 +1156,251 @@ return res.status(200).json({
   } catch (error) {
     console.error("REFRESH TOKEN ERROR:", error);
     return res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/change-password', authenticate, async (req, res) => {
+  try {
+    const currentPassword = String(req.body?.currentPassword || '');
+    const newPassword = String(req.body?.newPassword || '');
+    const adminOtp = String(req.body?.adminOtp || req.body?.otp || '').trim();
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'currentPassword and newPassword are required' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        message: 'Password must contain at least 8 chars with upper, lower, number and special character',
+      });
+    }
+
+    const user = await User.findById(req.user?.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentOk = await comparePassword(currentPassword, user.passwordHash);
+    if (!currentOk) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    const isSamePassword = await comparePassword(newPassword, user.passwordHash);
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'New password must be different from current password' });
+    }
+
+    const isAdmin = user.role === 'admin' || user.accountType === 'admin';
+    if (isAdmin) {
+      if (!adminOtp) {
+        return res.status(401).json({ message: 'Admin OTP required for password change' });
+      }
+
+      let otpValid = false;
+      if (user.twoFactorSecret && user.isTwoFactorEnabled === true) {
+        otpValid = speakeasy.totp.verify({
+          secret: user.twoFactorSecret,
+          encoding: 'base32',
+          token: adminOtp,
+          window: 1,
+        });
+      } else if (env.admin2FASecret) {
+        otpValid = String(env.admin2FASecret).trim() === adminOtp;
+      }
+
+      if (!otpValid) {
+        return res.status(401).json({ message: 'Invalid admin OTP' });
+      }
+    }
+
+    user.passwordHash = await hashPassword(newPassword);
+    user.failedLoginAttempts = 0;
+    user.accountLockedUntil = null;
+    user.refreshToken = null;
+    user.refreshTokens = [];
+    await user.save();
+
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('change-password error:', error);
+    return res.status(500).json({ message: 'Server error in change-password' });
+  }
+});
+
+router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTimingCheck, async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const accountType = normalizeAccountType(req.body?.accountType);
+
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).json({ message: 'Valid email required' });
+    }
+
+    const user = await User.findOne({ email }).select('email role accountType');
+
+    const accountMatches = user
+      ? (accountType === 'admin'
+        ? user.role === 'admin' || user.accountType === 'admin'
+        : user.accountType === accountType)
+      : false;
+
+    // Account enumeration avoid karne ke liye generic success return.
+    if (!user || !accountMatches) {
+      return res.status(200).json({ message: 'If account exists, reset OTP has been sent.' });
+    }
+
+    const existing = await Otp.findOne({
+      identifier: email,
+      channel: 'email',
+      accountType,
+      purpose: PASSWORD_RESET_PURPOSE,
+    });
+
+    const cooldownMs = Number(process.env.RESET_OTP_COOLDOWN_MS || 30000);
+    const maxSend = Number(process.env.RESET_OTP_MAX_SEND || 10);
+
+    if (existing?.lastSentAt) {
+      const diffMs = Date.now() - new Date(existing.lastSentAt).getTime();
+      if (diffMs < cooldownMs) {
+        return res.status(429).json({
+          message: `Please wait ${Math.ceil((cooldownMs - diffMs) / 1000)} seconds before requesting OTP again`,
+        });
+      }
+    }
+
+    if ((existing?.sendCount || 0) >= maxSend) {
+      return res.status(429).json({ message: 'OTP request limit reached. Try later.' });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = await bcrypt.hash(otp, 12);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await Otp.findOneAndUpdate(
+      {
+        identifier: email,
+        channel: 'email',
+        accountType,
+        purpose: PASSWORD_RESET_PURPOSE,
+      },
+      {
+        $set: {
+          email,
+          phone: null,
+          otpHash,
+          expiresAt,
+          attempts: 0,
+          verifiedAt: null,
+          ip: req.ip,
+        },
+        $inc: { sendCount: 1 },
+        $currentDate: { lastSentAt: true },
+      },
+      { upsert: true, new: true }
+    );
+
+    await sendEmail({
+      to: email,
+      subject: 'GOIndiaRIDE Password Reset OTP',
+      text: `Your password reset OTP is ${otp}. It expires in 5 minutes.`,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6">
+          <h2>GOIndiaRIDE Password Reset</h2>
+          <p>Your OTP is:</p>
+          <div style="font-size:24px;font-weight:bold;letter-spacing:2px">${otp}</div>
+          <p>This OTP will expire in <b>5 minutes</b>.</p>
+        </div>
+      `,
+    });
+
+    const isProd = String(process.env.NODE_ENV || '').toLowerCase().trim() === 'production';
+    return res.status(200).json({
+      message: 'Password reset OTP sent successfully',
+      ...(isProd ? {} : { devOtp: otp }),
+    });
+  } catch (error) {
+    console.error('forgot-password/request error:', error);
+    return res.status(500).json({ message: 'Server error in forgot-password request' });
+  }
+});
+
+router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const accountType = normalizeAccountType(req.body?.accountType);
+    const otp = String(req.body?.otp || '').trim();
+    const newPassword = String(req.body?.newPassword || '');
+
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).json({ message: 'Valid email required' });
+    }
+
+    if (!otp || otp.length < 4) {
+      return res.status(400).json({ message: 'Valid OTP required' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        message: 'Password must contain at least 8 chars with upper, lower, number and special character',
+      });
+    }
+
+    const otpDoc = await Otp.findOne({
+      identifier: email,
+      channel: 'email',
+      accountType,
+      purpose: PASSWORD_RESET_PURPOSE,
+    });
+
+    if (!otpDoc) {
+      return res.status(400).json({ message: 'Reset OTP not found. Request OTP again.' });
+    }
+
+    if (otpDoc.expiresAt < new Date()) {
+      await Otp.deleteOne({ _id: otpDoc._id });
+      return res.status(400).json({ message: 'OTP expired. Request new OTP.' });
+    }
+
+    if ((otpDoc.attempts || 0) >= 5) {
+      return res.status(429).json({ message: 'Too many invalid attempts. Request new OTP.' });
+    }
+
+    const otpOk = await bcrypt.compare(otp, otpDoc.otpHash);
+    if (!otpOk) {
+      otpDoc.attempts = Number(otpDoc.attempts || 0) + 1;
+      await otpDoc.save();
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      await Otp.deleteOne({ _id: otpDoc._id });
+      return res.status(400).json({ message: 'Account not found' });
+    }
+
+    const userType = user.role === 'admin' ? 'admin' : normalizeAccountType(user.accountType);
+    if (userType !== accountType) {
+      return res.status(403).json({ message: `Account type mismatch. This account is ${userType}.` });
+    }
+
+    const sameAsOld = await comparePassword(newPassword, user.passwordHash);
+    if (sameAsOld) {
+      return res.status(400).json({ message: 'New password must be different from old password' });
+    }
+
+    user.passwordHash = await hashPassword(newPassword);
+    user.failedLoginAttempts = 0;
+    user.accountLockedUntil = null;
+    user.refreshToken = null;
+    user.refreshTokens = [];
+    await user.save();
+
+    await Otp.deleteOne({ _id: otpDoc._id });
+
+    return res.status(200).json({ message: 'Password reset successful. Please login again.' });
+  } catch (error) {
+    console.error('forgot-password/confirm error:', error);
+    return res.status(500).json({ message: 'Server error in forgot-password confirm' });
   }
 });
 

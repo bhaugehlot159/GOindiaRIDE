@@ -278,8 +278,24 @@ function Login() {
   const [adminOtp, setAdminOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotAccountType, setForgotAccountType] = useState("customer");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotResetLoading, setForgotResetLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState("");
+  const [forgotDevOtp, setForgotDevOtp] = useState("");
+
   const navigate = useNavigate();
   const isAdminMode = accountType === "admin";
+
+  useEffect(() => {
+    setForgotAccountType(accountType);
+  }, [accountType]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -337,6 +353,81 @@ function Login() {
       setError("Network error, please retry.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotRequestOtp = async () => {
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotSuccess("");
+    setForgotDevOtp("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: forgotEmail.trim().toLowerCase(),
+          accountType: forgotAccountType,
+          submittedAt: Date.now() - 1500,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setForgotError(data.message || "OTP request failed");
+        return;
+      }
+
+      setForgotSuccess(data.message || "OTP sent.");
+      if (data.devOtp) {
+        setForgotDevOtp(String(data.devOtp));
+        setForgotOtp(String(data.devOtp));
+      }
+    } catch {
+      setForgotError("Network error while requesting OTP.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotResetPassword = async () => {
+    setForgotResetLoading(true);
+    setForgotError("");
+    setForgotSuccess("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: forgotEmail.trim().toLowerCase(),
+          accountType: forgotAccountType,
+          otp: forgotOtp.trim(),
+          newPassword: forgotNewPassword,
+          submittedAt: Date.now() - 1500,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setForgotError(data.message || "Password reset failed");
+        return;
+      }
+
+      setForgotSuccess(data.message || "Password reset successful.");
+      setForgotOtp("");
+      setForgotNewPassword("");
+      setPassword("");
+      if (!email) {
+        setEmail(forgotEmail.trim().toLowerCase());
+      }
+    } catch {
+      setForgotError("Network error while resetting password.");
+    } finally {
+      setForgotResetLoading(false);
     }
   };
 
@@ -407,6 +498,98 @@ function Login() {
             >
               {loading ? "Securing..." : "Login"}
             </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setForgotOpen((prev) => !prev);
+                setForgotError("");
+                setForgotSuccess("");
+                if (!forgotEmail && email) {
+                  setForgotEmail(email.trim().toLowerCase());
+                }
+              }}
+              className="w-full text-sm text-[#0B1F3A] underline underline-offset-2"
+            >
+              {forgotOpen ? "Hide Forgot Password" : "Forgot Password"}
+            </button>
+
+            {forgotOpen && (
+              <div className="rounded-xl border border-[#0B1F3A]/15 bg-white/80 p-3 space-y-2">
+                <p className="text-sm font-semibold text-[#0B1F3A]">Password Recovery</p>
+
+                <select
+                  className="w-full p-2 rounded-lg border border-[#0B1F3A]/10 bg-white"
+                  value={forgotAccountType}
+                  onChange={(e) => setForgotAccountType(e.target.value)}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="driver">Driver</option>
+                  <option value="admin">Admin</option>
+                </select>
+
+                <input
+                  type="email"
+                  placeholder="Registered Email"
+                  className="w-full p-2 rounded-lg border border-[#0B1F3A]/10 bg-white"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleForgotRequestOtp}
+                  disabled={forgotLoading}
+                  className="w-full bg-[#0B1F3A] text-white p-2 rounded-lg disabled:opacity-60"
+                >
+                  {forgotLoading ? "Sending OTP..." : "Send Reset OTP"}
+                </button>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter OTP"
+                  className="w-full p-2 rounded-lg border border-[#0B1F3A]/10 bg-white"
+                  value={forgotOtp}
+                  onChange={(e) => setForgotOtp(e.target.value)}
+                />
+
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  className="w-full p-2 rounded-lg border border-[#0B1F3A]/10 bg-white"
+                  value={forgotNewPassword}
+                  onChange={(e) => setForgotNewPassword(e.target.value)}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleForgotResetPassword}
+                  disabled={forgotResetLoading}
+                  className="w-full bg-[#138808] text-white p-2 rounded-lg disabled:opacity-60"
+                >
+                  {forgotResetLoading ? "Updating..." : "Reset Password"}
+                </button>
+
+                {forgotError && (
+                  <p className="text-red-600 text-xs bg-red-50 border border-red-100 rounded-lg p-2">
+                    {forgotError}
+                  </p>
+                )}
+
+                {forgotSuccess && (
+                  <p className="text-emerald-700 text-xs bg-emerald-50 border border-emerald-100 rounded-lg p-2">
+                    {forgotSuccess}
+                  </p>
+                )}
+
+                {forgotDevOtp && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2">
+                    Dev OTP: {forgotDevOtp}
+                  </p>
+                )}
+              </div>
+            )}
 
             <p className="text-xs text-center text-[#0B1F3A]/70">
               {isAdminMode
