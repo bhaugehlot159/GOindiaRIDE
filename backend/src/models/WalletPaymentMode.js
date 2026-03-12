@@ -25,7 +25,7 @@ const walletPaymentModeSchema = new mongoose.Schema({
   },
   flows: [{
     type: String,
-    enum: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation']
+    enum: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation', 'commission']
   }],
   displayOrder: {
     type: Number,
@@ -39,3 +39,4 @@ const walletPaymentModeSchema = new mongoose.Schema({
 walletPaymentModeSchema.index({ enabled: 1, displayOrder: 1 });
 
 module.exports = mongoose.model('WalletPaymentMode', walletPaymentModeSchema);
+

@@ -7,10 +7,20 @@ const WalletWithdrawalRequest = require('../models/WalletWithdrawalRequest');
 const { authenticate } = require('../middleware/authMiddleware');
 const { getClientIp } = require('../utils/device');
 const { logSecurityEvent } = require('../services/securityLogService');
+const {
+  COMMISSION_WALLET_TYPE,
+  ensureCommissionConfig,
+  updateCommissionConfig,
+  collectCustomerPaymentToCommissionWallet,
+  buildCommissionAdminSummary,
+  ensureCommissionWalletForRegion,
+  resolveCommissionRegion
+} = require('../services/commissionWalletService');
+
 
 const router = express.Router();
 
-const WALLET_TYPES = new Set(['customer', 'driver', 'admin', 'donation']);
+const WALLET_TYPES = new Set(['customer', 'driver', 'admin', 'donation', COMMISSION_WALLET_TYPE]);
 const TOPUP_ALLOWED_TYPES = new Set(['customer', 'driver']);
 const TOPUP_MIN = 10;
 const TOPUP_MAX = 500000;
@@ -21,6 +31,7 @@ const TOPUP_EXPIRY_MS = 20 * 60 * 1000;
 const DONATION_MIN = 1;
 const DONATION_MAX = 1000000;
 const DONATION_EXPIRY_MS = 30 * 60 * 1000;
+const COMMISSION_ALERT_AMOUNT = 200000;
 
 const DEFAULT_PAYMENT_MODES = [
   { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 1 },
@@ -113,6 +124,12 @@ function assertCanAccessWallet(req, walletType, ownerId) {
     return;
   }
 
+  if (walletType === COMMISSION_WALLET_TYPE) {
+    const error = new Error('Commission wallet is admin managed');
+    error.statusCode = 403;
+    throw error;
+  }
+
   if (String(req.user.id) !== String(ownerId) || actorType !== walletType) {
     const error = new Error('Forbidden wallet access');
     error.statusCode = 403;
@@ -143,19 +160,23 @@ async function ensureWallet(walletType, ownerId, currency = 'INR') {
 async function ensurePaymentModesSeeded() {
   if (modesSeeded) return;
 
-  await Promise.all(DEFAULT_PAYMENT_MODES.map((mode) => WalletPaymentMode.updateOne(
-    { modeId: mode.modeId },
-    {
-      $setOnInsert: mode,
-      $set: {
-        label: mode.label,
-        region: mode.region,
-        displayOrder: mode.displayOrder
+  await Promise.all(DEFAULT_PAYMENT_MODES.map((mode) => {
+    const mergedFlows = Array.from(new Set([...(Array.isArray(mode.flows) ? mode.flows : []), 'commission']));
+
+    return WalletPaymentMode.updateOne(
+      { modeId: mode.modeId },
+      {
+        $setOnInsert: { ...mode, flows: mergedFlows },
+        $set: {
+          label: mode.label,
+          region: mode.region,
+          displayOrder: mode.displayOrder
+        },
+        $addToSet: { flows: { $each: mergedFlows } }
       },
-      $addToSet: { flows: { $each: mode.flows } }
-    },
-    { upsert: true }
-  )));
+      { upsert: true }
+    );
+  }));
 
   modesSeeded = true;
 }
@@ -251,6 +272,13 @@ router.get('/my', wrapAsync(async (req, res) => {
   const primaryWallet = await ensureWallet(actorType === 'admin' ? 'admin' : actorType, actorType === 'admin' ? 'platform' : ownerId);
   const donationWallet = await ensureWallet('donation', 'pool');
   const modes = await getEnabledModesForFlow('add_money');
+  const commissionConfig = actorType === 'admin' ? await ensureCommissionConfig() : null;
+  const commissionWallets = actorType === 'admin'
+    ? {
+      india: await ensureCommissionWalletForRegion('india', 'INR', commissionConfig),
+      international: await ensureCommissionWalletForRegion('international', 'USD', commissionConfig)
+    }
+    : null;
 
   const txRows = await WalletTransaction
     .find({ walletType: primaryWallet.walletType, ownerId: primaryWallet.ownerId })
@@ -270,6 +298,8 @@ router.get('/my', wrapAsync(async (req, res) => {
     mode: 'secure_backend',
     wallet: primaryWallet,
     donationWallet,
+    commissionWallets,
+    commissionConfig,
     paymentModes: modes,
     transactions: txRows,
     withdrawals: withdrawalRows
@@ -746,6 +776,127 @@ router.get('/admin/donations/summary', requireAdmin, wrapAsync(async (req, res) 
     lastDonations
   });
 }));
+router.post('/commissions/collect', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  if (!['customer', 'admin'].includes(actorType)) {
+    return res.status(403).json({ message: 'Only customer or admin can settle customer commission payments' });
+  }
+
+  const bookingId = sanitizeText(req.body.bookingId, 140);
+  const customerId = sanitizeText(req.body.customerId, 120) || String(req.user.id);
+  const grossAmount = toAmount(req.body.amount ?? req.body.grossAmount);
+  const currency = sanitizeText(req.body.currency || 'INR', 8).toUpperCase() || 'INR';
+  const paymentMode = sanitizeText(req.body.paymentMode, 80).toLowerCase();
+  const providerReference = sanitizeText(req.body.providerReference, 180);
+  const clientReference = sanitizeText(req.body.clientReference, 140);
+  const customerRegion = resolveCommissionRegion(req.body.customerRegion, currency);
+
+  if (!bookingId) {
+    return res.status(400).json({ message: 'bookingId is required' });
+  }
+
+  if (actorType !== 'admin' && customerId !== String(req.user.id)) {
+    return res.status(403).json({ message: 'Customer ID mismatch' });
+  }
+
+  if (!Number.isFinite(grossAmount) || grossAmount <= 0) {
+    return res.status(400).json({ message: 'amount must be greater than 0' });
+  }
+
+  const settlement = await collectCustomerPaymentToCommissionWallet({
+    bookingId,
+    customerId,
+    grossAmount,
+    currency,
+    paymentMode,
+    providerReference,
+    clientReference,
+    customerRegion,
+    actorRole: actorType,
+    actorId: String(req.user.id),
+    ip: getClientIp(req),
+    userAgent: sanitizeText(req.headers['user-agent'], 240),
+    allowAutoProviderReference: actorType === 'admin' ? Boolean(req.body.allowAutoProviderReference) : false,
+    forceSettle: actorType === 'admin' && Boolean(req.body.forceSettle),
+    metadata: {
+      source: 'manual_commission_collect',
+      initiatedBy: String(req.user.id)
+    }
+  });
+
+  if (Number(settlement?.breakdown?.grossAmount || 0) >= COMMISSION_ALERT_AMOUNT) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'high_value_customer_payment_commission_settlement',
+      ip: getClientIp(req),
+      riskScore: 35,
+      result: 'flagged',
+      metadata: {
+        bookingId,
+        customerId,
+        grossAmount: settlement.breakdown.grossAmount,
+        commissionAmount: settlement.breakdown.commissionAmount,
+        region: settlement.region,
+        paymentMode: settlement.paymentMode
+      }
+    });
+  }
+
+  return res.status(settlement.reused ? 200 : 201).json({
+    message: settlement.reused
+      ? 'Commission settlement already exists for this booking'
+      : 'Customer payment collected into commission wallet',
+    settlement
+  });
+}));
+
+router.get('/commissions/mine', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  const customerId = actorType === 'admin'
+    ? sanitizeText(req.query.customerId, 120) || String(req.user.id)
+    : String(req.user.id);
+
+  if (actorType !== 'admin' && customerId !== String(req.user.id)) {
+    return res.status(403).json({ message: 'Forbidden commission history access' });
+  }
+
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit || 50)));
+
+  const rows = await WalletTransaction
+    .find({
+      walletType: COMMISSION_WALLET_TYPE,
+      source: 'customer_payment_collected',
+      direction: 'credit',
+      'metadata.customerId': customerId
+    })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  return res.status(200).json({ customerId, rows });
+}));
+
+router.get('/admin/commissions/config', requireAdmin, wrapAsync(async (req, res) => {
+  const config = await ensureCommissionConfig();
+  return res.status(200).json({ config });
+}));
+
+router.put('/admin/commissions/config', requireAdmin, wrapAsync(async (req, res) => {
+  const config = await updateCommissionConfig(req.body || {});
+
+  await ensureCommissionWalletForRegion('india', 'INR', config);
+  await ensureCommissionWalletForRegion('international', 'USD', config);
+
+  return res.status(200).json({
+    message: 'Commission wallet config updated',
+    config
+  });
+}));
+
+router.get('/admin/commissions/summary', requireAdmin, wrapAsync(async (req, res) => {
+  const summary = await buildCommissionAdminSummary(Number(req.query.limit || 100));
+  return res.status(200).json(summary);
+}));
 router.post('/withdrawals', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!['customer', 'driver'].includes(actorType)) {
@@ -845,6 +996,11 @@ router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
   const wallets = await WalletAccount.find({}).sort({ walletType: 1, ownerId: 1 }).limit(2000).lean();
   const modes = await WalletPaymentMode.find({}).sort({ displayOrder: 1, label: 1 }).lean();
   const pendingRequests = await WalletWithdrawalRequest.countDocuments({ status: 'pending_admin_approval' });
+  const commissionConfig = await ensureCommissionConfig();
+  const commissionWallets = {
+    india: await ensureCommissionWalletForRegion('india', 'INR', commissionConfig),
+    international: await ensureCommissionWalletForRegion('international', 'USD', commissionConfig)
+  };
 
   const totals = wallets.reduce((acc, wallet) => {
     const key = wallet.walletType;
@@ -857,6 +1013,8 @@ router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
     totals,
     pendingRequests,
     wallets,
+    commissionWallets,
+    commissionConfig,
     paymentModes: modes
   });
 }));
@@ -1003,7 +1161,7 @@ router.put('/admin/payment-modes', requireAdmin, wrapAsync(async (req, res) => {
       enabled: Boolean(row.enabled),
       flows: Array.isArray(row.flows)
         ? row.flows.map((flow) => sanitizeText(flow, 40).toLowerCase()).filter(Boolean)
-        : ['add_money', 'ride_payment'],
+        : ['add_money', 'ride_payment', 'commission'],
       displayOrder: Number(row.displayOrder || 0)
     };
 
@@ -1024,7 +1182,12 @@ router.put('/admin/payment-modes', requireAdmin, wrapAsync(async (req, res) => {
 
 router.post('/admin/wallet-adjust', requireAdmin, wrapAsync(async (req, res) => {
   const walletType = ensureWalletType(req.body.walletType);
-  const ownerId = normalizeOwnerId(walletType, req.body.ownerId || (walletType === 'admin' ? 'platform' : ''));
+  const fallbackOwnerId = walletType === 'admin'
+    ? 'platform'
+    : walletType === COMMISSION_WALLET_TYPE
+      ? 'india_pool'
+      : '';
+  const ownerId = normalizeOwnerId(walletType, req.body.ownerId || fallbackOwnerId);
   const action = sanitizeText(req.body.action, 20).toLowerCase();
   const amount = toAmount(req.body.amount);
   const description = sanitizeText(req.body.description, 200) || `Admin ${action} adjustment`;
@@ -1081,7 +1244,4 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 }));
 
 module.exports = router;
-
-
-
 

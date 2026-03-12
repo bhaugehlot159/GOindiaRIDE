@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const walletAccountSchema = new mongoose.Schema({
   walletType: {
     type: String,
-    enum: ['customer', 'driver', 'admin', 'donation'],
+    enum: ['customer', 'driver', 'admin', 'donation', 'customer_commission'],
     required: true,
     index: true
   },
@@ -41,3 +41,4 @@ const walletAccountSchema = new mongoose.Schema({
 walletAccountSchema.index({ walletType: 1, ownerId: 1 }, { unique: true });
 
 module.exports = mongoose.model('WalletAccount', walletAccountSchema);
+

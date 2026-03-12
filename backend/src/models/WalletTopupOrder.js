@@ -9,7 +9,7 @@ const walletTopupOrderSchema = new mongoose.Schema({
   },
   walletType: {
     type: String,
-    enum: ['customer', 'driver', 'donation'],
+    enum: ['customer', 'driver', 'donation', 'customer_commission'],
     required: true,
     index: true
   },
@@ -94,3 +94,4 @@ const walletTopupOrderSchema = new mongoose.Schema({
 walletTopupOrderSchema.index({ walletType: 1, ownerId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('WalletTopupOrder', walletTopupOrderSchema);
+
