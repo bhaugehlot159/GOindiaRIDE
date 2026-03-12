@@ -8,6 +8,12 @@ const bookingSchema = new mongoose.Schema({
   distanceKm: { type: Number, default: 0, min: 0 },
   amount: { type: Number, default: 0, min: 0 },
   referralCode: { type: String, trim: true },
+  driverId: { type: String, default: null, trim: true, index: true },
+  completedByAccountType: { type: String, enum: ['customer', 'driver', 'admin', null], default: null },
+  completedByUserId: { type: String, default: null, trim: true },
+  settlementReference: { type: String, default: null, trim: true },
+  customerPaymentSettledAt: { type: Date, default: null },
+  driverPaymentSettledAt: { type: Date, default: null },
   status: { type: String, enum: ['created', 'cancelled', 'completed'], default: 'created' }
 }, {
   timestamps: true,
@@ -15,6 +21,8 @@ const bookingSchema = new mongoose.Schema({
 });
 
 bookingSchema.index({ userId: 1, createdAt: -1 });
+bookingSchema.index({ driverId: 1, createdAt: -1 });
 bookingSchema.index({ ip: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
+

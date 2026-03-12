@@ -9,7 +9,7 @@ const walletWithdrawalRequestSchema = new mongoose.Schema({
   },
   walletType: {
     type: String,
-    enum: ['customer', 'driver', 'donation'],
+    enum: ['customer', 'driver', 'donation', 'driver_commission'],
     required: true,
     index: true
   },
@@ -82,3 +82,4 @@ const walletWithdrawalRequestSchema = new mongoose.Schema({
 walletWithdrawalRequestSchema.index({ walletType: 1, ownerId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('WalletWithdrawalRequest', walletWithdrawalRequestSchema);
+

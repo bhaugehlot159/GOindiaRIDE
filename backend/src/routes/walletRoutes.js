@@ -16,11 +16,20 @@ const {
   ensureCommissionWalletForRegion,
   resolveCommissionRegion
 } = require('../services/commissionWalletService');
-
+const {
+  DRIVER_COMMISSION_WALLET_TYPE,
+  ensureDriverCommissionConfig,
+  updateDriverCommissionConfig,
+  ensureDriverCommissionWallet,
+  resolveDriverCommissionRegion,
+  processDriverRideSettlement,
+  processDriverRideRefund,
+  getDriverCommissionHistory,
+  buildDriverCommissionAdminSummary
+} = require('../services/driverCommissionWalletService');
 
 const router = express.Router();
-
-const WALLET_TYPES = new Set(['customer', 'driver', 'admin', 'donation', COMMISSION_WALLET_TYPE]);
+const WALLET_TYPES = new Set(['customer', 'driver', 'admin', 'donation', COMMISSION_WALLET_TYPE, DRIVER_COMMISSION_WALLET_TYPE]);
 const TOPUP_ALLOWED_TYPES = new Set(['customer', 'driver']);
 const TOPUP_MIN = 10;
 const TOPUP_MAX = 500000;
@@ -83,6 +92,12 @@ function resolveActorWalletType(user) {
   return 'customer';
 }
 
+function canAccessDriverCommissionWallet(req, ownerId) {
+  const actorType = resolveActorWalletType(req.user);
+  if (actorType === 'admin') return true;
+  return actorType === 'driver' && String(req.user.id) === String(ownerId);
+}
+
 function ensureWalletType(value) {
   const walletType = String(value || '').toLowerCase();
   if (!WALLET_TYPES.has(walletType)) {
@@ -128,6 +143,15 @@ function assertCanAccessWallet(req, walletType, ownerId) {
     const error = new Error('Commission wallet is admin managed');
     error.statusCode = 403;
     throw error;
+  }
+
+  if (walletType === DRIVER_COMMISSION_WALLET_TYPE) {
+    if (!canAccessDriverCommissionWallet(req, ownerId)) {
+      const error = new Error('Driver commission wallet is restricted');
+      error.statusCode = 403;
+      throw error;
+    }
+    return;
   }
 
   if (String(req.user.id) !== String(ownerId) || actorType !== walletType) {
@@ -279,6 +303,10 @@ router.get('/my', wrapAsync(async (req, res) => {
       international: await ensureCommissionWalletForRegion('international', 'USD', commissionConfig)
     }
     : null;
+  const driverCommissionConfig = actorType === 'admin' ? await ensureDriverCommissionConfig() : null;
+  const driverCommissionWallet = actorType === 'driver'
+    ? await ensureDriverCommissionWallet(ownerId, primaryWallet.currency || 'INR', resolveDriverCommissionRegion(req.query.region, primaryWallet.currency || 'INR'))
+    : null;
 
   const txRows = await WalletTransaction
     .find({ walletType: primaryWallet.walletType, ownerId: primaryWallet.ownerId })
@@ -286,10 +314,18 @@ router.get('/my', wrapAsync(async (req, res) => {
     .limit(30)
     .lean();
 
+  const driverCommissionRows = actorType === 'driver'
+    ? await getDriverCommissionHistory(ownerId, 30)
+    : [];
+
+  const withdrawalWalletFilter = actorType === 'driver'
+    ? { $in: ['driver', DRIVER_COMMISSION_WALLET_TYPE] }
+    : actorType;
+
   const withdrawalRows = actorType === 'admin'
     ? []
     : await WalletWithdrawalRequest
-      .find({ walletType: actorType, ownerId })
+      .find({ walletType: withdrawalWalletFilter, ownerId })
       .sort({ createdAt: -1 })
       .limit(30)
       .lean();
@@ -300,14 +336,18 @@ router.get('/my', wrapAsync(async (req, res) => {
     donationWallet,
     commissionWallets,
     commissionConfig,
+    driverCommissionWallet,
+    driverCommissionConfig,
     paymentModes: modes,
     transactions: txRows,
+    driverCommissionTransactions: driverCommissionRows,
     withdrawals: withdrawalRows
   });
 }));
-
 router.get('/transactions', wrapAsync(async (req, res) => {
-  const walletType = ensureWalletType(req.query.walletType || resolveActorWalletType(req.user));
+  const actorType = resolveActorWalletType(req.user);
+  const defaultWalletType = actorType === 'driver' ? DRIVER_COMMISSION_WALLET_TYPE : actorType;
+  const walletType = ensureWalletType(req.query.walletType || defaultWalletType);
   const ownerId = normalizeOwnerId(walletType, req.query.ownerId || (walletType === 'admin' ? 'platform' : req.user.id));
   assertCanAccessWallet(req, walletType, ownerId);
 
@@ -324,10 +364,11 @@ router.get('/transactions', wrapAsync(async (req, res) => {
 
 router.get('/withdrawals', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
-  const walletType = ensureWalletType(req.query.walletType || actorType);
+  const defaultWalletType = actorType === 'driver' ? DRIVER_COMMISSION_WALLET_TYPE : actorType;
+  const walletType = ensureWalletType(req.query.walletType || defaultWalletType);
 
-  if (!['customer', 'driver', 'donation'].includes(walletType)) {
-    return res.status(400).json({ message: 'Withdrawals are supported for customer, driver, donation wallets' });
+  if (!['customer', 'driver', 'donation', DRIVER_COMMISSION_WALLET_TYPE].includes(walletType)) {
+    return res.status(400).json({ message: 'Withdrawals are supported for customer, driver, donation, and driver commission wallets' });
   }
 
   const ownerId = normalizeOwnerId(walletType, req.query.ownerId || req.user.id);
@@ -897,13 +938,215 @@ router.get('/admin/commissions/summary', requireAdmin, wrapAsync(async (req, res
   const summary = await buildCommissionAdminSummary(Number(req.query.limit || 100));
   return res.status(200).json(summary);
 }));
+router.post('/driver-commissions/settle', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  if (!['driver', 'admin'].includes(actorType)) {
+    return res.status(403).json({ message: 'Only driver or admin can settle driver commission' });
+  }
+
+  const bookingId = sanitizeText(req.body.bookingId, 140);
+  const driverId = sanitizeText(req.body.driverId, 120) || String(req.user.id);
+  const customerId = sanitizeText(req.body.customerId, 120);
+  const grossAmount = toAmount(req.body.amount ?? req.body.grossAmount);
+  const currency = sanitizeText(req.body.currency || 'INR', 8).toUpperCase() || 'INR';
+  const paymentMode = sanitizeText(req.body.paymentMode, 80).toLowerCase();
+  const providerReference = sanitizeText(req.body.providerReference, 180);
+  const clientReference = sanitizeText(req.body.clientReference, 140);
+  const customerRegion = resolveDriverCommissionRegion(req.body.customerRegion || req.headers['x-customer-region'], currency);
+
+  if (!bookingId || !customerId) {
+    return res.status(400).json({ message: 'bookingId and customerId are required' });
+  }
+
+  if (actorType === 'driver' && driverId !== String(req.user.id)) {
+    return res.status(403).json({ message: 'Driver ID mismatch' });
+  }
+
+  if (!Number.isFinite(grossAmount) || grossAmount <= 0) {
+    return res.status(400).json({ message: 'amount must be greater than 0' });
+  }
+
+  const settlement = await processDriverRideSettlement({
+    bookingId,
+    driverId,
+    customerId,
+    grossAmount,
+    currency,
+    paymentMode,
+    providerReference,
+    clientReference,
+    customerRegion,
+    actorRole: actorType,
+    actorId: String(req.user.id),
+    ip: getClientIp(req),
+    userAgent: sanitizeText(req.headers['user-agent'], 240),
+    forceSettle: actorType === 'admin' && Boolean(req.body.forceSettle),
+    allowAutoProviderReference: actorType === 'admin' ? Boolean(req.body.allowAutoProviderReference) : true,
+    metadata: {
+      source: 'manual_driver_commission_settlement',
+      initiatedBy: String(req.user.id)
+    }
+  });
+
+  if (Number(settlement?.breakdown?.grossAmount || 0) >= COMMISSION_ALERT_AMOUNT) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'high_value_driver_commission_settlement',
+      ip: getClientIp(req),
+      riskScore: 35,
+      result: 'flagged',
+      metadata: {
+        bookingId,
+        driverId,
+        customerId,
+        grossAmount: settlement.breakdown.grossAmount,
+        adminCommissionAmount: settlement.breakdown.adminCommissionAmount,
+        customerCommissionAmount: settlement.breakdown.customerCommissionAmount,
+        driverNetAmount: settlement.breakdown.driverNetAmount,
+        region: settlement.region,
+        paymentMode: settlement.paymentMode
+      }
+    });
+  }
+
+  return res.status(settlement.reused ? 200 : 201).json({
+    message: settlement.reused
+      ? 'Driver commission settlement already exists for this booking'
+      : 'Driver commission settlement completed',
+    settlement
+  });
+}));
+
+router.post('/driver-commissions/refund', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  if (!['driver', 'admin'].includes(actorType)) {
+    return res.status(403).json({ message: 'Only driver or admin can process driver refund' });
+  }
+
+  const bookingId = sanitizeText(req.body.bookingId, 140);
+  const driverId = sanitizeText(req.body.driverId, 120) || String(req.user.id);
+  const refundAmount = toAmount(req.body.refundAmount ?? req.body.refundGrossAmount);
+  const currency = sanitizeText(req.body.currency || 'INR', 8).toUpperCase() || 'INR';
+  const paymentMode = sanitizeText(req.body.paymentMode, 80).toLowerCase();
+  const providerReference = sanitizeText(req.body.providerReference, 180);
+  const clientReference = sanitizeText(req.body.clientReference, 140);
+  const refundReason = sanitizeText(req.body.refundReason || req.body.reason, 200);
+
+  if (!bookingId) {
+    return res.status(400).json({ message: 'bookingId is required' });
+  }
+
+  if (actorType === 'driver' && driverId !== String(req.user.id)) {
+    return res.status(403).json({ message: 'Driver ID mismatch' });
+  }
+
+  const refund = await processDriverRideRefund({
+    bookingId,
+    driverId,
+    refundAmount,
+    currency,
+    paymentMode,
+    providerReference,
+    clientReference,
+    refundReason,
+    actorRole: actorType,
+    actorId: String(req.user.id),
+    ip: getClientIp(req),
+    userAgent: sanitizeText(req.headers['user-agent'], 240),
+    metadata: {
+      source: 'manual_driver_commission_refund',
+      initiatedBy: String(req.user.id)
+    }
+  });
+
+  if (Number(refund?.breakdown?.refundGrossAmount || 0) >= COMMISSION_ALERT_AMOUNT) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'high_value_driver_commission_refund',
+      ip: getClientIp(req),
+      riskScore: 30,
+      result: 'flagged',
+      metadata: {
+        bookingId,
+        driverId,
+        refundGrossAmount: refund.breakdown.refundGrossAmount,
+        refundDriverNetAmount: refund.breakdown.refundDriverNetAmount,
+        refundAdminCommissionAmount: refund.breakdown.refundAdminCommissionAmount,
+        refundCustomerCommissionAmount: refund.breakdown.refundCustomerCommissionAmount,
+        paymentMode: refund.paymentMode
+      }
+    });
+  }
+
+  return res.status(200).json({
+    message: 'Driver commission refund processed',
+    refund
+  });
+}));
+
+router.get('/driver-commissions/mine', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  const driverId = actorType === 'admin'
+    ? sanitizeText(req.query.driverId, 120)
+    : String(req.user.id);
+
+  if (!driverId) {
+    return res.status(400).json({ message: 'driverId is required for admin lookup' });
+  }
+
+  if (actorType === 'driver' && driverId !== String(req.user.id)) {
+    return res.status(403).json({ message: 'Forbidden driver commission history access' });
+  }
+
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit || 50)));
+  const rows = await getDriverCommissionHistory(driverId, limit);
+  const wallet = await ensureDriverCommissionWallet(
+    driverId,
+    sanitizeText(req.query.currency || 'INR', 8).toUpperCase() || 'INR',
+    resolveDriverCommissionRegion(req.query.region, req.query.currency || 'INR')
+  );
+
+  return res.status(200).json({ driverId, wallet, rows });
+}));
+
+router.get('/admin/driver-commissions/config', requireAdmin, wrapAsync(async (req, res) => {
+  const config = await ensureDriverCommissionConfig();
+  return res.status(200).json({ config });
+}));
+
+router.put('/admin/driver-commissions/config', requireAdmin, wrapAsync(async (req, res) => {
+  const config = await updateDriverCommissionConfig(req.body || {});
+  return res.status(200).json({
+    message: 'Driver commission wallet config updated',
+    config
+  });
+}));
+
+router.get('/admin/driver-commissions/summary', requireAdmin, wrapAsync(async (req, res) => {
+  const summary = await buildDriverCommissionAdminSummary(Number(req.query.limit || 100));
+  return res.status(200).json(summary);
+}));
 router.post('/withdrawals', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!['customer', 'driver'].includes(actorType)) {
     return res.status(403).json({ message: 'Withdrawal not allowed for this account' });
   }
 
-  const ownerId = String(req.user.id);
+  const requestedWalletType = ensureWalletType(
+    req.body.walletType || (actorType === 'driver' ? DRIVER_COMMISSION_WALLET_TYPE : actorType)
+  );
+
+  if (actorType === 'customer' && requestedWalletType !== 'customer') {
+    return res.status(403).json({ message: 'Customer withdrawals are limited to customer wallet only' });
+  }
+
+  if (actorType === 'driver' && !['driver', DRIVER_COMMISSION_WALLET_TYPE].includes(requestedWalletType)) {
+    return res.status(403).json({ message: 'Driver withdrawals are limited to driver wallets only' });
+  }
+
+  const ownerId = normalizeOwnerId(requestedWalletType, req.body.ownerId || req.user.id);
+  assertCanAccessWallet(req, requestedWalletType, ownerId);
+
   const amount = toAmount(req.body.amount);
   const method = sanitizeText(req.body.method, 80).toLowerCase();
   const destination = sanitizeText(req.body.destination, 180);
@@ -922,7 +1165,7 @@ router.post('/withdrawals', wrapAsync(async (req, res) => {
     return res.status(400).json({ message: 'Selected withdrawal method is not enabled by admin' });
   }
 
-  const wallet = await ensureWallet(actorType, ownerId);
+  const wallet = await ensureWallet(requestedWalletType, ownerId);
   if (Number(wallet.balance || 0) < amount) {
     return res.status(400).json({ message: 'Insufficient wallet balance' });
   }
@@ -933,7 +1176,7 @@ router.post('/withdrawals', wrapAsync(async (req, res) => {
   const dailyAggregate = await WalletWithdrawalRequest.aggregate([
     {
       $match: {
-        walletType: actorType,
+        walletType: requestedWalletType,
         ownerId,
         createdAt: { $gte: dayStart }
       }
@@ -953,7 +1196,7 @@ router.post('/withdrawals', wrapAsync(async (req, res) => {
 
   const request = await WalletWithdrawalRequest.create({
     requestId: generateId('WDR'),
-    walletType: actorType,
+    walletType: requestedWalletType,
     ownerId,
     amount,
     currency: wallet.currency || 'INR',
@@ -969,7 +1212,7 @@ router.post('/withdrawals', wrapAsync(async (req, res) => {
   });
 
   await createWalletTransaction({
-    walletType: actorType,
+    walletType: requestedWalletType,
     ownerId,
     direction: 'hold',
     amount,
@@ -981,7 +1224,10 @@ router.post('/withdrawals', wrapAsync(async (req, res) => {
     description: `Withdrawal requested via ${mode.label}`,
     actorRole: actorType,
     actorId: String(req.user.id),
-    metadata: { destination }
+    metadata: {
+      destination,
+      requestedWalletType
+    }
   });
 
   return res.status(201).json({
@@ -989,7 +1235,6 @@ router.post('/withdrawals', wrapAsync(async (req, res) => {
     request
   });
 }));
-
 router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
   await ensurePaymentModesSeeded();
 
@@ -1001,6 +1246,8 @@ router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
     india: await ensureCommissionWalletForRegion('india', 'INR', commissionConfig),
     international: await ensureCommissionWalletForRegion('international', 'USD', commissionConfig)
   };
+  const driverCommissionConfig = await ensureDriverCommissionConfig();
+  const driverCommissionWalletCount = await WalletAccount.countDocuments({ walletType: DRIVER_COMMISSION_WALLET_TYPE });
 
   const totals = wallets.reduce((acc, wallet) => {
     const key = wallet.walletType;
@@ -1015,6 +1262,8 @@ router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
     wallets,
     commissionWallets,
     commissionConfig,
+    driverCommissionConfig,
+    driverCommissionWalletCount,
     paymentModes: modes
   });
 }));
@@ -1244,4 +1493,6 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 }));
 
 module.exports = router;
+
+
 
