@@ -73,9 +73,25 @@
     return Math.max(0, Math.round(offset));
   }
 
+  function calculateScale(scaleLayer, availableHeight) {
+    scaleLayer.style.transform = "scale(1)";
+    scaleLayer.style.width = "100%";
+
+    // Force layout recalculation before measurement.
+    void scaleLayer.offsetHeight;
+
+    const naturalHeight = Math.max(scaleLayer.scrollHeight, scaleLayer.offsetHeight, 1);
+    const naturalWidth = Math.max(scaleLayer.scrollWidth, scaleLayer.offsetWidth, 1);
+    const scaleH = availableHeight / naturalHeight;
+    const scaleW = window.innerWidth / naturalWidth;
+
+    return Math.min(1, scaleH, scaleW);
+  }
+
   function applyFitLayout() {
     document.documentElement.classList.add("fit-screen-page");
     document.body.classList.add("fit-screen-page");
+    document.body.classList.remove("fit-density-tight", "fit-density-ultra");
 
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
     document.documentElement.style.setProperty("--fit-dvh", `${viewportHeight}px`);
@@ -90,20 +106,24 @@
     scrollHost.classList.add("fit-scroll-host");
 
     const scaleLayer = ensureScaleLayer(scrollHost);
-
-    scaleLayer.style.transform = "scale(1)";
-    scaleLayer.style.width = "100%";
-
     const availableHeight = Math.max(1, viewportHeight - topOffset);
-    const naturalHeight = Math.max(scaleLayer.scrollHeight, scaleLayer.offsetHeight, 1);
-    const naturalWidth = Math.max(scaleLayer.scrollWidth, scaleLayer.offsetWidth, 1);
 
-    const scaleH = availableHeight / naturalHeight;
-    const scaleW = window.innerWidth / naturalWidth;
-    const scale = Math.max(0.15, Math.min(1, scaleH, scaleW));
+    let scale = calculateScale(scaleLayer, availableHeight);
 
-    scaleLayer.style.width = `${(100 / scale).toFixed(4)}%`;
-    scaleLayer.style.transform = `scale(${scale.toFixed(4)})`;
+    if (scale < 0.8) {
+      document.body.classList.add("fit-density-tight");
+      scale = calculateScale(scaleLayer, availableHeight);
+    }
+
+    if (scale < 0.66) {
+      document.body.classList.remove("fit-density-tight");
+      document.body.classList.add("fit-density-ultra");
+      scale = calculateScale(scaleLayer, availableHeight);
+    }
+
+    const finalScale = Math.max(0.46, Math.min(1, scale));
+    scaleLayer.style.width = `${(100 / finalScale).toFixed(4)}%`;
+    scaleLayer.style.transform = `scale(${finalScale.toFixed(4)})`;
   }
 
   if (document.readyState === "loading") {

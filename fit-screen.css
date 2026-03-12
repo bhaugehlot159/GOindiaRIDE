@@ -28,6 +28,62 @@ body.fit-screen-page {
   will-change: transform;
 }
 
+body.fit-screen-page.fit-density-tight .fit-scale-layer {
+  font-size: 0.92em;
+  line-height: 1.24;
+}
+
+body.fit-screen-page.fit-density-tight .fit-scale-layer h1,
+body.fit-screen-page.fit-density-tight .fit-scale-layer h2,
+body.fit-screen-page.fit-density-tight .fit-scale-layer h3,
+body.fit-screen-page.fit-density-tight .fit-scale-layer h4 {
+  margin-top: 0.45em !important;
+  margin-bottom: 0.3em !important;
+  line-height: 1.15;
+}
+
+body.fit-screen-page.fit-density-tight .fit-scale-layer .container,
+body.fit-screen-page.fit-density-tight .fit-scale-layer .card,
+body.fit-screen-page.fit-density-tight .fit-scale-layer .panel,
+body.fit-screen-page.fit-density-tight .fit-scale-layer section,
+body.fit-screen-page.fit-density-tight .fit-scale-layer .main-content {
+  padding: clamp(6px, 0.8vw, 12px) !important;
+  gap: 8px !important;
+}
+
+body.fit-screen-page.fit-density-ultra .fit-scale-layer {
+  font-size: 0.84em;
+  line-height: 1.18;
+}
+
+body.fit-screen-page.fit-density-ultra .fit-scale-layer h1,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer h2,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer h3,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer h4,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer p,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer li {
+  margin-top: 0.26em !important;
+  margin-bottom: 0.22em !important;
+}
+
+body.fit-screen-page.fit-density-ultra .fit-scale-layer .container,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer .card,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer .panel,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer section,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer .main-content {
+  padding: clamp(4px, 0.65vw, 10px) !important;
+  gap: 6px !important;
+}
+
+body.fit-screen-page.fit-density-ultra .fit-scale-layer button,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer input,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer select,
+body.fit-screen-page.fit-density-ultra .fit-scale-layer textarea {
+  min-height: 28px;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+
 @media (max-width: 768px) {
   body.fit-screen-page {
     min-height: 100svh;
@@ -36,5 +92,13 @@ body.fit-screen-page {
   .fit-scroll-host {
     height: calc(var(--fit-dvh, 100svh) - var(--fit-top-offset, 0px));
     max-height: calc(var(--fit-dvh, 100svh) - var(--fit-top-offset, 0px));
+  }
+
+  body.fit-screen-page.fit-density-tight .fit-scale-layer {
+    font-size: 0.88em;
+  }
+
+  body.fit-screen-page.fit-density-ultra .fit-scale-layer {
+    font-size: 0.8em;
   }
 }

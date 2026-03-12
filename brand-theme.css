@@ -1,0 +1,206 @@
+﻿@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
+
+:root {
+  --brand-bg-deep: #0a1d37;
+  --brand-bg-mid: #143a63;
+  --brand-bg-soft: #f4f8fc;
+  --brand-cyan: #18b6c9;
+  --brand-amber: #f5a524;
+  --brand-text: #0f2744;
+  --brand-muted: #4f6783;
+  --brand-border: rgba(15, 39, 68, 0.14);
+  --brand-glass: rgba(255, 255, 255, 0.86);
+  --brand-shadow: 0 14px 40px rgba(10, 29, 55, 0.16);
+  --brand-radius: 14px;
+}
+
+html.fit-screen-page,
+body.fit-screen-page {
+  font-family: "Manrope", "Segoe UI", Tahoma, Arial, sans-serif;
+  color: var(--brand-text);
+}
+
+body.fit-screen-page {
+  background:
+    radial-gradient(1100px 420px at -12% -10%, rgba(24, 182, 201, 0.24), transparent 60%),
+    radial-gradient(800px 360px at 112% 0%, rgba(245, 165, 36, 0.2), transparent 58%),
+    linear-gradient(135deg, #f8fbff 0%, #eef4fb 46%, #e6eef8 100%);
+}
+
+body.fit-screen-page::before,
+body.fit-screen-page::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.fit-screen-page::before {
+  inset: 0;
+  background-image: linear-gradient(rgba(15, 39, 68, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 39, 68, 0.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 0.34;
+}
+
+body.fit-screen-page::after {
+  width: 46vmax;
+  height: 46vmax;
+  right: -20vmax;
+  top: -22vmax;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, rgba(24, 182, 201, 0.22), rgba(20, 58, 99, 0));
+}
+
+body.fit-screen-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.fit-scroll-host .fit-scale-layer {
+  padding: clamp(8px, 1.2vh, 14px);
+}
+
+body.fit-screen-page nav,
+body.fit-screen-page header,
+body.fit-screen-page .navbar,
+body.fit-screen-page .top-nav,
+body.fit-screen-page .topbar {
+  background: linear-gradient(115deg, var(--brand-bg-deep) 0%, var(--brand-bg-mid) 58%, #1e5e8f 100%) !important;
+  color: #f5fbff !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 12px 28px rgba(10, 29, 55, 0.24);
+  backdrop-filter: blur(5px);
+}
+
+body.fit-screen-page .sidebar {
+  background: linear-gradient(180deg, rgba(10, 29, 55, 0.96) 0%, rgba(20, 58, 99, 0.96) 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.fit-screen-page .container,
+body.fit-screen-page .main-content,
+body.fit-screen-page .dashboard-container,
+body.fit-screen-page .content,
+body.fit-screen-page .content-section,
+body.fit-screen-page section,
+body.fit-screen-page .card,
+body.fit-screen-page .stat,
+body.fit-screen-page .widget,
+body.fit-screen-page .panel,
+body.fit-screen-page .table-container,
+body.fit-screen-page .login-container,
+body.fit-screen-page .signup-container {
+  border-radius: var(--brand-radius) !important;
+  background: var(--brand-glass) !important;
+  border: 1px solid var(--brand-border) !important;
+  box-shadow: var(--brand-shadow);
+}
+
+body.fit-screen-page .login-left,
+body.fit-screen-page .signup-left,
+body.fit-screen-page .sidebar,
+body.fit-screen-page .navbar-logo,
+body.fit-screen-page .logo {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+body.fit-screen-page h1,
+body.fit-screen-page h2,
+body.fit-screen-page h3,
+body.fit-screen-page h4 {
+  color: #102c4c !important;
+  letter-spacing: -0.01em;
+}
+
+body.fit-screen-page p,
+body.fit-screen-page li,
+body.fit-screen-page span,
+body.fit-screen-page label,
+body.fit-screen-page td,
+body.fit-screen-page th {
+  color: var(--brand-muted);
+}
+
+body.fit-screen-page a {
+  color: #0b4f7a;
+}
+
+body.fit-screen-page button,
+body.fit-screen-page .btn,
+body.fit-screen-page input[type="submit"] {
+  border-radius: 11px !important;
+  border: 1px solid rgba(20, 58, 99, 0.18);
+  background: linear-gradient(112deg, #0f2f53 0%, #1a6295 100%);
+  color: #f4fbff !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 9px 18px rgba(15, 47, 83, 0.22);
+}
+
+body.fit-screen-page button:hover,
+body.fit-screen-page .btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+body.fit-screen-page input,
+body.fit-screen-page select,
+body.fit-screen-page textarea {
+  border-radius: 10px !important;
+  border: 1px solid rgba(15, 39, 68, 0.2) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f2744 !important;
+}
+
+body.fit-screen-page .menu-item,
+body.fit-screen-page .nav-link,
+body.fit-screen-page .tab,
+body.fit-screen-page .sidebar-item {
+  border-radius: 10px;
+}
+
+body.fit-screen-page .menu-item:hover,
+body.fit-screen-page .nav-link:hover,
+body.fit-screen-page .tab:hover,
+body.fit-screen-page .sidebar-item:hover,
+body.fit-screen-page .menu-item.active,
+body.fit-screen-page .nav-link.active,
+body.fit-screen-page .tab.active,
+body.fit-screen-page .sidebar-item.active {
+  background: linear-gradient(110deg, rgba(24, 182, 201, 0.18) 0%, rgba(245, 165, 36, 0.2) 100%) !important;
+  color: #0b2b4a !important;
+}
+
+body.fit-screen-page table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+body.fit-screen-page th {
+  background: linear-gradient(110deg, rgba(20, 58, 99, 0.9), rgba(24, 88, 138, 0.92));
+  color: #f6fbff !important;
+}
+
+body.fit-screen-page .badge,
+body.fit-screen-page .chip,
+body.fit-screen-page .status,
+body.fit-screen-page .tag {
+  border-radius: 999px;
+  border: 1px solid rgba(20, 58, 99, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  color: #143a63 !important;
+}
+
+@media (max-width: 768px) {
+  .fit-scroll-host .fit-scale-layer {
+    padding: 8px;
+  }
+
+  body.fit-screen-page .container,
+  body.fit-screen-page section,
+  body.fit-screen-page .card,
+  body.fit-screen-page .panel {
+    border-radius: 12px !important;
+  }
+}
