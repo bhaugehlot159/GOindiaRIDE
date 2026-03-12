@@ -25,7 +25,7 @@ const walletPaymentModeSchema = new mongoose.Schema({
   },
   flows: [{
     type: String,
-    enum: ['add_money', 'ride_payment', 'withdrawal', 'refund']
+    enum: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation']
   }],
   displayOrder: {
     type: Number,

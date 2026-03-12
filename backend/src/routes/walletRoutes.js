@@ -18,28 +18,31 @@ const WITHDRAW_MIN = 100;
 const WITHDRAW_MAX = 100000;
 const WITHDRAW_DAILY_LIMIT = 200000;
 const TOPUP_EXPIRY_MS = 20 * 60 * 1000;
+const DONATION_MIN = 1;
+const DONATION_MAX = 1000000;
+const DONATION_EXPIRY_MS = 30 * 60 * 1000;
 
 const DEFAULT_PAYMENT_MODES = [
-  { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund'], displayOrder: 1 },
-  { modeId: 'upi_qr', label: 'UPI QR Scan', region: 'india', enabled: true, flows: ['add_money', 'ride_payment'], displayOrder: 2 },
-  { modeId: 'bharat_qr', label: 'Bharat QR', region: 'india', enabled: true, flows: ['add_money'], displayOrder: 3 },
-  { modeId: 'rupay_card', label: 'RuPay Card', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund'], displayOrder: 4 },
-  { modeId: 'visa_master_amex', label: 'Visa/MasterCard/Amex', region: 'global', enabled: true, flows: ['add_money', 'ride_payment', 'refund'], displayOrder: 5 },
-  { modeId: 'net_banking', label: 'Net Banking', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal'], displayOrder: 6 },
-  { modeId: 'imps', label: 'IMPS Transfer', region: 'india', enabled: true, flows: ['withdrawal'], displayOrder: 7 },
-  { modeId: 'neft_rtgs', label: 'NEFT/RTGS', region: 'india', enabled: true, flows: ['withdrawal'], displayOrder: 8 },
-  { modeId: 'razorpay', label: 'Razorpay Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund'], displayOrder: 9 },
-  { modeId: 'cashfree', label: 'Cashfree Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund'], displayOrder: 10 },
-  { modeId: 'stripe_cards', label: 'Stripe Cards', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'refund'], displayOrder: 11 },
-  { modeId: 'paypal', label: 'PayPal', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'refund'], displayOrder: 12 },
-  { modeId: 'apple_pay', label: 'Apple Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment'], displayOrder: 13 },
-  { modeId: 'google_pay_intl', label: 'Google Pay (International)', region: 'international', enabled: true, flows: ['add_money', 'ride_payment'], displayOrder: 14 },
-  { modeId: 'alipay', label: 'Alipay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment'], displayOrder: 15 },
-  { modeId: 'wechat_pay', label: 'WeChat Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment'], displayOrder: 16 },
-  { modeId: 'swift_wire', label: 'SWIFT Wire Transfer', region: 'international', enabled: true, flows: ['withdrawal'], displayOrder: 17 },
-  { modeId: 'sepa', label: 'SEPA Transfer', region: 'international', enabled: true, flows: ['withdrawal'], displayOrder: 18 },
-  { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal'], displayOrder: 19 },
-  { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal'], displayOrder: 20 }
+  { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 1 },
+  { modeId: 'upi_qr', label: 'UPI QR Scan', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 2 },
+  { modeId: 'bharat_qr', label: 'Bharat QR', region: 'india', enabled: true, flows: ['add_money', 'donation'], displayOrder: 3 },
+  { modeId: 'rupay_card', label: 'RuPay Card', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 4 },
+  { modeId: 'visa_master_amex', label: 'Visa/MasterCard/Amex', region: 'global', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 5 },
+  { modeId: 'net_banking', label: 'Net Banking', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'donation'], displayOrder: 6 },
+  { modeId: 'imps', label: 'IMPS Transfer', region: 'india', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 7 },
+  { modeId: 'neft_rtgs', label: 'NEFT/RTGS', region: 'india', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 8 },
+  { modeId: 'razorpay', label: 'Razorpay Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 9 },
+  { modeId: 'cashfree', label: 'Cashfree Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 10 },
+  { modeId: 'stripe_cards', label: 'Stripe Cards', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 11 },
+  { modeId: 'paypal', label: 'PayPal', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation'], displayOrder: 12 },
+  { modeId: 'apple_pay', label: 'Apple Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 13 },
+  { modeId: 'google_pay_intl', label: 'Google Pay (International)', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 14 },
+  { modeId: 'alipay', label: 'Alipay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 15 },
+  { modeId: 'wechat_pay', label: 'WeChat Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 16 },
+  { modeId: 'swift_wire', label: 'SWIFT Wire Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 17 },
+  { modeId: 'sepa', label: 'SEPA Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 18 },
+  { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 19 },
+  { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 20 }
 ];
 
 let modesSeeded = false;
@@ -102,6 +105,11 @@ function assertCanAccessWallet(req, walletType, ownerId) {
   }
 
   if (walletType === 'donation') {
+    if (actorType !== 'admin') {
+      const error = new Error('Donation pool is admin managed');
+      error.statusCode = 403;
+      throw error;
+    }
     return;
   }
 
@@ -137,7 +145,15 @@ async function ensurePaymentModesSeeded() {
 
   await Promise.all(DEFAULT_PAYMENT_MODES.map((mode) => WalletPaymentMode.updateOne(
     { modeId: mode.modeId },
-    { $setOnInsert: mode },
+    {
+      $setOnInsert: mode,
+      $set: {
+        label: mode.label,
+        region: mode.region,
+        displayOrder: mode.displayOrder
+      },
+      $addToSet: { flows: { $each: mode.flows } }
+    },
     { upsert: true }
   )));
 
@@ -495,6 +511,241 @@ router.post('/topup/confirm', wrapAsync(async (req, res) => {
   });
 }));
 
+router.post('/donations/intent', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  const amount = toAmount(req.body.amount);
+  const currency = sanitizeText(req.body.currency || 'INR', 6).toUpperCase() || 'INR';
+  const paymentMode = sanitizeText(req.body.paymentMode, 80).toLowerCase();
+  const note = sanitizeText(req.body.note || '', 240);
+  const clientReference = sanitizeText(req.body.clientReference, 120) || null;
+
+  if (!Number.isFinite(amount) || amount < DONATION_MIN || amount > DONATION_MAX) {
+    return res.status(400).json({ message: `Donation amount must be between ${DONATION_MIN} and ${DONATION_MAX}` });
+  }
+
+  const mode = await findMode(paymentMode, 'donation');
+  if (!mode) {
+    return res.status(400).json({ message: 'Selected donation payment mode is not enabled by admin' });
+  }
+
+  if (clientReference) {
+    const duplicate = await WalletTopupOrder.findOne({
+      walletType: 'donation',
+      ownerId: 'pool',
+      clientReference,
+      status: { $in: ['pending', 'confirmed'] }
+    }).lean();
+
+    if (duplicate) {
+      return res.status(200).json({ reused: true, order: duplicate });
+    }
+  }
+
+  const donationWallet = await ensureWallet('donation', 'pool', currency);
+
+  const order = await WalletTopupOrder.create({
+    orderId: generateId('DON'),
+    walletType: 'donation',
+    ownerId: 'pool',
+    donorUserId: String(req.user.id),
+    donorAccountType: actorType,
+    donorNote: note || null,
+    amount,
+    currency,
+    paymentMode: mode.modeId,
+    paymentModeLabel: mode.label,
+    status: 'pending',
+    clientReference,
+    initiatedBy: String(req.user.id),
+    expiresAt: new Date(Date.now() + DONATION_EXPIRY_MS),
+    metadata: {
+      ip: getClientIp(req),
+      userAgent: sanitizeText(req.headers['user-agent'], 240)
+    }
+  });
+
+  await createWalletTransaction({
+    walletType: 'donation',
+    ownerId: 'pool',
+    direction: 'hold',
+    amount,
+    currency,
+    source: 'donation_intent',
+    status: 'pending',
+    paymentMode: mode.modeId,
+    clientReference,
+    description: `Donation intent via ${mode.label}`,
+    actorRole: actorType,
+    actorId: String(req.user.id),
+    metadata: { orderId: order.orderId, donorId: String(req.user.id), donorNote: note || undefined }
+  });
+
+  return res.status(201).json({
+    message: 'Donation intent created',
+    order,
+    donationWallet
+  });
+}));
+
+router.post('/donations/confirm', wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  const orderId = sanitizeText(req.body.orderId, 120);
+  const providerReference = sanitizeText(req.body.providerReference, 180);
+
+  if (!orderId) {
+    return res.status(400).json({ message: 'orderId is required' });
+  }
+
+  if (!providerReference || providerReference.length < 5) {
+    return res.status(400).json({ message: 'providerReference is required for secure confirmation' });
+  }
+
+  const order = await WalletTopupOrder.findOne({ orderId, walletType: 'donation', ownerId: 'pool' });
+  if (!order) {
+    return res.status(404).json({ message: 'Donation intent not found' });
+  }
+
+  if (order.donorUserId && actorType !== 'admin' && String(order.donorUserId) !== String(req.user.id)) {
+    return res.status(403).json({ message: 'You cannot confirm this donation' });
+  }
+
+  if (order.status === 'confirmed') {
+    const donationWallet = await ensureWallet('donation', 'pool');
+    return res.status(200).json({
+      message: 'Donation already confirmed',
+      order,
+      donationWallet
+    });
+  }
+
+  if (order.status !== 'pending') {
+    return res.status(400).json({ message: `Donation intent is ${order.status}` });
+  }
+
+  if (new Date(order.expiresAt).getTime() <= Date.now()) {
+    order.status = 'expired';
+    await order.save();
+    return res.status(410).json({ message: 'Donation intent expired. Start again.' });
+  }
+
+  const donationWallet = await adjustWallet({
+    walletType: 'donation',
+    ownerId: 'pool',
+    amount: order.amount,
+    direction: 'credit'
+  });
+
+  order.status = 'confirmed';
+  order.providerReference = providerReference;
+  await order.save();
+
+  await createWalletTransaction({
+    walletType: 'donation',
+    ownerId: 'pool',
+    direction: 'credit',
+    amount: order.amount,
+    currency: order.currency,
+    source: 'donation_confirmed',
+    status: 'settled',
+    paymentMode: order.paymentMode,
+    clientReference: order.clientReference,
+    providerReference,
+    description: `Donation confirmed via ${order.paymentModeLabel}`,
+    actorRole: actorType,
+    actorId: String(req.user.id),
+    metadata: {
+      orderId: order.orderId,
+      donorId: order.donorUserId || String(req.user.id),
+      donorAccountType: order.donorAccountType,
+      donorNote: order.donorNote
+    }
+  });
+
+  if (order.amount >= 100000) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'high_value_donation_confirmed',
+      ip: getClientIp(req),
+      riskScore: 40,
+      result: 'flagged',
+      metadata: {
+        orderId: order.orderId,
+        amount: order.amount,
+        paymentMode: order.paymentMode
+      }
+    });
+  }
+
+  return res.status(200).json({
+    message: 'Donation confirmed securely',
+    order,
+    donationWallet
+  });
+}));
+
+router.get('/donations/overview', wrapAsync(async (req, res) => {
+  const donationWallet = await ensureWallet('donation', 'pool');
+  const modes = await getEnabledModesForFlow('donation');
+
+  const recent = await WalletTransaction
+    .find({ walletType: 'donation', direction: 'credit' })
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean();
+
+  const totals = await WalletTransaction.aggregate([
+    { $match: { walletType: 'donation', direction: 'credit', status: { $ne: 'failed' } } },
+    { $group: { _id: '$currency', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } }
+  ]);
+
+  return res.status(200).json({
+    balance: donationWallet.balance,
+    currency: donationWallet.currency,
+    paymentModes: modes,
+    recent,
+    totals,
+    suggestedAmounts: [25, 51, 101, 251, 501, 1100],
+    minAmount: DONATION_MIN,
+    maxAmount: DONATION_MAX
+  });
+}));
+
+router.get('/donations/mine', wrapAsync(async (req, res) => {
+  const rows = await WalletTransaction
+    .find({
+      walletType: 'donation',
+      direction: 'credit',
+      'metadata.donorId': String(req.user.id)
+    })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
+
+  return res.status(200).json({ rows });
+}));
+
+router.get('/admin/donations/summary', requireAdmin, wrapAsync(async (req, res) => {
+  const donationWallet = await ensureWallet('donation', 'pool');
+  const pendingOrders = await WalletTopupOrder.countDocuments({ walletType: 'donation', status: 'pending' });
+
+  const totals = await WalletTransaction.aggregate([
+    { $match: { walletType: 'donation', direction: 'credit', status: { $ne: 'failed' } } },
+    { $group: { _id: '$currency', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } }
+  ]);
+
+  const lastDonations = await WalletTransaction
+    .find({ walletType: 'donation' })
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
+
+  return res.status(200).json({
+    donationWallet,
+    pendingOrders,
+    totals,
+    lastDonations
+  });
+}));
 router.post('/withdrawals', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!['customer', 'driver'].includes(actorType)) {
@@ -830,3 +1081,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 }));
 
 module.exports = router;
+
+
+
+

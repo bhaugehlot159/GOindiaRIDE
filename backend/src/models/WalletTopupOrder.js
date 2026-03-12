@@ -9,7 +9,7 @@ const walletTopupOrderSchema = new mongoose.Schema({
   },
   walletType: {
     type: String,
-    enum: ['customer', 'driver'],
+    enum: ['customer', 'driver', 'donation'],
     required: true,
     index: true
   },
@@ -18,6 +18,21 @@ const walletTopupOrderSchema = new mongoose.Schema({
     required: true,
     trim: true,
     index: true
+  },
+  donorUserId: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  donorAccountType: {
+    type: String,
+    enum: ['customer', 'driver', 'admin', null],
+    default: null
+  },
+  donorNote: {
+    type: String,
+    trim: true,
+    default: null
   },
   amount: {
     type: Number,

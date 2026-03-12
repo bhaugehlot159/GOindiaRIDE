@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const { authenticate } = require('../middleware/authMiddleware');
 const { getClientIp, getDeviceMeta } = require('../utils/device');
 const Booking = require('../models/Booking');
+const WalletAccount = require('../models/WalletAccount');
+const WalletPaymentMode = require('../models/WalletPaymentMode');
 const User = require('../models/User');
 const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
@@ -23,6 +25,42 @@ async function continuousRiskGate(req, res, next) {
     return res.status(401).json({ message: 'OTP verification required for critical action' });
   }
   return next();
+}
+
+const DONATION_SUGGESTIONS = [25, 51, 101, 251, 501, 1100];
+
+async function ensureDonationWallet(currency = 'INR') {
+  return WalletAccount.findOneAndUpdate(
+    { walletType: 'donation', ownerId: 'pool' },
+    {
+      $setOnInsert: {
+        walletType: 'donation',
+        ownerId: 'pool',
+        currency: String(currency || 'INR').toUpperCase(),
+        balance: 0,
+        status: 'active',
+        metadata: {}
+      }
+    },
+    { new: true, upsert: true }
+  );
+}
+
+async function buildDonationSuggestion() {
+  const donationWallet = await ensureDonationWallet();
+  const paymentModes = await WalletPaymentMode
+    .find({ enabled: true, flows: 'donation' })
+    .sort({ displayOrder: 1, label: 1 })
+    .lean();
+
+  return {
+    donationWallet: {
+      balance: donationWallet.balance,
+      currency: donationWallet.currency
+    },
+    paymentModes,
+    suggestedAmounts: DONATION_SUGGESTIONS
+  };
 }
 
 router.get('/quote', authenticate, continuousRiskGate, async (req, res) => {
@@ -124,6 +162,49 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   });
 });
 
+router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) => {
+  const booking = await Booking.findOne({ bookingId: req.params.id, userId: req.user.id });
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+  if (booking.status === 'cancelled') {
+    return res.status(400).json({ message: 'Booking already cancelled' });
+  }
+
+  if (booking.status !== 'completed') {
+    booking.status = 'completed';
+    await booking.save();
+  }
+
+  let notificationSummary = null;
+  try {
+    notificationSummary = await createBookingPortalNotifications({
+      bookingId: booking.bookingId,
+      amount: booking.amount,
+      distanceKm: booking.distanceKm,
+      action: 'completed',
+      customerId: req.user.id
+    });
+  } catch (error) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'booking_complete_notification_failed',
+      ip: getClientIp(req),
+      riskScore: 0,
+      result: 'warning',
+      metadata: { message: error.message, bookingId: booking.bookingId }
+    });
+  }
+
+  const donation = await buildDonationSuggestion();
+
+  return res.status(200).json({
+    bookingId: booking.bookingId,
+    status: booking.status,
+    donation,
+    notifications: notificationSummary
+  });
+});
+
 router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) => {
   const booking = await Booking.findOneAndUpdate(
     { bookingId: req.params.id, userId: req.user.id },
@@ -169,5 +250,8 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
 });
 
 module.exports = router;
+
+
+
 
 
