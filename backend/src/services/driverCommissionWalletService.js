@@ -236,13 +236,8 @@ async function ensureDriverCommissionWallet(driverId, currency = 'INR', region =
       $setOnInsert: {
         walletType: DRIVER_COMMISSION_WALLET_TYPE,
         ownerId,
-        currency: sanitizeText(currency || 'INR', 8).toUpperCase(),
         balance: 0,
-        status: 'active',
-        metadata: {
-          region: normalizedRegion,
-          controlledBy: 'admin'
-        }
+        status: 'active'
       },
       $set: {
         currency: sanitizeText(currency || 'INR', 8).toUpperCase(),
@@ -281,10 +276,7 @@ async function creditWallet(walletType, ownerId, amount, currency, metadata = {}
       $setOnInsert: {
         walletType,
         ownerId,
-        currency: sanitizeText(currency || 'INR', 8).toUpperCase(),
-        balance: 0,
-        status: 'active',
-        metadata: {}
+        status: 'active'
       },
       $set: updateSet,
       $inc: { balance: value }

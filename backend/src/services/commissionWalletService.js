@@ -261,13 +261,7 @@ async function creditCommissionWallet({ ownerId, amount, currency, region, metad
       $setOnInsert: {
         walletType: COMMISSION_WALLET_TYPE,
         ownerId,
-        currency,
-        balance: 0,
-        status: 'active',
-        metadata: {
-          region,
-          controlledBy: 'admin'
-        }
+        status: 'active'
       },
       $set: {
         currency: sanitizeText(currency || 'INR', 8).toUpperCase(),
