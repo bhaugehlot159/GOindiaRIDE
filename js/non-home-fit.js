@@ -29,6 +29,24 @@
     return fallback || null;
   }
 
+  function ensureScaleLayer(scrollHost) {
+    const existing = scrollHost.querySelector(":scope > .fit-scale-layer");
+    if (existing) {
+      return existing;
+    }
+
+    const scaleLayer = document.createElement("div");
+    scaleLayer.className = "fit-scale-layer";
+
+    const nodes = Array.from(scrollHost.childNodes);
+    for (const node of nodes) {
+      scaleLayer.appendChild(node);
+    }
+
+    scrollHost.appendChild(scaleLayer);
+    return scaleLayer;
+  }
+
   function getTopOffset(scrollHost) {
     let offset = 0;
     const children = Array.from(document.body.children);
@@ -70,6 +88,22 @@
     const topOffset = getTopOffset(scrollHost);
     document.documentElement.style.setProperty("--fit-top-offset", `${topOffset}px`);
     scrollHost.classList.add("fit-scroll-host");
+
+    const scaleLayer = ensureScaleLayer(scrollHost);
+
+    scaleLayer.style.transform = "scale(1)";
+    scaleLayer.style.width = "100%";
+
+    const availableHeight = Math.max(1, viewportHeight - topOffset);
+    const naturalHeight = Math.max(scaleLayer.scrollHeight, scaleLayer.offsetHeight, 1);
+    const naturalWidth = Math.max(scaleLayer.scrollWidth, scaleLayer.offsetWidth, 1);
+
+    const scaleH = availableHeight / naturalHeight;
+    const scaleW = window.innerWidth / naturalWidth;
+    const scale = Math.max(0.15, Math.min(1, scaleH, scaleW));
+
+    scaleLayer.style.width = `${(100 / scale).toFixed(4)}%`;
+    scaleLayer.style.transform = `scale(${scale.toFixed(4)})`;
   }
 
   if (document.readyState === "loading") {
