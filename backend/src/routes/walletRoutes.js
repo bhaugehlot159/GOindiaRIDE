@@ -190,10 +190,10 @@ async function ensurePaymentModesSeeded() {
     return WalletPaymentMode.updateOne(
       { modeId: mode.modeId },
       {
-        $setOnInsert: { ...mode, flows: mergedFlows },
         $set: {
           label: mode.label,
           region: mode.region,
+          enabled: Boolean(mode.enabled),
           displayOrder: mode.displayOrder
         },
         $addToSet: { flows: { $each: mergedFlows } }
