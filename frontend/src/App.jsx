@@ -991,6 +991,10 @@ function Dashboard() {
 
   const settleDriverCommissionManually = async () => {
     if (!token) return;
+    if (!isAdminPortal) {
+      setDriverCommissionAction((prev) => ({ ...prev, error: "Har settlement ke liye admin approval required hai" }));
+      return;
+    }
     if (!driverSettlementForm.bookingId.trim()) {
       setDriverCommissionAction((prev) => ({ ...prev, error: "Booking ID required for settlement" }));
       return;
@@ -1060,6 +1064,10 @@ function Dashboard() {
 
   const refundDriverCommissionManually = async () => {
     if (!token) return;
+    if (!isAdminPortal) {
+      setDriverCommissionAction((prev) => ({ ...prev, error: "Har refund ke liye admin approval required hai" }));
+      return;
+    }
     if (!driverRefundForm.bookingId.trim()) {
       setDriverCommissionAction((prev) => ({ ...prev, error: "Booking ID required for refund" }));
       return;
@@ -1168,6 +1176,14 @@ function Dashboard() {
         }));
       }
 
+      if (data.driverSettlementPendingApproval) {
+        setDriverCommissionAction((prev) => ({
+          ...prev,
+          success: "Ride complete. Settlement admin approval ke liye pending hai.",
+          error: "",
+        }));
+      }
+
       if (data.driverSettlement) {
         const netAmount = Number(data?.driverSettlement?.breakdown?.driverNetAmount || 0);
         setDriverCommissionAction((prev) => ({
@@ -1184,7 +1200,11 @@ function Dashboard() {
       setDonationState({
         loading: false,
         confirming: false,
-        success: data.driverSettlement ? "Ride closed. Driver commission wallet settled." : "Ride closed. Donation prompt ready.",
+        success: data.driverSettlementPendingApproval
+          ? "Ride closed. Driver settlement admin approval ke liye pending."
+          : data.driverSettlement
+            ? "Ride closed. Driver commission wallet settled."
+            : "Ride closed. Donation prompt ready.",
         error: "",
       });
     } catch (error) {
@@ -1886,6 +1906,12 @@ function Dashboard() {
               </button>
             </div>
 
+            {!isAdminPortal && (
+              <p className="text-xs text-[#0B1F3A]/70 mt-3">
+                Driver portal read-only hai. Har settlement/refund admin approval ke baad hi execute hoga.
+              </p>
+            )}
+
             {(driverCommissionAction.error || driverCommissionAction.success) && (
               <div className="mt-3 space-y-2">
                 {driverCommissionAction.error && (
@@ -1977,9 +2003,9 @@ function Dashboard() {
                 <button
                   onClick={settleDriverCommissionManually}
                   className="px-3 py-2 rounded-full bg-[#138808] text-white text-xs disabled:opacity-50"
-                  disabled={driverCommissionAction.loading}
+                  disabled={!isAdminPortal || driverCommissionAction.loading}
                 >
-                  {driverCommissionAction.loading ? "Settling..." : "Settle now"}
+                  {!isAdminPortal ? "Admin only" : driverCommissionAction.loading ? "Settling..." : "Settle now"}
                 </button>
               </div>
 
@@ -2049,9 +2075,9 @@ function Dashboard() {
                 <button
                   onClick={refundDriverCommissionManually}
                   className="px-3 py-2 rounded-full bg-[#FF9933] text-[#0B1F3A] text-xs disabled:opacity-50"
-                  disabled={driverCommissionAction.refunding}
+                  disabled={!isAdminPortal || driverCommissionAction.refunding}
                 >
-                  {driverCommissionAction.refunding ? "Refunding..." : "Process refund"}
+                  {!isAdminPortal ? "Admin only" : driverCommissionAction.refunding ? "Refunding..." : "Process refund"}
                 </button>
               </div>
 

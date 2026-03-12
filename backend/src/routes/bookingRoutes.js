@@ -240,6 +240,7 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
 
   let paymentSettlement = null;
   let driverSettlement = null;
+  let driverSettlementPendingApproval = false;
 
   if (Number.isFinite(grossAmount) && grossAmount > 0) {
     if (shouldSettleToDriverWallet) {
@@ -252,6 +253,25 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
         return res.status(403).json({ message: 'Driver ID mismatch' });
       }
 
+      if (actorType !== 'admin') {
+        driverSettlementPendingApproval = true;
+        booking.driverId = driverId;
+        booking.settlementReference = 'pending_admin_approval';
+
+        await logSecurityEvent({
+          userId: req.user.id,
+          action: 'driver_settlement_admin_approval_required',
+          ip,
+          riskScore: 15,
+          result: 'warning',
+          metadata: {
+            bookingId: booking.bookingId,
+            driverId,
+            customerId,
+            grossAmount
+          }
+        });
+      } else {
       try {
         driverSettlement = await processDriverRideSettlement({
           bookingId: booking.bookingId,
@@ -299,6 +319,7 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
         return res.status(error.statusCode || 400).json({
           message: error.message || 'Driver payment settlement failed before completion'
         });
+      }
       }
     } else {
       try {
@@ -383,6 +404,7 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
     completedByAccountType: booking.completedByAccountType,
     paymentSettlement,
     driverSettlement,
+    driverSettlementPendingApproval,
     donation,
     notifications: notificationSummary
   });
@@ -390,8 +412,8 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
 
 router.post('/:id/refund', authenticate, continuousRiskGate, async (req, res) => {
   const actorType = resolveCompletionActor(req);
-  if (!['driver', 'admin'].includes(actorType)) {
-    return res.status(403).json({ message: 'Only driver or admin can process driver settlement refunds' });
+  if (actorType !== 'admin') {
+    return res.status(403).json({ message: 'Admin approval required for refunds' });
   }
 
   const booking = await Booking.findOne({ bookingId: req.params.id });
@@ -402,18 +424,11 @@ router.post('/:id/refund', authenticate, continuousRiskGate, async (req, res) =>
   }
 
   const requestedDriverId = sanitizeText(req.body.driverId, 120);
-  const driverId = requestedDriverId || sanitizeText(booking.driverId, 120) || (actorType === 'driver' ? String(req.user.id) : '');
+  const driverId = requestedDriverId || sanitizeText(booking.driverId, 120);
   if (!driverId) {
     return res.status(400).json({ message: 'driverId is required for refund' });
   }
 
-  if (actorType === 'driver' && driverId !== String(req.user.id)) {
-    return res.status(403).json({ message: 'Driver ID mismatch' });
-  }
-
-  if (booking.driverId && actorType === 'driver' && String(booking.driverId) !== String(req.user.id)) {
-    return res.status(403).json({ message: 'Driver is not assigned to this booking' });
-  }
 
   const ip = getClientIp(req);
 

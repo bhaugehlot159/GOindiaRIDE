@@ -940,13 +940,13 @@ router.get('/admin/commissions/summary', requireAdmin, wrapAsync(async (req, res
 }));
 router.post('/driver-commissions/settle', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
-  if (!['driver', 'admin'].includes(actorType)) {
-    return res.status(403).json({ message: 'Only driver or admin can settle driver commission' });
+  if (actorType !== 'admin') {
+    return res.status(403).json({ message: 'Admin approval required for driver commission settlement' });
   }
 
   const bookingId = sanitizeText(req.body.bookingId, 140);
   const requestedDriverId = sanitizeText(req.body.driverId, 120);
-  const driverId = actorType === 'driver' ? String(req.user.id) : requestedDriverId;
+  const driverId = requestedDriverId;
   const customerId = sanitizeText(req.body.customerId, 120);
   const grossAmount = toAmount(req.body.amount ?? req.body.grossAmount);
   const currency = sanitizeText(req.body.currency || 'INR', 8).toUpperCase() || 'INR';
@@ -957,10 +957,6 @@ router.post('/driver-commissions/settle', wrapAsync(async (req, res) => {
 
   if (!bookingId || !customerId) {
     return res.status(400).json({ message: 'bookingId and customerId are required' });
-  }
-
-  if (actorType === 'driver' && requestedDriverId && requestedDriverId !== String(req.user.id)) {
-    return res.status(403).json({ message: 'Driver ID mismatch' });
   }
 
   if (actorType === 'admin' && !driverId) {
@@ -1024,13 +1020,13 @@ router.post('/driver-commissions/settle', wrapAsync(async (req, res) => {
 
 router.post('/driver-commissions/refund', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
-  if (!['driver', 'admin'].includes(actorType)) {
-    return res.status(403).json({ message: 'Only driver or admin can process driver refund' });
+  if (actorType !== 'admin') {
+    return res.status(403).json({ message: 'Admin approval required for driver refund' });
   }
 
   const bookingId = sanitizeText(req.body.bookingId, 140);
   const requestedDriverId = sanitizeText(req.body.driverId, 120);
-  const driverId = actorType === 'driver' ? String(req.user.id) : requestedDriverId;
+  const driverId = requestedDriverId;
   const refundAmount = toAmount(req.body.refundAmount ?? req.body.refundGrossAmount);
   const currency = sanitizeText(req.body.currency || 'INR', 8).toUpperCase() || 'INR';
   const paymentMode = sanitizeText(req.body.paymentMode, 80).toLowerCase();
@@ -1040,10 +1036,6 @@ router.post('/driver-commissions/refund', wrapAsync(async (req, res) => {
 
   if (!bookingId) {
     return res.status(400).json({ message: 'bookingId is required' });
-  }
-
-  if (actorType === 'driver' && requestedDriverId && requestedDriverId !== String(req.user.id)) {
-    return res.status(403).json({ message: 'Driver ID mismatch' });
   }
 
   if (actorType === 'admin' && !driverId) {
