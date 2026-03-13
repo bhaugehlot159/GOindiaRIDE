@@ -35,7 +35,7 @@ const portalCards = [
     tag: "Audit-ready governance",
     gradient: "from-[#0B1F3A] to-[#0f3c6e]",
     bullets: [
-      "AI auto-dispatch and fraud flags",
+      "Auto-dispatch and fraud flags",
       "RBAC with IP allow-list and 2FA",
       "Smart lockdown and rate controls",
     ],
@@ -46,7 +46,7 @@ const portalCards = [
 
 const securityHighlights = [
   {
-    title: "AI Risk Engine",
+    title: "Risk Engine",
     detail:
       "Login/device/IP scoring with auto-lock, OTP escalation and geo checks.",
   },
@@ -194,7 +194,7 @@ function Landing() {
             India-first promise
           </p>
           <h2 className="text-2xl sm:text-3xl font-bold text-[#0B1F3A] mb-3">
-            Secure rides, AI fraud defence, tri-colour pride.
+            Secure rides, fraud defence, tri-colour pride.
           </h2>
           <div className="flex flex-wrap gap-3 text-sm">
             <span className="px-3 py-1 rounded-full bg-white/70 border border-[#FF9933]/40 text-[#0B1F3A]">
@@ -204,7 +204,7 @@ function Landing() {
               Device fingerprint and geo checks
             </span>
             <span className="px-3 py-1 rounded-full bg-white/70 border border-[#0B1F3A]/20 text-[#0B1F3A]">
-              AI dispatch and anomaly alerts
+              Dispatch and anomaly alerts
             </span>
           </div>
         </section>
@@ -708,7 +708,7 @@ function Dashboard() {
     [saveDonationPref]
   );
   const chips = [
-    "AI anomaly watch active",
+    "Anomaly watch active",
     "CSP and CORS hardened",
     "Device fingerprinting ready",
   ];
