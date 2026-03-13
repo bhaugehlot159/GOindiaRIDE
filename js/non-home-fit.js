@@ -1,4 +1,13 @@
-﻿(function initFitScreen() {
+(function initFitScreen() {
+  function shouldSkipFitScreen() {
+    const path = String(window.location.pathname || "").toLowerCase();
+    return path.endsWith("/pages/login.html") || path.endsWith("/pages/signup.html");
+  }
+
+  if (shouldSkipFitScreen()) {
+    return;
+  }
+
   function selectScrollHost() {
     const selectors = [
       "main",
@@ -7,8 +16,6 @@
       ".dashboard-container",
       ".content-wrapper",
       ".content",
-      ".signup-container",
-      ".login-container",
       "#root",
       "section.active",
       "section"
