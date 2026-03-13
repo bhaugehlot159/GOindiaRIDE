@@ -38,6 +38,21 @@
         return './index.html';
     }
 
+    function resolvePageKind() {
+        const path = String(window.location.pathname || '').toLowerCase();
+
+        if (path.includes('/pages/login.html')) return 'login';
+        if (path.includes('/pages/signup.html')) return 'signup';
+        if (path.includes('/pages/legal/')) return 'legal';
+        if (path.includes('/pages/booking.html')) return 'booking';
+        if (path.includes('/pages/customer-dashboard.html')) return 'customer-dashboard';
+        if (path.includes('/pages/driver-dashboard.html')) return 'driver-dashboard';
+        if (path.includes('/pages/admin-dashboard.html')) return 'admin-dashboard';
+        if (path.includes('/pages/donations.html')) return 'donations';
+
+        return 'generic';
+    }
+
     function getPrimaryHeader() {
         for (let index = 0; index < HEADER_SELECTORS.length; index += 1) {
             const node = document.querySelector(HEADER_SELECTORS[index]);
@@ -66,14 +81,14 @@
         style.id = STYLE_ID;
         style.textContent = `
             :root {
-                --goi-navy: #0b1f3a;
-                --goi-navy-soft: #16355f;
-                --goi-green: #138808;
-                --goi-saffron: #ff9933;
-                --goi-cream: #fff8ef;
-                --goi-card: rgba(255, 255, 255, 0.94);
-                --goi-border: rgba(11, 31, 58, 0.15);
-                --goi-shadow: 0 12px 28px rgba(11, 31, 58, 0.11);
+                --goi-navy: #0b2443;
+                --goi-navy-soft: #18436f;
+                --goi-teal: #1493a6;
+                --goi-gold: #f4b04e;
+                --goi-cream: #fff9f0;
+                --goi-card: rgba(255, 255, 255, 0.95);
+                --goi-border: rgba(11, 36, 67, 0.14);
+                --goi-shadow: 0 16px 34px rgba(11, 36, 67, 0.12);
             }
 
             html,
@@ -85,32 +100,40 @@
             body.goi-global-theme {
                 --primary-color: #0b1f3a;
                 --primary-dark: #16355f;
-                --secondary-color: #138808;
-                --secondary-dark: #0f6f06;
-                --accent-color: #ff9933;
-                --bg-color: #f6fbf6;
+                --secondary-color: #1493a6;
+                --secondary-dark: #0f7080;
+                --accent-color: #f4b04e;
+                --bg-color: #f5f9fd;
                 --bg-primary: #ffffff;
-                --bg-secondary: #f6fbf6;
+                --bg-secondary: #f5f9fd;
                 --bg-card: #ffffff;
-                --bg-light: #f6fbf6;
+                --bg-light: #f5f9fd;
                 --bg-white: #ffffff;
                 --card-bg: #ffffff;
-                --text-primary: #0b1f3a;
-                --text-dark: #0b1f3a;
-                --text-secondary: #4a5f79;
-                --text-light: #6b7f96;
-                --border-color: rgba(11, 31, 58, 0.15);
-                --shadow-sm: 0 4px 12px rgba(11, 31, 58, 0.08);
-                --shadow-md: 0 10px 26px rgba(11, 31, 58, 0.11);
-                --shadow-lg: 0 16px 34px rgba(11, 31, 58, 0.14);
+                --text-primary: #0b2443;
+                --text-dark: #0b2443;
+                --text-secondary: #38516f;
+                --text-light: #5f7791;
+                --border-color: rgba(11, 36, 67, 0.14);
+                --shadow-sm: 0 6px 16px rgba(11, 36, 67, 0.09);
+                --shadow-md: 0 12px 28px rgba(11, 36, 67, 0.12);
+                --shadow-lg: 0 18px 38px rgba(11, 36, 67, 0.15);
 
                 position: relative;
                 background:
-                    radial-gradient(circle at 9% 10%, rgba(255, 153, 51, 0.18), transparent 35%),
-                    radial-gradient(circle at 92% 12%, rgba(19, 136, 8, 0.16), transparent 36%),
-                    linear-gradient(135deg, #fff4e5 0%, #f8fbff 48%, #ecfff1 100%) !important;
+                    radial-gradient(circle at 8% 10%, rgba(20, 147, 166, 0.18), transparent 36%),
+                    radial-gradient(circle at 92% 8%, rgba(244, 176, 78, 0.2), transparent 36%),
+                    linear-gradient(136deg, #f8fbff 0%, #eef4fb 52%, #e5f0fb 100%) !important;
                 color: var(--goi-navy);
                 min-height: 100vh;
+            }
+
+            body.goi-global-theme.goi-page-login,
+            body.goi-global-theme.goi-page-signup {
+                background:
+                    radial-gradient(circle at 0% 0%, rgba(20, 147, 166, 0.18), transparent 42%),
+                    radial-gradient(circle at 100% 10%, rgba(244, 176, 78, 0.24), transparent 36%),
+                    linear-gradient(138deg, #f9fcff 0%, #edf4fd 48%, #e3edf9 100%) !important;
             }
 
             body.goi-global-theme *,
@@ -141,7 +164,7 @@
             body.goi-global-theme .sidebar-header,
             body.goi-global-theme .dashboard-header,
             body.goi-global-theme .topbar {
-                background: linear-gradient(120deg, var(--goi-saffron) 0%, #fff8ef 48%, var(--goi-green) 100%) !important;
+                background: linear-gradient(120deg, var(--goi-gold) 0%, #fff8ef 46%, var(--goi-teal) 100%) !important;
                 color: var(--goi-navy) !important;
                 border-bottom: 1px solid var(--goi-border);
                 box-shadow: 0 5px 18px rgba(11, 31, 58, 0.08);
@@ -172,6 +195,38 @@
                 margin-left: auto;
                 margin-right: auto;
                 border-radius: 18px;
+            }
+
+            body.goi-global-theme.goi-page-login .login-container,
+            body.goi-global-theme.goi-page-signup .signup-container {
+                width: min(1120px, 96vw);
+                border-radius: 24px;
+                overflow: hidden;
+                border: 1px solid rgba(11, 36, 67, 0.16) !important;
+                box-shadow: 0 26px 60px rgba(11, 36, 67, 0.18) !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+            }
+
+            body.goi-global-theme.goi-page-login .login-left,
+            body.goi-global-theme.goi-page-signup .signup-left {
+                background: linear-gradient(155deg, #0f2f53 0%, #1b4f80 58%, #1f7a9d 100%) !important;
+                color: #f3f9ff !important;
+                border-right: 1px solid rgba(255, 255, 255, 0.18);
+            }
+
+            body.goi-global-theme.goi-page-login .login-left *,
+            body.goi-global-theme.goi-page-signup .signup-left * {
+                color: #f3f9ff !important;
+            }
+
+            body.goi-global-theme.goi-page-login .features-list i,
+            body.goi-global-theme.goi-page-signup .features-list i {
+                color: #80e6ff !important;
+            }
+
+            body.goi-global-theme.goi-page-login .login-right,
+            body.goi-global-theme.goi-page-signup .signup-right {
+                background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%) !important;
             }
 
             body.goi-global-theme .goi-section-shell,
@@ -219,7 +274,7 @@
                 top: 0;
                 height: 3px;
                 border-radius: 999px;
-                background: linear-gradient(90deg, var(--goi-saffron), #ffffff, var(--goi-green));
+                background: linear-gradient(90deg, var(--goi-gold), #ffffff, var(--goi-teal));
                 opacity: 0.75;
             }
 
@@ -239,6 +294,11 @@
                 color: #fff !important;
                 border-color: var(--goi-navy) !important;
                 box-shadow: 0 7px 16px rgba(11, 31, 58, 0.22);
+            }
+
+            body.goi-global-theme button *,
+            body.goi-global-theme .btn * {
+                color: inherit !important;
             }
 
             body.goi-global-theme .btn-secondary,
@@ -281,41 +341,49 @@
 
             #${NAV_DOCK_ID} {
                 position: fixed;
-                right: 10px;
+                right: 14px;
                 top: calc(env(safe-area-inset-top, 0px) + 72px);
                 z-index: 9998;
                 display: inline-flex;
-                gap: 0.34rem;
-                background: rgba(11, 31, 58, 0.96);
+                gap: 0.4rem;
+                background: rgba(10, 36, 64, 0.92);
                 border-radius: 999px;
-                padding: 0.26rem;
-                box-shadow: 0 10px 24px rgba(11, 31, 58, 0.38);
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                padding: 0.34rem;
+                box-shadow: 0 14px 30px rgba(11, 36, 67, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.16);
+                backdrop-filter: blur(8px);
                 max-width: calc(100vw - 20px);
             }
 
             #${NAV_DOCK_ID} .goi-dock-btn {
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 999px;
-                background: transparent;
-                color: #fff;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+                color: #f4fbff !important;
                 font-weight: 700;
-                font-size: 0.8rem;
+                font-size: 0.83rem;
                 line-height: 1;
-                padding: 0.4rem 0.6rem;
+                padding: 0.46rem 0.74rem;
                 display: inline-flex;
                 align-items: center;
-                gap: 0.3rem;
+                gap: 0.42rem;
                 cursor: pointer;
                 white-space: nowrap;
             }
 
             #${NAV_DOCK_ID} .goi-dock-btn:hover {
-                background: rgba(255, 255, 255, 0.14);
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.08));
+                transform: translateY(-1px);
             }
 
             #${NAV_DOCK_ID} .goi-dock-icon {
-                font-size: 0.82rem;
+                font-size: 0.96rem;
+                font-weight: 800;
+                color: #f4fbff !important;
+            }
+
+            #${NAV_DOCK_ID} .goi-dock-label {
+                color: #f4fbff !important;
             }
 
             @media (max-width: 992px) {
@@ -324,8 +392,8 @@
                 }
 
                 #${NAV_DOCK_ID} .goi-dock-btn {
-                    font-size: 0.74rem;
-                    padding: 0.34rem 0.55rem;
+                    font-size: 0.78rem;
+                    padding: 0.38rem 0.62rem;
                 }
             }
 
@@ -407,7 +475,7 @@
         dock = document.createElement('div');
         dock.id = NAV_DOCK_ID;
 
-        const backButton = createDockButton('Back', '<-', () => {
+        const backButton = createDockButton('Back', '&larr;', () => {
             if (window.history.length > 1) {
                 window.history.back();
             } else {
@@ -415,7 +483,7 @@
             }
         });
 
-        const homeButton = createDockButton('Home', '[]', () => {
+        const homeButton = createDockButton('Home', '&#8962;', () => {
             window.location.href = homePath;
         });
 
@@ -432,6 +500,7 @@
 
     function markActiveTheme() {
         document.body.classList.add('goi-global-theme');
+        document.body.classList.add(`goi-page-${resolvePageKind()}`);
     }
 
     function decorateSections() {

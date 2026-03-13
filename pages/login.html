@@ -7,28 +7,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .login-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; min-height: 600px; }
-        .login-left { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        body { font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(138deg, #f8fbff 0%, #edf4fd 52%, #e4eefb 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; color: #0f2a49; }
+        .login-container { background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 26px 60px rgba(11, 36, 67, 0.2); overflow: hidden; max-width: 1120px; width: min(1120px, 96vw); display: grid; grid-template-columns: minmax(330px, 42%) minmax(440px, 58%); min-height: 680px; border: 1px solid rgba(11, 36, 67, 0.14); }
+        .login-left { background: linear-gradient(155deg, #0f2f53 0%, #184f84 56%, #1d7398 100%); color: #f3f9ff; padding: 3rem 2.2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .login-left h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-        .login-left p { font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem; opacity: 0.9; }
+        .login-left p { font-size: 1.05rem; line-height: 1.6; margin-bottom: 2rem; opacity: 0.92; color: rgba(243, 249, 255, 0.9); }
         .features-list { list-style: none; text-align: left; }
         .features-list li { padding: 0.8rem 0; display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; }
-        .features-list i { font-size: 1.3rem; color: #00d4ff; }
-        .login-right { padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; position: relative; }
+        .features-list i { font-size: 1.3rem; color: #80e6ff; }
+        .login-right { padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; position: relative; background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%); }
         .admin-portal-link { display: none; position: absolute; top: 1rem; right: 2rem; background: rgba(255, 87, 34, 0.92); color: white; padding: 0.6rem 1.2rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border: none; align-items: center; gap: 0.4rem; }
         .login-header { margin-bottom: 2rem; text-align: center; }
         .login-header h2 { color: #333; font-size: 2rem; margin-bottom: 0.5rem; }
         .role-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .role-option { display: none; }
         .role-label { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; padding: 1.5rem 1rem; border: 3px solid #ddd; border-radius: 12px; cursor: pointer; text-align: center; background: white; }
-        .role-option:checked + .role-label { border-color: #667eea; background: #f0f4ff; color: #667eea; }
-        .role-label i { font-size: 2.8rem; color: #667eea; }
+        .role-option:checked + .role-label { border-color: #1a5f97; background: #eef5ff; color: #1a5f97; }
+        .role-label i { font-size: 2.8rem; color: #1a5f97; }
         .role-label span { font-weight: 600; font-size: 1rem; }
         .login-method-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .method-option { display: none; }
         .method-label { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.9rem; }
-        .method-option:checked + .method-label { border-color: #667eea; background: #f0f4ff; color: #667eea; }
+        .method-option:checked + .method-label { border-color: #1a5f97; background: #eef5ff; color: #1a5f97; }
         .method-label i { font-size: 1.5rem; }
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; color: #333; font-weight: 600; margin-bottom: 0.7rem; }
@@ -36,9 +36,9 @@
         .form-group input:focus { outline: none; border-color: #667eea; background: #f9f9ff; }
         .form-group input:-webkit-autofill, .form-group input:-webkit-autofill:hover, .form-group input:-webkit-autofill:focus { -webkit-text-fill-color: #1f2937; transition: background-color 9999s ease-in-out 0s; box-shadow: 0 0 0px 1000px #ffffff inset; }
         .input-with-icon { position: relative; }
-        .input-with-icon i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #667eea; }
+        .input-with-icon i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #1a5f97; }
         .input-with-icon input { padding-left: 3rem; }
-        .password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2rem; }
+        .password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #1a5f97; cursor: pointer; font-size: 1.2rem; }
         .demo-info { background: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #1565c0; }
         .demo-info code { background: rgba(33, 150, 243, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
         #firebaseRecaptchaContainer { min-height: 1px; margin-bottom: 0.5rem; }
@@ -50,10 +50,10 @@
         .otp-digit { width: 50px; height: 50px; font-size: 24px; font-weight: bold; text-align: center; border: 2px solid #ddd; border-radius: 8px; padding: 0; }
         .otp-digit:focus { outline: none; border-color: #667eea; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4); }
         .form-buttons { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-        .btn-login, .btn-signup, .btn-send-otp, .btn-verify { flex: 1; padding: 1rem; border: 2px solid #667eea; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-login, .btn-send-otp, .btn-verify { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-login:hover, .btn-send-otp:hover, .btn-verify:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
-        .btn-signup { background: white; color: #667eea; }
+        .btn-login, .btn-signup, .btn-send-otp, .btn-verify { flex: 1; padding: 1rem; border: 2px solid #1a5f97; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-login, .btn-send-otp, .btn-verify { background: linear-gradient(135deg, #0f2f53 0%, #1d6397 100%); color: white; }
+        .btn-login:hover, .btn-send-otp:hover, .btn-verify:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(15, 47, 83, 0.35); }
+        .btn-signup { background: white; color: #1a5f97; }
                 .btn-signup:hover { background: #f0f4ff; }
         .action-links { display: flex; justify-content: flex-end; margin: -0.4rem 0 1rem; }
         .link-btn { border: none; background: none; color: #4f46e5; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
@@ -62,7 +62,7 @@
         .forgot-password-section { display: none; background: #f9f9ff; border: 2px solid #e0e7ff; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
         .forgot-password-section.show { display: block; }
         @media (max-width: 768px) {
-            .login-container { grid-template-columns: 1fr; }
+            .login-container { grid-template-columns: 1fr; min-height: auto; }
             .login-left { padding: 2rem 1.5rem; }
             .login-right { padding: 2rem 1.5rem; }
         }

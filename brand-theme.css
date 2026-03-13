@@ -1,17 +1,17 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 :root {
-  --brand-bg-deep: #0a1d37;
-  --brand-bg-mid: #143a63;
-  --brand-bg-soft: #f4f8fc;
-  --brand-cyan: #18b6c9;
-  --brand-amber: #f5a524;
-  --brand-text: #0f2744;
-  --brand-muted: #4f6783;
-  --brand-border: rgba(15, 39, 68, 0.14);
-  --brand-glass: rgba(255, 255, 255, 0.86);
-  --brand-shadow: 0 14px 40px rgba(10, 29, 55, 0.16);
-  --brand-radius: 14px;
+  --brand-bg-deep: #091a33;
+  --brand-bg-mid: #123c6d;
+  --brand-bg-soft: #f3f7fb;
+  --brand-ocean: #1ca3bd;
+  --brand-gold: #f0b44f;
+  --brand-text: #102844;
+  --brand-subtext: #395573;
+  --brand-border: rgba(16, 40, 68, 0.14);
+  --brand-glass: rgba(255, 255, 255, 0.9);
+  --brand-shadow: 0 20px 46px rgba(10, 31, 58, 0.15);
+  --brand-radius: 16px;
 }
 
 html.fit-screen-page,
@@ -22,9 +22,9 @@ body.fit-screen-page {
 
 body.fit-screen-page {
   background:
-    radial-gradient(1100px 420px at -12% -10%, rgba(24, 182, 201, 0.24), transparent 60%),
-    radial-gradient(800px 360px at 112% 0%, rgba(245, 165, 36, 0.2), transparent 58%),
-    linear-gradient(135deg, #f8fbff 0%, #eef4fb 46%, #e6eef8 100%);
+    radial-gradient(1150px 450px at -10% -12%, rgba(28, 163, 189, 0.2), transparent 60%),
+    radial-gradient(950px 420px at 110% 2%, rgba(240, 180, 79, 0.18), transparent 58%),
+    linear-gradient(132deg, #f9fcff 0%, #edf4fb 50%, #e6eef9 100%);
 }
 
 body.fit-screen-page::before,
@@ -37,18 +37,20 @@ body.fit-screen-page::after {
 
 body.fit-screen-page::before {
   inset: 0;
-  background-image: linear-gradient(rgba(15, 39, 68, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 39, 68, 0.045) 1px, transparent 1px);
-  background-size: 42px 42px;
-  opacity: 0.34;
+  background-image:
+    linear-gradient(rgba(16, 40, 68, 0.038) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 40, 68, 0.038) 1px, transparent 1px);
+  background-size: 46px 46px;
+  opacity: 0.3;
 }
 
 body.fit-screen-page::after {
-  width: 46vmax;
-  height: 46vmax;
-  right: -20vmax;
-  top: -22vmax;
+  width: 52vmax;
+  height: 52vmax;
+  right: -24vmax;
+  top: -26vmax;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, rgba(24, 182, 201, 0.22), rgba(20, 58, 99, 0));
+  background: radial-gradient(circle at 28% 30%, rgba(28, 163, 189, 0.2), rgba(18, 60, 109, 0));
 }
 
 body.fit-screen-page > * {
@@ -57,7 +59,7 @@ body.fit-screen-page > * {
 }
 
 .fit-scroll-host .fit-scale-layer {
-  padding: clamp(8px, 1.2vh, 14px);
+  padding: clamp(10px, 1.3vh, 16px);
 }
 
 body.fit-screen-page nav,
@@ -65,16 +67,16 @@ body.fit-screen-page header,
 body.fit-screen-page .navbar,
 body.fit-screen-page .top-nav,
 body.fit-screen-page .topbar {
-  background: linear-gradient(115deg, var(--brand-bg-deep) 0%, var(--brand-bg-mid) 58%, #1e5e8f 100%) !important;
-  color: #f5fbff !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  box-shadow: 0 12px 28px rgba(10, 29, 55, 0.24);
-  backdrop-filter: blur(5px);
+  background: linear-gradient(115deg, var(--brand-bg-deep) 0%, var(--brand-bg-mid) 56%, #1c5f94 100%) !important;
+  color: #f4faff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 13px 30px rgba(10, 31, 58, 0.23);
+  backdrop-filter: blur(6px);
 }
 
 body.fit-screen-page .sidebar {
-  background: linear-gradient(180deg, rgba(10, 29, 55, 0.96) 0%, rgba(20, 58, 99, 0.96) 100%) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(9, 26, 51, 0.97) 0%, rgba(18, 60, 109, 0.96) 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 body.fit-screen-page .container,
@@ -109,38 +111,46 @@ body.fit-screen-page h1,
 body.fit-screen-page h2,
 body.fit-screen-page h3,
 body.fit-screen-page h4 {
-  color: #102c4c !important;
-  letter-spacing: -0.01em;
+  color: #0f2a49 !important;
+  letter-spacing: -0.012em;
 }
 
 body.fit-screen-page p,
 body.fit-screen-page li,
-body.fit-screen-page span,
 body.fit-screen-page label,
-body.fit-screen-page td,
-body.fit-screen-page th {
-  color: var(--brand-muted);
+body.fit-screen-page td {
+  color: var(--brand-subtext);
+}
+
+body.fit-screen-page span,
+body.fit-screen-page i {
+  color: inherit;
 }
 
 body.fit-screen-page a {
-  color: #0b4f7a;
+  color: #0f4b78;
 }
 
 body.fit-screen-page button,
 body.fit-screen-page .btn,
 body.fit-screen-page input[type="submit"] {
   border-radius: 11px !important;
-  border: 1px solid rgba(20, 58, 99, 0.18);
-  background: linear-gradient(112deg, #0f2f53 0%, #1a6295 100%);
-  color: #f4fbff !important;
-  font-weight: 600;
+  border: 1px solid rgba(18, 60, 109, 0.2);
+  background: linear-gradient(112deg, #0f2d52 0%, #1d6397 100%);
+  color: #f7fbff !important;
+  font-weight: 700;
   letter-spacing: 0.01em;
-  box-shadow: 0 9px 18px rgba(15, 47, 83, 0.22);
+  box-shadow: 0 10px 20px rgba(15, 45, 82, 0.22);
+}
+
+body.fit-screen-page button *,
+body.fit-screen-page .btn * {
+  color: inherit !important;
 }
 
 body.fit-screen-page button:hover,
 body.fit-screen-page .btn:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
   transform: translateY(-1px);
 }
 
@@ -148,8 +158,8 @@ body.fit-screen-page input,
 body.fit-screen-page select,
 body.fit-screen-page textarea {
   border-radius: 10px !important;
-  border: 1px solid rgba(15, 39, 68, 0.2) !important;
-  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(16, 40, 68, 0.22) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
   color: #0f2744 !important;
 }
 
@@ -168,8 +178,8 @@ body.fit-screen-page .menu-item.active,
 body.fit-screen-page .nav-link.active,
 body.fit-screen-page .tab.active,
 body.fit-screen-page .sidebar-item.active {
-  background: linear-gradient(110deg, rgba(24, 182, 201, 0.18) 0%, rgba(245, 165, 36, 0.2) 100%) !important;
-  color: #0b2b4a !important;
+  background: linear-gradient(108deg, rgba(28, 163, 189, 0.2) 0%, rgba(240, 180, 79, 0.22) 100%) !important;
+  color: #0c2c4b !important;
 }
 
 body.fit-screen-page table {
@@ -178,7 +188,7 @@ body.fit-screen-page table {
 }
 
 body.fit-screen-page th {
-  background: linear-gradient(110deg, rgba(20, 58, 99, 0.9), rgba(24, 88, 138, 0.92));
+  background: linear-gradient(110deg, rgba(18, 60, 109, 0.94), rgba(30, 94, 145, 0.92));
   color: #f6fbff !important;
 }
 
@@ -187,9 +197,54 @@ body.fit-screen-page .chip,
 body.fit-screen-page .status,
 body.fit-screen-page .tag {
   border-radius: 999px;
-  border: 1px solid rgba(20, 58, 99, 0.18);
-  background: rgba(255, 255, 255, 0.88);
-  color: #143a63 !important;
+  border: 1px solid rgba(18, 60, 109, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  color: #123b67 !important;
+}
+
+/* Auth pages readability + premium finish */
+body.fit-screen-page .login-container,
+body.fit-screen-page .signup-container {
+  overflow: hidden !important;
+}
+
+body.fit-screen-page .login-left,
+body.fit-screen-page .signup-left {
+  background: linear-gradient(154deg, #0f2f53 0%, #184f84 56%, #1d7398 100%) !important;
+  color: #f3f9ff !important;
+}
+
+body.fit-screen-page .login-left *,
+body.fit-screen-page .signup-left * {
+  color: #f3f9ff !important;
+}
+
+body.fit-screen-page .login-left p,
+body.fit-screen-page .signup-left p {
+  color: rgba(243, 249, 255, 0.88) !important;
+}
+
+body.fit-screen-page .login-left .features-list i,
+body.fit-screen-page .signup-left .features-list i {
+  color: #80e5ff !important;
+}
+
+body.fit-screen-page .login-right,
+body.fit-screen-page .signup-right {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 249, 255, 0.95) 100%) !important;
+}
+
+body.fit-screen-page .login-header p,
+body.fit-screen-page .signup-header p,
+body.fit-screen-page .demo-info,
+body.fit-screen-page .security-note {
+  color: #274d73 !important;
+}
+
+body.fit-screen-page .role-label,
+body.fit-screen-page .method-label {
+  border-color: rgba(18, 60, 109, 0.25) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
 }
 
 @media (max-width: 768px) {
