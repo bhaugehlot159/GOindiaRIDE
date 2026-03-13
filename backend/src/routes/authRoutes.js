@@ -756,6 +756,16 @@ router.post("/refresh-token-v2", async (req, res) => {
       deviceFingerprint,
     } = req.body;
 
+    const finalDeviceFingerprint =
+      deviceFingerprint || req.headers["x-device-fingerprint"] || null;
+
+    if (!finalDeviceFingerprint) {
+      return res.status(400).json({
+        message: "Device fingerprint required",
+        code: "DEVICE_FINGERPRINT_REQUIRED",
+      });
+    }
+
     if (!otp) return res.status(400).json({ message: "OTP required" });
 
     if (!["email", "sms"].includes(channel)) {
@@ -893,7 +903,7 @@ router.post("/refresh-token-v2", async (req, res) => {
 
 const clientUserAgent = req.headers["user-agent"] || null;
 
-const approvalCheck = getDeviceApprovalResult(user, deviceFingerprint);
+const approvalCheck = getDeviceApprovalResult(user, finalDeviceFingerprint);
 const hasAnyTrustedDevices =
   Array.isArray(user.trustedDevices) && user.trustedDevices.length > 0;
 
@@ -932,7 +942,7 @@ if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && !hasAnyTrustedDevices) {
   }
 
   user.trustedDevices.push({
-    fingerprint: deviceFingerprint,
+    fingerprint: finalDeviceFingerprint,
     trustScore: 80,
     firstSeenAt: now,
     lastSeenAt: now,
@@ -963,7 +973,7 @@ if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
 
   user.trustedDevices.push(
     buildPendingTrustedDevice({
-      deviceFingerprint,
+      deviceFingerprint: finalDeviceFingerprint,
       userAgent: clientUserAgent,
       ip: clientIp,
       label: null
@@ -984,7 +994,7 @@ if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
 
     // ✅ refresh token store
     const ip = req.ip;
-    const df = deviceFingerprint || req.headers["x-device-fingerprint"] || null;
+    const df = finalDeviceFingerprint;
 
     user.refreshToken = hashToken(refreshToken);
     if (!Array.isArray(user.refreshTokens)) user.refreshTokens = [];
@@ -1006,8 +1016,6 @@ if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
           : n * 24 * 60 * 60 * 1000;
     }
   {
-    const ip = req.ip;
-    
     const crypto = require("crypto");
     const sessionId = crypto.randomUUID
     ? crypto.randomUUID()
