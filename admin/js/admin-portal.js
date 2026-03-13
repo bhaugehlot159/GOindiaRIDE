@@ -311,30 +311,6 @@ function loadSectionContent(sectionId, targetSection) {
         let content = '';
         
         switch(sectionId) {
-            case 'ai-auto-block':
-                content = createAutoBlockContent();
-                break;
-            case 'smart-fare':
-                content = createSmartFareContent();
-                break;
-            case 'demand-prediction':
-                content = createDemandPredictionContent();
-                break;
-            case 'auto-offer':
-                content = createAutoOfferContent();
-                break;
-            case 'speed-monitor':
-                content = createSpeedMonitorContent();
-                break;
-            case 'driver-matching':
-                content = createDriverMatchingContent();
-                break;
-            case 'fraud-detection':
-                content = createFraudDetectionContent();
-                break;
-            case 'maintenance-alerts':
-                content = createMaintenanceAlertsContent();
-                break;
             case 'affiliate-tracking':
                 content = createAffiliateTrackingContent();
                 break;
@@ -425,10 +401,6 @@ function loadSectionContent(sectionId, targetSection) {
 // Initialize section-specific features
 function initializeSectionFeatures(sectionId) {
     // This function will be extended by other JS files
-    if (typeof initializeAIFeatures === 'function' && sectionId.includes('ai-') || 
-        ['speed-monitor', 'driver-matching', 'fraud-detection', 'maintenance-alerts'].includes(sectionId)) {
-        initializeAIFeatures(sectionId);
-    }
     if (typeof initializeFinancialFeatures === 'function' && 
         ['affiliate-tracking', 'donation-reports', 'cancellation-earnings', 'tax-reports', 
          'insurance-fund', 'revenue-analytics', 'driver-payout', 'expense-tracking'].includes(sectionId)) {

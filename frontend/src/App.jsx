@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const SHOW_WORKING_AI_SECTIONS = false;
 
 const portalCards = [
   {
@@ -248,25 +249,6 @@ function Landing() {
           ))}
         </section>
 
-        <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/10">
-          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-            <h3 className="text-lg font-bold text-[#0B1F3A]">AI Automation Stack</h3>
-            <span className="text-xs uppercase tracking-[0.16em] text-[#0B1F3A]/60">Auto monitored</span>
-          </div>
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 text-left">
-            {aiAutomationDefaults.map((item) => (
-              <div key={item.id} className="rounded-xl border border-[#0B1F3A]/10 bg-white/80 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-[#0B1F3A]">{item.title}</p>
-                  <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full border ${getStatusStyle(item.status)}`}>
-                    {item.mode}
-                  </span>
-                </div>
-                <p className="text-xs text-[#0B1F3A]/70 mt-2">{item.detail}</p>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </div>
   );
@@ -1289,6 +1271,8 @@ function Dashboard() {
     }
   };
   useEffect(() => {
+    if (!SHOW_WORKING_AI_SECTIONS) return undefined;
+
     let active = true;
 
     const run = async (silent = false) => {
@@ -2133,7 +2117,8 @@ function Dashboard() {
             </div>
           </section>
         )}
-<section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
+        {SHOW_WORKING_AI_SECTIONS && (
+          <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
             <div>
               <p className="text-sm font-semibold text-[#0B1F3A]">Automatic AI Control Center</p>
@@ -2184,6 +2169,7 @@ function Dashboard() {
             ))}
           </div>
         </section>
+        )}
 
         <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-3">

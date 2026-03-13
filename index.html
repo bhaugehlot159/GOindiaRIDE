@@ -883,8 +883,6 @@
                 <a href="#features" data-lang="nav.features">Features</a>
                 <a href="#how-it-works" data-lang="nav.how">How It Works</a>
                 <a href="#pricing" data-lang="nav.pricing">Pricing</a>
-                <a href="#ai-security">AI Security</a>
-                <a href="#ai-automation">AI Automation</a>
                 <a href="#contact" data-lang="nav.contact">Contact</a>
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login">Login</a>
@@ -1099,8 +1097,8 @@
         </div>
     </section>
 
-        <!-- AI Security Shield -->
-    <section class="ai-security-section" id="ai-security">
+        <!-- AI Security Shield (kept live but hidden from UI) -->
+    <section class="ai-security-section" id="ai-security" hidden>
         <div class="container">
             <div class="ai-security-header">
                 <h2><i class="fas fa-user-shield"></i> AI Auto-Detective Security Shield</h2>
@@ -1136,41 +1134,6 @@
                     </ul>
                 </div>
             </div>
-        </div>
-    </section>
-    <section class="ai-automation-section" id="ai-automation">
-        <div class="container">
-            <div class="ai-automation-header">
-                <h2><i class="fas fa-robot"></i> Automatic AI Control Center</h2>
-                <p>Customer, driver, and admin workflows are now monitored by automatic AI modules for dispatch, fare checks, fraud watch, SOS routing, and device trust control.</p>
-            </div>
-            <div class="ai-automation-grid" id="aiAutomationGrid">
-                <div class="ai-automation-card">
-                    <div class="ai-automation-title">AI Auto Dispatch <span class="ai-automation-status ai-status-healthy">healthy</span></div>
-                    <p>Nearest trusted driver assignment with active risk checks.</p>
-                </div>
-                <div class="ai-automation-card">
-                    <div class="ai-automation-title">Fraud Firewall <span class="ai-automation-status ai-status-healthy">healthy</span></div>
-                    <p>Auto detection for rapid booking, cancel abuse, and risky sessions.</p>
-                </div>
-                <div class="ai-automation-card">
-                    <div class="ai-automation-title">Smart Fare Guard <span class="ai-automation-status ai-status-healthy">healthy</span></div>
-                    <p>Verifies fare hash, distance consistency, and surcharge integrity.</p>
-                </div>
-                <div class="ai-automation-card">
-                    <div class="ai-automation-title">Emergency AI Router <span class="ai-automation-status ai-status-healthy">healthy</span></div>
-                    <p>Sends SOS events to admin and driver channels with priority levels.</p>
-                </div>
-                <div class="ai-automation-card">
-                    <div class="ai-automation-title">Device Trust AI <span class="ai-automation-status ai-status-healthy">healthy</span></div>
-                    <p>Unknown devices get additional verification before full access.</p>
-                </div>
-                <div class="ai-automation-card">
-                    <div class="ai-automation-title">Compliance Watch <span class="ai-automation-status ai-status-healthy">healthy</span></div>
-                    <p>Background checks for safety and security controls across portals.</p>
-                </div>
-            </div>
-            <div class="ai-automation-meta" id="aiAutomationMeta">Auto refresh: waiting...</div>
         </div>
     </section>
     <!-- Stats Section -->
@@ -1339,10 +1302,6 @@
     </footer>
 
     <script src="./js/ai-auto-detective.js"></script>
-    <script src="./js/ai-automation-orchestrator.js"></script>
-    <script src="./js/ai-system/authenticity-engine.js"></script>
-    <script src="./js/ai-system/core.js"></script>
-    <script src="./js/ai-system/public-mode.js"></script>
     <script src="./js/app.js"></script>
     <script>
         // Go to booking page
