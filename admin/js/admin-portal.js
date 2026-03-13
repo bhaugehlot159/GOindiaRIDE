@@ -3,6 +3,11 @@
 // Theme Management
 const themeToggle = document.getElementById('themeToggle');
 const currentTheme = localStorage.getItem('adminTheme') || 'light';
+const BACKEND_BOOKING_ALERT_POLL_MS = 5000;
+let backendBookingAlertTimer = null;
+let backendBookingAlarmContext = null;
+let backendBookingAlarmLastAt = 0;
+const backendSeenNotificationIds = new Set();
 
 // Set initial theme
 if (currentTheme === 'dark') {
@@ -239,6 +244,166 @@ function setupPortalNotifications() {
 
         showToast(notification.message || 'New notification received', 'info');
     });
+}
+
+function getBackendApiBase() {
+    const fromWindow = String(window.GOINDIARIDE_API_BASE || '').trim();
+    const fromStorage = String(localStorage.getItem('goindiaride_api_base') || '').trim();
+    const base = fromWindow || fromStorage;
+
+    if (base) return base.replace(/\/$/, '');
+
+    const host = String(window.location.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+
+    return String(window.location.origin || '').replace(/\/$/, '');
+}
+
+function getBackendAccessToken() {
+    return (
+        localStorage.getItem('accessToken') ||
+        localStorage.getItem('authToken') ||
+        localStorage.getItem('token') ||
+        ''
+    );
+}
+
+function ensureBackendAlarmContext() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+
+    if (!backendBookingAlarmContext) {
+        backendBookingAlarmContext = new Ctx();
+    }
+
+    return backendBookingAlarmContext;
+}
+
+function playBackendBookingAlarm() {
+    const nowMs = Date.now();
+    if (nowMs - backendBookingAlarmLastAt < 2500) return;
+    backendBookingAlarmLastAt = nowMs;
+
+    const ctx = ensureBackendAlarmContext();
+    if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+    }
+
+    const start = ctx.currentTime + 0.02;
+    [0, 0.22, 0.44].forEach((offset) => {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(900, start + offset);
+        gain.gain.setValueAtTime(0.0001, start + offset);
+        gain.gain.exponentialRampToValueAtTime(0.18, start + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.16);
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start(start + offset);
+        oscillator.stop(start + offset + 0.18);
+    });
+}
+
+function buildBookingPayloadFromNotification(notification) {
+    const metadata = (notification && typeof notification.metadata === 'object' && notification.metadata) || {};
+    return {
+        id: notification.bookingId || metadata.bookingId || (`BK${Date.now()}`),
+        pickup: metadata.pickup || metadata.pickupLocation || 'Pickup pending',
+        drop: metadata.drop || metadata.dropLocation || 'Drop pending',
+        finalFare: Number(metadata.amount || 0),
+        fare: Number(metadata.amount || 0),
+        status: 'new',
+        timestamp: notification.createdAt || new Date().toISOString()
+    };
+}
+
+function formatBookingAlertMessage(notification) {
+    const metadata = (notification && typeof notification.metadata === 'object' && notification.metadata) || {};
+    const pickup = String(metadata.pickup || metadata.pickupLocation || '').trim();
+    const drop = String(metadata.drop || metadata.dropLocation || '').trim();
+
+    if (pickup && drop) {
+        return `New booking: ${pickup} -> ${drop}`;
+    }
+
+    return notification.message || `New booking ${notification.bookingId || ''}`.trim();
+}
+
+async function fetchBackendUnreadNotifications() {
+    const token = String(getBackendAccessToken() || '').trim();
+    if (!token) return [];
+
+    const response = await fetch(`${getBackendApiBase()}/api/notifications?limit=25&unreadOnly=true`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        credentials: 'include'
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json().catch(() => ({}));
+    return Array.isArray(data.items) ? data.items : [];
+}
+
+async function pollBackendBookingAlerts({ seedOnly = false } = {}) {
+    try {
+        const items = await fetchBackendUnreadNotifications();
+        if (!items.length) return;
+
+        const freshBookingItems = [];
+        items.forEach((item) => {
+            const id = String(item && item._id ? item._id : '');
+            if (!id) return;
+
+            const alreadySeen = backendSeenNotificationIds.has(id);
+            backendSeenNotificationIds.add(id);
+
+            if (seedOnly || alreadySeen) return;
+
+            const type = String(item.type || '').toLowerCase();
+            if (type === 'booking_created' || type === 'new_booking') {
+                freshBookingItems.push(item);
+            }
+        });
+
+        if (!freshBookingItems.length) return;
+
+        const latest = freshBookingItems[0];
+        upsertAdminBookingFromNotification(buildBookingPayloadFromNotification(latest), 'new');
+        updateDashboardStats();
+        showToast(formatBookingAlertMessage(latest), 'info');
+        logAdminAction('BACKEND_BOOKING_ALERT', `Booking ${latest.bookingId || 'N/A'} arrived from backend queue`);
+        playBackendBookingAlarm();
+    } catch (error) {
+        // Keep polling silently; UI should not break on transient network failures.
+    }
+}
+
+function startBackendBookingAlerts() {
+    if (backendBookingAlertTimer) {
+        clearInterval(backendBookingAlertTimer);
+    }
+
+    const unlockAudio = () => {
+        const ctx = ensureBackendAlarmContext();
+        if (ctx && ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+        }
+    };
+
+    document.addEventListener('pointerdown', unlockAudio, { passive: true });
+    document.addEventListener('keydown', unlockAudio);
+
+    pollBackendBookingAlerts({ seedOnly: true });
+    backendBookingAlertTimer = setInterval(() => {
+        pollBackendBookingAlerts({ seedOnly: false });
+    }, BACKEND_BOOKING_ALERT_POLL_MS);
 }
 // Initialize Demo Data
 function initializeDemoData() {
@@ -541,6 +706,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Listen for customer/driver/admin shared notifications
     setupPortalNotifications();
+    startBackendBookingAlerts();
     
     // Log admin login
     logAdminAction('LOGIN', 'Admin logged into portal');

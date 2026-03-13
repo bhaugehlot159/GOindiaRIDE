@@ -173,12 +173,20 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
 
   let notificationSummary = null;
   try {
+    const pickup = sanitizeText(req.body.pickup || req.body.pickupLocation, 120);
+    const drop = sanitizeText(req.body.drop || req.body.dropLocation, 120);
+    const vehicleType = sanitizeText(req.body.vehicleType, 40);
+
     notificationSummary = await createBookingPortalNotifications({
       bookingId: booking.bookingId,
       amount: req.recalculatedFare,
-      distanceKm,
+      distanceKm: booking.distanceKm,
       action: 'created',
-      customerId: req.user.id
+      customerId: req.user.id,
+      pickup,
+      drop,
+      vehicleType,
+      currency: 'INR'
     });
   } catch (error) {
     await logSecurityEvent({

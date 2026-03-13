@@ -24,6 +24,11 @@ let driverState = {
     restRequired: false,
     pendingRequest: null
 };
+const DRIVER_BACKEND_BOOKING_ALERT_POLL_MS = 5000;
+let driverBackendBookingAlertTimer = null;
+let driverBackendAlarmContext = null;
+let driverBackendAlarmLastAt = 0;
+const driverSeenNotificationIds = new Set();
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -33,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDemoData();
     startStatusMonitoring();
     setupPortalNotifications();
+    startDriverBackendBookingAlerts();
 });
 
 // Initialize Driver Data
@@ -419,9 +425,179 @@ function setupPortalNotifications() {
         showToast(notification.message || 'New notification received', 'info');
     });
 }
+
+function getBackendApiBase() {
+    const fromWindow = String(window.GOINDIARIDE_API_BASE || '').trim();
+    const fromStorage = String(localStorage.getItem('goindiaride_api_base') || '').trim();
+    const base = fromWindow || fromStorage;
+
+    if (base) return base.replace(/\/$/, '');
+
+    const host = String(window.location.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+
+    return String(window.location.origin || '').replace(/\/$/, '');
+}
+
+function getBackendAccessToken() {
+    return (
+        localStorage.getItem('accessToken') ||
+        localStorage.getItem('authToken') ||
+        localStorage.getItem('token') ||
+        ''
+    );
+}
+
+function ensureDriverAlarmContext() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+
+    if (!driverBackendAlarmContext) {
+        driverBackendAlarmContext = new Ctx();
+    }
+
+    return driverBackendAlarmContext;
+}
+
+function playDriverBookingAlarm() {
+    const nowMs = Date.now();
+    if (nowMs - driverBackendAlarmLastAt < 2500) return;
+    driverBackendAlarmLastAt = nowMs;
+
+    const ctx = ensureDriverAlarmContext();
+    if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+    }
+
+    const start = ctx.currentTime + 0.02;
+    [0, 0.2, 0.4].forEach((offset) => {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(920, start + offset);
+        gain.gain.setValueAtTime(0.0001, start + offset);
+        gain.gain.exponentialRampToValueAtTime(0.18, start + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.16);
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start(start + offset);
+        oscillator.stop(start + offset + 0.18);
+    });
+}
+
+function buildDriverBookingFromNotification(notification) {
+    const metadata = (notification && typeof notification.metadata === 'object' && notification.metadata) || {};
+    const fare = Number(metadata.amount || 0);
+
+    return {
+        id: notification.bookingId || metadata.bookingId || (`BK${Date.now()}`),
+        pickup: metadata.pickup || metadata.pickupLocation || 'Pickup pending',
+        drop: metadata.drop || metadata.dropLocation || 'Drop pending',
+        fare: Number.isFinite(fare) ? fare : 0,
+        finalFare: Number.isFinite(fare) ? fare : 0,
+        distanceKm: Number(metadata.distanceKm || 0),
+        status: 'searching',
+        timestamp: notification.createdAt || new Date().toISOString()
+    };
+}
+
+function formatDriverBookingAlert(notification) {
+    const metadata = (notification && typeof notification.metadata === 'object' && notification.metadata) || {};
+    const pickup = String(metadata.pickup || metadata.pickupLocation || '').trim();
+    const drop = String(metadata.drop || metadata.dropLocation || '').trim();
+
+    if (pickup && drop) {
+        return `New booking: ${pickup} -> ${drop}`;
+    }
+
+    return notification.message || `New booking ${notification.bookingId || ''}`.trim();
+}
+
+async function fetchDriverUnreadNotifications() {
+    const token = String(getBackendAccessToken() || '').trim();
+    if (!token) return [];
+
+    const response = await fetch(`${getBackendApiBase()}/api/notifications?limit=25&unreadOnly=true`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        credentials: 'include'
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json().catch(() => ({}));
+    return Array.isArray(data.items) ? data.items : [];
+}
+
+async function pollDriverBackendBookingAlerts({ seedOnly = false } = {}) {
+    try {
+        const items = await fetchDriverUnreadNotifications();
+        if (!items.length) return;
+
+        const freshBookingItems = [];
+        items.forEach((item) => {
+            const id = String(item && item._id ? item._id : '');
+            if (!id) return;
+
+            const alreadySeen = driverSeenNotificationIds.has(id);
+            driverSeenNotificationIds.add(id);
+
+            if (seedOnly || alreadySeen) return;
+
+            const type = String(item.type || '').toLowerCase();
+            if (type === 'booking_created' || type === 'new_booking') {
+                freshBookingItems.push(item);
+            }
+        });
+
+        if (!freshBookingItems.length) return;
+
+        const latest = freshBookingItems[0];
+        const booking = buildDriverBookingFromNotification(latest);
+        showToast(formatDriverBookingAlert(latest), 'info');
+        playDriverBookingAlarm();
+
+        if (driverState.isOnline && !driverState.currentRide) {
+            showRideRequest(booking);
+        }
+    } catch (error) {
+        // Keep polling silently; transient failures should not break portal flow.
+    }
+}
+
+function startDriverBackendBookingAlerts() {
+    if (driverBackendBookingAlertTimer) {
+        clearInterval(driverBackendBookingAlertTimer);
+    }
+
+    const unlockAudio = () => {
+        const ctx = ensureDriverAlarmContext();
+        if (ctx && ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+        }
+    };
+
+    document.addEventListener('pointerdown', unlockAudio, { passive: true });
+    document.addEventListener('keydown', unlockAudio);
+
+    pollDriverBackendBookingAlerts({ seedOnly: true });
+    driverBackendBookingAlertTimer = setInterval(() => {
+        pollDriverBackendBookingAlerts({ seedOnly: false });
+    }, DRIVER_BACKEND_BOOKING_ALERT_POLL_MS);
+}
 // Check for Ride Requests (Demo)
 function checkForRideRequests() {
     if (!driverState.isOnline) return;
+
+    // If secure backend session exists, live ride requests come from backend notifications.
+    if (String(getBackendAccessToken() || '').trim()) {
+        return;
+    }
     
     // Simulate ride request after random delay (demo)
     const delay = Math.random() * 30000 + 10000; // 10-40 seconds

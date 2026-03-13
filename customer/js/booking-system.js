@@ -197,10 +197,95 @@ async function estimateDistanceForBooking() {
 
     calculateFarePreview();
 }
+
+function getBackendApiBase() {
+    const fromWindow = String(window.GOINDIARIDE_API_BASE || '').trim();
+    const fromStorage = String(localStorage.getItem('goindiaride_api_base') || '').trim();
+    const base = fromWindow || fromStorage;
+
+    if (base) return base.replace(/\/$/, '');
+
+    const host = String(window.location.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+
+    return String(window.location.origin || '').replace(/\/$/, '');
+}
+
+function getBackendAccessToken() {
+    return (
+        localStorage.getItem('accessToken') ||
+        localStorage.getItem('authToken') ||
+        localStorage.getItem('token') ||
+        ''
+    );
+}
+
+async function createSecureBackendBooking({
+    pickup,
+    drop,
+    vehicleType,
+    bookingMode,
+    bookingModeDuration,
+    distanceKm,
+    referralCode
+}) {
+    const token = String(getBackendAccessToken() || '').trim();
+    if (!token) {
+        throw new Error('Secure session missing. Please login again.');
+    }
+
+    const apiBase = getBackendApiBase();
+    const normalizedDistance = Math.max(1, Number(distanceKm) || 5);
+
+    const quoteResponse = await fetch(`${apiBase}/api/bookings/quote?distanceKm=${encodeURIComponent(normalizedDistance)}`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        credentials: 'include'
+    });
+
+    const quoteData = await quoteResponse.json().catch(() => ({}));
+    if (!quoteResponse.ok) {
+        throw new Error(quoteData.message || 'Booking quote service unavailable');
+    }
+
+    const bookingPayload = {
+        cardToken: `secure_card_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        distanceKm: quoteData.distanceKm,
+        amount: quoteData.amount,
+        fareHash: quoteData.fareHash,
+        referralCode: String(referralCode || '').trim(),
+        pickup,
+        drop,
+        vehicleType,
+        bookingMode,
+        bookingModeDuration
+    };
+
+    const bookingResponse = await fetch(`${apiBase}/api/bookings`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(bookingPayload)
+    });
+
+    const bookingData = await bookingResponse.json().catch(() => ({}));
+    if (!bookingResponse.ok) {
+        throw new Error(bookingData.message || 'Booking request failed');
+    }
+
+    return bookingData;
+}
 /**
  * Handle booking submission
  */
-function handleBookingSubmit() {
+async function handleBookingSubmit() {
     const pickup = document.getElementById('pickupLocation').value;
     const drop = document.getElementById('dropLocation').value;
     const vehicleType = document.getElementById('vehicleType').value;
@@ -217,11 +302,20 @@ function handleBookingSubmit() {
     const isFirstBooking = localStorage.getItem('goindiaride_user_type') === 'new';
     
     CustomerPortal.showLoading();
-    
-    // Simulate booking process
-    setTimeout(() => {
+
+    try {
+        const bookingResponse = await createSecureBackendBooking({
+            pickup,
+            drop,
+            vehicleType,
+            bookingMode,
+            bookingModeDuration,
+            distanceKm: lastEstimatedDistanceKm,
+            referralCode: ''
+        });
+
         const booking = {
-            id: 'BOOK' + Date.now(),
+            id: bookingResponse.bookingId || ('BOOK' + Date.now()),
             pickup,
             drop,
             vehicleType,
@@ -247,55 +341,22 @@ function handleBookingSubmit() {
         
         // Save booking
         saveBooking(booking);
-
-        // Broadcast booking lifecycle to all portals (customer/driver/admin)
-        if (window.PortalConnector) {
-            const notifyAllPortals = (payload) => {
-                if (typeof PortalConnector.broadcastToAll === 'function') {
-                    PortalConnector.broadcastToAll(payload);
-                    return;
-                }
-
-                PortalConnector.createNotification({
-                    ...payload,
-                    targetPortals: ['customer', 'driver', 'admin']
-                });
-            };
-
-            notifyAllPortals({
-                type: 'new_booking',
-                title: 'New Ride Booking',
-                message: `Customer booked ride: ${pickup} → ${drop}`,
-                booking,
-                sourcePortal: 'customer',
-                metadata: {
-                    stage: 'created',
-                    bookingId: booking.id
-                }
-            });
-
-            notifyAllPortals({
-                type: 'booking_confirmed',
-                title: 'Booking Confirmed',
-                message: `Booking ${booking.id} confirmed and driver matching started`,
-                booking,
-                sourcePortal: 'customer',
-                metadata: {
-                    stage: 'confirmed',
-                    bookingId: booking.id
-                }
-            });
-        }
         
         CustomerPortal.hideLoading();
         CustomerPortal.closeModal('bookingModal');
         
         // Show success message
+        const notifiedAdminCount = Number(bookingResponse?.notifications?.admin?.count || 0);
+        const notifiedDriverCount = Number(bookingResponse?.notifications?.driver?.count || 0);
+        const notifiedText = (notifiedAdminCount + notifiedDriverCount) > 0
+            ? ` Admin notified (${notifiedAdminCount}), drivers notified (${notifiedDriverCount}).`
+            : '';
+
         const message = isFirstBooking 
             ? `Booking confirmed! First ride discount applied: ₹${(booking.fare - booking.finalFare).toFixed(0)} saved!`
             : 'Booking confirmed! Searching for driver...';
         
-        CustomerPortal.showToast(message, 'success');
+        CustomerPortal.showToast(`${message}${notifiedText}`, 'success');
         
         // Open live trip modal
         setTimeout(() => {
@@ -304,7 +365,10 @@ function handleBookingSubmit() {
         
         // Update ride history
         addToRideHistory(booking);
-    }, 2000);
+    } catch (error) {
+        CustomerPortal.hideLoading();
+        CustomerPortal.showToast(error.message || 'Could not create secure booking', 'error');
+    }
 }
 
 /**

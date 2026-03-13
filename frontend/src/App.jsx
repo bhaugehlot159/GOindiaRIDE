@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
 
@@ -597,6 +597,9 @@ function Dashboard() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [notificationError, setNotificationError] = useState("");
+  const seenNotificationIdsRef = useRef(new Set());
+  const bookingAlarmAudioContextRef = useRef(null);
+  const bookingAlarmLastAtRef = useRef(0);
   const [markingAllRead, setMarkingAllRead] = useState(false);
   const [bookingActionState, setBookingActionState] = useState({
     loading: false,
@@ -715,6 +718,63 @@ function Dashboard() {
 
   const portalLabel = role === "admin" ? "Admin" : accountType === "driver" ? "Driver" : "Customer";
   const isAdminPortal = role === "admin" || accountType === "admin";
+  const canReceiveBookingAlarm = isAdminPortal || accountType === "driver";
+
+  const ensureBookingAlarmAudioContext = useCallback(() => {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+
+    if (!bookingAlarmAudioContextRef.current) {
+      bookingAlarmAudioContextRef.current = new AudioCtx();
+    }
+
+    return bookingAlarmAudioContextRef.current;
+  }, []);
+
+  const playBookingAlarm = useCallback(() => {
+    const nowMs = Date.now();
+    if (nowMs - bookingAlarmLastAtRef.current < 2500) return;
+    bookingAlarmLastAtRef.current = nowMs;
+
+    const ctx = ensureBookingAlarmAudioContext();
+    if (!ctx) return;
+
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
+    const start = ctx.currentTime + 0.02;
+    [0, 0.2, 0.4].forEach((offset) => {
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(910, start + offset);
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(0.18, start + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.16);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(start + offset);
+      oscillator.stop(start + offset + 0.18);
+    });
+  }, [ensureBookingAlarmAudioContext]);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      const ctx = ensureBookingAlarmAudioContext();
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio);
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+  }, [ensureBookingAlarmAudioContext]);
 
   const loadNotifications = useCallback(async ({ silent = false } = {}) => {
     if (!token) return;
@@ -736,9 +796,35 @@ function Dashboard() {
         throw new Error(data.message || "Unable to load notifications");
       }
 
-      setNotifications(Array.isArray(data.items) ? data.items : []);
+      const items = Array.isArray(data.items) ? data.items : [];
+      setNotifications(items);
       setUnreadCount(Number(data.unreadCount || 0));
       setNotificationError("");
+
+      if (canReceiveBookingAlarm) {
+        const freshBookingAlert = items.find((item) => {
+          const id = String(item?._id || "");
+          if (!id) return false;
+
+          const wasSeen = seenNotificationIdsRef.current.has(id);
+          seenNotificationIdsRef.current.add(id);
+          if (wasSeen) return false;
+
+          const type = String(item?.type || "").toLowerCase();
+          return !item?.isRead && (type === "booking_created" || type === "new_booking");
+        });
+
+        if (freshBookingAlert) {
+          playBookingAlarm();
+        }
+      } else {
+        items.forEach((item) => {
+          const id = String(item?._id || "");
+          if (id) {
+            seenNotificationIdsRef.current.add(id);
+          }
+        });
+      }
     } catch (error) {
       if (!silent) {
         setNotificationError(error.message || "Notifications unavailable");
@@ -892,7 +978,7 @@ function Dashboard() {
         error: prev.error || error.message || "Unable to load commission payment modes",
       }));
     }
-  }, [token]);
+  }, [token, canReceiveBookingAlarm, playBookingAlarm]);
 
   const loadDriverCommissionMine = useCallback(async () => {
     if (!token || (accountType !== "driver" && !isAdminPortal)) return;

@@ -1,20 +1,55 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
-function buildMessage(action, bookingId, amount, distanceKm) {
+function sanitizeText(value, maxLen = 140) {
+  return String(value || '')
+    .replace(/[<>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen);
+}
+
+function routeLabelFromMetadata(metadata = {}) {
+  const pickup = sanitizeText(metadata.pickup || metadata.pickupLocation, 90);
+  const drop = sanitizeText(metadata.drop || metadata.dropLocation, 90);
+
+  if (!pickup || !drop) return '';
+  return `${pickup} -> ${drop}`;
+}
+
+function buildMessage(action, bookingId, amount, distanceKm, metadata = {}) {
+  const routeLabel = routeLabelFromMetadata(metadata);
+  const distance = Number(distanceKm || 0);
+  const fare = Number(amount || 0);
+  const safeDistance = Number.isFinite(distance) ? distance.toFixed(1) : '0.0';
+  const safeFare = Number.isFinite(fare) ? fare.toFixed(2) : '0.00';
+  const bookingSuffix = routeLabel ? ` (${routeLabel})` : '';
+
   if (action === 'cancelled') {
-    return `Booking ${bookingId} was cancelled by customer.`;
+    return `Booking ${bookingId}${bookingSuffix} was cancelled by customer.`;
   }
 
-  return `Booking ${bookingId} created. Fare INR ${amount}, distance ${distanceKm} km.`;
+  if (action === 'completed') {
+    return `Booking ${bookingId}${bookingSuffix} completed. Fare INR ${safeFare}, distance ${safeDistance} km.`;
+  }
+
+  return `Booking ${bookingId}${bookingSuffix} created. Fare INR ${safeFare}, distance ${safeDistance} km.`;
 }
 
 function buildTitle(audience, action) {
+  if (action === 'created') {
+    return audience === 'driver' ? 'New trip request' : 'New customer booking';
+  }
+
+  if (action === 'completed') {
+    return audience === 'driver' ? 'Ride completed' : 'Booking completed';
+  }
+
   if (action === 'cancelled') {
     return audience === 'driver' ? 'Trip cancelled' : 'Booking cancelled';
   }
 
-  return audience === 'driver' ? 'New trip request' : 'New customer booking';
+  return audience === 'driver' ? 'Booking update' : 'Booking update';
 }
 
 function uniqueIds(users) {
@@ -30,7 +65,7 @@ async function pushAudienceNotifications({
   metadata = {}
 }) {
   const title = buildTitle(audience, action);
-  const message = buildMessage(action, bookingId, amount, distanceKm);
+  const message = buildMessage(action, bookingId, amount, distanceKm, metadata);
 
   const userQuery =
     audience === 'admin'
@@ -74,7 +109,11 @@ async function createBookingPortalNotifications({
   amount,
   distanceKm,
   action,
-  customerId
+  customerId,
+  pickup = '',
+  drop = '',
+  vehicleType = '',
+  currency = 'INR'
 }) {
   const commonPayload = {
     bookingId,
@@ -83,7 +122,11 @@ async function createBookingPortalNotifications({
     action,
     metadata: {
       customerId,
-      source: 'booking_routes'
+      source: 'booking_routes',
+      pickup: sanitizeText(pickup, 120),
+      drop: sanitizeText(drop, 120),
+      vehicleType: sanitizeText(vehicleType, 40),
+      currency: sanitizeText(currency || 'INR', 8).toUpperCase() || 'INR'
     }
   };
 
