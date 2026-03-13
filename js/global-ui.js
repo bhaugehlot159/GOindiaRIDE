@@ -199,8 +199,11 @@
 
             body.goi-global-theme.goi-page-login .login-container,
             body.goi-global-theme.goi-page-signup .signup-container {
-                width: min(1120px, 96vw);
-                border-radius: 24px;
+                width: min(1220px, 96vw);
+                min-height: clamp(640px, 82vh, 940px);
+                height: auto;
+                max-height: calc(100dvh - 28px);
+                border-radius: 28px;
                 overflow: hidden;
                 border: 1px solid rgba(11, 36, 67, 0.16) !important;
                 box-shadow: 0 26px 60px rgba(11, 36, 67, 0.18) !important;
@@ -227,6 +230,8 @@
             body.goi-global-theme.goi-page-login .login-right,
             body.goi-global-theme.goi-page-signup .signup-right {
                 background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%) !important;
+                justify-content: flex-start !important;
+                overflow-y: auto !important;
             }
 
             body.goi-global-theme .goi-section-shell,
@@ -387,6 +392,12 @@
             }
 
             @media (max-width: 992px) {
+                body.goi-global-theme.goi-page-login .login-container,
+                body.goi-global-theme.goi-page-signup .signup-container {
+                    max-height: none;
+                    min-height: auto;
+                }
+
                 #${NAV_DOCK_ID} {
                     right: 8px;
                 }
