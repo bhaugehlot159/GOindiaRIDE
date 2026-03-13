@@ -25,6 +25,8 @@ let driverState = {
     pendingRequest: null
 };
 const DRIVER_BACKEND_BOOKING_ALERT_POLL_MS = 5000;
+const DRIVER_BOOKING_ALARM_PREF_KEY = 'goindiaride_driver_booking_alarm_enabled';
+const DRIVER_BOOKING_ALARM_BTN_ID = 'goiEnableDriverBookingAlarm';
 let driverBackendBookingAlertTimer = null;
 let driverBackendAlarmContext = null;
 let driverBackendAlarmLastAt = 0;
@@ -450,6 +452,59 @@ function getBackendAccessToken() {
     );
 }
 
+function isDriverBookingAlarmEnabled() {
+    try {
+        return localStorage.getItem(DRIVER_BOOKING_ALARM_PREF_KEY) === '1';
+    } catch (error) {
+        return false;
+    }
+}
+
+function setDriverBookingAlarmEnabled(enabled) {
+    try {
+        localStorage.setItem(DRIVER_BOOKING_ALARM_PREF_KEY, enabled ? '1' : '0');
+    } catch (error) {
+        // ignore storage errors
+    }
+}
+
+function renderDriverBookingAlarmButton() {
+    const existing = document.getElementById(DRIVER_BOOKING_ALARM_BTN_ID);
+
+    if (isDriverBookingAlarmEnabled()) {
+        if (existing) existing.remove();
+        return;
+    }
+
+    if (existing) return;
+
+    const btn = document.createElement('button');
+    btn.id = DRIVER_BOOKING_ALARM_BTN_ID;
+    btn.type = 'button';
+    btn.textContent = 'Enable Booking Alarm';
+    btn.style.cssText = [
+        'position:fixed',
+        'right:18px',
+        'bottom:18px',
+        'z-index:12000',
+        'padding:10px 14px',
+        'border:none',
+        'border-radius:999px',
+        'font-weight:700',
+        'cursor:pointer',
+        'background:#0B1F3A',
+        'color:#fff',
+        'box-shadow:0 8px 22px rgba(11,31,58,0.28)'
+    ].join(';');
+
+    btn.addEventListener('click', () => {
+        armDriverBookingAlarm({ force: true, testTone: true });
+        showToast('Booking alarm enabled', 'success');
+    });
+
+    document.body.appendChild(btn);
+}
+
 function ensureDriverAlarmContext() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
@@ -461,6 +516,37 @@ function ensureDriverAlarmContext() {
     return driverBackendAlarmContext;
 }
 
+function armDriverBookingAlarm({ force = false, testTone = false } = {}) {
+    const ctx = ensureDriverAlarmContext();
+    if (!ctx) return false;
+
+    const shouldArm = force || isDriverBookingAlarmEnabled();
+    if (!shouldArm) {
+        renderDriverBookingAlarmButton();
+        return false;
+    }
+
+    const finalize = () => {
+        setDriverBookingAlarmEnabled(true);
+        renderDriverBookingAlarmButton();
+
+        if (testTone) {
+            driverBackendAlarmLastAt = 0;
+            playDriverBookingAlarm();
+        }
+    };
+
+    if (ctx.state === 'suspended') {
+        ctx.resume()
+            .then(finalize)
+            .catch(() => renderDriverBookingAlarmButton());
+    } else {
+        finalize();
+    }
+
+    return true;
+}
+
 function playDriverBookingAlarm() {
     const nowMs = Date.now();
     if (nowMs - driverBackendAlarmLastAt < 2500) return;
@@ -470,7 +556,13 @@ function playDriverBookingAlarm() {
     if (!ctx) return;
 
     if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+        if (!isDriverBookingAlarmEnabled()) {
+            renderDriverBookingAlarmButton();
+            return;
+        }
+
+        ctx.resume().catch(() => renderDriverBookingAlarmButton());
+        if (ctx.state === 'suspended') return;
     }
 
     const start = ctx.currentTime + 0.02;
@@ -576,15 +668,14 @@ function startDriverBackendBookingAlerts() {
     }
 
     const unlockAudio = () => {
-        const ctx = ensureDriverAlarmContext();
-        if (ctx && ctx.state === 'suspended') {
-            ctx.resume().catch(() => {});
-        }
+        armDriverBookingAlarm();
     };
 
     document.addEventListener('pointerdown', unlockAudio, { passive: true });
     document.addEventListener('keydown', unlockAudio);
 
+    renderDriverBookingAlarmButton();
+    armDriverBookingAlarm();
     pollDriverBackendBookingAlerts({ seedOnly: true });
     driverBackendBookingAlertTimer = setInterval(() => {
         pollDriverBackendBookingAlerts({ seedOnly: false });

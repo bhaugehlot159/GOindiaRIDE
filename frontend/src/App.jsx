@@ -591,12 +591,22 @@ function Dashboard() {
   const role = localStorage.getItem("role") || "user";
   const accountType = localStorage.getItem("accountType") || (role === "admin" ? "admin" : "customer");
   const token = localStorage.getItem("token");
+  const isAdminPortal = role === "admin" || accountType === "admin";
+  const canReceiveBookingAlarm = isAdminPortal || accountType === "driver";
+  const bookingAlarmPrefKey = `gir_booking_alarm_enabled_${isAdminPortal ? "admin" : accountType === "driver" ? "driver" : "user"}`;
 
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [notificationError, setNotificationError] = useState("");
+  const [bookingAlarmEnabled, setBookingAlarmEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(bookingAlarmPrefKey) === "1";
+    } catch (error) {
+      return false;
+    }
+  });
   const seenNotificationIdsRef = useRef(new Set());
   const bookingAlarmAudioContextRef = useRef(null);
   const bookingAlarmLastAtRef = useRef(0);
@@ -715,10 +725,7 @@ function Dashboard() {
     "CSP and CORS hardened",
     "Device fingerprinting ready",
   ];
-
   const portalLabel = role === "admin" ? "Admin" : accountType === "driver" ? "Driver" : "Customer";
-  const isAdminPortal = role === "admin" || accountType === "admin";
-  const canReceiveBookingAlarm = isAdminPortal || accountType === "driver";
 
   const ensureBookingAlarmAudioContext = useCallback(() => {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -731,7 +738,50 @@ function Dashboard() {
     return bookingAlarmAudioContextRef.current;
   }, []);
 
+  const persistBookingAlarmEnabled = useCallback(
+    (enabled) => {
+      setBookingAlarmEnabled(enabled);
+      try {
+        localStorage.setItem(bookingAlarmPrefKey, enabled ? "1" : "0");
+      } catch (error) {
+        // ignore storage failures
+      }
+    },
+    [bookingAlarmPrefKey]
+  );
+
+  const armBookingAlarm = useCallback(
+    ({ force = false, testTone = false } = {}) => {
+      if (!canReceiveBookingAlarm) return false;
+
+      const ctx = ensureBookingAlarmAudioContext();
+      if (!ctx) return false;
+
+      const shouldEnable = force || bookingAlarmEnabled;
+      if (!shouldEnable) return false;
+
+      const finalize = () => {
+        persistBookingAlarmEnabled(true);
+        if (testTone) {
+          bookingAlarmLastAtRef.current = 0;
+          playBookingAlarm();
+        }
+      };
+
+      if (ctx.state === "suspended") {
+        ctx.resume().then(finalize).catch(() => {});
+      } else {
+        finalize();
+      }
+
+      return true;
+    },
+    [canReceiveBookingAlarm, ensureBookingAlarmAudioContext, bookingAlarmEnabled, persistBookingAlarmEnabled]
+  );
+
   const playBookingAlarm = useCallback(() => {
+    if (!canReceiveBookingAlarm) return;
+
     const nowMs = Date.now();
     if (nowMs - bookingAlarmLastAtRef.current < 2500) return;
     bookingAlarmLastAtRef.current = nowMs;
@@ -740,7 +790,9 @@ function Dashboard() {
     if (!ctx) return;
 
     if (ctx.state === "suspended") {
+      if (!bookingAlarmEnabled) return;
       ctx.resume().catch(() => {});
+      if (ctx.state === "suspended") return;
     }
 
     const start = ctx.currentTime + 0.02;
@@ -757,14 +809,13 @@ function Dashboard() {
       oscillator.start(start + offset);
       oscillator.stop(start + offset + 0.18);
     });
-  }, [ensureBookingAlarmAudioContext]);
+  }, [canReceiveBookingAlarm, bookingAlarmEnabled, ensureBookingAlarmAudioContext]);
 
   useEffect(() => {
+    if (!canReceiveBookingAlarm) return undefined;
+
     const unlockAudio = () => {
-      const ctx = ensureBookingAlarmAudioContext();
-      if (ctx && ctx.state === "suspended") {
-        ctx.resume().catch(() => {});
-      }
+      armBookingAlarm();
     };
 
     window.addEventListener("pointerdown", unlockAudio, { passive: true });
@@ -774,7 +825,7 @@ function Dashboard() {
       window.removeEventListener("pointerdown", unlockAudio);
       window.removeEventListener("keydown", unlockAudio);
     };
-  }, [ensureBookingAlarmAudioContext]);
+  }, [canReceiveBookingAlarm, armBookingAlarm]);
 
   const loadNotifications = useCallback(async ({ silent = false } = {}) => {
     if (!token) return;
@@ -814,7 +865,7 @@ function Dashboard() {
           return !item?.isRead && (type === "booking_created" || type === "new_booking");
         });
 
-        if (freshBookingAlert) {
+        if (freshBookingAlert && bookingAlarmEnabled) {
           playBookingAlarm();
         }
       } else {
@@ -834,7 +885,7 @@ function Dashboard() {
         setNotificationLoading(false);
       }
     }
-  }, [token]);
+  }, [token, canReceiveBookingAlarm, bookingAlarmEnabled, playBookingAlarm]);
 
   const loadAiSummary = useCallback(async ({ silent = false } = {}) => {
     if (!token) return;
@@ -1641,7 +1692,15 @@ function Dashboard() {
               </div>
             </div>
 
-            <div className="relative self-start">
+            <div className="relative self-start flex items-center gap-2">
+              {canReceiveBookingAlarm && !bookingAlarmEnabled && (
+                <button
+                  onClick={() => armBookingAlarm({ force: true, testTone: true })}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white text-[#0B1F3A] border border-[#0B1F3A]/30 text-xs font-semibold"
+                >
+                  Enable ring
+                </button>
+              )}
               <button
                 onClick={() => setNotificationOpen((prev) => !prev)}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0B1F3A] text-white shadow-md"

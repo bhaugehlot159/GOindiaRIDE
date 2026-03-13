@@ -4,6 +4,8 @@
 const themeToggle = document.getElementById('themeToggle');
 const currentTheme = localStorage.getItem('adminTheme') || 'light';
 const BACKEND_BOOKING_ALERT_POLL_MS = 5000;
+const ADMIN_BOOKING_ALARM_PREF_KEY = 'goindiaride_admin_booking_alarm_enabled';
+const ADMIN_BOOKING_ALARM_BTN_ID = 'goiEnableAdminBookingAlarm';
 let backendBookingAlertTimer = null;
 let backendBookingAlarmContext = null;
 let backendBookingAlarmLastAt = 0;
@@ -270,6 +272,59 @@ function getBackendAccessToken() {
     );
 }
 
+function isAdminBookingAlarmEnabled() {
+    try {
+        return localStorage.getItem(ADMIN_BOOKING_ALARM_PREF_KEY) === '1';
+    } catch (error) {
+        return false;
+    }
+}
+
+function setAdminBookingAlarmEnabled(enabled) {
+    try {
+        localStorage.setItem(ADMIN_BOOKING_ALARM_PREF_KEY, enabled ? '1' : '0');
+    } catch (error) {
+        // ignore storage failures
+    }
+}
+
+function renderAdminBookingAlarmButton() {
+    const existing = document.getElementById(ADMIN_BOOKING_ALARM_BTN_ID);
+
+    if (isAdminBookingAlarmEnabled()) {
+        if (existing) existing.remove();
+        return;
+    }
+
+    if (existing) return;
+
+    const btn = document.createElement('button');
+    btn.id = ADMIN_BOOKING_ALARM_BTN_ID;
+    btn.type = 'button';
+    btn.textContent = 'Enable Booking Alarm';
+    btn.style.cssText = [
+        'position:fixed',
+        'right:18px',
+        'bottom:18px',
+        'z-index:12000',
+        'padding:10px 14px',
+        'border:none',
+        'border-radius:999px',
+        'font-weight:700',
+        'cursor:pointer',
+        'background:#0B1F3A',
+        'color:#fff',
+        'box-shadow:0 8px 22px rgba(11,31,58,0.28)'
+    ].join(';');
+
+    btn.addEventListener('click', () => {
+        armAdminBookingAlarm({ force: true, testTone: true });
+        showToast('Booking alarm enabled', 'success');
+    });
+
+    document.body.appendChild(btn);
+}
+
 function ensureBackendAlarmContext() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
@@ -281,6 +336,37 @@ function ensureBackendAlarmContext() {
     return backendBookingAlarmContext;
 }
 
+function armAdminBookingAlarm({ force = false, testTone = false } = {}) {
+    const ctx = ensureBackendAlarmContext();
+    if (!ctx) return false;
+
+    const shouldArm = force || isAdminBookingAlarmEnabled();
+    if (!shouldArm) {
+        renderAdminBookingAlarmButton();
+        return false;
+    }
+
+    const finalize = () => {
+        setAdminBookingAlarmEnabled(true);
+        renderAdminBookingAlarmButton();
+
+        if (testTone) {
+            backendBookingAlarmLastAt = 0;
+            playBackendBookingAlarm();
+        }
+    };
+
+    if (ctx.state === 'suspended') {
+        ctx.resume()
+            .then(finalize)
+            .catch(() => renderAdminBookingAlarmButton());
+    } else {
+        finalize();
+    }
+
+    return true;
+}
+
 function playBackendBookingAlarm() {
     const nowMs = Date.now();
     if (nowMs - backendBookingAlarmLastAt < 2500) return;
@@ -290,7 +376,13 @@ function playBackendBookingAlarm() {
     if (!ctx) return;
 
     if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
+        if (!isAdminBookingAlarmEnabled()) {
+            renderAdminBookingAlarmButton();
+            return;
+        }
+
+        ctx.resume().catch(() => renderAdminBookingAlarmButton());
+        if (ctx.state === 'suspended') return;
     }
 
     const start = ctx.currentTime + 0.02;
@@ -391,15 +483,14 @@ function startBackendBookingAlerts() {
     }
 
     const unlockAudio = () => {
-        const ctx = ensureBackendAlarmContext();
-        if (ctx && ctx.state === 'suspended') {
-            ctx.resume().catch(() => {});
-        }
+        armAdminBookingAlarm();
     };
 
     document.addEventListener('pointerdown', unlockAudio, { passive: true });
     document.addEventListener('keydown', unlockAudio);
 
+    renderAdminBookingAlarmButton();
+    armAdminBookingAlarm();
     pollBackendBookingAlerts({ seedOnly: true });
     backendBookingAlertTimer = setInterval(() => {
         pollBackendBookingAlerts({ seedOnly: false });
