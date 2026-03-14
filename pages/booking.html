@@ -870,6 +870,329 @@
             }
         }
 
+        /* Professional compact booking layer (additive, no feature removal) */
+        body.booking-page.professional-booking {
+            --pro-navy: #0b2748;
+            --pro-teal: #157f9f;
+            --pro-gold: #f3b24b;
+            --pro-soft: #f5f9ff;
+        }
+
+        body.booking-page.professional-booking .container {
+            max-width: 1560px;
+        }
+
+        body.booking-page.professional-booking .header {
+            background: linear-gradient(120deg, #fff3dc 0%, #ffffff 52%, #e3f5fb 100%);
+            border: 1px solid rgba(11, 39, 72, 0.12);
+            border-radius: 18px;
+        }
+
+        body.booking-page.professional-booking .booking-grid {
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        body.booking-page.professional-booking .booking-form-section,
+        body.booking-page.professional-booking .fare-card,
+        body.booking-page.professional-booking .map-container {
+            border: 1px solid rgba(11, 39, 72, 0.12);
+            box-shadow: 0 10px 30px rgba(11, 39, 72, 0.12);
+        }
+
+        body.booking-page.professional-booking .booking-form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        body.booking-page.professional-booking #bookingForm {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .booking-progress-card {
+            background: #ffffff;
+            border: 1px solid rgba(11, 39, 72, 0.14);
+            border-radius: 14px;
+            padding: 0.95rem 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 22px rgba(11, 39, 72, 0.08);
+        }
+
+        .booking-progress-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-bottom: 0.55rem;
+            color: #123b64;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .booking-progress-track {
+            width: 100%;
+            height: 9px;
+            border-radius: 999px;
+            background: #e9f1ff;
+            overflow: hidden;
+        }
+
+        .booking-progress-fill {
+            display: block;
+            height: 100%;
+            width: 8%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #12719a, #0d4b79);
+            transition: width 0.25s ease;
+        }
+
+        .section-toggle-btn {
+            width: 100%;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            text-align: left;
+            padding: 0.25rem 0;
+            color: #0d2f54;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .section-toggle-btn i {
+            font-size: 0.82rem;
+            color: #4f6b86;
+            transition: transform 0.2s ease;
+        }
+
+        .form-section.pro-collapsible.is-collapsed .section-toggle-btn i {
+            transform: rotate(-90deg);
+        }
+
+        .form-section-body {
+            margin-top: 0.85rem;
+        }
+
+        .form-section.pro-collapsible.is-collapsed .form-section-body {
+            display: none;
+        }
+
+        body.booking-page.professional-booking .ride-types {
+            gap: 0.85rem;
+        }
+
+        body.booking-page.professional-booking .ride-type-label {
+            min-height: 142px;
+            justify-content: center;
+            border: 1px solid #d4e0f5;
+            border-radius: 14px;
+            background: linear-gradient(165deg, #ffffff 0%, #f9fbff 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        body.booking-page.professional-booking .ride-type-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 0;
+            color: #0f3157;
+            background: linear-gradient(140deg, #fff0d8 0%, #ebf5ff 100%);
+            border: 1px solid rgba(11, 39, 72, 0.15);
+            position: relative;
+        }
+
+        body.booking-page.professional-booking .ride-type-name {
+            font-size: 1rem;
+        }
+
+        body.booking-page.professional-booking .ride-type-meta {
+            font-size: 0.76rem;
+            color: #5d738c;
+            font-weight: 600;
+        }
+
+        body.booking-page.professional-booking label[for="rideEconomy"] .ride-type-icon::before,
+        body.booking-page.professional-booking label[for="ridePremium"] .ride-type-icon::before,
+        body.booking-page.professional-booking label[for="rideXL"] .ride-type-icon::before {
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 1.35rem;
+            line-height: 1;
+        }
+
+        body.booking-page.professional-booking label[for="rideEconomy"] .ride-type-icon::before { content: "\f1b9"; }
+        body.booking-page.professional-booking label[for="ridePremium"] .ride-type-icon::before { content: "\f5e4"; }
+        body.booking-page.professional-booking label[for="rideXL"] .ride-type-icon::before { content: "\f207"; }
+
+        body.booking-page.professional-booking .ride-type-option:checked + .ride-type-label {
+            border-color: #0f4e7e;
+            background: linear-gradient(145deg, #edf7ff 0%, #ffffff 100%);
+            box-shadow: 0 10px 24px rgba(15, 78, 126, 0.2);
+        }
+
+        .trip-flow-pills {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.55rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .trip-flow-pill {
+            border: 1px solid #cfdcf0;
+            border-radius: 999px;
+            background: #f7faff;
+            color: #214266;
+            padding: 0.5rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .trip-flow-pill.is-active {
+            background: linear-gradient(130deg, #0d4674 0%, #1980a5 100%);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .journey-mode-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.95rem;
+        }
+
+        .journey-mode-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            border: 1px solid #d4dff0;
+            border-radius: 999px;
+            background: #fff;
+            padding: 0.45rem 0.7rem;
+            font-size: 0.82rem;
+            color: #304f70;
+        }
+
+        .journey-mode-chip input {
+            width: auto;
+            margin: 0;
+        }
+
+        .partner-preferences {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.55rem;
+            margin-top: 0.35rem;
+        }
+
+        .preference-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #325173;
+            border: 1px solid #d5e0f0;
+            border-radius: 999px;
+            padding: 0.45rem 0.55rem;
+            background: #f8fbff;
+        }
+
+        .preference-chip input {
+            width: auto;
+            margin-right: 0.35rem;
+        }
+
+        .booking-context-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .context-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            border-radius: 999px;
+            padding: 0.34rem 0.66rem;
+            background: #ecf6ff;
+            color: #1d4f7c;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid #cfe4f8;
+        }
+
+        .market-highlights {
+            background: #fff;
+            border: 1px solid rgba(11, 39, 72, 0.12);
+            border-radius: 14px;
+            padding: 1rem;
+        }
+
+        .market-highlights h4 {
+            color: #0f3157;
+            margin-bottom: 0.65rem;
+        }
+
+        .market-highlights ul {
+            list-style: none;
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .market-highlights li {
+            font-size: 0.87rem;
+            color: #345474;
+            display: flex;
+            gap: 0.45rem;
+            align-items: flex-start;
+        }
+
+        .market-highlights li i {
+            color: #0f8d59;
+            margin-top: 0.15rem;
+        }
+
+        @media (min-width: 1040px) {
+            body.booking-page.professional-booking .booking-grid {
+                min-height: calc(100vh - 248px);
+                max-height: calc(100vh - 210px);
+            }
+
+            body.booking-page.professional-booking .booking-form-section,
+            body.booking-page.professional-booking .summary-section {
+                max-height: calc(100vh - 232px);
+                overflow-y: auto;
+                padding-right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 940px) {
+            .trip-flow-pills,
+            .partner-preferences {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .trip-flow-pills,
+            .partner-preferences,
+            .ride-types {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* ========================================
            AUTOCOMPLETE LOCATION SUGGESTIONS
            ======================================== */
@@ -970,7 +1293,7 @@
 <link rel="stylesheet" href="../fit-screen.css?v=20260314-booking1">
     <script defer src="../js/non-home-fit.js?v=20260314-booking2"></script>
 </head>
-<body class="booking-page fit-screen-off" data-fit-screen="off">
+<body class="booking-page fit-screen-off professional-booking" data-fit-screen="off">
     <div class="container">
         <!-- Quick Navigation -->
         <div class="booking-top-actions" data-goi-nav-static="1">
@@ -1002,6 +1325,16 @@
         <div class="success-message" id="successMessage">
             <i class="fas fa-check-circle"></i>
             <span id="successText"></span>
+        </div>
+
+        <div class="booking-progress-card" id="bookingProgressCard">
+            <div class="booking-progress-head">
+                <span><i class="fas fa-list-check"></i> Booking Readiness</span>
+                <span id="bookingProgressText">8% complete</span>
+            </div>
+            <div class="booking-progress-track">
+                <span class="booking-progress-fill" id="bookingProgressFill"></span>
+            </div>
         </div>
 
         <!-- Main Grid -->
@@ -1073,6 +1406,19 @@
                             <span class="feature-pill"><i class="fas fa-globe"></i> International Ready</span>
                         </div>
 
+                        <div class="trip-flow-pills" id="tripFlowPills">
+                            <button type="button" class="trip-flow-pill is-active" data-flow="airport">Airport Rides</button>
+                            <button type="button" class="trip-flow-pill" data-flow="outstation">Outstation</button>
+                            <button type="button" class="trip-flow-pill" data-flow="day_trips">Day Trips</button>
+                        </div>
+                        <input type="hidden" id="tripFlow" value="airport">
+
+                        <div class="journey-mode-row">
+                            <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="one_way" checked> One Way</label>
+                            <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="round_trip"> Round Trip</label>
+                            <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="multi_city"> Multi City</label>
+                        </div>
+
                         <div class="inline-grid-two">
                             <div class="form-group">
                                 <label for="tripPlan">Trip Category *</label>
@@ -1122,6 +1468,22 @@
                                 <input type="time" id="returnTime">
                             </div>
                         </div>
+
+                        <div class="inline-grid-two" style="margin-top: 0.8rem;">
+                            <div class="form-group">
+                                <label for="tripServiceType">Service Type *</label>
+                                <select id="tripServiceType">
+                                    <option value="railway_station_transfer">Railway Station Transfer</option>
+                                    <option value="airport_transfer" selected>Airport Transfer</option>
+                                    <option value="city_local_trip">City Local Trip</option>
+                                    <option value="round_trip_service">Round Trip</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="budgetAmount">Budget (Vendor Amount)</label>
+                                <input type="number" id="budgetAmount" min="0" step="50" placeholder="Enter amount or better">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Ride Type Section -->
@@ -1135,6 +1497,7 @@
                                     <div class="ride-type-icon">🚗</div>
                                     <div class="ride-type-name">Economy</div>
                                     <div class="ride-type-price">₹10/km</div>
+                                    <div class="ride-type-meta">City friendly • Best budget</div>
                                 </label>
                             </div>
 
@@ -1144,6 +1507,7 @@
                                     <div class="ride-type-icon">🚙</div>
                                     <div class="ride-type-name">Premium</div>
                                     <div class="ride-type-price">₹15/km</div>
+                                    <div class="ride-type-meta">SUV comfort • Long drives</div>
                                 </label>
                             </div>
 
@@ -1153,7 +1517,45 @@
                                     <div class="ride-type-icon">🚌</div>
                                     <div class="ride-type-name">XL</div>
                                     <div class="ride-type-price">₹20/km</div>
+                                    <div class="ride-type-meta">Group rides • Extra seats</div>
                                 </label>
+                            </div>
+                        </div>
+
+                        <div class="inline-grid-two" style="margin-top: 0.9rem;">
+                            <div class="form-group">
+                                <label for="vehicleModel">Vehicle Model / Segment *</label>
+                                <select id="vehicleModel">
+                                    <option value="hatchback_car">Hatchback Car</option>
+                                    <option value="ecco_car">Ecco Car</option>
+                                    <option value="sedan_car">Sedan Car</option>
+                                    <option value="suv_ertiga_car">SUV Ertiga Car</option>
+                                    <option value="toyota_rumion">Toyota Rumion</option>
+                                    <option value="kia_carens">Kia Carens</option>
+                                    <option value="suv_innova_car">SUV Innova Car</option>
+                                    <option value="suv_crysta_car">SUV Crysta Car</option>
+                                    <option value="toyota_hycross">Toyota Hycross</option>
+                                    <option value="tempo_traveller">Tempo Traveller</option>
+                                    <option value="force_urbania">Force Urbania</option>
+                                    <option value="force_trax_cruiser">Force Trax Cruiser</option>
+                                    <option value="small_coach">Small Coach</option>
+                                    <option value="luxury_coach">Luxury Coach</option>
+                                    <option value="premium_car">Premium Car</option>
+                                    <option value="parcel_only">Parcel</option>
+                                    <option value="driver_only">Driver</option>
+                                    <option value="ambulance">Ambulance</option>
+                                    <option value="loading_auto_truck">Loading Auto & Truck</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="preferredDriverType">Driver Preference</label>
+                                <select id="preferredDriverType">
+                                    <option value="auto_assign" selected>Auto Assign Best Driver</option>
+                                    <option value="verified_only">Verified Driver Only</option>
+                                    <option value="top_rated">Top Rated Driver</option>
+                                    <option value="nearby_fastest">Nearest Available Driver</option>
+                                    <option value="female_preferred">Woman Driver Preferred</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -1181,6 +1583,15 @@
                                 <option value="medium">Medium (2-4 bags)</option>
                                 <option value="large">Large (4+ bags)</option>
                             </select>
+                        </div>
+
+                        <div class="partner-preferences">
+                            <label class="preference-chip"><input type="checkbox" id="cngPreferred"> CNG Preferred</label>
+                            <label class="preference-chip"><input type="checkbox" id="b2bTrip"> B2B</label>
+                            <label class="preference-chip"><input type="checkbox" id="otpRequired"> OTP Required</label>
+                            <label class="preference-chip"><input type="checkbox" id="driverAppRequired"> Driver App Required</label>
+                            <label class="preference-chip"><input type="checkbox" id="cngAllowed"> CNG Allowed</label>
+                            <label class="preference-chip"><input type="checkbox" id="priorityDispatch"> Priority Dispatch</label>
                         </div>
                     </div>
 
@@ -1284,6 +1695,7 @@
                         <i class="fas fa-receipt"></i>
                         Fare Estimate
                     </div>
+                    <div class="booking-context-chips" id="bookingContextChips"></div>
 
                     <div class="fare-item">
                         <span class="label">Base Fare</span>
@@ -1399,6 +1811,16 @@
                     <i class="fas fa-map"></i>
                     <p>Route Map</p>
                     <small style="opacity: 0.7;">Enter location to see route</small>
+                </div>
+
+                <div class="market-highlights">
+                    <h4><i class="fas fa-star"></i> Service Highlights</h4>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Flexible hourly packages and city ride plans.</li>
+                        <li><i class="fas fa-check-circle"></i> Wide vehicle selection from hatchback to coach.</li>
+                        <li><i class="fas fa-check-circle"></i> Transparent pricing with upfront fare estimate.</li>
+                        <li><i class="fas fa-check-circle"></i> Chauffeur comfort with airport and outstation readiness.</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -1679,6 +2101,183 @@
             return Math.max(0, Math.min(discount, grossTotal));
         }
 
+        function setSectionExpanded(section, expanded) {
+            if (!section) return;
+            section.classList.toggle('is-collapsed', !expanded);
+            const trigger = section.querySelector(':scope > .section-toggle-btn');
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            }
+        }
+
+        function initFormAccordion() {
+            const sections = Array.from(document.querySelectorAll('.booking-form-section .form-section'));
+            sections.forEach((section, index) => {
+                if (section.dataset.proAccordionInit === '1') return;
+
+                const heading = section.querySelector(':scope > h3');
+                if (!heading) return;
+
+                const body = document.createElement('div');
+                body.className = 'form-section-body';
+
+                const children = Array.from(section.children);
+                let move = false;
+                children.forEach((node) => {
+                    if (node === heading) {
+                        move = true;
+                        return;
+                    }
+                    if (move) {
+                        body.appendChild(node);
+                    }
+                });
+
+                const trigger = document.createElement('button');
+                trigger.type = 'button';
+                trigger.className = 'section-toggle-btn';
+                trigger.innerHTML = `<span>${heading.innerHTML}</span><i class="fas fa-chevron-down"></i>`;
+
+                section.classList.add('pro-collapsible');
+                section.insertBefore(trigger, section.firstChild);
+                section.appendChild(body);
+                heading.remove();
+
+                const shouldOpen = index < 4;
+                setSectionExpanded(section, shouldOpen);
+
+                trigger.addEventListener('click', () => {
+                    const collapsed = section.classList.contains('is-collapsed');
+                    setSectionExpanded(section, collapsed);
+                });
+
+                section.dataset.proAccordionInit = '1';
+            });
+
+            const form = document.getElementById('bookingForm');
+            if (form && !form.dataset.proFocusBound) {
+                form.addEventListener('focusin', (event) => {
+                    const hostSection = event.target.closest('.form-section.pro-collapsible');
+                    if (hostSection && hostSection.classList.contains('is-collapsed')) {
+                        setSectionExpanded(hostSection, true);
+                    }
+                });
+                form.dataset.proFocusBound = '1';
+            }
+        }
+
+        function initTripFlowControls() {
+            const pillHost = document.getElementById('tripFlowPills');
+            const hiddenNode = document.getElementById('tripFlow');
+            if (!pillHost || !hiddenNode || pillHost.dataset.bound === '1') return;
+
+            pillHost.addEventListener('click', (event) => {
+                const target = event.target.closest('.trip-flow-pill');
+                if (!target) return;
+
+                pillHost.querySelectorAll('.trip-flow-pill').forEach((pill) => {
+                    pill.classList.toggle('is-active', pill === target);
+                });
+
+                hiddenNode.value = target.dataset.flow || 'airport';
+                updateBookingExperience();
+            });
+
+            pillHost.dataset.bound = '1';
+        }
+
+        function updateFormProgress() {
+            const trackers = [
+                () => String(document.getElementById('pickup')?.value || '').trim().length > 2,
+                () => String(document.getElementById('dropoff')?.value || '').trim().length > 2,
+                () => Boolean(document.getElementById('rideDate')?.value),
+                () => Boolean(document.getElementById('rideTime')?.value),
+                () => Boolean(document.querySelector('input[name=\"rideType\"]:checked')),
+                () => Boolean(document.getElementById('vehicleModel')?.value),
+                () => Boolean(document.getElementById('tripPlan')?.value),
+                () => Boolean(document.getElementById('paymentMethod')?.value),
+                () => Boolean(document.getElementById('passengers')?.value),
+                () => Boolean(document.getElementById('luggage')?.value)
+            ];
+
+            const completed = trackers.reduce((acc, test) => acc + (test() ? 1 : 0), 0);
+            const percent = Math.max(8, Math.round((completed / trackers.length) * 100));
+
+            const fillNode = document.getElementById('bookingProgressFill');
+            const textNode = document.getElementById('bookingProgressText');
+            if (fillNode) fillNode.style.width = `${percent}%`;
+            if (textNode) textNode.textContent = `${percent}% complete`;
+        }
+
+        function updateBookingExperience() {
+            const chipsNode = document.getElementById('bookingContextChips');
+            if (chipsNode) {
+                const activeFlow = String(document.getElementById('tripFlow')?.value || 'airport')
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, (char) => char.toUpperCase());
+                const journeyMode = String(document.querySelector('input[name=\"journeyMode\"]:checked')?.value || 'one_way')
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, (char) => char.toUpperCase());
+                const modelNode = document.getElementById('vehicleModel');
+                const selectedModel = modelNode ? modelNode.options[modelNode.selectedIndex]?.text : '';
+                const budget = Number.parseFloat(document.getElementById('budgetAmount')?.value || 0);
+
+                const items = [
+                    `<span class=\"context-chip\"><i class=\"fas fa-route\"></i> ${activeFlow}</span>`,
+                    `<span class=\"context-chip\"><i class=\"fas fa-map-signs\"></i> ${journeyMode}</span>`
+                ];
+
+                if (selectedModel) {
+                    items.push(`<span class=\"context-chip\"><i class=\"fas fa-car-side\"></i> ${selectedModel}</span>`);
+                }
+
+                if (budget > 0) {
+                    items.push(`<span class=\"context-chip\"><i class=\"fas fa-wallet\"></i> Budget ${formatCurrency(budget)}</span>`);
+                }
+
+                chipsNode.innerHTML = items.join('');
+            }
+
+            updateFormProgress();
+        }
+
+        function bindProfessionalInputs() {
+            const watchIds = [
+                'pickup', 'dropoff', 'rideDate', 'rideTime', 'returnDate', 'returnTime',
+                'tripPlan', 'paymentMethod', 'tripServiceType', 'budgetAmount',
+                'vehicleModel', 'preferredDriverType', 'passengers', 'luggage',
+                'isReturnTrip', 'promoCode'
+            ];
+
+            watchIds.forEach((id) => {
+                const node = document.getElementById(id);
+                if (!node || node.dataset.proBound === '1') return;
+
+                const eventName = (node.tagName === 'INPUT' && String(node.type).toLowerCase() === 'text') || node.tagName === 'TEXTAREA'
+                    ? 'input'
+                    : 'change';
+
+                node.addEventListener(eventName, updateBookingExperience);
+                if (eventName !== 'change') {
+                    node.addEventListener('change', updateBookingExperience);
+                }
+                node.dataset.proBound = '1';
+            });
+
+            document.querySelectorAll('input[name="rideType"], input[name="journeyMode"]').forEach((node) => {
+                if (node.dataset.proBound === '1') return;
+                node.addEventListener('change', updateBookingExperience);
+                node.dataset.proBound = '1';
+            });
+        }
+
+        function initProfessionalBookingUI() {
+            initFormAccordion();
+            initTripFlowControls();
+            bindProfessionalInputs();
+            updateBookingExperience();
+        }
+
         window.addEventListener('load', function() {
             currentUser = checkAuth();
             if (!currentUser) return;
@@ -1716,6 +2315,7 @@
 
             updateFare();
             updateDistanceEstimate();
+            initProfessionalBookingUI();
         });
 
         // ============================================
@@ -1818,6 +2418,7 @@
             document.getElementById('taxesFare').textContent = formatCurrency(taxesFare);
             document.getElementById('promoDiscount').textContent = `-${formatCurrency(promoDiscount)}`;
             document.getElementById('totalFare').textContent = formatCurrency(totalFare);
+            updateBookingExperience();
 
             return totalFare;
         }
