@@ -94,26 +94,31 @@
             background: rgba(255,255,255,0.3);
         }
 
-        .dashboard-utility-nav .logout-btn {
+        body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn {
             min-height: 42px;
             padding: 0.72rem 1rem;
             border-radius: 999px;
-            border: 1px solid rgba(12, 42, 74, 0.12);
-            background: rgba(255, 255, 255, 0.92);
-            color: #14385e;
+            border: 1px solid rgba(12, 42, 74, 0.12) !important;
+            background: rgba(255, 255, 255, 0.92) !important;
+            color: #14385e !important;
             font-weight: 700;
             box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
         }
 
-        .dashboard-utility-nav .logout-btn:hover {
-            background: #ffffff;
+        body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn:hover {
+            background: #ffffff !important;
+            color: #102c50 !important;
             box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14);
         }
 
-        .dashboard-utility-nav .logout-btn.home-btn {
-            background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%);
-            color: #ffffff;
-            border-color: transparent;
+        body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn.home-btn {
+            background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+        }
+
+        body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn i {
+            color: inherit !important;
         }
 
         /* Container */
@@ -2779,7 +2784,7 @@ Thank you for riding with us! 🚗
         })();
     </script>
 
-    <script src="../js/global-ui.js?v=20260314-nav6"></script>
+    <script src="../js/global-ui.js?v=20260314-nav7"></script>
 </body>
 </html>
 
