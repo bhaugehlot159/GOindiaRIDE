@@ -220,6 +220,93 @@
             width: auto;
         }
 
+        .feature-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.38rem 0.72rem;
+            border-radius: 999px;
+            background: rgba(102, 126, 234, 0.12);
+            color: #3f4db4;
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        .inline-grid-two {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.9rem;
+        }
+
+        .promo-wrap {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        .promo-wrap input {
+            flex: 1;
+        }
+
+        .promo-apply-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            background: linear-gradient(135deg, #0f2f53 0%, #1d6397 100%);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .promo-status {
+            margin-top: 0.5rem;
+            font-size: 0.84rem;
+            font-weight: 700;
+            min-height: 1.2rem;
+        }
+
+        .promo-status.success {
+            color: #1b8a3b;
+        }
+
+        .promo-status.error {
+            color: #c62828;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.9rem;
+            padding: 0.7rem 0.9rem;
+            background: #f6f8ff;
+            border: 1px solid #dde5ff;
+            border-radius: 10px;
+        }
+
+        .toggle-row label {
+            margin: 0;
+        }
+
+        .discount-row .amount {
+            color: #1b8a3b;
+            font-weight: 700;
+        }
+
+        .fare-subnote {
+            color: #5c6f83;
+            font-size: 0.8rem;
+            margin-top: 0.4rem;
+        }
+
         /* Booking Button */
         .booking-btn {
             width: 100%;
@@ -692,6 +779,15 @@
                 grid-template-columns: 1fr;
             }
 
+            .inline-grid-two {
+                grid-template-columns: 1fr;
+            }
+
+            .promo-wrap {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
             .summary-section {
                 order: -1;
             }
@@ -892,6 +988,67 @@
                         </div>
                     </div>
 
+                    <!-- Trip Plan & Payment -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-route"></i> Trip Plan & Payment</h3>
+                        <div class="feature-pills">
+                            <span class="feature-pill"><i class="fas fa-plane-departure"></i> Airport</span>
+                            <span class="feature-pill"><i class="fas fa-road"></i> Outstation</span>
+                            <span class="feature-pill"><i class="fas fa-clock-rotate-left"></i> Rental</span>
+                            <span class="feature-pill"><i class="fas fa-globe"></i> International Ready</span>
+                        </div>
+
+                        <div class="inline-grid-two">
+                            <div class="form-group">
+                                <label for="tripPlan">Trip Category *</label>
+                                <select id="tripPlan" required onchange="updateFare()">
+                                    <option value="city">City Ride</option>
+                                    <option value="airport">Airport Transfer</option>
+                                    <option value="outstation">Outstation Ride</option>
+                                    <option value="rental">Hourly Rental</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="paymentMethod">Payment Method *</label>
+                                <select id="paymentMethod" required onchange="updateFare()">
+                                    <option value="cash">Cash</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="card">Card (India)</option>
+                                    <option value="wallet">Wallet</option>
+                                    <option value="netbanking">Net Banking</option>
+                                    <option value="international_card">International Card</option>
+                                    <option value="paypal">PayPal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="promoCode">Promo / Coupon Code</label>
+                            <div class="promo-wrap">
+                                <input type="text" id="promoCode" placeholder="Try: RIDE50, SAVE10, AIRPORT100, GLOBAL15">
+                                <button type="button" class="promo-apply-btn" onclick="applyPromoCode()">Apply</button>
+                            </div>
+                            <div id="promoStatus" class="promo-status"></div>
+                        </div>
+
+                        <div class="toggle-row">
+                            <label for="isReturnTrip"><strong>Round Trip</strong> (save on return leg)</label>
+                            <input type="checkbox" id="isReturnTrip" onchange="toggleReturnTrip(); updateFare();">
+                        </div>
+
+                        <div id="returnTripFields" class="inline-grid-two" style="margin-top: 0.9rem; display: none;">
+                            <div class="form-group">
+                                <label for="returnDate">Return Date</label>
+                                <input type="date" id="returnDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="returnTime">Return Time</label>
+                                <input type="time" id="returnTime">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Ride Type Section -->
                     <div class="form-section">
                         <h3><i class="fas fa-car"></i> Ride Type *</h3>
@@ -976,6 +1133,52 @@
                         </div>
                     </div>
 
+                    <!-- Route Add-ons -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-map-signs"></i> Route Add-ons</h3>
+
+                        <div class="form-group">
+                            <label for="stop1">Stop 1 (Optional)</label>
+                            <input type="text" id="stop1" placeholder="Add intermediate stop (optional)" oninput="updateFare()">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stop2">Stop 2 (Optional)</label>
+                            <input type="text" id="stop2" placeholder="Add second stop (optional)" oninput="updateFare()">
+                        </div>
+                    </div>
+
+                    <!-- Safety & Accessibility -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-shield-heart"></i> Safety & Accessibility</h3>
+                        <div class="special-requests">
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="womenDriverPref" onchange="updateFare()">
+                                <span>Woman Driver Preference</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="childSeat" onchange="updateFare()">
+                                <span>Child Seat</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="wheelchairAssist" onchange="updateFare()">
+                                <span>Wheelchair Assist</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="petFriendly" onchange="updateFare()">
+                                <span>Pet Friendly</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="liveTripShare" onchange="updateFare()">
+                                <span>Live Trip Sharing</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="maskedCall" onchange="updateFare()">
+                                <span>Masked Calling</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Special Notes -->
                     <div class="form-section">
                         <h3><i class="fas fa-comment"></i> Additional Notes</h3>
@@ -1016,6 +1219,17 @@
                         <span class="label">Distance (<span id="distanceKm">5</span> km)</span>
                         <span class="amount" id="distanceFare">₹50</span>
                     </div>
+                    <p class="fare-subnote">Distance source: <span id="distanceSource">Awaiting route</span></p>
+
+                    <div class="fare-item">
+                        <span class="label">Passenger Surcharge</span>
+                        <span class="amount" id="passengerFare">₹0</span>
+                    </div>
+
+                    <div class="fare-item">
+                        <span class="label">Trip Category Surcharge</span>
+                        <span class="amount" id="tripPlanFare">₹0</span>
+                    </div>
 
                     <div class="fare-item">
                         <span class="label">Luggage Charge</span>
@@ -1028,8 +1242,33 @@
                     </div>
 
                     <div class="fare-item">
+                        <span class="label">Safety & Accessibility</span>
+                        <span class="amount" id="safetyFare">₹0</span>
+                    </div>
+
+                    <div class="fare-item">
+                        <span class="label">Stopover Charge</span>
+                        <span class="amount" id="stopFare">₹0</span>
+                    </div>
+
+                    <div class="fare-item">
+                        <span class="label">Round Trip Adjustment</span>
+                        <span class="amount" id="returnTripFare">₹0</span>
+                    </div>
+
+                    <div class="fare-item">
+                        <span class="label">Payment Processing Fee</span>
+                        <span class="amount" id="paymentFee">₹0</span>
+                    </div>
+
+                    <div class="fare-item">
                         <span class="label">Taxes & Fees</span>
                         <span class="amount" id="taxesFare">₹20</span>
+                    </div>
+
+                    <div class="fare-item discount-row">
+                        <span class="label">Promo Discount</span>
+                        <span class="amount" id="promoDiscount">-₹0</span>
                     </div>
 
                     <div class="fare-item total">
@@ -1252,6 +1491,118 @@
         let currentUser = null;
         let selectedDonationAmount = 0;
         let currentRideForDonation = null;
+        let appliedPromo = null;
+
+        const PROMO_OFFERS = {
+            RIDE50: { type: 'flat', value: 50, description: 'Flat INR 50 off on any ride' },
+            SAVE10: { type: 'percent', value: 10, max: 250, description: '10% off up to INR 250' },
+            AIRPORT100: { type: 'flat', value: 100, tripPlan: 'airport', description: 'Airport transfer flat INR 100 off' },
+            GLOBAL15: { type: 'percent', value: 15, max: 400, paymentMethods: ['international_card', 'paypal'], description: '15% off for international payment methods' }
+        };
+
+        function formatCurrency(amount) {
+            return `₹${Math.max(0, Math.round(Number(amount) || 0))}`;
+        }
+
+        function parseCurrencyValue(value) {
+            const numeric = Number(String(value || '').replace(/[^0-9.-]/g, ''));
+            return Number.isFinite(numeric) ? Math.round(numeric) : 0;
+        }
+
+        function setPromoStatus(message, type = '') {
+            const statusNode = document.getElementById('promoStatus');
+            if (!statusNode) return;
+
+            statusNode.textContent = message || '';
+            statusNode.classList.remove('success', 'error');
+            if (type) {
+                statusNode.classList.add(type);
+            }
+        }
+
+        function applyPromoCode() {
+            const promoInput = document.getElementById('promoCode');
+            if (!promoInput) return;
+
+            const code = sanitizeInput(promoInput.value).trim().toUpperCase();
+            if (!code) {
+                appliedPromo = null;
+                setPromoStatus('Promo cleared');
+                updateFare();
+                return;
+            }
+
+            const promo = PROMO_OFFERS[code];
+            if (!promo) {
+                appliedPromo = null;
+                setPromoStatus('Invalid promo code. Try RIDE50, SAVE10, AIRPORT100 or GLOBAL15', 'error');
+                updateFare();
+                return;
+            }
+
+            appliedPromo = { code, ...promo };
+            setPromoStatus(`Applied ${code}: ${promo.description}`, 'success');
+            updateFare();
+        }
+
+        function toggleReturnTrip() {
+            const toggleNode = document.getElementById('isReturnTrip');
+            const fieldsNode = document.getElementById('returnTripFields');
+            const returnDateNode = document.getElementById('returnDate');
+            const returnTimeNode = document.getElementById('returnTime');
+            const rideDateNode = document.getElementById('rideDate');
+            const rideTimeNode = document.getElementById('rideTime');
+
+            if (!toggleNode || !fieldsNode || !returnDateNode || !returnTimeNode) return;
+
+            if (toggleNode.checked) {
+                fieldsNode.style.display = 'grid';
+                returnDateNode.required = true;
+                returnTimeNode.required = true;
+                if (!returnDateNode.value) {
+                    const rideDate = rideDateNode && rideDateNode.value ? new Date(rideDateNode.value) : new Date();
+                    rideDate.setDate(rideDate.getDate() + 1);
+                    returnDateNode.value = rideDate.toISOString().split('T')[0];
+                }
+                if (!returnTimeNode.value && rideTimeNode && rideTimeNode.value) {
+                    returnTimeNode.value = rideTimeNode.value;
+                }
+                if (rideDateNode && rideDateNode.value) {
+                    returnDateNode.min = rideDateNode.value;
+                }
+            } else {
+                fieldsNode.style.display = 'none';
+                returnDateNode.required = false;
+                returnTimeNode.required = false;
+                returnDateNode.value = '';
+                returnTimeNode.value = '';
+            }
+        }
+
+        function calculatePromoDiscount(grossTotal, tripPlan, paymentMethod) {
+            if (!appliedPromo) return 0;
+
+            if (appliedPromo.tripPlan && appliedPromo.tripPlan !== tripPlan) {
+                return 0;
+            }
+
+            if (Array.isArray(appliedPromo.paymentMethods) && !appliedPromo.paymentMethods.includes(paymentMethod)) {
+                return 0;
+            }
+
+            let discount = 0;
+            if (appliedPromo.type === 'flat') {
+                discount = appliedPromo.value;
+            } else if (appliedPromo.type === 'percent') {
+                discount = Math.round(grossTotal * (appliedPromo.value / 100));
+            }
+
+            if (appliedPromo.max) {
+                discount = Math.min(discount, appliedPromo.max);
+            }
+
+            return Math.max(0, Math.min(discount, grossTotal));
+        }
 
         window.addEventListener('load', function() {
             currentUser = checkAuth();
@@ -1266,6 +1617,28 @@
                               now.getMinutes().toString().padStart(2, '0');
             document.getElementById('rideTime').value = timeString;
 
+            const promoInput = document.getElementById('promoCode');
+            if (promoInput) {
+                promoInput.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        applyPromoCode();
+                    }
+                });
+            }
+
+            toggleReturnTrip();
+            document.getElementById('rideDate').addEventListener('change', () => {
+                toggleReturnTrip();
+                updateFare();
+            });
+            document.getElementById('rideTime').addEventListener('change', () => {
+                toggleReturnTrip();
+                updateFare();
+            });
+            document.getElementById('returnDate').addEventListener('change', updateFare);
+            document.getElementById('returnTime').addEventListener('change', updateFare);
+
             updateFare();
             updateDistanceEstimate();
         });
@@ -1279,6 +1652,11 @@
             const passengers = parseInt(document.getElementById('passengers').value);
             const luggage = document.getElementById('luggage').value;
             const distance = parseInt(document.getElementById('distanceKm').textContent) || 5;
+            const tripPlan = document.getElementById('tripPlan').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const isReturnTrip = document.getElementById('isReturnTrip').checked;
+            const stop1 = sanitizeInput(document.getElementById('stop1').value).trim();
+            const stop2 = sanitizeInput(document.getElementById('stop2').value).trim();
 
             const rates = {
                 'economy': 10,
@@ -1297,6 +1675,9 @@
             };
 
             const luggageFare = luggageCharges[luggage];
+            const passengerFare = passengers >= 5 ? 60 : Math.max(0, passengers - 2) * 20;
+            const stopCount = [stop1, stop2].filter(Boolean).length;
+            const stopFare = stopCount * 45;
 
             let extrasFare = 0;
             if (document.getElementById('airCondition').checked) extrasFare += 20;
@@ -1304,16 +1685,64 @@
             if (document.getElementById('charger').checked) extrasFare += 10;
             if (document.getElementById('music').checked) extrasFare += 15;
 
-            const subtotal = baseFare + distanceFare + luggageFare + extrasFare;
-            const taxesFare = Math.round(subtotal * 0.1);
-            const totalFare = subtotal + taxesFare;
+            const tripPlanCharges = {
+                city: 0,
+                airport: 120,
+                outstation: 220,
+                rental: 160
+            };
 
-            document.getElementById('baseFare').textContent = `₹${baseFare}`;
-            document.getElementById('distanceFare').textContent = `₹${distanceFare}`;
-            document.getElementById('luggageFare').textContent = `₹${luggageFare}`;
-            document.getElementById('extrasFare').textContent = `₹${extrasFare}`;
-            document.getElementById('taxesFare').textContent = `₹${taxesFare}`;
-            document.getElementById('totalFare').textContent = `₹${totalFare}`;
+            const tripPlanFare = tripPlanCharges[tripPlan] || 0;
+
+            let safetyFare = 0;
+            if (document.getElementById('womenDriverPref').checked) safetyFare += 25;
+            if (document.getElementById('childSeat').checked) safetyFare += 45;
+            if (document.getElementById('wheelchairAssist').checked) safetyFare += 40;
+            if (document.getElementById('petFriendly').checked) safetyFare += 35;
+            if (document.getElementById('liveTripShare').checked) safetyFare += 15;
+            if (document.getElementById('maskedCall').checked) safetyFare += 10;
+
+            const returnTripFare = isReturnTrip ? Math.round((baseFare + distanceFare + tripPlanFare + passengerFare) * 0.75) : 0;
+
+            const subtotal = baseFare + distanceFare + passengerFare + tripPlanFare + luggageFare + extrasFare + safetyFare + stopFare + returnTripFare;
+
+            const paymentFeeRates = {
+                cash: 0,
+                upi: 0,
+                wallet: 0,
+                card: 0.02,
+                netbanking: 0.01,
+                international_card: 0.035,
+                paypal: 0.03
+            };
+
+            const paymentFee = Math.round(subtotal * (paymentFeeRates[paymentMethod] || 0));
+            const taxesFare = Math.round((subtotal + paymentFee) * 0.1);
+            const grossTotal = subtotal + paymentFee + taxesFare;
+            const promoDiscount = calculatePromoDiscount(grossTotal, tripPlan, paymentMethod);
+            const totalFare = Math.max(99, grossTotal - promoDiscount);
+
+            if (appliedPromo) {
+                if (promoDiscount > 0) {
+                    setPromoStatus(`Applied ${appliedPromo.code}: Saved ${formatCurrency(promoDiscount)}`, 'success');
+                } else {
+                    setPromoStatus(`${appliedPromo.code} is not applicable for the selected trip or payment mode`, 'error');
+                }
+            }
+
+            document.getElementById('baseFare').textContent = formatCurrency(baseFare);
+            document.getElementById('distanceFare').textContent = formatCurrency(distanceFare);
+            document.getElementById('passengerFare').textContent = formatCurrency(passengerFare);
+            document.getElementById('tripPlanFare').textContent = formatCurrency(tripPlanFare);
+            document.getElementById('luggageFare').textContent = formatCurrency(luggageFare);
+            document.getElementById('extrasFare').textContent = formatCurrency(extrasFare);
+            document.getElementById('safetyFare').textContent = formatCurrency(safetyFare);
+            document.getElementById('stopFare').textContent = formatCurrency(stopFare);
+            document.getElementById('returnTripFare').textContent = formatCurrency(returnTripFare);
+            document.getElementById('paymentFee').textContent = formatCurrency(paymentFee);
+            document.getElementById('taxesFare').textContent = formatCurrency(taxesFare);
+            document.getElementById('promoDiscount').textContent = `-${formatCurrency(promoDiscount)}`;
+            document.getElementById('totalFare').textContent = formatCurrency(totalFare);
 
             return totalFare;
         }
@@ -1415,6 +1844,12 @@
             });
         }
 
+        function buildLocalDateTime(dateValue, timeValue) {
+            if (!dateValue || !timeValue) return null;
+            const dateTime = new Date(`${dateValue}T${timeValue}`);
+            return Number.isNaN(dateTime.getTime()) ? null : dateTime;
+        }
+
         function bookRide(e) {
             e.preventDefault();
 
@@ -1424,8 +1859,34 @@
             const rideDate = document.getElementById('rideDate').value;
             const rideTime = document.getElementById('rideTime').value;
             const rideType = document.querySelector('input[name="rideType"]:checked').value;
-            const passengers = document.getElementById('passengers').value;
+            const tripPlan = document.getElementById('tripPlan').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const passengers = parseInt(document.getElementById('passengers').value, 10) || 1;
+            const luggage = document.getElementById('luggage').value;
+            const promoCodeInput = sanitizeInput(document.getElementById('promoCode').value).trim().toUpperCase();
+            const isReturnTrip = document.getElementById('isReturnTrip').checked;
+            const returnDate = document.getElementById('returnDate').value;
+            const returnTime = document.getElementById('returnTime').value;
             const notes = sanitizeInput(document.getElementById('notes').value);
+            const stop1 = sanitizeInput(document.getElementById('stop1').value).trim();
+            const stop2 = sanitizeInput(document.getElementById('stop2').value).trim();
+            const intermediateStops = [stop1, stop2].filter(Boolean);
+
+            const specialRequests = {
+                airCondition: document.getElementById('airCondition').checked,
+                wifi: document.getElementById('wifi').checked,
+                charger: document.getElementById('charger').checked,
+                music: document.getElementById('music').checked
+            };
+
+            const safetyAccessibility = {
+                womenDriverPref: document.getElementById('womenDriverPref').checked,
+                childSeat: document.getElementById('childSeat').checked,
+                wheelchairAssist: document.getElementById('wheelchairAssist').checked,
+                petFriendly: document.getElementById('petFriendly').checked,
+                liveTripShare: document.getElementById('liveTripShare').checked,
+                maskedCall: document.getElementById('maskedCall').checked
+            };
 
             if (!pickup || !dropoff) {
                 showError('Please enter both pickup and dropoff locations');
@@ -1437,9 +1898,68 @@
                 return;
             }
 
+            const now = new Date();
+            const outboundDateTime = buildLocalDateTime(rideDate, rideTime);
+            if (!outboundDateTime) {
+                showError('Please select valid ride date and time');
+                return;
+            }
+
+            if (outboundDateTime.getTime() < now.getTime() - 60 * 1000) {
+                showError('Please select a future time for booking');
+                return;
+            }
+
+            let returnDateTime = null;
+            if (isReturnTrip) {
+                returnDateTime = buildLocalDateTime(returnDate, returnTime);
+                if (!returnDateTime) {
+                    showError('Please select valid return date and time');
+                    return;
+                }
+
+                if (returnDateTime.getTime() <= outboundDateTime.getTime()) {
+                    showError('Return trip time must be after the onward trip');
+                    return;
+                }
+            }
+
+            const computedTotalFare = updateFare();
             const bookingId = 'RID' + Date.now();
-            const totalFare = parseInt(document.getElementById('totalFare').textContent.replace('₹', ''));
-            const distance = parseInt(document.getElementById('distanceKm').textContent);
+            const totalFare = computedTotalFare || parseCurrencyValue(document.getElementById('totalFare').textContent);
+            const distance = parseInt(document.getElementById('distanceKm').textContent, 10) || 5;
+            const distanceSource = sanitizeInput(document.getElementById('distanceSource').textContent || 'fallback');
+
+            const fareBreakdown = {
+                baseFare: parseCurrencyValue(document.getElementById('baseFare').textContent),
+                distanceFare: parseCurrencyValue(document.getElementById('distanceFare').textContent),
+                passengerFare: parseCurrencyValue(document.getElementById('passengerFare').textContent),
+                tripPlanFare: parseCurrencyValue(document.getElementById('tripPlanFare').textContent),
+                luggageFare: parseCurrencyValue(document.getElementById('luggageFare').textContent),
+                extrasFare: parseCurrencyValue(document.getElementById('extrasFare').textContent),
+                safetyFare: parseCurrencyValue(document.getElementById('safetyFare').textContent),
+                stopFare: parseCurrencyValue(document.getElementById('stopFare').textContent),
+                returnTripFare: parseCurrencyValue(document.getElementById('returnTripFare').textContent),
+                paymentFee: parseCurrencyValue(document.getElementById('paymentFee').textContent),
+                taxesFare: parseCurrencyValue(document.getElementById('taxesFare').textContent),
+                promoDiscount: Math.abs(parseCurrencyValue(document.getElementById('promoDiscount').textContent)),
+                totalFare: totalFare
+            };
+
+            const paymentMeta = {
+                method: paymentMethod,
+                status: 'pending',
+                mode: ['international_card', 'paypal'].includes(paymentMethod) ? 'international' : 'india',
+                currency: 'INR'
+            };
+
+            const activePromoCode = appliedPromo?.code || promoCodeInput || null;
+            const customerFeatures = {
+                specialRequests,
+                safetyAccessibility,
+                hasStops: intermediateStops.length > 0,
+                hasReturnTrip: isReturnTrip
+            };
 
             const booking = {
                 id: bookingId,
@@ -1448,18 +1968,49 @@
                 customerPhone: currentUser.phone,
                 pickup: pickup,
                 dropoff: dropoff,
+                stops: intermediateStops,
                 rideType: rideType,
                 passengers: passengers,
+                luggage: luggage,
                 rideDate: rideDate,
                 rideTime: rideTime,
+                tripPlan: tripPlan,
+                paymentMethod: paymentMethod,
                 distance: distance,
+                distanceSource: distanceSource,
                 totalFare: totalFare,
                 status: 'pending',
                 notes: notes,
                 createdAt: new Date().toISOString(),
+                outboundDateTime: outboundDateTime.toISOString(),
+                returnTrip: isReturnTrip ? {
+                    enabled: true,
+                    returnDate: returnDate,
+                    returnTime: returnTime,
+                    returnDateTime: returnDateTime ? returnDateTime.toISOString() : null
+                } : {
+                    enabled: false,
+                    returnDate: null,
+                    returnTime: null,
+                    returnDateTime: null
+                },
+                fareBreakdown: fareBreakdown,
+                payment: paymentMeta,
+                promo: {
+                    code: activePromoCode,
+                    discount: fareBreakdown.promoDiscount
+                },
+                customerFeatures: customerFeatures,
                 driverId: null,
                 driverName: null,
-                driverETA: null
+                driverETA: null,
+                statusHistory: [
+                    {
+                        status: 'pending',
+                        at: new Date().toISOString(),
+                        source: 'customer'
+                    }
+                ]
             };
 
             let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
@@ -1469,12 +2020,13 @@
             broadcastPortalNotification({
                 type: 'new_booking',
                 title: 'New Ride Booking',
-                message: `Customer booked ride: ${booking.pickup} → ${booking.dropoff}`,
+                message: `Customer booked ${booking.tripPlan} ride: ${booking.pickup} → ${booking.dropoff}`,
                 booking,
                 sourcePortal: 'customer',
                 metadata: {
                     stage: 'created',
-                    bookingId: booking.id
+                    bookingId: booking.id,
+                    paymentMethod: booking.paymentMethod
                 }
             });
 
@@ -1559,6 +2111,13 @@
                     bookings[bookingIdx].vehicleNumber = randomDriver.vehicle?.number || randomDriver.vehicleNumber;
                     bookings[bookingIdx].driverETA = (Math.floor(Math.random() * 5) + 2) + ' mins';
                     bookings[bookingIdx].status = 'confirmed';
+                    bookings[bookingIdx].statusHistory = bookings[bookingIdx].statusHistory || [];
+                    bookings[bookingIdx].statusHistory.push({
+                        status: 'confirmed',
+                        at: new Date().toISOString(),
+                        source: 'driver',
+                        driverId: randomDriver.id
+                    });
                     
                     localStorage.setItem('bookings', JSON.stringify(bookings));
 
@@ -1608,6 +2167,12 @@
             if (idx !== -1) {
                 bookings[idx].status = 'completed';
                 bookings[idx].duration = Math.floor(Math.random() * 30) + 10 + ' mins';
+                bookings[idx].statusHistory = bookings[idx].statusHistory || [];
+                bookings[idx].statusHistory.push({
+                    status: 'completed',
+                    at: new Date().toISOString(),
+                    source: 'driver'
+                });
                 localStorage.setItem('bookings', JSON.stringify(bookings));
 
                 const completedBooking = bookings[idx];
