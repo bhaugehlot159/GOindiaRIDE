@@ -1,7 +1,26 @@
 (function initFitScreen() {
   function shouldSkipFitScreen() {
     const path = String(window.location.pathname || "").toLowerCase();
-    return path.endsWith("/pages/login.html") || path.endsWith("/pages/signup.html");
+    const skipByPath =
+      path.endsWith("/pages/login.html") ||
+      path.endsWith("/pages/signup.html") ||
+      path.endsWith("/pages/customer-dashboard.html") ||
+      path.endsWith("/pages/driver-dashboard.html") ||
+      path.endsWith("/pages/admin-dashboard.html") ||
+      path.endsWith("/customer-dashboard.html") ||
+      path.endsWith("/driver-dashboard.html") ||
+      path.endsWith("/admin-dashboard.html");
+
+    if (skipByPath || window.__GOI_DISABLE_FIT_SCREEN === true) {
+      return true;
+    }
+
+    const body = document.body;
+    if (body && (body.dataset.fitScreen === "off" || body.classList.contains("fit-screen-off"))) {
+      return true;
+    }
+
+    return false;
   }
 
   if (shouldSkipFitScreen()) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v4';
+const CACHE_NAME = 'goindiaride-pwa-v5';
 const ASSETS = [
   './',
   './index.html',

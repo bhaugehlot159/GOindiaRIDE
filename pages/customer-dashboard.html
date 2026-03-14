@@ -29,7 +29,8 @@
         }
 
         .navbar-container {
-            max-width: 1200px;
+            max-width: 1600px;
+            width: min(1600px, calc(100vw - 1.5rem));
             margin: 0 auto;
             padding: 0 2rem;
             display: flex;
@@ -123,7 +124,8 @@
 
         /* Container */
         .container {
-            max-width: 1200px;
+            max-width: 1600px;
+            width: min(1600px, calc(100vw - 1.5rem));
             margin: 0 auto;
             padding: 2rem;
         }
@@ -1024,8 +1026,46 @@
         <link rel="stylesheet" href="../brand-theme.css">
 <link rel="stylesheet" href="../fit-screen.css">
     <script defer src="../js/non-home-fit.js"></script>
+    <style>
+        html.fit-screen-page body.customer-dashboard-page.fit-screen-off,
+        body.customer-dashboard-page.fit-screen-page.fit-screen-off {
+            height: auto !important;
+            overflow: auto !important;
+        }
+
+        body.customer-dashboard-page.fit-screen-page.fit-screen-off .container.fit-scroll-host {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        body.customer-dashboard-page.fit-screen-page.fit-screen-off .container.fit-scroll-host > .fit-scale-layer {
+            width: 100% !important;
+            min-height: auto !important;
+            transform: none !important;
+            transform-origin: top left !important;
+        }
+
+        body.customer-dashboard-page.fit-screen-page .container {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin-top: 0.6rem;
+        }
+
+        body.customer-dashboard-page.fit-screen-page .container.fit-scroll-host > .fit-scale-layer {
+            transform-origin: top left !important;
+        }
+
+        @media (max-width: 980px) {
+            body.customer-dashboard-page.fit-screen-page .navbar-container,
+            body.customer-dashboard-page.fit-screen-page .container {
+                width: calc(100vw - 1rem);
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="customer-dashboard-page fit-screen-off" data-fit-screen="off">
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-container">
