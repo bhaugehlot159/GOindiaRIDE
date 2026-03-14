@@ -18,6 +18,11 @@
         .admin-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .logout-btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
         .logout-btn:hover { transform: translateY(-2px); }
+        .dashboard-utility-nav { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn { min-height: 42px; padding: 0.72rem 1rem; border-radius: 999px; border: 1px solid rgba(12, 42, 74, 0.12) !important; background: rgba(255, 255, 255, 0.92) !important; color: #14385e !important; font-weight: 700; box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08); }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn:hover { background: #ffffff !important; color: #102c50 !important; box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14); transform: translateY(-1px); }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn.home-btn { background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%) !important; color: #ffffff !important; border-color: transparent !important; }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn i { color: inherit !important; }
         .main-content { margin-left: 260px; margin-top: 70px; padding: 30px; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
         .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-top: 4px solid #667eea; }
@@ -125,7 +130,10 @@
                     <small style="color: #999;">Administrator</small>
                 </div>
             </div>
-            <button class="logout-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+            <div class="dashboard-utility-nav" data-goi-nav-static="1">
+                <button class="logout-btn" onclick="window.history.length > 1 ? window.history.back() : window.location.href='../index.html'"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="logout-btn home-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+            </div>
             <button class="logout-btn" onclick="showLogoutModal()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
@@ -362,7 +370,7 @@
         })();
     </script>
 
-    <script src="../js/global-ui.js?v=20260314-nav5"></script>
+    <script src="../js/global-ui.js?v=20260314-nav8"></script>
 </body>
 </html>
 
