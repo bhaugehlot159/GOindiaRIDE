@@ -360,8 +360,7 @@
                 max-width: calc(100vw - 20px);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-btn,
-            body.goi-global-theme .goi-native-nav-btn {
+            #${NAV_DOCK_ID} .goi-dock-btn {
                 min-height: 42px;
                 padding: 0.72rem 1rem;
                 border: 1px solid rgba(12, 42, 74, 0.12);
@@ -380,30 +379,26 @@
                 box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-btn:hover,
-            body.goi-global-theme .goi-native-nav-btn:hover {
+            #${NAV_DOCK_ID} .goi-dock-btn:hover {
                 background: #ffffff;
                 transform: translateY(-1px);
                 box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-btn.goi-dock-btn-primary,
-            body.goi-global-theme .goi-native-nav-btn.goi-dock-btn-primary {
+            #${NAV_DOCK_ID} .goi-dock-btn.goi-dock-btn-primary {
                 background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%);
                 color: #ffffff !important;
                 border-color: transparent;
                 box-shadow: 0 14px 28px rgba(10, 36, 67, 0.18);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-icon,
-            body.goi-global-theme .goi-native-nav-btn .goi-dock-icon {
+            #${NAV_DOCK_ID} .goi-dock-icon {
                 font-size: 0.95rem;
                 font-weight: 800;
                 color: inherit !important;
             }
 
-            #${NAV_DOCK_ID} .goi-dock-label,
-            body.goi-global-theme .goi-native-nav-btn .goi-dock-label {
+            #${NAV_DOCK_ID} .goi-dock-label {
                 color: inherit !important;
             }
 
@@ -418,8 +413,7 @@
                     right: 8px;
                 }
 
-                #${NAV_DOCK_ID} .goi-dock-btn,
-                body.goi-global-theme .goi-native-nav-btn {
+                #${NAV_DOCK_ID} .goi-dock-btn {
                     font-size: 0.82rem;
                     padding: 0.64rem 0.88rem;
                 }
@@ -441,8 +435,7 @@
                     top: calc(env(safe-area-inset-top, 0px) + 64px);
                 }
 
-                #${NAV_DOCK_ID} .goi-dock-btn,
-                body.goi-global-theme .goi-native-nav-btn {
+                #${NAV_DOCK_ID} .goi-dock-btn {
                     min-height: 38px;
                     padding: 0.58rem 0.85rem;
                     justify-content: center;
@@ -534,96 +527,16 @@
             node.setAttribute('data-goi-legacy-nav-hidden', '1');
             node.style.display = 'none';
         });
-    }
 
-    function findNativeNavControls() {
-        const controls = { back: null, home: null };
+        const controls = Array.from(document.querySelectorAll('button, a'));
+        controls.forEach((node) => {
+            if (node.getAttribute('data-goi-legacy-nav-hidden') === '1') return;
 
-        Array.from(document.querySelectorAll('button, a')).forEach((node) => {
             const kind = getLegacyNavControlKind(node);
-            if (!kind || controls[kind]) return;
-            controls[kind] = node;
+            if (!kind) return;
+
+            hideNode(node);
         });
-
-        return controls;
-    }
-
-    function applyNativeNavButtonStyle(node, kind) {
-        if (!node) return;
-
-        node.classList.add('goi-native-nav-btn');
-        node.classList.add('goi-dock-btn');
-        if (kind === 'home') {
-            node.classList.add('goi-dock-btn-primary');
-        }
-
-        if (!node.querySelector('.goi-dock-label')) {
-            const rawText = String(node.textContent || '').trim() || (kind === 'back' ? 'Back' : 'Home');
-            const iconMarkup = kind === 'back' ? '&larr;' : '&#8962;';
-            node.innerHTML = `<span class="goi-dock-icon" aria-hidden="true">${iconMarkup}</span><span class="goi-dock-label">${rawText}</span>`;
-        }
-    }
-
-    function createInlineNavButton(kind, homePath) {
-        const button = createDockButton(
-            kind === 'back' ? 'Back' : 'Home',
-            kind === 'back' ? '&larr;' : '&#8962;',
-            () => {
-                if (kind === 'back') {
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        window.location.href = homePath;
-                    }
-                    return;
-                }
-
-                window.location.href = homePath;
-            },
-            kind === 'home' ? 'goi-dock-btn-primary' : ''
-        );
-        button.classList.add('goi-native-nav-btn');
-        return button;
-    }
-
-    function ensureNativeUtilityNav() {
-        const homePath = resolveHomePath();
-        const controls = findNativeNavControls();
-        const { back, home } = controls;
-
-        if (!back && !home) {
-            return false;
-        }
-
-        const host = home?.parentElement || back?.parentElement || null;
-
-        if (back) {
-            applyNativeNavButtonStyle(back, 'back');
-        }
-
-        if (home) {
-            applyNativeNavButtonStyle(home, 'home');
-        }
-
-        if (!host || host.id === NAV_DOCK_ID) {
-            return true;
-        }
-
-        if (!back) {
-            const backButton = createInlineNavButton('back', homePath);
-            if (home) {
-                host.insertBefore(backButton, home);
-            } else {
-                host.prepend(backButton);
-            }
-        }
-
-        if (!home) {
-            const homeButton = createInlineNavButton('home', homePath);
-            host.appendChild(homeButton);
-        }
-
-        return true;
     }
 
     function positionNavigationDock(dock) {
@@ -717,9 +630,8 @@
         injectStyles();
         markActiveTheme();
         hideLegacyBackHomeOverlays();
-        if (!ensureNativeUtilityNav()) {
-            injectNavigationDock();
-        }
+        injectNavigationDock();
+        hideLegacyBackHomeOverlays();
         decorateSections();
     }
 
