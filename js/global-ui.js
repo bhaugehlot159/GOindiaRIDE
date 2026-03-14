@@ -388,6 +388,18 @@
                 box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
             }
 
+            body.goi-global-theme .goi-native-nav-wrap {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                padding: 0.42rem;
+                border-radius: 999px;
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 250, 255, 0.9) 100%);
+                border: 1px solid rgba(12, 42, 74, 0.08);
+                box-shadow: 0 18px 42px rgba(10, 36, 67, 0.14);
+                backdrop-filter: blur(16px);
+            }
+
             #${NAV_DOCK_ID} .goi-dock-btn:hover,
             body.goi-global-theme .goi-native-nav-btn:hover {
                 background: #ffffff;
@@ -589,6 +601,30 @@
         return null;
     }
 
+    function getOrCreateNativeNavWrap(host) {
+        if (!host) return null;
+
+        let wrap = host.querySelector('.goi-native-nav-wrap');
+        if (wrap) return wrap;
+
+        wrap = document.createElement('div');
+        wrap.className = 'goi-native-nav-wrap';
+
+        const anchor =
+            host.querySelector('.logout-btn') ||
+            host.querySelector('[class*="lang"]') ||
+            host.querySelector('select') ||
+            null;
+
+        if (anchor) {
+            host.insertBefore(wrap, anchor);
+        } else {
+            host.appendChild(wrap);
+        }
+
+        return wrap;
+    }
+
     function styleNativeNavControl(node, kind) {
         if (!node) return;
 
@@ -629,6 +665,9 @@
         if (!host) return false;
 
         const homePath = resolveHomePath();
+        const wrap = getOrCreateNativeNavWrap(host);
+        if (!wrap) return false;
+
         let backNode = findControlInHost(host, 'back');
         let homeNode = findControlInHost(host, 'home');
 
@@ -636,28 +675,17 @@
             return false;
         }
 
-        if (!backNode) {
-            backNode = createNativeNavControl('back', homePath);
-            const anchor = homeNode || host.firstElementChild || null;
-            if (anchor) {
-                host.insertBefore(backNode, anchor);
-            } else {
-                host.appendChild(backNode);
-            }
-        } else {
-            styleNativeNavControl(backNode, 'back');
-        }
-
-        if (!homeNode) {
-            homeNode = createNativeNavControl('home', homePath);
-            host.appendChild(homeNode);
-        } else {
-            styleNativeNavControl(homeNode, 'home');
-        }
+        if (!backNode) backNode = createNativeNavControl('back', homePath);
+        if (!homeNode) homeNode = createNativeNavControl('home', homePath);
 
         // Ensure existing controls get premium style even if they were not created by script.
         styleNativeNavControl(backNode, 'back');
         styleNativeNavControl(homeNode, 'home');
+
+        // Keep Back/Home grouped as a single premium capsule like auth pages.
+        if (backNode.parentElement !== wrap) wrap.appendChild(backNode);
+        if (homeNode.parentElement !== wrap) wrap.appendChild(homeNode);
+
         return true;
     }
 
