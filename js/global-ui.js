@@ -7,6 +7,14 @@
 
     const STYLE_ID = 'goi-global-ui-style';
     const NAV_DOCK_ID = 'goi-global-nav-dock';
+    const TOP_NAV_HOST_SELECTORS = [
+        '.auth-utility-nav',
+        '.navbar-right',
+        '.topbar-right',
+        '.navbar-actions',
+        '.header-actions',
+        '.top-nav-right'
+    ];
     const HEADER_SELECTORS = [
         '.navbar',
         '.top-nav',
@@ -360,7 +368,8 @@
                 max-width: calc(100vw - 20px);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-btn {
+            #${NAV_DOCK_ID} .goi-dock-btn,
+            body.goi-global-theme .goi-native-nav-btn {
                 min-height: 42px;
                 padding: 0.72rem 1rem;
                 border: 1px solid rgba(12, 42, 74, 0.12);
@@ -379,13 +388,15 @@
                 box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-btn:hover {
+            #${NAV_DOCK_ID} .goi-dock-btn:hover,
+            body.goi-global-theme .goi-native-nav-btn:hover {
                 background: #ffffff;
                 transform: translateY(-1px);
                 box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14);
             }
 
-            #${NAV_DOCK_ID} .goi-dock-btn.goi-dock-btn-primary {
+            #${NAV_DOCK_ID} .goi-dock-btn.goi-dock-btn-primary,
+            body.goi-global-theme .goi-native-nav-btn.goi-dock-btn-primary {
                 background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%);
                 color: #ffffff !important;
                 border-color: transparent;
@@ -402,6 +413,12 @@
                 color: inherit !important;
             }
 
+            body.goi-global-theme .goi-native-nav-btn .goi-dock-label,
+            body.goi-global-theme .goi-native-nav-btn .goi-dock-icon,
+            body.goi-global-theme .goi-native-nav-btn i {
+                color: inherit !important;
+            }
+
             @media (max-width: 992px) {
                 body.goi-global-theme.goi-page-login .login-container,
                 body.goi-global-theme.goi-page-signup .signup-container {
@@ -413,7 +430,8 @@
                     right: 8px;
                 }
 
-                #${NAV_DOCK_ID} .goi-dock-btn {
+                #${NAV_DOCK_ID} .goi-dock-btn,
+                body.goi-global-theme .goi-native-nav-btn {
                     font-size: 0.82rem;
                     padding: 0.64rem 0.88rem;
                 }
@@ -435,7 +453,8 @@
                     top: calc(env(safe-area-inset-top, 0px) + 64px);
                 }
 
-                #${NAV_DOCK_ID} .goi-dock-btn {
+                #${NAV_DOCK_ID} .goi-dock-btn,
+                body.goi-global-theme .goi-native-nav-btn {
                     min-height: 38px;
                     padding: 0.58rem 0.85rem;
                     justify-content: center;
@@ -453,6 +472,33 @@
         button.innerHTML = `<span class="goi-dock-icon" aria-hidden="true">${iconText}</span><span class="goi-dock-label">${label}</span>`;
         button.addEventListener('click', onClick);
         return button;
+    }
+
+    function detectNavControlKind(node) {
+        if (!node) return null;
+
+        const text = normalizeNodeText(node.textContent);
+        const className = normalizeNodeText(node.className);
+        const onClick = normalizeNodeText(node.getAttribute('onclick'));
+        const title = normalizeNodeText(node.getAttribute('title'));
+        const label = normalizeNodeText(node.getAttribute('aria-label'));
+        const combined = `${text} ${className} ${onClick} ${title} ${label}`;
+
+        const isBackControl =
+            /\bback\b/.test(combined) ||
+            combined.includes('history.back') ||
+            combined.includes('goback');
+
+        const isHomeControl =
+            /\bhome\b/.test(combined) ||
+            combined.includes('gohome') ||
+            combined.includes('index.html');
+
+        if (!isBackControl && !isHomeControl) return null;
+        if (isBackControl && !isHomeControl) return 'back';
+        if (isHomeControl && !isBackControl) return 'home';
+
+        return text.includes('back') ? 'back' : 'home';
     }
 
     function normalizeNodeText(value) {
@@ -478,34 +524,14 @@
         const tag = String(node.tagName || '').toLowerCase();
         if (tag !== 'button' && tag !== 'a') return null;
 
-        const text = normalizeNodeText(node.textContent);
-        const className = normalizeNodeText(node.className);
-        const onClick = normalizeNodeText(node.getAttribute('onclick'));
-        const title = normalizeNodeText(node.getAttribute('title'));
-        const label = normalizeNodeText(node.getAttribute('aria-label'));
-        const combined = `${text} ${className} ${onClick} ${title} ${label}`;
-
-        const isBackControl =
-            /\bback\b/.test(combined) ||
-            combined.includes('history.back') ||
-            combined.includes('goback');
-
-        const isHomeControl =
-            /\bhome\b/.test(combined) ||
-            combined.includes('gohome') ||
-            combined.includes('index.html');
-
-        if (!isBackControl && !isHomeControl) return null;
+        const kind = detectNavControlKind(node);
+        if (!kind) return null;
 
         const rect = node.getBoundingClientRect();
         if (!rect || rect.width <= 0 || rect.height <= 0) return null;
         if (rect.width > 320 || rect.height > 88) return null;
         if (rect.top > Math.max(360, window.innerHeight * 0.45)) return null;
-
-        if (isBackControl && !isHomeControl) return 'back';
-        if (isHomeControl && !isBackControl) return 'home';
-
-        return text.includes('back') ? 'back' : 'home';
+        return kind;
     }
 
     function hideLegacyBackHomeOverlays() {
@@ -532,11 +558,107 @@
         controls.forEach((node) => {
             if (node.getAttribute('data-goi-legacy-nav-hidden') === '1') return;
 
+            const computed = window.getComputedStyle(node);
+            if (computed.position !== 'fixed') return;
+
             const kind = getLegacyNavControlKind(node);
             if (!kind) return;
 
             hideNode(node);
         });
+    }
+
+    function findTopNavHost() {
+        for (let i = 0; i < TOP_NAV_HOST_SELECTORS.length; i += 1) {
+            const host = document.querySelector(TOP_NAV_HOST_SELECTORS[i]);
+            if (!host) continue;
+            return host;
+        }
+        return null;
+    }
+
+    function findControlInHost(host, kind) {
+        if (!host) return null;
+
+        const nodes = Array.from(host.querySelectorAll('button, a'));
+        for (let i = 0; i < nodes.length; i += 1) {
+            if (detectNavControlKind(nodes[i]) === kind) {
+                return nodes[i];
+            }
+        }
+        return null;
+    }
+
+    function styleNativeNavControl(node, kind) {
+        if (!node) return;
+
+        node.classList.add('goi-native-nav-btn');
+        node.classList.add('goi-dock-btn');
+        if (kind === 'home') {
+            node.classList.add('goi-dock-btn-primary');
+        } else {
+            node.classList.remove('goi-dock-btn-primary');
+        }
+    }
+
+    function createNativeNavControl(kind, homePath) {
+        const button = createDockButton(
+            kind === 'back' ? 'Back' : 'Home',
+            kind === 'back' ? '&larr;' : '&#8962;',
+            () => {
+                if (kind === 'back') {
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = homePath;
+                    }
+                    return;
+                }
+
+                window.location.href = homePath;
+            },
+            kind === 'home' ? 'goi-dock-btn-primary' : ''
+        );
+
+        button.classList.add('goi-native-nav-btn');
+        return button;
+    }
+
+    function ensureNativeHeaderNav() {
+        const host = findTopNavHost();
+        if (!host) return false;
+
+        const homePath = resolveHomePath();
+        let backNode = findControlInHost(host, 'back');
+        let homeNode = findControlInHost(host, 'home');
+
+        if (!backNode && !homeNode) {
+            return false;
+        }
+
+        if (!backNode) {
+            backNode = createNativeNavControl('back', homePath);
+            const anchor = homeNode || host.firstElementChild || null;
+            if (anchor) {
+                host.insertBefore(backNode, anchor);
+            } else {
+                host.appendChild(backNode);
+            }
+        } else {
+            styleNativeNavControl(backNode, 'back');
+        }
+
+        if (!homeNode) {
+            homeNode = createNativeNavControl('home', homePath);
+            host.appendChild(homeNode);
+        } else {
+            styleNativeNavControl(homeNode, 'home');
+        }
+
+        // Ensure existing controls get premium style even if they were not created by script.
+        styleNativeNavControl(backNode, 'back');
+        styleNativeNavControl(homeNode, 'home');
+        return true;
     }
 
     function positionNavigationDock(dock) {
@@ -630,8 +752,11 @@
         injectStyles();
         markActiveTheme();
         hideLegacyBackHomeOverlays();
-        injectNavigationDock();
-        hideLegacyBackHomeOverlays();
+        const hasNativeHeaderNav = ensureNativeHeaderNav();
+        if (!hasNativeHeaderNav) {
+            injectNavigationDock();
+            hideLegacyBackHomeOverlays();
+        }
         decorateSections();
     }
 
