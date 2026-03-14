@@ -4,9 +4,11 @@
     const skipByPath =
       path.endsWith("/pages/login.html") ||
       path.endsWith("/pages/signup.html") ||
+      path.endsWith("/pages/booking.html") ||
       path.endsWith("/pages/customer-dashboard.html") ||
       path.endsWith("/pages/driver-dashboard.html") ||
       path.endsWith("/pages/admin-dashboard.html") ||
+      path.endsWith("/booking.html") ||
       path.endsWith("/customer-dashboard.html") ||
       path.endsWith("/driver-dashboard.html") ||
       path.endsWith("/admin-dashboard.html");

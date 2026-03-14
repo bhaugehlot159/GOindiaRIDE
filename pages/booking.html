@@ -609,6 +609,24 @@
             background: rgba(255,255,255,0.3);
         }
 
+        .booking-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .home-btn {
+            background: rgba(11, 47, 83, 0.85);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .home-btn:hover {
+            background: rgba(11, 47, 83, 1);
+        }
+
         /* Donation Modal */
         .donation-modal .modal-content {
             max-width: 500px;
@@ -801,6 +819,57 @@
             }
         }
 
+        /* Booking page fit + layout stabilization (additive only) */
+        html.fit-screen-page body.booking-page.fit-screen-off,
+        body.booking-page.fit-screen-page.fit-screen-off {
+            height: auto !important;
+            overflow: auto !important;
+        }
+
+        body.booking-page.fit-screen-page.fit-screen-off .container.fit-scroll-host {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        body.booking-page.fit-screen-page.fit-screen-off .container.fit-scroll-host > .fit-scale-layer {
+            width: 100% !important;
+            min-height: auto !important;
+            transform: none !important;
+            transform-origin: top left !important;
+        }
+
+        body.booking-page .container {
+            max-width: 1500px;
+            width: min(1500px, calc(100vw - 1.25rem));
+        }
+
+        body.booking-page .booking-grid {
+            grid-template-columns: minmax(560px, 1.25fr) minmax(360px, 0.95fr);
+            align-items: start;
+        }
+
+        body.booking-page .booking-form-section,
+        body.booking-page .fare-card,
+        body.booking-page .matching-card,
+        body.booking-page .map-container {
+            border-radius: 16px;
+        }
+
+        body.booking-page .back-btn {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 1120px) {
+            body.booking-page .booking-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body.booking-page .summary-section {
+                order: 2;
+            }
+        }
+
         /* ========================================
            AUTOCOMPLETE LOCATION SUGGESTIONS
            ======================================== */
@@ -898,16 +967,22 @@
         }
     </style>
         <link rel="stylesheet" href="../brand-theme.css">
-<link rel="stylesheet" href="../fit-screen.css">
-    <script defer src="../js/non-home-fit.js"></script>
+<link rel="stylesheet" href="../fit-screen.css?v=20260314-booking1">
+    <script defer src="../js/non-home-fit.js?v=20260314-booking2"></script>
 </head>
-<body>
+<body class="booking-page fit-screen-off" data-fit-screen="off">
     <div class="container">
-        <!-- Back Button -->
-        <button class="back-btn" onclick="goBack()">
-            <i class="fas fa-arrow-left"></i>
-            Back
-        </button>
+        <!-- Quick Navigation -->
+        <div class="booking-top-actions" data-goi-nav-static="1">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+            <button class="back-btn home-btn" onclick="goHome()">
+                <i class="fas fa-home"></i>
+                Home
+            </button>
+        </div>
 
         <!-- Header -->
         <div class="header">
@@ -2375,6 +2450,10 @@ Thank you for your generosity! ❤️
 
         function goBack() {
             window.location.href = './customer-dashboard.html';
+        }
+
+        function goHome() {
+            window.location.href = '../index.html';
         }
 
         function closeSuccessModal() {
