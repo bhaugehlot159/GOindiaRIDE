@@ -51,6 +51,18 @@
             gap: 2rem;
         }
 
+        .dashboard-utility-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.42rem;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 250, 255, 0.9) 100%);
+            border: 1px solid rgba(12, 42, 74, 0.08);
+            box-shadow: 0 18px 42px rgba(10, 36, 67, 0.14);
+            backdrop-filter: blur(16px);
+        }
+
         .navbar-user {
             display: flex;
             align-items: center;
@@ -80,6 +92,28 @@
 
         .logout-btn:hover {
             background: rgba(255,255,255,0.3);
+        }
+
+        .dashboard-utility-nav .logout-btn {
+            min-height: 42px;
+            padding: 0.72rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(12, 42, 74, 0.12);
+            background: rgba(255, 255, 255, 0.92);
+            color: #14385e;
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
+        }
+
+        .dashboard-utility-nav .logout-btn:hover {
+            background: #ffffff;
+            box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14);
+        }
+
+        .dashboard-utility-nav .logout-btn.home-btn {
+            background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%);
+            color: #ffffff;
+            border-color: transparent;
         }
 
         /* Container */
@@ -973,6 +1007,14 @@
         }
 
         .portal-alert-meta { color: #667085; font-size: 0.8rem; margin-top: 3px; }
+
+        @media (max-width: 980px) {
+            .navbar-right {
+                gap: 0.8rem;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+        }
     </style>
         <link rel="stylesheet" href="../brand-theme.css">
 <link rel="stylesheet" href="../fit-screen.css">
@@ -991,7 +1033,10 @@
                     <div class="user-avatar" id="userAvatar">C</div>
                     <span id="userName">Customer</span>
                 </div>
-                <button class="logout-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+                <div class="dashboard-utility-nav" data-goi-nav-static="1">
+                    <button class="logout-btn" onclick="window.history.length > 1 ? window.history.back() : window.location.href='../index.html'"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="logout-btn home-btn" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+                </div>
                 <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
@@ -2734,7 +2779,7 @@ Thank you for riding with us! 🚗
         })();
     </script>
 
-    <script src="../js/global-ui.js?v=20260314-nav4"></script>
+    <script src="../js/global-ui.js?v=20260314-nav5"></script>
 </body>
 </html>
 

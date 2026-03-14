@@ -780,6 +780,11 @@
         injectStyles();
         markActiveTheme();
         hideLegacyBackHomeOverlays();
+        const hasStaticNav = Boolean(document.querySelector('[data-goi-nav-static="1"]'));
+        if (hasStaticNav) {
+            decorateSections();
+            return;
+        }
         const hasNativeHeaderNav = ensureNativeHeaderNav();
         if (!hasNativeHeaderNav) {
             injectNavigationDock();
