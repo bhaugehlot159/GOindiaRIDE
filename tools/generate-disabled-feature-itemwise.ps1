@@ -41,7 +41,7 @@ function Get-FeatureCategory {
 function Get-FeatureBucket {
     param([string]$Text)
     $t = $Text.ToLowerInvariant()
-    if ($t -match "auto-suggest|auto suggestion|auto-suggestions|autosuggest|auto suggest|auto-sync|auto sync|auto-adjust|auto adjust|ऑटो-सिंक|ऑटो-एडजस्ट|ऑटो-पिकअप|ऑटो-सजेशन|ऑटो सुझाव|सुझाव") {
+    if ($t -match "auto-suggest|auto suggestion|auto-suggestions|autosuggest|auto suggest|autocomplete|auto-complete|auto-sync|auto sync|auto-adjust|auto adjust|auto-route|ऑटो-सिंक|ऑटो-एडजस्ट|ऑटो-पिकअप|ऑटो-सजेशन|ऑटो सुझाव|सुझाव|suggestion|location search|search suggestion|landmark search|pickup search|drop search|districts|states|cities|villages|tehsil|tourist_spots|nearby_tourist_spots|locationsdata|forts_durg|palaces_havelis|temples_religious|museums_heritage|lakes_water_bodies|markets_local_places") {
         return "auto-suggestion"
     }
     return "general"

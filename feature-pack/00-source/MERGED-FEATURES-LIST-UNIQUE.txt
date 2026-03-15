@@ -88,7 +88,6 @@ MongoDB field:
 1️⃣9️⃣ Cloudflare (Free Plan)
 DDoS protection
 Bot fight mode
-Rate limiting
 WAF basic rules
 2️⃣0️⃣ HTTPS Only Mode
 Force HTTPS redirect
@@ -511,7 +510,6 @@ minimization and accountability.
 • Vendor DPA management
 4. SOC2 Trust Criteria Roadmap
 Security, Availability, Confidentiality, Processing Integrity and Privacy controls are mapped.
-• Role-Based Access Control (RBAC)
 • Production monitoring
 • Change management logging
 • Backup & disaster recovery testing
@@ -538,7 +536,6 @@ Risk assessments are conducted quarterly and upon major system changes.
 • Vulnerability
 • Likelihood
 • Impact
-• Risk Score
 • Mitigation
 • Owner
 • Residual Risk
@@ -1242,7 +1239,6 @@ Security maturity directly supports global expansion and enterprise partnerships
 - Reminder before trip
 # GOindiaRIDE - COMPLETE FEATURES LIST
 ## सभी Features की विस्तृत सूची
----
 ## SECTION A: CUSTOMER PORTAL (ग्राहक पोर्टल)
 ### 1. यूजर रजिस्ट्रेशन और ऑथेंटिकेशन
 - यूजर रजिस्ट्रेशन होनी चाहिए (User Registration & Profile System)
@@ -1288,9 +1284,7 @@ Security maturity directly supports global expansion and enterprise partnerships
 - Credit/Debit cards
 - Net banking
 - Wallets (Paytm, PhonePe, etc.)
-- Cash on delivery option
 - GOindiaRIDE wallet (preloaded balance)
-- Payment history tracking
 - Auto-receipt generation
 ### 6. राइड हिस्ट्री और मैनेजमेंट (Ride Management)
 - Complete ride history (all past bookings)
@@ -1305,19 +1299,14 @@ Security maturity directly supports global expansion and enterprise partnerships
 ### 7. रेटिंग और रिव्यू (Rating & Reviews)
 - Driver rating (1-5 stars)
 - Written review/feedback
-- Photo upload from trip
-- View other customer reviews
 - Report issues/complaints
 - Rate vehicle condition
 - Rate punctuality
 ### 8. सेफ्टी और सपोर्ट (Safety & Support Features)
 - Emergency SOS button (instant alert to admin and police)
-- Share ride details via WhatsApp
 - Live location sharing with family/friends
-- Add 3 emergency contacts
 - 24/7 customer support
 - Help center/FAQs
-- Insurance information display
 ### 9. पर्यटन सुविधाएं (Tourism Features)
 - Restaurant recommendations (verified restaurants with ratings)
 - Shop/Post office/Hotel की जानकारी (Shops, post offices, hotels info)
@@ -1328,18 +1317,14 @@ Security maturity directly supports global expansion and enterprise partnerships
 - Best photo spots suggestions
 - Travel tips and guides
 ### 10. प्रोमो कोड और डिस्काउंट (Promo Codes & Offers)
-- Discount coupon codes
 - First ride discount
 - Referral program (refer and earn)
 - Loyalty points system
 - Seasonal offers (Diwali, Holi, etc.)
-- Group booking discounts
 - Festival special offers
 ### 11. यूजर डैशबोर्ड (User Dashboard)
 - Upcoming bookings
 - Completed trips count
-- Total distance traveled
-- Total money spent
 - Loyalty points balance
 - Wallet balance
 - Saved favorite locations
@@ -1560,7 +1545,6 @@ Security maturity directly supports global expansion and enterprise partnerships
 - 7-day advance forecast
 - Peak hours identification
 - **Smart Fare Control (स्मार्ट फेयर कंट्रोल)**
-- Dynamic pricing based on demand
 - Auto-increase fare during high demand
 - Auto-decrease fare during low demand
 - Peak hours surge pricing configuration
@@ -1762,8 +1746,6 @@ Security maturity directly supports global expansion and enterprise partnerships
 ### 2. कम्युनिकेशन (Communication Features)
 - Language support (Hindi, English, Rajasthani, German, French, Spanish)
 - Multi-language customer support
-- SMS notifications
-- Email notifications
 - WhatsApp integration
 - In-app chat system
 ### 3. एनालिटिक्स और ट्रैकिंग (Analytics & Tracking)
@@ -1777,7 +1759,6 @@ Security maturity directly supports global expansion and enterprise partnerships
 ### 4. सिक्योरिटी (Security Features)
 - SSL certificate (HTTPS)
 - Data encryption
-- Secure payment gateway
 - Two-factor authentication (optional)
 - Activity logging
 - Backup and disaster recovery
@@ -1793,7 +1774,6 @@ Security maturity directly supports global expansion and enterprise partnerships
 - Code minification
 - CDN integration
 - Caching strategy
-**********************************************************************************************************
 Driver portel
 Bahut kam commission or upar dikhaya jaye  ki dusari company se nam matra commission kata jayega
 Vehicle detials full verify
@@ -1824,7 +1804,6 @@ Or isme jitana ho sake utne sabhi ai system dalne hai
 Sabhi portal me adhik se adhik ai system dalne hai
 Or puri website automatic banani hai
 Or hamari website ko international brand ke rup me banani hai us hisab se adhik se adhik ficher dalne hai jo other contry ke parpase se fichar jodna hai
-***********************************
 meri website ka desh board ko or name ko india ke tirange  ke color me banao or ise is tarah se banao ki log adhik se adhik aakrshit ho
 Padharo Rajasthan Journey: द अल्टीमेट 300-पॉइंट 'ग्लोबल एआई' ब्लूप्रिंट (2026)
 I. स्मार्ट पिकअप एवं प्रिसिजन नेविगेशन (1-40)
@@ -3622,3 +3601,1839 @@ VVIP प्राइवेसी मोड: सेलिब्रिटी ग�
 शाश्वत सुरक्षा (The Shield): महिला सुरक्षा, बाल सुरक्षा और अंतरराष्ट्रीय सैलानियों के लिए "अभय कवच" कोडिंग।
 अंतिम संकल्प (23,500): राजस्थान की मिट्टी के कण-कण को आधुनिक तकनीक से जोड़कर उसे विश्व का नंबर 1 पर्यटन स्थल बनाना।
 हुकुम, 23,500 पॉइंट्स का यह महा-ब्लूप्रिंट अब पूर्ण हुआ। आपकी डिजिटल रियासत की नींव अब हिमालय से भी मजबूत है।
+1️⃣ Jaipur
+2️⃣ Udaipur
+3️⃣ Jodhpur
+4️⃣ Jaisalmer
+5️⃣ Bikaner
+6️⃣ Ajmer
+7️⃣ Alwar
+8️⃣ Kota
+9️⃣ Chittorgarh
+🔟 Bharatpur
+1️⃣1️⃣ Sawai Madhopur
+1️⃣2️⃣ Bundi
+1️⃣3️⃣ Tonk
+1️⃣4️⃣ Bhilwara
+1️⃣5️⃣ Rajsamand
+1️⃣6️⃣ Dungarpur
+1️⃣7️⃣ Pratapgarh
+1️⃣8️⃣ Banswara
+1️⃣9️⃣ Pali
+2️⃣0️⃣ Sirohi
+2️⃣1️⃣ Jalore
+2️⃣2️⃣ Barmer
+2️⃣3️⃣ Churu
+2️⃣4️⃣ Jhunjhunu
+2️⃣5️⃣ Sikar
+2️⃣6️⃣ Nagaur
+2️⃣7️⃣ Dausa
+2️⃣8️⃣ Hanumangarh
+2️⃣9️⃣ Sri Ganganagar
+3️⃣0️⃣ Karauli
+3️⃣1️⃣ Dholpur
+3️⃣2️⃣ Baran
+3️⃣3️⃣ Jhalawar
+3️⃣4️⃣ Khairthal–Tijara
+3️⃣5️⃣ Kotputli–Behror
+3️⃣6️⃣ Deeg
+3️⃣7️⃣ Didwana–Kuchaman
+3️⃣8️⃣ Anupgarh
+3️⃣9️⃣ Balotra
+4️⃣0️⃣ Beawar
+41 - dudu
+42 - kekri
+44- phalodi
+45 - kotputli -behror
+46 - khairthal-tijara
+48 - didwana-kuchaman
+/* ======================================
+INDIA LOCATIONS DATA (FUTURE PROOF)
+====================================== */
+const locationsData = {
+states: [
+"Andhra Pradesh",
+"Arunachal Pradesh",
+"Assam",
+"Bihar",
+"Chhattisgarh",
+"Goa",
+"Gujarat",
+"Haryana",
+"Himachal Pradesh",
+"Jharkhand",
+"Karnataka",
+"Kerala",
+"Madhya Pradesh",
+"Maharashtra",
+"Manipur",
+"Meghalaya",
+"Mizoram",
+"Nagaland",
+"Odisha",
+"Punjab",
+"Rajasthan",
+"Sikkim",
+"Tamil Nadu",
+"Telangana",
+"Tripura",
+"Uttar Pradesh",
+"Uttarakhand",
+"West Bengal",
+"Delhi",
+"Jammu and Kashmir",
+"Ladakh",
+"Puducherry",
+"Chandigarh",
+"Dadra and Nagar Haveli and Daman and Diu",
+"Lakshadweep",
+"Andaman and Nicobar Islands"
+],
+rajasthan: {
+districts: [
+"Ajmer",
+"Alwar",
+"Balotra",
+"Banswara",
+"Baran",
+"Barmer",
+"Beawar",
+"Bharatpur",
+"Bhilwara",
+"Bikaner",
+"Bundi",
+"Chittorgarh",
+"Churu",
+"Dausa",
+"Deeg",
+"Dholpur",
+"Didwana-Kuchaman",
+"Dungarpur",
+"Gangapur City",
+"Hanumangarh",
+"Jaipur",
+"Jaipur Rural",
+"Jaisalmer",
+"Jalore",
+"Jhalawar",
+"Jhunjhunu",
+"Jodhpur",
+"Jodhpur Rural",
+"Karauli",
+"Kekri",
+"Khairthal-Tijara",
+"Kota",
+"Kotputli-Behror",
+"Nagaur",
+"Neem Ka Thana",
+"Pali",
+"Phalodi",
+"Pratapgarh",
+"Rajsamand",
+"Salumbar",
+"Sanchore",
+"Sawai Madhopur",
+"Shahpura",
+"Sikar",
+"Sirohi",
+"Sri Ganganagar",
+"Tonk",
+"Udaipur"
+};
+const Rajasthan = {
+Jaipur: {
+forts_durg: [
+"Amber Fort",
+"Jaigarh Fort",
+"Nahargarh Fort",
+"Madhogarh Fort",
+"Achrol Fort",
+"Sambhar Fort",
+"Bhangarh Fort (Jaipur–Alwar Border)"
+palaces_havelis: [
+"City Palace Jaipur",
+"Hawa Mahal",
+"Jal Mahal",
+"Rambagh Palace",
+"Sisodia Rani Garden Palace",
+"Rajmahal Palace",
+"Narain Niwas Palace"
+temples_religious: [
+"Govind Dev Ji Temple",
+"Birla Mandir Jaipur",
+"Galta Ji (Monkey Temple)",
+"Moti Dungri Ganesh Temple",
+"Khole Ke Hanuman Ji Temple",
+"Kale Hanuman Ji Temple",
+"Tarkeshwar Mahadev Temple",
+"Akshardham Temple Jaipur",
+"Shila Devi Temple",
+"Jamwa Mata Temple"
+museums_heritage: [
+"Albert Hall Museum",
+"Jantar Mantar Jaipur",
+"Anokhi Museum of Hand Printing",
+"Jawahar Kala Kendra",
+"Amrapali Museum"
+lakes_water_bodies: [
+"Man Sagar Lake",
+"Ramgarh Lake",
+"Sambhar Salt Lake"
+gardens_parks: [
+"Kanak Vrindavan",
+"Central Park Jaipur",
+"Smriti Van",
+"Ram Niwas Garden"
+wildlife_nature: [
+"Nahargarh Biological Park",
+"Jhalana Leopard Safari",
+"Amagarh Leopard Reserve"
+markets_local_places: [
+"Johari Bazaar",
+"Bapu Bazaar",
+"Tripolia Bazaar",
+"Chandpole Bazaar",
+"Patrika Gate",
+"Statue Circle",
+"Chokhi Dhani",
+"World Trade Park"
+nearby_tourist_spots: [
+"Amer Village",
+"Kukas",
+"Viratnagar (Bairat)",
+"Abhaneri Stepwell (Nearby)",
+"Sariska Entry Route via Jaipur"
+// ===============================
+// RAJASTHAN → UDAIPUR DISTRICT
+Rajasthan.Udaipur = {
+"Chittorgarh Fort (Historic Fort nearby)",
+"Kumbhalgarh Fort",
+"Udaipur City Fort Wall"
+"City Palace Udaipur",
+"Monsoon Palace (Sajjangarh)",
+"Jag Mandir",
+"Jag Niwas (Lake Palace)",
+"Shiv Niwas Palace",
+"Fateh Prakash Palace",
+"Bagore Ki Haveli",
+"Ahar Cenotaphs"
+"Jagadish Temple",
+"Eklingji Temple",
+"Neemach Mata Temple",
+"Karni Mata Temple (Ropeway)",
+"Bohra Ganesh Temple",
+"Sas Bahu Temples Nagda",
+"Mahakaleshwar Temple"
+"Lake Pichola",
+"Fateh Sagar Lake",
+"Udai Sagar Lake",
+"Swaroop Sagar",
+"Rang Sagar",
+"Doodh Talai Lake",
+"Badi Lake (Jaisamand Side)",
+"Jaisamand Lake"
+"Saheliyon Ki Bari",
+"Gulab Bagh",
+"Pratap Park"
+"City Palace Museum",
+"Crystal Gallery",
+"Vintage Car Museum",
+"Ahar Archaeological Museum"
+"Sajjangarh Wildlife Sanctuary",
+"Phulwari Ki Nal Wildlife Sanctuary"
+"Hathi Pol Bazaar",
+"Bada Bazaar",
+"Shilpgram",
+"Chetak Circle",
+"Clock Tower Area",
+"Ambrai Ghat"
+"Nagda Temples",
+"Menar Village (Bird Watching)",
+"Kankroli (Rajsamand)",
+"Ranakpur Jain Temple"
+// RAJASTHAN → JODHPUR DISTRICT
+Rajasthan.Jodhpur = {
+"Mehrangarh Fort",
+"Mandore Fort",
+"Osian Fort Ruins",
+"Pipar Fort (Historic)"
+"Umaid Bhawan Palace",
+"Mandore Palace",
+"Ratanada Palace",
+"Ajit Bhawan",
+"Balsamand Lake Palace"
+"Chamunda Mata Temple",
+"Achal Nath Mahadev Temple",
+"Ganesh Temple Ratanada",
+"Santoshi Mata Temple",
+"Osian Jain Temples",
+"Sachiya Mata Temple Osian"
+"Kaylana Lake",
+"Balsamand Lake",
+"Takhat Sagar Lake"
+"Mandore Gardens",
+"Umaid Public Garden"
+"Mehrangarh Fort Museum",
+"Umaid Bhawan Palace Museum",
+"Government Museum Jodhpur"
+"Machia Biological Park",
+"Desert Rock Park"
+"Sardar Market (Clock Tower)",
+"Tripolia Market Jodhpur",
+"Sojati Gate Market",
+"Nai Sarak"
+"Osian Desert Temples",
+"Pipar City",
+"Shergarh",
+"Bishnoi Villages"
+// RAJASTHAN → JAISALMER DISTRICT
+Rajasthan.Jaisalmer = {
+"Jaisalmer Fort (Sonar Quila)",
+"Kuldhara Fort Ruins",
+"Khaba Fort"
+"Patwon Ki Haveli",
+"Salim Singh Ki Haveli",
+"Nathmal Ki Haveli",
+"Mandir Palace"
+"Jain Temples Jaisalmer Fort",
+"Lodurva Jain Temple",
+"Tanot Mata Temple",
+"Ramdevra Temple (Nearby)",
+"Amar Sagar Jain Temple"
+desert_sand_dunes: [
+"Sam Sand Dunes",
+"Khuri Sand Dunes",
+"Desert National Park"
+"Gadisar Lake",
+"Amar Sagar Lake"
+"Desert Culture Centre & Museum",
+"Jaisalmer War Museum"
+villages_local_places: [
+"Kuldhara Village",
+"Khaba Village",
+"Khuri Village",
+"Sam Village"
+"Desert National Park",
+"Sudashri Fossil Park"
+"Sadar Bazaar Jaisalmer",
+"Bhatia Bazaar",
+"Pansari Bazaar"
+"Tanot Border Area",
+"Longewala War Memorial",
+"Ramgarh (Jaisalmer)"
+// RAJASTHAN → BIKANER DISTRICT
+Rajasthan.Bikaner = {
+"Junagarh Fort",
+"Laxmi Niwas Fort",
+"Deshnok Fort"
+"Lalgarh Palace",
+"Laxmi Niwas Palace",
+"Gajner Palace"
+"Karni Mata Temple (Deshnok)",
+"Kodamdesar Bhairav Temple",
+"Shiv Bari Temple",
+"Laxminath Temple"
+"Gajner Lake",
+"Kolayat Lake"
+"Junagarh Fort Museum",
+"Ganga Golden Jubilee Museum",
+"Camel Research Centre"
+"Tal Chhapar Blackbuck Sanctuary",
+"National Research Centre on Camel"
+"Deshnok",
+"Kolayat",
+"Gajner"
+"Kote Gate Market",
+"Station Road Market",
+"Bhujia Bazaar"
+"Tal Chhapar Sanctuary",
+"Kolayat Sacred Town",
+"Gajner Wildlife Area"
+// RAJASTHAN → AJMER DISTRICT
+Rajasthan.Ajmer = {
+"Taragarh Fort (Ajmer Fort)",
+"Nag Pahar Fort Ruins"
+"Akbari Fort & Museum",
+"Daulat Bagh Pavilion"
+"Ajmer Sharif Dargah",
+"Adhai Din Ka Jhonpra",
+"Ana Sagar Shiv Temple",
+"Nareli Jain Temple",
+"Sai Baba Temple Ajmer",
+"Soni Ji Ki Nasiyan (Ajmer Jain Temple)",
+"Rangji Temple Pushkar"
+"Ana Sagar Lake",
+"Foy Sagar Lake",
+"Pushkar Lake"
+"Daulat Bagh",
+"Subhash Udyan"
+"Akbari Fort Museum",
+"Mayo College Museum"
+"Nag Pahar Range",
+"Pushkar Valley"
+"Dargah Bazaar",
+"Naya Bazaar Ajmer",
+"Kaisarganj Market",
+"Pushkar Main Market"
+"Pushkar",
+"Brahma Temple Pushkar",
+"Savitri Temple (Ropeway)",
+"Kishangarh Marble City",
+"Kishangarh Dumping Yard View Point"
+// RAJASTHAN → ALWAR DISTRICT
+Rajasthan.Alwar = {
+"Alwar Fort (Bala Quila)",
+"Neemrana Fort",
+"Bhangarh Fort",
+"Pratapgarh Fort (Alwar)"
+"City Palace Alwar",
+"Neemrana Fort Palace",
+"Moosi Maharani Ki Chhatri"
+"Karni Mata Temple Alwar",
+"Bhartrihari Temple",
+"Pandupol Hanuman Temple",
+"Neelkanth Mahadev Temple",
+"Siliserh Hanuman Temple"
+"Siliserh Lake",
+"Jaisamand Lake (Alwar)",
+"Sariska Water Reservoirs"
+"Company Garden Alwar",
+"Vijay Mandir Palace Gardens"
+"Alwar Government Museum",
+"City Palace Museum Alwar"
+"Sariska Tiger Reserve",
+"Biodiversity Park Sariska"
+"Hope Circus Market",
+"Lajpat Nagar Market",
+"Alwar City Bazaar"
+"Bhangarh Archaeological Area",
+"Talvriksha",
+"Garhbas",
+"Rajgarh Alwar"
+// RAJASTHAN → KOTA DISTRICT
+Rajasthan.Kota = {
+"Kota Garh (City Fort Palace)",
+"Garadia Mahadev Fort Area"
+"City Palace Kota",
+"Umed Bhawan Palace Kota"
+"Garadia Mahadev Temple",
+"Jagmandir Palace Temple",
+"Kansua Shiv Temple",
+"Godavari Dham",
+"Mukundra Balaji Temple"
+"Kishore Sagar Lake",
+"Chambal River",
+"Jawahar Sagar Dam"
+"Chambal Garden",
+"Seven Wonders Park Kota",
+"City Park Kota",
+"Jawahar Sagar Garden"
+"Government Museum Kota",
+"Maharao Madho Singh Museum"
+"Mukundra Hills Tiger Reserve",
+"Darrah Wildlife Sanctuary",
+"Chambal River Gharial Sanctuary"
+"Gumanpura Market",
+"Rampura Bazaar",
+"Dadabari Market"
+"Garadia Mahadev View Point",
+"Darrah Valley",
+"Alnia Dam",
+"Khade Ganesh Ji"
+// RAJASTHAN → CHITTORGARH DISTRICT
+Rajasthan.Chittorgarh = {
+"Chittorgarh Fort (UNESCO World Heritage Site)",
+"Bassi Fort",
+"Baroli Fort Ruins"
+"Rana Kumbha Palace",
+"Padmini Palace",
+"Fateh Prakash Palace"
+"Kalika Mata Temple",
+"Meera Temple",
+"Kumbha Shyam Temple",
+"Sanwariyaji Temple",
+"Tulja Bhavani Temple"
+"Gaumukh Kund",
+"Gambhiri River",
+"Berach River"
+"Fateh Prakash Palace Museum",
+"Archaeological Museum Chittorgarh"
+"Bassi Wildlife Sanctuary",
+"Baroli Forest Area"
+"Chittorgarh Main Market",
+"Nimbahera Bazaar",
+"Kapasan Market"
+"Menal Waterfall",
+"Bijaipur",
+"Sanwariyaji",
+"Bundi (nearby heritage town)"
+// RAJASTHAN → BHARATPUR DISTRICT
+Rajasthan.Bharatpur = {
+"Lohagarh Fort",
+"Jawahar Burj",
+"Fateh Burj"
+"Bharatpur Palace",
+"Ganga Mandir Palace"
+"Ganga Mandir",
+"Banke Bihari Temple",
+"Laxman Mandir",
+"Deeg Kumbh Shyam Temple"
+"Ghana Lake",
+"Deeg Palace Water Bodies",
+"Banganga River"
+"Keoladeo National Park",
+"Deeg Palace Gardens"
+"Government Museum Bharatpur",
+"Lohagarh Fort Museum"
+"Keoladeo National Park (UNESCO World Heritage Site)",
+"Ghana Bird Sanctuary"
+"Bharatpur Main Bazaar",
+"Kumher Gate Market",
+"Deeg Market"
+"Kumher Fort",
+"Bayana",
+"Mathura (nearby pilgrimage city)"
+// RAJASTHAN → SAWAI MADHOPUR DISTRICT
+Rajasthan.SawaiMadhopur = {
+"Ranthambore Fort (UNESCO World Heritage Site)",
+"Khandar Fort"
+"Ranthambore Fort Palaces",
+"Jogi Mahal"
+"Trinetra Ganesh Temple",
+"Kala Gaura Bhairav Temple",
+"Chauth Mata Temple",
+"Rameshwaram Ghat"
+"Padam Talao",
+"Rajbagh Talao",
+"Malik Talao",
+"Banas River"
+"Ranthambore National Park Zones",
+"Safari Buffer Gardens"
+"Ranthambore Fort Heritage Area"
+"Ranthambore Tiger Reserve",
+"Kailadevi Wildlife Sanctuary",
+"Sawaimadhopur Forest Division"
+"Sawai Madhopur Main Bazaar",
+"Ranthambore Road Market"
+"Kailadevi Temple",
+"Kundera",
+"Bonli",
+"Gangapur City"
+// RAJASTHAN → BUNDI DISTRICT
+Rajasthan.Bundi = {
+"Taragarh Fort (Star Fort)",
+"Garh Palace Fort Complex"
+"Garh Palace",
+"Chitra Shala"
+"Nawal Sagar Temple",
+"Keshav Rai Temple",
+"Bhadra Kali Temple",
+"Sukh Mahal"
+"Nawal Sagar Lake",
+"Jait Sagar Lake",
+"Kanak Sagar Lake",
+"Ramgarh Vishdhari River Area"
+stepwells_baoris: [
+"Raniji ki Baori",
+"Nagar Sagar Kund",
+"Dabhai Kund"
+"Archaeological Survey Protected Monuments",
+"Bundi Palace Art Gallery"
+"Ramgarh Vishdhari Tiger Reserve",
+"Bundi Hills Forest Area"
+"Bundi Main Bazaar",
+"Sadar Market",
+"Keshorai Patan Market"
+"Keshorai Patan",
+"Indergarh",
+"Talwas",
+"Kota (nearby city)"
+// RAJASTHAN → TONK DISTRICT
+Rajasthan.Tonk = {
+"Tonk Fort (Nawab Era Remains)",
+"Duni Fort"
+"Sunehri Kothi",
+"Hadi Rani Mahal"
+"Bisalpur Balaji Temple",
+"Diggi Kalyan Ji Temple",
+"Jama Masjid Tonk",
+"Eidgah Tonk"
+"Bisalpur Dam",
+"Banas River",
+"Duni River Area"
+"Hathi Bhata Baori",
+"Purani Baori Tonk"
+"Arabic & Persian Research Institute",
+"Tonk State Archives"
+"Bisalpur Forest Area",
+"Banas River Belt"
+"Tonk Main Bazaar",
+"Nai Sadak Market",
+"Duni Local Market"
+"Diggi",
+"Duni",
+"Bisalpur",
+"Jaipur (nearby city)"
+// RAJASTHAN → BHILWARA DISTRICT
+Rajasthan.Bhilwara = {
+"Mandalgarh Fort",
+"Bijolia Fort Remains"
+"Badnore Fort Palace",
+"Shahpura Palace (nearby)"
+"Harni Mahadev Temple",
+"Triveni Mahadev Temple",
+"Mangal Nath Temple",
+"Bijolia Mahadev Temple",
+"Mandalgarh Jain Temple"
+"Meja Dam",
+"Menal Water Stream Area"
+"Bijolia Baori",
+"Ancient Stepwells of Mandalgarh"
+"Bhilwara District Museum",
+"Shahpura Heritage Area"
+"Menal Forest Area",
+"Bhilwara Hills & Aravalli Belt"
+"Bhilwara Textile Market",
+"Pur Road Market",
+"Shahpura Bazaar"
+"Menal",
+"Bijolia",
+"Chittorgarh (nearby city)"
+// RAJASTHAN → RAJSAMAND DISTRICT
+Rajasthan.Rajsamand = {
+"Kumbhalgarh Fort (UNESCO World Heritage Site)",
+"Badnore Fort",
+"Dewair Fort Remains"
+"Badnore Palace",
+"Kumbhalgarh Fort Palaces"
+"Dwarkadhish Temple Rajsamand",
+"Charbhuja Temple",
+"Muchhal Mahavir Jain Temple",
+"Shri Nath Ji Temple (Nathdwara nearby)"
+"Rajsamand Lake",
+"Gomti River"
+"Ancient Stepwells of Rajsamand Region"
+"Rajsamand Museum",
+"Kumbhalgarh Heritage Area"
+"Kumbhalgarh Wildlife Sanctuary",
+"Aravalli Hills Forest Belt"
+"Rajsamand Main Market",
+"Nathdwara Market",
+"Charbhuja Bazaar"
+"Nathdwara",
+"Kumbhalgarh",
+"Udaipur (nearby city)",
+"Haldighati"
+// RAJASTHAN → DUNGARPUR DISTRICT
+Rajasthan.Dungarpur = {
+"Dungarpur Fort (Juna Mahal)",
+"Beneshwar Garh Remains"
+"Juna Mahal Palace",
+"Udai Bilas Palace"
+"Beneshwar Dham",
+"Dev Somnath Temple",
+"Shrinathji Temple Dungarpur",
+"Gaib Sagar Temple",
+"Kankal Mata Temple"
+"Gaib Sagar Lake",
+"Mahi River",
+"Som River"
+"Ancient Stepwells of Dungarpur Region"
+"Dungarpur Palace Heritage Area",
+"Tribal Art & Culture Zones"
+"Sitamata Wildlife Sanctuary (partial area)",
+"Dungarpur Main Market",
+"Aspur Local Market",
+"Sabji Mandi Area"
+"Beneshwar",
+"Aspur",
+"Gujarat Tribal Belt"
+// RAJASTHAN → PRATAPGARH DISTRICT
+Rajasthan.Pratapgarh = {
+"Pratapgarh Fort",
+"Achalpur Fort Remains"
+"Pratapgarh Palace",
+"Rajputana Era Havelis"
+"Gautameshwar Mahadev Temple",
+"Devgiri Temple",
+"Sitamata Temple",
+"Jain Temples of Pratapgarh"
+"Gomti Sagar Lake",
+"Ancient Stepwells of Pratapgarh Region"
+"Pratapgarh Local Heritage Area",
+"Tribal Culture Zones"
+"Sitamata Wildlife Sanctuary",
+"Aravalli Forest Belt"
+"Pratapgarh Main Market",
+"Choti Sadri Market",
+"Local Tribal Markets"
+"Choti Sadri",
+"Sitamata Sanctuary",
+"Banswara"
+// RAJASTHAN → BANSWARA DISTRICT
+Rajasthan.Banswara = {
+"Banswara Fort Remains",
+"Kagdi Pick Up Weir Area Fortification"
+"Raj Talab Palace Area",
+"Local Royal Era Havelis"
+"Tripura Sundari Temple (Talwara)",
+"Abdulla Pir Dargah",
+"Shiv Temple Anand Sagar",
+"Jain Temples of Banswara"
+"Anand Sagar Lake",
+"Kadana Backwaters"
+"Ancient Stepwells of Banswara Region"
+"Banswara Local Heritage Area",
+"Tribal Culture & Art Zones"
+"Sitamata Wildlife Sanctuary (nearby)",
+"Mahi River Forest Belt"
+"Banswara Main Market",
+"Talwara Market",
+"Local Tribal Weekly Haats"
+"Tripura Sundari",
+"Talwara",
+"Madhya Pradesh Border Area"
+// RAJASTHAN → PALI DISTRICT
+Rajasthan.Pali = {
+"Ranakpur Fort Remains",
+"Jawali Fort"
+"Ranakpur Royal Area",
+"Marwar Era Havelis"
+"Ranakpur Jain Temple",
+"Om Banna (Bullet Baba) Temple",
+"Somnath Mahadev Temple",
+"Sundha Mata Temple (nearby)"
+"Jawai Dam",
+"Luni River",
+"Bera Water Bodies"
+"Ancient Stepwells of Pali Region"
+"Pali Local Heritage Area",
+"Ranakpur Temple Complex"
+"Jawai Leopard Conservation Area",
+"Pali Main Market",
+"Sumerpur Market",
+"Sojat City Market"
+"Ranakpur",
+"Jawai",
+"Mount Abu",
+"Jodhpur"
+// RAJASTHAN → SIROHI DISTRICT
+Rajasthan.Sirohi = {
+"Achalgarh Fort",
+"Sirohi Fort Remains"
+"Sirohi Royal Palace Area",
+"Mount Abu Heritage Bungalows"
+"Achaleshwar Mahadev Temple",
+"Dilwara Jain Temples",
+"Adhar Devi Temple",
+"Shri Arbuda Devi Temple"
+"Nakki Lake",
+"West Banas River"
+"Ancient Stepwells of Sirohi Region"
+"Mount Abu Heritage Area",
+"Sirohi Local History Zones"
+"Mount Abu Wildlife Sanctuary",
+"Sirohi Main Market",
+"Abu Road Market",
+"Mount Abu Local Bazaar"
+"Abu Road",
+"Gujarat Border Area"
+// ====================================
+// RAJASTHAN → JALORE DISTRICT (REVISED)
+Rajasthan.Jalore = {
+"Jalore Fort (Sonagiri)",
+"Bhinmal Fort Ruins",
+"Sanchore Fort Remains",
+"Ahore Fort",
+"Jaswantpura Fort Ruins"
+"Jalore Royal Palace Structures",
+"Bhinmal Ancient Residences",
+"Ahore Thikana Buildings",
+"Traditional Marwari Havelis"
+"Sundha Mata Temple",
+"Jain Temples Bhinmal",
+"Chamunda Mata Temple Jalore",
+"Mahadev Temples Ahore",
+"Local Kuldevi Temples",
+"Ancient Shaiv Temples"
+"Jawai River (Seasonal)",
+"Local Talabs of Jalore",
+"Traditional Water Tanks Bhinmal"
+"Bhinmal Stepwells",
+"Jalore Town Baoris",
+"Ancient Kunds Ahore Region"
+"Sundha Mata Heritage Zone",
+"Bhinmal Archaeological Areas",
+"Jalore Fort Heritage Complex"
+"Aravalli Foothills Jalore",
+"Dry Forest Zones",
+"Seasonal River Ecosystem"
+"Jalore Main Market",
+"Bhinmal Bazaar",
+"Sanchore Local Market",
+"Rural Weekly Haats"
+// RAJASTHAN → BARMER DISTRICT (REVISED)
+Rajasthan.Barner = {
+"Barmer Fort (Garh Temple)",
+"Siwana Fort",
+"Jaswant Thada Siwana Region Ruins",
+"Pachpadra Fort Remains"
+"Traditional Marwari Havelis Barmer Town",
+"Siwana Royal Structures",
+"Desert Thakur Residences"
+"Kiradu Temples",
+"Shri Nakoda Ji Jain Temple",
+"Barmer Garh Temple",
+"Mahabar Sand Dunes Temples",
+"Juna Barmer Jain Temples",
+"Local Kuldevi Temples"
+"Pachpadra Lake",
+"Salt Lake Pachpadra",
+"Traditional Desert Talabs",
+"Rainwater Kunds of Barmer"
+"Kiradu Stepwells",
+"Ancient Baoris of Siwana",
+"Desert Kunds Barmer Region"
+"Barmer District Folk Art Zones",
+"Kiradu Temple Heritage Area",
+"Desert Handicraft Clusters"
+"Mahabar Sand Dunes",
+"Thar Desert Barmer Belt",
+"Luni River Basin (Seasonal)",
+"Desert Grasslands"
+"Barmer Main Bazaar",
+"Siwana Local Market",
+"Pachpadra Handicraft Market",
+"Rural Haat Zones"
+"Thar Desert Routes"
+// ===================================
+// RAJASTHAN → CHURU DISTRICT (REVISED)
+Rajasthan.Churu = {
+"Churu Fort",
+"Taranagar Fort",
+"Bidasar Fort",
+"Rajgarh Fort",
+"Sujangarh Fort Remains"
+"Surana Havelis Churu",
+"Malji Ka Kamra",
+"Kothari Havelis",
+"Goenka Havelis Rajgarh",
+"Oswal Sethani Haveli"
+"Tal Chhapar Mata Temple",
+"Salasar Balaji Temple (Near Border)",
+"Bhadariya Mata Temple",
+"Jain Temples Sujangarh",
+"Shiv Temples of Taranagar",
+"Hanuman Temples of Desert Belt"
+"Tal Chhapar Wetland",
+"Desert Johads of Churu Region",
+"Seasonal Ponds of Taranagar"
+"Churu Town Baoris",
+"Taranagar Stepwells",
+"Rajgarh Ancient Baoris"
+"Tal Chhapar Interpretation Center",
+"Shekhawati Fresco Zones Churu",
+"Desert Cultural Heritage Areas"
+"Thar Desert Extension Area",
+"Grassland Ecosystem of Sujangarh"
+"Churu Main Market",
+"Sujangarh Bazaar",
+"Taranagar Local Market",
+"Rajgarh Market"
+"Salasar"
+// =======================================
+// RAJASTHAN → JHUNJHUNU DISTRICT (REVISED)
+Rajasthan.Jhunjhunu = {
+"Mandawa Fort",
+"Nawalgarh Fort",
+"Bissau Fort",
+"Dundlod Fort",
+"Jhunjhunu Fort (Old Ruins)",
+"Mukundgarh Fort"
+"Podar Haveli Nawalgarh",
+"Goenka Havelis Nawalgarh",
+"Modi Haveli Jhunjhunu",
+"Piramal Haveli",
+"Kanoria Haveli",
+"Chokhani Havelis",
+"Dundlod Palace"
+"Rani Sati Temple",
+"Khetri Ganesh Temple",
+"Mandawa Thakurji Temple",
+"Lohargal Dham",
+"Shani Temple Bissau",
+"Jain Temples Nawalgarh",
+"Khetri Shyam Temple",
+"Shiv Temples of Aravalli Belt"
+"Lohargal Kund",
+"Khetri Reservoirs",
+"Traditional Johads of Jhunjhunu Region"
+"Mandawa Baori",
+"Bissau Stepwell",
+"Nawalgarh Baoris",
+"Ancient Baoris of Dundlod"
+"Mandawa Fort Museum",
+"Nawalgarh Shekhawati Fresco Zones",
+"Dundlod Heritage Area",
+"Khetri Copper Heritage Zone"
+"Aravalli Hills Jhunjhunu Extension",
+"Khetri Forest Belt",
+"Semi-Arid Shekhawati Landscape"
+"Jhunjhunu Main Market",
+"Nawalgarh Bazaar",
+"Mandawa Market",
+"Bissau Local Market"
+"Mandawa",
+"Nawalgarh",
+"Haryana Border Area"
+// RAJASTHAN → SIKAR DISTRICT (FULL)
+Rajasthan.Sikar = {
+"Laxmangarh Fort",
+"Fatehpur Shekhawati Fort",
+"Harsh Parvat Fort Remains",
+"Sikar Fort (Old Town Area)"
+"Laxmangarh Palace",
+"Goenka Havelis Fatehpur",
+"Podar Haveli Nawalgarh Road",
+"Modi Haveli",
+"Chokhani Havelis"
+"Jeen Mata Temple",
+"Salasar Balaji Temple",
+"Laxminath Temple Sikar",
+"Gopinath Temple Sikar",
+"Harsh Parvat Shiva Temple",
+"Madho Niwas Kothi Temples",
+"Khatushyam Ji Temple",
+"Sankat Mochan Hanuman Temple",
+"Jain Temples of Fatehpur"
+"Harsh Parvat Seasonal Kunds",
+"Laxmangarh Water Reservoirs",
+"Village Johads of Sikar Region"
+"Laxmangarh Baori",
+"Fatehpur Stepwells",
+"Ancient Baoris of Sikar Town"
+"Fatehpur Shekhawati Heritage Area",
+"Laxmangarh Fort Museum",
+"Shekhawati Fresco Art Zones"
+"Harsh Mountain Forest Area",
+"Shekhawati Semi-Arid Belt",
+"Aravalli Extension Hills"
+"Sikar Main Market",
+"Fatehpur Market",
+"Laxmangarh Bazaar",
+"Khatushyam Ji Pilgrim Market"
+"Khatushyam Ji",
+"Jeen Mata",
+"Salasar",
+"Churu"
+// ================================
+// 26️⃣ RAJASTHAN → NAGAUR DISTRICT
+Rajasthan.Nagaur = {
+"Nagaur Fort (Ahhichatragarh Fort)",
+"Kuchaman Fort",
+"Didwana Fort",
+"Parbatsar Fort",
+"Merta Fort Ruins"
+"Ahhichatragarh Palace Complex",
+"Kuchaman Palace",
+"Didwana Thikana Residences",
+"Merta Thikana Buildings",
+"Nagaur Sharif Dargah",
+"Meera Bai Temple Merta",
+"Kuchaman Jain Temples",
+"Didwana Jain Temples",
+"Ancient Shiva Temples of Nagaur",
+"Didwana Salt Lake",
+"Kuchaman Lake",
+"Local Talabs of Nagaur",
+"Traditional Rainwater Kunds"
+"Nagaur Town Baoris",
+"Kuchaman Stepwells",
+"Didwana Baoris",
+"Merta Kunds"
+"Nagaur Fort Heritage Area",
+"Kuchaman Fort Museum Zone",
+"Merta Cultural Heritage Sites"
+"Didwana Salt Lake Bird Area",
+"Arid Plains of Nagaur",
+"Seasonal Grasslands",
+"Desert Flora Zones"
+"Nagaur Main Bazaar",
+"Kuchaman City Market",
+"Didwana Market",
+"Merta Road Market",
+"Jaipur"
+// 27️⃣ RAJASTHAN → DAUSA DISTRICT
+Rajasthan.Dausa = {
+"Bhandarej Fort",
+"Abhaneri Fort Ruins",
+"Baswa Fort Remains",
+"Mahwa Fort Ruins"
+"Bhandarej Palace",
+"Mahwa Thikana Residences",
+"Traditional Shekhawati–Dhundhar Havelis",
+"Old Royal Houses of Dausa"
+"Mehandipur Balaji Temple",
+"Abhaneri Harshat Mata Temple",
+"Gopinath Ji Temple Dausa",
+"Shiv Temples of Mahwa Region",
+"Local Kuldevi & Gram Devta Temples"
+"Bhandarej Talab",
+"Seasonal Rivers of Banganga Basin",
+"Traditional Village Talabs",
+"Rainwater Kunds of Dausa"
+"Chand Baori Abhaneri",
+"Ancient Baoris of Baswa",
+"Village Stepwells Mahwa Belt"
+"Abhaneri Archaeological Zone",
+"Bhandarej Heritage Complex",
+"Dausa Local History Areas"
+"Aravalli Foothills Dausa",
+"Banganga River Belt",
+"Dry Deciduous Forest Zones",
+"Rural Grassland Areas"
+"Dausa Main Market",
+"Mahwa Bazaar",
+"Bandikui Market",
+"Tonk"
+// =====================================
+// 28️⃣ RAJASTHAN → HANUMANGARH DISTRICT
+Rajasthan.Hanumangarh = {
+"Bhatner Fort (Hanumangarh Fort)",
+"Pilibanga Fort Remains",
+"Nohar Fort Ruins",
+"Bhadra Fort Structures"
+"Bhatner Fort Palace Area",
+"Nohar Thikana Residences",
+"Bhadra Royal Houses",
+"Traditional Bagri Region Havelis"
+"Brahmani Mata Temple",
+"Gogaji Temple",
+"Shiv Temples of Ghaggar Belt",
+"Hanuman Temples Hanumangarh Town",
+"Jain Temples Nohar",
+"Ghaggar River (Seasonal)",
+"Nohar Talab",
+"Bhadra Talab",
+"Traditional Village Ponds",
+"Irrigation Canals of Indira Gandhi Canal Project"
+"Ancient Baoris of Bhatner Area",
+"Nohar Stepwells",
+"Traditional Kunds of Bagri Region"
+"Bhatner Fort Heritage Zone",
+"Kalibangan Archaeological Area",
+"Indus Valley Civilization Sites Kalibangan",
+"Local History Museums (District Level)"
+"Ghaggar Floodplain Area",
+"Agricultural Green Belt",
+"Semi-Arid Plains",
+"Canal Irrigated Farmland Zones"
+"Hanumangarh Main Bazaar",
+"Nohar Market",
+"Bhadra Market",
+"Pilibanga Market",
+"Punjab Border Areas",
+"Haryana Border Areas"
+// ===========================================
+// 29️⃣ RAJASTHAN → SRI GANGANAGAR DISTRICT
+Rajasthan.SriGanganagar = {
+"Matsya Fort Ruins (Historical References)",
+"Anupgarh Fort Ruins",
+"Gajsinghpur Fort Remains",
+"Karanpur Fort Structures"
+"Karanpur Thikana Residences",
+"Gajsinghpur Royal Houses",
+"Anupgarh Thikana Buildings",
+"Traditional Canal Colony Era Havelis"
+"Laxmi Narayan Mandir (Birla Mandir)",
+"Gogaji Temples",
+"Shiv Temples of Canal Belt",
+"Hanuman Mandirs Sri Ganganagar",
+"Jain Temples Karanpur",
+"Local Kuldevi & Gram Devta Temples",
+"Sikh Gurudwaras (Canal Region)"
+"Indira Gandhi Canal Network",
+"Anupgarh Talabs",
+"Village Ponds of Canal Irrigated Area"
+"Traditional Kunds of Desert Belt",
+"Old Village Stepwells",
+"Rainwater Storage Baoris (Historic)"
+"Indira Gandhi Canal Heritage Areas",
+"Local Freedom Movement Sites",
+"Partition Era Settlement Heritage Zones"
+"Thar Desert Northern Extension",
+"Canal Irrigated Green Belt",
+"Agricultural Plains",
+"Semi-Arid Grassland Zones"
+"Sri Ganganagar Main Market",
+"Anupgarh Market",
+"Karanpur Bazaar",
+"Gajsinghpur Market",
+"Pakistan Border Desert Routes",
+"Rajasthan–Punjab Cultural Belt"
+// 30️⃣ RAJASTHAN → KARAULI DISTRICT
+Rajasthan.Karauli = {
+"Karauli Fort",
+"Mandrail Fort",
+"Todabhim Fort Ruins",
+"Masalpur Fort Remains"
+"Karauli City Palace",
+"Mandrail Palace Structures",
+"Todabhim Thikana Residences",
+"Traditional Dhundhar–Braj Region Havelis"
+"Kaila Devi Temple",
+"Madankeshwar Mahadev Temple",
+"Shri Mahavir Ji Jain Temple",
+"Mehandipur Balaji (District Border Area)",
+"Shiv Temples of Chambal Basin",
+"Karauli Talab",
+"Seasonal Streams of Chambal Basin",
+"Village Ponds and Talabs",
+"Ancient Baoris of Karauli Town",
+"Mandrail Stepwells",
+"Todabhim Kunds and Baoris"
+"Karauli Palace Heritage Complex",
+"Shri Mahavir Ji Pilgrimage Heritage Area",
+"Local Archaeological Zones"
+"Chambal River Ravines (Peripheral)",
+"Aravalli–Vindhya Transition Belt",
+"Karauli Main Bazaar",
+"Mandrail Market",
+"Todabhim Market",
+"Masalpur Local Market",
+"Agra"
+// 31️⃣ RAJASTHAN → DHOLPUR DISTRICT
+Rajasthan.Dholpur = {
+"Dholpur Fort",
+"Shergarh Fort (Chambal Region)",
+"Rajakhera Fort Remains",
+"Bari Fort Structures"
+"Dholpur Royal Palace",
+"Rajakhera Thikana Residences",
+"Bari Thikana Buildings",
+"Traditional Chambal Region Havelis"
+"Machkund Temple",
+"Shiv Temples of Chambal Ravines",
+"Hanuman Temples Dholpur Town",
+"Jain Temples Bari",
+"Machkund Water Body",
+"Parvati River (District Border Area)",
+"Village Talabs and Ponds",
+"Machkund Kund",
+"Ancient Baoris of Dholpur Town",
+"Village Stepwells Rajakhera Area"
+"Dholpur Palace Heritage Zone",
+"Machkund Archaeological Area",
+"Chambal Ravines Historical Sites"
+"National Chambal Sanctuary (Peripheral)",
+"Chambal River Ravines",
+"Semi-Arid Forest Zones",
+"Grassland & Riverine Ecosystems"
+"Dholpur Main Bazaar",
+"Bari Market",
+"Rajakhera Market",
+"Local Weekly Haats"
+"Agra",
+"Morena",
+"Gwalior"
+// 32️⃣ RAJASTHAN → BARAN DISTRICT
+Rajasthan.Baran = {
+"Shahabad Fort",
+"Shergarh Fort (Baran Region)",
+"Kishanganj Fort Remains",
+"Atru Fort Structures"
+"Atru Palace",
+"Shahabad Thikana Residences",
+"Kishanganj Thikana Buildings",
+"Traditional Hadoti Region Havelis"
+"Sitabari Temple (Ram–Laxman–Sita)",
+"Shiv Temples of Parvati Basin",
+"Jain Temples Baran Town",
+"Parvati River",
+"Kali Sindh River",
+"Ujad River",
+"Ancient Baoris of Atru",
+"Shahabad Stepwells",
+"Traditional Kunds of Baran Region"
+"Atru Palace Heritage Zone",
+"Sitabari Archaeological Area",
+"Local Historical Sites of Hadoti Region"
+"Shahabad Forest Area",
+"Mukundra Hills Peripheral Zone",
+"Riverine Forest Belts",
+"Hadoti Plateau Grasslands"
+"Baran Main Bazaar",
+"Atru Market",
+"Shahabad Market",
+"Kishanganj Market",
+"Ranthambore (Sawai Madhopur)",
+"Madhya Pradesh Border Areas"
+// 33️⃣ RAJASTHAN → JHALAWAR DISTRICT
+Rajasthan.Jhalawar = {
+"Jhalawar Fort",
+"Gagron Fort (UNESCO World Heritage Site)",
+"Khandar Fort (Historic Border Area)",
+"Khanpur Fort Ruins"
+"Jhalawar Government Museum Palace",
+"Gagron Fort Palace Area",
+"Khanpur Thikana Residences",
+"Traditional Malwa–Hadoti Region Havelis"
+"Chandrabhaga Temple",
+"Sun Temple Jhalrapatan",
+"Gagron Fort Temples",
+"Shiv Temples of Chandrabhaga River",
+"Jain Temples Jhalrapatan",
+"Chandrabhaga River",
+"Ahu River",
+"Kali Sindh River (Peripheral)",
+"Ancient Baoris of Jhalrapatan",
+"Stepwells near Gagron Fort",
+"Traditional Kunds of Jhalawar Region"
+"Government Museum Jhalawar",
+"Gagron Fort Heritage Zone",
+"Jhalrapatan Archaeological Area"
+"Jhalawar Forest Area",
+"Green Malwa Plateau Grasslands"
+"Jhalawar Main Bazaar",
+"Jhalrapatan Market",
+"Khanpur Market",
+"Bhawani Mandi Market",
+"Madhya Pradesh Border Areas",
+"Mukundra Hills"
+// =============================================
+// 34️⃣ RAJASTHAN → KHAIRTHAL–TIJARA DISTRICT
+Rajasthan.KhairthalTijara = {
+"Tijara Fort",
+"Bansur Fort Remains",
+"Ancient Fort Structures of Mewat Region"
+"Tijara Fort Palace",
+"Bansur Thikana Residences",
+"Traditional Mewati & Alwar Region Havelis"
+"Neemrana–Tijara Jain Temples",
+"Baba Mohan Ram Temple",
+"Shiv Temples of Aravalli Foothills",
+"Hanuman Mandirs Khairthal Area",
+"Jain Dadabadi Tijara"
+"Siliserh Peripheral Water Bodies",
+"Local Talabs of Tijara–Bansur Belt",
+"Seasonal Nallahs of Aravalli Region",
+"Ancient Baoris of Bansur",
+"Village Stepwells Tijara Region",
+"Traditional Kunds (Water Harvesting)"
+"Tijara Fort Heritage Complex",
+"Local Archaeological Sites of Mewat",
+"Traditional Cultural Heritage Zones"
+"Aravalli Foothills Forest Area",
+"Rural Grasslands",
+"Agricultural Green Belts"
+"Khairthal Main Market",
+"Tijara Bazaar",
+"Bansur Market",
+"Neemrana",
+"Gurugram",
+"Delhi NCR Border Areas"
+// ==================================================
+// 35️⃣ RAJASTHAN → KOTPUTLI–BEHROR DISTRICT
+Rajasthan.KotputliBehror = {
+"Kotputli Fort",
+"Behror Fort Remains",
+"Bansur Fort (Peripheral Area)",
+"Ancient Aravalli Hill Fort Structures"
+"Kotputli Thikana Residences",
+"Behror Thikana Buildings",
+"Traditional Shekhawati–Mewat Style Havelis",
+"Old Merchant Havelis of Highway Belt"
+"Hanuman Mandir Kotputli",
+"Jain Temples Behror",
+"Baba Mohan Ram Temple (Nearby)",
+"Local Talabs of Kotputli",
+"Seasonal Streams of Aravalli Region",
+"Village Ponds",
+"Ancient Baoris of Kotputli Town",
+"Village Stepwells Behror Region",
+"Traditional Kunds (Water Harvesting Structures)"
+"Local Heritage Sites Kotputli",
+"Traditional Trade Route Heritage Areas",
+"Aravalli Region Archaeological Zones"
+"Agricultural Plains"
+"Kotputli Main Market",
+"Behror Bazaar",
+"Highway Trade Markets",
+"Delhi NCR"
+// 36️⃣ RAJASTHAN → DEEG DISTRICT
+Rajasthan.Deeg = {
+"Deeg Fort",
+"Ancient Defensive Walls of Deeg Region"
+"Deeg Palace (Suraj Bhawan, Gopal Bhawan)",
+"Kumher Palace",
+"Royal Garden Pavilions",
+"Traditional Braj Region Havelis"
+"Laxman Mandir Deeg",
+"Govind Dev Ji Temple (Braj Influence)",
+"Shiv Temples of Braj Region",
+"Hanuman Mandirs Deeg",
+"Deeg Palace Water Reservoirs",
+"Kumher Talab",
+"Historic Baoris of Deeg Town",
+"Kumher Stepwells",
+"Traditional Kunds of Braj Area"
+"Deeg Palace Heritage Complex",
+"Braj Cultural Heritage Sites",
+"Local Archaeological Remains"
+"Semi-Arid Plains of Braj",
+"Agricultural Landscapes",
+"Seasonal Wetlands",
+"Rural Green Belts"
+"Deeg Main Bazaar",
+"Kumher Market",
+"Local Handicraft Markets",
+"Mathura",
+"Vrindavan",
+// ===================================================
+// 37️⃣ RAJASTHAN → DIDWANA–KUCHAMAN DISTRICT
+Rajasthan.DidwanaKuchaman = {
+"Didwana Fort Ruins",
+"Makrana Peripheral Fort Structures",
+"Ancient Desert Watch Fortifications"
+"Kuchaman Fort Palace",
+"Merchant Havelis of Salt Trade Era",
+"Traditional Marwar–Shekhawati Style Havelis"
+"Didwana Jain Mandirs",
+"Shiv Temples of Nagaur Desert Belt",
+"Hanuman Mandirs Didwana Region",
+"Kuchaman Talab",
+"Seasonal Desert Water Bodies",
+"Ancient Baoris of Kuchaman",
+"Historic Stepwells Didwana Town",
+"Village Kunds of Desert Region"
+"Kuchaman Fort Heritage Complex",
+"Salt Trade History Zones (Didwana)",
+"Local Archaeological Sites"
+"Thar Desert Semi-Arid Landscape",
+"Salt Lake Ecosystem",
+"Desert Grasslands",
+"Rural Agricultural Patches"
+"Didwana Main Market",
+"Kuchaman City Bazaar",
+"Salt Trade Markets",
+"Makrana",
+"Bikaner"
+// 38️⃣ RAJASTHAN → ANUPGARH DISTRICT
+Rajasthan.Anupgarh = {
+"Anupgarh Fort",
+"Gharsana Border Fortifications",
+"Historical Desert Watch Posts"
+"Anupgarh Thikana Residences",
+"Gharsana Royal Houses",
+"Shiv Mandirs Anupgarh",
+"Hanuman Mandirs Border Region",
+"Sikh Gurudwaras Canal Belt"
+"Indira Gandhi Canal System",
+"Seasonal Desert Water Ponds",
+"Village Talabs",
+"Traditional Kunds of Thar Region",
+"Village Stepwells (Historic)"
+"Canal Development Heritage Areas",
+"Border Settlement Historical Sites",
+"Local Freedom Movement Zones"
+"Thar Desert Landscape",
+"Border Area Ecosystems"
+"Anupgarh Main Market",
+"Gharsana Bazaar",
+"Village Weekly Haats",
+"Agricultural Produce Markets"
+"Rajasthan–Punjab Border Areas",
+"Indira Gandhi Canal Route"
+// 39️⃣ RAJASTHAN → BALOTRA DISTRICT
+Rajasthan.Balotra = {
+"Balotra Fort Ruins",
+"Jaswantpura Fort (Peripheral)",
+"Balotra Thikana Residences",
+"Jaswantpura Royal Houses",
+"Traditional Marwar Style Havelis"
+"Nakoda Jain Temple (Nearby Influence)",
+"Shiv Mandirs Balotra Region",
+"Hanuman Mandirs",
+"Jain Temples of Marwar Belt"
+"Seasonal Desert Nallahs",
+"Ancient Baoris of Balotra",
+"Village Stepwells of Luni Basin",
+"Local Textile & Dyeing Heritage Zones",
+"Marwar Cultural Heritage Sites",
+"Traditional Trade Route Areas"
+"Luni River Basin Ecosystem",
+"Balotra Main Market",
+"Textile & Dyeing Markets",
+"Rural Weekly Haats",
+"Agricultural Produce Mandis"
+"Nakoda",
+"Pali"
+// 40️⃣ RAJASTHAN → BEAWAR DISTRICT
+Rajasthan.Beawar = {
+"Badnor Fort",
+"Masuda Fort",
+"Bijaynagar Fort Remains",
+"Ancient Aravalli Hill Fortifications"
+"Badnor Palace",
+"Masuda Thikana Residences",
+"Bijaynagar Royal Houses",
+"Traditional Merwara–Mewar Style Havelis"
+"Veer Tejaji Maharaj Temple",
+"Shri Charbhuja Nath Temple",
+"Shiv Mandirs of Aravalli Region",
+"Jain Temples Beawar Area",
+"Masuda Dam",
+"Badnor Lake",
+"Seasonal Aravalli Streams",
+"Ancient Baoris of Badnor",
+"Historic Stepwells Masuda Area",
+"Traditional Kunds of Merwara Region"
+"Badnor Fort Heritage Zone",
+"Merwara Cultural Heritage Sites",
+"Aravalli Hill Forest Area",
+"Beawar Main Market",
+"Badnor Bazaar",
+"Masuda Market",
+"Bijaynagar Market",
+"Bhilwara"
+// 41️⃣ RAJASTHAN → DUDU DISTRICT
+Rajasthan.Dudu = {
+"Mozamabad Fort",
+"Historic Fort Remains of Dudu Region",
+"Ancient Watch Posts of Dhundhar Area"
+"Mozamabad Thikana Palace",
+"Dudu Thikana Residences",
+"Traditional Dhundhar Style Havelis",
+"Rajput Era Residential Complexes"
+"Shri Kalyan Ji Temple",
+"Shiv Temples of Dudu Tehsil",
+"Village Gram Devta Shrines"
+"Seasonal Rivers of Dhundhar Region",
+"Traditional Johads",
+"Rainwater Harvesting Kunds"
+"Ancient Baoris of Mozamabad",
+"Traditional Stepwells in Rural Dudu",
+"Historic Water Storage Structures"
+"Mozamabad Heritage Zone",
+"Local Rajputana Cultural Sites",
+"Traditional Folk Culture Areas"
+"Village Grazing Lands",
+"Seasonal Green Belts"
+"Dudu Main Market",
+"Mozamabad Bazaar",
+"Local Weekly Haats",
+"Agricultural Mandis"
+"Sambhar",
+"Phulera",
+// 42️⃣ RAJASTHAN → KEKRI DISTRICT
+Rajasthan.Kekri = {
+"Kekri Fort (Historical Remains)",
+"Local Rajput Era Fortifications",
+"Ancient Security Outposts of Ajmer Region"
+"Kekri Thikana Residences",
+"Rajput Period Havelis",
+"Traditional Shekhawati–Ajmer Style Houses",
+"Old Merchant Havelis"
+"Shiv Mandirs of Kekri",
+"Hanuman Temples",
+"Jain Derasars",
+"Village Kuldevi & Gram Devta Shrines"
+"Local Talabs",
+"Seasonal Rivers & Nallahs",
+"Village Water Reservoirs"
+"Ancient Baoris of Kekri Region",
+"Traditional Stepwells",
+"Historic Water Conservation Structures"
+"Local Heritage Sites",
+"Rajputana Cultural Areas",
+"Traditional Folk Art Zones"
+"Semi-Arid Landscapes",
+"Agricultural Fields",
+"Village Pasture Lands",
+"Seasonal Green Zones"
+"Kekri Main Bazaar",
+"Sub-Tehsil Markets",
+"Weekly Rural Haats",
+// 43️⃣ RAJASTHAN → DEEG DISTRICT
+"Local Rajput Defensive Structures",
+"Historical Military Outposts"
+"Deeg Palace",
+"Suraj Bhawan",
+"Gopal Bhawan",
+"Nand Bhawan",
+"Ranjit Bhawan",
+"Jal Mahal (Deeg)",
+"Historic Havelis of Deeg Town"
+"Shri Keshav Dev Ji Temple (Braj Region)",
+"Govind Dev Ji Related Shrines",
+"Radha-Krishna Temples",
+"Shiv Temples",
+"Local Jain Temples"
+"Gopal Sagar",
+"Rup Sagar",
+"Sawan-Bhadon Talab",
+"Historic Water Channels of Deeg Palace",
+"Traditional Village Talabs"
+"Ancient Baoris of Deeg Region",
+"Historic Stepwells",
+"Traditional Water Harvesting Structures"
+gardens_nature: [
+"Deeg Palace Gardens",
+"Char-Bagh Style Mughal Gardens",
+"Braj Region Green Zones",
+"Seasonal Floral Gardens"
+"Braj Cultural Heritage Areas",
+"Jat Dynasty Historical Sites"
+"Agricultural Farmland",
+"Seasonal Wetlands"
+"Kumher Local Market",
+"Traditional Sweet & Milk Product Markets"
+"Govardhan",
+"Kumher"
+// 44️⃣ RAJASTHAN → PHALODI DISTRICT
+Rajasthan.Phalodi = {
+"Phalodi Fort",
+"Local Desert Watch Posts",
+"Historic Rajput Defensive Structures",
+"Old Border Protection Outposts"
+"Phalodi Sethani Ka Johara Area Havelis",
+"Oswal Jain Merchant Havelis",
+"Traditional Sandstone Havelis",
+"Historic Trading Houses"
+"Shri Jain Shwetambar Temples",
+"Shri Mahavir Ji Jain Mandir",
+"Ram Devra Related Shrines",
+"Local Devi Temples"
+"Sethani Ka Johara",
+"Phalodi Talab",
+"Traditional Rainwater Reservoirs",
+"Village Johads"
+"Sethani Ji Ki Baori",
+"Ancient Desert Stepwells",
+"Community Baoris"
+deserts_nature: [
+"Sand Dunes of Phalodi Region",
+"Arid Grasslands",
+"Salt Affected Plains"
+"Local Jain Heritage Sites",
+"Historic Trade Route Locations",
+"Desert Culture Areas"
+"Desert Fox",
+"Chinkara",
+"Desert Birds",
+"Migratory Birds (Seasonal)",
+"Reptile Species of Thar"
+"Phalodi Main Bazaar",
+"Traditional Salt Trade Market",
+"Dry Fruit & Grain Markets",
+"Weekly Rural Haats"
+"Osian",
+"Ramdevra",
+"Khichan (Demoiselle Cranes)",
+// 45️⃣ RAJASTHAN → KOTPUTLI–BEHROR DISTRICT
+"Kotputli Garh (Historic Fort Ruins)",
+"Behror Defensive Structures",
+"Rajput Era Fort Remains"
+"Shekhawati Style Havelis (Border Area)",
+"Merchant Havelis of Kotputli",
+"Old Behror Havelis"
+"Baba Mohan Ram Mandir",
+"Shri Hanuman Mandirs",
+"Local Devi Temples",
+"Jain Temples",
+"Ramdevra Related Shrines"
+"Behror Water Reservoirs",
+"Village Ponds"
+"Ancient Baoris of Behror Region",
+"Community Stepwells",
+"Old Rainwater Harvesting Baoris"
+hills_nature: [
+"Aravalli Hill Ranges",
+"Rocky Forest Zones",
+"Natural View Points"
+"Neemrana Heritage Complex",
+"Historic Trade Route Locations"
+"Nilgai",
+"Peacock",
+"Jackal",
+"Local Bird Species",
+"Aravalli Flora & Fauna"
+"Highway Commercial Hubs",
+"Sariska",
+// 46️⃣ RAJASTHAN → KHAIRTHAL–TIJARA DISTRICT
+"Tijara Fort (Historic Ruins)",
+"Old Defensive Structures of Mewat Region"
+"Tijara Palace Ruins",
+"Traditional Meo & Rajput Havelis",
+"Old Merchant Houses of Khairthal"
+"Baba Mohan Ram Mandir (Tijara)",
+"Sufi Dargahs of Mewat Region"
+"Local Talabs of Tijara",
+"Rainwater Storage Tanks"
+"Ancient Baoris of Tijara Region",
+"Old Water Harvesting Structures"
+"Aravalli Foothills",
+"Rocky Hillocks",
+"Semi-Arid Agricultural Plains",
+"Natural Forest Patches"
+"Local Mewat Culture Sites",
+"Historic Trade Route Areas",
+"Regional Freedom Movement Locations"
+"Aravalli Flora"
+"Agricultural Produce Markets",
+// 47️⃣ RAJASTHAN → BEAWAR DISTRICT
+"Todgarh Fort (Nearby Region)",
+"Rajput Era Fort Ruins"
+"Old British Era Bungalows",
+"Traditional Marwari Havelis",
+"Merchant Havelis of Beawar"
+"Shri Devnarayan Temple",
+"Sant Ravidas Related Sites"
+"Beawar Talab",
+"Masuda Lake",
+"Local Village Ponds",
+"Traditional Johads"
+"Stepwells near Masuda",
+"Traditional Water Structures"
+"Todgarh Forest Region",
+"Rocky Plateaus",
+"Semi-Arid Landscapes"
+"Badnor Heritage Area",
+"British Era Industrial Heritage Sites",
+"Local Freedom Movement Places"
+"Todgarh–Raoli Wildlife Sanctuary",
+"Leopard",
+"Hyena",
+"Wild Birds & Aravalli Flora"
+"Masuda Bazaar",
+"Cement Industry Area Markets",
+"Todgarh Sanctuary",
+// 48️⃣ RAJASTHAN → DIDWANA–KUCHAMAN DISTRICT
+"Didwana Fort (Historic Remains)",
+"Rajput Era Defensive Structures",
+"Old Watch Towers of Shekhawati Border"
+"Merchant Havelis of Didwana",
+"Old Royal Residences"
+"Shri Dadhimati Mata Temple (Gotan–Nearby Influence)",
+"Stepwells near Didwana Town",
+"Traditional Rainwater Harvesting Baoris"
+"Local History & Culture Sites",
+"Salt Trade Heritage Areas"
+"Desert Fox (Occasional)",
+"Kuchaman Bazaar",
+"Khimsar"
+// 49️⃣ RAJASTHAN → NEEM KA THANA DISTRICT
+Rajasthan.NeemKaThana = {
+"Khandela Fort",
+"Neem Ka Thana Garh (Historic Remains)",
+"Old Watch Towers of Shekhawati Region"
+"Shekhawati Style Havelis",
+"Merchant Havelis of Khandela",
+"Losaram Mata Temple",
+"Jeen Mata Temple (Nearby Influence)",
+"Jain Temples"
+"Local Talabs of Neem Ka Thana",
+"Seasonal Water Reservoirs"
+"Ancient Baoris of Khandela",
+"Rocky Hills of Shekhawati",
+"Shekhawati Heritage Areas",
+"Rajput Era Historical Locations"
+"Neem Ka Thana Main Market",
+"Khandela Bazaar",
+// 50️⃣ RAJASTHAN → SHAHAPURA DISTRICT
+Rajasthan.Shahapura = {
+"Shahapura Fort",
+"Rajput Era Fort Remains",
+"Old Defensive Walls of Shahapura",
+"Historic Watch Towers"
+"Shahapura Palace",
+"Royal Residences of Shahapura",
+"Traditional Mewar Style Havelis",
+"Shri Ram Temple",
+"Shahapura Talab",
+"Ancient Baoris of Shahapura",
+"Natural Scenic View Points"
+"Shahapura Fort Heritage Area",
+"Rajputana Era Historical Locations"
+"Shahapura Main Market",
+"Local Bazaars",
+"Handicraft Markets",
+// ======================================
+// DISTRICT VIEW CONTROLLER
+const districtSelect = document.getElementById("districtSelect");
+const districtOutput = document.getElementById("districtOutput");
+// Rajasthan districts dropdown fill
+locationsData.rajasthan.districts.forEach(district => {
+const option = document.createElement("option");
+option.value = district;
+option.textContent = district;
+districtSelect.appendChild(option);
+// On district change
+districtSelect.addEventListener("change", function () {
+const selectedDistrict = this.value;
+showDistrictData(selectedDistrict);
+// Show full district data
+function showDistrictData(districtName) {
+districtOutput.innerHTML = "";
+// JS key match (name cleanup)
+const jsKey = districtName
+.replace(/-/g, "")
+.replace(/\s/g, "");
+const districtData = Rajasthan[jsKey];
+if (!districtData) {
+districtOutput.innerHTML = "<p>Data not available</p>";
+return;
+for (let category in districtData) {
+const section = document.createElement("div");
+section.className = "district-section";
+const heading = document.createElement("h3");
+heading.textContent = category.replace(/_/g, " ").toUpperCase();
+const list = document.createElement("ul");
+districtData[category].forEach(item => {
+const li = document.createElement("li");
+li.textContent = item;
+list.appendChild(li);
+section.appendChild(heading);
+section.appendChild(list);
+districtOutput.appendChild(section);
+Admin
+1. AI जेनेटिक और ऑटो-कंट्रोल डेटा (AI Mode & Control)
+ऑटो-ब्लॉक सिस्टम (Point 10): उन ड्राइवरों की लिस्ट जिन्हें AI ने वेरिफिकेशन (3 महीने का नियम) खत्म होने पर खुद ही ब्लॉक कर दिया है। [3]
+स्मार्ट फेयर कंट्रोल: मांग (Demand) के आधार पर किराए को ऑटोमैटिक कम या ज़्यादा करने का डेटा।
+ड्राइवर हेल्थ मॉनिटरिंग: AI द्वारा ट्रैक की गई ड्राइवरों की थकान (Fatigue) और ओवर-स्पीडिंग की रिपोर्ट। [3]
+2. वित्तीय और कमीशन डेटा (Financials - Point 23)
+एफिलिएट कमीशन (Point 23): होटल, रेस्टोरेंट और हैंडीक्राफ्ट शॉप्स से आने वाले कमीशन का रीयल-टाइम डेटा। [2, 3]
+डोनेशन रिपोर्ट (Point 16): 'दान' के लिए इकट्ठा हुए पैसों का अलग हिसाब और उसका उपयोग कहाँ हुआ, उसका डेटा। [2]
+कैंसलेशन अर्निंग (Point 22): ग्राहकों से कटे हुए कैंसलेशन चार्ज और ड्राइवरों पर लगी पेनल्टी का डेटा। [3]
+सुरक्षा अमानत (Point 8): सभी ड्राइवरों द्वारा जमा की गई 'Security Deposit' का कुल बैलेंस। [3]
+3. सुरक्षा और लाइव मॉनिटरिंग (Safety & Monitoring - Point 9, 12)
+लाइव मैप: सभी एक्टिव टैक्सियों की रीयल-टाइम GPS लोकेशन एक ही स्क्रीन पर। [1, 3]
+इमरजेंसी अलर्ट: अगर कोई ग्राहक या ड्राइवर 'SOS' बटन दबाता है, तो एडमिन को तुरंत सायरन के साथ नोटिफिकेशन। [2, 3]
+डॉक्यूमेंट वेरिफिकेशन सेंटर (Point 10): नए ड्राइवरों के DL, RC और इंश्योरेंस को अप्रूव या रिजेक्ट करने का पैनल। [3]
+4. पर्यटन और सुझाव प्रबंधन (Tourism & Suggestions - Point 14)
+कंटेंट मैनेजर (Point 3, 4): राजस्थान के ऐतिहासिक स्थलों की फोटो, इतिहास और मंदिरों की आरती का समय अपडेट करने का डेटा। [2]
+सुझाव इंजन: ग्राहकों को दिखने वाले बेस्ट होटल्स और शॉप्स की लिस्ट को 'Edit' करने का विकल्प। [2]
+1. AI जेनेटिक 'डिसीजन मेकिंग' डेटा (AI Genetic Engine)
+ऑटो-डिस्पैच लॉजिक: AI यह तय करेगा कि किस ड्राइवर को बुकिंग देनी है (दूरी + रेटिंग + गाड़ी की स्थिति के आधार पर)। [1.6]
+डिमांड प्रेडिक्शन (AI Mode): किस शहर (जैसे उदयपुर या जैसलमेर) में कल ज्यादा भीड़ होगी, उसका डेटा ताकि वहां पहले से गाड़ियां भेजी जा सकें। [1.2]
+2. वित्तीय नियंत्रण और 'फ्रॉड डिटेक्शन' (Financial Guard - Point 8, 23)
+एफिलिएट कमीशन स्प्लिट (Point 23): अगर ग्राहक ने होटल बुक किया, तो उसका कमीशन (जैसे 10%) अपने आप एडमिन और (शायद) ड्राइवर के बीच बंटने का डेटा। [1.3, 1.7]
+वॉलेट 'फ्रॉड' अलर्ट: अगर किसी ड्राइवर या ग्राहक के वॉलेट में अचानक संदिग्ध ट्रांजेक्शन हो, तो AI द्वारा उसे 'Freeze' करने का डेटा। [1.3]
+3. कानूनी और सरकारी अनुपालन (Compliance - Point 15)
+टैक्स और जीएसटी रिपोर्ट: सरकारी नियमों के अनुसार हर ट्रिप का ऑटो-टैक्स कैलकुलेशन। [1.3]
+आरक्षित फंड (Point 16): डोनेशन वॉलेट के अलावा एक 'Emergency Fund' जो किसी दुर्घटना की स्थिति में ग्राहक या ड्राइवर की मदद के लिए हो। [1.3]
+4. लाइव 'कमांड सेंटर' (Command Center - Point 9, 12)
+हीट मैप (Heat Map): लाइव मैप पर यह देखना कि राजस्थान के किस जिले में सबसे ज्यादा बुकिंग्स पेंडिंग हैं। [1.2]
+वर्चुअल एस्कॉर्ट: अकेले सफर करने वाली महिला या विदेशी पर्यटकों के लिए AI द्वारा उनकी ट्रिप की 'पल-पल' की निगरानी का डेटा। [1.3, 1.6]
+5. पार्टनर और वेंडर मैनेजमेंट (Point 14)
+होटल/शॉप रेटिंग: एडमिन यह देख सकेगा कि ग्राहकों ने आपके द्वारा सुझाये गए किस होटल को सबसे ज्यादा पसंद किया। [1.3, 1.7]
+वेंडर एग्रीमेंट: उन दुकानों और होटलों के साथ हुए समझौतों और उनकी 'Expiry' का डेटा। [1.3]
+1. AI-ऑटो पायलट 'मार्केटिंग' (Growth Engine)
+सिस्टम सिर्फ डेटा न संभाले, बल्कि खुद बिजनेस बढ़ाए:
+Predictive Booking: AI यह डेटा देखे कि पिछले साल इस तारीख को जैसलमेर में कितने विदेशी पर्यटक थे। वह आपको 7 दिन पहले ही बता देगा कि "अगले हफ्ते 50 और गाड़ियों की जरूरत पड़ेगी।"
+Auto-Offer System: अगर कोई गाड़ी 2 घंटे से खाली खड़ी है, तो AI पास के ग्राहकों को अपने आप 10% डिस्काउंट का नोटिफिकेशन भेज देगा ताकि गाड़ी खाली न रहे।
+2. ड्राइवर 'लॉयल्टी और रिवॉर्ड' (Retention)
+ड्राइवर आपको छोड़कर न जाए, इसके लिए एडमिन सेक्शन में यह जोड़ें:
+Driver Leaderboard: जो ड्राइवर सबसे अच्छी रेटिंग और सबसे ज्यादा ट्रिप करेगा, उसे "Driver of the Month" का टैग और छोटा बोनस अपने आप मिल जाए।
+Family Insurance Fund: हर ट्रिप से कुछ पैसा ड्राइवर के परिवार के स्वास्थ्य बीमा के लिए अलग जमा होता रहे।
+3. 'स्मार्ट रूट' ऑप्टिमाइजेशन (Fuel Saver)
+Multi-Point Routing: अगर एक ही दिशा में दो अलग-अलग बुकिंग हैं, तो AI सुझाव दे कि क्या दोनों ग्राहकों को एक ही बड़ी गाड़ी (Innova/Force) में क्लब किया जा सकता है? इससे पेट्रोल बचेगा और मुनाफा बढ़ेगा।
+Return Trip Logic: अगर कोई गाड़ी उदयपुर से जयपुर गई है, तो AI उसे जयपुर में रुकने के बजाय रास्ते में (अजमेर/किशनगढ़) से वापस उदयपुर आने वाली सवारी ढूंढकर देगा।
+4. इन्वेंटरी और एसेट मैनेजमेंट (Maintenance)
+चूंकि आपकी गाड़ियां राजस्थान के कच्चे रास्तों और लंबी दूरी पर चलेंगी:
+Service Alert: हर गाड़ी के किलोमीटर ट्रैक हों। जैसे ही 10,000 KM पूरे हों, एडमिन को अलर्ट आए कि "इस गाड़ी की सर्विस और टायर चेंज का समय हो गया है।"
+RC/Insurance Expiry: कागजों के खत्म होने से 15 दिन पहले ही सिस्टम ड्राइवर को बुकिंग देना बंद कर दे और उसे रिन्यूअल का मैसेज भेज दे।
+5. इंटरनेशनल गेस्ट 'प्रीमियम' सर्विस
+चूंकि आप इसे इंटरनेशनल ब्रांड बनाना चाहते हैं:
+Language Bridge: एडमिन सेक्शन में एक बटन हो जहाँ से विदेशी मेहमान की भाषा (German, French, Spanish) और ड्राइवर की भाषा (Hindi/Rajasthani) के बीच AI लाइव ट्रांसलेशन कर सके।
+Cultural Guide AI: जब गाड़ी किसी किले (जैसे कुम्भलगढ़) के पास से गुजरे, तो ग्राहक के फोन पर उस किले का इतिहास उसकी अपनी भाषा में ऑडियो के रूप में बजने लगे।
+Driver
+व्यक्तिगत और वाहन डेटा (KYC & Profile - Point 3, 11)
+यह डेटा ड्राइवर के भरोसे और वेरिफिकेशन के लिए ज़रूरी है:
+ड्राइवर का विवरण: पूरा नाम, लाइव फोटो, और मोबाइल नंबर (OTP वेरीफाइड)।
+दस्तावेज़ (Documents): ड्राइविंग लाइसेंस (DL), आधार कार्ड, और पुलिस वेरिफिकेशन रिपोर्ट की स्कैन कॉपी।
+गाड़ी का विवरण: गाड़ी का नंबर (Plate Number), RC बुक, इंश्योरेंस पेपर, और गाड़ी की अंदर-बाहर की तस्वीरें।
+वेरिफिकेशन अलर्ट (Point 10): 'Next Verification Date'—सिस्टम हर 3 महीने में इसे अपडेट मांगेगा।
+2. सुरक्षा और वित्तीय डेटा (Security & Finance - Point 8, 23)
+यह डेटा धोखाधड़ी रोकने और कमाई को ट्रैक करने के लिए है:
+सुरक्षा अमानत (Security Deposit): जमा की गई अमानत राशि का स्टेटस (Paid/Pending)।
+वॉलेट/कमाई: हर ट्रिप की कुल कमाई और एडमिन का काटा गया कमीशन।
+एक्स्ट्रा बुकिंग कमीशन (Point 7): अगर ड्राइवर ने अपनी निजी बुकिंग वेबसाइट पर डाली है, तो उसका अलग हिसाब।
+डिजिटल रसीद (Point 11): ट्रिप खत्म होने पर जेनरेट होने वाली रसीद का डेटा।
+3. ऑपरेशनल और लाइव डेटा (Operational - Point 2, 4, 6, 9)
+यह ट्रिप के दौरान इस्तेमाल होने वाला रीयल-टाइम डेटा है:
+लाइव लोकेशन (GPS): ट्रिप शुरू होने से खत्म होने तक ड्राइवर की सटीक लोकेशन (एडमिन के लिए अनिवार्य)।
+बुकिंग अलर्ट: नई बुकिंग की पिकअप और ड्रॉप लोकेशन (मैप के साथ)।
+नो-कैंसलेशन लॉक (Point 6): पिकअप पॉइंट पर पहुँचते ही ड्राइवर के लिए 'Cancel' बटन का डिसेबल होना।
+रूट गाइडेंस: ग्राहक द्वारा चुने गए पर्यटन स्थलों (मंदिर/किला) के हिसाब से ऑप्टिमाइज़्ड रूट।
+1. रीयल-टाइम व्यवहार और अनुपालन (Behavioral Data - Point 25)
+AI स्पीड मॉनिटरिंग: क्या ड्राइवर तय सीमा से तेज़ गाड़ी चला रहा है? एडमिन को इसका तुरंत अलर्ट जाना चाहिए। [1.3]
+वर्दी और स्वच्छता चेक: लॉगिन के समय ड्राइवर को अपनी और साफ़ गाड़ी की सेल्फी अपलोड करनी होगी (AI Image Verification)। [1.3]
+व्यवहार रेटिंग: ग्राहक द्वारा दी गई 'Driver Behaviour' और 'Communication' की अलग रेटिंग। [1.3]
+2. उन्नत सुरक्षा और स्वास्थ्य (Health & Safety - Point 12)
+ड्राइविंग आवर्स: ड्राइवर लगातार कितने घंटे से गाड़ी चला रहा है? AI सिस्टम उसे 'Fatigue Alert' (थकान की चेतावनी) देगा और ब्रेक लेने को कहेगा। [1.3]
+आपातकालीन संपर्क: ड्राइवर का अपना इमरजेंसी कांटेक्ट (SOS) डेटा, अगर उसे कोई मेडिकल ज़रूरत हो। [1.3]
+3. टूरिज्म और गाइड स्किल्स (Skill Data - Point 3, 4)
+गाइड सर्टिफिकेशन: क्या ड्राइवर को ऐतिहासिक स्थलों की गहरी जानकारी है? उसके प्रोफाइल पर 'Verified Guide' का टैग। [1.3, 1.5]
+भाषा दक्षता: वह कितनी भाषाएं बोल सकता है (स्थानीय राजस्थानी, हिंदी, अंग्रेजी)? [1.3, 1.6]
+4. वित्तीय और अमानत की बारीकियाँ (Deep Financials - Point 8, 23)
+अमानत का प्रकार: सिक्योरिटी डिपॉजिट नकद है या उसकी सैलरी से धीरे-धीरे काटा जा रहा है? [1.3, 1.7]
+दंड (Penalty) रिकॉर्ड: क्या उसने पहले कभी 'No-Cancellation' नियम तोड़ा है? उसका 'Penalty Score' डेटा। [1.3]
+5. तकनीकी और डिवाइस डेटा (Device Logic)
+बैटरी स्टेटस: ड्राइवर के फोन की बैटरी कितनी है? (अगर बैटरी 10% से कम है, तो AI उसे नई बुकिंग नहीं देगा)। [1.3]
+नेटवर्क स्ट्रेंथ: क्या वह ऐसे क्षेत्र में है जहाँ GPS ठीक से काम नहीं कर रहा? [1.3, 1.2]
+AI-आधारित व्यवहार और सुरक्षा डेटा (Behavioral AI Data)
+ड्राइविंग व्यवहार (Telematics): AI सिस्टम को ड्राइवर की 'अचानक ब्रेक लगाना' (Harsh Braking), 'तेज़ मोड़' (Sharp Turns) और 'ओवर-स्पीडिंग' का डेटा रीयल-टाइम में रिकॉर्ड करना चाहिए। [1.6, 1.5]
+थकान मॉनिटरिंग (Fatigue Alert): ड्राइवर लगातार कितने घंटों से गाड़ी चला रहा है? अगर यह 8-10 घंटे से ज़्यादा है, तो AI उसे 'Rest Mode' पर डाल देगा और नई बुकिंग रोक देगा। [1.5, 1.6]
+2. उन्नत स्वास्थ्य और स्वच्छता (Health & Hygiene - Point 13, 14)
+दैनिक स्वच्छता सेल्फी: लॉगिन के समय ड्राइवर को अपनी और साफ़ गाड़ी की एक लाइव सेल्फी लेनी होगी, जिसे AI 'Image Recognition' के ज़रिए चेक करेगा कि उसने वर्दी पहनी है या नहीं। [1.3, 1.5]
+मेडिकल फिटनेस (Point 10): क्या ड्राइवर का मेडिकल फिटनेस सर्टिफिकेट अपडेटेड है? (हर साल एक बार इसका डेटा अपडेट होना चाहिए)। [1.7]
+3. तकनीकी डिवाइस डेटा (Device Health)
+बैटरी और नेटवर्क: अगर ड्राइवर के फोन की बैटरी 15% से कम है या GPS सिग्नल कमजोर है, तो सिस्टम उसे 'Booking Disabled' मोड में डाल देगा ताकि यात्रा के बीच में ट्रैकिंग न टूटे। [1.3]
+4. टूरिज्म और 'गाइड' स्किल्स (Point 3, 4)
+भाषा प्रवीणता (Language Proficiency): वह राजस्थानी, हिंदी के अलावा और कौन-सी भाषाएं बोल सकता है? (विदेशी ग्राहकों के लिए यह डेटा बहुत ज़रूरी है)। [1.6, 1.5]
+विशिष्ट ज्ञान (Local Knowledge): क्या उसे विशेष धार्मिक स्थलों या 'Hidden' टूरिस्ट स्पॉट्स की जानकारी है? (इसे 'Guide Score' के रूप में ड्राइवर प्रोफाइल पर दिखाएं)। [1.3, 1.5]
+5. वित्तीय और दंड रिकॉर्ड (Deep Financials)
+पेनल्टी हिस्ट्री (Point 22): क्या उसने पहले कभी 'No-Cancellation' नियम तोड़ा है? उसका एक 'Penalty Score' डेटाबेस में होना चाहिए जो उसके कमीशन को प्रभावित करे। [1.6, 1.3]
+बीमा विवरण (Point 10): ड्राइवर और गाड़ी का इंश्योरेंस खत्म होने से 15 दिन पहले का 'Expiry Warning' डेटा। [1.7, 1.3]
+Costumer
+1. बुकिंग और स्मार्ट फीचर्स (Smart Booking)
+ऑटो-डेट और टाइम (पॉइंट 5): ग्राहक को समय टाइप नहीं करना पड़ेगा। [1.3]
+चार प्रकार की बुकिंग (पॉइंट 10): लोकल, आउटस्टेशन, डे-रेंटल, और एयरपोर्ट पिकअप/ड्रॉप। [1.3]
+सटीक लोकेशन सर्च (पॉइंट 17, 18): राजस्थान के सभी 50 ज़िलों और छोटे शहरों/गांवों की लिस्ट। [1.1, 1.2]
+ट्रिप प्रीव्यू (पॉइंट 32): बुकिंग से पहले ही रास्ते और गाड़ी का एक शानदार दृश्य।
+डिजिटल ट्रैवल कार्ड (पॉइंट 27): हर ग्राहक का अपना यूनिक डिजिटल आईडी कार्ड। [1.3]
+2. राजस्थान टूरिज्म और अनुभव (Experience Hub)
+ऐतिहासिक जानकारी (पॉइंट 3, 4): हर शहर के इतिहास और पुराने/नये फोटो का डेटाबेस। [1.3]
+लाइव टूरिज्म अलर्ट (पॉइंट 24): रास्ते में आने वाले मंदिरों और स्मारकों का 'ON/OFF' नोटिफिकेशन। [1.3]
+अनुभव, सवारी नहीं (पॉइंट 37): राजस्थान की संस्कृति, लोक संगीत और स्थानीय मेलों की जानकारी। [1.3]
+सुझाव प्रणाली (पॉइंट 14): बेहतरीन रेस्टोरेंट्स, हैंडीक्राफ्ट शॉप्स और होटलों के सुझाव। [1.3]
+3. वॉलेट और वित्तीय लाभ (Financial & Wallet)
+दोहरा वॉलेट सिस्टम (पॉइंट 16, 19): मुख्य पेमेंट वॉलेट और एक अलग 'डोनेशन वॉलेट'। [1.3]
+स्मार्ट डिस्काउंट (पॉइंट 20): पहली बुकिंग पर 5-7% की छूट का ऑटो-कैलकुलेशन। [1.3]
+एडवांस पेमेंट ऑप्शंस (पॉइंट 8): UPI (भारत के लिए) और PayPal (इंटरनेशनल ग्राहकों के लिए)। [1.3]
+कैंसलेशन रिफंड नियम (पॉइंट 22): कैंसलेशन चार्ज कटने के बाद पारदर्शी रिफंड प्रोसेस। [1.3]
+4. सुरक्षा और भरोसा (Safety & Trust)
+ड्राइवर और गाड़ी की पहचान (पॉइंट 11): ड्राइवर की फोटो, गाड़ी का नंबर और डिजिटल रसीद। [1.3]
+लाइव ट्रैकिंग (पॉइंट 12): यात्रा के दौरान अपनी लोकेशन दोस्तों के साथ शेयर करने का फीचर। [1.3]
+इंटरनेशनल सेफ्टी गाइड (पॉइंट 35): विदेशी पर्यटकों के डर को दूर करने के लिए विशेष सुरक्षा पेज। [1.3]
+इमरजेंसी बटन्स (पॉइंट 26): पुलिस (100) और एम्बुलेंस (108) के लिए वन-टैप कॉल। [1.3]
+24/7 हेल्प डेस्क (पॉइंट 26): किसी भी समस्या के लिए सीधा कस्टमर सपोर्ट। [1.3]
+5. भाषा और संचार (Communication)
+मल्टी-लैंग्वेज ट्रांसलेटर (पॉइंट 34): वेबसाइट को हिंदी, अंग्रेजी या अन्य भाषाओं में बदलने का विकल्प। [1.3]
+भाषा बाधा समाधान (पॉइंट 36): ड्राइवर के साथ बातचीत में मदद करने के लिए टूल्स। [1.3]
+धार्मिक और आध्यात्मिक डेटा (Point 3, 4): केवल किलों की फोटो नहीं, बल्कि मंदिरों की आरती का समय, विशेष पूजा और वहां पहुँचने के सबसे सही रास्तों का डेटा।
+गाड़ी की श्रेणी का चुनाव (Point 10): AC/Non-AC के अलावा, क्या गाड़ी में 'Carrier' (सामान के लिए) है या नहीं, और सीटों की बनावट (Bucket seats vs Normal) का डेटा।
+ड्राइवर का व्यवहार और भाषा (Point 36): क्या ड्राइवर को स्थानीय भाषा के अलावा अंग्रेजी या अन्य भाषा आती है? ग्राहक को अपनी पसंद का ड्राइवर चुनने का डेटा।
+वेटिंग चार्ज और हिडन फीस (Point 22): रास्ते में रुकने पर वेटिंग चार्ज का स्पष्ट विवरण ताकि बाद में बहस न हो।
+रूट कस्टमाइजेशन (Point 32): क्या ग्राहक रास्ते में अपनी पसंद की जगह पर रुकने के लिए रूट बदल सकता है? उसका डायनामिक किराया कैलकुलेशन।
+ऑफलाइन एक्सेस (Safety): इंटरनेट न होने पर भी इमरजेंसी नंबर और ड्राइवर की बेसिक जानकारी दिखने का डेटा।
+फीडबैक और रेटिंग (Point 25): सिर्फ स्टार रेटिंग नहीं, बल्कि 'गाड़ी की सफाई', 'ड्राइवर का व्यवहार' और 'समय की पाबंदी' पर अलग-अलग डेटा।
+लोकल इवेंट्स नोटिफिकेशन: जिस शहर में ग्राहक जा रहा है, वहां उस दिन कोई विशेष मेला या उत्सव है तो उसका लाइव अलर्ट।
+पेमेंट रसीद का ब्रेकअप (Point 11): टैक्स, टोल, पार्किंग और बेस फेयर का अलग-अलग डिजिटल ब्रेकअप।
+बुकिंग: ऑटो डेट-टाइम, राजस्थान के सभी 50 जिलों की लिस्ट, और 4 बुकिंग प्रकार (लोकल, आउटस्टेशन, रेंटल, एयरपोर्ट)। [1.3, 1.1]
+टूरिज्म: ऐतिहासिक स्थलों की पुरानी/नयी तस्वीरें, मंदिरों की आरती का समय, और रास्ते में आने वाले स्मारकों का लाइव नोटिफिकेशन (ON/OFF स्विच के साथ)। [1.3, 1.5]
+फाइनेंशियल: मुख्य वॉलेट + डोनेशन वॉलेट, पहली बुकिंग पर 5-7% डिस्काउंट, और UPI/PayPal पेमेंट। [1.3, 1.6]
+सुरक्षा: लाइव लोकेशन शेयरिंग, ड्राइवर की फोटो/गाड़ी का नंबर, और 24/7 हेल्प डेस्क के साथ इमरजेंसी SOS बटन। [1.3, 1.6]
+ट्रस्ट: डिजिटल ट्रैवल कार्ड, पुरानी ट्रिप हिस्ट्री, और "Is it safe?" सुरक्षा गाइड। [1.3, 1.6]
+भाषा: मल्टी-लैंग्वेज ट्रांसलेटर (हिंदी, अंग्रेजी आदि)। [1.3, 1.6]
