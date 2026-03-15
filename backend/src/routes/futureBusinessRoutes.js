@@ -13,6 +13,14 @@ const MAX_WALLET_HISTORY = 3000;
 const MAX_RIDES_PER_USER = 5000;
 const MAX_COMMISSIONS = 10000;
 const MAX_TOURISM_PLACES = 10000;
+const MAX_LISTINGS = 20000;
+const MAX_PACKAGES = 8000;
+const MAX_PACKAGE_BOOKINGS = 30000;
+const MAX_REFERRALS = 40000;
+const MAX_REVIEWS = 30000;
+const MAX_TERMS_CONSENTS = 30000;
+const MAX_SUPPORT_TICKETS = 30000;
+const MAX_WEBHOOK_EVENTS = 20000;
 
 let persistTimer = null;
 
@@ -24,6 +32,75 @@ const seedTourismPlaces = [
   { district: 'Ajmer', name: 'Ajmer Sharif Dargah', category: 'Heritage', history: 'Sufi shrine and spiritual site.', entryFee: '0', openTime: '05:00', closeTime: '22:00', parking: true },
   { district: 'Pushkar', name: 'Brahma Temple', category: 'Temple', history: 'Rare temple dedicated to Lord Brahma.', entryFee: '0', openTime: '06:00', closeTime: '20:00', parking: true }
 ];
+
+const RAJASTHAN_DISTRICTS = [
+  'Ajmer',
+  'Alwar',
+  'Anupgarh',
+  'Balotra',
+  'Banswara',
+  'Baran',
+  'Barmer',
+  'Beawar',
+  'Bharatpur',
+  'Bhilwara',
+  'Bikaner',
+  'Bundi',
+  'Chittorgarh',
+  'Churu',
+  'Dausa',
+  'Deeg',
+  'Didwana-Kuchaman',
+  'Dholpur',
+  'Dungarpur',
+  'Gangapur City',
+  'Hanumangarh',
+  'Jaipur',
+  'Jaipur Rural',
+  'Jaisalmer',
+  'Jalore',
+  'Jhalawar',
+  'Jhunjhunu',
+  'Jodhpur',
+  'Jodhpur Rural',
+  'Karauli',
+  'Kekri',
+  'Khairthal-Tijara',
+  'Kota',
+  'Kotputli-Behror',
+  'Nagaur',
+  'Neem Ka Thana',
+  'Pali',
+  'Phalodi',
+  'Pratapgarh',
+  'Rajsamand',
+  'Salumbar',
+  'Sanchore',
+  'Sawai Madhopur',
+  'Shahpura',
+  'Sikar',
+  'Sirohi',
+  'Sri Ganganagar',
+  'Tonk',
+  'Udaipur',
+  'Dudu'
+];
+
+const currencyRates = {
+  INR: 1,
+  USD: 0.012,
+  EUR: 0.011,
+  GBP: 0.0094,
+  AED: 0.044
+};
+
+const vehicleBaseRates = {
+  economy: 10,
+  sedan: 15,
+  suv: 20,
+  premium: 25,
+  xl: 28
+};
 
 function ensureDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -59,6 +136,14 @@ function defaultStore() {
     notifications: [],
     travelCards: {},
     commissions: [],
+    listings: [],
+    packages: [],
+    packageBookings: [],
+    referrals: [],
+    reviews: [],
+    termsConsents: [],
+    supportTickets: [],
+    webhookEvents: [],
     tourismPlaces: seedTourismPlaces.map((item) => ({
       id: crypto.randomUUID(),
       district: item.district,
@@ -72,7 +157,13 @@ function defaultStore() {
       createdAt: new Date().toISOString()
     })),
     rideHistory: {},
-    preferences: {}
+    preferences: {},
+    counters: {
+      packagesBooked: 0,
+      referralsTracked: 0,
+      supportTickets: 0,
+      webhookEvents: 0
+    }
   };
 }
 
@@ -88,11 +179,23 @@ function loadStore() {
       notifications: Array.isArray(parsed.notifications) ? parsed.notifications.slice(-MAX_NOTIFICATIONS) : [],
       travelCards: safeObject(parsed.travelCards),
       commissions: Array.isArray(parsed.commissions) ? parsed.commissions.slice(-MAX_COMMISSIONS) : [],
+      listings: Array.isArray(parsed.listings) ? parsed.listings.slice(-MAX_LISTINGS) : [],
+      packages: Array.isArray(parsed.packages) ? parsed.packages.slice(-MAX_PACKAGES) : [],
+      packageBookings: Array.isArray(parsed.packageBookings) ? parsed.packageBookings.slice(-MAX_PACKAGE_BOOKINGS) : [],
+      referrals: Array.isArray(parsed.referrals) ? parsed.referrals.slice(-MAX_REFERRALS) : [],
+      reviews: Array.isArray(parsed.reviews) ? parsed.reviews.slice(-MAX_REVIEWS) : [],
+      termsConsents: Array.isArray(parsed.termsConsents) ? parsed.termsConsents.slice(-MAX_TERMS_CONSENTS) : [],
+      supportTickets: Array.isArray(parsed.supportTickets) ? parsed.supportTickets.slice(-MAX_SUPPORT_TICKETS) : [],
+      webhookEvents: Array.isArray(parsed.webhookEvents) ? parsed.webhookEvents.slice(-MAX_WEBHOOK_EVENTS) : [],
       tourismPlaces: Array.isArray(parsed.tourismPlaces) && parsed.tourismPlaces.length
         ? parsed.tourismPlaces.slice(-MAX_TOURISM_PLACES)
         : store.tourismPlaces,
       rideHistory: safeObject(parsed.rideHistory),
-      preferences: safeObject(parsed.preferences)
+      preferences: safeObject(parsed.preferences),
+      counters: {
+        ...safeObject(store.counters),
+        ...safeObject(parsed.counters)
+      }
     };
   } catch (_error) {
     return defaultStore();
@@ -176,6 +279,63 @@ function addRideHistory(store, payload) {
   return record;
 }
 
+function normalizeVehicleType(value) {
+  const key = normalizeString(value, 30).toLowerCase();
+  if (vehicleBaseRates[key]) return key;
+  if (key.includes('hatch') || key.includes('economy')) return 'economy';
+  if (key.includes('prem')) return 'premium';
+  if (key.includes('xl')) return 'xl';
+  if (key.includes('suv')) return 'suv';
+  return 'sedan';
+}
+
+function normalizeCurrency(value) {
+  const key = normalizeString(value, 10).toUpperCase();
+  return currencyRates[key] ? key : 'INR';
+}
+
+function estimateFare(payload) {
+  const distanceKm = Math.max(0, normalizeAmount(payload.distanceKm || payload.distance || 0));
+  const durationMin = Math.max(0, normalizeAmount(payload.durationMin || payload.duration || 0));
+  const vehicleType = normalizeVehicleType(payload.vehicleType || payload.rideType);
+  const basePerKm = vehicleBaseRates[vehicleType] || vehicleBaseRates.sedan;
+  const seasonMultiplier = Math.max(0.5, Math.min(3, normalizeAmount(payload.seasonMultiplier || 1) || 1));
+  const trafficMultiplier = Math.max(0.5, Math.min(2, normalizeAmount(payload.trafficMultiplier || 1) || 1));
+  const waitingCharge = Math.max(0, normalizeAmount(payload.waitingCharge || 0));
+  const tollCharge = Math.max(0, normalizeAmount(payload.tollCharge || 0));
+  const parkingCharge = Math.max(0, normalizeAmount(payload.parkingCharge || 0));
+  const offerPercent = Math.max(0, Math.min(80, normalizeAmount(payload.offerPercent || payload.discountPercent || 0)));
+
+  const distanceFare = normalizeAmount(distanceKm * basePerKm);
+  const timeFare = normalizeAmount(durationMin * 0.5);
+  const grossInr = normalizeAmount((distanceFare + timeFare + waitingCharge + tollCharge + parkingCharge) * seasonMultiplier * trafficMultiplier);
+  const discount = normalizeAmount((grossInr * offerPercent) / 100);
+  const netInr = Math.max(0, normalizeAmount(grossInr - discount));
+  const currency = normalizeCurrency(payload.currency);
+  const converted = normalizeAmount(netInr * (currencyRates[currency] || 1));
+
+  return {
+    vehicleType,
+    currency,
+    basePerKm,
+    distanceKm,
+    durationMin,
+    distanceFare,
+    timeFare,
+    waitingCharge,
+    tollCharge,
+    parkingCharge,
+    seasonMultiplier,
+    trafficMultiplier,
+    offerPercent,
+    grossInr,
+    discountInr: discount,
+    finalInr: netInr,
+    convertedFare: converted,
+    calculatedAt: new Date().toISOString()
+  };
+}
+
 router.get('/status', (req, res) => {
   const store = getStore();
   return res.status(200).json({
@@ -184,9 +344,18 @@ router.get('/status', (req, res) => {
     notifications: store.notifications.length,
     travelCards: Object.keys(store.travelCards).length,
     commissions: store.commissions.length,
+    listings: store.listings.length,
+    packages: store.packages.length,
+    packageBookings: store.packageBookings.length,
+    referrals: store.referrals.length,
+    reviews: store.reviews.length,
+    termsConsents: store.termsConsents.length,
+    supportTickets: store.supportTickets.length,
+    webhookEvents: store.webhookEvents.length,
     tourismPlaces: store.tourismPlaces.length,
     rideHistoryUsers: Object.keys(store.rideHistory).length,
-    preferences: Object.keys(store.preferences).length
+    preferences: Object.keys(store.preferences).length,
+    counters: clone(store.counters)
   });
 });
 
@@ -512,10 +681,442 @@ router.get('/preferences/:userKey', (req, res) => {
   return res.status(200).json({ ok: true, preferences });
 });
 
+router.get('/districts', (req, res) => {
+  const store = getStore();
+  const fromTourism = store.tourismPlaces.map((item) => normalizeString(item.district, 80)).filter(Boolean);
+  const fromListings = store.listings.map((item) => normalizeString(item.city, 80)).filter(Boolean);
+  const all = Array.from(new Set([]
+    .concat(RAJASTHAN_DISTRICTS)
+    .concat(fromTourism)
+    .concat(fromListings)
+    .map((item) => normalizeString(item, 80))
+    .filter(Boolean)
+  ));
+  return res.status(200).json({ ok: true, count: all.length, districts: all });
+});
+
+router.post('/listings', (req, res) => {
+  const store = getStore();
+  const type = normalizeString(req.body?.type, 60) || 'hotel';
+  const name = normalizeString(req.body?.name, 140);
+  const city = normalizeString(req.body?.city, 80) || 'Jaipur';
+  const contact = normalizeString(req.body?.contact, 80);
+  const address = normalizeString(req.body?.address, 250);
+  const specialty = normalizeString(req.body?.specialty, 250);
+  const bookingUrl = normalizeString(req.body?.bookingUrl, 500);
+  const rating = Math.max(0, Math.min(5, normalizeAmount(req.body?.rating || 0)));
+
+  if (!name) {
+    return res.status(400).json({ ok: false, message: 'name is required' });
+  }
+
+  const item = {
+    id: crypto.randomUUID(),
+    type,
+    name,
+    city,
+    contact,
+    address,
+    specialty,
+    bookingUrl,
+    rating,
+    photo: normalizeString(req.body?.photo, 500),
+    createdAt: new Date().toISOString()
+  };
+
+  store.listings.push(item);
+  if (store.listings.length > MAX_LISTINGS) {
+    store.listings = store.listings.slice(-MAX_LISTINGS);
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/listings', (req, res) => {
+  const store = getStore();
+  const city = normalizeString(req.query.city, 80);
+  const type = normalizeString(req.query.type, 60);
+  const q = normalizeString(req.query.q, 140);
+  const minRating = Math.max(0, Math.min(5, normalizeAmount(req.query.minRating || 0)));
+
+  let items = store.listings;
+  if (city) items = items.filter((item) => normalizeString(item.city, 80) === city);
+  if (type) items = items.filter((item) => normalizeString(item.type, 60) === type);
+  if (q) {
+    items = items.filter((item) => normalizeString(`${item.name} ${item.address} ${item.specialty}`, 800).includes(q));
+  }
+  if (minRating > 0) {
+    items = items.filter((item) => Number(item.rating || 0) >= minRating);
+  }
+
+  return res.status(200).json({
+    ok: true,
+    count: items.length,
+    items: items.slice(-1000)
+  });
+});
+
+router.post('/packages', (req, res) => {
+  const store = getStore();
+  const title = normalizeString(req.body?.title, 160);
+  const theme = normalizeString(req.body?.theme, 80) || 'heritage';
+  const durationDays = Math.max(1, Math.min(30, Math.round(normalizeAmount(req.body?.durationDays || 1))));
+  const currency = normalizeCurrency(req.body?.currency || 'INR');
+  const priceInr = Math.max(0, normalizeAmount(req.body?.priceInr || req.body?.price || 0));
+
+  if (!title || priceInr <= 0) {
+    return res.status(400).json({ ok: false, message: 'title and positive priceInr are required' });
+  }
+
+  const item = {
+    id: crypto.randomUUID(),
+    title,
+    theme,
+    durationDays,
+    localGuide: Boolean(req.body?.localGuide),
+    includesVehicle: req.body?.includesVehicle !== undefined ? Boolean(req.body?.includesVehicle) : true,
+    meals: normalizeString(req.body?.meals, 120),
+    inclusions: Array.isArray(req.body?.inclusions)
+      ? req.body.inclusions.map((x) => normalizeString(x, 120)).filter(Boolean).slice(0, 20)
+      : [],
+    itinerary: Array.isArray(req.body?.itinerary)
+      ? req.body.itinerary.map((x) => normalizeString(x, 240)).filter(Boolean).slice(0, 30)
+      : [],
+    priceInr,
+    currency,
+    convertedPrice: normalizeAmount(priceInr * (currencyRates[currency] || 1)),
+    status: 'active',
+    createdAt: new Date().toISOString()
+  };
+
+  store.packages.push(item);
+  if (store.packages.length > MAX_PACKAGES) {
+    store.packages = store.packages.slice(-MAX_PACKAGES);
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/packages', (req, res) => {
+  const store = getStore();
+  const theme = normalizeString(req.query.theme, 80);
+  const q = normalizeString(req.query.q, 140);
+
+  let items = store.packages;
+  if (theme) items = items.filter((item) => normalizeString(item.theme, 80) === theme);
+  if (q) items = items.filter((item) => normalizeString(`${item.title} ${item.theme} ${(item.inclusions || []).join(' ')}`, 1200).includes(q));
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
+});
+
+router.post('/packages/:packageId/book', (req, res) => {
+  const store = getStore();
+  const packageId = normalizeString(req.params.packageId, 80);
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const packageItem = store.packages.find((item) => item.id === packageId);
+  if (!packageItem) return res.status(404).json({ ok: false, message: 'Package not found' });
+  if (!userKey) return res.status(400).json({ ok: false, message: 'userKey is required' });
+
+  const booking = {
+    id: crypto.randomUUID(),
+    bookingCode: `PKG-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`,
+    packageId,
+    userKey,
+    travelers: Math.max(1, Math.min(50, Math.round(normalizeAmount(req.body?.travelers || 1)))),
+    startDate: normalizeString(req.body?.startDate, 30),
+    paymentMethod: normalizeString(req.body?.paymentMethod, 40) || 'cash',
+    amountInr: packageItem.priceInr,
+    status: 'confirmed',
+    createdAt: new Date().toISOString()
+  };
+
+  store.packageBookings.push(booking);
+  if (store.packageBookings.length > MAX_PACKAGE_BOOKINGS) {
+    store.packageBookings = store.packageBookings.slice(-MAX_PACKAGE_BOOKINGS);
+  }
+  store.counters.packagesBooked = (Number(store.counters.packagesBooked || 0) + 1);
+  queuePersist();
+  return res.status(201).json({ ok: true, booking });
+});
+
+router.get('/packages/bookings/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.packageBookings.filter((item) => item.userKey === userKey);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
+});
+
+router.post('/referrals/track', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const partner = normalizeString(req.body?.partner, 120);
+  const code = normalizeString(req.body?.code, 60);
+  const eventType = normalizeString(req.body?.eventType, 60) || 'click';
+  const bookingValue = Math.max(0, normalizeAmount(req.body?.bookingValue || 0));
+  const commissionPercent = Math.max(0, Math.min(100, normalizeAmount(req.body?.commissionPercent || 10)));
+
+  if (!partner || !code) {
+    return res.status(400).json({ ok: false, message: 'partner and code are required' });
+  }
+
+  const event = {
+    id: crypto.randomUUID(),
+    userKey: userKey || 'guest-user',
+    partner,
+    code,
+    eventType,
+    bookingValue,
+    commissionPercent,
+    commissionAmount: normalizeAmount((bookingValue * commissionPercent) / 100),
+    utmSource: normalizeString(req.body?.utmSource, 100),
+    utmCampaign: normalizeString(req.body?.utmCampaign, 100),
+    createdAt: new Date().toISOString()
+  };
+
+  store.referrals.push(event);
+  if (store.referrals.length > MAX_REFERRALS) {
+    store.referrals = store.referrals.slice(-MAX_REFERRALS);
+  }
+  store.counters.referralsTracked = (Number(store.counters.referralsTracked || 0) + 1);
+  queuePersist();
+  return res.status(201).json({ ok: true, event });
+});
+
+router.get('/referrals/summary', (req, res) => {
+  const store = getStore();
+  const partner = normalizeString(req.query.partner, 120);
+  const code = normalizeString(req.query.code, 60);
+
+  let items = store.referrals;
+  if (partner) items = items.filter((item) => normalizeString(item.partner, 120) === partner);
+  if (code) items = items.filter((item) => normalizeString(item.code, 60) === code);
+
+  const totalBookingValue = normalizeAmount(items.reduce((sum, item) => sum + Number(item.bookingValue || 0), 0));
+  const totalCommission = normalizeAmount(items.reduce((sum, item) => sum + Number(item.commissionAmount || 0), 0));
+  return res.status(200).json({
+    ok: true,
+    count: items.length,
+    totalBookingValue,
+    totalCommission,
+    items: items.slice(-1000)
+  });
+});
+
+router.post('/terms/consent', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const version = normalizeString(req.body?.version, 40) || 'v1';
+  const source = normalizeString(req.body?.source, 80) || 'booking-form';
+  const accepted = Boolean(req.body?.accepted);
+
+  if (!userKey) return res.status(400).json({ ok: false, message: 'userKey is required' });
+
+  const item = {
+    id: crypto.randomUUID(),
+    userKey,
+    version,
+    source,
+    accepted,
+    ip: normalizeString(req.ip, 80),
+    userAgent: normalizeString(req.headers['user-agent'], 220),
+    createdAt: new Date().toISOString()
+  };
+
+  store.termsConsents.push(item);
+  if (store.termsConsents.length > MAX_TERMS_CONSENTS) {
+    store.termsConsents = store.termsConsents.slice(-MAX_TERMS_CONSENTS);
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/terms/consent/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.termsConsents.filter((item) => item.userKey === userKey);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-200) });
+});
+
+router.post('/support/ticket', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const category = normalizeString(req.body?.category, 80) || 'general';
+  const message = normalizeString(req.body?.message, 1200);
+  if (!userKey || !message) {
+    return res.status(400).json({ ok: false, message: 'userKey and message are required' });
+  }
+  const ticket = {
+    id: crypto.randomUUID(),
+    ticketCode: `SUP-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`,
+    userKey,
+    category,
+    message,
+    priority: normalizeString(req.body?.priority, 20) || 'normal',
+    status: 'open',
+    createdAt: new Date().toISOString()
+  };
+  store.supportTickets.push(ticket);
+  if (store.supportTickets.length > MAX_SUPPORT_TICKETS) {
+    store.supportTickets = store.supportTickets.slice(-MAX_SUPPORT_TICKETS);
+  }
+  store.counters.supportTickets = (Number(store.counters.supportTickets || 0) + 1);
+  queuePersist();
+  return res.status(201).json({ ok: true, ticket });
+});
+
+router.get('/support/ticket/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.supportTickets.filter((item) => item.userKey === userKey);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-200) });
+});
+
+router.post('/fare/estimate', (req, res) => {
+  const estimate = estimateFare(req.body || {});
+  return res.status(200).json({ ok: true, estimate });
+});
+
+router.get('/currency/rates', (req, res) => {
+  return res.status(200).json({
+    ok: true,
+    base: 'INR',
+    rates: currencyRates,
+    updatedAt: new Date().toISOString()
+  });
+});
+
+router.post('/reviews', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const targetType = normalizeString(req.body?.targetType, 40) || 'driver';
+  const targetId = normalizeString(req.body?.targetId, 100) || 'unknown';
+  const rating = Math.max(1, Math.min(5, Math.round(normalizeAmount(req.body?.rating || 0))));
+  const comment = normalizeString(req.body?.comment, 500);
+  if (!userKey || !targetId || !rating) {
+    return res.status(400).json({ ok: false, message: 'userKey, targetId and rating are required' });
+  }
+
+  const item = {
+    id: crypto.randomUUID(),
+    userKey,
+    targetType,
+    targetId,
+    rating,
+    comment,
+    locale: normalizeString(req.body?.locale, 30) || 'en-IN',
+    createdAt: new Date().toISOString()
+  };
+  store.reviews.push(item);
+  if (store.reviews.length > MAX_REVIEWS) {
+    store.reviews = store.reviews.slice(-MAX_REVIEWS);
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/reviews', (req, res) => {
+  const store = getStore();
+  const targetType = normalizeString(req.query.targetType, 40);
+  const targetId = normalizeString(req.query.targetId, 100);
+  let items = store.reviews;
+  if (targetType) items = items.filter((item) => normalizeString(item.targetType, 40) === targetType);
+  if (targetId) items = items.filter((item) => normalizeString(item.targetId, 100) === targetId);
+  const avg = items.length
+    ? normalizeAmount(items.reduce((sum, item) => sum + Number(item.rating || 0), 0) / items.length)
+    : 0;
+  return res.status(200).json({ ok: true, count: items.length, averageRating: avg, items: items.slice(-500) });
+});
+
+router.post('/partner/webhook/log', (req, res) => {
+  const store = getStore();
+  const partner = normalizeString(req.body?.partner, 120) || 'unknown-partner';
+  const eventType = normalizeString(req.body?.eventType, 80) || 'generic-event';
+  const payload = safeObject(req.body?.payload);
+  const item = {
+    id: crypto.randomUUID(),
+    partner,
+    eventType,
+    payload,
+    createdAt: new Date().toISOString()
+  };
+  store.webhookEvents.push(item);
+  if (store.webhookEvents.length > MAX_WEBHOOK_EVENTS) {
+    store.webhookEvents = store.webhookEvents.slice(-MAX_WEBHOOK_EVENTS);
+  }
+  store.counters.webhookEvents = (Number(store.counters.webhookEvents || 0) + 1);
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/partner/webhook/logs', (req, res) => {
+  const store = getStore();
+  const partner = normalizeString(req.query.partner, 120);
+  const eventType = normalizeString(req.query.eventType, 80);
+  let items = store.webhookEvents;
+  if (partner) items = items.filter((item) => normalizeString(item.partner, 120) === partner);
+  if (eventType) items = items.filter((item) => normalizeString(item.eventType, 80) === eventType);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
+});
+
+router.get('/admin/summary', (req, res) => {
+  const store = getStore();
+  const totalReferralCommission = normalizeAmount(store.referrals.reduce((sum, item) => sum + Number(item.commissionAmount || 0), 0));
+  const totalPartnerCommission = normalizeAmount(store.commissions.reduce((sum, item) => sum + Number(item.commissionAmount || 0), 0));
+  const totalWalletBalance = normalizeAmount(Object.values(store.wallets).reduce((sum, wallet) => sum + Number(wallet.balance || 0), 0));
+
+  return res.status(200).json({
+    ok: true,
+    metrics: {
+      listings: store.listings.length,
+      packages: store.packages.length,
+      packageBookings: store.packageBookings.length,
+      referrals: store.referrals.length,
+      reviews: store.reviews.length,
+      notifications: store.notifications.length,
+      supportTickets: store.supportTickets.length,
+      activeTravelCards: Object.keys(store.travelCards).length,
+      tourismPlaces: store.tourismPlaces.length,
+      rideHistoryUsers: Object.keys(store.rideHistory).length,
+      totalReferralCommission,
+      totalPartnerCommission,
+      totalWalletBalance
+    },
+    counters: clone(store.counters),
+    generatedAt: new Date().toISOString()
+  });
+});
+
+router.get('/recommendations/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const history = Array.isArray(store.rideHistory[userKey]) ? store.rideHistory[userKey] : [];
+  const preferredDistrict = normalizeString(history.length ? history[history.length - 1].to : 'Jaipur', 80);
+  const preferredType = normalizeString(
+    (store.preferences[userKey] && store.preferences[userKey].preferredListingType) || 'hotel',
+    60
+  );
+
+  const recommendedListings = store.listings
+    .filter((item) => normalizeString(item.city, 80) === preferredDistrict || normalizeString(item.type, 60) === preferredType)
+    .slice(-10)
+    .reverse();
+
+  const recommendedPlaces = store.tourismPlaces
+    .filter((item) => normalizeString(item.district, 80) === preferredDistrict)
+    .slice(0, 12);
+
+  return res.status(200).json({
+    ok: true,
+    userKey,
+    preferredDistrict,
+    preferredType,
+    listings: recommendedListings,
+    places: recommendedPlaces
+  });
+});
+
 router.post('/flush', (req, res) => {
   writeStore();
   return res.status(200).json({ ok: true, file: DATA_FILE });
 });
 
 module.exports = router;
-

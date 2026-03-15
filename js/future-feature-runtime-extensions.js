@@ -85,6 +85,15 @@
     return 'guest-user';
   }
 
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function featureFromDetail(detail) {
     var blockKey = detail && detail.blockKey;
     var featureId = detail && detail.featureId;
@@ -839,6 +848,528 @@
     refreshHistory();
   }
 
+  function applyDistrictDirectoryModule(feature) {
+    var card = ensureCard('district-directory', 'Rajasthan District Directory');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-district-refresh')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
+      '<button type=\"button\" id=\"ffx-district-refresh\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Districts</button>',
+      '<input id=\"ffx-district-search\" placeholder=\"Search district\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;min-width:180px;\"/>',
+      '</div>',
+      '<div id=\"ffx-district-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-district-list');
+    var cache = [];
+
+    function render(items) {
+      if (!list) return;
+      if (!items.length) {
+        list.textContent = 'No districts found.';
+        return;
+      }
+      list.innerHTML = items.map(function (district, index) {
+        return '<span style=\"display:inline-block;margin:4px;padding:4px 8px;border-radius:999px;background:#eef4ff;color:#24416d;\">' + (index + 1) + '. ' + escapeHtml(district) + '</span>';
+      }).join('');
+    }
+
+    function loadDistricts() {
+      getBusiness('/districts').then(function (data) {
+        cache = data && Array.isArray(data.districts) ? data.districts : [];
+        render(cache);
+        executeFeature(feature, 'districts-loaded', { count: cache.length });
+      });
+    }
+
+    body.querySelector('#ffx-district-refresh').addEventListener('click', loadDistricts);
+    body.querySelector('#ffx-district-search').addEventListener('input', function () {
+      var q = normalize(this.value);
+      if (!q) {
+        render(cache);
+        return;
+      }
+      render(cache.filter(function (item) {
+        return normalize(item).indexOf(q) !== -1;
+      }));
+    });
+
+    loadDistricts();
+  }
+
+  function applyListingModule(feature) {
+    var card = ensureCard('listing', 'Hotel / Restaurant / Shop Listings');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-listing-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<select id=\"ffx-listing-type\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>Hotel</option><option>Guest House</option><option>Restaurant</option><option>Shop</option><option>Local Service</option></select>',
+      '<input id=\"ffx-listing-name\" placeholder=\"Listing name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-listing-city\" placeholder=\"City/District\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-listing-contact\" placeholder=\"Contact\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-listing-rating\" placeholder=\"Rating (0-5)\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-listing-specialty\" placeholder=\"Specialty\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-listing-save\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Save Listing</button>',
+      '<button type=\"button\" id=\"ffx-listing-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Search Listings</button>',
+      '</div>',
+      '<div id=\"ffx-listing-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-listing-list');
+
+    function render(items) {
+      if (!list) return;
+      if (!items.length) {
+        list.textContent = 'No listings yet.';
+        return;
+      }
+      list.innerHTML = items.slice(-40).reverse().map(function (item) {
+        return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.name) + '</strong> (' + escapeHtml(item.type) + ')<br/>' + escapeHtml(item.city) + ' | Rating: ' + escapeHtml(item.rating) + '</div>';
+      }).join('');
+    }
+
+    function refresh() {
+      var city = (body.querySelector('#ffx-listing-city') || {}).value || '';
+      var type = (body.querySelector('#ffx-listing-type') || {}).value || '';
+      var query = '/listings?city=' + encodeURIComponent(city) + '&type=' + encodeURIComponent(type);
+      getBusiness(query).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        render(items);
+      });
+    }
+
+    body.querySelector('#ffx-listing-save').addEventListener('click', function () {
+      var payload = {
+        type: (body.querySelector('#ffx-listing-type') || {}).value || '',
+        name: (body.querySelector('#ffx-listing-name') || {}).value || '',
+        city: (body.querySelector('#ffx-listing-city') || {}).value || '',
+        contact: (body.querySelector('#ffx-listing-contact') || {}).value || '',
+        rating: (body.querySelector('#ffx-listing-rating') || {}).value || '',
+        specialty: (body.querySelector('#ffx-listing-specialty') || {}).value || ''
+      };
+      postBusiness('/listings', payload).then(function (data) {
+        executeFeature(feature, 'listing-save', payload);
+        if (data && data.item) refresh();
+      });
+    });
+    body.querySelector('#ffx-listing-refresh').addEventListener('click', refresh);
+    refresh();
+  }
+
+  function applyTourPackageModule(feature) {
+    var card = ensureCard('packages', 'Tour / Package Booking');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-package-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-package-title\" placeholder=\"Package title\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<select id=\"ffx-package-theme\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>Family</option><option>Solo</option><option>Honeymoon</option><option>Adventure</option><option>Heritage</option></select>',
+      '<input id=\"ffx-package-days\" placeholder=\"Duration days\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-package-price\" placeholder=\"Price INR\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-package-save\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Create Package</button>',
+      '<button type=\"button\" id=\"ffx-package-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Packages</button>',
+      '</div>',
+      '<div id=\"ffx-package-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-package-list');
+
+    function refresh() {
+      getBusiness('/packages').then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        if (!items.length) {
+          list.textContent = 'No packages yet.';
+          return;
+        }
+        list.innerHTML = items.slice(-30).reverse().map(function (item) {
+          var safeTitle = escapeHtml(item.title);
+          var safeTheme = escapeHtml(item.theme);
+          var safeId = escapeHtml(item.id);
+          return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + safeTitle + '</strong> (' + safeTheme + ') - INR ' + escapeHtml(item.priceInr) + '<br/><button type=\"button\" data-package-book=\"' + safeId + '\" style=\"margin-top:4px;padding:5px 8px;border:0;border-radius:6px;background:#2563eb;color:#fff;\">Book</button></div>';
+        }).join('');
+      });
+    }
+
+    body.querySelector('#ffx-package-save').addEventListener('click', function () {
+      var payload = {
+        title: (body.querySelector('#ffx-package-title') || {}).value || '',
+        theme: (body.querySelector('#ffx-package-theme') || {}).value || '',
+        durationDays: (body.querySelector('#ffx-package-days') || {}).value || '1',
+        priceInr: (body.querySelector('#ffx-package-price') || {}).value || '0',
+        localGuide: true,
+        includesVehicle: true
+      };
+      postBusiness('/packages', payload).then(function (data) {
+        executeFeature(feature, 'package-create', payload);
+        if (data && data.item) refresh();
+      });
+    });
+
+    body.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-package-book]');
+      if (!button) return;
+      var packageId = button.getAttribute('data-package-book');
+      if (!packageId) return;
+      postBusiness('/packages/' + encodeURIComponent(packageId) + '/book', {
+        userKey: currentUserKey(),
+        travelers: 1,
+        paymentMethod: 'cash'
+      }).then(function () {
+        executeFeature(feature, 'package-book', { packageId: packageId });
+      });
+    });
+
+    body.querySelector('#ffx-package-refresh').addEventListener('click', refresh);
+    refresh();
+  }
+
+  function applyReferralAffiliateModule(feature) {
+    var card = ensureCard('referral', 'Referral / Affiliate Tracking');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-ref-track')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-ref-partner\" placeholder=\"Partner name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-ref-code\" placeholder=\"Referral code\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-ref-value\" placeholder=\"Booking value\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-ref-track\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Track Event</button>',
+      '<button type=\"button\" id=\"ffx-ref-summary\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Get Summary</button>',
+      '</div>',
+      '<div id=\"ffx-ref-output\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#173b67;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-ref-output');
+
+    body.querySelector('#ffx-ref-track').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        partner: (body.querySelector('#ffx-ref-partner') || {}).value || '',
+        code: (body.querySelector('#ffx-ref-code') || {}).value || '',
+        bookingValue: (body.querySelector('#ffx-ref-value') || {}).value || '0',
+        eventType: 'booking'
+      };
+      postBusiness('/referrals/track', payload).then(function (data) {
+        executeFeature(feature, 'referral-track', payload);
+        if (output) {
+          output.textContent = data && data.event
+            ? ('Tracked with commission: INR ' + data.event.commissionAmount)
+            : 'Tracking failed';
+        }
+      });
+    });
+
+    body.querySelector('#ffx-ref-summary').addEventListener('click', function () {
+      var partner = (body.querySelector('#ffx-ref-partner') || {}).value || '';
+      var code = (body.querySelector('#ffx-ref-code') || {}).value || '';
+      getBusiness('/referrals/summary?partner=' + encodeURIComponent(partner) + '&code=' + encodeURIComponent(code)).then(function (data) {
+        if (!output) return;
+        if (!data || !data.ok) {
+          output.textContent = 'Summary unavailable';
+          return;
+        }
+        output.innerHTML = 'Events: <strong>' + escapeHtml(data.count) + '</strong> | Booking Value: <strong>INR ' + escapeHtml(data.totalBookingValue) + '</strong> | Commission: <strong>INR ' + escapeHtml(data.totalCommission) + '</strong>';
+      });
+    });
+  }
+
+  function applyFareEstimatorModule(feature) {
+    var card = ensureCard('fare-estimator', 'Real Fare & Currency Estimator');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-fare-calc')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;\">',
+      '<input id=\"ffx-fare-distance\" placeholder=\"Distance km\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-fare-duration\" placeholder=\"Duration min\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<select id=\"ffx-fare-vehicle\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>economy</option><option>sedan</option><option>suv</option><option>premium</option><option>xl</option></select>',
+      '<select id=\"ffx-fare-currency\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>AED</option></select>',
+      '<input id=\"ffx-fare-offer\" placeholder=\"Offer %\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-fare-calc\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Estimate Fare</button>',
+      '</div>',
+      '<div id=\"ffx-fare-output\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#173b67;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-fare-output');
+    body.querySelector('#ffx-fare-calc').addEventListener('click', function () {
+      var payload = {
+        distanceKm: (body.querySelector('#ffx-fare-distance') || {}).value || '0',
+        durationMin: (body.querySelector('#ffx-fare-duration') || {}).value || '0',
+        vehicleType: (body.querySelector('#ffx-fare-vehicle') || {}).value || 'economy',
+        currency: (body.querySelector('#ffx-fare-currency') || {}).value || 'INR',
+        offerPercent: (body.querySelector('#ffx-fare-offer') || {}).value || '0'
+      };
+      postBusiness('/fare/estimate', payload).then(function (data) {
+        executeFeature(feature, 'fare-estimate', payload);
+        if (!output) return;
+        var estimate = data && data.estimate ? data.estimate : null;
+        if (!estimate) {
+          output.textContent = 'Fare estimate unavailable.';
+          return;
+        }
+        output.innerHTML = 'Final INR: <strong>' + escapeHtml(estimate.finalInr) + '</strong> | ' +
+          escapeHtml(estimate.currency) + ': <strong>' + escapeHtml(estimate.convertedFare) + '</strong>';
+      });
+    });
+  }
+
+  function applyTermsConsentModule(feature) {
+    var card = ensureCard('terms-consent', 'Terms / Disclaimer Consent');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-terms-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"font-size:12px;color:#35557d;margin-bottom:8px;\">GOindiaRIDE acts as facilitator. Service/refund/quality belongs to partner vendor as per booking terms.</div>',
+      '<label style=\"display:flex;gap:6px;align-items:center;font-size:12px;\"><input type=\"checkbox\" id=\"ffx-terms-check\"/> I accept Terms & Liability policy</label>',
+      '<button type=\"button\" id=\"ffx-terms-save\" style=\"margin-top:8px;padding:8px;border:0;border-radius:8px;background:#334155;color:#fff;\">Save Consent</button>',
+      '<div id=\"ffx-terms-output\" style=\"margin-top:8px;font-size:12px;color:#173b67;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-terms-output');
+    body.querySelector('#ffx-terms-save').addEventListener('click', function () {
+      var accepted = Boolean((body.querySelector('#ffx-terms-check') || {}).checked);
+      postBusiness('/terms/consent', {
+        userKey: currentUserKey(),
+        version: 'v2026-03',
+        source: window.location.pathname,
+        accepted: accepted
+      }).then(function (data) {
+        executeFeature(feature, 'terms-consent', { accepted: accepted });
+        if (output) {
+          output.textContent = data && data.item
+            ? ('Consent saved at ' + data.item.createdAt)
+            : 'Unable to save consent';
+        }
+      });
+    });
+  }
+
+  function applySupportHelpdeskModule(feature) {
+    var card = ensureCard('support-helpdesk', 'Support / Helpdesk');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-support-create')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<select id=\"ffx-support-category\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>booking</option><option>payment</option><option>safety</option><option>refund</option><option>general</option></select>',
+      '<input id=\"ffx-support-message\" placeholder=\"Issue details\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-support-create\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Raise Ticket</button>',
+      '<button type=\"button\" id=\"ffx-support-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">My Tickets</button>',
+      '</div>',
+      '<div id=\"ffx-support-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-support-list');
+
+    function refresh() {
+      getBusiness('/support/ticket/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        if (!items.length) {
+          list.textContent = 'No support tickets.';
+          return;
+        }
+        list.innerHTML = items.slice(-20).reverse().map(function (item) {
+          return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.ticketCode) + '</strong> [' + escapeHtml(item.status) + '] - ' + escapeHtml(item.category) + '</div>';
+        }).join('');
+      });
+    }
+
+    body.querySelector('#ffx-support-create').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        category: (body.querySelector('#ffx-support-category') || {}).value || 'general',
+        message: (body.querySelector('#ffx-support-message') || {}).value || ''
+      };
+      postBusiness('/support/ticket', payload).then(function () {
+        executeFeature(feature, 'support-ticket-create', payload);
+        refresh();
+      });
+    });
+    body.querySelector('#ffx-support-refresh').addEventListener('click', refresh);
+    refresh();
+  }
+
+  function applyAdminMonitoringModule(feature) {
+    var card = ensureCard('admin-monitoring', 'Admin Monitoring Snapshot');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-admin-refresh')) return;
+
+    body.innerHTML = [
+      '<button type=\"button\" id=\"ffx-admin-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Refresh Admin Metrics</button>',
+      '<div id=\"ffx-admin-summary\" style=\"margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;\"></div>'
+    ].join('');
+
+    var summary = body.querySelector('#ffx-admin-summary');
+    function renderMetric(label, value) {
+      return '<div style=\"padding:8px;border:1px solid #dbe7ff;border-radius:8px;background:#fff;\"><div style=\"font-size:11px;color:#5b7498;\">' + escapeHtml(label) + '</div><div style=\"font-size:18px;font-weight:700;color:#173b67;\">' + escapeHtml(value) + '</div></div>';
+    }
+
+    function refresh() {
+      getBusiness('/admin/summary').then(function (data) {
+        if (!summary) return;
+        var metrics = data && data.metrics ? data.metrics : null;
+        if (!metrics) {
+          summary.textContent = 'Metrics unavailable.';
+          return;
+        }
+        summary.innerHTML = [
+          renderMetric('Listings', metrics.listings || 0),
+          renderMetric('Packages', metrics.packages || 0),
+          renderMetric('Bookings', metrics.packageBookings || 0),
+          renderMetric('Referrals', metrics.referrals || 0),
+          renderMetric('Notifications', metrics.notifications || 0),
+          renderMetric('Support', metrics.supportTickets || 0),
+          renderMetric('Wallet INR', metrics.totalWalletBalance || 0)
+        ].join('');
+        executeFeature(feature, 'admin-summary-refresh', {});
+      });
+    }
+
+    body.querySelector('#ffx-admin-refresh').addEventListener('click', refresh);
+    refresh();
+  }
+
+  function applyAIRecommendationModule(feature) {
+    var card = ensureCard('ai-recommendation', 'AI Suggestions & Recommendations');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-ai-reco-load')) return;
+
+    body.innerHTML = [
+      '<button type=\"button\" id=\"ffx-ai-reco-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Smart Recommendations</button>',
+      '<div id=\"ffx-ai-reco-output\" style=\"margin-top:8px;max-height:200px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-ai-reco-output');
+    body.querySelector('#ffx-ai-reco-load').addEventListener('click', function () {
+      getBusiness('/recommendations/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        if (!output) return;
+        if (!data || !data.ok) {
+          output.textContent = 'No recommendations available.';
+          return;
+        }
+        var listings = Array.isArray(data.listings) ? data.listings : [];
+        var places = Array.isArray(data.places) ? data.places : [];
+        output.innerHTML = '<div><strong>Preferred District:</strong> ' + escapeHtml(data.preferredDistrict || 'N/A') + '</div>' +
+          '<div style=\"margin-top:6px;\"><strong>Listings:</strong> ' + (listings.map(function (x) { return escapeHtml(x.name); }).join(', ') || 'N/A') + '</div>' +
+          '<div style=\"margin-top:6px;\"><strong>Places:</strong> ' + (places.map(function (x) { return escapeHtml(x.name); }).join(', ') || 'N/A') + '</div>';
+        executeFeature(feature, 'ai-recommendation-load', {});
+      });
+    });
+  }
+
+  function applyReviewModule(feature) {
+    var card = ensureCard('reviews', 'Reviews & Ratings');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-review-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;\">',
+      '<select id=\"ffx-review-target-type\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option value=\"driver\">Driver</option><option value=\"ride\">Ride</option><option value=\"listing\">Listing</option></select>',
+      '<input id=\"ffx-review-target-id\" placeholder=\"Target ID\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-review-rating\" placeholder=\"Rating 1-5\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-review-comment\" placeholder=\"Comment\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-review-save\" style=\"padding:8px;border:0;border-radius:8px;background:#16a34a;color:#fff;\">Save Review</button>',
+      '<button type=\"button\" id=\"ffx-review-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Reviews</button>',
+      '</div>',
+      '<div id=\"ffx-review-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-review-list');
+    function loadReviews() {
+      var targetType = (body.querySelector('#ffx-review-target-type') || {}).value || '';
+      var targetId = (body.querySelector('#ffx-review-target-id') || {}).value || '';
+      getBusiness('/reviews?targetType=' + encodeURIComponent(targetType) + '&targetId=' + encodeURIComponent(targetId)).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        list.innerHTML = '<div style=\"margin-bottom:6px;\">Average: <strong>' + escapeHtml(data && data.averageRating ? data.averageRating : 0) + '</strong></div>' +
+          (items.slice(-30).reverse().map(function (item) {
+            return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\">' + escapeHtml(item.rating) + '★ - ' + escapeHtml(item.comment || '') + '</div>';
+          }).join('') || 'No reviews.');
+      });
+    }
+
+    body.querySelector('#ffx-review-save').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        targetType: (body.querySelector('#ffx-review-target-type') || {}).value || 'driver',
+        targetId: (body.querySelector('#ffx-review-target-id') || {}).value || 'generic',
+        rating: (body.querySelector('#ffx-review-rating') || {}).value || '5',
+        comment: (body.querySelector('#ffx-review-comment') || {}).value || ''
+      };
+      postBusiness('/reviews', payload).then(function () {
+        executeFeature(feature, 'review-save', payload);
+        loadReviews();
+      });
+    });
+    body.querySelector('#ffx-review-load').addEventListener('click', loadReviews);
+    loadReviews();
+  }
+
+  function applyPartnerIntegrationModule(feature) {
+    var card = ensureCard('partner-integration', 'Partner API / Webhook Integration');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-webhook-send')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;\">',
+      '<input id=\"ffx-webhook-partner\" placeholder=\"Partner name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-webhook-event\" placeholder=\"Event type\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-webhook-send\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Log Webhook Event</button>',
+      '<button type=\"button\" id=\"ffx-webhook-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Events</button>',
+      '</div>',
+      '<div id=\"ffx-webhook-list\" style=\"margin-top:8px;max-height:160px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-webhook-list');
+    function loadEvents() {
+      var partner = (body.querySelector('#ffx-webhook-partner') || {}).value || '';
+      getBusiness('/partner/webhook/logs?partner=' + encodeURIComponent(partner)).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        if (!items.length) {
+          list.textContent = 'No webhook events logged.';
+          return;
+        }
+        list.innerHTML = items.slice(-20).reverse().map(function (item) {
+          return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.partner) + '</strong> - ' + escapeHtml(item.eventType) + '</div>';
+        }).join('');
+      });
+    }
+
+    body.querySelector('#ffx-webhook-send').addEventListener('click', function () {
+      var payload = {
+        partner: (body.querySelector('#ffx-webhook-partner') || {}).value || '',
+        eventType: (body.querySelector('#ffx-webhook-event') || {}).value || 'booking-created',
+        payload: {
+          userKey: currentUserKey(),
+          page: window.location.pathname
+        }
+      };
+      postBusiness('/partner/webhook/log', payload).then(function () {
+        executeFeature(feature, 'partner-webhook-log', payload);
+        loadEvents();
+      });
+    });
+    body.querySelector('#ffx-webhook-load').addEventListener('click', loadEvents);
+    loadEvents();
+  }
+
   function applyModules(feature) {
     var text = normalize(feature.description);
 
@@ -848,12 +1379,23 @@
     if (hasAny(text, ['payment', 'upi', 'paypal', 'wallet', 'coupon', 'refund', 'advance'])) applyPaymentModule(feature);
     if (hasAny(text, ['emergency', 'police', 'ambulance', 'sos', 'helpline', '24x7'])) applyEmergencyModule(feature);
     if (hasAny(text, ['tourist', 'district', 'history', 'fort', 'palace', 'temple', 'museum', 'festival', 'parking'])) applyTourismModule(feature);
+    if (hasAny(text, ['district', 'all district', '50 district', 'rajasthan district', 'jaipur', 'udaipur', 'jodhpur'])) applyDistrictDirectoryModule(feature);
     if (hasAny(text, ['rating', 'review', 'feedback', 'star'])) applyRatingModule(feature);
     if (hasAny(text, ['local', 'outstation', 'rental', 'airport', 'ride type'])) applyRideModule(feature);
     if (hasAny(text, ['driver', 'vehicle', 'hatchback', 'sedan', 'suv', 'ac', 'non-ac', 'seating'])) applyDriverVehicleModule(feature);
     if (hasAny(text, ['accept', 'reject', 'extra booking', 'cancel'])) applyBookingOpsModule(feature);
     if (hasAny(text, ['live location', 'tracking', 'gps'])) applyLiveTrackingModule(feature);
     if (hasAny(text, ['hotel', 'restaurant', 'shop', 'commission', 'guest house'])) applyPartnerCommissionModule(feature);
+    if (hasAny(text, ['listing', 'searchable', 'categorized', 'specialty', 'contact'])) applyListingModule(feature);
+    if (hasAny(text, ['tour package', 'package booking', 'family', 'honeymoon', 'adventure', 'itinerary', 'book now'])) applyTourPackageModule(feature);
+    if (hasAny(text, ['referral', 'affiliate', 'utm', 'coupon', 'partner tracking'])) applyReferralAffiliateModule(feature);
+    if (hasAny(text, ['fare', 'currency', 'distance', 'season', 'auto-calculated'])) applyFareEstimatorModule(feature);
+    if (hasAny(text, ['disclaimer', 'liability', 'terms consent', 'terms checkbox'])) applyTermsConsentModule(feature);
+    if (hasAny(text, ['help desk', 'helpdesk', 'support', 'ticket'])) applySupportHelpdeskModule(feature);
+    if (hasAny(text, ['dashboard', 'monitoring', 'admin panel', 'summary', 'performance logs'])) applyAdminMonitoringModule(feature);
+    if (hasAny(text, ['ai', 'recommendation', 'smart', 'chatbot', 'suggestion'])) applyAIRecommendationModule(feature);
+    if (hasAny(text, ['review', 'rating', 'real user review', 'social proof'])) applyReviewModule(feature);
+    if (hasAny(text, ['api', 'webhook', 'integration', 'partner integration'])) applyPartnerIntegrationModule(feature);
     if (hasAny(text, ['why trust', 'real trip photos', 'trip preview', 'social proof', 'experience'])) applyTrustBrandModule(feature);
     if (hasAny(text, ['road rule', 'government', 'law', 'compliance', 'legal'])) applyPolicyRulesModule(feature);
     if (hasAny(text, ['notification', 'alert', 'reminder', 'sms', 'email', 'whatsapp', 'push'])) applyNotificationCenterModule(feature);
