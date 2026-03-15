@@ -21,6 +21,13 @@ const MAX_REVIEWS = 30000;
 const MAX_TERMS_CONSENTS = 30000;
 const MAX_SUPPORT_TICKETS = 30000;
 const MAX_WEBHOOK_EVENTS = 20000;
+const MAX_OTP_EVENTS = 50000;
+const MAX_AUTH_LOGS = 50000;
+const MAX_BOOKING_ACTIONS = 50000;
+const MAX_DISPUTES = 20000;
+const MAX_FRAUD_ALERTS = 20000;
+const MAX_AI_CHATS = 60000;
+const MAX_SAVED_LOCATIONS = 30000;
 
 let persistTimer = null;
 
@@ -141,6 +148,13 @@ function defaultStore() {
     packageBookings: [],
     referrals: [],
     reviews: [],
+    otpEvents: [],
+    authLogs: [],
+    bookingActions: [],
+    disputes: [],
+    fraudAlerts: [],
+    aiChats: [],
+    savedLocations: [],
     termsConsents: [],
     supportTickets: [],
     webhookEvents: [],
@@ -184,6 +198,13 @@ function loadStore() {
       packageBookings: Array.isArray(parsed.packageBookings) ? parsed.packageBookings.slice(-MAX_PACKAGE_BOOKINGS) : [],
       referrals: Array.isArray(parsed.referrals) ? parsed.referrals.slice(-MAX_REFERRALS) : [],
       reviews: Array.isArray(parsed.reviews) ? parsed.reviews.slice(-MAX_REVIEWS) : [],
+      otpEvents: Array.isArray(parsed.otpEvents) ? parsed.otpEvents.slice(-MAX_OTP_EVENTS) : [],
+      authLogs: Array.isArray(parsed.authLogs) ? parsed.authLogs.slice(-MAX_AUTH_LOGS) : [],
+      bookingActions: Array.isArray(parsed.bookingActions) ? parsed.bookingActions.slice(-MAX_BOOKING_ACTIONS) : [],
+      disputes: Array.isArray(parsed.disputes) ? parsed.disputes.slice(-MAX_DISPUTES) : [],
+      fraudAlerts: Array.isArray(parsed.fraudAlerts) ? parsed.fraudAlerts.slice(-MAX_FRAUD_ALERTS) : [],
+      aiChats: Array.isArray(parsed.aiChats) ? parsed.aiChats.slice(-MAX_AI_CHATS) : [],
+      savedLocations: Array.isArray(parsed.savedLocations) ? parsed.savedLocations.slice(-MAX_SAVED_LOCATIONS) : [],
       termsConsents: Array.isArray(parsed.termsConsents) ? parsed.termsConsents.slice(-MAX_TERMS_CONSENTS) : [],
       supportTickets: Array.isArray(parsed.supportTickets) ? parsed.supportTickets.slice(-MAX_SUPPORT_TICKETS) : [],
       webhookEvents: Array.isArray(parsed.webhookEvents) ? parsed.webhookEvents.slice(-MAX_WEBHOOK_EVENTS) : [],
@@ -336,6 +357,43 @@ function estimateFare(payload) {
   };
 }
 
+function pushWithCap(list, item, maxLimit) {
+  list.push(item);
+  if (list.length > maxLimit) {
+    list.splice(0, list.length - maxLimit);
+  }
+}
+
+function generateOtpCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function normalizeBookingStatus(value) {
+  const key = normalizeString(value, 40).toLowerCase();
+  if (key.includes('accept')) return 'accepted';
+  if (key.includes('pick')) return 'picked_up';
+  if (key.includes('start')) return 'started';
+  if (key.includes('complete')) return 'completed';
+  if (key.includes('cancel')) return 'cancelled';
+  if (key.includes('resched')) return 'rescheduled';
+  if (key.includes('reject')) return 'rejected';
+  return key || 'updated';
+}
+
+function addAuthLog(store, payload) {
+  const item = {
+    id: crypto.randomUUID(),
+    userKey: normalizeString(payload.userKey, 80) || 'guest-user',
+    action: normalizeString(payload.action, 80) || 'auth-event',
+    channel: normalizeString(payload.channel, 40) || 'app',
+    success: payload.success !== undefined ? Boolean(payload.success) : true,
+    message: normalizeString(payload.message, 320),
+    createdAt: new Date().toISOString()
+  };
+  pushWithCap(store.authLogs, item, MAX_AUTH_LOGS);
+  return item;
+}
+
 router.get('/status', (req, res) => {
   const store = getStore();
   return res.status(200).json({
@@ -349,6 +407,13 @@ router.get('/status', (req, res) => {
     packageBookings: store.packageBookings.length,
     referrals: store.referrals.length,
     reviews: store.reviews.length,
+    otpEvents: store.otpEvents.length,
+    authLogs: store.authLogs.length,
+    bookingActions: store.bookingActions.length,
+    disputes: store.disputes.length,
+    fraudAlerts: store.fraudAlerts.length,
+    aiChats: store.aiChats.length,
+    savedLocations: store.savedLocations.length,
     termsConsents: store.termsConsents.length,
     supportTickets: store.supportTickets.length,
     webhookEvents: store.webhookEvents.length,
@@ -418,6 +483,329 @@ router.get('/wallet/:userKey', (req, res) => {
   if (!userKey) return res.status(400).json({ ok: false, message: 'Invalid userKey' });
   const wallet = walletForUser(store, userKey);
   return res.status(200).json({ ok: true, wallet: clone(wallet) });
+});
+
+router.post('/auth/otp/send', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const channel = normalizeString(req.body?.channel, 20) || 'sms';
+  const destination = normalizeString(req.body?.destination, 120);
+  if (!userKey || !destination) {
+    return res.status(400).json({ ok: false, message: 'userKey and destination are required' });
+  }
+
+  const nowMs = Date.now();
+  const recent = store.otpEvents.filter((item) => item.userKey === userKey && item.kind === 'send' && (nowMs - Number(item.tsMs || 0) < 60 * 1000));
+  if (recent.length >= 3) {
+    addAuthLog(store, {
+      userKey,
+      action: 'otp-send-rate-limited',
+      channel,
+      success: false,
+      message: 'Rate limit exceeded'
+    });
+    queuePersist();
+    return res.status(429).json({ ok: false, message: 'Too many OTP requests. Try after 1 minute.' });
+  }
+
+  const code = generateOtpCode();
+  const event = {
+    id: crypto.randomUUID(),
+    kind: 'send',
+    userKey,
+    channel,
+    destination,
+    code,
+    tsMs: nowMs,
+    createdAt: new Date(nowMs).toISOString(),
+    expiresAt: new Date(nowMs + 5 * 60 * 1000).toISOString(),
+    verified: false
+  };
+  pushWithCap(store.otpEvents, event, MAX_OTP_EVENTS);
+  addAuthLog(store, {
+    userKey,
+    action: 'otp-sent',
+    channel,
+    success: true,
+    message: `OTP sent to ${destination}`
+  });
+  queuePersist();
+
+  return res.status(201).json({
+    ok: true,
+    otpId: event.id,
+    channel,
+    expiresAt: event.expiresAt,
+    // For demo runtime only. Remove this in production.
+    code
+  });
+});
+
+router.post('/auth/otp/verify', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const code = normalizeString(req.body?.code, 10);
+  const otpId = normalizeString(req.body?.otpId, 80);
+  if (!userKey || (!code && !otpId)) {
+    return res.status(400).json({ ok: false, message: 'userKey and code/otpId are required' });
+  }
+
+  const nowMs = Date.now();
+  let candidate = null;
+  for (let i = store.otpEvents.length - 1; i >= 0; i -= 1) {
+    const item = store.otpEvents[i];
+    if (item.kind !== 'send' || item.userKey !== userKey) continue;
+    if (otpId && item.id !== otpId) continue;
+    if (code && item.code !== code) continue;
+    candidate = item;
+    break;
+  }
+
+  if (!candidate) {
+    addAuthLog(store, {
+      userKey,
+      action: 'otp-verify',
+      channel: 'app',
+      success: false,
+      message: 'OTP not found'
+    });
+    queuePersist();
+    return res.status(404).json({ ok: false, message: 'OTP not found' });
+  }
+
+  if (candidate.verified) {
+    return res.status(200).json({ ok: true, alreadyVerified: true, verifiedAt: candidate.verifiedAt });
+  }
+
+  const expiresMs = Number(new Date(candidate.expiresAt).getTime());
+  if (!Number.isFinite(expiresMs) || nowMs > expiresMs) {
+    addAuthLog(store, {
+      userKey,
+      action: 'otp-expired',
+      channel: candidate.channel,
+      success: false,
+      message: 'OTP expired'
+    });
+    queuePersist();
+    return res.status(410).json({ ok: false, message: 'OTP expired' });
+  }
+
+  candidate.verified = true;
+  candidate.verifiedAt = new Date(nowMs).toISOString();
+  addAuthLog(store, {
+    userKey,
+    action: 'otp-verified',
+    channel: candidate.channel,
+    success: true,
+    message: 'OTP verified successfully'
+  });
+  queuePersist();
+  return res.status(200).json({ ok: true, verifiedAt: candidate.verifiedAt });
+});
+
+router.get('/auth/logs/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.authLogs.filter((item) => item.userKey === userKey).slice(-500);
+  return res.status(200).json({ ok: true, count: items.length, items });
+});
+
+router.post('/saved-location', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const label = normalizeString(req.body?.label, 80);
+  const address = normalizeString(req.body?.address, 250);
+  const district = normalizeString(req.body?.district, 80);
+  if (!userKey || !label || !address) {
+    return res.status(400).json({ ok: false, message: 'userKey, label and address are required' });
+  }
+  const item = {
+    id: crypto.randomUUID(),
+    userKey,
+    label,
+    address,
+    district,
+    latitude: normalizeAmount(req.body?.latitude),
+    longitude: normalizeAmount(req.body?.longitude),
+    createdAt: new Date().toISOString()
+  };
+  pushWithCap(store.savedLocations, item, MAX_SAVED_LOCATIONS);
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/saved-location/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.savedLocations.filter((item) => item.userKey === userKey).slice(-200);
+  return res.status(200).json({ ok: true, count: items.length, items });
+});
+
+router.post('/booking/action', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const bookingId = normalizeString(req.body?.bookingId, 120) || `BK-${Date.now()}`;
+  const action = normalizeBookingStatus(req.body?.action);
+  const currentStatus = normalizeBookingStatus(req.body?.currentStatus);
+  const pickedUp = Boolean(req.body?.pickedUp);
+
+  if (!userKey) return res.status(400).json({ ok: false, message: 'userKey is required' });
+  if (!action) return res.status(400).json({ ok: false, message: 'action is required' });
+
+  // Policy example: after pickup, cancel action is blocked.
+  if (pickedUp && action === 'cancelled') {
+    const blocked = {
+      id: crypto.randomUUID(),
+      userKey,
+      bookingId,
+      action,
+      currentStatus,
+      pickedUp,
+      allowed: false,
+      message: 'Booking cannot be cancelled after pickup point is reached.',
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(store.bookingActions, blocked, MAX_BOOKING_ACTIONS);
+    queuePersist();
+    return res.status(409).json({ ok: false, policyBlocked: true, item: blocked });
+  }
+
+  const item = {
+    id: crypto.randomUUID(),
+    userKey,
+    bookingId,
+    action,
+    currentStatus,
+    pickedUp,
+    allowed: true,
+    message: normalizeString(req.body?.message, 320),
+    scheduleAt: normalizeString(req.body?.scheduleAt, 40),
+    createdAt: new Date().toISOString()
+  };
+
+  pushWithCap(store.bookingActions, item, MAX_BOOKING_ACTIONS);
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/booking/action/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.bookingActions.filter((item) => item.userKey === userKey).slice(-500);
+  return res.status(200).json({ ok: true, count: items.length, items });
+});
+
+router.post('/dispute/report', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const bookingId = normalizeString(req.body?.bookingId, 120);
+  const issue = normalizeString(req.body?.issue, 1200);
+  if (!userKey || !bookingId || !issue) {
+    return res.status(400).json({ ok: false, message: 'userKey, bookingId and issue are required' });
+  }
+  const item = {
+    id: crypto.randomUUID(),
+    disputeCode: `DSP-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`,
+    userKey,
+    bookingId,
+    issue,
+    status: 'open',
+    evidence: Array.isArray(req.body?.evidence)
+      ? req.body.evidence.map((x) => normalizeString(x, 240)).filter(Boolean).slice(0, 20)
+      : [],
+    createdAt: new Date().toISOString()
+  };
+  pushWithCap(store.disputes, item, MAX_DISPUTES);
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/dispute/report', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.query.userKey, 80);
+  const status = normalizeString(req.query.status, 30);
+  let items = store.disputes;
+  if (userKey) items = items.filter((item) => item.userKey === userKey);
+  if (status) items = items.filter((item) => normalizeString(item.status, 30) === status);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-1000) });
+});
+
+router.get('/dispute/export.csv', (req, res) => {
+  const store = getStore();
+  const headers = ['disputeCode', 'userKey', 'bookingId', 'status', 'issue', 'createdAt'];
+  const rows = [headers.join(',')];
+  store.disputes.forEach((item) => {
+    rows.push(headers.map((key) => `"${String(item[key] || '').replace(/"/g, '""')}"`).join(','));
+  });
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=\"disputes.csv\"');
+  return res.status(200).send(rows.join('\n'));
+});
+
+router.post('/fraud/alert', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const category = normalizeString(req.body?.category, 80) || 'suspicious-activity';
+  const severity = normalizeString(req.body?.severity, 20) || 'medium';
+  const note = normalizeString(req.body?.note, 600);
+  if (!userKey || !note) {
+    return res.status(400).json({ ok: false, message: 'userKey and note are required' });
+  }
+  const item = {
+    id: crypto.randomUUID(),
+    userKey,
+    category,
+    severity,
+    note,
+    resolved: false,
+    createdAt: new Date().toISOString()
+  };
+  pushWithCap(store.fraudAlerts, item, MAX_FRAUD_ALERTS);
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/fraud/alert', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.query.userKey, 80);
+  const severity = normalizeString(req.query.severity, 20);
+  let items = store.fraudAlerts;
+  if (userKey) items = items.filter((item) => item.userKey === userKey);
+  if (severity) items = items.filter((item) => normalizeString(item.severity, 20) === severity);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-1000) });
+});
+
+router.post('/ai/chatbot', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80) || 'guest-user';
+  const question = normalizeString(req.body?.question, 1000);
+  if (!question) return res.status(400).json({ ok: false, message: 'question is required' });
+
+  const lower = question.toLowerCase();
+  let answer = 'Thanks for your question. Support team will help you shortly.';
+  if (lower.includes('booking')) answer = 'Booking ke liye pickup/drop fill karo, ride type select karo, aur confirm par click karo.';
+  else if (lower.includes('cancel')) answer = 'Pickup point reach hone ke baad cancellation block ho sakta hai. Terms check karo.';
+  else if (lower.includes('payment') || lower.includes('upi')) answer = 'UPI, wallet, cash aur partner options available hain. Coupon apply karke discount le sakte ho.';
+  else if (lower.includes('tour') || lower.includes('district')) answer = 'District explorer me Rajasthan ke places, timings, entry fee aur history available hai.';
+  else if (lower.includes('safety') || lower.includes('sos')) answer = 'Emergency card me Police/Ambulance/SOS quick actions available hain.';
+
+  const item = {
+    id: crypto.randomUUID(),
+    userKey,
+    question,
+    answer,
+    createdAt: new Date().toISOString()
+  };
+  pushWithCap(store.aiChats, item, MAX_AI_CHATS);
+  queuePersist();
+  return res.status(200).json({ ok: true, item });
+});
+
+router.get('/ai/chatbot/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const items = store.aiChats.filter((item) => item.userKey === userKey).slice(-200);
+  return res.status(200).json({ ok: true, count: items.length, items });
 });
 
 router.post('/notifications/send', (req, res) => {
@@ -1071,6 +1459,13 @@ router.get('/admin/summary', (req, res) => {
       packageBookings: store.packageBookings.length,
       referrals: store.referrals.length,
       reviews: store.reviews.length,
+      authLogs: store.authLogs.length,
+      otpEvents: store.otpEvents.length,
+      bookingActions: store.bookingActions.length,
+      disputes: store.disputes.length,
+      fraudAlerts: store.fraudAlerts.length,
+      aiChats: store.aiChats.length,
+      savedLocations: store.savedLocations.length,
       notifications: store.notifications.length,
       supportTickets: store.supportTickets.length,
       activeTravelCards: Object.keys(store.travelCards).length,
@@ -1104,13 +1499,19 @@ router.get('/recommendations/:userKey', (req, res) => {
     .filter((item) => normalizeString(item.district, 80) === preferredDistrict)
     .slice(0, 12);
 
+  const recommendedPackages = store.packages
+    .filter((item) => normalizeString(item.theme, 80).includes('heritage') || normalizeString(item.theme, 80).includes('family'))
+    .slice(-6)
+    .reverse();
+
   return res.status(200).json({
     ok: true,
     userKey,
     preferredDistrict,
     preferredType,
     listings: recommendedListings,
-    places: recommendedPlaces
+    places: recommendedPlaces,
+    packages: recommendedPackages
   });
 });
 

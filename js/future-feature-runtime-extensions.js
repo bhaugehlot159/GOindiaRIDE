@@ -1370,6 +1370,327 @@
     loadEvents();
   }
 
+  function applyOtpSecurityModule(feature) {
+    var card = ensureCard('otp-security', 'OTP Auth & Security');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-otp-send')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-otp-destination\" placeholder=\"Phone or Email\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<select id=\"ffx-otp-channel\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option value=\"sms\">SMS</option><option value=\"email\">Email</option></select>',
+      '<button type=\"button\" id=\"ffx-otp-send\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Send OTP</button>',
+      '<input id=\"ffx-otp-code\" placeholder=\"Enter OTP\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-otp-verify\" style=\"padding:8px;border:0;border-radius:8px;background:#16a34a;color:#fff;\">Verify OTP</button>',
+      '<button type=\"button\" id=\"ffx-otp-log\" style=\"padding:8px;border:0;border-radius:8px;background:#334155;color:#fff;\">Auth Logs</button>',
+      '</div>',
+      '<div id=\"ffx-otp-output\" style=\"margin-top:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;color:#173b67;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-otp-output');
+    var latestOtpId = '';
+    function setOutput(text) {
+      if (output) output.textContent = text || '';
+    }
+
+    body.querySelector('#ffx-otp-send').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        destination: (body.querySelector('#ffx-otp-destination') || {}).value || '',
+        channel: (body.querySelector('#ffx-otp-channel') || {}).value || 'sms'
+      };
+      postBusiness('/auth/otp/send', payload).then(function (data) {
+        executeFeature(feature, 'otp-send', payload);
+        if (data && data.ok) {
+          latestOtpId = data.otpId || '';
+          setOutput('OTP sent. Demo OTP: ' + (data.code || 'hidden'));
+        } else {
+          setOutput('OTP send failed.');
+        }
+      });
+    });
+
+    body.querySelector('#ffx-otp-verify').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        otpId: latestOtpId,
+        code: (body.querySelector('#ffx-otp-code') || {}).value || ''
+      };
+      postBusiness('/auth/otp/verify', payload).then(function (data) {
+        executeFeature(feature, 'otp-verify', { success: !!(data && data.ok) });
+        setOutput(data && data.ok ? 'OTP verified successfully.' : 'OTP verify failed.');
+      });
+    });
+
+    body.querySelector('#ffx-otp-log').addEventListener('click', function () {
+      getBusiness('/auth/logs/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        setOutput(items.slice(-5).map(function (item) {
+          return item.action + ' [' + (item.success ? 'ok' : 'fail') + ']';
+        }).join(' | ') || 'No auth logs.');
+      });
+    });
+  }
+
+  function applySavedLocationModule(feature) {
+    var card = ensureCard('saved-locations', 'Saved Locations / Favorites');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-location-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;\">',
+      '<input id=\"ffx-location-label\" placeholder=\"Label (Home/Office)\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-location-address\" placeholder=\"Address\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-location-district\" placeholder=\"District\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-location-save\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Save Location</button>',
+      '<button type=\"button\" id=\"ffx-location-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">My Locations</button>',
+      '</div>',
+      '<div id=\"ffx-location-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-location-list');
+    function loadLocations() {
+      getBusiness('/saved-location/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        list.innerHTML = items.length
+          ? items.slice(-20).reverse().map(function (item) {
+            return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.label) + '</strong> - ' + escapeHtml(item.address) + '</div>';
+          }).join('')
+          : 'No saved locations.';
+      });
+    }
+
+    body.querySelector('#ffx-location-save').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        label: (body.querySelector('#ffx-location-label') || {}).value || '',
+        address: (body.querySelector('#ffx-location-address') || {}).value || '',
+        district: (body.querySelector('#ffx-location-district') || {}).value || ''
+      };
+      postBusiness('/saved-location', payload).then(function () {
+        executeFeature(feature, 'saved-location-add', payload);
+        loadLocations();
+      });
+    });
+    body.querySelector('#ffx-location-refresh').addEventListener('click', loadLocations);
+    loadLocations();
+  }
+
+  function applyBookingPolicyModule(feature) {
+    var card = ensureCard('booking-policy', 'Booking Policy & Reschedule/Cancel');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-policy-run')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;\">',
+      '<input id=\"ffx-policy-booking-id\" placeholder=\"Booking ID\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<select id=\"ffx-policy-action\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>rescheduled</option><option>cancelled</option><option>picked_up</option><option>completed</option></select>',
+      '<label style=\"display:flex;gap:6px;align-items:center;font-size:12px;\"><input type=\"checkbox\" id=\"ffx-policy-picked\"/> Pickup reached</label>',
+      '<button type=\"button\" id=\"ffx-policy-run\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Apply Action</button>',
+      '<button type=\"button\" id=\"ffx-policy-log\" style=\"padding:8px;border:0;border-radius:8px;background:#334155;color:#fff;\">Action History</button>',
+      '</div>',
+      '<div id=\"ffx-policy-output\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#173b67;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-policy-output');
+    function setOutput(text) {
+      if (output) output.textContent = text || '';
+    }
+
+    body.querySelector('#ffx-policy-run').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        bookingId: (body.querySelector('#ffx-policy-booking-id') || {}).value || '',
+        action: (body.querySelector('#ffx-policy-action') || {}).value || '',
+        pickedUp: Boolean((body.querySelector('#ffx-policy-picked') || {}).checked)
+      };
+      postBusiness('/booking/action', payload).then(function (data) {
+        executeFeature(feature, 'booking-policy-action', payload);
+        if (data && data.ok) setOutput('Action applied: ' + (data.item && data.item.action ? data.item.action : 'done'));
+        else if (data && data.policyBlocked) setOutput('Blocked by policy: cancellation after pickup not allowed.');
+        else setOutput('Action failed.');
+      });
+    });
+
+    body.querySelector('#ffx-policy-log').addEventListener('click', function () {
+      getBusiness('/booking/action/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        setOutput(items.slice(-5).map(function (item) {
+          return item.bookingId + ':' + item.action + (item.allowed ? '' : ' (blocked)');
+        }).join(' | ') || 'No booking actions.');
+      });
+    });
+  }
+
+  function applyDisputeModule(feature) {
+    var card = ensureCard('dispute', 'Dispute & Evidence Reporting');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-dispute-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-dispute-booking\" placeholder=\"Booking ID\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-dispute-issue\" placeholder=\"Issue details\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-dispute-save\" style=\"padding:8px;border:0;border-radius:8px;background:#b91c1c;color:#fff;\">Raise Dispute</button>',
+      '<button type=\"button\" id=\"ffx-dispute-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">My Disputes</button>',
+      '<a href=\"/api/future-runtime-business/dispute/export.csv\" target=\"_blank\" style=\"padding:8px;border-radius:8px;background:#0f766e;color:#fff;text-decoration:none;\">Export CSV</a>',
+      '</div>',
+      '<div id=\"ffx-dispute-list\" style=\"margin-top:8px;max-height:160px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-dispute-list');
+    function refresh() {
+      getBusiness('/dispute/report?userKey=' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        list.innerHTML = items.length
+          ? items.slice(-20).reverse().map(function (item) {
+            return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.disputeCode) + '</strong> [' + escapeHtml(item.status) + ']</div>';
+          }).join('')
+          : 'No disputes.';
+      });
+    }
+    body.querySelector('#ffx-dispute-save').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        bookingId: (body.querySelector('#ffx-dispute-booking') || {}).value || '',
+        issue: (body.querySelector('#ffx-dispute-issue') || {}).value || ''
+      };
+      postBusiness('/dispute/report', payload).then(function () {
+        executeFeature(feature, 'dispute-raise', payload);
+        refresh();
+      });
+    });
+    body.querySelector('#ffx-dispute-load').addEventListener('click', refresh);
+    refresh();
+  }
+
+  function applyFraudAlertModule(feature) {
+    var card = ensureCard('fraud-alert', 'Fraud / Suspicious Detection');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-fraud-save')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;\">',
+      '<select id=\"ffx-fraud-severity\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>low</option><option>medium</option><option>high</option><option>critical</option></select>',
+      '<input id=\"ffx-fraud-note\" placeholder=\"Suspicious activity note\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-fraud-save\" style=\"padding:8px;border:0;border-radius:8px;background:#b91c1c;color:#fff;\">Report Alert</button>',
+      '<button type=\"button\" id=\"ffx-fraud-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Recent Alerts</button>',
+      '</div>',
+      '<div id=\"ffx-fraud-list\" style=\"margin-top:8px;max-height:160px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-fraud-list');
+    function refresh() {
+      getBusiness('/fraud/alert?userKey=' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        list.innerHTML = items.length
+          ? items.slice(-20).reverse().map(function (item) {
+            return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.severity) + '</strong> - ' + escapeHtml(item.note) + '</div>';
+          }).join('')
+          : 'No fraud alerts.';
+      });
+    }
+    body.querySelector('#ffx-fraud-save').addEventListener('click', function () {
+      var payload = {
+        userKey: currentUserKey(),
+        severity: (body.querySelector('#ffx-fraud-severity') || {}).value || 'medium',
+        note: (body.querySelector('#ffx-fraud-note') || {}).value || '',
+        category: 'runtime-flag'
+      };
+      postBusiness('/fraud/alert', payload).then(function () {
+        executeFeature(feature, 'fraud-alert-report', payload);
+        refresh();
+      });
+    });
+    body.querySelector('#ffx-fraud-load').addEventListener('click', refresh);
+    refresh();
+  }
+
+  function applyChatbotModule(feature) {
+    var card = ensureCard('chatbot', 'AI Chatbot Support');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-chat-send')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
+      '<input id=\"ffx-chat-question\" placeholder=\"Ask about booking/payment/safety\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;min-width:260px;flex:1;\"/>',
+      '<button type=\"button\" id=\"ffx-chat-send\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Ask</button>',
+      '<button type=\"button\" id=\"ffx-chat-history\" style=\"padding:8px;border:0;border-radius:8px;background:#334155;color:#fff;\">History</button>',
+      '</div>',
+      '<div id=\"ffx-chat-output\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-chat-output');
+
+    body.querySelector('#ffx-chat-send').addEventListener('click', function () {
+      var question = (body.querySelector('#ffx-chat-question') || {}).value || '';
+      postBusiness('/ai/chatbot', { userKey: currentUserKey(), question: question }).then(function (data) {
+        executeFeature(feature, 'ai-chatbot-ask', { question: question });
+        if (!output) return;
+        if (data && data.item) {
+          output.innerHTML = '<div><strong>You:</strong> ' + escapeHtml(data.item.question) + '</div><div style=\"margin-top:6px;\"><strong>Bot:</strong> ' + escapeHtml(data.item.answer) + '</div>' + output.innerHTML;
+        }
+      });
+    });
+
+    body.querySelector('#ffx-chat-history').addEventListener('click', function () {
+      getBusiness('/ai/chatbot/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        if (!output) return;
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        output.innerHTML = items.length
+          ? items.slice(-10).reverse().map(function (item) {
+            return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>Q:</strong> ' + escapeHtml(item.question) + '<br/><strong>A:</strong> ' + escapeHtml(item.answer) + '</div>';
+          }).join('')
+          : 'No chat history.';
+      });
+    });
+  }
+
+  function applyTranslatorModule(feature) {
+    var card = ensureCard('translator', 'Language & Communication');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-translate')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-translator-text\" placeholder=\"Text to translate\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<select id=\"ffx-translator-lang\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option value=\"Hindi\">Hindi</option><option value=\"English\">English</option><option value=\"Rajasthani\">Rajasthani</option></select>',
+      '<button type=\"button\" id=\"ffx-translate\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Translate</button>',
+      '</div>',
+      '<div id=\"ffx-translator-output\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#173b67;\"></div>'
+    ].join('');
+
+    var output = body.querySelector('#ffx-translator-output');
+    var dictionary = {
+      Hindi: { booking: 'बुकिंग', payment: 'पेमेंट', safety: 'सुरक्षा', ride: 'राइड' },
+      English: { 'बुकिंग': 'booking', 'पेमेंट': 'payment', 'सुरक्षा': 'safety', 'राइड': 'ride' },
+      Rajasthani: { booking: 'बुकिंग', payment: 'भुगतान', safety: 'सुरक्शा', ride: 'सवारी' }
+    };
+
+    body.querySelector('#ffx-translate').addEventListener('click', function () {
+      var text = (body.querySelector('#ffx-translator-text') || {}).value || '';
+      var lang = (body.querySelector('#ffx-translator-lang') || {}).value || 'Hindi';
+      var tokens = text.split(/\s+/).filter(Boolean);
+      var mapped = tokens.map(function (token) {
+        var key = token.toLowerCase();
+        var map = dictionary[lang] || {};
+        return map[key] || map[token] || token;
+      }).join(' ');
+      if (output) output.textContent = mapped || text;
+      executeFeature(feature, 'language-translate', { lang: lang, text: text, output: mapped });
+    });
+  }
+
   function applyModules(feature) {
     var text = normalize(feature.description);
 
@@ -1384,12 +1705,19 @@
     if (hasAny(text, ['local', 'outstation', 'rental', 'airport', 'ride type'])) applyRideModule(feature);
     if (hasAny(text, ['driver', 'vehicle', 'hatchback', 'sedan', 'suv', 'ac', 'non-ac', 'seating'])) applyDriverVehicleModule(feature);
     if (hasAny(text, ['accept', 'reject', 'extra booking', 'cancel'])) applyBookingOpsModule(feature);
+    if (hasAny(text, ['cancel policy', 'reschedule', 'booking policy', 'cancel after pickup'])) applyBookingPolicyModule(feature);
     if (hasAny(text, ['live location', 'tracking', 'gps'])) applyLiveTrackingModule(feature);
     if (hasAny(text, ['hotel', 'restaurant', 'shop', 'commission', 'guest house'])) applyPartnerCommissionModule(feature);
     if (hasAny(text, ['listing', 'searchable', 'categorized', 'specialty', 'contact'])) applyListingModule(feature);
     if (hasAny(text, ['tour package', 'package booking', 'family', 'honeymoon', 'adventure', 'itinerary', 'book now'])) applyTourPackageModule(feature);
     if (hasAny(text, ['referral', 'affiliate', 'utm', 'coupon', 'partner tracking'])) applyReferralAffiliateModule(feature);
     if (hasAny(text, ['fare', 'currency', 'distance', 'season', 'auto-calculated'])) applyFareEstimatorModule(feature);
+    if (hasAny(text, ['otp', 'anti-fraud', 'auth security', 'suspicious'])) applyOtpSecurityModule(feature);
+    if (hasAny(text, ['favorite location', 'saved location', 'home office', 'pickup suggestion'])) applySavedLocationModule(feature);
+    if (hasAny(text, ['dispute', 'complaint', 'evidence', 'liability claim'])) applyDisputeModule(feature);
+    if (hasAny(text, ['fraud', 'spam', 'anomaly', 'suspicious'])) applyFraudAlertModule(feature);
+    if (hasAny(text, ['chatbot', 'faq', 'support bot'])) applyChatbotModule(feature);
+    if (hasAny(text, ['language', 'communication', 'translator', 'multi lingual'])) applyTranslatorModule(feature);
     if (hasAny(text, ['disclaimer', 'liability', 'terms consent', 'terms checkbox'])) applyTermsConsentModule(feature);
     if (hasAny(text, ['help desk', 'helpdesk', 'support', 'ticket'])) applySupportHelpdeskModule(feature);
     if (hasAny(text, ['dashboard', 'monitoring', 'admin panel', 'summary', 'performance logs'])) applyAdminMonitoringModule(feature);
