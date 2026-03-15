@@ -51,6 +51,41 @@ class LocationAutocomplete {
         
         this.displaySuggestions(suggestions);
     }
+
+    normalizeText(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    pushUnique(list, item) {
+        if (!item || !item.display) return;
+        if (!list.some((entry) => entry.display === item.display)) {
+            list.push(item);
+        }
+    }
+
+    appendArrayMatches(container, values, query, builder) {
+        if (!Array.isArray(values)) return;
+        values.forEach((raw) => {
+            if (typeof raw !== 'string') return;
+            const value = raw.trim();
+            if (!value) return;
+            if (this.normalizeText(value).includes(query)) {
+                this.pushUnique(container, builder(value));
+            }
+        });
+    }
+
+    getDynamicBucketLabel(categoryKey) {
+        const key = String(categoryKey || '').toLowerCase();
+        if (key.includes('museum')) return '🏛️ Museums & Heritage';
+        if (key.includes('market')) return '🛍️ Markets & Local Spots';
+        if (key.includes('nearby')) return '📍 Nearby Suggestions';
+        if (key.includes('wildlife') || key.includes('nature')) return '🌿 Wildlife & Nature';
+        if (key.includes('lake') || key.includes('water')) return '🌊 Lakes & Water Bodies';
+        if (key.includes('palace') || key.includes('haveli')) return '🏯 Palaces & Havelis';
+        if (key.includes('garden') || key.includes('park')) return '🌳 Gardens & Parks';
+        return `📌 ${String(categoryKey || 'More Places').replace(/_/g, ' ')}`;
+    }
     
     searchLocations(query) {
         const hasStates = this.data && this.data.states && typeof this.data.states === 'object';
@@ -66,38 +101,56 @@ class LocationAutocomplete {
             temples: [],
             tourist_places: [],
             stations_airports: [],
-            others: []
+            others: [],
+            dynamicBuckets: {}
         };
         
         // Search in states and cities
-        Object.keys(this.data.states).forEach(state => {
-            if (state.toLowerCase().includes(query)) {
-                results.states.push({
-                    name: state,
-                    type: 'state',
-                    display: state
-                });
-            }
-            
-            // Search in cities of each state
-            this.data.states[state].forEach(city => {
-                if (city.toLowerCase().includes(query)) {
-                    results.cities.push({
-                        name: city,
-                        type: 'city',
-                        display: `${city}, ${state}`
+        if (Array.isArray(this.data.states)) {
+            this.data.states.forEach((state) => {
+                if (typeof state !== 'string') return;
+                const normalizedState = state.trim();
+                if (!normalizedState) return;
+                if (this.normalizeText(normalizedState).includes(query)) {
+                    this.pushUnique(results.states, {
+                        name: normalizedState,
+                        type: 'state',
+                        display: normalizedState
                     });
                 }
             });
-        });
+        } else {
+            Object.keys(this.data.states).forEach(state => {
+                if (this.normalizeText(state).includes(query)) {
+                    this.pushUnique(results.states, {
+                        name: state,
+                        type: 'state',
+                        display: state
+                    });
+                }
+                
+                // Search in cities of each state
+                const cities = Array.isArray(this.data.states[state]) ? this.data.states[state] : [];
+                cities.forEach(city => {
+                    if (typeof city !== 'string') return;
+                    if (this.normalizeText(city).includes(query)) {
+                        this.pushUnique(results.cities, {
+                            name: city,
+                            type: 'city',
+                            display: `${city}, ${state}`
+                        });
+                    }
+                });
+            });
+        }
         
         // Search in Rajasthan districts and places
         Object.keys(this.data.rajasthan).forEach(district => {
-            const districtData = this.data.rajasthan[district];
+            const districtData = this.data.rajasthan[district] || {};
             
             // District name match
-            if (district.toLowerCase().includes(query)) {
-                results.districts.push({
+            if (this.normalizeText(district).includes(query)) {
+                this.pushUnique(results.districts, {
                     name: district,
                     type: 'district',
                     display: `${district}, Rajasthan`
@@ -105,88 +158,76 @@ class LocationAutocomplete {
             }
             
             // Search in forts
-            if (districtData.forts) {
-                districtData.forts.forEach(fort => {
-                    if (fort.toLowerCase().includes(query)) {
-                        results.forts.push({
-                            name: fort,
-                            district: district,
-                            type: 'fort',
-                            display: `${fort}, ${district}`
-                        });
-                    }
-                });
-            }
+            this.appendArrayMatches(results.forts, districtData.forts, query, (fort) => ({
+                name: fort,
+                district: district,
+                type: 'fort',
+                display: `${fort}, ${district}`
+            }));
             
             // Search in temples
-            if (districtData.temples) {
-                districtData.temples.forEach(temple => {
-                    if (temple.toLowerCase().includes(query)) {
-                        results.temples.push({
-                            name: temple,
-                            district: district,
-                            type: 'temple',
-                            display: `${temple}, ${district}`
-                        });
-                    }
-                });
-            }
+            this.appendArrayMatches(results.temples, districtData.temples, query, (temple) => ({
+                name: temple,
+                district: district,
+                type: 'temple',
+                display: `${temple}, ${district}`
+            }));
             
             // Search in tourist places
-            if (districtData.tourist_places) {
-                districtData.tourist_places.forEach(place => {
-                    if (place.toLowerCase().includes(query)) {
-                        results.tourist_places.push({
-                            name: place,
-                            district: district,
-                            type: 'tourist',
-                            display: `${place}, ${district}`
-                        });
-                    }
-                });
-            }
+            this.appendArrayMatches(results.tourist_places, districtData.tourist_places, query, (place) => ({
+                name: place,
+                district: district,
+                type: 'tourist',
+                display: `${place}, ${district}`
+            }));
             
             // Search in railway stations and airports
-            if (districtData.railway_stations) {
-                districtData.railway_stations.forEach(station => {
-                    if (station.toLowerCase().includes(query)) {
-                        results.stations_airports.push({
-                            name: station,
-                            district: district,
-                            type: 'station',
-                            display: `${station}, ${district}`
-                        });
-                    }
-                });
-            }
+            this.appendArrayMatches(results.stations_airports, districtData.railway_stations, query, (station) => ({
+                name: station,
+                district: district,
+                type: 'station',
+                display: `${station}, ${district}`
+            }));
             
-            if (districtData.airports) {
-                districtData.airports.forEach(airport => {
-                    if (airport.toLowerCase().includes(query)) {
-                        results.stations_airports.push({
-                            name: airport,
-                            district: district,
-                            type: 'airport',
-                            display: `${airport}, ${district}`
-                        });
-                    }
-                });
-            }
+            this.appendArrayMatches(results.stations_airports, districtData.airports, query, (airport) => ({
+                name: airport,
+                district: district,
+                type: 'airport',
+                display: `${airport}, ${district}`
+            }));
             
             // Search in other places (hospitals, markets, bus stands, landmarks)
             ['hospitals', 'markets', 'bus_stands', 'landmarks'].forEach(category => {
-                if (districtData[category]) {
-                    districtData[category].forEach(place => {
-                        if (place.toLowerCase().includes(query)) {
-                            results.others.push({
-                                name: place,
-                                district: district,
-                                type: category.replace('_', ' '),
-                                display: `${place}, ${district}`
-                            });
-                        }
-                    });
-                }
+                this.appendArrayMatches(results.others, districtData[category], query, (place) => ({
+                    name: place,
+                    district: district,
+                    type: category.replace('_', ' '),
+                    display: `${place}, ${district}`
+                }));
+            });
+
+            // Search in any additional array category that was added later (future-proof).
+            const knownCategories = new Set([
+                'forts', 'temples', 'tourist_places', 'railway_stations', 'airports',
+                'hospitals', 'markets', 'bus_stands', 'landmarks'
+            ]);
+
+            Object.keys(districtData).forEach((category) => {
+                if (knownCategories.has(category)) return;
+                if (!Array.isArray(districtData[category])) return;
+
+                const bucketKey = `dynamic:${category}`;
+                results.dynamicBuckets[bucketKey] = results.dynamicBuckets[bucketKey] || {
+                    label: this.getDynamicBucketLabel(category),
+                    items: []
+                };
+
+                this.appendArrayMatches(results.dynamicBuckets[bucketKey].items, districtData[category], query, (place) => ({
+                    name: place,
+                    district: district,
+                    type: category.replace(/_/g, ' '),
+                    display: `${place}, ${district}`
+                }));
             });
         });
         
@@ -196,49 +237,58 @@ class LocationAutocomplete {
     
     flattenResults(results) {
         const flattened = [];
+
+        const addCategorySection = (label, items, limit = 3) => {
+            if (!Array.isArray(items) || items.length === 0) return;
+            flattened.push({ isCategory: true, label });
+            flattened.push(...items.slice(0, limit));
+        };
         
         // Add categorized results with a maximum per category
-        if (results.districts.length > 0) {
-            flattened.push({ isCategory: true, label: '📍 Districts' });
-            flattened.push(...results.districts.slice(0, 3));
+        addCategorySection('📍 Districts', results.districts, 4);
+        addCategorySection('🏰 Forts & Palaces', results.forts, 4);
+        addCategorySection('🛕 Temples & Religious Places', results.temples, 4);
+        addCategorySection('🏖️ Tourist Spots', results.tourist_places, 5);
+        addCategorySection('🚉 Stations & Airports', results.stations_airports, 4);
+        addCategorySection('🏙️ Cities & States', results.cities, 4);
+
+        if (Array.isArray(results.states) && results.states.length > 0 && !flattened.some((item) => item.isCategory && item.label.includes('Cities'))) {
+            addCategorySection('🏙️ States', results.states, 3);
         }
+
+        const dynamicBucketKeys = Object.keys(results.dynamicBuckets || {}).sort();
+        dynamicBucketKeys.forEach((bucketKey) => {
+            const dynamic = results.dynamicBuckets[bucketKey];
+            if (!dynamic || !Array.isArray(dynamic.items) || dynamic.items.length === 0) return;
+            addCategorySection(dynamic.label, dynamic.items, 3);
+        });
+
+        addCategorySection('📍 Other Places', results.others, 4);
         
-        if (results.forts.length > 0) {
-            flattened.push({ isCategory: true, label: '🏰 Forts & Palaces' });
-            flattened.push(...results.forts.slice(0, 3));
-        }
-        
-        if (results.temples.length > 0) {
-            flattened.push({ isCategory: true, label: '🛕 Temples & Religious Places' });
-            flattened.push(...results.temples.slice(0, 3));
-        }
-        
-        if (results.tourist_places.length > 0) {
-            flattened.push({ isCategory: true, label: '🏖️ Tourist Spots' });
-            flattened.push(...results.tourist_places.slice(0, 3));
-        }
-        
-        if (results.stations_airports.length > 0) {
-            flattened.push({ isCategory: true, label: '🚉 Stations & Airports' });
-            flattened.push(...results.stations_airports.slice(0, 3));
-        }
-        
-        if (results.cities.length > 0) {
-            flattened.push({ isCategory: true, label: '🏙️ Cities & States' });
-            flattened.push(...results.cities.slice(0, 3));
-        }
-        
-        if (results.states.length > 0 && flattened.filter(item => item.isCategory && item.label.includes('Cities')).length === 0) {
-            flattened.push({ isCategory: true, label: '🏙️ States' });
-            flattened.push(...results.states.slice(0, 3));
-        }
-        
-        if (results.others.length > 0) {
-            flattened.push({ isCategory: true, label: '📍 Other Places' });
-            flattened.push(...results.others.slice(0, 3));
-        }
-        
-        return flattened.slice(0, this.maxResults);
+        const deduped = [];
+        const seenDisplays = new Set();
+        let pendingCategory = null;
+
+        flattened.forEach((item) => {
+            if (item.isCategory) {
+                pendingCategory = item;
+                return;
+            }
+
+            if (seenDisplays.has(item.display)) {
+                return;
+            }
+
+            if (pendingCategory) {
+                deduped.push(pendingCategory);
+                pendingCategory = null;
+            }
+
+            seenDisplays.add(item.display);
+            deduped.push(item);
+        });
+
+        return deduped.slice(0, this.maxResults);
     }
     
     displaySuggestions(suggestions) {
