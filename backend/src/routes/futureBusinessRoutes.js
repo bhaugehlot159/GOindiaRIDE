@@ -1,0 +1,521 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const router = express.Router();
+
+const DATA_DIR = path.join(__dirname, '../../../data/runtime');
+const DATA_FILE = path.join(DATA_DIR, 'future-business-store.json');
+
+const MAX_NOTIFICATIONS = 20000;
+const MAX_WALLET_HISTORY = 3000;
+const MAX_RIDES_PER_USER = 5000;
+const MAX_COMMISSIONS = 10000;
+const MAX_TOURISM_PLACES = 10000;
+
+let persistTimer = null;
+
+const seedTourismPlaces = [
+  { district: 'Jaipur', name: 'Amer Fort', category: 'Fort', history: '16th century hill fort.', entryFee: '100', openTime: '08:00', closeTime: '17:30', parking: true },
+  { district: 'Jaipur', name: 'Hawa Mahal', category: 'Palace', history: 'Pink sandstone palace facade.', entryFee: '50', openTime: '09:00', closeTime: '17:00', parking: true },
+  { district: 'Jodhpur', name: 'Mehrangarh Fort', category: 'Fort', history: 'Rao Jodha era fort.', entryFee: '200', openTime: '09:00', closeTime: '17:30', parking: true },
+  { district: 'Udaipur', name: 'City Palace', category: 'Palace', history: 'Mewar dynasty royal complex.', entryFee: '300', openTime: '09:30', closeTime: '17:30', parking: true },
+  { district: 'Ajmer', name: 'Ajmer Sharif Dargah', category: 'Heritage', history: 'Sufi shrine and spiritual site.', entryFee: '0', openTime: '05:00', closeTime: '22:00', parking: true },
+  { district: 'Pushkar', name: 'Brahma Temple', category: 'Temple', history: 'Rare temple dedicated to Lord Brahma.', entryFee: '0', openTime: '06:00', closeTime: '20:00', parking: true }
+];
+
+function ensureDir() {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+}
+
+function normalizeString(value, maxLength) {
+  const str = String(value || '').trim();
+  if (!str) return '';
+  if (!Number.isFinite(maxLength) || maxLength <= 0) return str;
+  return str.slice(0, maxLength);
+}
+
+function normalizeAmount(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Number(n.toFixed(2));
+}
+
+function safeObject(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+  return input;
+}
+
+function clone(input) {
+  return JSON.parse(JSON.stringify(input));
+}
+
+function defaultStore() {
+  return {
+    wallets: {},
+    notifications: [],
+    travelCards: {},
+    commissions: [],
+    tourismPlaces: seedTourismPlaces.map((item) => ({
+      id: crypto.randomUUID(),
+      district: item.district,
+      name: item.name,
+      category: item.category,
+      history: item.history,
+      entryFee: item.entryFee,
+      openTime: item.openTime,
+      closeTime: item.closeTime,
+      parking: item.parking,
+      createdAt: new Date().toISOString()
+    })),
+    rideHistory: {},
+    preferences: {}
+  };
+}
+
+function loadStore() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return defaultStore();
+    const parsed = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    const store = defaultStore();
+    return {
+      ...store,
+      ...safeObject(parsed),
+      wallets: safeObject(parsed.wallets),
+      notifications: Array.isArray(parsed.notifications) ? parsed.notifications.slice(-MAX_NOTIFICATIONS) : [],
+      travelCards: safeObject(parsed.travelCards),
+      commissions: Array.isArray(parsed.commissions) ? parsed.commissions.slice(-MAX_COMMISSIONS) : [],
+      tourismPlaces: Array.isArray(parsed.tourismPlaces) && parsed.tourismPlaces.length
+        ? parsed.tourismPlaces.slice(-MAX_TOURISM_PLACES)
+        : store.tourismPlaces,
+      rideHistory: safeObject(parsed.rideHistory),
+      preferences: safeObject(parsed.preferences)
+    };
+  } catch (_error) {
+    return defaultStore();
+  }
+}
+
+function getStore() {
+  if (!global.__GOINDIARIDE_FUTURE_BUSINESS_STORE__) {
+    global.__GOINDIARIDE_FUTURE_BUSINESS_STORE__ = loadStore();
+  }
+  return global.__GOINDIARIDE_FUTURE_BUSINESS_STORE__;
+}
+
+function writeStore() {
+  try {
+    ensureDir();
+    const data = getStore();
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (_error) {
+    // Non-blocking persistence.
+  }
+}
+
+function queuePersist() {
+  if (persistTimer) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    writeStore();
+  }, 400);
+}
+
+function walletForUser(store, userKey) {
+  if (!store.wallets[userKey]) {
+    store.wallets[userKey] = {
+      userKey,
+      balance: 0,
+      history: []
+    };
+  }
+  return store.wallets[userKey];
+}
+
+function addWalletEntry(wallet, type, amount, meta) {
+  const entry = {
+    id: crypto.randomUUID(),
+    type,
+    amount: normalizeAmount(amount),
+    meta: safeObject(meta),
+    createdAt: new Date().toISOString()
+  };
+  wallet.history.push(entry);
+  if (wallet.history.length > MAX_WALLET_HISTORY) {
+    wallet.history = wallet.history.slice(-MAX_WALLET_HISTORY);
+  }
+  return entry;
+}
+
+function addRideHistory(store, payload) {
+  const userKey = normalizeString(payload.userKey, 80);
+  if (!userKey) return null;
+
+  if (!store.rideHistory[userKey]) store.rideHistory[userKey] = [];
+  const record = {
+    id: crypto.randomUUID(),
+    bookingId: normalizeString(payload.bookingId, 100) || `BK-${Date.now()}`,
+    from: normalizeString(payload.from, 180),
+    to: normalizeString(payload.to, 180),
+    distanceKm: normalizeAmount(payload.distanceKm),
+    fare: normalizeAmount(payload.fare),
+    status: normalizeString(payload.status, 30) || 'completed',
+    driverName: normalizeString(payload.driverName, 120),
+    rating: normalizeAmount(payload.rating),
+    feedback: normalizeString(payload.feedback, 500),
+    createdAt: new Date().toISOString()
+  };
+
+  store.rideHistory[userKey].push(record);
+  if (store.rideHistory[userKey].length > MAX_RIDES_PER_USER) {
+    store.rideHistory[userKey] = store.rideHistory[userKey].slice(-MAX_RIDES_PER_USER);
+  }
+  return record;
+}
+
+router.get('/status', (req, res) => {
+  const store = getStore();
+  return res.status(200).json({
+    ok: true,
+    wallets: Object.keys(store.wallets).length,
+    notifications: store.notifications.length,
+    travelCards: Object.keys(store.travelCards).length,
+    commissions: store.commissions.length,
+    tourismPlaces: store.tourismPlaces.length,
+    rideHistoryUsers: Object.keys(store.rideHistory).length,
+    preferences: Object.keys(store.preferences).length
+  });
+});
+
+router.post('/wallet/topup', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const amount = normalizeAmount(req.body?.amount);
+  const method = normalizeString(req.body?.method, 80) || 'manual';
+  const note = normalizeString(req.body?.note, 250);
+
+  if (!userKey || amount <= 0) {
+    return res.status(400).json({ ok: false, message: 'userKey and positive amount are required' });
+  }
+
+  const wallet = walletForUser(store, userKey);
+  wallet.balance = normalizeAmount(wallet.balance + amount);
+  const entry = addWalletEntry(wallet, 'credit', amount, { method, note });
+  queuePersist();
+
+  return res.status(200).json({
+    ok: true,
+    wallet: clone(wallet),
+    entry
+  });
+});
+
+router.post('/wallet/spend', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const amount = normalizeAmount(req.body?.amount);
+  const reason = normalizeString(req.body?.reason, 250) || 'ride-payment';
+
+  if (!userKey || amount <= 0) {
+    return res.status(400).json({ ok: false, message: 'userKey and positive amount are required' });
+  }
+
+  const wallet = walletForUser(store, userKey);
+  if (wallet.balance < amount) {
+    return res.status(409).json({
+      ok: false,
+      message: 'Insufficient wallet balance',
+      balance: wallet.balance
+    });
+  }
+
+  wallet.balance = normalizeAmount(wallet.balance - amount);
+  const entry = addWalletEntry(wallet, 'debit', amount, { reason });
+  queuePersist();
+
+  return res.status(200).json({
+    ok: true,
+    wallet: clone(wallet),
+    entry
+  });
+});
+
+router.get('/wallet/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  if (!userKey) return res.status(400).json({ ok: false, message: 'Invalid userKey' });
+  const wallet = walletForUser(store, userKey);
+  return res.status(200).json({ ok: true, wallet: clone(wallet) });
+});
+
+router.post('/notifications/send', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80) || 'global';
+  const type = normalizeString(req.body?.type, 80) || 'system';
+  const channel = normalizeString(req.body?.channel, 40) || 'in_app';
+  const title = normalizeString(req.body?.title, 160);
+  const message = normalizeString(req.body?.message, 800);
+
+  if (!title || !message) {
+    return res.status(400).json({ ok: false, message: 'title and message are required' });
+  }
+
+  const notification = {
+    id: crypto.randomUUID(),
+    userKey,
+    type,
+    channel,
+    title,
+    message,
+    read: false,
+    meta: safeObject(req.body?.meta),
+    createdAt: new Date().toISOString()
+  };
+
+  store.notifications.push(notification);
+  if (store.notifications.length > MAX_NOTIFICATIONS) {
+    store.notifications.splice(0, store.notifications.length - MAX_NOTIFICATIONS);
+  }
+  queuePersist();
+
+  return res.status(201).json({ ok: true, notification });
+});
+
+router.get('/notifications/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const unreadOnly = normalizeString(req.query.unreadOnly, 10) === 'true';
+  const items = store.notifications.filter((item) => item.userKey === userKey || item.userKey === 'global');
+  const filtered = unreadOnly ? items.filter((item) => !item.read) : items;
+  return res.status(200).json({ ok: true, count: filtered.length, items: filtered.slice(-500) });
+});
+
+router.post('/notifications/:id/read', (req, res) => {
+  const store = getStore();
+  const id = normalizeString(req.params.id, 80);
+  const match = store.notifications.find((item) => item.id === id);
+  if (!match) return res.status(404).json({ ok: false, message: 'Notification not found' });
+  match.read = true;
+  match.readAt = new Date().toISOString();
+  queuePersist();
+  return res.status(200).json({ ok: true, notification: match });
+});
+
+router.post('/travel-card/issue', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80);
+  const fullName = normalizeString(req.body?.fullName, 140);
+  const phone = normalizeString(req.body?.phone, 40);
+  const email = normalizeString(req.body?.email, 140);
+
+  if (!userKey || !fullName) {
+    return res.status(400).json({ ok: false, message: 'userKey and fullName are required' });
+  }
+
+  const cardId = `GITC-${Date.now()}-${Math.floor(Math.random() * 9999)}`;
+  const card = {
+    cardId,
+    userKey,
+    fullName,
+    phone,
+    email,
+    idProofType: normalizeString(req.body?.idProofType, 60),
+    status: 'active',
+    issuedAt: new Date().toISOString(),
+    expiryAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+  };
+
+  store.travelCards[cardId] = card;
+  queuePersist();
+  return res.status(201).json({ ok: true, card });
+});
+
+router.get('/travel-card/:cardId', (req, res) => {
+  const store = getStore();
+  const cardId = normalizeString(req.params.cardId, 80);
+  const card = store.travelCards[cardId];
+  if (!card) return res.status(404).json({ ok: false, message: 'Card not found' });
+  return res.status(200).json({ ok: true, card });
+});
+
+router.get('/travel-card/user/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const cards = Object.values(store.travelCards).filter((item) => item.userKey === userKey);
+  return res.status(200).json({ ok: true, count: cards.length, items: cards });
+});
+
+router.post('/commission/partner', (req, res) => {
+  const store = getStore();
+  const partnerType = normalizeString(req.body?.partnerType, 60);
+  const partnerName = normalizeString(req.body?.partnerName, 140);
+  const amount = normalizeAmount(req.body?.amount);
+  const commissionPercent = normalizeAmount(req.body?.commissionPercent);
+  const bookingId = normalizeString(req.body?.bookingId, 100);
+
+  if (!partnerType || !partnerName || amount <= 0) {
+    return res.status(400).json({ ok: false, message: 'partnerType, partnerName and positive amount are required' });
+  }
+
+  const commissionAmount = normalizeAmount(amount * (commissionPercent > 0 ? commissionPercent : 20) / 100);
+  const item = {
+    id: crypto.randomUUID(),
+    partnerType,
+    partnerName,
+    bookingId,
+    amount,
+    commissionPercent: commissionPercent > 0 ? commissionPercent : 20,
+    commissionAmount,
+    createdAt: new Date().toISOString()
+  };
+
+  store.commissions.push(item);
+  if (store.commissions.length > MAX_COMMISSIONS) {
+    store.commissions = store.commissions.slice(-MAX_COMMISSIONS);
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/commission/partner', (req, res) => {
+  const store = getStore();
+  const partnerType = normalizeString(req.query.partnerType, 60);
+  const list = partnerType
+    ? store.commissions.filter((item) => normalizeString(item.partnerType, 60) === partnerType)
+    : store.commissions;
+  const total = list.reduce((sum, item) => sum + Number(item.commissionAmount || 0), 0);
+  return res.status(200).json({ ok: true, count: list.length, totalCommission: normalizeAmount(total), items: list.slice(-500) });
+});
+
+router.get('/tourism/places', (req, res) => {
+  const store = getStore();
+  const district = normalizeString(req.query.district, 80);
+  const query = normalizeString(req.query.q, 140);
+
+  let items = store.tourismPlaces;
+  if (district) {
+    items = items.filter((item) => normalizeString(item.district, 80) === district);
+  }
+  if (query) {
+    items = items.filter((item) => normalizeString(`${item.name} ${item.history} ${item.category}`, 600).includes(query));
+  }
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(0, 1000) });
+});
+
+router.post('/tourism/places', (req, res) => {
+  const store = getStore();
+  const district = normalizeString(req.body?.district, 80);
+  const name = normalizeString(req.body?.name, 160);
+  if (!district || !name) {
+    return res.status(400).json({ ok: false, message: 'district and name are required' });
+  }
+
+  const place = {
+    id: crypto.randomUUID(),
+    district,
+    name,
+    category: normalizeString(req.body?.category, 80) || 'General',
+    history: normalizeString(req.body?.history, 1000),
+    aartiTimings: normalizeString(req.body?.aartiTimings, 160),
+    openingDays: normalizeString(req.body?.openingDays, 120),
+    openTime: normalizeString(req.body?.openTime, 40),
+    closeTime: normalizeString(req.body?.closeTime, 40),
+    entryFee: normalizeString(req.body?.entryFee, 80),
+    bestTimeToVisit: normalizeString(req.body?.bestTimeToVisit, 160),
+    photographyAllowed: Boolean(req.body?.photographyAllowed),
+    dressCode: normalizeString(req.body?.dressCode, 200),
+    guidedTour: Boolean(req.body?.guidedTour),
+    audioGuide: Boolean(req.body?.audioGuide),
+    festivalInfo: normalizeString(req.body?.festivalInfo, 240),
+    parking: Boolean(req.body?.parking),
+    createdAt: new Date().toISOString()
+  };
+
+  store.tourismPlaces.push(place);
+  if (store.tourismPlaces.length > MAX_TOURISM_PLACES) {
+    store.tourismPlaces = store.tourismPlaces.slice(-MAX_TOURISM_PLACES);
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, place });
+});
+
+router.post('/history/ride', (req, res) => {
+  const store = getStore();
+  const record = addRideHistory(store, req.body || {});
+  if (!record) {
+    return res.status(400).json({ ok: false, message: 'userKey is required' });
+  }
+  queuePersist();
+  return res.status(201).json({ ok: true, record });
+});
+
+router.get('/history/ride/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const list = Array.isArray(store.rideHistory[userKey]) ? store.rideHistory[userKey] : [];
+  return res.status(200).json({ ok: true, count: list.length, items: list.slice(-1000) });
+});
+
+router.get('/history/ride/:userKey/export.csv', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const list = Array.isArray(store.rideHistory[userKey]) ? store.rideHistory[userKey] : [];
+  const headers = ['bookingId', 'from', 'to', 'distanceKm', 'fare', 'status', 'driverName', 'rating', 'createdAt'];
+  const rows = [headers.join(',')];
+
+  list.forEach((item) => {
+    const line = headers.map((key) => {
+      const raw = String(item[key] ?? '').replace(/"/g, '""');
+      return `"${raw}"`;
+    }).join(',');
+    rows.push(line);
+  });
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename=\"ride-history-${userKey}.csv\"`);
+  return res.status(200).send(rows.join('\n'));
+});
+
+router.post('/preferences/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  if (!userKey) return res.status(400).json({ ok: false, message: 'Invalid userKey' });
+
+  const payload = safeObject(req.body);
+  store.preferences[userKey] = {
+    ...safeObject(store.preferences[userKey]),
+    language: normalizeString(payload.language, 60) || normalizeString(store.preferences[userKey]?.language, 60) || 'English',
+    push: payload.push !== undefined ? Boolean(payload.push) : Boolean(store.preferences[userKey]?.push),
+    sms: payload.sms !== undefined ? Boolean(payload.sms) : Boolean(store.preferences[userKey]?.sms),
+    email: payload.email !== undefined ? Boolean(payload.email) : Boolean(store.preferences[userKey]?.email),
+    whatsapp: payload.whatsapp !== undefined ? Boolean(payload.whatsapp) : Boolean(store.preferences[userKey]?.whatsapp),
+    updatedAt: new Date().toISOString()
+  };
+
+  queuePersist();
+  return res.status(200).json({ ok: true, preferences: store.preferences[userKey] });
+});
+
+router.get('/preferences/:userKey', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.params.userKey, 80);
+  const preferences = store.preferences[userKey] || {
+    language: 'English',
+    push: true,
+    sms: true,
+    email: true,
+    whatsapp: false
+  };
+  return res.status(200).json({ ok: true, preferences });
+});
+
+router.post('/flush', (req, res) => {
+  writeStore();
+  return res.status(200).json({ ok: true, file: DATA_FILE });
+});
+
+module.exports = router;
+

@@ -8,6 +8,7 @@
 
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';
   var API_BASE = '/api/future-runtime';
+  var BUSINESS_API_BASE = '/api/future-runtime-business';
   var registry = window.__GOINDIARIDE_FUTURE_FEATURES || {};
   var extState = window.__GOINDIARIDE_FUTURE_RUNTIME_EXT_STATE || {
     activatedKeys: {},
@@ -36,6 +37,52 @@
     }).catch(function () {
       // Best effort sync.
     });
+  }
+
+  function getJson(basePath, path) {
+    if (typeof window.fetch !== 'function') return Promise.resolve(null);
+    return window.fetch(basePath + path)
+      .then(function (response) {
+        if (!response.ok) return null;
+        return response.json().catch(function () { return null; });
+      })
+      .catch(function () { return null; });
+  }
+
+  function postBusiness(path, payload) {
+    if (typeof window.fetch !== 'function') return Promise.resolve(null);
+    return window.fetch(BUSINESS_API_BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {})
+    })
+      .then(function (response) {
+        if (!response.ok) return null;
+        return response.json().catch(function () { return null; });
+      })
+      .catch(function () { return null; });
+  }
+
+  function getBusiness(path) {
+    return getJson(BUSINESS_API_BASE, path);
+  }
+
+  function currentUserKey() {
+    try {
+      if (window.localStorage) {
+        var direct = window.localStorage.getItem('goindiaride.runtime.userKey');
+        if (direct) return normalize(direct);
+        var profileRaw = window.localStorage.getItem('goindiaride.profile.runtime');
+        if (profileRaw) {
+          var parsed = JSON.parse(profileRaw);
+          var candidate = parsed.email || parsed.phone || parsed.name;
+          if (candidate) return normalize(candidate);
+        }
+      }
+    } catch (_error) {
+      // ignore
+    }
+    return 'guest-user';
   }
 
   function featureFromDetail(detail) {
@@ -176,13 +223,34 @@
     ].join('');
 
     body.querySelector('#ffx-profile-save').addEventListener('click', function () {
-      executeFeature(feature, 'profile-save', {
+      var payload = {
         name: (body.querySelector('#ffx-profile-name') || {}).value || '',
         address: (body.querySelector('#ffx-profile-address') || {}).value || '',
         contact1: (body.querySelector('#ffx-profile-contact1') || {}).value || '',
         contact2: (body.querySelector('#ffx-profile-contact2') || {}).value || '',
         contact3: (body.querySelector('#ffx-profile-contact3') || {}).value || '',
         language: (body.querySelector('#ffx-profile-lang') || {}).value || ''
+      };
+      executeFeature(feature, 'profile-save', {
+        name: payload.name,
+        address: payload.address,
+        contact1: payload.contact1,
+        contact2: payload.contact2,
+        contact3: payload.contact3,
+        language: payload.language
+      });
+
+      if (window.localStorage) {
+        window.localStorage.setItem('goindiaride.profile.runtime', JSON.stringify(payload));
+        window.localStorage.setItem('goindiaride.runtime.userKey', normalize(payload.contact1 || payload.name || 'guest-user'));
+      }
+
+      postBusiness('/preferences/' + encodeURIComponent(currentUserKey()), {
+        language: payload.language,
+        push: true,
+        sms: true,
+        email: true,
+        whatsapp: false
       });
     });
     body.querySelector('#ffx-profile-password').addEventListener('click', function () { executeFeature(feature, 'profile-password-change', {}); });
@@ -215,10 +283,25 @@
     ].join('');
 
     body.querySelector('#ffx-payment-apply').addEventListener('click', function () {
-      executeFeature(feature, 'coupon-apply', { code: (body.querySelector('#ffx-payment-coupon') || {}).value || '' });
+      var code = (body.querySelector('#ffx-payment-coupon') || {}).value || '';
+      executeFeature(feature, 'coupon-apply', { code: code });
+      postBusiness('/notifications/send', {
+        userKey: currentUserKey(),
+        type: 'coupon',
+        channel: 'in_app',
+        title: 'Coupon Applied',
+        message: code ? ('Coupon ' + code + ' applied successfully.') : 'Coupon apply action performed.'
+      });
     });
     body.querySelector('#ffx-payment-wallet-add').addEventListener('click', function () {
-      executeFeature(feature, 'wallet-add', { amount: (body.querySelector('#ffx-payment-wallet') || {}).value || '' });
+      var amount = (body.querySelector('#ffx-payment-wallet') || {}).value || '';
+      executeFeature(feature, 'wallet-add', { amount: amount });
+      postBusiness('/wallet/topup', {
+        userKey: currentUserKey(),
+        amount: Number(amount || 0),
+        method: 'runtime-ui',
+        note: 'Top-up from runtime extension'
+      });
     });
   }
 
@@ -252,6 +335,13 @@
 
     body.querySelector('#ffx-emergency-sos').addEventListener('click', function () {
       executeFeature(feature, 'sos-alert', { status: 'triggered' });
+      postBusiness('/notifications/send', {
+        userKey: 'global',
+        type: 'emergency',
+        channel: 'in_app',
+        title: 'Emergency SOS',
+        message: 'Runtime SOS alert triggered by user: ' + currentUserKey()
+      });
       window.alert('SOS Alert triggered');
     });
   }
@@ -274,6 +364,56 @@
     var dropoff = document.querySelector('input[name*=\"drop\" i], input[id*=\"drop\" i]');
     if (pickup) pickup.setAttribute('list', listId);
     if (dropoff) dropoff.setAttribute('list', listId);
+
+    var card = ensureCard('tourism', 'Tourist Places & District Explorer');
+    if (card) {
+      var body = card.querySelector('.ff-runtime-card-body');
+      if (body && !body.querySelector('#ffx-tourism-load')) {
+        body.innerHTML = [
+          '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+          '<input id=\"ffx-tourism-district\" placeholder=\"District (e.g. Jaipur)\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+          '<button type=\"button\" id=\"ffx-tourism-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Places</button>',
+          '<input id=\"ffx-tourism-place\" placeholder=\"New place name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+          '<button type=\"button\" id=\"ffx-tourism-add\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Add Place</button>',
+          '</div>',
+          '<div id=\"ffx-tourism-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+        ].join('');
+
+        var districtInput = body.querySelector('#ffx-tourism-district');
+        var listEl = body.querySelector('#ffx-tourism-list');
+
+        body.querySelector('#ffx-tourism-load').addEventListener('click', function () {
+          var district = (districtInput || {}).value || '';
+          getBusiness('/tourism/places?district=' + encodeURIComponent(district)).then(function (data) {
+            var items = data && Array.isArray(data.items) ? data.items : [];
+            if (!listEl) return;
+            if (!items.length) {
+              listEl.textContent = 'No places found';
+              return;
+            }
+            listEl.innerHTML = items.slice(0, 80).map(function (item) {
+              return '<div style=\"padding:5px 0;border-bottom:1px solid #edf2ff;\"><strong>' + item.name + '</strong> (' + item.district + ') - ' + (item.openTime || 'N/A') + ' to ' + (item.closeTime || 'N/A') + '</div>';
+            }).join('');
+          });
+        });
+
+        body.querySelector('#ffx-tourism-add').addEventListener('click', function () {
+          var district = (districtInput || {}).value || '';
+          var placeName = (body.querySelector('#ffx-tourism-place') || {}).value || '';
+          postBusiness('/tourism/places', {
+            district: district || 'Jaipur',
+            name: placeName || 'New Tourist Place',
+            category: 'Heritage',
+            history: 'Added from runtime extension',
+            openTime: '09:00',
+            closeTime: '18:00',
+            parking: true
+          });
+          executeFeature(feature, 'tourism-place-add', { district: district, name: placeName });
+        });
+      }
+    }
+
     executeFeature(feature, 'tourism-suggestions-enabled', { listId: listId });
   }
 
@@ -303,9 +443,19 @@
       });
     }
     body.querySelector('#ffx-rating-save').addEventListener('click', function () {
+      var feedback = (body.querySelector('#ffx-rating-feedback') || {}).value || '';
       executeFeature(feature, 'rating-submit', {
         rating: selected,
-        feedback: (body.querySelector('#ffx-rating-feedback') || {}).value || ''
+        feedback: feedback
+      });
+      postBusiness('/history/ride', {
+        userKey: currentUserKey(),
+        from: 'Pickup',
+        to: 'Drop',
+        fare: 0,
+        status: 'completed',
+        rating: selected,
+        feedback: feedback
       });
     });
   }
@@ -403,6 +553,34 @@
     body.querySelector('#ffx-booking-reject').addEventListener('click', function () { executeFeature(feature, 'booking-reject', {}); });
     body.querySelector('#ffx-booking-extra').addEventListener('click', function () { executeFeature(feature, 'booking-extra-post', {}); });
     body.querySelector('#ffx-booking-cancel-policy').addEventListener('click', function () { executeFeature(feature, 'booking-cancel-policy', {}); });
+
+    body.querySelector('#ffx-booking-accept').addEventListener('click', function () {
+      postBusiness('/notifications/send', {
+        userKey: currentUserKey(),
+        type: 'booking',
+        channel: 'in_app',
+        title: 'Booking Accepted',
+        message: 'Driver accepted your booking.'
+      });
+      postBusiness('/history/ride', {
+        userKey: currentUserKey(),
+        from: 'Pickup',
+        to: 'Drop',
+        distanceKm: 0,
+        fare: 0,
+        status: 'accepted'
+      });
+    });
+
+    body.querySelector('#ffx-booking-reject').addEventListener('click', function () {
+      postBusiness('/notifications/send', {
+        userKey: currentUserKey(),
+        type: 'booking',
+        channel: 'in_app',
+        title: 'Booking Rejected',
+        message: 'Driver rejected/cancelled your booking.'
+      });
+    });
   }
 
   function applyLiveTrackingModule(feature) {
@@ -512,6 +690,155 @@
     });
   }
 
+  function applyNotificationCenterModule(feature) {
+    var card = ensureCard('notifications', 'Notification Center');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-notification-send')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-notification-title\" placeholder=\"Notification title\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-notification-message\" placeholder=\"Notification message\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<select id=\"ffx-notification-channel\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option value=\"in_app\">In-App</option><option value=\"sms\">SMS</option><option value=\"email\">Email</option><option value=\"whatsapp\">WhatsApp</option></select>',
+      '<button type=\"button\" id=\"ffx-notification-send\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Send</button>',
+      '<button type=\"button\" id=\"ffx-notification-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Refresh Feed</button>',
+      '</div>',
+      '<div id=\"ffx-notification-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-notification-list');
+
+    function refreshList() {
+      getBusiness('/notifications/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        if (!items.length) {
+          list.textContent = 'No notifications';
+          return;
+        }
+        list.innerHTML = items.slice(-30).reverse().map(function (item) {
+          return '<div style=\"padding:5px 0;border-bottom:1px solid #edf2ff;\"><strong>' + item.title + '</strong><br/>' + item.message + '</div>';
+        }).join('');
+      });
+    }
+
+    body.querySelector('#ffx-notification-send').addEventListener('click', function () {
+      var title = (body.querySelector('#ffx-notification-title') || {}).value || 'System Notification';
+      var message = (body.querySelector('#ffx-notification-message') || {}).value || 'Message from runtime extension';
+      var channel = (body.querySelector('#ffx-notification-channel') || {}).value || 'in_app';
+      postBusiness('/notifications/send', {
+        userKey: currentUserKey(),
+        type: 'custom',
+        channel: channel,
+        title: title,
+        message: message
+      }).then(function () {
+        executeFeature(feature, 'notification-send', { title: title, channel: channel });
+        refreshList();
+      });
+    });
+
+    body.querySelector('#ffx-notification-refresh').addEventListener('click', refreshList);
+    refreshList();
+  }
+
+  function applyTravelCardModule(feature) {
+    var card = ensureCard('travel-card', 'Digital Travel Card');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-travelcard-issue')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<input id=\"ffx-travelcard-name\" placeholder=\"Full name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-travelcard-phone\" placeholder=\"Phone\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<input id=\"ffx-travelcard-email\" placeholder=\"Email\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<button type=\"button\" id=\"ffx-travelcard-issue\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Issue Card</button>',
+      '<button type=\"button\" id=\"ffx-travelcard-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">My Cards</button>',
+      '</div>',
+      '<div id=\"ffx-travelcard-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-travelcard-list');
+
+    function refreshCards() {
+      getBusiness('/travel-card/user/' + encodeURIComponent(currentUserKey())).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        if (!items.length) {
+          list.textContent = 'No travel cards issued.';
+          return;
+        }
+        list.innerHTML = items.slice(-20).reverse().map(function (item) {
+          return '<div style=\"padding:5px 0;border-bottom:1px solid #edf2ff;\"><strong>' + item.cardId + '</strong> - ' + item.fullName + ' (' + item.status + ')</div>';
+        }).join('');
+      });
+    }
+
+    body.querySelector('#ffx-travelcard-issue').addEventListener('click', function () {
+      var fullName = (body.querySelector('#ffx-travelcard-name') || {}).value || 'Guest User';
+      var phone = (body.querySelector('#ffx-travelcard-phone') || {}).value || '';
+      var email = (body.querySelector('#ffx-travelcard-email') || {}).value || '';
+      postBusiness('/travel-card/issue', {
+        userKey: currentUserKey(),
+        fullName: fullName,
+        phone: phone,
+        email: email,
+        idProofType: 'Aadhar'
+      }).then(function () {
+        executeFeature(feature, 'travel-card-issued', { fullName: fullName });
+        refreshCards();
+      });
+    });
+
+    body.querySelector('#ffx-travelcard-refresh').addEventListener('click', refreshCards);
+    refreshCards();
+  }
+
+  function applyRideHistoryModule(feature) {
+    var card = ensureCard('ride-history', 'Ride History Management');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body || body.querySelector('#ffx-history-refresh')) return;
+
+    body.innerHTML = [
+      '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
+      '<button type=\"button\" id=\"ffx-history-refresh\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Refresh History</button>',
+      '<a id=\"ffx-history-export\" href=\"#\" style=\"padding:8px 10px;border-radius:8px;background:#0f766e;color:#fff;text-decoration:none;\">Export CSV</a>',
+      '</div>',
+      '<div id=\"ffx-history-list\" style=\"margin-top:8px;max-height:200px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+    ].join('');
+
+    var list = body.querySelector('#ffx-history-list');
+    var exportLink = body.querySelector('#ffx-history-export');
+
+    function refreshHistory() {
+      var userKey = currentUserKey();
+      if (exportLink) {
+        exportLink.href = BUSINESS_API_BASE + '/history/ride/' + encodeURIComponent(userKey) + '/export.csv';
+      }
+      getBusiness('/history/ride/' + encodeURIComponent(userKey)).then(function (data) {
+        var items = data && Array.isArray(data.items) ? data.items : [];
+        if (!list) return;
+        if (!items.length) {
+          list.textContent = 'No rides yet.';
+          return;
+        }
+        list.innerHTML = items.slice(-50).reverse().map(function (item) {
+          return '<div style=\"padding:5px 0;border-bottom:1px solid #edf2ff;\"><strong>' + item.bookingId + '</strong> ' + (item.from || 'N/A') + ' -> ' + (item.to || 'N/A') + ' | Fare: ' + (item.fare || 0) + '</div>';
+        }).join('');
+      });
+    }
+
+    body.querySelector('#ffx-history-refresh').addEventListener('click', function () {
+      executeFeature(feature, 'ride-history-refresh', {});
+      refreshHistory();
+    });
+
+    refreshHistory();
+  }
+
   function applyModules(feature) {
     var text = normalize(feature.description);
 
@@ -529,6 +856,9 @@
     if (hasAny(text, ['hotel', 'restaurant', 'shop', 'commission', 'guest house'])) applyPartnerCommissionModule(feature);
     if (hasAny(text, ['why trust', 'real trip photos', 'trip preview', 'social proof', 'experience'])) applyTrustBrandModule(feature);
     if (hasAny(text, ['road rule', 'government', 'law', 'compliance', 'legal'])) applyPolicyRulesModule(feature);
+    if (hasAny(text, ['notification', 'alert', 'reminder', 'sms', 'email', 'whatsapp', 'push'])) applyNotificationCenterModule(feature);
+    if (hasAny(text, ['travel card', 'digital travel card', 'tourist card'])) applyTravelCardModule(feature);
+    if (hasAny(text, ['ride history', 'history', 'past booking', 'export', 'invoice'])) applyRideHistoryModule(feature);
   }
 
   function activate(detail) {

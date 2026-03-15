@@ -16,6 +16,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
+const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
@@ -110,6 +111,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/future-runtime', futureRuntimeRoutes);
+app.use('/api/future-runtime-business', futureBusinessRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
