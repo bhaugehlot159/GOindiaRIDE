@@ -5437,3 +5437,91 @@ Costumer
 सुरक्षा: लाइव लोकेशन शेयरिंग, ड्राइवर की फोटो/गाड़ी का नंबर, और 24/7 हेल्प डेस्क के साथ इमरजेंसी SOS बटन। [1.3, 1.6]
 ट्रस्ट: डिजिटल ट्रैवल कार्ड, पुरानी ट्रिप हिस्ट्री, और "Is it safe?" सुरक्षा गाइड। [1.3, 1.6]
 भाषा: मल्टी-लैंग्वेज ट्रांसलेटर (हिंदी, अंग्रेजी आदि)। [1.3, 1.6]
+1. वेबसाइट और ऐप की बेसिक स्ट्रक्चर
+Responsive, मोबाइल-फ्रेंडली डिजाइन
+PWA (Add to home screen, ऐप जैसा एक्सपीरियंस)
+Default भाषाः इंग्लिश + इंटरनेशनल टूरिस्ट्स के लिए भाषा स्विचर
+2. विभिन्न लिस्टिंग मॉड्यूल
+होटल, गेस्ट हाउस, रेस्टोरेंट, शॉप्स, लोकल सर्विस -all searchable & विधिपूर्वक categorized
+Name, फोटो, Address, Ratings, Specialty, Online booking/Contact
+3. सभी टूर/पैकेज बुकिंग सिस्टम
+Family, Solo, Honeymoon, Adventure, Heritage सभी major theme
+Day-wise itinerary, local guide, vehicle, meals, inclusions, Book Now
+प्राइसिंग multi-currency, Live discount/offers
+4. Direct Booking, Referral & Affiliate Integration
+आपकी वेबसाइट पर live booking/checkout
+Partner साइट पर कनेक्ट - UTM/referral/code embedded हो
+हर एक्शन server-side ट्रैकिंग
+(Commission proof/reconciliation के लिए)
+5. कमीशन ट्रैकिंग/लॉगिंग
+हर बुकिंग/क्लिक backend database में रिकॉर्ड
+Unique coupon/referral URL (हर partner के लिए)
+Customer actions/event logs
+Real-time और monthly commission summary, Admin panel में
+6. Auto Notification & Real-time Information
+बुकिंग होते ही Customer, Driver, Admin, Partner सभी को रियल टाइम सार्थक notification
+In-app alert, Email/SMS, Admin logs
+7. Term, Disclaimer & Liability
+हर बुकिंग/लिस्टिंग/SMS/ईमेल में साफ़ disclaimer:
+"GOindiaRIDE सिर्फ माध्यम है, सेवा/रिफंड/क्वालिटी की जिम्मेदारी होटल/पार्टनर की होगी।"
+बुकिंग फॉर्म पर terms consent checkbox
+Detailed liability page (Limitation of responsibility)
+8. Partner Agreement & Dispute Policy
+Partner के साथ affiliate/contract करार: tracked referrals/booking पर कमीशन देना आवश्यक
+Evidence (user logs/coupon/bookingld) sufficient proof
+Dispute में admin पैनल से data export/reporting
+9. Real Fare Calculation & Currency Supports
+Distance/time/vehicle/offer/season के हिसाब से किराया auto-calculated
+Live currency converter (INR, USD, EUR आदि)
+10. OTP Auth, Anti-fraud & Security
+Free OTP via email/SMS gateway (no demo/static)
+Rate limiting, suspicious detection, OTP expiry
+HTTPS, reCAPTCHA, CSRF, XSS, Server-side validation
+लॉगिंग हर auth/booking पर
+11. Al & Smart Automation
+Al-powered recommendation (suggestions based on rides/history)
+Al chatbot multi-lingual FAQs/Support
+Feedback analyzer (sentiment/alerts)
+Fraud/spam/anomaly detection
+Fare prediction
+12. Search, Filter & Recommendation
+All listing modules - शहर, बजट, रेटिंग, प्रकार (type) के हिसाब से खोज / filter
+"Most popular", "Recommended for you", Trending section
+13. Customer Portal Transparency & Convenience
+सभी bookings/transactions/history कस्टमर डैशबोर्ड में
+Reschedule/cancel/help-all portal पर
+Real user reviews, ratings (International & Indian customers दोनों)
+Welcome offer/promo codes
+14. Admin Dashboard/Monitoring
+बुकिंग, क्लिक, कमीशन, पेंडिंग/क्लेम - all का
+full summary
+Fraud/spam alerts, payout/export options
+Live performance logs
+15. Hotel/Partner Integration
+API/Webhook/coupon integration
+3rd-party affiliate programs (Booking.com, Zomato, etc.)
+Regular reconciliation/auto notification
+16. Smart Assistance & 24×7 Help
+Chatbot, WhatsApp/Telegram, Instant contact/help
+FAQs for tourists (Airport, SIM, safety, refund, support)
+17. User Security, Data Policy & GDPR
+User rights: data delete/export
+Privacy/cookie consent
+Data कभी भी होटल या थर्ड पार्टी के साथ प्री-अप्रूवल बिना न share हो
+18. Booking Evidence & Dispute Management
+हर बुकिंग का लॉगिंग और प्रूफ (ऑडिट ट्रेल, time/IP/logld)
+Email/SMS में bookingId/terms/disclaimer स्पष्ट
+Admin rights for dispute evidence export
+19. Commission Loss/Risk Security
+Manual/auto follow-up on all referrals
+Unique code/coupon/bookld proof इन्हें sufficient proof मानें
+Partner agreement legally drafted
+Periodic payout reports
+20. Future Scope
+Local offers/partners, multi-language blogs
+Live map view/travel safety
+Package compare tool
+Interactive Stories/Testimonial section
+Custom filter for family/solo/corporate packages
+Al-powered fraud/gps spoofing protection
+अब तुम्हारे पास होना चाहिए:

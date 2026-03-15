@@ -26939,6 +26939,282 @@
 })();
 */
 // === FUTURE_FEATURE_ITEM_END: admin-f5363-line-5363 ===
+
+// === FUTURE_FEATURE_ITEM_START: admin-f5463-line-5463 ===
+/*
+// Activation: remove opening and closing comment markers of this item only.
+// Feature ID: F5463 | Source Line: 5463
+// Description: In-app alert, Email/SMS, Admin logs
+'use strict';
+
+(function future_feature_admin_f5463() {
+  const FUTURE_FEATURE_CATEGORY = 'admin';
+  const FUTURE_FEATURE_BLOCK_KEY = 'admin-f5463-line-5463';
+  const FUTURE_FEATURE_BASE_PATH = '/future/' + FUTURE_FEATURE_CATEGORY + '/' + FUTURE_FEATURE_BLOCK_KEY;
+  const FEATURE = {
+    featureId: 'F5463',
+    sourceLine: 5463,
+    category: 'admin',
+    bucket: 'general',
+    description: "In-app alert, Email/SMS, Admin logs",
+    status: 'enabled-from-itemwise-block',
+    implemented: false
+  };
+
+  if (typeof router !== 'undefined' && router && typeof router.get === 'function') {
+    router.__futureFeatureRouteRegistry = router.__futureFeatureRouteRegistry || {};
+    if (!router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY]) {
+      router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY] = true;
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog', (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          count: 1,
+          features: [FEATURE]
+        });
+      });
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog/' + FEATURE.featureId, (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId,
+          sourceLine: FEATURE.sourceLine,
+          description: FEATURE.description,
+          activation: 'ready',
+          note: 'Single feature item block is active.'
+        });
+      });
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__GOINDIARIDE_FUTURE_FEATURES = window.__GOINDIARIDE_FUTURE_FEATURES || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES[FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY][FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    if (typeof window.dispatchEvent === 'function' && typeof window.CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('goindiaride:future-feature-item-ready', {
+        detail: {
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId
+        }
+      }));
+    }
+  }
+})();
+*/
+// === FUTURE_FEATURE_ITEM_END: admin-f5463-line-5463 ===
+
+// === FUTURE_FEATURE_ITEM_START: admin-f5472-line-5472 ===
+/*
+// Activation: remove opening and closing comment markers of this item only.
+// Feature ID: F5472 | Source Line: 5472
+// Description: Dispute में admin पैनल से data export/reporting
+'use strict';
+
+(function future_feature_admin_f5472() {
+  const FUTURE_FEATURE_CATEGORY = 'admin';
+  const FUTURE_FEATURE_BLOCK_KEY = 'admin-f5472-line-5472';
+  const FUTURE_FEATURE_BASE_PATH = '/future/' + FUTURE_FEATURE_CATEGORY + '/' + FUTURE_FEATURE_BLOCK_KEY;
+  const FEATURE = {
+    featureId: 'F5472',
+    sourceLine: 5472,
+    category: 'admin',
+    bucket: 'general',
+    description: "Dispute में admin पैनल से data export/reporting",
+    status: 'enabled-from-itemwise-block',
+    implemented: false
+  };
+
+  if (typeof router !== 'undefined' && router && typeof router.get === 'function') {
+    router.__futureFeatureRouteRegistry = router.__futureFeatureRouteRegistry || {};
+    if (!router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY]) {
+      router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY] = true;
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog', (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          count: 1,
+          features: [FEATURE]
+        });
+      });
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog/' + FEATURE.featureId, (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId,
+          sourceLine: FEATURE.sourceLine,
+          description: FEATURE.description,
+          activation: 'ready',
+          note: 'Single feature item block is active.'
+        });
+      });
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__GOINDIARIDE_FUTURE_FEATURES = window.__GOINDIARIDE_FUTURE_FEATURES || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES[FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY][FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    if (typeof window.dispatchEvent === 'function' && typeof window.CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('goindiaride:future-feature-item-ready', {
+        detail: {
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId
+        }
+      }));
+    }
+  }
+})();
+*/
+// === FUTURE_FEATURE_ITEM_END: admin-f5472-line-5472 ===
+
+// === FUTURE_FEATURE_ITEM_START: admin-f5495-line-5495 ===
+/*
+// Activation: remove opening and closing comment markers of this item only.
+// Feature ID: F5495 | Source Line: 5495
+// Description: 14. Admin Dashboard/Monitoring
+'use strict';
+
+(function future_feature_admin_f5495() {
+  const FUTURE_FEATURE_CATEGORY = 'admin';
+  const FUTURE_FEATURE_BLOCK_KEY = 'admin-f5495-line-5495';
+  const FUTURE_FEATURE_BASE_PATH = '/future/' + FUTURE_FEATURE_CATEGORY + '/' + FUTURE_FEATURE_BLOCK_KEY;
+  const FEATURE = {
+    featureId: 'F5495',
+    sourceLine: 5495,
+    category: 'admin',
+    bucket: 'general',
+    description: "14. Admin Dashboard/Monitoring",
+    status: 'enabled-from-itemwise-block',
+    implemented: false
+  };
+
+  if (typeof router !== 'undefined' && router && typeof router.get === 'function') {
+    router.__futureFeatureRouteRegistry = router.__futureFeatureRouteRegistry || {};
+    if (!router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY]) {
+      router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY] = true;
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog', (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          count: 1,
+          features: [FEATURE]
+        });
+      });
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog/' + FEATURE.featureId, (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId,
+          sourceLine: FEATURE.sourceLine,
+          description: FEATURE.description,
+          activation: 'ready',
+          note: 'Single feature item block is active.'
+        });
+      });
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__GOINDIARIDE_FUTURE_FEATURES = window.__GOINDIARIDE_FUTURE_FEATURES || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES[FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY][FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    if (typeof window.dispatchEvent === 'function' && typeof window.CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('goindiaride:future-feature-item-ready', {
+        detail: {
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId
+        }
+      }));
+    }
+  }
+})();
+*/
+// === FUTURE_FEATURE_ITEM_END: admin-f5495-line-5495 ===
+
+// === FUTURE_FEATURE_ITEM_START: admin-f5514-line-5514 ===
+/*
+// Activation: remove opening and closing comment markers of this item only.
+// Feature ID: F5514 | Source Line: 5514
+// Description: Admin rights for dispute evidence export
+'use strict';
+
+(function future_feature_admin_f5514() {
+  const FUTURE_FEATURE_CATEGORY = 'admin';
+  const FUTURE_FEATURE_BLOCK_KEY = 'admin-f5514-line-5514';
+  const FUTURE_FEATURE_BASE_PATH = '/future/' + FUTURE_FEATURE_CATEGORY + '/' + FUTURE_FEATURE_BLOCK_KEY;
+  const FEATURE = {
+    featureId: 'F5514',
+    sourceLine: 5514,
+    category: 'admin',
+    bucket: 'general',
+    description: "Admin rights for dispute evidence export",
+    status: 'enabled-from-itemwise-block',
+    implemented: false
+  };
+
+  if (typeof router !== 'undefined' && router && typeof router.get === 'function') {
+    router.__futureFeatureRouteRegistry = router.__futureFeatureRouteRegistry || {};
+    if (!router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY]) {
+      router.__futureFeatureRouteRegistry[FUTURE_FEATURE_BLOCK_KEY] = true;
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog', (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          count: 1,
+          features: [FEATURE]
+        });
+      });
+
+      router.get(FUTURE_FEATURE_BASE_PATH + '/catalog/' + FEATURE.featureId, (req, res) => {
+        return res.status(200).json({
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId,
+          sourceLine: FEATURE.sourceLine,
+          description: FEATURE.description,
+          activation: 'ready',
+          note: 'Single feature item block is active.'
+        });
+      });
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__GOINDIARIDE_FUTURE_FEATURES = window.__GOINDIARIDE_FUTURE_FEATURES || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES[FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] = window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY] || {};
+    window.__GOINDIARIDE_FUTURE_FEATURES_BY_CATEGORY[FUTURE_FEATURE_CATEGORY][FUTURE_FEATURE_BLOCK_KEY] = [FEATURE];
+    if (typeof window.dispatchEvent === 'function' && typeof window.CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('goindiaride:future-feature-item-ready', {
+        detail: {
+          category: FUTURE_FEATURE_CATEGORY,
+          blockKey: FUTURE_FEATURE_BLOCK_KEY,
+          featureId: FEATURE.featureId
+        }
+      }));
+    }
+  }
+})();
+*/
+// === FUTURE_FEATURE_ITEM_END: admin-f5514-line-5514 ===
 </script>
 <!-- === FUTURE_FEATURES_ADMIN_ITEMWISE_END === -->
 
