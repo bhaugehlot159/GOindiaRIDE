@@ -1691,6 +1691,166 @@
     });
   }
 
+  function applyUniversalFeatureModule(feature) {
+    var card = ensureCard('universal-runner', 'Universal Feature Runner (All Features)');
+    if (!card) return;
+    var body = card.querySelector('.ff-runtime-card-body');
+    if (!body) return;
+
+    extState.universalFeatures = extState.universalFeatures || {};
+    var featureId = String(feature.featureId || '').trim();
+    if (!featureId) return;
+    extState.universalFeatures[featureId] = {
+      featureId: featureId,
+      category: feature.category || 'general',
+      description: feature.description || '',
+      sourceLine: feature.sourceLine || null
+    };
+
+    if (!body.querySelector('#ffx-universal-feature')) {
+      body.innerHTML = [
+        '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
+        '<select id=\"ffx-universal-feature\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"></select>',
+        '<input id=\"ffx-universal-owner\" placeholder=\"Owner\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+        '<input id=\"ffx-universal-due\" type=\"date\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+        '<select id=\"ffx-universal-status\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>active</option><option>planned</option><option>in-progress</option><option>blocked</option><option>completed</option></select>',
+        '<input id=\"ffx-universal-notes\" placeholder=\"Notes\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+        '<input id=\"ffx-universal-action\" placeholder=\"Action name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+        '<button type=\"button\" id=\"ffx-universal-save\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Save State</button>',
+        '<button type=\"button\" id=\"ffx-universal-run\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Run Action</button>',
+        '<button type=\"button\" id=\"ffx-universal-load\" style=\"padding:8px;border:0;border-radius:8px;background:#334155;color:#fff;\">Load State</button>',
+        '<button type=\"button\" id=\"ffx-universal-history\" style=\"padding:8px;border:0;border-radius:8px;background:#7c3aed;color:#fff;\">Load History</button>',
+        '</div>',
+        '<div id=\"ffx-universal-description\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#1d3f6f;\"></div>',
+        '<div id=\"ffx-universal-output\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;color:#173b67;\"></div>'
+      ].join('');
+
+      var select = body.querySelector('#ffx-universal-feature');
+      var ownerInput = body.querySelector('#ffx-universal-owner');
+      var dueInput = body.querySelector('#ffx-universal-due');
+      var statusInput = body.querySelector('#ffx-universal-status');
+      var notesInput = body.querySelector('#ffx-universal-notes');
+      var actionInput = body.querySelector('#ffx-universal-action');
+      var desc = body.querySelector('#ffx-universal-description');
+      var output = body.querySelector('#ffx-universal-output');
+
+      function currentMeta() {
+        var selected = select ? select.value : '';
+        return extState.universalFeatures[selected] || null;
+      }
+
+      function renderDescription() {
+        var meta = currentMeta();
+        if (!desc) return;
+        if (!meta) {
+          desc.textContent = 'No feature selected.';
+          return;
+        }
+        desc.innerHTML = '<strong>' + escapeHtml(meta.featureId) + '</strong> [' + escapeHtml(meta.category || 'general') + '] - ' + escapeHtml(meta.description || '');
+      }
+
+      function setOutput(text) {
+        if (output) output.textContent = text || '';
+      }
+
+      body.querySelector('#ffx-universal-save').addEventListener('click', function () {
+        var meta = currentMeta();
+        if (!meta) return;
+        var payload = {
+          userKey: currentUserKey(),
+          featureId: meta.featureId,
+          category: meta.category,
+          description: meta.description,
+          owner: ownerInput ? ownerInput.value : '',
+          dueDate: dueInput ? dueInput.value : '',
+          status: statusInput ? statusInput.value : 'active',
+          notes: notesInput ? notesInput.value : ''
+        };
+        postBusiness('/feature/state', payload).then(function (data) {
+          executeFeature(meta, 'universal-save-state', payload);
+          setOutput(data && data.ok ? 'State saved for ' + meta.featureId : 'State save failed');
+        });
+      });
+
+      body.querySelector('#ffx-universal-run').addEventListener('click', function () {
+        var meta = currentMeta();
+        if (!meta) return;
+        var payload = {
+          userKey: currentUserKey(),
+          featureId: meta.featureId,
+          category: meta.category,
+          action: (actionInput && actionInput.value) || 'manual-run',
+          status: 'executed',
+          payload: {
+            notes: notesInput ? notesInput.value : '',
+            owner: ownerInput ? ownerInput.value : ''
+          },
+          result: 'Action executed via universal runner'
+        };
+        postBusiness('/feature/action', payload).then(function (data) {
+          executeFeature(meta, 'universal-run-action', payload);
+          setOutput(data && data.ok ? 'Action executed for ' + meta.featureId : 'Action failed');
+        });
+      });
+
+      body.querySelector('#ffx-universal-load').addEventListener('click', function () {
+        var meta = currentMeta();
+        if (!meta) return;
+        getBusiness('/feature/state/' + encodeURIComponent(meta.featureId) + '?userKey=' + encodeURIComponent(currentUserKey())).then(function (data) {
+          var state = data && data.state ? data.state : null;
+          if (!state) {
+            setOutput('No saved state for ' + meta.featureId);
+            return;
+          }
+          if (ownerInput) ownerInput.value = state.owner || '';
+          if (dueInput) dueInput.value = state.dueDate || '';
+          if (statusInput) statusInput.value = state.status || 'active';
+          if (notesInput) notesInput.value = state.notes || '';
+          setOutput('Loaded state: ' + meta.featureId + ' | status=' + (state.status || 'active'));
+        });
+      });
+
+      body.querySelector('#ffx-universal-history').addEventListener('click', function () {
+        var meta = currentMeta();
+        if (!meta) return;
+        getBusiness('/feature/action/' + encodeURIComponent(meta.featureId) + '?userKey=' + encodeURIComponent(currentUserKey())).then(function (data) {
+          var items = data && Array.isArray(data.items) ? data.items : [];
+          if (!items.length) {
+            setOutput('No action history for ' + meta.featureId);
+            return;
+          }
+          if (!output) return;
+          output.innerHTML = items.slice(-20).reverse().map(function (item) {
+            return '<div style=\"padding:6px 0;border-bottom:1px solid #edf2ff;\"><strong>' + escapeHtml(item.action) + '</strong> - ' + escapeHtml(item.createdAt) + '</div>';
+          }).join('');
+        });
+      });
+
+      select.addEventListener('change', renderDescription);
+    }
+
+    var selectEl = body.querySelector('#ffx-universal-feature');
+    if (!selectEl) return;
+    var exists = false;
+    for (var i = 0; i < selectEl.options.length; i += 1) {
+      if (selectEl.options[i].value === featureId) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists) {
+      var option = document.createElement('option');
+      option.value = featureId;
+      option.textContent = featureId + ' - ' + (feature.category || 'general');
+      selectEl.appendChild(option);
+      if (!selectEl.value) selectEl.value = featureId;
+    }
+    var descEl = body.querySelector('#ffx-universal-description');
+    if (descEl && selectEl.value === featureId) {
+      descEl.innerHTML = '<strong>' + escapeHtml(featureId) + '</strong> [' + escapeHtml(feature.category || 'general') + '] - ' + escapeHtml(feature.description || '');
+    }
+  }
+
   function applyModules(feature) {
     var text = normalize(feature.description);
 
@@ -1729,6 +1889,9 @@
     if (hasAny(text, ['notification', 'alert', 'reminder', 'sms', 'email', 'whatsapp', 'push'])) applyNotificationCenterModule(feature);
     if (hasAny(text, ['travel card', 'digital travel card', 'tourist card'])) applyTravelCardModule(feature);
     if (hasAny(text, ['ride history', 'history', 'past booking', 'export', 'invoice'])) applyRideHistoryModule(feature);
+
+    // Universal fallback/runner: every feature becomes runnable even without specific keyword module.
+    applyUniversalFeatureModule(feature);
   }
 
   function activate(detail) {

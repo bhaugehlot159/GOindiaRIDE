@@ -28,6 +28,8 @@ const MAX_DISPUTES = 20000;
 const MAX_FRAUD_ALERTS = 20000;
 const MAX_AI_CHATS = 60000;
 const MAX_SAVED_LOCATIONS = 30000;
+const MAX_FEATURE_STATES = 15000;
+const MAX_FEATURE_ACTIONS = 120000;
 
 let persistTimer = null;
 
@@ -155,6 +157,8 @@ function defaultStore() {
     fraudAlerts: [],
     aiChats: [],
     savedLocations: [],
+    featureStates: {},
+    featureActions: [],
     termsConsents: [],
     supportTickets: [],
     webhookEvents: [],
@@ -205,6 +209,8 @@ function loadStore() {
       fraudAlerts: Array.isArray(parsed.fraudAlerts) ? parsed.fraudAlerts.slice(-MAX_FRAUD_ALERTS) : [],
       aiChats: Array.isArray(parsed.aiChats) ? parsed.aiChats.slice(-MAX_AI_CHATS) : [],
       savedLocations: Array.isArray(parsed.savedLocations) ? parsed.savedLocations.slice(-MAX_SAVED_LOCATIONS) : [],
+      featureStates: safeObject(parsed.featureStates),
+      featureActions: Array.isArray(parsed.featureActions) ? parsed.featureActions.slice(-MAX_FEATURE_ACTIONS) : [],
       termsConsents: Array.isArray(parsed.termsConsents) ? parsed.termsConsents.slice(-MAX_TERMS_CONSENTS) : [],
       supportTickets: Array.isArray(parsed.supportTickets) ? parsed.supportTickets.slice(-MAX_SUPPORT_TICKETS) : [],
       webhookEvents: Array.isArray(parsed.webhookEvents) ? parsed.webhookEvents.slice(-MAX_WEBHOOK_EVENTS) : [],
@@ -394,6 +400,10 @@ function addAuthLog(store, payload) {
   return item;
 }
 
+function buildFeatureStateKey(userKey, featureId) {
+  return `${normalizeString(userKey, 80) || 'guest-user'}::${normalizeString(featureId, 80)}`;
+}
+
 router.get('/status', (req, res) => {
   const store = getStore();
   return res.status(200).json({
@@ -414,6 +424,8 @@ router.get('/status', (req, res) => {
     fraudAlerts: store.fraudAlerts.length,
     aiChats: store.aiChats.length,
     savedLocations: store.savedLocations.length,
+    featureStates: Object.keys(store.featureStates).length,
+    featureActions: store.featureActions.length,
     termsConsents: store.termsConsents.length,
     supportTickets: store.supportTickets.length,
     webhookEvents: store.webhookEvents.length,
@@ -806,6 +818,94 @@ router.get('/ai/chatbot/:userKey', (req, res) => {
   const userKey = normalizeString(req.params.userKey, 80);
   const items = store.aiChats.filter((item) => item.userKey === userKey).slice(-200);
   return res.status(200).json({ ok: true, count: items.length, items });
+});
+
+router.post('/feature/state', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80) || 'guest-user';
+  const featureId = normalizeString(req.body?.featureId, 80);
+  const category = normalizeString(req.body?.category, 80) || 'general';
+  if (!featureId) {
+    return res.status(400).json({ ok: false, message: 'featureId is required' });
+  }
+
+  const key = buildFeatureStateKey(userKey, featureId);
+  const previous = safeObject(store.featureStates[key]);
+  store.featureStates[key] = {
+    featureId,
+    userKey,
+    category,
+    description: normalizeString(req.body?.description, 600),
+    status: normalizeString(req.body?.status, 40) || previous.status || 'active',
+    owner: normalizeString(req.body?.owner, 120) || previous.owner || '',
+    dueDate: normalizeString(req.body?.dueDate, 40) || previous.dueDate || '',
+    notes: normalizeString(req.body?.notes, 2000) || '',
+    payload: safeObject(req.body?.payload),
+    updatedAt: new Date().toISOString(),
+    createdAt: previous.createdAt || new Date().toISOString()
+  };
+
+  const keys = Object.keys(store.featureStates);
+  if (keys.length > MAX_FEATURE_STATES) {
+    keys.sort((a, b) => {
+      const at = new Date(store.featureStates[a].updatedAt || 0).getTime();
+      const bt = new Date(store.featureStates[b].updatedAt || 0).getTime();
+      return at - bt;
+    });
+    const removeCount = keys.length - MAX_FEATURE_STATES;
+    for (let i = 0; i < removeCount; i += 1) {
+      delete store.featureStates[keys[i]];
+    }
+  }
+
+  queuePersist();
+  return res.status(200).json({ ok: true, state: store.featureStates[key] });
+});
+
+router.get('/feature/state/:featureId', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.query.userKey, 80) || 'guest-user';
+  const featureId = normalizeString(req.params.featureId, 80);
+  if (!featureId) return res.status(400).json({ ok: false, message: 'featureId is required' });
+  const key = buildFeatureStateKey(userKey, featureId);
+  const state = store.featureStates[key] || null;
+  return res.status(200).json({ ok: true, state });
+});
+
+router.post('/feature/action', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.body?.userKey, 80) || 'guest-user';
+  const featureId = normalizeString(req.body?.featureId, 80);
+  const action = normalizeString(req.body?.action, 100) || 'manual-run';
+  if (!featureId) {
+    return res.status(400).json({ ok: false, message: 'featureId is required' });
+  }
+
+  const item = {
+    id: crypto.randomUUID(),
+    featureId,
+    userKey,
+    category: normalizeString(req.body?.category, 80) || 'general',
+    action,
+    status: normalizeString(req.body?.status, 40) || 'executed',
+    payload: safeObject(req.body?.payload),
+    result: normalizeString(req.body?.result, 1000),
+    createdAt: new Date().toISOString()
+  };
+
+  pushWithCap(store.featureActions, item, MAX_FEATURE_ACTIONS);
+  queuePersist();
+  return res.status(201).json({ ok: true, item });
+});
+
+router.get('/feature/action/:featureId', (req, res) => {
+  const store = getStore();
+  const userKey = normalizeString(req.query.userKey, 80);
+  const featureId = normalizeString(req.params.featureId, 80);
+  if (!featureId) return res.status(400).json({ ok: false, message: 'featureId is required' });
+  let items = store.featureActions.filter((item) => item.featureId === featureId);
+  if (userKey) items = items.filter((item) => item.userKey === userKey);
+  return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
 });
 
 router.post('/notifications/send', (req, res) => {
@@ -1466,6 +1566,8 @@ router.get('/admin/summary', (req, res) => {
       fraudAlerts: store.fraudAlerts.length,
       aiChats: store.aiChats.length,
       savedLocations: store.savedLocations.length,
+      featureStates: Object.keys(store.featureStates).length,
+      featureActions: store.featureActions.length,
       notifications: store.notifications.length,
       supportTickets: store.supportTickets.length,
       activeTravelCards: Object.keys(store.travelCards).length,
