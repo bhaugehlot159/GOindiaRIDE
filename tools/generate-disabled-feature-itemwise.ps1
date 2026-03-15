@@ -15,27 +15,36 @@ function Get-FeatureCategory {
 
     $t = $Text.ToLowerInvariant()
 
-    if ($t -match "customer portal|costumer|customer|booking|ride|pickup|drop|passenger|luggage|wallet|donation|profile|address|language|tourist|emergency|refund|fare|airport|out station|round trip|city ride|kilometer|km") {
+    if ($t -match "customer portal|costumer|customer|booking|ride|pickup|drop|passenger|luggage|wallet|donation|profile|address|language|tourist|emergency|refund|fare|airport|out station|round trip|city ride|kilometer|km|pick up|dropoff|location|eta|route|trip|पिकअप|ड्रॉप|बुकिंग|ग्राहक|यात्रा|किराया|लोकेशन|ट्रिप|रूट|लैंडमार्क|गेट|फ्लाइट|रेलवे|पीएनआर|ऑटो-रूट|ऑटो-पिकअप|फेवरेट") {
         return "customer"
     }
 
-    if ($t -match "driver portal|driver|vehicle|license|licence|commission|dl|rc|fleet|pan card|aadhar|aadhaar|rating") {
+    if ($t -match "driver portal|driver|vehicle|license|licence|commission|dl|rc|fleet|pan card|aadhar|aadhaar|rating|driver rating|earning|payout|ड्राइवर|वाहन|लाइसेंस|केवाईसी|रेटिंग|अर्निंग|भुगतान|कमीशन") {
         return "driver"
     }
 
-    if ($t -match "admin portal|admin|approval|manage|moderation|super admin|control center|operations dashboard") {
+    if ($t -match "admin portal|admin|approval|manage|moderation|super admin|control center|operations dashboard|dashboard|reports|control|monitoring|एडमिन|प्रबंधन|डैशबोर्ड|रिपोर्ट|नियंत्रण|ऑपरेशन") {
         return "admin"
     }
 
-    if ($t -match "password|jwt|otp|xss|csrf|cors|helmet|ratelimit|rate limit|lock|risk|security|firewall|cloudflare|auth|login|ban|encryption|gdpr|privacy|terms|cookie|suspicious|fraud|replay|tampering|signature|2fa|ip restriction|vpn|bot|captcha|secure") {
+    if ($t -match "password|jwt|otp|xss|csrf|cors|helmet|ratelimit|rate limit|lock|risk|security|firewall|cloudflare|auth|login|ban|encryption|gdpr|privacy|terms|cookie|suspicious|fraud|replay|tampering|signature|2fa|ip restriction|vpn|bot|captcha|secure|सुरक्षा|ओटीपी|धोखाधड़ी|फ्रॉड|एन्क्रिप्शन|सुरक्षित|प्राइवेसी") {
         return "security"
     }
 
-    if ($t -match " ai |ai-|machine learning|ml|anomaly|predict|automation|intelligence|recommend|optimization|behaviour|behavior|pattern detection|scoring|payment|upi|card|refund|billing|invoice|gst|tax|wallet topup|cash|advance payment|gateway|backup|monitor|alert|logs|pm2|performance|cache|cdn|pwa|offline|service|inventory|asset|support|uptime|analytics|tracking|google|facebook|maps|whatsapp|firebase|api|calendar|sms|email|push|analytics integration|gateway integration|cloud|ui|design|theme|tricolor|tirange|international brand|brand|color|responsive|mobile|ux|look|dashboard") {
+    if ($t -match " ai |ai-|machine learning|ml|anomaly|predict|automation|intelligence|recommend|optimization|behaviour|behavior|pattern detection|scoring|payment|upi|card|refund|billing|invoice|gst|tax|wallet topup|cash|advance payment|gateway|backup|monitor|alert|logs|pm2|performance|cache|cdn|pwa|offline|service|inventory|asset|support|uptime|analytics|tracking|google|facebook|maps|whatsapp|firebase|api|calendar|sms|email|push|analytics integration|gateway integration|cloud|ui|design|theme|tricolor|tirange|international brand|brand|color|responsive|mobile|ux|look|branding|encyclopedia|museum|heritage|festival|district|राजस्थान|इतिहास|विजुअल|ब्रांडिंग|एनालिटिक्स|कंटेंट|गैलरी|टूर|एआई|डिजिटल|विश्वकोश") {
         return "additional"
     }
 
     return "misc"
+}
+
+function Get-FeatureBucket {
+    param([string]$Text)
+    $t = $Text.ToLowerInvariant()
+    if ($t -match "auto-suggest|auto suggestion|auto-suggestions|autosuggest|auto suggest|auto-sync|auto sync|auto-adjust|auto adjust|ऑटो-सिंक|ऑटो-एडजस्ट|ऑटो-पिकअप|ऑटो-सजेशन|ऑटो सुझाव|सुझाव") {
+        return "auto-suggestion"
+    }
+    return "general"
 }
 
 function Get-SafeIdentifier {
@@ -113,7 +122,12 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
     }
 
     if (-not $categoryMeta.Contains($category)) {
-        $category = "misc"
+        $category = "additional"
+    }
+
+    # Keep all unmatched points in live-injected flows (no point should remain orphaned).
+    if ($category -eq "misc") {
+        $category = "additional"
     }
 
     $features.Add([PSCustomObject]@{
@@ -121,6 +135,7 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
             index       = $featureIdNumber
             source_line = $sourceLineNumber
             category    = $category
+            bucket      = (Get-FeatureBucket -Text $trimmed)
             text        = $trimmed
         })
 }
@@ -163,6 +178,7 @@ foreach ($cat in $categoryMeta.Keys) {
 
         [void]$summaryRows.Add([PSCustomObject]@{
                 category    = $cat
+                bucket      = [string]$f.bucket
                 featureId   = [string]$f.feature_id
                 sourceLine  = [int]$f.source_line
                 blockKey    = $blockKey
@@ -184,6 +200,7 @@ foreach ($cat in $categoryMeta.Keys) {
         [void]$sb.AppendLine("    featureId: '$($f.feature_id)',")
         [void]$sb.AppendLine("    sourceLine: $($f.source_line),")
         [void]$sb.AppendLine("    category: '$cat',")
+        [void]$sb.AppendLine("    bucket: '$([string]$f.bucket)',")
         [void]$sb.AppendLine("    description: $specJson,")
         [void]$sb.AppendLine("    status: 'enabled-from-itemwise-block',")
         [void]$sb.AppendLine("    implemented: false")
