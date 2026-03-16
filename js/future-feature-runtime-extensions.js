@@ -1317,7 +1317,9 @@
       return fetchJson(url, options).then(function (result) {
         if (!result) return tryAt(index + 1);
         if (result.ok && result.json !== null) return result.json;
-        if (result.ok && result.json === null) return { ok: true };
+        // If API returns 200 with empty/non-JSON body (e.g. HTML fallback), keep trying
+        // next base and finally local fallback instead of treating it as successful data.
+        if (result.ok && result.json === null) return tryAt(index + 1);
         return tryAt(index + 1);
       });
     }
