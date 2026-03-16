@@ -56319,5 +56319,1082 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
 // === FUTURE_FEATURE_ITEM_END: security-f5526-line-5526 ===
 // === FUTURE_FEATURES_SECURITY_ITEMWISE_END ===
 
+// === FUTURE_ROUTES_BUSINESS_SECURITYROUTES_START ===
+/*
+(function future_business_disabled_block_for_securityroutes(router) {
+  // Source: backend/src/routes/futureBusinessRoutes.js
+
+  const fs = require('fs');
+  const path = require('path');
+  const crypto = require('crypto');
+
+
+  const DATA_DIR = path.join(__dirname, '../../../data/runtime');
+  const DATA_FILE = path.join(DATA_DIR, 'future-business-store.json');
+  const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
+
+  const MAX_NOTIFICATIONS = 20000;
+  const MAX_WALLET_HISTORY = 3000;
+  const MAX_RIDES_PER_USER = 5000;
+  const MAX_COMMISSIONS = 10000;
+  const MAX_TOURISM_PLACES = 10000;
+  const MAX_LISTINGS = 20000;
+  const MAX_PACKAGES = 8000;
+  const MAX_PACKAGE_BOOKINGS = 30000;
+  const MAX_REFERRALS = 40000;
+  const MAX_REVIEWS = 30000;
+  const MAX_TERMS_CONSENTS = 30000;
+  const MAX_SUPPORT_TICKETS = 30000;
+  const MAX_WEBHOOK_EVENTS = 20000;
+  const MAX_OTP_EVENTS = 50000;
+  const MAX_AUTH_LOGS = 50000;
+  const MAX_BOOKING_ACTIONS = 50000;
+  const MAX_DISPUTES = 20000;
+  const MAX_FRAUD_ALERTS = 20000;
+  const MAX_AI_CHATS = 60000;
+  const MAX_SAVED_LOCATIONS = 30000;
+  const MAX_FEATURE_STATES = 15000;
+  const MAX_FEATURE_ACTIONS = 120000;
+
+  let persistTimer = null;
+  let rajasthanDetailsCache = null;
+
+  const seedTourismPlaces = [
+    { district: 'Jaipur', name: 'Amer Fort', category: 'Fort', history: '16th century hill fort.', entryFee: '100', openTime: '08:00', closeTime: '17:30', parking: true },
+    { district: 'Jaipur', name: 'Hawa Mahal', category: 'Palace', history: 'Pink sandstone palace facade.', entryFee: '50', openTime: '09:00', closeTime: '17:00', parking: true },
+    { district: 'Jodhpur', name: 'Mehrangarh Fort', category: 'Fort', history: 'Rao Jodha era fort.', entryFee: '200', openTime: '09:00', closeTime: '17:30', parking: true },
+    { district: 'Udaipur', name: 'City Palace', category: 'Palace', history: 'Mewar dynasty royal complex.', entryFee: '300', openTime: '09:30', closeTime: '17:30', parking: true },
+    { district: 'Ajmer', name: 'Ajmer Sharif Dargah', category: 'Heritage', history: 'Sufi shrine and spiritual site.', entryFee: '0', openTime: '05:00', closeTime: '22:00', parking: true },
+    { district: 'Pushkar', name: 'Brahma Temple', category: 'Temple', history: 'Rare temple dedicated to Lord Brahma.', entryFee: '0', openTime: '06:00', closeTime: '20:00', parking: true }
+  ];
+
+  const RAJASTHAN_DISTRICTS = [
+    'Ajmer',
+    'Alwar',
+    'Anupgarh',
+    'Balotra',
+    'Banswara',
+    'Baran',
+    'Barmer',
+    'Beawar',
+    'Bharatpur',
+    'Bhilwara',
+    'Bikaner',
+    'Bundi',
+    'Chittorgarh',
+    'Churu',
+    'Dausa',
+    'Deeg',
+    'Didwana-Kuchaman',
+    'Dholpur',
+    'Dungarpur',
+    'Gangapur City',
+    'Hanumangarh',
+    'Jaipur',
+    'Jaipur Rural',
+    'Jaisalmer',
+    'Jalore',
+    'Jhalawar',
+    'Jhunjhunu',
+    'Jodhpur',
+    'Jodhpur Rural',
+    'Karauli',
+    'Kekri',
+    'Khairthal-Tijara',
+    'Kota',
+    'Kotputli-Behror',
+    'Nagaur',
+    'Neem Ka Thana',
+    'Pali',
+    'Phalodi',
+    'Pratapgarh',
+    'Rajsamand',
+    'Salumbar',
+    'Sanchore',
+    'Sawai Madhopur',
+    'Shahpura',
+    'Sikar',
+    'Sirohi',
+    'Sri Ganganagar',
+    'Tonk',
+    'Udaipur',
+    'Dudu'
+  ];
+
+  const currencyRates = {
+    INR: 1,
+    USD: 0.012,
+    EUR: 0.011,
+    GBP: 0.0094,
+    AED: 0.044
+  };
+
+  const vehicleBaseRates = {
+    economy: 10,
+    sedan: 15,
+    suv: 20,
+    premium: 25,
+    xl: 28
+  };
+
+  function ensureDir() {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  }
+
+  function normalizeString(value, maxLength) {
+    const str = String(value || '').trim();
+    if (!str) return '';
+    if (!Number.isFinite(maxLength) || maxLength <= 0) return str;
+    return str.slice(0, maxLength);
+  }
+
+  function normalizeAmount(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Number(n.toFixed(2));
+  }
+
+  function safeObject(input) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
+    return input;
+  }
+
+  function clone(input) {
+    return JSON.parse(JSON.stringify(input));
+  }
+
+  function defaultStore() {
+    return {
+      wallets: {},
+      notifications: [],
+      travelCards: {},
+      commissions: [],
+      listings: [],
+      packages: [],
+      packageBookings: [],
+      referrals: [],
+      reviews: [],
+      otpEvents: [],
+      authLogs: [],
+      bookingActions: [],
+      disputes: [],
+      fraudAlerts: [],
+      aiChats: [],
+      savedLocations: [],
+      featureStates: {},
+      featureActions: [],
+      termsConsents: [],
+      supportTickets: [],
+      webhookEvents: [],
+      tourismPlaces: seedTourismPlaces.map((item) => ({
+        id: crypto.randomUUID(),
+        district: item.district,
+        name: item.name,
+        category: item.category,
+        history: item.history,
+        entryFee: item.entryFee,
+        openTime: item.openTime,
+        closeTime: item.closeTime,
+        parking: item.parking,
+        createdAt: new Date().toISOString()
+      })),
+      rideHistory: {},
+      preferences: {},
+      counters: {
+        packagesBooked: 0,
+        referralsTracked: 0,
+        supportTickets: 0,
+        webhookEvents: 0
+      }
+    };
+  }
+
+  function loadStore() {
+    try {
+      if (!fs.existsSync(DATA_FILE)) return defaultStore();
+      const parsed = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      const store = defaultStore();
+      return {
+        ...store,
+        ...safeObject(parsed),
+        wallets: safeObject(parsed.wallets),
+        notifications: Array.isArray(parsed.notifications) ? parsed.notifications.slice(-MAX_NOTIFICATIONS) : [],
+        travelCards: safeObject(parsed.travelCards),
+        commissions: Array.isArray(parsed.commissions) ? parsed.commissions.slice(-MAX_COMMISSIONS) : [],
+        listings: Array.isArray(parsed.listings) ? parsed.listings.slice(-MAX_LISTINGS) : [],
+        packages: Array.isArray(parsed.packages) ? parsed.packages.slice(-MAX_PACKAGES) : [],
+        packageBookings: Array.isArray(parsed.packageBookings) ? parsed.packageBookings.slice(-MAX_PACKAGE_BOOKINGS) : [],
+        referrals: Array.isArray(parsed.referrals) ? parsed.referrals.slice(-MAX_REFERRALS) : [],
+        reviews: Array.isArray(parsed.reviews) ? parsed.reviews.slice(-MAX_REVIEWS) : [],
+        otpEvents: Array.isArray(parsed.otpEvents) ? parsed.otpEvents.slice(-MAX_OTP_EVENTS) : [],
+        authLogs: Array.isArray(parsed.authLogs) ? parsed.authLogs.slice(-MAX_AUTH_LOGS) : [],
+        bookingActions: Array.isArray(parsed.bookingActions) ? parsed.bookingActions.slice(-MAX_BOOKING_ACTIONS) : [],
+        disputes: Array.isArray(parsed.disputes) ? parsed.disputes.slice(-MAX_DISPUTES) : [],
+        fraudAlerts: Array.isArray(parsed.fraudAlerts) ? parsed.fraudAlerts.slice(-MAX_FRAUD_ALERTS) : [],
+        aiChats: Array.isArray(parsed.aiChats) ? parsed.aiChats.slice(-MAX_AI_CHATS) : [],
+        savedLocations: Array.isArray(parsed.savedLocations) ? parsed.savedLocations.slice(-MAX_SAVED_LOCATIONS) : [],
+        featureStates: safeObject(parsed.featureStates),
+        featureActions: Array.isArray(parsed.featureActions) ? parsed.featureActions.slice(-MAX_FEATURE_ACTIONS) : [],
+        termsConsents: Array.isArray(parsed.termsConsents) ? parsed.termsConsents.slice(-MAX_TERMS_CONSENTS) : [],
+        supportTickets: Array.isArray(parsed.supportTickets) ? parsed.supportTickets.slice(-MAX_SUPPORT_TICKETS) : [],
+        webhookEvents: Array.isArray(parsed.webhookEvents) ? parsed.webhookEvents.slice(-MAX_WEBHOOK_EVENTS) : [],
+        tourismPlaces: Array.isArray(parsed.tourismPlaces) && parsed.tourismPlaces.length
+          ? parsed.tourismPlaces.slice(-MAX_TOURISM_PLACES)
+          : store.tourismPlaces,
+        rideHistory: safeObject(parsed.rideHistory),
+        preferences: safeObject(parsed.preferences),
+        counters: {
+          ...safeObject(store.counters),
+          ...safeObject(parsed.counters)
+        }
+      };
+    } catch (_error) {
+      return defaultStore();
+    }
+  }
+
+  function loadRajasthanDetails() {
+    if (rajasthanDetailsCache && typeof rajasthanDetailsCache === 'object') {
+      return rajasthanDetailsCache;
+    }
+    try {
+      const raw = fs.readFileSync(RAJASTHAN_DETAILS_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      const districts = safeObject(parsed && parsed.districts);
+      const index = {};
+      Object.keys(districts).forEach((name) => {
+        index[normalizeString(name, 120).toLowerCase()] = districts[name];
+      });
+      rajasthanDetailsCache = {
+        ok: true,
+        sourceFile: RAJASTHAN_DETAILS_FILE,
+        metadata: safeObject(parsed && parsed.metadata),
+        districts,
+        index
+      };
+      return rajasthanDetailsCache;
+    } catch (_error) {
+      rajasthanDetailsCache = {
+        ok: false,
+        sourceFile: RAJASTHAN_DETAILS_FILE,
+        metadata: {},
+        districts: {},
+        index: {}
+      };
+      return rajasthanDetailsCache;
+    }
+  }
+
+  function resolveDistrictDetailByName(name) {
+    const dataset = loadRajasthanDetails();
+    const key = normalizeString(name, 120).toLowerCase();
+    if (!key) return null;
+    if (dataset.index[key]) return dataset.index[key];
+
+    const simplified = key.replace(/[^a-z0-9]/g, '');
+    const keys = Object.keys(dataset.index);
+    for (let i = 0; i < keys.length; i += 1) {
+      const source = keys[i];
+      const sourceSimple = source.replace(/[^a-z0-9]/g, '');
+      if (sourceSimple === simplified) return dataset.index[source];
+    }
+    return null;
+  }
+
+  function getStore() {
+    if (!global.__GOINDIARIDE_FUTURE_BUSINESS_STORE__) {
+      global.__GOINDIARIDE_FUTURE_BUSINESS_STORE__ = loadStore();
+    }
+    return global.__GOINDIARIDE_FUTURE_BUSINESS_STORE__;
+  }
+
+  function writeStore() {
+    try {
+      ensureDir();
+      const data = getStore();
+      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (_error) {
+      // Non-blocking persistence.
+    }
+  }
+
+  function queuePersist() {
+    if (persistTimer) return;
+    persistTimer = setTimeout(() => {
+      persistTimer = null;
+      writeStore();
+    }, 400);
+  }
+
+  function walletForUser(store, userKey) {
+    if (!store.wallets[userKey]) {
+      store.wallets[userKey] = {
+        userKey,
+        balance: 0,
+        history: []
+      };
+    }
+    return store.wallets[userKey];
+  }
+
+  function addWalletEntry(wallet, type, amount, meta) {
+    const entry = {
+      id: crypto.randomUUID(),
+      type,
+      amount: normalizeAmount(amount),
+      meta: safeObject(meta),
+      createdAt: new Date().toISOString()
+    };
+    wallet.history.push(entry);
+    if (wallet.history.length > MAX_WALLET_HISTORY) {
+      wallet.history = wallet.history.slice(-MAX_WALLET_HISTORY);
+    }
+    return entry;
+  }
+
+  function addRideHistory(store, payload) {
+    const userKey = normalizeString(payload.userKey, 80);
+    if (!userKey) return null;
+
+    if (!store.rideHistory[userKey]) store.rideHistory[userKey] = [];
+    const record = {
+      id: crypto.randomUUID(),
+      bookingId: normalizeString(payload.bookingId, 100) || `BK-${Date.now()}`,
+      from: normalizeString(payload.from, 180),
+      to: normalizeString(payload.to, 180),
+      distanceKm: normalizeAmount(payload.distanceKm),
+      fare: normalizeAmount(payload.fare),
+      status: normalizeString(payload.status, 30) || 'completed',
+      driverName: normalizeString(payload.driverName, 120),
+      rating: normalizeAmount(payload.rating),
+      feedback: normalizeString(payload.feedback, 500),
+      createdAt: new Date().toISOString()
+    };
+
+    store.rideHistory[userKey].push(record);
+    if (store.rideHistory[userKey].length > MAX_RIDES_PER_USER) {
+      store.rideHistory[userKey] = store.rideHistory[userKey].slice(-MAX_RIDES_PER_USER);
+    }
+    return record;
+  }
+
+  function normalizeVehicleType(value) {
+    const key = normalizeString(value, 30).toLowerCase();
+    if (vehicleBaseRates[key]) return key;
+    if (key.includes('hatch') || key.includes('economy')) return 'economy';
+    if (key.includes('prem')) return 'premium';
+    if (key.includes('xl')) return 'xl';
+    if (key.includes('suv')) return 'suv';
+    return 'sedan';
+  }
+
+  function normalizeCurrency(value) {
+    const key = normalizeString(value, 10).toUpperCase();
+    return currencyRates[key] ? key : 'INR';
+  }
+
+  function estimateFare(payload) {
+    const distanceKm = Math.max(0, normalizeAmount(payload.distanceKm || payload.distance || 0));
+    const durationMin = Math.max(0, normalizeAmount(payload.durationMin || payload.duration || 0));
+    const vehicleType = normalizeVehicleType(payload.vehicleType || payload.rideType);
+    const basePerKm = vehicleBaseRates[vehicleType] || vehicleBaseRates.sedan;
+    const seasonMultiplier = Math.max(0.5, Math.min(3, normalizeAmount(payload.seasonMultiplier || 1) || 1));
+    const trafficMultiplier = Math.max(0.5, Math.min(2, normalizeAmount(payload.trafficMultiplier || 1) || 1));
+    const waitingCharge = Math.max(0, normalizeAmount(payload.waitingCharge || 0));
+    const tollCharge = Math.max(0, normalizeAmount(payload.tollCharge || 0));
+    const parkingCharge = Math.max(0, normalizeAmount(payload.parkingCharge || 0));
+    const offerPercent = Math.max(0, Math.min(80, normalizeAmount(payload.offerPercent || payload.discountPercent || 0)));
+
+    const distanceFare = normalizeAmount(distanceKm * basePerKm);
+    const timeFare = normalizeAmount(durationMin * 0.5);
+    const grossInr = normalizeAmount((distanceFare + timeFare + waitingCharge + tollCharge + parkingCharge) * seasonMultiplier * trafficMultiplier);
+    const discount = normalizeAmount((grossInr * offerPercent) / 100);
+    const netInr = Math.max(0, normalizeAmount(grossInr - discount));
+    const currency = normalizeCurrency(payload.currency);
+    const converted = normalizeAmount(netInr * (currencyRates[currency] || 1));
+
+    return {
+      vehicleType,
+      currency,
+      basePerKm,
+      distanceKm,
+      durationMin,
+      distanceFare,
+      timeFare,
+      waitingCharge,
+      tollCharge,
+      parkingCharge,
+      seasonMultiplier,
+      trafficMultiplier,
+      offerPercent,
+      grossInr,
+      discountInr: discount,
+      finalInr: netInr,
+      convertedFare: converted,
+      calculatedAt: new Date().toISOString()
+    };
+  }
+
+  function pushWithCap(list, item, maxLimit) {
+    list.push(item);
+    if (list.length > maxLimit) {
+      list.splice(0, list.length - maxLimit);
+    }
+  }
+
+  function generateOtpCode() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+  }
+
+  function normalizeBookingStatus(value) {
+    const key = normalizeString(value, 40).toLowerCase();
+    if (key.includes('accept')) return 'accepted';
+    if (key.includes('pick')) return 'picked_up';
+    if (key.includes('start')) return 'started';
+    if (key.includes('complete')) return 'completed';
+    if (key.includes('cancel')) return 'cancelled';
+    if (key.includes('resched')) return 'rescheduled';
+    if (key.includes('reject')) return 'rejected';
+    return key || 'updated';
+  }
+
+  function addAuthLog(store, payload) {
+    const item = {
+      id: crypto.randomUUID(),
+      userKey: normalizeString(payload.userKey, 80) || 'guest-user',
+      action: normalizeString(payload.action, 80) || 'auth-event',
+      channel: normalizeString(payload.channel, 40) || 'app',
+      success: payload.success !== undefined ? Boolean(payload.success) : true,
+      message: normalizeString(payload.message, 320),
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(store.authLogs, item, MAX_AUTH_LOGS);
+    return item;
+  }
+
+  function buildFeatureStateKey(userKey, featureId) {
+    return `${normalizeString(userKey, 80) || 'guest-user'}::${normalizeString(featureId, 80)}`;
+  }
+
+
+  // Route: /dispute/report
+  router.post('/dispute/report', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.body?.userKey, 80);
+    const bookingId = normalizeString(req.body?.bookingId, 120);
+    const issue = normalizeString(req.body?.issue, 1200);
+    if (!userKey || !bookingId || !issue) {
+      return res.status(400).json({ ok: false, message: 'userKey, bookingId and issue are required' });
+    }
+    const item = {
+      id: crypto.randomUUID(),
+      disputeCode: `DSP-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`,
+      userKey,
+      bookingId,
+      issue,
+      status: 'open',
+      evidence: Array.isArray(req.body?.evidence)
+        ? req.body.evidence.map((x) => normalizeString(x, 240)).filter(Boolean).slice(0, 20)
+        : [],
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(store.disputes, item, MAX_DISPUTES);
+    queuePersist();
+    return res.status(201).json({ ok: true, item });
+  });
+
+
+  // Route: /dispute/report
+  router.get('/dispute/report', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.query.userKey, 80);
+    const status = normalizeString(req.query.status, 30);
+    let items = store.disputes;
+    if (userKey) items = items.filter((item) => item.userKey === userKey);
+    if (status) items = items.filter((item) => normalizeString(item.status, 30) === status);
+    return res.status(200).json({ ok: true, count: items.length, items: items.slice(-1000) });
+  });
+
+
+  // Route: /dispute/export.csv
+  router.get('/dispute/export.csv', (req, res) => {
+    const store = getStore();
+    const headers = ['disputeCode', 'userKey', 'bookingId', 'status', 'issue', 'createdAt'];
+    const rows = [headers.join(',')];
+    store.disputes.forEach((item) => {
+      rows.push(headers.map((key) => `"${String(item[key] || '').replace(/"/g, '""')}"`).join(','));
+    });
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=\"disputes.csv\"');
+    return res.status(200).send(rows.join('\n'));
+  });
+
+
+  // Route: /fraud/alert
+  router.post('/fraud/alert', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.body?.userKey, 80);
+    const category = normalizeString(req.body?.category, 80) || 'suspicious-activity';
+    const severity = normalizeString(req.body?.severity, 20) || 'medium';
+    const note = normalizeString(req.body?.note, 600);
+    if (!userKey || !note) {
+      return res.status(400).json({ ok: false, message: 'userKey and note are required' });
+    }
+    const item = {
+      id: crypto.randomUUID(),
+      userKey,
+      category,
+      severity,
+      note,
+      resolved: false,
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(store.fraudAlerts, item, MAX_FRAUD_ALERTS);
+    queuePersist();
+    return res.status(201).json({ ok: true, item });
+  });
+
+
+  // Route: /fraud/alert
+  router.get('/fraud/alert', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.query.userKey, 80);
+    const severity = normalizeString(req.query.severity, 20);
+    let items = store.fraudAlerts;
+    if (userKey) items = items.filter((item) => item.userKey === userKey);
+    if (severity) items = items.filter((item) => normalizeString(item.severity, 20) === severity);
+    return res.status(200).json({ ok: true, count: items.length, items: items.slice(-1000) });
+  });
+
+
+  // Route: /feature/state
+  router.post('/feature/state', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.body?.userKey, 80) || 'guest-user';
+    const featureId = normalizeString(req.body?.featureId, 80);
+    const category = normalizeString(req.body?.category, 80) || 'general';
+    if (!featureId) {
+      return res.status(400).json({ ok: false, message: 'featureId is required' });
+    }
+
+    const key = buildFeatureStateKey(userKey, featureId);
+    const previous = safeObject(store.featureStates[key]);
+    store.featureStates[key] = {
+      featureId,
+      userKey,
+      category,
+      description: normalizeString(req.body?.description, 600),
+      status: normalizeString(req.body?.status, 40) || previous.status || 'active',
+      owner: normalizeString(req.body?.owner, 120) || previous.owner || '',
+      dueDate: normalizeString(req.body?.dueDate, 40) || previous.dueDate || '',
+      notes: normalizeString(req.body?.notes, 2000) || '',
+      payload: safeObject(req.body?.payload),
+      updatedAt: new Date().toISOString(),
+      createdAt: previous.createdAt || new Date().toISOString()
+    };
+
+    const keys = Object.keys(store.featureStates);
+    if (keys.length > MAX_FEATURE_STATES) {
+      keys.sort((a, b) => {
+        const at = new Date(store.featureStates[a].updatedAt || 0).getTime();
+        const bt = new Date(store.featureStates[b].updatedAt || 0).getTime();
+        return at - bt;
+      });
+      const removeCount = keys.length - MAX_FEATURE_STATES;
+      for (let i = 0; i < removeCount; i += 1) {
+        delete store.featureStates[keys[i]];
+      }
+    }
+
+    queuePersist();
+    return res.status(200).json({ ok: true, state: store.featureStates[key] });
+  });
+
+
+  // Route: /feature/state/:featureId
+  router.get('/feature/state/:featureId', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.query.userKey, 80) || 'guest-user';
+    const featureId = normalizeString(req.params.featureId, 80);
+    if (!featureId) return res.status(400).json({ ok: false, message: 'featureId is required' });
+    const key = buildFeatureStateKey(userKey, featureId);
+    const state = store.featureStates[key] || null;
+    return res.status(200).json({ ok: true, state });
+  });
+
+
+  // Route: /feature/action
+  router.post('/feature/action', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.body?.userKey, 80) || 'guest-user';
+    const featureId = normalizeString(req.body?.featureId, 80);
+    const action = normalizeString(req.body?.action, 100) || 'manual-run';
+    if (!featureId) {
+      return res.status(400).json({ ok: false, message: 'featureId is required' });
+    }
+
+    const item = {
+      id: crypto.randomUUID(),
+      featureId,
+      userKey,
+      category: normalizeString(req.body?.category, 80) || 'general',
+      action,
+      status: normalizeString(req.body?.status, 40) || 'executed',
+      payload: safeObject(req.body?.payload),
+      result: normalizeString(req.body?.result, 1000),
+      createdAt: new Date().toISOString()
+    };
+
+    pushWithCap(store.featureActions, item, MAX_FEATURE_ACTIONS);
+    queuePersist();
+    return res.status(201).json({ ok: true, item });
+  });
+
+
+  // Route: /feature/action/:featureId
+  router.get('/feature/action/:featureId', (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.query.userKey, 80);
+    const featureId = normalizeString(req.params.featureId, 80);
+    if (!featureId) return res.status(400).json({ ok: false, message: 'featureId is required' });
+    let items = store.featureActions.filter((item) => item.featureId === featureId);
+    if (userKey) items = items.filter((item) => item.userKey === userKey);
+    return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
+  });
+
+
+  // Route: /partner/webhook/log
+  router.post('/partner/webhook/log', (req, res) => {
+    const store = getStore();
+    const partner = normalizeString(req.body?.partner, 120) || 'unknown-partner';
+    const eventType = normalizeString(req.body?.eventType, 80) || 'generic-event';
+    const payload = safeObject(req.body?.payload);
+    const item = {
+      id: crypto.randomUUID(),
+      partner,
+      eventType,
+      payload,
+      createdAt: new Date().toISOString()
+    };
+    store.webhookEvents.push(item);
+    if (store.webhookEvents.length > MAX_WEBHOOK_EVENTS) {
+      store.webhookEvents = store.webhookEvents.slice(-MAX_WEBHOOK_EVENTS);
+    }
+    store.counters.webhookEvents = (Number(store.counters.webhookEvents || 0) + 1);
+    queuePersist();
+    return res.status(201).json({ ok: true, item });
+  });
+
+
+  // Route: /partner/webhook/logs
+  router.get('/partner/webhook/logs', (req, res) => {
+    const store = getStore();
+    const partner = normalizeString(req.query.partner, 120);
+    const eventType = normalizeString(req.query.eventType, 80);
+    let items = store.webhookEvents;
+    if (partner) items = items.filter((item) => normalizeString(item.partner, 120) === partner);
+    if (eventType) items = items.filter((item) => normalizeString(item.eventType, 80) === eventType);
+    return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
+  });
+
+
+})(router);
+*/
+// === FUTURE_ROUTES_BUSINESS_SECURITYROUTES_END ===
+
+// === FUTURE_ROUTES_RUNTIME_SECURITYROUTES_START ===
+/*
+(function future_runtime_disabled_block_for_securityroutes(router) {
+  // Source: backend/src/routes/futureRuntimeRoutes.js
+
+  const fs = require('fs');
+  const path = require('path');
+
+
+  const MAX_ACTIVE_FEATURES = 10000;
+  const MAX_EXECUTION_LOGS = 20000;
+  const MAX_LIST_RESPONSE = 500;
+  const RUNTIME_DATA_DIR = path.join(__dirname, '../../../data/runtime');
+  const RUNTIME_DATA_FILE = path.join(RUNTIME_DATA_DIR, 'future-runtime-store.json');
+
+  let persistTimer = null;
+
+  function ensureRuntimeDataDir() {
+    if (!fs.existsSync(RUNTIME_DATA_DIR)) {
+      fs.mkdirSync(RUNTIME_DATA_DIR, { recursive: true });
+    }
+  }
+
+  function toPlainStore(store) {
+    return {
+      features: Array.isArray(store.features) ? store.features : [],
+      executions: Array.isArray(store.executions) ? store.executions : []
+    };
+  }
+
+  function writeStoreToDisk() {
+    try {
+      const store = getStore();
+      const payload = toPlainStore(store);
+      ensureRuntimeDataDir();
+      fs.writeFileSync(RUNTIME_DATA_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    } catch (_error) {
+      // Non-blocking persistence.
+    }
+  }
+
+  function queuePersistStore() {
+    if (persistTimer) return;
+    persistTimer = setTimeout(() => {
+      persistTimer = null;
+      writeStoreToDisk();
+    }, 400);
+  }
+
+  function loadStoreFromDisk() {
+    try {
+      if (!fs.existsSync(RUNTIME_DATA_FILE)) return null;
+      const raw = fs.readFileSync(RUNTIME_DATA_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        features: Array.isArray(parsed.features) ? parsed.features : [],
+        executions: Array.isArray(parsed.executions) ? parsed.executions : []
+      };
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function getStore() {
+    if (!global.__GOINDIARIDE_FUTURE_RUNTIME_STORE__) {
+      const loaded = loadStoreFromDisk();
+      const features = loaded && Array.isArray(loaded.features) ? loaded.features : [];
+      const executions = loaded && Array.isArray(loaded.executions) ? loaded.executions : [];
+      const featureMap = new Map();
+      features.forEach((item) => {
+        if (!item || !item.featureId || !item.category || !item.blockKey) return;
+        featureMap.set(`${item.category}::${item.blockKey}::${item.featureId}`, item);
+      });
+
+      global.__GOINDIARIDE_FUTURE_RUNTIME_STORE__ = {
+        featureMap,
+        features: features.slice(-MAX_ACTIVE_FEATURES),
+        executions: executions.slice(-MAX_EXECUTION_LOGS)
+      };
+    }
+    return global.__GOINDIARIDE_FUTURE_RUNTIME_STORE__;
+  }
+
+  function normalizeString(value, maxLength) {
+    const normalized = String(value || '').trim();
+    if (!normalized) return '';
+    if (!Number.isFinite(maxLength) || maxLength <= 0) return normalized;
+    return normalized.slice(0, maxLength);
+  }
+
+  function sanitizeMeta(input) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return {};
+    }
+    const entries = Object.entries(input).slice(0, 30);
+    return Object.fromEntries(entries.map(([key, value]) => [
+      normalizeString(key, 60),
+      typeof value === 'string' ? normalizeString(value, 320) : value
+    ]));
+  }
+
+  function normalizeFeature(input) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return null;
+    }
+
+    const featureId = normalizeString(input.featureId, 40);
+    const category = normalizeString(input.category, 50) || 'general';
+    const blockKey = normalizeString(input.blockKey || input.featureBlockKey, 120);
+    const sourceLine = Number(input.sourceLine);
+    const description = normalizeString(input.description, 500);
+    const pagePath = normalizeString(input.pagePath || input.path, 250);
+
+    if (!featureId || !blockKey) {
+      return null;
+    }
+
+    return {
+      featureId,
+      category,
+      blockKey,
+      sourceLine: Number.isFinite(sourceLine) ? sourceLine : null,
+      description,
+      implemented: Boolean(input.implemented),
+      pagePath,
+      status: normalizeString(input.status, 80) || 'enabled-from-itemwise-block',
+      meta: sanitizeMeta(input.meta)
+    };
+  }
+
+  function buildFeatureKey(feature) {
+    return `${feature.category}::${feature.blockKey}::${feature.featureId}`;
+  }
+
+  function addOrUpdateFeature(feature, source) {
+    const store = getStore();
+    const key = buildFeatureKey(feature);
+    const now = new Date().toISOString();
+    const existing = store.featureMap.get(key);
+
+    if (existing) {
+      existing.lastSeenAt = now;
+      existing.implemented = feature.implemented || existing.implemented;
+      existing.status = feature.status || existing.status;
+      existing.pagePath = feature.pagePath || existing.pagePath;
+      existing.meta = { ...existing.meta, ...feature.meta };
+      existing.source = source || existing.source;
+      return {
+        item: existing,
+        created: false
+      };
+    }
+
+    const item = {
+      ...feature,
+      source: source || 'runtime',
+      firstSeenAt: now,
+      lastSeenAt: now
+    };
+
+    store.featureMap.set(key, item);
+    store.features.push(item);
+
+    if (store.features.length > MAX_ACTIVE_FEATURES) {
+      const removeCount = store.features.length - MAX_ACTIVE_FEATURES;
+      const removed = store.features.splice(0, removeCount);
+      removed.forEach((entry) => {
+        const removeKey = buildFeatureKey(entry);
+        if (store.featureMap.get(removeKey) === entry) {
+          store.featureMap.delete(removeKey);
+        }
+      });
+    }
+
+    return {
+      item,
+      created: true
+    };
+  }
+
+  function summarize(store) {
+    const byCategory = {};
+    store.features.forEach((item) => {
+      byCategory[item.category] = (byCategory[item.category] || 0) + 1;
+    });
+    return byCategory;
+  }
+
+  function buildActionSummary(store) {
+    const actions = {};
+    store.executions.forEach((item) => {
+      const key = item.action || 'unknown';
+      actions[key] = (actions[key] || 0) + 1;
+    });
+    return actions;
+  }
+
+  function buildGroupedCatalog(store) {
+    const grouped = {};
+    store.features.forEach((item) => {
+      const category = item.category || 'general';
+      if (!grouped[category]) grouped[category] = [];
+      grouped[category].push(item);
+    });
+    return grouped;
+  }
+
+
+  // Route: /status
+  router.get('/status', (req, res) => {
+    const store = getStore();
+    return res.status(200).json({
+      ok: true,
+      totalActiveFeatures: store.features.length,
+      totalExecutions: store.executions.length,
+      byCategory: summarize(store),
+      byAction: buildActionSummary(store),
+      updatedAt: new Date().toISOString()
+    });
+  });
+
+
+  // Route: /catalog
+  router.get('/catalog', (req, res) => {
+    const store = getStore();
+    const grouped = buildGroupedCatalog(store);
+    return res.status(200).json({
+      ok: true,
+      categoryCount: Object.keys(grouped).length,
+      grouped
+    });
+  });
+
+
+  // Route: /active
+  router.get('/active', (req, res) => {
+    const store = getStore();
+    const category = normalizeString(req.query.category, 50).toLowerCase();
+    const limitInput = Number(req.query.limit);
+    const limit = Number.isFinite(limitInput) && limitInput > 0
+      ? Math.min(limitInput, MAX_LIST_RESPONSE)
+      : 100;
+
+    const filtered = category
+      ? store.features.filter((item) => item.category.toLowerCase() === category)
+      : store.features;
+
+    return res.status(200).json({
+      ok: true,
+      count: filtered.length,
+      items: filtered.slice(-limit)
+    });
+  });
+
+
+  // Route: /activate
+  router.post('/activate', (req, res) => {
+    const feature = normalizeFeature(req.body?.feature || req.body);
+    if (!feature) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Invalid feature payload. featureId and blockKey are required.'
+      });
+    }
+
+    const detail = req.body?.detail || {};
+    const source = normalizeString(req.body?.source, 60) || 'runtime';
+    const { item, created } = addOrUpdateFeature({
+      ...feature,
+      meta: {
+        ...feature.meta,
+        detail: sanitizeMeta(detail)
+      }
+    }, source);
+    queuePersistStore();
+
+    return res.status(created ? 201 : 200).json({
+      ok: true,
+      created,
+      feature: item
+    });
+  });
+
+
+  // Route: /activate/bulk
+  router.post('/activate/bulk', (req, res) => {
+    const list = Array.isArray(req.body?.features) ? req.body.features : [];
+    if (!list.length) {
+      return res.status(400).json({
+        ok: false,
+        message: 'features array is required'
+      });
+    }
+
+    let created = 0;
+    let updated = 0;
+    const source = normalizeString(req.body?.source, 60) || 'runtime-bulk';
+
+    list.forEach((raw) => {
+      const feature = normalizeFeature(raw);
+      if (!feature) return;
+      const result = addOrUpdateFeature(feature, source);
+      if (result.created) created += 1;
+      else updated += 1;
+    });
+    queuePersistStore();
+
+    return res.status(200).json({
+      ok: true,
+      received: list.length,
+      created,
+      updated
+    });
+  });
+
+
+  // Route: /execute/:featureId
+  router.post('/execute/:featureId', (req, res) => {
+    const store = getStore();
+    const featureId = normalizeString(req.params.featureId, 40);
+    const action = normalizeString(req.body?.action, 80) || 'manual-run';
+    const category = normalizeString(req.body?.category, 50).toLowerCase();
+
+    const match = store.features.find((item) => {
+      if (item.featureId !== featureId) return false;
+      if (!category) return true;
+      return item.category.toLowerCase() === category;
+    });
+
+    if (!match) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Feature not found in active runtime store.'
+      });
+    }
+
+    const event = {
+      featureId: match.featureId,
+      category: match.category,
+      blockKey: match.blockKey,
+      action,
+      pagePath: normalizeString(req.body?.pagePath, 250) || match.pagePath || '',
+      payload: sanitizeMeta(req.body?.payload),
+      createdAt: new Date().toISOString()
+    };
+
+    store.executions.push(event);
+    if (store.executions.length > MAX_EXECUTION_LOGS) {
+      store.executions.splice(0, store.executions.length - MAX_EXECUTION_LOGS);
+    }
+    queuePersistStore();
+
+    return res.status(200).json({
+      ok: true,
+      event
+    });
+  });
+
+
+  // Route: /execute/:featureId
+  router.get('/execute/:featureId', (req, res) => {
+    const store = getStore();
+    const featureId = normalizeString(req.params.featureId, 40);
+    const limitInput = Number(req.query.limit);
+    const limit = Number.isFinite(limitInput) && limitInput > 0
+      ? Math.min(limitInput, MAX_LIST_RESPONSE)
+      : 100;
+
+    const logs = store.executions.filter((entry) => entry.featureId === featureId);
+    return res.status(200).json({
+      ok: true,
+      count: logs.length,
+      items: logs.slice(-limit)
+    });
+  });
+
+
+  // Route: /flush
+  router.post('/flush', (req, res) => {
+    writeStoreToDisk();
+    return res.status(200).json({
+      ok: true,
+      file: RUNTIME_DATA_FILE
+    });
+  });
+
+
+})(router);
+*/
+// === FUTURE_ROUTES_RUNTIME_SECURITYROUTES_END ===
+
 module.exports = router;
 
