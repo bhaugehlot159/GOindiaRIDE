@@ -326,28 +326,38 @@
     }
 
     var listId = 'ff-tourist-suggestions';
-    var datalist = document.getElementById(listId);
-    if (!datalist) {
-      datalist = document.createElement('datalist');
-      datalist.id = listId;
-      var fallbackPlaces = [
-        'Jaipur Fort Area', 'Amer Fort', 'Hawa Mahal', 'City Palace', 'Jantar Mantar',
-        'Jodhpur Mehrangarh', 'Udaipur City Palace', 'Pushkar Temple', 'Chittorgarh Fort'
-      ];
+    var enableNativeDatalist = window.__GOINDIARIDE_ENABLE_PICKUP_DATALIST__ === true;
+    if (enableNativeDatalist) {
+      var datalist = document.getElementById(listId);
+      if (!datalist) {
+        datalist = document.createElement('datalist');
+        datalist.id = listId;
+        var fallbackPlaces = [
+          'Jaipur Fort Area', 'Amer Fort', 'Hawa Mahal', 'City Palace', 'Jantar Mantar',
+          'Jodhpur Mehrangarh', 'Udaipur City Palace', 'Pushkar Temple', 'Chittorgarh Fort'
+        ];
 
-      for (var i = 0; i < fallbackPlaces.length; i += 1) {
-        var option = document.createElement('option');
-        option.value = fallbackPlaces[i];
-        datalist.appendChild(option);
+        for (var i = 0; i < fallbackPlaces.length; i += 1) {
+          var option = document.createElement('option');
+          option.value = fallbackPlaces[i];
+          datalist.appendChild(option);
+        }
+        document.body.appendChild(datalist);
       }
-      document.body.appendChild(datalist);
-    }
 
-    if (pickup) {
-      pickup.setAttribute('list', listId);
-    }
-    if (dropoff) {
-      dropoff.setAttribute('list', listId);
+      if (pickup) {
+        pickup.setAttribute('list', listId);
+      }
+      if (dropoff) {
+        dropoff.setAttribute('list', listId);
+      }
+    } else {
+      if (pickup && pickup.getAttribute('list') === listId) {
+        pickup.removeAttribute('list');
+      }
+      if (dropoff && dropoff.getAttribute('list') === listId) {
+        dropoff.removeAttribute('list');
+      }
     }
 
     feature.implemented = true;

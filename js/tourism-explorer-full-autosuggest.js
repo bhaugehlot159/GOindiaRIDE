@@ -361,6 +361,50 @@
     return values;
   }
 
+  function ensureLocationsStore() {
+    if (!window.locationsData || typeof window.locationsData !== 'object') {
+      window.locationsData = {};
+    }
+    if (!window.locationsData.states || typeof window.locationsData.states !== 'object') {
+      window.locationsData.states = {};
+    }
+    if (!window.locationsData.rajasthan || typeof window.locationsData.rajasthan !== 'object') {
+      window.locationsData.rajasthan = {};
+    }
+    return window.locationsData;
+  }
+
+  function mergeTourismIntoLocationsData(items) {
+    var source = safeArray(items);
+    if (!source.length) return 0;
+
+    var locations = ensureLocationsStore();
+    var addedCount = 0;
+
+    for (var i = 0; i < source.length; i += 1) {
+      var districtRaw = String((source[i] && source[i].district) || '').trim();
+      var place = String((source[i] && source[i].name) || '').trim();
+      if (!districtRaw || !place) continue;
+
+      var district = resolveDistrict(districtRaw) || districtRaw;
+      var districtData = safeObject(locations.rajasthan[district]);
+      if (districtData !== locations.rajasthan[district]) {
+        locations.rajasthan[district] = districtData;
+      }
+
+      if (!Array.isArray(districtData.tourist_places)) {
+        districtData.tourist_places = [];
+      }
+
+      if (districtData.tourist_places.indexOf(place) === -1) {
+        districtData.tourist_places.push(place);
+        addedCount += 1;
+      }
+    }
+
+    return addedCount;
+  }
+
   function enhanceTourismUI() {
     var districtInput = document.getElementById('ffx-tourism-district');
     var loadBtn = document.getElementById('ffx-tourism-load');
@@ -376,8 +420,8 @@
     var pickupDropListId = 'ffx-tourist-datalist-full';
     var districtListId = 'ffx-tourism-district-datalist-full';
     var placeListId = 'ffx-tourism-place-datalist-full';
-
-    var pickupDropList = ensureDatalist(pickupDropListId);
+    var enableNativePickupDatalist = window.__GOINDIARIDE_ENABLE_PICKUP_DATALIST__ === true;
+    var pickupDropList = enableNativePickupDatalist ? ensureDatalist(pickupDropListId) : null;
     var districtList = ensureDatalist(districtListId);
     var placeList = ensureDatalist(placeListId);
 
@@ -386,8 +430,13 @@
 
     var pickup = document.querySelector('input[name*="pickup" i], input[id*="pickup" i]');
     var dropoff = document.querySelector('input[name*="drop" i], input[id*="drop" i]');
-    if (pickup) pickup.setAttribute('list', pickupDropListId);
-    if (dropoff) dropoff.setAttribute('list', pickupDropListId);
+    if (enableNativePickupDatalist) {
+      if (pickup) pickup.setAttribute('list', pickupDropListId);
+      if (dropoff) dropoff.setAttribute('list', pickupDropListId);
+    } else {
+      if (pickup && pickup.getAttribute('list') === pickupDropListId) pickup.removeAttribute('list');
+      if (dropoff && dropoff.getAttribute('list') === pickupDropListId) dropoff.removeAttribute('list');
+    }
 
     var searchInput = document.getElementById('ffx-tourism-search-auto');
     if (!searchInput) {
@@ -402,6 +451,7 @@
     }
 
     var allItems = getAllTourismItems();
+    mergeTourismIntoLocationsData(allItems);
     var allDistricts = unique(allItems.map(function (item) { return item && item.district; }));
     fillDatalist(districtList, allDistricts, 5000);
 
@@ -412,7 +462,10 @@
     function render(items) {
       var safeItems = dedupeTourism(items);
       fillDatalist(placeList, toPickupValues(safeItems), 9000);
-      fillDatalist(pickupDropList, toPickupValues(safeItems), 12000);
+      if (pickupDropList) {
+        fillDatalist(pickupDropList, toPickupValues(safeItems), 12000);
+      }
+      mergeTourismIntoLocationsData(safeItems);
 
       if (!safeItems.length) {
         listEl.textContent = 'No places found';
@@ -431,6 +484,7 @@
 
     function runFilter() {
       allItems = getAllTourismItems();
+      mergeTourismIntoLocationsData(allItems);
       var district = String(districtInput.value || '').trim();
       var search = String(searchInput.value || '').trim();
       var filtered = queryTourism(allItems, district, search);

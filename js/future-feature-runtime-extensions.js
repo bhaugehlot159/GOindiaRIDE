@@ -1640,22 +1640,30 @@
 
   function applyTourismModule(feature) {
     var listId = 'ffx-tourist-datalist';
-    var datalist = document.getElementById(listId);
-    if (!datalist) {
-      datalist = document.createElement('datalist');
-      datalist.id = listId;
-      var places = ['Amer Fort', 'Hawa Mahal', 'City Palace Jaipur', 'Mehrangarh Fort', 'City Palace Udaipur', 'Pushkar Temple', 'Jantar Mantar'];
-      for (var i = 0; i < places.length; i += 1) {
-        var option = document.createElement('option');
-        option.value = places[i];
-        datalist.appendChild(option);
+    var enableNativeDatalist = window.__GOINDIARIDE_ENABLE_PICKUP_DATALIST__ === true;
+    if (enableNativeDatalist) {
+      var datalist = document.getElementById(listId);
+      if (!datalist) {
+        datalist = document.createElement('datalist');
+        datalist.id = listId;
+        var places = ['Amer Fort', 'Hawa Mahal', 'City Palace Jaipur', 'Mehrangarh Fort', 'City Palace Udaipur', 'Pushkar Temple', 'Jantar Mantar'];
+        for (var i = 0; i < places.length; i += 1) {
+          var option = document.createElement('option');
+          option.value = places[i];
+          datalist.appendChild(option);
+        }
+        document.body.appendChild(datalist);
       }
-      document.body.appendChild(datalist);
     }
     var pickup = document.querySelector('input[name*=\"pickup\" i], input[id*=\"pickup\" i]');
     var dropoff = document.querySelector('input[name*=\"drop\" i], input[id*=\"drop\" i]');
-    if (pickup) pickup.setAttribute('list', listId);
-    if (dropoff) dropoff.setAttribute('list', listId);
+    if (enableNativeDatalist) {
+      if (pickup) pickup.setAttribute('list', listId);
+      if (dropoff) dropoff.setAttribute('list', listId);
+    } else {
+      if (pickup && pickup.getAttribute('list') === listId) pickup.removeAttribute('list');
+      if (dropoff && dropoff.getAttribute('list') === listId) dropoff.removeAttribute('list');
+    }
 
     var card = ensureCard('tourism', 'Tourist Places & District Explorer');
     if (card) {

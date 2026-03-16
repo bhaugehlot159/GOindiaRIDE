@@ -102,6 +102,13 @@ class LocationAutocomplete {
     }
     
     searchLocations(query) {
+        const liveData = (typeof window !== 'undefined' && window.locationsData && typeof window.locationsData === 'object')
+            ? window.locationsData
+            : null;
+        if (liveData && liveData !== this.data) {
+            this.data = liveData;
+        }
+
         const hasStates = this.data && this.data.states && typeof this.data.states === 'object';
         const hasRajasthan = this.data && this.data.rajasthan && typeof this.data.rajasthan === 'object';
         if (!hasStates && !hasRajasthan) {
@@ -361,7 +368,9 @@ class LocationAutocomplete {
 
         const spaceBelow = viewportHeight - rect.bottom - margin;
         const spaceAbove = rect.top - margin;
-        const openAbove = spaceBelow < 220 && spaceAbove > spaceBelow;
+        const inputId = String((this.input && this.input.id) || '').toLowerCase();
+        const forceDownward = inputId.includes('pickup') || inputId.includes('dropoff') || inputId.includes('drop');
+        const openAbove = !forceDownward && spaceBelow < 220 && spaceAbove > spaceBelow;
         const maxHeight = Math.max(140, Math.min(maxDefaultHeight, (openAbove ? spaceAbove : spaceBelow) - 4));
 
         this.suggestionsBox.style.position = 'fixed';
@@ -463,6 +472,10 @@ function initializeAutocomplete(inputId) {
 
     // Initialize autocomplete
     new LocationAutocomplete(input, suggestions);
+}
+
+if (typeof window !== 'undefined') {
+    window.LocationAutocomplete = LocationAutocomplete;
 }
 
 // Initialize autocomplete when DOM is loaded or immediately if already loaded
