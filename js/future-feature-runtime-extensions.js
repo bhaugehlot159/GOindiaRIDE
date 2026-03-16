@@ -209,11 +209,14 @@
     premium: 25,
     xl: 28
   };
-  var BUSINESS_API_BASES = uniqueList([
-    BUSINESS_API_BASE,
-    '/api/future-runtime-business',
-    API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : ''
-  ]);
+  // On production custom domain we should avoid hitting GitHub Pages with
+  // fallback API paths because that can trigger abuse/rate-limit pages.
+  var BUSINESS_API_BASES = API_ORIGIN
+    ? uniqueList([API_ORIGIN + '/api/future-runtime-business'])
+    : uniqueList([
+      BUSINESS_API_BASE,
+      '/api/future-runtime-business'
+    ]);
 
   function uniqueList(values) {
     var out = [];
