@@ -521,8 +521,7 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
 
 // === FUTURE_ROUTES_BUSINESS_BOOKINGROUTES_START ===
 /*
-(function future_business_disabled_block_for_bookingroutes(router) {
-  // Source: backend/src/routes/futureBusinessRoutes.js
+// Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
   const path = require('path');
@@ -1193,9 +1192,6 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
       updatedAt: new Date().toISOString()
     });
   });
-
-
-})(router);
 */
 // === FUTURE_ROUTES_BUSINESS_BOOKINGROUTES_END ===
 

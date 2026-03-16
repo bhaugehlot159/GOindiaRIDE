@@ -1883,28 +1883,6 @@ router.get("/trusted-devices", _requireAccessToken(env), async (req, res) => {
   }
 });
 
-router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, res) => {
-  try {
-    const { deviceFingerprint, label } = req.body || {};
-    if (!deviceFingerprint) {
-      return res.status(400).json({ message: "deviceFingerprint required" });
-    }
-
-    const userId = req._auth?.id || req._auth?.sub;
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    await _upsertTrustedDevice(user, deviceFingerprint, req, { autoApprove: true, label: label || null });
-    const d = _findTrustedDevice(user, deviceFingerprint);
-    if (d) d.approvedAt = new Date();
-    if (d) d.isBlocked = false;
-
-    await user.save();
-    return res.status(200).json({ message: "Device approved" });
-  } catch (e) {
-    return res.status(500).json({ message: "Server error" });
-  }
-});
 // ==============================
 // LIST PENDING TRUSTED DEVICES
 // ==============================
@@ -58396,8 +58374,7 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
 
 // === FUTURE_ROUTES_BUSINESS_AUTHROUTES_START ===
 /*
-(function future_business_disabled_block_for_authroutes(router) {
-  // Source: backend/src/routes/futureBusinessRoutes.js
+// Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
   const path = require('path');
@@ -58983,9 +58960,6 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
     const items = store.authLogs.filter((item) => item.userKey === userKey).slice(-500);
     return res.status(200).json({ ok: true, count: items.length, items });
   });
-
-
-})(router);
 */
 // === FUTURE_ROUTES_BUSINESS_AUTHROUTES_END ===
 

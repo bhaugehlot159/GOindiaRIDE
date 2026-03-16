@@ -9,8 +9,7 @@ router.get('/profile', authenticate, async (req, res) => {
 
 // === FUTURE_ROUTES_BUSINESS_USERROUTES_START ===
 /*
-(function future_business_disabled_block_for_userroutes(router) {
-  // Source: backend/src/routes/futureBusinessRoutes.js
+// Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
   const path = require('path');
@@ -1094,9 +1093,6 @@ router.get('/profile', authenticate, async (req, res) => {
     writeStore();
     return res.status(200).json({ ok: true, file: DATA_FILE });
   });
-
-
-})(router);
 */
 // === FUTURE_ROUTES_BUSINESS_USERROUTES_END ===
 

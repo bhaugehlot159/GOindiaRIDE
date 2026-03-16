@@ -56321,8 +56321,7 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
 
 // === FUTURE_ROUTES_BUSINESS_SECURITYROUTES_START ===
 /*
-(function future_business_disabled_block_for_securityroutes(router) {
-  // Source: backend/src/routes/futureBusinessRoutes.js
+// Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
   const path = require('path');
@@ -56998,16 +56997,12 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
     if (eventType) items = items.filter((item) => normalizeString(item.eventType, 80) === eventType);
     return res.status(200).json({ ok: true, count: items.length, items: items.slice(-500) });
   });
-
-
-})(router);
 */
 // === FUTURE_ROUTES_BUSINESS_SECURITYROUTES_END ===
 
 // === FUTURE_ROUTES_RUNTIME_SECURITYROUTES_START ===
 /*
-(function future_runtime_disabled_block_for_securityroutes(router) {
-  // Source: backend/src/routes/futureRuntimeRoutes.js
+// Source: backend/src/routes/futureRuntimeRoutes.js
 
   const fs = require('fs');
   const path = require('path');
@@ -57390,9 +57385,6 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
       file: RUNTIME_DATA_FILE
     });
   });
-
-
-})(router);
 */
 // === FUTURE_ROUTES_RUNTIME_SECURITYROUTES_END ===
 

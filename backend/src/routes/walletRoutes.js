@@ -1496,8 +1496,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
 // === FUTURE_ROUTES_BUSINESS_WALLETROUTES_START ===
 /*
-(function future_business_disabled_block_for_walletroutes(router) {
-  // Source: backend/src/routes/futureBusinessRoutes.js
+// Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
   const path = require('path');
@@ -2065,9 +2064,6 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const total = list.reduce((sum, item) => sum + Number(item.commissionAmount || 0), 0);
     return res.status(200).json({ ok: true, count: list.length, totalCommission: normalizeAmount(total), items: list.slice(-500) });
   });
-
-
-})(router);
 */
 // === FUTURE_ROUTES_BUSINESS_WALLETROUTES_END ===
 
