@@ -8,7 +8,7 @@ router.get('/profile', authenticate, async (req, res) => {
 });
 
 // === FUTURE_ROUTES_BUSINESS_USERROUTES_START ===
-/*
+{
 // Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
@@ -1093,7 +1093,7 @@ router.get('/profile', authenticate, async (req, res) => {
     writeStore();
     return res.status(200).json({ ok: true, file: DATA_FILE });
   });
-*/
+}
 // === FUTURE_ROUTES_BUSINESS_USERROUTES_END ===
 
 module.exports = router;

@@ -108,7 +108,7 @@ router.post('/read-all', authenticate, async (req, res) => {
 });
 
 // === FUTURE_ROUTES_BUSINESS_NOTIFICATIONROUTES_START ===
-/*
+{
 // Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
@@ -623,7 +623,7 @@ router.post('/read-all', authenticate, async (req, res) => {
     queuePersist();
     return res.status(200).json({ ok: true, notification: match });
   });
-*/
+}
 // === FUTURE_ROUTES_BUSINESS_NOTIFICATIONROUTES_END ===
 
 module.exports = router;

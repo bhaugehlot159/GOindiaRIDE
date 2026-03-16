@@ -15,7 +15,7 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // === FUTURE_ROUTES_BUSINESS_ADMINROUTES_START ===
-/*
+{
 // Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
@@ -510,7 +510,7 @@ router.get('/dashboard', async (req, res) => {
       generatedAt: new Date().toISOString()
     });
   });
-*/
+}
 // === FUTURE_ROUTES_BUSINESS_ADMINROUTES_END ===
 
 module.exports = router;

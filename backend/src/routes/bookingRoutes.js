@@ -520,7 +520,7 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
 });
 
 // === FUTURE_ROUTES_BUSINESS_BOOKINGROUTES_START ===
-/*
+{
 // Source: backend/src/routes/futureBusinessRoutes.js
 
   const fs = require('fs');
@@ -1192,7 +1192,7 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
       updatedAt: new Date().toISOString()
     });
   });
-*/
+}
 // === FUTURE_ROUTES_BUSINESS_BOOKINGROUTES_END ===
 
 module.exports = router;
