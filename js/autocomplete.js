@@ -8,6 +8,11 @@ class LocationAutocomplete {
         this.suggestionsBox = suggestionsElement;
         this.data = window.locationsData || { states: {}, rajasthan: {} };
         this.currentFocus = -1;
+        this.boundReposition = () => {
+            if (this.suggestionsBox && this.suggestionsBox.style.display === 'block') {
+                this.positionSuggestions();
+            }
+        };
         
         // Configurable options with defaults
         this.minSearchLength = options.minSearchLength || 2;
@@ -21,15 +26,24 @@ class LocationAutocomplete {
         this.input.addEventListener('input', (e) => {
             this.handleInput(e.target.value);
         });
+
+        this.input.addEventListener('focus', () => {
+            if (this.input.value && this.input.value.length >= this.minSearchLength) {
+                this.handleInput(this.input.value);
+            }
+        });
         
         // Handle keyboard navigation
         this.input.addEventListener('keydown', (e) => {
             this.handleKeyboard(e);
         });
+
+        window.addEventListener('resize', this.boundReposition);
+        document.addEventListener('scroll', this.boundReposition, true);
         
         // Close suggestions when clicking outside
         document.addEventListener('click', (e) => {
-            if (e.target !== this.input) {
+            if (e.target !== this.input && !this.suggestionsBox.contains(e.target)) {
                 this.closeSuggestions();
             }
         });
@@ -294,6 +308,7 @@ class LocationAutocomplete {
     displaySuggestions(suggestions) {
         this.suggestionsBox.innerHTML = '';
         this.suggestionsBox.style.display = 'block';
+        this.positionSuggestions();
         
         suggestions.forEach((item, index) => {
             const div = document.createElement('div');
@@ -312,6 +327,8 @@ class LocationAutocomplete {
             
             this.suggestionsBox.appendChild(div);
         });
+
+        this.positionSuggestions();
     }
     
     highlightMatch(text, query) {
@@ -326,6 +343,48 @@ class LocationAutocomplete {
     showNoResults() {
         this.suggestionsBox.innerHTML = '<div class="autocomplete-no-results">No locations found</div>';
         this.suggestionsBox.style.display = 'block';
+        this.positionSuggestions();
+    }
+
+    positionSuggestions() {
+        if (!this.input || !this.suggestionsBox) return;
+
+        const rect = this.input.getBoundingClientRect();
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        if (!viewportWidth || !viewportHeight || rect.width <= 0 || rect.height <= 0) return;
+
+        const margin = 8;
+        const maxDefaultHeight = 350;
+        const width = Math.min(Math.max(220, rect.width), Math.max(220, viewportWidth - margin * 2));
+        const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
+
+        const spaceBelow = viewportHeight - rect.bottom - margin;
+        const spaceAbove = rect.top - margin;
+        const openAbove = spaceBelow < 220 && spaceAbove > spaceBelow;
+        const maxHeight = Math.max(140, Math.min(maxDefaultHeight, (openAbove ? spaceAbove : spaceBelow) - 4));
+
+        this.suggestionsBox.style.position = 'fixed';
+        this.suggestionsBox.style.left = `${left}px`;
+        this.suggestionsBox.style.width = `${width}px`;
+        this.suggestionsBox.style.maxHeight = `${maxHeight}px`;
+        this.suggestionsBox.style.marginTop = '0';
+        this.suggestionsBox.style.zIndex = '9999';
+
+        if (openAbove) {
+            const boxHeight = Math.min(this.suggestionsBox.scrollHeight || maxHeight, maxHeight);
+            const top = Math.max(margin, rect.top - boxHeight - 2);
+            this.suggestionsBox.style.top = `${top}px`;
+            this.suggestionsBox.style.borderTop = '2px solid #667eea';
+            this.suggestionsBox.style.borderBottom = 'none';
+            this.suggestionsBox.style.borderRadius = '8px 8px 0 0';
+        } else {
+            const top = Math.min(viewportHeight - margin - 40, rect.bottom - 1);
+            this.suggestionsBox.style.top = `${top}px`;
+            this.suggestionsBox.style.borderTop = 'none';
+            this.suggestionsBox.style.borderBottom = '2px solid #667eea';
+            this.suggestionsBox.style.borderRadius = '0 0 8px 8px';
+        }
     }
     
     selectItem(value) {
@@ -384,7 +443,7 @@ class LocationAutocomplete {
 // Helper function to initialize autocomplete for an input
 function initializeAutocomplete(inputId) {
     const input = document.getElementById(inputId);
-    if (!input || !input.parentNode) return;
+    if (!input) return;
 
     const existing = document.getElementById(inputId + 'Autocomplete');
     const suggestions = existing || document.createElement('div');
@@ -392,11 +451,15 @@ function initializeAutocomplete(inputId) {
     if (!existing) {
         suggestions.id = inputId + 'Autocomplete';
         suggestions.className = 'autocomplete-suggestions';
-        input.parentNode.appendChild(suggestions);
+    }
+
+    if (document.body && suggestions.parentNode !== document.body) {
+        document.body.appendChild(suggestions);
     }
 
     if (input.dataset.autocompleteReady === '1') return;
     input.dataset.autocompleteReady = '1';
+    input.setAttribute('autocomplete', 'off');
 
     // Initialize autocomplete
     new LocationAutocomplete(input, suggestions);
