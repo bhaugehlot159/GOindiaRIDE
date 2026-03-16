@@ -71,6 +71,19 @@
     generic: {}
   };
 
+  // Additive allowlist extension: keep existing behavior and add broader page scopes.
+  (function extendCategoryAllowlist() {
+    function allow(role, category) {
+      CATEGORY_ALLOWLIST[role] = CATEGORY_ALLOWLIST[role] || {};
+      CATEGORY_ALLOWLIST[role][category] = true;
+    }
+    allow('booking', 'customer');
+    allow('customer', 'additional');
+    allow('driver', 'additional');
+    allow('admin', 'security');
+    allow('admin', 'additional');
+  })();
+
   function isCategoryAllowed(feature) {
     if (RUNTIME_DEBUG) return true;
     var category = normalize((feature && feature.category) || 'general');
