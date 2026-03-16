@@ -64,7 +64,15 @@
     return 'generic';
   }
 
+  function shouldRelocateWorkspace() {
+    // Default: do NOT move existing runtime workspace.
+    // If explicitly needed, set window.__GOINDIARIDE_MOVE_RUNTIME_WORKSPACE__ = true
+    // before this script runs.
+    return window.__GOINDIARIDE_MOVE_RUNTIME_WORKSPACE__ === true;
+  }
+
   function relocateWorkspace() {
+    if (!shouldRelocateWorkspace()) return;
     var workspace = document.getElementById('ff-runtime-extension-workspace');
     if (!workspace) return;
 
@@ -81,15 +89,17 @@
 
   function boot() {
     ensureDock();
-    relocateWorkspace();
-
-    var observer = new MutationObserver(function () {
+    if (shouldRelocateWorkspace()) {
       relocateWorkspace();
-    });
 
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+      var observer = new MutationObserver(function () {
+        relocateWorkspace();
+      });
 
-    window.setInterval(relocateWorkspace, 800);
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+
+      window.setInterval(relocateWorkspace, 800);
+    }
   }
 
   if (document.readyState === 'loading') {
