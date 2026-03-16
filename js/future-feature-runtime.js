@@ -14,6 +14,54 @@
   };
   window.__GOINDIARIDE_FUTURE_RUNTIME_STATE = state;
 
+  function detectPageRole() {
+    var path = normalize((window.location && window.location.pathname) || '');
+    if (path.indexOf('/admin/') !== -1 || path.indexOf('admin-dashboard') !== -1) return 'admin';
+    if (path.indexOf('/driver/') !== -1 || path.indexOf('driver-dashboard') !== -1) return 'driver';
+    if (path.indexOf('/customer/') !== -1 || path.indexOf('customer-dashboard') !== -1) return 'customer';
+    if (path.indexOf('booking') !== -1) return 'booking';
+    return 'generic';
+  }
+
+  function toSet(values) {
+    var out = {};
+    for (var i = 0; i < values.length; i += 1) out[values[i]] = true;
+    return out;
+  }
+
+  var PAGE_ROLE = detectPageRole();
+  var RUNTIME_DEBUG = /(?:\?|&)ffdebug=1(?:&|$)/i.test((window.location && window.location.search) || '') ||
+    window.__GOINDIARIDE_FUTURE_RUNTIME_DEBUG__ === true;
+  var CATEGORY_ALLOWLIST = {
+    booking: toSet(['additional']),
+    customer: toSet(['customer']),
+    driver: toSet(['driver']),
+    admin: toSet(['admin']),
+    generic: {}
+  };
+  var ENHANCEMENT_ALLOWLIST = {
+    booking: toSet(['payment', 'language', 'emergency', 'rating', 'tourism', 'cancellation', 'genericPanel']),
+    customer: toSet(['payment', 'language', 'emergency', 'rating', 'tourism', 'genericPanel']),
+    driver: toSet(['language', 'emergency', 'rating', 'cancellation', 'genericPanel']),
+    admin: toSet(['genericPanel']),
+    generic: {}
+  };
+  var SHOW_FLOATING_PANEL = RUNTIME_DEBUG || PAGE_ROLE === 'admin';
+
+  function isCategoryAllowed(feature) {
+    if (RUNTIME_DEBUG) return true;
+    var category = normalize((feature && feature.category) || 'general');
+    var allowed = CATEGORY_ALLOWLIST[PAGE_ROLE] || {};
+    return !!allowed[category];
+  }
+
+  function isEnhancementAllowed(key, feature) {
+    if (!isCategoryAllowed(feature)) return false;
+    if (RUNTIME_DEBUG) return true;
+    var allowed = ENHANCEMENT_ALLOWLIST[PAGE_ROLE] || {};
+    return !!allowed[key];
+  }
+
   function normalize(value) {
     return String(value || '').toLowerCase().trim();
   }
@@ -29,6 +77,9 @@
   }
 
   function ensureStyle() {
+    if (!SHOW_FLOATING_PANEL) {
+      return;
+    }
     if (document.getElementById('future-feature-runtime-style')) {
       return;
     }
@@ -44,6 +95,9 @@
   }
 
   function ensurePanel() {
+    if (!SHOW_FLOATING_PANEL) {
+      return null;
+    }
     var panel = document.getElementById('future-feature-runtime-panel');
     if (panel) {
       return panel;
@@ -77,6 +131,9 @@
   }
 
   function upsertPanelItem(feature) {
+    if (!SHOW_FLOATING_PANEL) {
+      return;
+    }
     ensureStyle();
     ensurePanel();
 
@@ -304,29 +361,31 @@
   }
 
   function applyGenericEnhancement(feature) {
-    upsertPanelItem(feature);
+    if (isEnhancementAllowed('genericPanel', feature)) {
+      upsertPanelItem(feature);
+    }
     feature.implemented = true;
   }
 
   function applyEnhancement(feature) {
     var description = normalize(feature.description);
 
-    if (hasAny(description, ['payment', 'upi', 'paypal', 'wallet', 'advance', 'refund'])) {
+    if (isEnhancementAllowed('payment', feature) && hasAny(description, ['payment', 'upi', 'paypal', 'wallet', 'advance', 'refund'])) {
       applyPaymentEnhancements(feature);
     }
-    if (hasAny(description, ['language', 'hindi', 'english', 'rajasthani', 'भाषा'])) {
+    if (isEnhancementAllowed('language', feature) && hasAny(description, ['language', 'hindi', 'english', 'rajasthani', 'भाषा'])) {
       applyLanguageEnhancements(feature);
     }
-    if (hasAny(description, ['emergency', 'sos', 'police', 'ambulance', 'हेल्पलाइन'])) {
+    if (isEnhancementAllowed('emergency', feature) && hasAny(description, ['emergency', 'sos', 'police', 'ambulance', 'हेल्पलाइन'])) {
       applyEmergencyEnhancements(feature);
     }
-    if (hasAny(description, ['rating', 'star', 'feedback', 'review', 'रेटिंग'])) {
+    if (isEnhancementAllowed('rating', feature) && hasAny(description, ['rating', 'star', 'feedback', 'review', 'रेटिंग'])) {
       applyRatingEnhancements(feature);
     }
-    if (hasAny(description, ['tourist', 'district', 'history', 'temple', 'fort', 'palace', 'museum', 'पर्यटन'])) {
+    if (isEnhancementAllowed('tourism', feature) && hasAny(description, ['tourist', 'district', 'history', 'temple', 'fort', 'palace', 'museum', 'पर्यटन'])) {
       applyTourismEnhancements(feature);
     }
-    if (hasAny(description, ['cancel', 'cancellation', 'केन्सल', 'रद्द'])) {
+    if (isEnhancementAllowed('cancellation', feature) && hasAny(description, ['cancel', 'cancellation', 'केन्सल', 'रद्द'])) {
       applyCancellationEnhancements(feature);
     }
 

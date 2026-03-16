@@ -16,6 +16,53 @@
   };
   window.__GOINDIARIDE_FUTURE_RUNTIME_EXT_STATE = extState;
 
+  function detectPageRole() {
+    var path = normalize((window.location && window.location.pathname) || '');
+    if (path.indexOf('/admin/') !== -1 || path.indexOf('admin-dashboard') !== -1) return 'admin';
+    if (path.indexOf('/driver/') !== -1 || path.indexOf('driver-dashboard') !== -1) return 'driver';
+    if (path.indexOf('/customer/') !== -1 || path.indexOf('customer-dashboard') !== -1) return 'customer';
+    if (path.indexOf('booking') !== -1) return 'booking';
+    return 'generic';
+  }
+
+  function toSet(values) {
+    var out = {};
+    for (var i = 0; i < values.length; i += 1) out[values[i]] = true;
+    return out;
+  }
+
+  var PAGE_ROLE = detectPageRole();
+  var RUNTIME_DEBUG = /(?:\?|&)ffdebug=1(?:&|$)/i.test((window.location && window.location.search) || '') ||
+    window.__GOINDIARIDE_FUTURE_RUNTIME_DEBUG__ === true;
+  var CATEGORY_ALLOWLIST = {
+    booking: toSet(['additional']),
+    customer: toSet(['customer']),
+    driver: toSet(['driver']),
+    admin: toSet(['admin']),
+    generic: {}
+  };
+  var MODULE_ALLOWLIST = {
+    booking: toSet(['ride', 'payment', 'bookingPolicy', 'liveTracking', 'tourism', 'districtDirectory', 'fareEstimator', 'savedLocation', 'emergency', 'rating', 'trustBrand', 'policyRules', 'termsConsent']),
+    customer: toSet(['auth', 'profile', 'kyc', 'payment', 'tourism', 'districtDirectory', 'ride', 'liveTracking', 'rating', 'savedLocation', 'dispute', 'notificationCenter', 'travelCard', 'rideHistory', 'chatbot', 'translator', 'termsConsent', 'supportHelpdesk', 'aiRecommendation', 'review', 'trustBrand', 'policyRules']),
+    driver: toSet(['driverVehicle', 'liveTracking', 'rating', 'bookingOps', 'bookingPolicy', 'notificationCenter', 'supportHelpdesk', 'emergency', 'termsConsent']),
+    admin: toSet(['bookingOps', 'partnerCommission', 'listing', 'partnerIntegration', 'adminMonitoring', 'fraudAlert', 'otpSecurity', 'notificationCenter', 'review', 'aiRecommendation', 'policyRules', 'universalFeature']),
+    generic: {}
+  };
+
+  function isCategoryAllowed(feature) {
+    if (RUNTIME_DEBUG) return true;
+    var category = normalize((feature && feature.category) || 'general');
+    var allowed = CATEGORY_ALLOWLIST[PAGE_ROLE] || {};
+    return !!allowed[category];
+  }
+
+  function isModuleAllowed(key, feature) {
+    if (!isCategoryAllowed(feature)) return false;
+    if (RUNTIME_DEBUG) return true;
+    var allowed = MODULE_ALLOWLIST[PAGE_ROLE] || {};
+    return !!allowed[key];
+  }
+
   function normalize(value) {
     return String(value || '').toLowerCase().trim();
   }
@@ -106,6 +153,7 @@
   }
 
   function ensureWorkspace() {
+    if (PAGE_ROLE === 'generic' && !RUNTIME_DEBUG) return null;
     var root = document.querySelector('.dashboard-main, .dashboard-content, .booking-panel, .container, main, body');
     if (!root) return null;
 
@@ -115,8 +163,7 @@
     box = document.createElement('section');
     box.id = 'ff-runtime-extension-workspace';
     box.style.cssText = 'margin:12px 0;display:grid;gap:10px;';
-    if (root === document.body) root.insertBefore(box, root.firstChild);
-    else root.appendChild(box);
+    root.appendChild(box);
     return box;
   }
 
@@ -1880,46 +1927,48 @@
   }
 
   function applyModules(feature) {
+    if (!isCategoryAllowed(feature)) return;
     var text = normalize(feature.description);
 
-    if (hasAny(text, ['signup', 'register', 'login', 'otp', 'google', 'facebook'])) applyAuthModule(feature);
-    if (hasAny(text, ['profile', 'photo', 'address', 'privacy', 'password', 'delete account', 'emergency contact', 'email', 'phone'])) applyProfileModule(feature);
-    if (hasAny(text, ['document', 'kyc', 'license', 'rc', 'pan', 'aadhar', 'insurance', 'id proof', 'verification'])) applyKycModule(feature);
-    if (hasAny(text, ['payment', 'upi', 'paypal', 'wallet', 'coupon', 'refund', 'advance'])) applyPaymentModule(feature);
-    if (hasAny(text, ['emergency', 'police', 'ambulance', 'sos', 'helpline', '24x7'])) applyEmergencyModule(feature);
-    if (hasAny(text, ['tourist', 'district', 'history', 'fort', 'palace', 'temple', 'museum', 'festival', 'parking'])) applyTourismModule(feature);
-    if (hasAny(text, ['district', 'all district', '50 district', 'rajasthan district', 'jaipur', 'udaipur', 'jodhpur'])) applyDistrictDirectoryModule(feature);
-    if (hasAny(text, ['rating', 'review', 'feedback', 'star'])) applyRatingModule(feature);
-    if (hasAny(text, ['local', 'outstation', 'rental', 'airport', 'ride type'])) applyRideModule(feature);
-    if (hasAny(text, ['driver', 'vehicle', 'hatchback', 'sedan', 'suv', 'ac', 'non-ac', 'seating'])) applyDriverVehicleModule(feature);
-    if (hasAny(text, ['accept', 'reject', 'extra booking', 'cancel'])) applyBookingOpsModule(feature);
-    if (hasAny(text, ['cancel policy', 'reschedule', 'booking policy', 'cancel after pickup'])) applyBookingPolicyModule(feature);
-    if (hasAny(text, ['live location', 'tracking', 'gps'])) applyLiveTrackingModule(feature);
-    if (hasAny(text, ['hotel', 'restaurant', 'shop', 'commission', 'guest house'])) applyPartnerCommissionModule(feature);
-    if (hasAny(text, ['listing', 'searchable', 'categorized', 'specialty', 'contact'])) applyListingModule(feature);
-    if (hasAny(text, ['tour package', 'package booking', 'family', 'honeymoon', 'adventure', 'itinerary', 'book now'])) applyTourPackageModule(feature);
-    if (hasAny(text, ['referral', 'affiliate', 'utm', 'coupon', 'partner tracking'])) applyReferralAffiliateModule(feature);
-    if (hasAny(text, ['fare', 'currency', 'distance', 'season', 'auto-calculated'])) applyFareEstimatorModule(feature);
-    if (hasAny(text, ['otp', 'anti-fraud', 'auth security', 'suspicious'])) applyOtpSecurityModule(feature);
-    if (hasAny(text, ['favorite location', 'saved location', 'home office', 'pickup suggestion'])) applySavedLocationModule(feature);
-    if (hasAny(text, ['dispute', 'complaint', 'evidence', 'liability claim'])) applyDisputeModule(feature);
-    if (hasAny(text, ['fraud', 'spam', 'anomaly', 'suspicious'])) applyFraudAlertModule(feature);
-    if (hasAny(text, ['chatbot', 'faq', 'support bot'])) applyChatbotModule(feature);
-    if (hasAny(text, ['language', 'communication', 'translator', 'multi lingual'])) applyTranslatorModule(feature);
-    if (hasAny(text, ['disclaimer', 'liability', 'terms consent', 'terms checkbox'])) applyTermsConsentModule(feature);
-    if (hasAny(text, ['help desk', 'helpdesk', 'support', 'ticket'])) applySupportHelpdeskModule(feature);
-    if (hasAny(text, ['dashboard', 'monitoring', 'admin panel', 'summary', 'performance logs'])) applyAdminMonitoringModule(feature);
-    if (hasAny(text, ['ai', 'recommendation', 'smart', 'chatbot', 'suggestion'])) applyAIRecommendationModule(feature);
-    if (hasAny(text, ['review', 'rating', 'real user review', 'social proof'])) applyReviewModule(feature);
-    if (hasAny(text, ['api', 'webhook', 'integration', 'partner integration'])) applyPartnerIntegrationModule(feature);
-    if (hasAny(text, ['why trust', 'real trip photos', 'trip preview', 'social proof', 'experience'])) applyTrustBrandModule(feature);
-    if (hasAny(text, ['road rule', 'government', 'law', 'compliance', 'legal'])) applyPolicyRulesModule(feature);
-    if (hasAny(text, ['notification', 'alert', 'reminder', 'sms', 'email', 'whatsapp', 'push'])) applyNotificationCenterModule(feature);
-    if (hasAny(text, ['travel card', 'digital travel card', 'tourist card'])) applyTravelCardModule(feature);
-    if (hasAny(text, ['ride history', 'history', 'past booking', 'export', 'invoice'])) applyRideHistoryModule(feature);
+    if (isModuleAllowed('auth', feature) && hasAny(text, ['signup', 'register', 'login', 'otp', 'google', 'facebook'])) applyAuthModule(feature);
+    if (isModuleAllowed('profile', feature) && hasAny(text, ['profile', 'photo', 'address', 'privacy', 'password', 'delete account', 'emergency contact', 'email', 'phone'])) applyProfileModule(feature);
+    if (isModuleAllowed('kyc', feature) && hasAny(text, ['document', 'kyc', 'license', 'rc', 'pan', 'aadhar', 'insurance', 'id proof', 'verification'])) applyKycModule(feature);
+    if (isModuleAllowed('payment', feature) && hasAny(text, ['payment', 'upi', 'paypal', 'wallet', 'coupon', 'refund', 'advance'])) applyPaymentModule(feature);
+    if (isModuleAllowed('emergency', feature) && hasAny(text, ['emergency', 'police', 'ambulance', 'sos', 'helpline', '24x7'])) applyEmergencyModule(feature);
+    if (isModuleAllowed('tourism', feature) && hasAny(text, ['tourist', 'district', 'history', 'fort', 'palace', 'temple', 'museum', 'festival', 'parking'])) applyTourismModule(feature);
+    if (isModuleAllowed('districtDirectory', feature) && hasAny(text, ['district', 'all district', '50 district', 'rajasthan district', 'jaipur', 'udaipur', 'jodhpur'])) applyDistrictDirectoryModule(feature);
+    if (isModuleAllowed('rating', feature) && hasAny(text, ['rating', 'review', 'feedback', 'star'])) applyRatingModule(feature);
+    if (isModuleAllowed('ride', feature) && hasAny(text, ['local', 'outstation', 'rental', 'airport', 'ride type'])) applyRideModule(feature);
+    if (isModuleAllowed('driverVehicle', feature) && hasAny(text, ['driver', 'vehicle', 'hatchback', 'sedan', 'suv', 'ac', 'non-ac', 'seating'])) applyDriverVehicleModule(feature);
+    if (isModuleAllowed('bookingOps', feature) && hasAny(text, ['accept', 'reject', 'extra booking', 'cancel'])) applyBookingOpsModule(feature);
+    if (isModuleAllowed('bookingPolicy', feature) && hasAny(text, ['cancel policy', 'reschedule', 'booking policy', 'cancel after pickup'])) applyBookingPolicyModule(feature);
+    if (isModuleAllowed('liveTracking', feature) && hasAny(text, ['live location', 'tracking', 'gps'])) applyLiveTrackingModule(feature);
+    if (isModuleAllowed('partnerCommission', feature) && hasAny(text, ['hotel', 'restaurant', 'shop', 'commission', 'guest house'])) applyPartnerCommissionModule(feature);
+    if (isModuleAllowed('listing', feature) && hasAny(text, ['listing', 'searchable', 'categorized', 'specialty', 'contact'])) applyListingModule(feature);
+    if (isModuleAllowed('tourPackage', feature) && hasAny(text, ['tour package', 'package booking', 'family', 'honeymoon', 'adventure', 'itinerary', 'book now'])) applyTourPackageModule(feature);
+    if (isModuleAllowed('referralAffiliate', feature) && hasAny(text, ['referral', 'affiliate', 'utm', 'coupon', 'partner tracking'])) applyReferralAffiliateModule(feature);
+    if (isModuleAllowed('fareEstimator', feature) && hasAny(text, ['fare', 'currency', 'distance', 'season', 'auto-calculated'])) applyFareEstimatorModule(feature);
+    if (isModuleAllowed('otpSecurity', feature) && hasAny(text, ['otp', 'anti-fraud', 'auth security', 'suspicious'])) applyOtpSecurityModule(feature);
+    if (isModuleAllowed('savedLocation', feature) && hasAny(text, ['favorite location', 'saved location', 'home office', 'pickup suggestion'])) applySavedLocationModule(feature);
+    if (isModuleAllowed('dispute', feature) && hasAny(text, ['dispute', 'complaint', 'evidence', 'liability claim'])) applyDisputeModule(feature);
+    if (isModuleAllowed('fraudAlert', feature) && hasAny(text, ['fraud', 'spam', 'anomaly', 'suspicious'])) applyFraudAlertModule(feature);
+    if (isModuleAllowed('chatbot', feature) && hasAny(text, ['chatbot', 'faq', 'support bot'])) applyChatbotModule(feature);
+    if (isModuleAllowed('translator', feature) && hasAny(text, ['language', 'communication', 'translator', 'multi lingual'])) applyTranslatorModule(feature);
+    if (isModuleAllowed('termsConsent', feature) && hasAny(text, ['disclaimer', 'liability', 'terms consent', 'terms checkbox'])) applyTermsConsentModule(feature);
+    if (isModuleAllowed('supportHelpdesk', feature) && hasAny(text, ['help desk', 'helpdesk', 'support', 'ticket'])) applySupportHelpdeskModule(feature);
+    if (isModuleAllowed('adminMonitoring', feature) && hasAny(text, ['dashboard', 'monitoring', 'admin panel', 'summary', 'performance logs'])) applyAdminMonitoringModule(feature);
+    if (isModuleAllowed('aiRecommendation', feature) && hasAny(text, ['ai', 'recommendation', 'smart', 'chatbot', 'suggestion'])) applyAIRecommendationModule(feature);
+    if (isModuleAllowed('review', feature) && hasAny(text, ['review', 'rating', 'real user review', 'social proof'])) applyReviewModule(feature);
+    if (isModuleAllowed('partnerIntegration', feature) && hasAny(text, ['api', 'webhook', 'integration', 'partner integration'])) applyPartnerIntegrationModule(feature);
+    if (isModuleAllowed('trustBrand', feature) && hasAny(text, ['why trust', 'real trip photos', 'trip preview', 'social proof', 'experience'])) applyTrustBrandModule(feature);
+    if (isModuleAllowed('policyRules', feature) && hasAny(text, ['road rule', 'government', 'law', 'compliance', 'legal'])) applyPolicyRulesModule(feature);
+    if (isModuleAllowed('notificationCenter', feature) && hasAny(text, ['notification', 'alert', 'reminder', 'sms', 'email', 'whatsapp', 'push'])) applyNotificationCenterModule(feature);
+    if (isModuleAllowed('travelCard', feature) && hasAny(text, ['travel card', 'digital travel card', 'tourist card'])) applyTravelCardModule(feature);
+    if (isModuleAllowed('rideHistory', feature) && hasAny(text, ['ride history', 'history', 'past booking', 'export', 'invoice'])) applyRideHistoryModule(feature);
 
-    // Universal fallback/runner: every feature becomes runnable even without specific keyword module.
-    applyUniversalFeatureModule(feature);
+    if (isModuleAllowed('universalFeature', feature) && (RUNTIME_DEBUG || PAGE_ROLE === 'admin')) {
+      applyUniversalFeatureModule(feature);
+    }
   }
 
   function activate(detail) {

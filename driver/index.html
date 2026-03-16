@@ -24146,6 +24146,11 @@
 </script>
 <!-- === FUTURE_FEATURES_DRIVER_ROOT_ITEMWISE_END === -->
 
+<script id="future-runtime-external-loader">
+window.__GOINDIARIDE_RUNTIME_EXTERNAL_PREFERRED__ = true;
+</script>
+<script src="/js/future-feature-runtime.js"></script>
+<script src="/js/future-feature-runtime-extensions.js"></script>
 <!-- === FUTURE_RUNTIME_MOVED_BUNDLE_START === -->
 <script id="future-runtime-moved-disabled">
 // MOVED FROM: js/future-feature-runtime.js + js/future-feature-runtime-extensions.js
@@ -24154,7 +24159,7 @@
 (function () {
   'use strict';
 
-  if (typeof window === 'undefined' || window.__GOINDIARIDE_FUTURE_RUNTIME_LOADED__) {
+  if (typeof window === 'undefined' || window.__GOINDIARIDE_RUNTIME_EXTERNAL_PREFERRED__ || window.__GOINDIARIDE_FUTURE_RUNTIME_LOADED__) {
     return;
   }
   window.__GOINDIARIDE_FUTURE_RUNTIME_LOADED__ = true;
@@ -24531,7 +24536,7 @@
 (function () {
   'use strict';
 
-  if (typeof window === 'undefined' || window.__GOINDIARIDE_FUTURE_RUNTIME_EXTENSIONS_LOADED__) {
+  if (typeof window === 'undefined' || window.__GOINDIARIDE_RUNTIME_EXTERNAL_PREFERRED__ || window.__GOINDIARIDE_FUTURE_RUNTIME_EXTENSIONS_LOADED__) {
     return;
   }
   window.__GOINDIARIDE_FUTURE_RUNTIME_EXTENSIONS_LOADED__ = true;
