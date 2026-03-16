@@ -26441,6 +26441,9 @@
 
 <script id="future-runtime-external-loader">
 window.__GOINDIARIDE_RUNTIME_EXTERNAL_PREFERRED__ = true;
+if (!window.__GOINDIARIDE_API_ORIGIN__ && /(^|\\.)goindiaride\\.in$/i.test(window.location.hostname)) {
+  window.__GOINDIARIDE_API_ORIGIN__ = 'https://api.goindiaride.in';
+}
 </script>
 <script src="/js/future-feature-runtime.js"></script>
 <script src="/js/future-feature-runtime-extensions.js"></script>

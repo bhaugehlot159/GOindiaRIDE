@@ -6,9 +6,31 @@
   }
   window.__GOINDIARIDE_FUTURE_RUNTIME_EXTENSIONS_LOADED__ = true;
 
+  function normalizeOrigin(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return '';
+    return raw.replace(/\/+$/, '');
+  }
+
+  function detectApiOrigin() {
+    var explicit = normalizeOrigin(
+      window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ ||
+      window.__GOINDIARIDE_API_ORIGIN__ ||
+      ''
+    );
+    if (explicit) return explicit;
+
+    var host = String((window.location && window.location.hostname) || '').toLowerCase();
+    if (host === 'goindiaride.in' || host === 'www.goindiaride.in') {
+      return 'https://api.goindiaride.in';
+    }
+    return '';
+  }
+
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';
-  var API_BASE = '/api/future-runtime';
-  var BUSINESS_API_BASE = '/api/future-runtime-business';
+  var API_ORIGIN = detectApiOrigin();
+  var API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime') : '/api/future-runtime';
+  var BUSINESS_API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : '/api/future-runtime-business';
   var registry = window.__GOINDIARIDE_FUTURE_FEATURES || {};
   var extState = window.__GOINDIARIDE_FUTURE_RUNTIME_EXT_STATE || {
     activatedKeys: {},
