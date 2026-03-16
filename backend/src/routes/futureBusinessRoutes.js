@@ -7,6 +7,7 @@ const router = express.Router();
 
 const DATA_DIR = path.join(__dirname, '../../../data/runtime');
 const DATA_FILE = path.join(DATA_DIR, 'future-business-store.json');
+const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
 const MAX_NOTIFICATIONS = 20000;
 const MAX_WALLET_HISTORY = 3000;
@@ -32,6 +33,7 @@ const MAX_FEATURE_STATES = 15000;
 const MAX_FEATURE_ACTIONS = 120000;
 
 let persistTimer = null;
+let rajasthanDetailsCache = null;
 
 const seedTourismPlaces = [
   { district: 'Jaipur', name: 'Amer Fort', category: 'Fort', history: '16th century hill fort.', entryFee: '100', openTime: '08:00', closeTime: '17:30', parking: true },
@@ -227,6 +229,54 @@ function loadStore() {
   } catch (_error) {
     return defaultStore();
   }
+}
+
+function loadRajasthanDetails() {
+  if (rajasthanDetailsCache && typeof rajasthanDetailsCache === 'object') {
+    return rajasthanDetailsCache;
+  }
+  try {
+    const raw = fs.readFileSync(RAJASTHAN_DETAILS_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    const districts = safeObject(parsed && parsed.districts);
+    const index = {};
+    Object.keys(districts).forEach((name) => {
+      index[normalizeString(name, 120).toLowerCase()] = districts[name];
+    });
+    rajasthanDetailsCache = {
+      ok: true,
+      sourceFile: RAJASTHAN_DETAILS_FILE,
+      metadata: safeObject(parsed && parsed.metadata),
+      districts,
+      index
+    };
+    return rajasthanDetailsCache;
+  } catch (_error) {
+    rajasthanDetailsCache = {
+      ok: false,
+      sourceFile: RAJASTHAN_DETAILS_FILE,
+      metadata: {},
+      districts: {},
+      index: {}
+    };
+    return rajasthanDetailsCache;
+  }
+}
+
+function resolveDistrictDetailByName(name) {
+  const dataset = loadRajasthanDetails();
+  const key = normalizeString(name, 120).toLowerCase();
+  if (!key) return null;
+  if (dataset.index[key]) return dataset.index[key];
+
+  const simplified = key.replace(/[^a-z0-9]/g, '');
+  const keys = Object.keys(dataset.index);
+  for (let i = 0; i < keys.length; i += 1) {
+    const source = keys[i];
+    const sourceSimple = source.replace(/[^a-z0-9]/g, '');
+    if (sourceSimple === simplified) return dataset.index[source];
+  }
+  return null;
 }
 
 function getStore() {
@@ -1181,6 +1231,74 @@ router.get('/districts', (req, res) => {
     .filter(Boolean)
   ));
   return res.status(200).json({ ok: true, count: all.length, districts: all });
+});
+
+router.get('/districts/full', (req, res) => {
+  const store = getStore();
+  const includeRaw = normalizeString(req.query.includeRaw, 10) === 'true';
+  const dataset = loadRajasthanDetails();
+
+  const items = RAJASTHAN_DISTRICTS.map((districtName) => {
+    const detail = resolveDistrictDetailByName(districtName);
+    const tourismMatches = store.tourismPlaces.filter((item) => normalizeString(item.district, 80).toLowerCase() === normalizeString(districtName, 80).toLowerCase());
+    const categories = detail ? Object.keys(detail).filter((key) => key !== 'info') : [];
+
+    const summary = {
+      name: districtName,
+      datasetAvailable: Boolean(detail),
+      tourismPlacesCount: tourismMatches.length,
+      hasInfo: Boolean(detail && detail.info),
+      categories
+    };
+
+    if (detail && detail.info) {
+      summary.info = detail.info;
+    }
+    if (includeRaw && detail) {
+      summary.detail = detail;
+    }
+    if (tourismMatches.length) {
+      summary.runtimeTourismPlaces = tourismMatches.slice(0, 30);
+    }
+    return summary;
+  });
+
+  return res.status(200).json({
+    ok: true,
+    source: dataset.sourceFile,
+    metadata: dataset.metadata,
+    count: items.length,
+    items
+  });
+});
+
+router.get('/districts/:districtName/detail', (req, res) => {
+  const store = getStore();
+  const districtName = normalizeString(req.params.districtName, 120);
+  if (!districtName) return res.status(400).json({ ok: false, message: 'districtName is required' });
+
+  const detail = resolveDistrictDetailByName(districtName);
+  const tourismMatches = store.tourismPlaces.filter((item) => normalizeString(item.district, 80).toLowerCase() === districtName.toLowerCase());
+  const listingMatches = store.listings.filter((item) => normalizeString(item.city, 80).toLowerCase() === districtName.toLowerCase());
+  const packageMatches = store.packages.filter((item) => {
+    const txt = normalizeString(`${item.title} ${item.theme} ${(item.inclusions || []).join(' ')}`, 1500).toLowerCase();
+    return txt.includes(districtName.toLowerCase());
+  });
+
+  return res.status(200).json({
+    ok: true,
+    district: districtName,
+    datasetAvailable: Boolean(detail),
+    detail: detail || null,
+    runtime: {
+      tourismPlacesCount: tourismMatches.length,
+      tourismPlaces: tourismMatches.slice(0, 200),
+      listingsCount: listingMatches.length,
+      listings: listingMatches.slice(0, 100),
+      packageMentions: packageMatches.length,
+      packages: packageMatches.slice(0, 100)
+    }
+  });
 });
 
 router.post('/listings', (req, res) => {

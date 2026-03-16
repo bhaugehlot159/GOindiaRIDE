@@ -859,10 +859,12 @@
       '<button type=\"button\" id=\"ffx-district-refresh\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Districts</button>',
       '<input id=\"ffx-district-search\" placeholder=\"Search district\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;min-width:180px;\"/>',
       '</div>',
-      '<div id=\"ffx-district-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+      '<div id=\"ffx-district-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
+      '<div id=\"ffx-district-detail\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;color:#173b67;\">Select district to view details.</div>'
     ].join('');
 
     var list = body.querySelector('#ffx-district-list');
+    var detail = body.querySelector('#ffx-district-detail');
     var cache = [];
 
     function render(items) {
@@ -872,7 +874,7 @@
         return;
       }
       list.innerHTML = items.map(function (district, index) {
-        return '<span style=\"display:inline-block;margin:4px;padding:4px 8px;border-radius:999px;background:#eef4ff;color:#24416d;\">' + (index + 1) + '. ' + escapeHtml(district) + '</span>';
+        return '<button type=\"button\" data-district=\"' + escapeHtml(district) + '\" style=\"display:inline-block;margin:4px;padding:4px 8px;border:0;border-radius:999px;background:#eef4ff;color:#24416d;cursor:pointer;\">' + (index + 1) + '. ' + escapeHtml(district) + '</button>';
       }).join('');
     }
 
@@ -894,6 +896,32 @@
       render(cache.filter(function (item) {
         return normalize(item).indexOf(q) !== -1;
       }));
+    });
+
+    list.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-district]');
+      if (!button) return;
+      var districtName = button.getAttribute('data-district') || '';
+      if (!districtName) return;
+      if (detail) detail.textContent = 'Loading details for ' + districtName + '...';
+      getBusiness('/districts/' + encodeURIComponent(districtName) + '/detail').then(function (data) {
+        if (!detail) return;
+        if (!data || !data.ok) {
+          detail.textContent = 'Details unavailable for ' + districtName;
+          return;
+        }
+        var info = data.detail && data.detail.info ? data.detail.info : {};
+        var runtime = data.runtime || {};
+        var categories = data.detail ? Object.keys(data.detail).filter(function (key) { return key !== 'info'; }) : [];
+        detail.innerHTML = [
+          '<div><strong>' + escapeHtml(districtName) + '</strong></div>',
+          '<div style=\"margin-top:4px;\">Dataset: ' + (data.datasetAvailable ? 'Yes' : 'No') + '</div>',
+          '<div>Population: ' + escapeHtml(info.population || 'N/A') + ' | Area: ' + escapeHtml(info.area || 'N/A') + '</div>',
+          '<div>Best Time: ' + escapeHtml(info.bestTime || 'N/A') + '</div>',
+          '<div>Categories: ' + escapeHtml(categories.join(', ') || 'N/A') + '</div>',
+          '<div>Runtime Tourism Places: ' + escapeHtml(runtime.tourismPlacesCount || 0) + ' | Listings: ' + escapeHtml(runtime.listingsCount || 0) + '</div>'
+        ].join('');
+      });
     });
 
     loadDistricts();
