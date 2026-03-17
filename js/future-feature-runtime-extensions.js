@@ -2170,12 +2170,30 @@
   }
 
   function applyDistrictDirectoryModule(feature) {
-    var card = ensureCard('district-directory', 'Rajasthan District Directory');
-    if (!card) return;
-    var body = card.querySelector('.ff-runtime-card-body');
-    if (!body || body.querySelector('#ffx-district-refresh')) return;
+    var legacyCard = document.getElementById('ff-runtime-card-district-directory');
+    if (legacyCard && legacyCard.parentNode) {
+      legacyCard.parentNode.removeChild(legacyCard);
+    }
 
-    body.innerHTML = [
+    var tourismCard = document.getElementById('ff-runtime-card-tourism') || ensureCard('tourism', 'Tourist Places & District Explorer');
+    if (!tourismCard) return;
+
+    var body = tourismCard.querySelector('.ff-runtime-card-body');
+    if (!body) return;
+
+    if (!body.querySelector('#ffx-tourism-load')) {
+      applyTourismModule(feature);
+      body = tourismCard.querySelector('.ff-runtime-card-body');
+      if (!body) return;
+    }
+
+    if (body.querySelector('#ffx-district-refresh')) return;
+
+    var merged = document.createElement('div');
+    merged.id = 'ffx-tourism-district-merge';
+    merged.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid #dbe7ff;';
+    merged.innerHTML = [
+      '<div style=\"font-weight:700;color:#143a69;margin-bottom:8px;\">Rajasthan District Directory</div>',
       '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
       '<button type=\"button\" id=\"ffx-district-refresh\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Districts</button>',
       '<input id=\"ffx-district-search\" placeholder=\"Search district\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;min-width:180px;\"/>',
@@ -2183,9 +2201,10 @@
       '<div id=\"ffx-district-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
       '<div id=\"ffx-district-detail\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;color:#173b67;\">Select district to view details.</div>'
     ].join('');
+    body.appendChild(merged);
 
-    var list = body.querySelector('#ffx-district-list');
-    var detail = body.querySelector('#ffx-district-detail');
+    var list = merged.querySelector('#ffx-district-list');
+    var detail = merged.querySelector('#ffx-district-detail');
     var cache = [];
 
     function render(items) {
@@ -2207,8 +2226,8 @@
       });
     }
 
-    body.querySelector('#ffx-district-refresh').addEventListener('click', loadDistricts);
-    body.querySelector('#ffx-district-search').addEventListener('input', function () {
+    merged.querySelector('#ffx-district-refresh').addEventListener('click', loadDistricts);
+    merged.querySelector('#ffx-district-search').addEventListener('input', function () {
       var q = normalize(this.value);
       if (!q) {
         render(cache);
