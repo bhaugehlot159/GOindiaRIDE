@@ -1393,6 +1393,37 @@
     return card;
   }
 
+  function placeCustomerAccountCard(cardId) {
+    if (PAGE_ROLE !== 'customer') return;
+    var workspace = ensureWorkspace();
+    if (!workspace) return;
+
+    var authCard = document.getElementById('ff-runtime-card-auth');
+    var profileCard = document.getElementById('ff-runtime-card-profile');
+    var targetCard = document.getElementById('ff-runtime-card-' + cardId);
+    if (!targetCard || targetCard.parentNode !== workspace) return;
+
+    if (cardId === 'auth') {
+      if (workspace.firstElementChild !== authCard) {
+        workspace.insertBefore(authCard, workspace.firstElementChild);
+      }
+      if (profileCard && authCard.nextElementSibling !== profileCard) {
+        workspace.insertBefore(profileCard, authCard.nextElementSibling);
+      }
+      return;
+    }
+
+    if (cardId === 'profile') {
+      if (authCard) {
+        if (authCard.nextElementSibling !== profileCard) {
+          workspace.insertBefore(profileCard, authCard.nextElementSibling);
+        }
+      } else if (workspace.firstElementChild !== profileCard) {
+        workspace.insertBefore(profileCard, workspace.firstElementChild);
+      }
+    }
+  }
+
   function ensureSelectOption(selectEl, value, label) {
     if (!selectEl) return;
     for (var i = 0; i < selectEl.options.length; i += 1) {
@@ -1438,6 +1469,7 @@
   function applyAuthModule(feature) {
     var card = ensureCard('auth', 'Signup / Login / OTP');
     if (!card) return;
+    placeCustomerAccountCard('auth');
     var body = card.querySelector('.ff-runtime-card-body');
     if (!body || body.querySelector('#ffx-auth-login')) return;
 
@@ -1470,6 +1502,7 @@
   function applyProfileModule(feature) {
     var card = ensureCard('profile', 'Profile, Contacts, Privacy');
     if (!card) return;
+    placeCustomerAccountCard('profile');
     var body = card.querySelector('.ff-runtime-card-body');
     if (!body || body.querySelector('#ffx-profile-save')) return;
 
