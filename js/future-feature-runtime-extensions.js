@@ -64,7 +64,7 @@
     generic: {}
   };
   var MODULE_ALLOWLIST = {
-    booking: toSet(['ride', 'payment', 'bookingPolicy', 'liveTracking', 'tourism', 'districtDirectory', 'fareEstimator', 'savedLocation', 'emergency', 'rating', 'trustBrand', 'policyRules', 'termsConsent']),
+    booking: toSet(['fareEstimator']),
     customer: toSet(['auth', 'profile', 'kyc', 'payment', 'tourism', 'districtDirectory', 'ride', 'liveTracking', 'rating', 'savedLocation', 'dispute', 'notificationCenter', 'travelCard', 'rideHistory', 'chatbot', 'translator', 'termsConsent', 'supportHelpdesk', 'aiRecommendation', 'review', 'trustBrand', 'policyRules']),
     driver: toSet(['driverVehicle', 'liveTracking', 'rating', 'bookingOps', 'bookingPolicy', 'notificationCenter', 'supportHelpdesk', 'emergency', 'termsConsent']),
     admin: toSet(['bookingOps', 'partnerCommission', 'listing', 'partnerIntegration', 'adminMonitoring', 'fraudAlert', 'otpSecurity', 'notificationCenter', 'review', 'aiRecommendation', 'policyRules', 'universalFeature']),
@@ -1612,6 +1612,17 @@
   }
 
   function applyEmergencyModule(feature) {
+    // Booking page already has its own native emergency section.
+    // Do not render duplicate runtime emergency card there.
+    if (PAGE_ROLE === 'booking') {
+      var existingEmergencyCard = document.getElementById('ff-runtime-card-emergency');
+      if (existingEmergencyCard && existingEmergencyCard.parentNode) {
+        existingEmergencyCard.parentNode.removeChild(existingEmergencyCard);
+      }
+      if (feature) feature.implemented = true;
+      return;
+    }
+
     var card = ensureCard('emergency', 'Emergency & 24x7 Support');
     if (!card) return;
     var body = card.querySelector('.ff-runtime-card-body');

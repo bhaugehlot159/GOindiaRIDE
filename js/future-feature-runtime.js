@@ -40,7 +40,7 @@
     generic: {}
   };
   var ENHANCEMENT_ALLOWLIST = {
-    booking: toSet(['payment', 'language', 'emergency', 'rating', 'tourism', 'cancellation', 'genericPanel']),
+    booking: toSet(['rating']),
     customer: toSet(['payment', 'language', 'emergency', 'rating', 'tourism', 'genericPanel']),
     driver: toSet(['language', 'emergency', 'rating', 'cancellation', 'genericPanel']),
     admin: toSet(['genericPanel']),
