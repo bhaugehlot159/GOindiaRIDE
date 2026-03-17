@@ -241,6 +241,13 @@
   }
 
   function applyEmergencyEnhancements(feature) {
+    // Booking page already has the dedicated "Emergency & 24x7 Support" card via runtime-extensions.
+    // Avoid adding a second lower emergency block here.
+    if (PAGE_ROLE === 'booking') {
+      feature.implemented = true;
+      return;
+    }
+
     if (document.getElementById('ff-emergency-bar')) {
       feature.implemented = true;
       return;
