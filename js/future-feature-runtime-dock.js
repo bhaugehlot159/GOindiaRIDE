@@ -71,6 +71,14 @@
     return window.__GOINDIARIDE_MOVE_RUNTIME_WORKSPACE__ === true;
   }
 
+  function isDockEnabled() {
+    // Keep runtime dock visible by default only on admin pages.
+    // Non-admin pages can explicitly enable via window flag.
+    var role = detectPageRole();
+    if (role === 'admin') return true;
+    return window.__GOINDIARIDE_SHOW_RUNTIME_DOCK__ === true;
+  }
+
   function relocateWorkspace() {
     if (!shouldRelocateWorkspace()) return;
     var workspace = document.getElementById('ff-runtime-extension-workspace');
@@ -88,6 +96,12 @@
   }
 
   function boot() {
+    if (!isDockEnabled()) {
+      var staleDock = document.getElementById('ff-runtime-dock');
+      if (staleDock && staleDock.parentNode) staleDock.parentNode.removeChild(staleDock);
+      return;
+    }
+
     ensureDock();
     if (shouldRelocateWorkspace()) {
       relocateWorkspace();

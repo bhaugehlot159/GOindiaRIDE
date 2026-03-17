@@ -64,7 +64,7 @@
     generic: {}
   };
   var MODULE_ALLOWLIST = {
-    booking: toSet(['fareEstimator', 'rating']),
+    booking: toSet([]),
     customer: toSet(['auth', 'profile', 'kyc', 'payment', 'tourism', 'districtDirectory', 'ride', 'liveTracking', 'rating', 'savedLocation', 'dispute', 'notificationCenter', 'travelCard', 'rideHistory', 'chatbot', 'translator', 'termsConsent', 'supportHelpdesk', 'aiRecommendation', 'review', 'trustBrand', 'policyRules']),
     driver: toSet(['driverVehicle', 'liveTracking', 'rating', 'bookingOps', 'bookingPolicy', 'notificationCenter', 'supportHelpdesk', 'emergency', 'termsConsent']),
     admin: toSet(['bookingOps', 'partnerCommission', 'listing', 'partnerIntegration', 'adminMonitoring', 'fraudAlert', 'otpSecurity', 'notificationCenter', 'review', 'aiRecommendation', 'policyRules', 'universalFeature']),

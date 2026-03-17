@@ -58,6 +58,11 @@
   }
 
   var PAGE_ROLE = detectPageRole();
+  var ENABLE_OUTSIDE_ADMIN = window.__GOINDIARIDE_ENABLE_UNIVERSAL_LIVE_RUNNER__ === true;
+  if (PAGE_ROLE !== 'admin' && !ENABLE_OUTSIDE_ADMIN) {
+    return;
+  }
+
   var CATEGORY_ALLOW = {
     booking: toSet(['customer', 'additional']),
     customer: toSet(['customer', 'additional']),
