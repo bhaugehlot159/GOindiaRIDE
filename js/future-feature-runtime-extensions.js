@@ -2187,80 +2187,75 @@
       if (!body) return;
     }
 
-    if (body.querySelector('#ffx-district-refresh')) return;
+    var mergedBlock = body.querySelector('#ffx-tourism-district-merge');
+    if (mergedBlock && mergedBlock.parentNode) {
+      mergedBlock.parentNode.removeChild(mergedBlock);
+    }
 
-    var merged = document.createElement('div');
-    merged.id = 'ffx-tourism-district-merge';
-    merged.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid #dbe7ff;';
-    merged.innerHTML = [
-      '<div style=\"font-weight:700;color:#143a69;margin-bottom:8px;\">Rajasthan District Directory</div>',
-      '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
-      '<button type=\"button\" id=\"ffx-district-refresh\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Districts</button>',
-      '<input id=\"ffx-district-search\" placeholder=\"Search district\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;min-width:180px;\"/>',
-      '</div>',
-      '<div id=\"ffx-district-list\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
-      '<div id=\"ffx-district-detail\" style=\"margin-top:8px;max-height:220px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;color:#173b67;\">Select district to view details.</div>'
-    ].join('');
-    body.appendChild(merged);
+    var districtInput = body.querySelector('#ffx-tourism-district');
+    if (!districtInput) return;
 
-    var list = merged.querySelector('#ffx-district-list');
-    var detail = merged.querySelector('#ffx-district-detail');
-    var cache = [];
-
-    function render(items) {
-      if (!list) return;
-      if (!items.length) {
-        list.textContent = 'No districts found.';
-        return;
+    var statusEl = body.querySelector('#ffx-tourism-status');
+    var noteEl = body.querySelector('#ffx-tourism-district-inline-note');
+    if (!noteEl) {
+      noteEl = document.createElement('div');
+      noteEl.id = 'ffx-tourism-district-inline-note';
+      noteEl.style.cssText = 'margin-top:6px;font-size:12px;color:#24416d;';
+      if (statusEl && statusEl.parentNode) {
+        statusEl.parentNode.insertBefore(noteEl, statusEl.nextSibling);
+      } else {
+        body.appendChild(noteEl);
       }
-      list.innerHTML = items.map(function (district, index) {
-        return '<button type=\"button\" data-district=\"' + escapeHtml(district) + '\" style=\"display:inline-block;margin:4px;padding:4px 8px;border:0;border-radius:999px;background:#eef4ff;color:#24416d;cursor:pointer;\">' + (index + 1) + '. ' + escapeHtml(district) + '</button>';
+    }
+
+    if (districtInput.dataset.districtMergedReady === '1') {
+      executeFeature(feature, 'districts-merged-inline', { reused: true });
+      return;
+    }
+    districtInput.dataset.districtMergedReady = '1';
+
+    var listId = 'ffx-tourism-district-inline-list';
+    var datalist = document.getElementById(listId);
+    if (!datalist) {
+      datalist = document.createElement('datalist');
+      datalist.id = listId;
+      document.body.appendChild(datalist);
+    }
+    districtInput.setAttribute('list', listId);
+
+    function setNote(text) {
+      if (noteEl) noteEl.textContent = text || '';
+    }
+
+    function setDistrictOptions(items) {
+      var safe = Array.isArray(items) ? items : [];
+      datalist.innerHTML = safe.map(function (district) {
+        return '<option value=\"' + escapeHtml(district) + '\"></option>';
       }).join('');
     }
 
     function loadDistricts() {
       getBusiness('/districts').then(function (data) {
-        cache = data && Array.isArray(data.districts) ? data.districts : [];
-        render(cache);
-        executeFeature(feature, 'districts-loaded', { count: cache.length });
+        var districts = data && Array.isArray(data.districts) ? data.districts : [];
+        setDistrictOptions(districts);
+        setNote('District directory merged in this explorer. Loaded ' + districts.length + ' districts.');
+        executeFeature(feature, 'districts-merged-inline', { count: districts.length });
       });
     }
 
-    merged.querySelector('#ffx-district-refresh').addEventListener('click', loadDistricts);
-    merged.querySelector('#ffx-district-search').addEventListener('input', function () {
-      var q = normalize(this.value);
-      if (!q) {
-        render(cache);
-        return;
-      }
-      render(cache.filter(function (item) {
-        return normalize(item).indexOf(q) !== -1;
-      }));
-    });
-
-    list.addEventListener('click', function (event) {
-      var button = event.target.closest('[data-district]');
-      if (!button) return;
-      var districtName = button.getAttribute('data-district') || '';
+    districtInput.addEventListener('change', function () {
+      var districtName = String(districtInput.value || '').trim();
       if (!districtName) return;
-      if (detail) detail.textContent = 'Loading details for ' + districtName + '...';
       getBusiness('/districts/' + encodeURIComponent(districtName) + '/detail').then(function (data) {
-        if (!detail) return;
         if (!data || !data.ok) {
-          detail.textContent = 'Details unavailable for ' + districtName;
+          setNote('Details unavailable for ' + districtName);
           return;
         }
         var info = data.detail && data.detail.info ? data.detail.info : {};
-        var runtime = data.runtime || {};
-        var categories = data.detail ? Object.keys(data.detail).filter(function (key) { return key !== 'info'; }) : [];
-        detail.innerHTML = [
-          '<div><strong>' + escapeHtml(districtName) + '</strong></div>',
-          '<div style=\"margin-top:4px;\">Dataset: ' + (data.datasetAvailable ? 'Yes' : 'No') + '</div>',
-          '<div>Population: ' + escapeHtml(info.population || 'N/A') + ' | Area: ' + escapeHtml(info.area || 'N/A') + '</div>',
-          '<div>Best Time: ' + escapeHtml(info.bestTime || 'N/A') + '</div>',
-          '<div>Categories: ' + escapeHtml(categories.join(', ') || 'N/A') + '</div>',
-          '<div>Runtime Tourism Places: ' + escapeHtml(runtime.tourismPlacesCount || 0) + ' | Listings: ' + escapeHtml(runtime.listingsCount || 0) + '</div>'
-        ].join('');
+        setNote(
+          districtName + ' | Best Time: ' + (info.bestTime || 'N/A') +
+          ' | Population: ' + (info.population || 'N/A')
+        );
       });
     });
 
