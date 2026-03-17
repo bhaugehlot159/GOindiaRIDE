@@ -87,6 +87,9 @@
     return Promise.resolve()
       .then(function () {
         return Promise.all([
+          loadScriptOnce('/js/locations.js', function () {
+            return !!(window.locationsData && window.locationsData.rajasthan && typeof window.locationsData.rajasthan === 'object');
+          }),
           loadScriptOnce('/js/rajasthan-data.js', function () {
             return !!(window.Rajasthan && typeof window.Rajasthan === 'object') || (typeof Rajasthan !== 'undefined' && Rajasthan && typeof Rajasthan === 'object');
           }),
@@ -335,7 +338,8 @@
   }
 
   function queryTourism(items, district, search) {
-    var districtKey = simplify(district);
+    var districtLabel = resolveFilterDistrictName(items, district);
+    var districtKey = simplify(districtLabel);
     var searchKey = simplify(search);
     return safeArray(items).filter(function (item) {
       var districtOk = !districtKey || simplify(item && item.district) === districtKey;
@@ -346,6 +350,38 @@
         simplify(item && item.history).indexOf(searchKey) !== -1;
       return districtOk && searchOk;
     });
+  }
+
+  function isAllDistrictFilter(rawDistrict) {
+    var raw = String(rawDistrict || '').trim();
+    if (!raw) return true;
+    var simple = simplify(raw);
+    var lower = normalize(raw);
+    if (!simple) {
+      return lower.indexOf('rajasthan') !== -1 || raw.indexOf('राजस्थान') !== -1;
+    }
+    return simple === 'all' || simple === 'allrajasthan' || simple === 'rajasthan';
+  }
+
+  function resolveFilterDistrictName(items, rawDistrict) {
+    if (isAllDistrictFilter(rawDistrict)) return '';
+
+    var input = String(rawDistrict || '').trim();
+    var inputKey = simplify(input);
+    if (!inputKey) return '';
+
+    var districts = unique(safeArray(items).map(function (item) { return item && item.district; }));
+    for (var i = 0; i < districts.length; i += 1) {
+      if (simplify(districts[i]) === inputKey) return districts[i];
+    }
+    for (var j = 0; j < districts.length; j += 1) {
+      var districtKey = simplify(districts[j]);
+      if (districtKey.indexOf(inputKey) !== -1 || inputKey.indexOf(districtKey) !== -1) {
+        return districts[j];
+      }
+    }
+
+    return input;
   }
 
   function toPickupValues(items) {
@@ -453,7 +489,8 @@
     var allItems = getAllTourismItems();
     mergeTourismIntoLocationsData(allItems);
     var allDistricts = unique(allItems.map(function (item) { return item && item.district; }));
-    fillDatalist(districtList, allDistricts, 5000);
+    fillDatalist(districtList, ['All Rajasthan'].concat(allDistricts), 5000);
+    districtInput.placeholder = 'All Rajasthan (leave blank for all districts)';
 
     function setStatus(text) {
       if (statusEl) statusEl.textContent = text || '';
@@ -489,7 +526,13 @@
       var search = String(searchInput.value || '').trim();
       var filtered = queryTourism(allItems, district, search);
       render(filtered);
-      setStatus('Loaded ' + filtered.length + ' place(s). Full dataset + auto suggestion active.');
+      var filterDistrict = resolveFilterDistrictName(allItems, district);
+      var districtCount = unique(filtered.map(function (item) { return item && item.district; })).length;
+      if (filterDistrict) {
+        setStatus('Loaded ' + filtered.length + ' place(s) for ' + filterDistrict + '. Full Rajasthan dataset + auto suggestion active.');
+      } else {
+        setStatus('Loaded ' + filtered.length + ' place(s) across ' + districtCount + ' Rajasthan district(s). Full dataset + auto suggestion active.');
+      }
     }
 
     function refreshPlaceSuggestions() {
@@ -557,7 +600,7 @@
       });
     }
 
-    if (!districtInput.value) districtInput.value = 'Udaipur';
+    if (isAllDistrictFilter(districtInput.value)) districtInput.value = '';
     runFilter();
     return true;
   }
