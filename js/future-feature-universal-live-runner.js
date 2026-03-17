@@ -11,11 +11,16 @@
   var runnerState = window.__GOINDIARIDE_UNIVERSAL_LIVE_RUNNER_STATE || {
     features: {},
     sortedIds: [],
-    filterText: ''
+    filterText: '',
+    lastVisibleCount: 0,
+    lastMatchCount: 0,
+    searchTimer: null
   };
   window.__GOINDIARIDE_UNIVERSAL_LIVE_RUNNER_STATE = runnerState;
 
   var LOCAL_STORE_KEY = 'goindiaride.runtime.universal-live-runner.v1';
+  var MAX_OPTIONS_DEFAULT = 180;
+  var MAX_OPTIONS_FILTERED = 800;
 
   function normalize(value) {
     return String(value || '').trim().toLowerCase();
@@ -28,6 +33,13 @@
       .replace(/>/g, '&gt;')
       .replace(/\"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function truncateText(value, maxLen) {
+    var text = String(value || '').trim();
+    var limit = Number(maxLen || 80);
+    if (!text || text.length <= limit) return text;
+    return text.slice(0, Math.max(10, limit - 1)) + '…';
   }
 
   function detectPageRole() {
@@ -291,12 +303,12 @@
   }
 
   function registerFeature(feature) {
-    if (!feature) return;
+    if (!feature) return false;
     var featureId = String(feature.featureId || '').trim();
-    if (!featureId) return;
+    if (!featureId) return false;
 
     var category = normalize(feature.category || 'additional') || 'additional';
-    if (!isCategoryAllowed(category)) return;
+    if (!isCategoryAllowed(category)) return false;
 
     if (!runnerState.features[featureId]) {
       runnerState.features[featureId] = {
@@ -306,7 +318,9 @@
         sourceLine: Number(feature.sourceLine || 0) || 0,
         blockKey: feature.blockKey || ''
       };
+      return true;
     }
+    return false;
   }
 
   function rebuildFeatureIndex() {
@@ -321,15 +335,17 @@
   }
 
   function collectFromRegistry() {
+    var changed = false;
     var keys = Object.keys(registry || {});
     for (var i = 0; i < keys.length; i += 1) {
       var blockKey = keys[i];
       var items = registry[blockKey] || [];
       for (var j = 0; j < items.length; j += 1) {
-        registerFeature(items[j]);
+        if (registerFeature(items[j])) changed = true;
       }
     }
-    rebuildFeatureIndex();
+    if (changed) rebuildFeatureIndex();
+    return changed;
   }
 
   function ensureCard() {
@@ -395,7 +411,13 @@
     var meta = card.querySelector('#fful-meta');
     if (!meta) return;
     var total = runnerState.sortedIds.length;
-    meta.textContent = 'Role: ' + PAGE_ROLE + ' | Loaded Features: ' + total + ' | Source: folder-wise live registries';
+    var visible = Number(runnerState.lastVisibleCount || 0);
+    var matched = Number(runnerState.lastMatchCount || total);
+    var info = 'Role: ' + PAGE_ROLE + ' | Loaded Features: ' + total + ' | Source: folder-wise live registries';
+    if (matched && visible && visible !== matched) {
+      info += ' | Showing: ' + visible + ' / ' + matched + ' (type in search to narrow)';
+    }
+    meta.textContent = info;
   }
 
   function refreshFeatureOptions(card) {
@@ -406,17 +428,45 @@
     var previous = select.value;
     var filterText = normalize(search ? search.value : runnerState.filterText);
 
-    var html = [];
+    var matches = [];
     for (var i = 0; i < runnerState.sortedIds.length; i += 1) {
       var featureId = runnerState.sortedIds[i];
       var feature = runnerState.features[featureId];
       if (!feature) continue;
       var hay = normalize(feature.featureId + ' ' + feature.category + ' ' + feature.description);
       if (filterText && hay.indexOf(filterText) === -1) continue;
-      html.push('<option value="' + escapeHtml(feature.featureId) + '">' + escapeHtml(feature.featureId + ' [' + feature.category + '] - ' + feature.description) + '</option>');
+      matches.push(feature.featureId);
     }
 
-    select.innerHTML = html.join('');
+    var maxOptions = filterText ? MAX_OPTIONS_FILTERED : MAX_OPTIONS_DEFAULT;
+    var visibleIds = matches.slice(0, maxOptions);
+    if (previous && runnerState.features[previous] && visibleIds.indexOf(previous) === -1) {
+      visibleIds.unshift(previous);
+      if (visibleIds.length > maxOptions) visibleIds.pop();
+    }
+
+    runnerState.lastMatchCount = matches.length;
+    runnerState.lastVisibleCount = visibleIds.length;
+
+    select.innerHTML = '';
+    var fragment = document.createDocumentFragment();
+    for (var vi = 0; vi < visibleIds.length; vi += 1) {
+      var optionFeature = runnerState.features[visibleIds[vi]];
+      if (!optionFeature) continue;
+      var option = document.createElement('option');
+      option.value = optionFeature.featureId;
+      option.textContent = optionFeature.featureId + ' [' + optionFeature.category + '] - ' + truncateText(optionFeature.description || 'No description', 72);
+      fragment.appendChild(option);
+    }
+
+    if (matches.length > visibleIds.length) {
+      var more = document.createElement('option');
+      more.value = '';
+      more.disabled = true;
+      more.textContent = '... ' + (matches.length - visibleIds.length) + ' more results (type to filter)';
+      fragment.appendChild(more);
+    }
+    select.appendChild(fragment);
 
     if (previous && runnerState.features[previous] && select.querySelector('option[value="' + safeCssEscape(previous) + '"]')) {
       select.value = previous;
@@ -442,7 +492,10 @@
     if (search) {
       search.addEventListener('input', function () {
         runnerState.filterText = String(search.value || '');
-        refreshFeatureOptions(card);
+        if (runnerState.searchTimer) window.clearTimeout(runnerState.searchTimer);
+        runnerState.searchTimer = window.setTimeout(function () {
+          refreshFeatureOptions(card);
+        }, 120);
       });
     }
 
@@ -581,8 +634,8 @@
 
   function registerFromDetail(detail) {
     var feature = getFeatureFromDetail(detail || {});
-    if (!feature) return;
-    registerFeature(feature);
+    if (!feature) return false;
+    return registerFeature(feature);
   }
 
   function boot() {
@@ -590,15 +643,17 @@
     refreshCard();
 
     window.addEventListener(EVENT_NAME, function (event) {
-      registerFromDetail((event && event.detail) || {});
-      rebuildFeatureIndex();
-      refreshCard();
+      if (registerFromDetail((event && event.detail) || {})) {
+        rebuildFeatureIndex();
+        refreshCard();
+      }
     });
 
     window.setInterval(function () {
-      collectFromRegistry();
-      refreshCard();
-    }, 2000);
+      if (collectFromRegistry()) {
+        refreshCard();
+      }
+    }, 5000);
   }
 
   if (document.readyState === 'loading') {
