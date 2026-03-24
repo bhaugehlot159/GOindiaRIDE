@@ -5,6 +5,10 @@ backend/.env
 npm-debug.log*
 
 _exports/*.tar
+_exports/*.xls
 GOindiaRIDE_backup*.zip
 GOindiaRIDE_git_*.bundle
 _restore_test/
+
+# Keep PropertySetu project isolated from GOindiaRIDE repo tracking
+PropertySetu/
