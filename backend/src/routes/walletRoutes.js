@@ -1825,6 +1825,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   const RUNTIME_AUTO_DEDUCT_FAIL_MAX = Math.max(1, Number(process.env.RUNTIME_AUTO_DEDUCT_FAIL_MAX || 10));
   const RUNTIME_AUTO_DEDUCT_BLOCK_MS = Math.max(30 * 1000, Number(process.env.RUNTIME_AUTO_DEDUCT_BLOCK_MS || 30 * 60 * 1000));
   const RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS = Math.max(RUNTIME_AUTO_DEDUCT_BLOCK_MS, Number(process.env.RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS || 24 * 60 * 60 * 1000));
+  const RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS = Math.max(
+    RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS,
+    Number(process.env.RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS || 24 * 60 * 60 * 1000)
+  );
+  const RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_FACTOR = Math.max(
+    1,
+    Math.min(5, Number(process.env.RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_FACTOR || 2))
+  );
+  const RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS = Math.min(
+    RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS,
+    Math.max(RUNTIME_AUTO_DEDUCT_BLOCK_MS, Number(process.env.RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS || 4 * 60 * 60 * 1000))
+  );
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -2057,7 +2069,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       },
       runtimeSecurityState: {
         blockedUsers: {},
-        failedAutoDeductAttempts: []
+        failedAutoDeductAttempts: [],
+        securityIncidents: []
       },
       tourismPlaces: seedTourismPlaces.map((item) => ({
         id: crypto.randomUUID(),
@@ -2138,6 +2151,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           ? safeObject(source.runtimeSecurityState).failedAutoDeductAttempts
           : Array.isArray(safeObject(store.runtimeSecurityState).failedAutoDeductAttempts)
             ? safeObject(store.runtimeSecurityState).failedAutoDeductAttempts
+            : [],
+        securityIncidents: Array.isArray(safeObject(source.runtimeSecurityState).securityIncidents)
+          ? safeObject(source.runtimeSecurityState).securityIncidents
+          : Array.isArray(safeObject(store.runtimeSecurityState).securityIncidents)
+            ? safeObject(store.runtimeSecurityState).securityIncidents
             : []
       },
       tourismPlaces: Array.isArray(source.tourismPlaces) && source.tourismPlaces.length
@@ -2335,9 +2353,13 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const failedAutoDeductAttempts = Array.isArray(source.failedAutoDeductAttempts)
       ? source.failedAutoDeductAttempts
       : [];
+    const securityIncidents = Array.isArray(source.securityIncidents)
+      ? source.securityIncidents
+      : [];
     const state = {
       blockedUsers,
-      failedAutoDeductAttempts
+      failedAutoDeductAttempts,
+      securityIncidents
     };
     store.runtimeSecurityState = state;
     return state;
@@ -2383,6 +2405,43 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     return count;
   }
 
+  function countRecentFailedAutoDeductAttemptsByReason(store, userKey, reason, windowMs = RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS) {
+    const normalizedReason = normalizeString(reason, 120) || '';
+    if (!normalizedReason) return 0;
+
+    const state = getRuntimeSecurityState(store);
+    const rows = Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts : [];
+    const threshold = Date.now() - Math.max(1000, Number(windowMs || RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS));
+    let count = 0;
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = rows[i];
+      if (String(row.userKey) !== String(userKey)) continue;
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold) break;
+      if (String(row.reason || '') !== normalizedReason) continue;
+      count += 1;
+    }
+    return count;
+  }
+
+  function countRecentBlockActions(record, windowMs = RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS) {
+    const history = Array.isArray(safeObject(record).history) ? safeObject(record).history : [];
+    if (!history.length) return 0;
+
+    const threshold = Date.now() - Math.max(60 * 1000, Number(windowMs || RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS));
+    let count = 0;
+    for (let i = history.length - 1; i >= 0; i -= 1) {
+      const row = safeObject(history[i]);
+      if (String(row.action || '') !== 'block') continue;
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold) break;
+      count += 1;
+    }
+    return count;
+  }
+
   function addFailedAutoDeductAttempt(store, payload = {}) {
     const state = getRuntimeSecurityState(store);
     const item = {
@@ -2400,6 +2459,26 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     return item;
   }
 
+  function addRuntimeSecurityIncident(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const item = {
+      id: crypto.randomUUID(),
+      userKey: normalizeString(payload.userKey, 80),
+      type: normalizeString(payload.type, 120) || 'auto_deduct_security_incident',
+      severity: normalizeString(payload.severity, 20) || 'medium',
+      reason: normalizeString(payload.reason, 160) || 'unknown',
+      amount: normalizeAmount(payload.amount),
+      autoDeductReference: normalizeString(payload.autoDeductReference, 140),
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      metadata: safeObject(payload.metadata),
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(state.securityIncidents, item);
+    store.runtimeSecurityState = state;
+    return item;
+  }
+
   function applyRuntimeAutoDeductBlock(store, payload = {}) {
     const state = getRuntimeSecurityState(store);
     const userKey = normalizeString(payload.userKey, 80);
@@ -2407,11 +2486,17 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
     const existing = safeObject(state.blockedUsers[userKey]);
     const now = new Date();
-    const durationMs = Math.min(
+    const baseDurationMs = Math.min(
       Math.max(30 * 1000, Number(payload.durationMs || RUNTIME_AUTO_DEDUCT_BLOCK_MS)),
       RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS
     );
-    const blockedUntil = new Date(now.getTime() + durationMs).toISOString();
+    const recentBlockCount = countRecentBlockActions(existing, RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS);
+    const escalationSteps = Math.max(0, recentBlockCount);
+    const escalatedDurationMs = Math.min(
+      RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS,
+      Math.round(baseDurationMs * Math.pow(RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_FACTOR, escalationSteps))
+    );
+    const blockedUntil = new Date(now.getTime() + escalatedDurationMs).toISOString();
     const history = Array.isArray(existing.history) ? existing.history : [];
     history.push({
       id: crypto.randomUUID(),
@@ -2420,7 +2505,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       actorUserId: normalizeString(payload.actorUserId, 120),
       ip: normalizeString(payload.ip, 120),
       createdAt: now.toISOString(),
-      blockedUntil
+      blockedUntil,
+      baseDurationMs,
+      escalatedDurationMs,
+      escalationSteps
     });
 
     const nextRecord = {
@@ -2433,6 +2521,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       blockedByActorUserId: normalizeString(payload.actorUserId, 120) || normalizeString(existing.blockedByActorUserId, 120) || 'system',
       metadata: {
         ...safeObject(existing.metadata),
+        baseDurationMs,
+        escalatedDurationMs,
+        escalationSteps,
+        blockEscalationFactor: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_FACTOR,
+        escalationWindowMs: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS,
         ...safeObject(payload.metadata)
       },
       history
@@ -2482,9 +2575,30 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       payload.userKey,
       RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS
     );
+    const normalizedReason = normalizeString(payload.reason, 120) || 'unknown';
+    const recentIntegrityFailures = countRecentFailedAutoDeductAttemptsByReason(
+      store,
+      payload.userKey,
+      'integrity_failed',
+      24 * 60 * 60 * 1000
+    );
 
     let block = null;
-    if (recentFailures >= RUNTIME_AUTO_DEDUCT_FAIL_MAX && String(payload.actorType || '') !== 'admin') {
+    if (normalizedReason === 'integrity_failed' && String(payload.actorType || '') !== 'admin') {
+      block = applyRuntimeAutoDeductBlock(store, {
+        userKey: payload.userKey,
+        reason: 'auto_deduct_integrity_failure',
+        durationMs: RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS,
+        actorUserId: 'system',
+        ip: payload.ip,
+        metadata: {
+          reason: normalizedReason,
+          recentFailures,
+          recentIntegrityFailures,
+          durationMs: RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS
+        }
+      });
+    } else if (recentFailures >= RUNTIME_AUTO_DEDUCT_FAIL_MAX && String(payload.actorType || '') !== 'admin') {
       block = applyRuntimeAutoDeductBlock(store, {
         userKey: payload.userKey,
         reason: `auto_deduct_fail_threshold:${normalizeString(payload.reason, 80) || 'unknown'}`,
@@ -2498,10 +2612,91 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       });
     }
 
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: payload.userKey,
+      type: normalizedReason === 'integrity_failed' ? 'auto_deduct_integrity_failure' : 'auto_deduct_failed_attempt',
+      severity: block ? 'high' : normalizedReason === 'integrity_failed' ? 'critical' : 'medium',
+      reason: normalizedReason,
+      amount: payload.amount,
+      autoDeductReference: payload.autoDeductReference,
+      actorUserId: payload.actorUserId,
+      ip: payload.ip,
+      metadata: {
+        recentFailures,
+        recentIntegrityFailures,
+        blocked: Boolean(block),
+        blockedUntil: block ? block.blockedUntil : null
+      }
+    });
+
     return {
       attempt,
       recentFailures,
-      block
+      recentIntegrityFailures,
+      block,
+      incident
+    };
+  }
+
+  function buildRuntimeUserRiskProfile(store, userKey) {
+    const normalizedUserKey = normalizeString(userKey, 80);
+    if (!normalizedUserKey) return null;
+
+    const recentFailures10m = countRecentFailedAutoDeductAttempts(store, normalizedUserKey, 10 * 60 * 1000);
+    const recentFailures1h = countRecentFailedAutoDeductAttempts(store, normalizedUserKey, 60 * 60 * 1000);
+    const recentIntegrityFailures24h = countRecentFailedAutoDeductAttemptsByReason(
+      store,
+      normalizedUserKey,
+      'integrity_failed',
+      24 * 60 * 60 * 1000
+    );
+    const blockStatus = getRuntimeBlockStatus(store, normalizedUserKey);
+
+    const state = getRuntimeSecurityState(store);
+    const incidentRows = (Array.isArray(state.securityIncidents) ? state.securityIncidents : [])
+      .filter((row) => String(row.userKey) === String(normalizedUserKey));
+    const threshold24h = Date.now() - (24 * 60 * 60 * 1000);
+
+    let highOrCriticalIncidents24h = 0;
+    for (let i = incidentRows.length - 1; i >= 0; i -= 1) {
+      const row = incidentRows[i];
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold24h) break;
+      const severity = normalizeString(row.severity, 20).toLowerCase();
+      if (severity === 'high' || severity === 'critical') {
+        highOrCriticalIncidents24h += 1;
+      }
+    }
+
+    const rawScore = (
+      (recentFailures10m * 9)
+      + (recentFailures1h * 3)
+      + (recentIntegrityFailures24h * 22)
+      + (highOrCriticalIncidents24h * 8)
+      + (blockStatus.blocked ? 25 : 0)
+    );
+    const score = Math.max(0, Math.min(100, rawScore));
+    const level = score >= 80
+      ? 'critical'
+      : score >= 60
+        ? 'high'
+        : score >= 35
+          ? 'medium'
+          : 'low';
+
+    return {
+      userKey: normalizedUserKey,
+      score,
+      level,
+      blocked: blockStatus.blocked,
+      blockedUntil: blockStatus.record ? blockStatus.record.blockedUntil : null,
+      indicators: {
+        recentFailures10m,
+        recentFailures1h,
+        recentIntegrityFailures24h,
+        highOrCriticalIncidents24h
+      }
     };
   }
 
@@ -3054,13 +3249,16 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
     const blockStatus = getRuntimeBlockStatus(store, userKey);
     if (blockStatus.blocked) {
+      const riskProfile = buildRuntimeUserRiskProfile(store, userKey);
       const blockEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_blocked', {
         userKey,
         autoDeductReference,
         actorUserId: normalizeString(req.user && req.user.id, 120),
         ip: getClientIp(req),
         blockedUntil: blockStatus.record ? blockStatus.record.blockedUntil : null,
-        remainingMs: blockStatus.remainingMs
+        remainingMs: blockStatus.remainingMs,
+        riskScore: riskProfile ? riskProfile.score : null,
+        riskLevel: riskProfile ? riskProfile.level : null
       });
       queuePersist();
 
@@ -3069,6 +3267,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         message: 'Auto deduction temporarily blocked for this user',
         blockedUntil: blockStatus.record ? blockStatus.record.blockedUntil : null,
         remainingMs: blockStatus.remainingMs,
+        risk: riskProfile,
         runtimeEventId: blockEvent ? blockEvent.id : null
       });
     }
@@ -3103,6 +3302,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         actorType,
         ip: getClientIp(req)
       });
+      const riskProfile = buildRuntimeUserRiskProfile(store, userKey);
       const failureEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_failed', {
         userKey,
         reason,
@@ -3111,19 +3311,24 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         actorUserId: normalizeString(req.user && req.user.id, 120),
         ip: getClientIp(req),
         recentFailures: failure.recentFailures,
+        recentIntegrityFailures: failure.recentIntegrityFailures,
         blocked: Boolean(failure.block),
-        blockedUntil: failure.block ? failure.block.blockedUntil : null
+        blockedUntil: failure.block ? failure.block.blockedUntil : null,
+        securityIncidentId: failure.incident ? failure.incident.id : null,
+        riskScore: riskProfile ? riskProfile.score : null,
+        riskLevel: riskProfile ? riskProfile.level : null
       });
       queuePersist();
       return {
         failure,
-        failureEvent
+        failureEvent,
+        riskProfile
       };
     }
 
     const integrityCheck = verifyAutoDeductionIntegrityChain(store, userKey);
     if (!integrityCheck.ok) {
-      const { failure, failureEvent } = registerSpendFailure('integrity_failed');
+      const { failure, failureEvent, riskProfile } = registerSpendFailure('integrity_failed');
       logSecurityEvent({
         userId: req.user && req.user.id,
         action: 'legacy_wallet_auto_deduct_chain_tamper_detected',
@@ -3141,6 +3346,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           ok: false,
           message: 'Auto deduction temporarily blocked due to suspicious activity',
           blockedUntil: failure.block.blockedUntil,
+          risk: riskProfile,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -3148,6 +3354,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       return res.status(409).json({
         ok: false,
         message: 'Auto deduction integrity validation failed. Contact admin.',
+        risk: riskProfile,
         runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
@@ -3158,7 +3365,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       && amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE
       && String(req.headers['x-otp-verified'] || '').toLowerCase() !== 'true'
     ) {
-      const { failure, failureEvent } = registerSpendFailure('otp_required');
+      const { failure, failureEvent, riskProfile } = registerSpendFailure('otp_required');
       logSecurityEvent({
         userId: req.user && req.user.id,
         action: 'legacy_wallet_high_value_auto_deduct_otp_required',
@@ -3177,6 +3384,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           ok: false,
           message: 'Auto deduction temporarily blocked due to repeated failed checks',
           blockedUntil: failure.block.blockedUntil,
+          risk: riskProfile,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -3184,6 +3392,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       return res.status(401).json({
         ok: false,
         message: `OTP verification required for auto deduction >= ${RUNTIME_AUTO_DEDUCT_HIGH_VALUE}`,
+        risk: riskProfile,
         runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
@@ -3217,7 +3426,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     if (actorType !== 'admin') {
       const recentCount = countRecentAutoDeductions(store, userKey, RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS);
       if (recentCount >= RUNTIME_AUTO_DEDUCT_RATE_MAX) {
-        const { failure, failureEvent } = registerSpendFailure('rate_limited');
+        const { failure, failureEvent, riskProfile } = registerSpendFailure('rate_limited');
         logSecurityEvent({
           userId: req.user && req.user.id,
           action: 'legacy_wallet_auto_deduct_rate_limited',
@@ -3249,6 +3458,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
             ok: false,
             message: 'Auto deduction temporarily blocked due to repeated rate-limit hits',
             blockedUntil: failure.block.blockedUntil,
+            risk: riskProfile,
             runtimeEventId: failureEvent ? failureEvent.id : null
           });
         }
@@ -3259,6 +3469,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           recentCount,
           windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
           max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
+          risk: riskProfile,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -3266,12 +3477,13 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
     const wallet = walletForUser(store, userKey);
     if (wallet.balance < amount) {
-      const { failure, failureEvent } = registerSpendFailure('insufficient_balance');
+      const { failure, failureEvent, riskProfile } = registerSpendFailure('insufficient_balance');
       if (failure.block) {
         return res.status(423).json({
           ok: false,
           message: 'Auto deduction temporarily blocked due to repeated failed attempts',
           blockedUntil: failure.block.blockedUntil,
+          risk: riskProfile,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -3280,6 +3492,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         ok: false,
         message: 'Insufficient wallet balance',
         balance: wallet.balance,
+        risk: riskProfile,
         runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
@@ -3354,10 +3567,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
   router.get('/runtime/audit/digest', requireAdmin, (req, res) => {
     const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const blockedRecords = Object.values(safeObject(state.blockedUsers || {})).map((row) => safeObject(row));
     return res.status(200).json({
       eventDigest: getRuntimeEventDigest(store),
       snapshotDigest: getRuntimeSnapshotDigest(store),
       storeSummary: buildRuntimeStoreSummary(store),
+      runtimeSecurity: {
+        blockedUsersTotal: blockedRecords.length,
+        blockedUsersActive: blockedRecords.filter((row) => row.active).length,
+        failedAutoDeductAttempts: Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts.length : 0,
+        securityIncidents: Array.isArray(state.securityIncidents) ? state.securityIncidents.length : 0
+      },
       files: {
         store: getRuntimeFileMetadata(DATA_FILE),
         backup: getRuntimeFileMetadata(DATA_FILE_BACKUP),
@@ -3469,7 +3690,14 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const state = getRuntimeSecurityState(store);
     const records = Object.values(safeObject(state.blockedUsers || {}))
       .map((item) => safeObject(item))
-      .filter((item) => normalizeString(item.userKey, 80));
+      .filter((item) => normalizeString(item.userKey, 80))
+      .map((item) => {
+        const normalizedUserKey = normalizeString(item.userKey, 80);
+        return {
+          ...item,
+          risk: buildRuntimeUserRiskProfile(store, normalizedUserKey)
+        };
+      });
 
     return res.status(200).json({
       total: records.length,
@@ -3482,17 +3710,79 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const store = getStore();
     const state = getRuntimeSecurityState(store);
     const userKey = normalizeString(req.query.userKey, 80);
+    const reason = normalizeString(req.query.reason, 120);
     const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 100)));
     const rows = (Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts : [])
       .filter((item) => !userKey || String(item.userKey) === String(userKey))
+      .filter((item) => !reason || String(item.reason) === String(reason))
       .slice(-limit)
       .reverse();
+    const summary = rows.reduce((acc, item) => {
+      const key = normalizeString(item.reason, 120) || 'unknown';
+      acc[key] = Number(acc[key] || 0) + 1;
+      return acc;
+    }, {});
 
     return res.status(200).json({
       userKey: userKey || null,
+      reason: reason || null,
       limit,
       count: rows.length,
+      summary,
       rows
+    });
+  });
+
+  router.get('/runtime/security/incidents', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const userKey = normalizeString(req.query.userKey, 80);
+    const severity = normalizeString(req.query.severity, 20).toLowerCase();
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 100)));
+    const rows = (Array.isArray(state.securityIncidents) ? state.securityIncidents : [])
+      .filter((item) => !userKey || String(item.userKey) === String(userKey))
+      .filter((item) => !severity || String(normalizeString(item.severity, 20)).toLowerCase() === severity)
+      .slice(-limit)
+      .reverse();
+
+    const summary = rows.reduce((acc, item) => {
+      const key = normalizeString(item.severity, 20).toLowerCase() || 'unknown';
+      acc[key] = Number(acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return res.status(200).json({
+      userKey: userKey || null,
+      severity: severity || null,
+      limit,
+      count: rows.length,
+      summary,
+      rows
+    });
+  });
+
+  router.get('/runtime/security/risk/:userKey', requireAdmin, (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.params.userKey, 80);
+    if (!userKey) {
+      return res.status(400).json({ message: 'userKey is required' });
+    }
+
+    const profile = buildRuntimeUserRiskProfile(store, userKey);
+    const blockedRecord = getRuntimeBlockedUserRecord(store, userKey);
+    return res.status(200).json({
+      userKey,
+      profile,
+      block: blockedRecord,
+      thresholds: {
+        failWindowMs: RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS,
+        failMax: RUNTIME_AUTO_DEDUCT_FAIL_MAX,
+        baseBlockMs: RUNTIME_AUTO_DEDUCT_BLOCK_MS,
+        maxBlockMs: RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS,
+        escalationFactor: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_FACTOR,
+        escalationWindowMs: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS,
+        integrityBlockMs: RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS
+      }
     });
   });
 
@@ -3519,18 +3809,32 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         source: 'admin_manual_block'
       }
     });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey,
+      type: 'admin_manual_block',
+      severity: 'high',
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        requestedDurationMs: durationMs,
+        blockedUntil: record ? record.blockedUntil : null
+      }
+    });
     const event = appendRuntimeEvent(store, 'runtime_manual_user_block', {
       userKey,
       reason,
       durationMs,
       actorUserId: normalizeString(req.user && req.user.id, 120),
-      ip: getClientIp(req)
+      ip: getClientIp(req),
+      securityIncidentId: incident ? incident.id : null
     });
     queuePersist();
 
     return res.status(201).json({
       message: 'User blocked for auto-deduct actions',
       record,
+      securityIncidentId: incident ? incident.id : null,
       runtimeEventId: event ? event.id : null
     });
   });
@@ -3554,17 +3858,30 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       actorUserId: normalizeString(req.user && req.user.id, 120),
       ip: getClientIp(req)
     });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey,
+      type: 'admin_manual_unblock',
+      severity: 'medium',
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        releaseReason: reason
+      }
+    });
     const event = appendRuntimeEvent(store, 'runtime_manual_user_unblock', {
       userKey,
       reason,
       actorUserId: normalizeString(req.user && req.user.id, 120),
-      ip: getClientIp(req)
+      ip: getClientIp(req),
+      securityIncidentId: incident ? incident.id : null
     });
     queuePersist();
 
     return res.status(200).json({
       message: 'User unblocked for auto-deduct actions',
       record,
+      securityIncidentId: incident ? incident.id : null,
       runtimeEventId: event ? event.id : null
     });
   });
