@@ -220,6 +220,30 @@ async function createTransaction(payload) {
   });
 }
 
+async function assertProviderReferenceNotReused({ providerReference, source, bookingId, driverId }) {
+  const reference = sanitizeText(providerReference, 180);
+  if (!reference) return;
+
+  const existing = await WalletTransaction.findOne({
+    source,
+    direction: source === 'driver_ride_refund' ? 'debit' : 'credit',
+    status: { $ne: 'failed' },
+    providerReference: reference
+  }).lean();
+
+  if (!existing) return;
+
+  const sameBooking = String(existing?.metadata?.bookingId || '') === String(bookingId || '');
+  const sameDriver = String(existing?.ownerId || '') === String(driverId || '');
+  if (sameBooking && sameDriver) {
+    return;
+  }
+
+  const error = new Error('providerReference already used for another driver settlement flow');
+  error.statusCode = 409;
+  throw error;
+}
+
 async function ensureDriverCommissionWallet(driverId, currency = 'INR', region = INDIA_REGION) {
   const ownerId = sanitizeText(driverId, 120);
   if (!ownerId) {
@@ -458,6 +482,12 @@ async function processDriverRideSettlement(options = {}) {
   }
 
   const clientReference = sanitizeText(options.clientReference, 140) || `DRV_${bookingId}_${driverId}`;
+  await assertProviderReferenceNotReused({
+    providerReference,
+    source: 'driver_ride_settlement',
+    bookingId,
+    driverId
+  });
   const breakdown = buildSettlementBreakdown(grossAmount, region, config);
 
   const customerCommissionConfig = await ensureCommissionConfig();
@@ -659,6 +689,12 @@ async function processDriverRideRefund(options = {}) {
 
   const providerReference = sanitizeText(options.providerReference, 180) || `AUTO_REF_${bookingId}_${Date.now()}`;
   const clientReference = sanitizeText(options.clientReference, 140) || `DRV_REF_${bookingId}_${Date.now()}`;
+  await assertProviderReferenceNotReused({
+    providerReference,
+    source: 'driver_ride_refund',
+    bookingId,
+    driverId
+  });
 
   const driverWallet = await debitWallet(DRIVER_COMMISSION_WALLET_TYPE, driverId, refundDriverNetAmount, currency, {
     lastRefundBookingId: bookingId,

@@ -243,6 +243,25 @@ async function createWalletTransaction(payload) {
   });
 }
 
+async function assertProviderReferenceNotReused(providerReference, bookingId) {
+  const reference = sanitizeText(providerReference, 180);
+  if (!reference) return;
+
+  const existing = await WalletTransaction.findOne({
+    walletType: COMMISSION_WALLET_TYPE,
+    source: 'customer_payment_collected',
+    direction: 'credit',
+    status: { $ne: 'failed' },
+    providerReference: reference
+  }).lean();
+
+  if (existing && String(existing?.metadata?.bookingId || '') !== String(bookingId || '')) {
+    const error = new Error('providerReference already used for another booking settlement');
+    error.statusCode = 409;
+    throw error;
+  }
+}
+
 async function creditCommissionWallet({ ownerId, amount, currency, region, metadata = {} }) {
   const existingWallet = await WalletAccount.findOne({
     walletType: COMMISSION_WALLET_TYPE,
@@ -400,6 +419,8 @@ async function collectCustomerPaymentToCommissionWallet(options = {}) {
 
   const clientReference = sanitizeText(options.clientReference, 140)
     || `CM_${bookingId}_${customerId}`;
+
+  await assertProviderReferenceNotReused(providerReference, bookingId);
 
   const breakdown = buildCommissionBreakdown(amount, region, config);
   const wallet = await creditCommissionWallet({
