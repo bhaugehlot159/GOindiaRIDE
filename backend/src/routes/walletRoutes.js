@@ -1804,16 +1804,21 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   const DATA_FILE_BACKUP = path.join(DATA_DIR, 'future-business-store.backup.json');
   const DATA_FILE_TEMP = path.join(DATA_DIR, 'future-business-store.tmp.json');
   const DATA_EVENTS_FILE = path.join(DATA_DIR, 'future-business-store.events.ndjson');
+  const DATA_SNAPSHOTS_FILE = path.join(DATA_DIR, 'future-business-store.snapshots.ndjson');
   const RUNTIME_REPO_ROOT = path.resolve(__dirname, '../../..');
   const REL_DATA_FILE = path.relative(RUNTIME_REPO_ROOT, DATA_FILE).replace(/\\/g, '/');
   const REL_DATA_FILE_BACKUP = path.relative(RUNTIME_REPO_ROOT, DATA_FILE_BACKUP).replace(/\\/g, '/');
   const REL_DATA_EVENTS_FILE = path.relative(RUNTIME_REPO_ROOT, DATA_EVENTS_FILE).replace(/\\/g, '/');
+  const REL_DATA_SNAPSHOTS_FILE = path.relative(RUNTIME_REPO_ROOT, DATA_SNAPSHOTS_FILE).replace(/\\/g, '/');
   const RUNTIME_GIT_SYNC_ENABLED = String(process.env.RUNTIME_GIT_SYNC_ENABLED || 'true').trim().toLowerCase() === 'true';
   const RUNTIME_GIT_SYNC_REMOTE = String(process.env.RUNTIME_GIT_SYNC_REMOTE || 'origin').trim() || 'origin';
   const RUNTIME_GIT_SYNC_TARGET = String(process.env.RUNTIME_GIT_SYNC_TARGET || 'HEAD').trim() || 'HEAD';
   const RUNTIME_GIT_SYNC_DEBOUNCE_MS = Math.max(1000, Number(process.env.RUNTIME_GIT_SYNC_DEBOUNCE_MS || 5000));
   const RUNTIME_EVENTS_ENABLED = String(process.env.RUNTIME_EVENTS_ENABLED || 'true').trim().toLowerCase() === 'true';
   const RUNTIME_EVENT_HASH_SECRET = String(process.env.RUNTIME_EVENT_HASH_SECRET || process.env.API_SIGNATURE_SECRET || process.env.JWT_SECRET || 'runtime_event_hash_secret');
+  const RUNTIME_SNAPSHOTS_ENABLED = String(process.env.RUNTIME_SNAPSHOTS_ENABLED || 'true').trim().toLowerCase() === 'true';
+  const RUNTIME_SNAPSHOT_HASH_SECRET = String(process.env.RUNTIME_SNAPSHOT_HASH_SECRET || process.env.API_SIGNATURE_SECRET || process.env.JWT_SECRET || 'runtime_snapshot_hash_secret');
+  const RUNTIME_AUDIT_MAX_LIMIT = Math.max(50, Number(process.env.RUNTIME_AUDIT_MAX_LIMIT || 2000));
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -1944,6 +1949,9 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     if (fs.existsSync(DATA_EVENTS_FILE)) {
       addTargets.push(REL_DATA_EVENTS_FILE);
     }
+    if (fs.existsSync(DATA_SNAPSHOTS_FILE)) {
+      addTargets.push(REL_DATA_SNAPSHOTS_FILE);
+    }
 
     runGitCommand(['add', ...addTargets], (addError) => {
       if (addError) {
@@ -2036,6 +2044,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         totalEvents: 0,
         lastEventAt: null
       },
+      runtimeSnapshotDigest: {
+        lastHash: AUTO_DEDUCT_HASH_GENESIS,
+        totalSnapshots: 0,
+        lastSnapshotAt: null
+      },
       tourismPlaces: seedTourismPlaces.map((item) => ({
         id: crypto.randomUUID(),
         district: item.district,
@@ -2101,6 +2114,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       runtimeEventDigest: {
         ...safeObject(store.runtimeEventDigest),
         ...safeObject(source.runtimeEventDigest)
+      },
+      runtimeSnapshotDigest: {
+        ...safeObject(store.runtimeSnapshotDigest),
+        ...safeObject(source.runtimeSnapshotDigest)
       },
       tourismPlaces: Array.isArray(source.tourismPlaces) && source.tourismPlaces.length
         ? source.tourismPlaces
@@ -2192,6 +2209,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
       fs.copyFileSync(DATA_FILE_TEMP, DATA_FILE);
       fs.copyFileSync(DATA_FILE, DATA_FILE_BACKUP);
+      appendRuntimeSnapshot(data, 'persist_write');
       fs.unlinkSync(DATA_FILE_TEMP);
       queueRuntimeGitSync();
     } catch (_error) {
@@ -2486,6 +2504,190 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     }
   }
 
+  function getRuntimeSnapshotDigest(store) {
+    const input = safeObject(store.runtimeSnapshotDigest);
+    return {
+      lastHash: normalizeString(input.lastHash, 128) || AUTO_DEDUCT_HASH_GENESIS,
+      totalSnapshots: Number.isFinite(Number(input.totalSnapshots)) ? Number(input.totalSnapshots) : 0,
+      lastSnapshotAt: input.lastSnapshotAt || null,
+      lastWriteErrorAt: input.lastWriteErrorAt || null
+    };
+  }
+
+  function buildRuntimeStoreSummary(store) {
+    const wallets = safeObject(store.wallets);
+    const walletRows = Object.values(wallets);
+    const totalWalletBalance = walletRows.reduce((sum, row) => sum + Number(row && row.balance ? row.balance : 0), 0);
+
+    return {
+      wallets: {
+        count: walletRows.length,
+        totalBalance: normalizeAmount(totalWalletBalance)
+      },
+      arrays: {
+        notifications: Array.isArray(store.notifications) ? store.notifications.length : 0,
+        commissions: Array.isArray(store.commissions) ? store.commissions.length : 0,
+        authLogs: Array.isArray(store.authLogs) ? store.authLogs.length : 0,
+        autoDeductions: Array.isArray(store.autoDeductions) ? store.autoDeductions.length : 0,
+        bookings: Array.isArray(store.bookingActions) ? store.bookingActions.length : 0
+      },
+      rideUsers: Object.keys(safeObject(store.rideHistory)).length,
+      featureUsers: Object.keys(safeObject(store.featureStates)).length
+    };
+  }
+
+  function computeRuntimeSnapshotHash({ previousHash, createdAt, reason, summary }) {
+    const serializedSummary = JSON.stringify(safeObject(summary));
+    const base = `${normalizeString(previousHash, 128) || AUTO_DEDUCT_HASH_GENESIS}:${normalizeString(createdAt, 80)}:${normalizeString(reason, 80)}:${serializedSummary}`;
+    return crypto.createHmac('sha256', RUNTIME_SNAPSHOT_HASH_SECRET).update(base).digest('hex');
+  }
+
+  function appendRuntimeSnapshot(store, reason = 'persist') {
+    if (!RUNTIME_SNAPSHOTS_ENABLED) return null;
+
+    const digest = getRuntimeSnapshotDigest(store);
+    const createdAt = new Date().toISOString();
+    const snapshot = {
+      id: crypto.randomUUID(),
+      reason: normalizeString(reason, 80) || 'persist',
+      createdAt,
+      previousHash: digest.lastHash,
+      summary: buildRuntimeStoreSummary(store)
+    };
+    snapshot.hash = computeRuntimeSnapshotHash({
+      previousHash: snapshot.previousHash,
+      createdAt: snapshot.createdAt,
+      reason: snapshot.reason,
+      summary: snapshot.summary
+    });
+
+    try {
+      ensureDir();
+      fs.appendFileSync(DATA_SNAPSHOTS_FILE, `${JSON.stringify(snapshot)}\n`, 'utf8');
+      digest.lastHash = snapshot.hash;
+      digest.totalSnapshots += 1;
+      digest.lastSnapshotAt = createdAt;
+      store.runtimeSnapshotDigest = digest;
+      queueRuntimeGitSync();
+      return snapshot;
+    } catch (_error) {
+      digest.lastWriteErrorAt = createdAt;
+      store.runtimeSnapshotDigest = digest;
+      return null;
+    }
+  }
+
+  function getRuntimeFileMetadata(filePath) {
+    try {
+      if (!fs.existsSync(filePath)) {
+        return { exists: false, size: 0, mtime: null };
+      }
+      const stat = fs.statSync(filePath);
+      return {
+        exists: true,
+        size: Number(stat.size || 0),
+        mtime: stat.mtime ? stat.mtime.toISOString() : null
+      };
+    } catch (_error) {
+      return { exists: false, size: 0, mtime: null };
+    }
+  }
+
+  function readTailNdjson(filePath, limit = 50) {
+    const safeLimit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(limit || 50)));
+    try {
+      if (!fs.existsSync(filePath)) return [];
+      const raw = fs.readFileSync(filePath, 'utf8');
+      const lines = String(raw || '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const tail = lines.slice(-safeLimit);
+      const rows = [];
+      for (let i = 0; i < tail.length; i += 1) {
+        try {
+          rows.push(JSON.parse(tail[i]));
+        } catch (_error) {
+          // Skip malformed line and continue audit visibility.
+        }
+      }
+      return rows;
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  function verifyRuntimeEventFileChain(limit = null) {
+    try {
+      if (!fs.existsSync(DATA_EVENTS_FILE)) {
+        return { ok: true, total: 0, checked: 0, reason: 'events_file_missing' };
+      }
+
+      const raw = fs.readFileSync(DATA_EVENTS_FILE, 'utf8');
+      const lines = String(raw || '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      const maxChecks = limit ? Math.min(lines.length, Math.max(1, Number(limit))) : lines.length;
+      const startIndex = lines.length - maxChecks;
+
+      let previousHash = startIndex > 0
+        ? normalizeString(JSON.parse(lines[startIndex - 1] || '{}').hash, 128)
+        : AUTO_DEDUCT_HASH_GENESIS;
+
+      let checked = 0;
+      for (let i = startIndex; i < lines.length; i += 1) {
+        let row = null;
+        try {
+          row = JSON.parse(lines[i]);
+        } catch (_error) {
+          return { ok: false, total: lines.length, checked, reason: 'invalid_json_line', line: i + 1 };
+        }
+
+        const expected = computeRuntimeEventHash({
+          previousHash,
+          eventType: row.eventType,
+          createdAt: row.createdAt,
+          payload: safeObject(row.payload)
+        });
+
+        if (String(row.previousHash || AUTO_DEDUCT_HASH_GENESIS) !== String(previousHash)) {
+          return {
+            ok: false,
+            total: lines.length,
+            checked,
+            reason: 'previous_hash_mismatch',
+            line: i + 1,
+            eventId: row.id || null
+          };
+        }
+
+        if (String(row.hash || '') !== String(expected)) {
+          return {
+            ok: false,
+            total: lines.length,
+            checked,
+            reason: 'hash_mismatch',
+            line: i + 1,
+            eventId: row.id || null
+          };
+        }
+
+        previousHash = expected;
+        checked += 1;
+      }
+
+      return {
+        ok: true,
+        total: lines.length,
+        checked,
+        headHash: previousHash
+      };
+    } catch (_error) {
+      return { ok: false, total: 0, checked: 0, reason: 'verify_failed' };
+    }
+  }
+
   function generateOtpCode() {
     return String(Math.floor(100000 + Math.random() * 900000));
   }
@@ -2758,6 +2960,52 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     }
     const wallet = walletForUser(store, userKey);
     return res.status(200).json({ ok: true, wallet: clone(wallet) });
+  });
+
+  router.get('/runtime/audit/digest', requireAdmin, (req, res) => {
+    const store = getStore();
+    return res.status(200).json({
+      eventDigest: getRuntimeEventDigest(store),
+      snapshotDigest: getRuntimeSnapshotDigest(store),
+      storeSummary: buildRuntimeStoreSummary(store),
+      files: {
+        store: getRuntimeFileMetadata(DATA_FILE),
+        backup: getRuntimeFileMetadata(DATA_FILE_BACKUP),
+        events: getRuntimeFileMetadata(DATA_EVENTS_FILE),
+        snapshots: getRuntimeFileMetadata(DATA_SNAPSHOTS_FILE)
+      }
+    });
+  });
+
+  router.get('/runtime/audit/events', requireAdmin, (req, res) => {
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 50)));
+    return res.status(200).json({
+      limit,
+      events: readTailNdjson(DATA_EVENTS_FILE, limit),
+      snapshots: readTailNdjson(DATA_SNAPSHOTS_FILE, limit)
+    });
+  });
+
+  router.post('/runtime/audit/verify', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const limitInput = Number(req.body?.limit || req.query?.limit || 0);
+    const verification = verifyRuntimeEventFileChain(limitInput > 0 ? limitInput : null);
+    const store = getStore();
+    const auditEvent = appendRuntimeEvent(store, 'runtime_audit_verify', {
+      ok: verification.ok,
+      checked: verification.checked,
+      total: verification.total,
+      reason: verification.reason || null,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    queuePersist();
+
+    return res.status(verification.ok ? 200 : 409).json({
+      verification,
+      auditEventId: auditEvent ? auditEvent.id : null,
+      eventDigest: getRuntimeEventDigest(store),
+      snapshotDigest: getRuntimeSnapshotDigest(store)
+    });
   });
 
 
