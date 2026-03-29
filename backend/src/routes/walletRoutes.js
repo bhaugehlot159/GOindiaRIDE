@@ -1857,6 +1857,26 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     RUNTIME_REFERENCE_QUARANTINE_MS,
     Number(process.env.RUNTIME_REFERENCE_QUARANTINE_MAX_MS || 72 * 60 * 60 * 1000)
   );
+  const RUNTIME_ACTOR_FAIL_WINDOW_MS = Math.max(
+    60 * 1000,
+    Number(process.env.RUNTIME_ACTOR_FAIL_WINDOW_MS || 10 * 60 * 1000)
+  );
+  const RUNTIME_ACTOR_FAIL_MAX = Math.max(
+    1,
+    Number(process.env.RUNTIME_ACTOR_FAIL_MAX || 12)
+  );
+  const RUNTIME_ACTOR_COOLDOWN_MS = Math.max(
+    60 * 1000,
+    Number(process.env.RUNTIME_ACTOR_COOLDOWN_MS || 30 * 60 * 1000)
+  );
+  const RUNTIME_ACTOR_COOLDOWN_MAX_MS = Math.max(
+    RUNTIME_ACTOR_COOLDOWN_MS,
+    Number(process.env.RUNTIME_ACTOR_COOLDOWN_MAX_MS || 24 * 60 * 60 * 1000)
+  );
+  const RUNTIME_ACTOR_COOLDOWN_ESCALATION_FACTOR = Math.max(
+    1,
+    Math.min(5, Number(process.env.RUNTIME_ACTOR_COOLDOWN_ESCALATION_FACTOR || 2))
+  );
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -2093,6 +2113,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         securityIncidents: [],
         referenceEvents: [],
         quarantinedReferences: {},
+        actorEvents: [],
+        actorCooldowns: {},
         policy: {
           riskDenyThreshold: RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD,
           lockdown: {
@@ -2203,6 +2225,15 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         quarantinedReferences: {
           ...safeObject(safeObject(store.runtimeSecurityState).quarantinedReferences),
           ...safeObject(safeObject(source.runtimeSecurityState).quarantinedReferences)
+        },
+        actorEvents: Array.isArray(safeObject(source.runtimeSecurityState).actorEvents)
+          ? safeObject(source.runtimeSecurityState).actorEvents
+          : Array.isArray(safeObject(store.runtimeSecurityState).actorEvents)
+            ? safeObject(store.runtimeSecurityState).actorEvents
+            : [],
+        actorCooldowns: {
+          ...safeObject(safeObject(store.runtimeSecurityState).actorCooldowns),
+          ...safeObject(safeObject(source.runtimeSecurityState).actorCooldowns)
         },
         policy: {
           ...safeObject(safeObject(store.runtimeSecurityState).policy),
@@ -2420,6 +2451,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       ? source.referenceEvents
       : [];
     const quarantinedReferences = safeObject(source.quarantinedReferences);
+    const actorEvents = Array.isArray(source.actorEvents)
+      ? source.actorEvents
+      : [];
+    const actorCooldowns = safeObject(source.actorCooldowns);
     const policyInput = safeObject(source.policy);
     const lockdownInput = safeObject(policyInput.lockdown);
     const riskDenyThresholdValue = Number(policyInput.riskDenyThreshold);
@@ -2449,6 +2484,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       securityIncidents,
       referenceEvents,
       quarantinedReferences,
+      actorEvents,
+      actorCooldowns,
       policy,
       policyHistory
     };
@@ -2818,6 +2855,283 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     state.quarantinedReferences[referenceKey] = nextRecord;
     store.runtimeSecurityState = state;
     return nextRecord;
+  }
+
+  function isRuntimeSha256Key(value) {
+    return /^[a-f0-9]{64}$/i.test(String(value || ''));
+  }
+
+  function normalizeRuntimeActorFingerprint(payload = {}) {
+    const actorUserId = normalizeString(payload.actorUserId, 120) || 'anonymous_actor';
+    const ip = normalizeString(payload.ip, 120) || 'unknown_ip';
+    const userAgent = normalizeString(payload.userAgent, 220);
+    const actorKey = crypto.createHash('sha256').update(`${actorUserId}|${ip}`).digest('hex');
+    return {
+      actorKey,
+      actorUserId,
+      ip,
+      userAgent
+    };
+  }
+
+  function addRuntimeActorEvent(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const actorUserId = normalizeString(payload.actorUserId, 120);
+    const ip = normalizeString(payload.ip, 120);
+    const userAgent = normalizeString(payload.userAgent, 220);
+    const normalizedActor = normalizeRuntimeActorFingerprint({
+      actorUserId,
+      ip,
+      userAgent
+    });
+    const actorKey = normalizeString(payload.actorKey, 80) || normalizedActor.actorKey;
+    if (!actorKey) return null;
+
+    const item = {
+      id: crypto.randomUUID(),
+      action: normalizeString(payload.action, 80) || 'actor_event',
+      actorKey,
+      actorUserId: normalizedActor.actorUserId,
+      ip: normalizedActor.ip,
+      userAgent: normalizedActor.userAgent,
+      userKey: normalizeString(payload.userKey, 80),
+      reason: normalizeString(payload.reason, 160),
+      amount: normalizeAmount(payload.amount),
+      metadata: safeObject(payload.metadata),
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(state.actorEvents, item);
+    store.runtimeSecurityState = state;
+    return item;
+  }
+
+  function countRecentActorFailures(store, actorKey, windowMs = RUNTIME_ACTOR_FAIL_WINDOW_MS) {
+    const state = getRuntimeSecurityState(store);
+    const rows = Array.isArray(state.actorEvents) ? state.actorEvents : [];
+    const key = normalizeString(actorKey, 80);
+    if (!key) return 0;
+
+    const threshold = Date.now() - Math.max(60 * 1000, Number(windowMs || RUNTIME_ACTOR_FAIL_WINDOW_MS));
+    let count = 0;
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = safeObject(rows[i]);
+      if (String(row.actorKey || '') !== String(key)) continue;
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold) break;
+      if (String(row.action || '') !== 'failure') continue;
+      count += 1;
+    }
+    return count;
+  }
+
+  function countRecentActorCooldownActions(record, windowMs = RUNTIME_ACTOR_FAIL_WINDOW_MS) {
+    const history = Array.isArray(safeObject(record).history) ? safeObject(record).history : [];
+    if (!history.length) return 0;
+
+    const threshold = Date.now() - Math.max(60 * 1000, Number(windowMs || RUNTIME_ACTOR_FAIL_WINDOW_MS));
+    let count = 0;
+    for (let i = history.length - 1; i >= 0; i -= 1) {
+      const row = safeObject(history[i]);
+      if (String(row.action || '') !== 'cooldown') continue;
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold) break;
+      count += 1;
+    }
+    return count;
+  }
+
+  function getRuntimeActorCooldownRecord(store, actorKey) {
+    const state = getRuntimeSecurityState(store);
+    const key = normalizeString(actorKey, 80);
+    if (!key) return null;
+    return safeObject(state.actorCooldowns)[key] || null;
+  }
+
+  function getRuntimeActorCooldownStatus(store, actorKey) {
+    const key = normalizeString(actorKey, 80);
+    if (!key) return { active: false, record: null, remainingMs: 0, releasedBecauseExpired: false };
+
+    const state = getRuntimeSecurityState(store);
+    const record = safeObject(state.actorCooldowns)[key];
+    if (!record || !record.active) {
+      return { active: false, record: record || null, remainingMs: 0, releasedBecauseExpired: false };
+    }
+
+    const cooldownUntilMs = new Date(record.cooldownUntil).getTime();
+    if (!Number.isFinite(cooldownUntilMs)) {
+      return { active: true, record, remainingMs: Number.MAX_SAFE_INTEGER, releasedBecauseExpired: false };
+    }
+
+    const remainingMs = cooldownUntilMs - Date.now();
+    if (remainingMs > 0) {
+      return { active: true, record, remainingMs, releasedBecauseExpired: false };
+    }
+
+    const now = new Date().toISOString();
+    const history = Array.isArray(record.history) ? record.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'auto_release',
+      reason: 'actor_cooldown_expired',
+      actorUserId: 'system',
+      createdAt: now
+    });
+
+    const nextRecord = {
+      ...record,
+      active: false,
+      releasedAt: now,
+      releasedByActorUserId: 'system',
+      releaseReason: 'actor_cooldown_expired',
+      history
+    };
+    state.actorCooldowns[key] = nextRecord;
+    store.runtimeSecurityState = state;
+    return { active: false, record: nextRecord, remainingMs: 0, releasedBecauseExpired: true };
+  }
+
+  function applyRuntimeActorCooldown(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const normalizedActor = normalizeRuntimeActorFingerprint({
+      actorUserId: payload.actorUserId,
+      ip: payload.ip,
+      userAgent: payload.userAgent
+    });
+    const actorKey = normalizeString(payload.actorKey, 80) || normalizedActor.actorKey;
+    if (!actorKey) return null;
+
+    const existing = safeObject(state.actorCooldowns[actorKey]);
+    const now = new Date();
+    const baseDurationMs = Math.min(
+      RUNTIME_ACTOR_COOLDOWN_MAX_MS,
+      Math.max(60 * 1000, Number(payload.durationMs || RUNTIME_ACTOR_COOLDOWN_MS))
+    );
+    const escalationSteps = countRecentActorCooldownActions(existing, RUNTIME_ACTOR_FAIL_WINDOW_MS);
+    const cooldownDurationMs = Math.min(
+      RUNTIME_ACTOR_COOLDOWN_MAX_MS,
+      Math.round(baseDurationMs * Math.pow(RUNTIME_ACTOR_COOLDOWN_ESCALATION_FACTOR, Math.max(0, escalationSteps)))
+    );
+    const cooldownUntil = new Date(now.getTime() + cooldownDurationMs).toISOString();
+    const history = Array.isArray(existing.history) ? existing.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'cooldown',
+      reason: normalizeString(payload.reason, 160) || 'actor_failure_threshold',
+      actorUserId: normalizeString(payload.updatedByActorUserId, 120) || 'system',
+      ip: normalizeString(payload.updatedByIp, 120),
+      createdAt: now.toISOString(),
+      cooldownUntil,
+      baseDurationMs,
+      cooldownDurationMs,
+      escalationSteps
+    });
+
+    const nextRecord = {
+      ...existing,
+      actorKey,
+      active: true,
+      reason: normalizeString(payload.reason, 160) || normalizeString(existing.reason, 160) || 'actor_failure_threshold',
+      cooldownAt: now.toISOString(),
+      cooldownUntil,
+      actorUserId: normalizedActor.actorUserId,
+      ip: normalizedActor.ip,
+      userAgent: normalizedActor.userAgent,
+      updatedByActorUserId: normalizeString(payload.updatedByActorUserId, 120) || 'system',
+      metadata: {
+        ...safeObject(existing.metadata),
+        baseDurationMs,
+        cooldownDurationMs,
+        escalationSteps,
+        cooldownEscalationFactor: RUNTIME_ACTOR_COOLDOWN_ESCALATION_FACTOR,
+        ...safeObject(payload.metadata)
+      },
+      history
+    };
+    state.actorCooldowns[actorKey] = nextRecord;
+    store.runtimeSecurityState = state;
+    return nextRecord;
+  }
+
+  function releaseRuntimeActorCooldown(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const actorKey = normalizeString(payload.actorKey, 80);
+    if (!actorKey || !state.actorCooldowns[actorKey]) return null;
+
+    const existing = safeObject(state.actorCooldowns[actorKey]);
+    const now = new Date().toISOString();
+    const history = Array.isArray(existing.history) ? existing.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'release',
+      reason: normalizeString(payload.reason, 160) || 'actor_cooldown_release',
+      actorUserId: normalizeString(payload.updatedByActorUserId, 120),
+      ip: normalizeString(payload.updatedByIp, 120),
+      createdAt: now
+    });
+
+    const nextRecord = {
+      ...existing,
+      active: false,
+      releasedAt: now,
+      releasedByActorUserId: normalizeString(payload.updatedByActorUserId, 120) || 'system',
+      releaseReason: normalizeString(payload.reason, 160) || 'actor_cooldown_release',
+      history
+    };
+    state.actorCooldowns[actorKey] = nextRecord;
+    store.runtimeSecurityState = state;
+    return nextRecord;
+  }
+
+  function registerRuntimeActorFailureAndMaybeCooldown(store, payload = {}) {
+    const normalizedActor = normalizeRuntimeActorFingerprint({
+      actorUserId: payload.actorUserId,
+      ip: payload.ip,
+      userAgent: payload.userAgent
+    });
+    const actorKey = normalizeString(payload.actorKey, 80) || normalizedActor.actorKey;
+    if (!actorKey) {
+      return { actorKey: null, event: null, recentFailures: 0, cooldown: null };
+    }
+
+    const event = addRuntimeActorEvent(store, {
+      action: 'failure',
+      actorKey,
+      actorUserId: normalizedActor.actorUserId,
+      ip: normalizedActor.ip,
+      userAgent: normalizedActor.userAgent,
+      userKey: payload.userKey,
+      reason: payload.reason,
+      amount: payload.amount,
+      metadata: safeObject(payload.metadata)
+    });
+
+    const recentFailures = countRecentActorFailures(store, actorKey, RUNTIME_ACTOR_FAIL_WINDOW_MS);
+    let cooldown = null;
+    if (recentFailures >= RUNTIME_ACTOR_FAIL_MAX && String(payload.actorType || '') !== 'admin') {
+      cooldown = applyRuntimeActorCooldown(store, {
+        actorKey,
+        actorUserId: normalizedActor.actorUserId,
+        ip: normalizedActor.ip,
+        userAgent: normalizedActor.userAgent,
+        reason: `actor_fail_threshold:${normalizeString(payload.reason, 80) || 'unknown'}`,
+        updatedByActorUserId: 'system',
+        updatedByIp: normalizedActor.ip,
+        metadata: {
+          recentFailures,
+          failWindowMs: RUNTIME_ACTOR_FAIL_WINDOW_MS,
+          failMax: RUNTIME_ACTOR_FAIL_MAX
+        }
+      });
+    }
+
+    return {
+      actorKey,
+      event,
+      recentFailures,
+      cooldown
+    };
   }
 
   function countRecentFailedAutoDeductAttempts(store, userKey, windowMs = RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS) {
@@ -3673,6 +3987,14 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const userKey = resolveRuntimeWalletUserKey(req, requestedUserKey);
     const amount = normalizeAmount(req.body?.amount);
     const reason = normalizeString(req.body?.reason, 250) || 'auto-deducted-ride-payment';
+    const actorUserId = normalizeString(req.user && req.user.id, 120);
+    const actorIp = getClientIp(req);
+    const actorUserAgent = normalizeString(req.headers['user-agent'], 220);
+    const actorFingerprint = normalizeRuntimeActorFingerprint({
+      actorUserId,
+      ip: actorIp,
+      userAgent: actorUserAgent
+    });
     const autoDeductReference = normalizeString(
       req.body?.autoDeductRef
       || req.body?.bookingId
@@ -3730,6 +4052,84 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         lockdown: lockdownStatus.lockdown,
         remainingMs: lockdownStatus.remainingMs,
         runtimeEventId: lockdownEvent ? lockdownEvent.id : null
+      });
+    }
+
+    const actorCooldownStatus = getRuntimeActorCooldownStatus(store, actorFingerprint.actorKey);
+    if (actorCooldownStatus.releasedBecauseExpired) {
+      const actorEvent = addRuntimeActorEvent(store, {
+        action: 'cooldown_auto_released',
+        actorKey: actorFingerprint.actorKey,
+        actorUserId,
+        ip: actorIp,
+        userAgent: actorUserAgent,
+        userKey,
+        reason: 'actor_cooldown_expired'
+      });
+      appendRuntimeEvent(store, 'runtime_actor_cooldown_auto_released', {
+        actorKey: actorFingerprint.actorKey,
+        actorUserId,
+        ip: actorIp,
+        userKey,
+        actorEventId: actorEvent ? actorEvent.id : null,
+        releasedAt: actorCooldownStatus.record ? actorCooldownStatus.record.releasedAt : null
+      });
+      queuePersist();
+    }
+
+    if (actorType !== 'admin' && actorCooldownStatus.active) {
+      const incident = addRuntimeSecurityIncident(store, {
+        userKey,
+        type: 'runtime_actor_cooldown_block',
+        severity: 'high',
+        reason: normalizeString(actorCooldownStatus.record && actorCooldownStatus.record.reason, 160) || 'actor_cooldown_active',
+        amount,
+        autoDeductReference,
+        actorUserId,
+        ip: actorIp,
+        metadata: {
+          actorKey: actorFingerprint.actorKey,
+          cooldownUntil: actorCooldownStatus.record ? actorCooldownStatus.record.cooldownUntil : null,
+          remainingMs: actorCooldownStatus.remainingMs
+        }
+      });
+      const actorEvent = addRuntimeActorEvent(store, {
+        action: 'cooldown_blocked',
+        actorKey: actorFingerprint.actorKey,
+        actorUserId,
+        ip: actorIp,
+        userAgent: actorUserAgent,
+        userKey,
+        reason: normalizeString(actorCooldownStatus.record && actorCooldownStatus.record.reason, 160) || 'actor_cooldown_active',
+        amount,
+        metadata: {
+          cooldownUntil: actorCooldownStatus.record ? actorCooldownStatus.record.cooldownUntil : null,
+          remainingMs: actorCooldownStatus.remainingMs
+        }
+      });
+      const cooldownEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_actor_cooldown_blocked', {
+        actorKey: actorFingerprint.actorKey,
+        actorUserId,
+        ip: actorIp,
+        userKey,
+        amount,
+        autoDeductReference,
+        cooldownUntil: actorCooldownStatus.record ? actorCooldownStatus.record.cooldownUntil : null,
+        remainingMs: actorCooldownStatus.remainingMs,
+        securityIncidentId: incident ? incident.id : null,
+        actorEventId: actorEvent ? actorEvent.id : null
+      });
+      queuePersist();
+
+      return res.status(423).json({
+        ok: false,
+        message: 'Auto deduction temporarily blocked due to actor cooldown',
+        actorCooldown: {
+          actorKey: actorFingerprint.actorKey,
+          cooldownUntil: actorCooldownStatus.record ? actorCooldownStatus.record.cooldownUntil : null,
+          remainingMs: actorCooldownStatus.remainingMs
+        },
+        runtimeEventId: cooldownEvent ? cooldownEvent.id : null
       });
     }
 
@@ -3902,9 +4302,22 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         reason,
         amount,
         autoDeductReference,
-        actorUserId: normalizeString(req.user && req.user.id, 120),
+        actorUserId,
         actorType,
-        ip: getClientIp(req)
+        ip: actorIp
+      });
+      const actorFailure = registerRuntimeActorFailureAndMaybeCooldown(store, {
+        actorKey: actorFingerprint.actorKey,
+        actorUserId,
+        ip: actorIp,
+        userAgent: actorUserAgent,
+        actorType,
+        userKey,
+        reason,
+        amount,
+        metadata: {
+          autoDeductReference
+        }
       });
       const referenceFailureEvent = addRuntimeReferenceEvent(store, {
         action: 'failed_attempt',
@@ -3912,8 +4325,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         referenceKey,
         userKey,
         amount,
-        actorUserId: normalizeString(req.user && req.user.id, 120),
-        ip: getClientIp(req),
+        actorUserId,
+        ip: actorIp,
         metadata: {
           reason
         }
@@ -3924,14 +4337,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         reason,
         amount,
         autoDeductReference,
-        actorUserId: normalizeString(req.user && req.user.id, 120),
-        ip: getClientIp(req),
+        actorUserId,
+        ip: actorIp,
         recentFailures: failure.recentFailures,
         recentIntegrityFailures: failure.recentIntegrityFailures,
         blocked: Boolean(failure.block),
         blockedUntil: failure.block ? failure.block.blockedUntil : null,
         securityIncidentId: failure.incident ? failure.incident.id : null,
         referenceEventId: referenceFailureEvent ? referenceFailureEvent.id : null,
+        actorKey: actorFingerprint.actorKey,
+        actorEventId: actorFailure.event ? actorFailure.event.id : null,
+        actorRecentFailures: actorFailure.recentFailures,
+        actorCooldownUntil: actorFailure.cooldown ? actorFailure.cooldown.cooldownUntil : null,
         riskScore: riskProfile ? riskProfile.score : null,
         riskLevel: riskProfile ? riskProfile.level : null,
         riskDenyThreshold: riskProfile ? riskProfile.denyThreshold : null
@@ -3940,13 +4357,14 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       return {
         failure,
         failureEvent,
-        riskProfile
+        riskProfile,
+        actorFailure
       };
     }
 
     const integrityCheck = verifyAutoDeductionIntegrityChain(store, userKey);
     if (!integrityCheck.ok) {
-      const { failure, failureEvent, riskProfile } = registerSpendFailure('integrity_failed');
+      const { failure, failureEvent, riskProfile, actorFailure } = registerSpendFailure('integrity_failed');
       logSecurityEvent({
         userId: req.user && req.user.id,
         action: 'legacy_wallet_auto_deduct_chain_tamper_detected',
@@ -3965,6 +4383,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           message: 'Auto deduction temporarily blocked due to suspicious activity',
           blockedUntil: failure.block.blockedUntil,
           risk: riskProfile,
+          actorCooldown: actorFailure && actorFailure.cooldown ? {
+            actorKey: actorFingerprint.actorKey,
+            cooldownUntil: actorFailure.cooldown.cooldownUntil
+          } : null,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -3973,6 +4395,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         ok: false,
         message: 'Auto deduction integrity validation failed. Contact admin.',
         risk: riskProfile,
+        actorCooldown: actorFailure && actorFailure.cooldown ? {
+          actorKey: actorFingerprint.actorKey,
+          cooldownUntil: actorFailure.cooldown.cooldownUntil
+        } : null,
         runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
@@ -3983,7 +4409,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       && amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE
       && String(req.headers['x-otp-verified'] || '').toLowerCase() !== 'true'
     ) {
-      const { failure, failureEvent, riskProfile } = registerSpendFailure('otp_required');
+      const { failure, failureEvent, riskProfile, actorFailure } = registerSpendFailure('otp_required');
       logSecurityEvent({
         userId: req.user && req.user.id,
         action: 'legacy_wallet_high_value_auto_deduct_otp_required',
@@ -4003,6 +4429,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           message: 'Auto deduction temporarily blocked due to repeated failed checks',
           blockedUntil: failure.block.blockedUntil,
           risk: riskProfile,
+          actorCooldown: actorFailure && actorFailure.cooldown ? {
+            actorKey: actorFingerprint.actorKey,
+            cooldownUntil: actorFailure.cooldown.cooldownUntil
+          } : null,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -4011,6 +4441,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         ok: false,
         message: `OTP verification required for auto deduction >= ${RUNTIME_AUTO_DEDUCT_HIGH_VALUE}`,
         risk: riskProfile,
+        actorCooldown: actorFailure && actorFailure.cooldown ? {
+          actorKey: actorFingerprint.actorKey,
+          cooldownUntil: actorFailure.cooldown.cooldownUntil
+        } : null,
         runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
@@ -4038,10 +4472,24 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         amount,
         autoDeductReference,
         autoDeductionId: existingAutoDeduction.id,
-        actorUserId: normalizeString(req.user && req.user.id, 120),
-        ip: getClientIp(req),
+        actorUserId,
+        ip: actorIp,
         referenceKey,
         referenceEventId: referenceEvent ? referenceEvent.id : null
+      });
+      const actorEvent = addRuntimeActorEvent(store, {
+        action: 'reused_reference',
+        actorKey: actorFingerprint.actorKey,
+        actorUserId,
+        ip: actorIp,
+        userAgent: actorUserAgent,
+        userKey,
+        reason: 'idempotent_reuse',
+        amount,
+        metadata: {
+          referenceKey,
+          autoDeductionId: existingAutoDeduction.id
+        }
       });
       queuePersist();
 
@@ -4051,6 +4499,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         wallet: clone(wallet),
         entry: existingEntry || null,
         autoDeduction: existingAutoDeduction,
+        actorEventId: actorEvent ? actorEvent.id : null,
         runtimeEventId: reusedRuntimeEvent ? reusedRuntimeEvent.id : null
       });
     }
@@ -4067,7 +4516,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           referenceKey,
           reason: 'cross_user_reference_replay_suspected',
           actorUserId: 'system',
-          ip: getClientIp(req),
+          ip: actorIp,
           metadata: {
             windowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
             crossUserCount: crossUserReplay.uniqueUserCount,
@@ -4081,8 +4530,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           reason: 'cross_user_reference_replay_suspected',
           amount,
           autoDeductReference,
-          actorUserId: normalizeString(req.user && req.user.id, 120),
-          ip: getClientIp(req),
+          actorUserId,
+          ip: actorIp,
           metadata: {
             referenceKey,
             crossUserCount: crossUserReplay.uniqueUserCount,
@@ -4096,10 +4545,24 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           referenceKey,
           userKey,
           amount,
-          actorUserId: normalizeString(req.user && req.user.id, 120),
-          ip: getClientIp(req),
+          actorUserId,
+          ip: actorIp,
           metadata: {
             crossUserCount: crossUserReplay.uniqueUserCount,
+            crossUsers: crossUserReplay.users
+          }
+        });
+        const actorFailure = registerRuntimeActorFailureAndMaybeCooldown(store, {
+          actorKey: actorFingerprint.actorKey,
+          actorUserId,
+          ip: actorIp,
+          userAgent: actorUserAgent,
+          actorType,
+          userKey,
+          reason: 'reference_replay_suspected',
+          amount,
+          metadata: {
+            referenceKey,
             crossUsers: crossUserReplay.users
           }
         });
@@ -4108,13 +4571,15 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           amount,
           autoDeductReference,
           referenceKey,
-          actorUserId: normalizeString(req.user && req.user.id, 120),
-          ip: getClientIp(req),
+          actorUserId,
+          ip: actorIp,
           windowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
           crossUserCount: crossUserReplay.uniqueUserCount,
           quarantineUntil: quarantine ? quarantine.quarantineUntil : null,
           securityIncidentId: incident ? incident.id : null,
-          referenceEventId: referenceEvent ? referenceEvent.id : null
+          referenceEventId: referenceEvent ? referenceEvent.id : null,
+          actorEventId: actorFailure.event ? actorFailure.event.id : null,
+          actorCooldownUntil: actorFailure.cooldown ? actorFailure.cooldown.cooldownUntil : null
         });
         queuePersist();
 
@@ -4123,6 +4588,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           message: 'Auto deduction blocked due to suspicious cross-user reference replay',
           reference: autoDeductReference,
           quarantineUntil: quarantine ? quarantine.quarantineUntil : null,
+          actorCooldown: actorFailure.cooldown ? {
+            actorKey: actorFingerprint.actorKey,
+            cooldownUntil: actorFailure.cooldown.cooldownUntil
+          } : null,
           runtimeEventId: replayEvent ? replayEvent.id : null
         });
       }
@@ -4131,11 +4600,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     if (actorType !== 'admin') {
       const recentCount = countRecentAutoDeductions(store, userKey, RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS);
       if (recentCount >= RUNTIME_AUTO_DEDUCT_RATE_MAX) {
-        const { failure, failureEvent, riskProfile } = registerSpendFailure('rate_limited');
+        const { failure, failureEvent, riskProfile, actorFailure } = registerSpendFailure('rate_limited');
         logSecurityEvent({
-          userId: req.user && req.user.id,
+          userId: actorUserId,
           action: 'legacy_wallet_auto_deduct_rate_limited',
-          ip: getClientIp(req),
+          ip: actorIp,
           riskScore: 65,
           result: 'blocked',
           metadata: {
@@ -4153,8 +4622,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
           max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
           autoDeductReference,
-          actorUserId: normalizeString(req.user && req.user.id, 120),
-          ip: getClientIp(req)
+          actorUserId,
+          ip: actorIp
         });
         queuePersist();
 
@@ -4164,6 +4633,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
             message: 'Auto deduction temporarily blocked due to repeated rate-limit hits',
             blockedUntil: failure.block.blockedUntil,
             risk: riskProfile,
+            actorCooldown: actorFailure && actorFailure.cooldown ? {
+              actorKey: actorFingerprint.actorKey,
+              cooldownUntil: actorFailure.cooldown.cooldownUntil
+            } : null,
             runtimeEventId: failureEvent ? failureEvent.id : null
           });
         }
@@ -4175,6 +4648,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
           max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
           risk: riskProfile,
+          actorCooldown: actorFailure && actorFailure.cooldown ? {
+            actorKey: actorFingerprint.actorKey,
+            cooldownUntil: actorFailure.cooldown.cooldownUntil
+          } : null,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -4182,13 +4659,17 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
     const wallet = walletForUser(store, userKey);
     if (wallet.balance < amount) {
-      const { failure, failureEvent, riskProfile } = registerSpendFailure('insufficient_balance');
+      const { failure, failureEvent, riskProfile, actorFailure } = registerSpendFailure('insufficient_balance');
       if (failure.block) {
         return res.status(423).json({
           ok: false,
           message: 'Auto deduction temporarily blocked due to repeated failed attempts',
           blockedUntil: failure.block.blockedUntil,
           risk: riskProfile,
+          actorCooldown: actorFailure && actorFailure.cooldown ? {
+            actorKey: actorFingerprint.actorKey,
+            cooldownUntil: actorFailure.cooldown.cooldownUntil
+          } : null,
           runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
@@ -4198,6 +4679,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         message: 'Insufficient wallet balance',
         balance: wallet.balance,
         risk: riskProfile,
+        actorCooldown: actorFailure && actorFailure.cooldown ? {
+          actorKey: actorFingerprint.actorKey,
+          cooldownUntil: actorFailure.cooldown.cooldownUntil
+        } : null,
         runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
@@ -4206,7 +4691,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const entry = addWalletEntry(wallet, 'debit', amount, {
       reason,
       autoDeductReference: autoDeductReference || undefined,
-      actorUserId: normalizeString(req.user && req.user.id, 120),
+      actorUserId,
       source: 'legacy_wallet_spend'
     });
 
@@ -4217,7 +4702,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         amount,
         reason,
         walletEntryId: entry.id,
-        actorUserId: normalizeString(req.user && req.user.id, 120)
+        actorUserId
       })
       : null;
     const referenceEvent = addRuntimeReferenceEvent(store, {
@@ -4226,10 +4711,25 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       referenceKey,
       userKey,
       amount,
-      actorUserId: normalizeString(req.user && req.user.id, 120),
-      ip: getClientIp(req),
+      actorUserId,
+      ip: actorIp,
       metadata: {
         walletEntryId: entry.id,
+        autoDeductionId: autoDeduction ? autoDeduction.id : null
+      }
+    });
+    const actorEvent = addRuntimeActorEvent(store, {
+      action: 'success',
+      actorKey: actorFingerprint.actorKey,
+      actorUserId,
+      ip: actorIp,
+      userAgent: actorUserAgent,
+      userKey,
+      reason: 'wallet_spend_success',
+      amount,
+      metadata: {
+        autoDeductReference,
+        referenceKey,
         autoDeductionId: autoDeduction ? autoDeduction.id : null
       }
     });
@@ -4242,15 +4742,17 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       walletEntryId: entry.id,
       autoDeductionId: autoDeduction ? autoDeduction.id : null,
       referenceEventId: referenceEvent ? referenceEvent.id : null,
-      actorUserId: normalizeString(req.user && req.user.id, 120),
-      ip: getClientIp(req)
+      actorUserId,
+      ip: actorIp,
+      actorKey: actorFingerprint.actorKey,
+      actorEventId: actorEvent ? actorEvent.id : null
     });
 
     if (amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE) {
       logSecurityEvent({
-        userId: req.user && req.user.id,
+        userId: actorUserId,
         action: 'legacy_wallet_high_value_auto_deduct_completed',
-        ip: getClientIp(req),
+        ip: actorIp,
         riskScore: 45,
         result: 'flagged',
         metadata: {
@@ -4268,6 +4770,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       wallet: clone(wallet),
       entry,
       autoDeduction,
+      actorEventId: actorEvent ? actorEvent.id : null,
       runtimeEventId: runtimeEvent ? runtimeEvent.id : null
     });
   });
@@ -4303,6 +4806,12 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         referenceEvents: Array.isArray(state.referenceEvents) ? state.referenceEvents.length : 0,
         quarantinedReferencesTotal: Object.keys(safeObject(state.quarantinedReferences)).length,
         quarantinedReferencesActive: Object.values(safeObject(state.quarantinedReferences))
+          .map((row) => safeObject(row))
+          .filter((row) => row.active)
+          .length,
+        actorEvents: Array.isArray(state.actorEvents) ? state.actorEvents.length : 0,
+        actorCooldownsTotal: Object.keys(safeObject(state.actorCooldowns)).length,
+        actorCooldownsActive: Object.values(safeObject(state.actorCooldowns))
           .map((row) => safeObject(row))
           .filter((row) => row.active)
           .length,
@@ -4526,7 +5035,12 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         lockdownMaxMs: RUNTIME_SECURITY_LOCKDOWN_MAX_MS,
         referenceReplayWindowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
         referenceQuarantineMs: RUNTIME_REFERENCE_QUARANTINE_MS,
-        referenceQuarantineMaxMs: RUNTIME_REFERENCE_QUARANTINE_MAX_MS
+        referenceQuarantineMaxMs: RUNTIME_REFERENCE_QUARANTINE_MAX_MS,
+        actorFailWindowMs: RUNTIME_ACTOR_FAIL_WINDOW_MS,
+        actorFailMax: RUNTIME_ACTOR_FAIL_MAX,
+        actorCooldownMs: RUNTIME_ACTOR_COOLDOWN_MS,
+        actorCooldownMaxMs: RUNTIME_ACTOR_COOLDOWN_MAX_MS,
+        actorCooldownEscalationFactor: RUNTIME_ACTOR_COOLDOWN_ESCALATION_FACTOR
       }
     });
   });
@@ -4733,6 +5247,204 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     });
   });
 
+  router.get('/runtime/security/actors', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const actorKey = normalizeString(req.query.actorKey, 80);
+    const userKey = normalizeString(req.query.userKey, 80);
+    const action = normalizeString(req.query.action, 80);
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 200)));
+    const rows = (Array.isArray(state.actorEvents) ? state.actorEvents : [])
+      .filter((item) => !actorKey || String(item.actorKey) === String(actorKey))
+      .filter((item) => !userKey || String(item.userKey) === String(userKey))
+      .filter((item) => !action || String(item.action) === String(action))
+      .slice(-limit)
+      .reverse();
+
+    const summary = rows.reduce((acc, item) => {
+      const key = normalizeString(item.action, 80) || 'unknown';
+      acc[key] = Number(acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return res.status(200).json({
+      actorKey: actorKey || null,
+      userKey: userKey || null,
+      action: action || null,
+      limit,
+      count: rows.length,
+      summary,
+      rows
+    });
+  });
+
+  router.get('/runtime/security/actor-cooldowns', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const keys = Object.keys(safeObject(state.actorCooldowns || {}));
+    let autoReleased = 0;
+    for (let i = 0; i < keys.length; i += 1) {
+      const status = getRuntimeActorCooldownStatus(store, keys[i]);
+      if (status.releasedBecauseExpired) {
+        autoReleased += 1;
+      }
+    }
+
+    if (autoReleased > 0) {
+      appendRuntimeEvent(store, 'runtime_actor_cooldown_auto_release_batch', {
+        actorUserId: 'system',
+        releasedCount: autoReleased
+      });
+      queuePersist();
+    }
+
+    const hydratedState = getRuntimeSecurityState(store);
+    const records = Object.values(safeObject(hydratedState.actorCooldowns || {}))
+      .map((item) => safeObject(item))
+      .filter((item) => normalizeString(item.actorKey, 80));
+
+    return res.status(200).json({
+      autoReleased,
+      total: records.length,
+      active: records.filter((item) => item.active).length,
+      records
+    });
+  });
+
+  router.post('/runtime/security/actor-cooldown/:actorKey', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const actorKey = normalizeString(req.params.actorKey, 80).toLowerCase();
+    if (!isRuntimeSha256Key(actorKey)) {
+      return res.status(400).json({ message: 'Valid sha256 actorKey is required' });
+    }
+
+    const reason = sanitizeText(req.body?.reason || 'manual_actor_cooldown', 160) || 'manual_actor_cooldown';
+    const durationMs = Math.min(
+      RUNTIME_ACTOR_COOLDOWN_MAX_MS,
+      Math.max(60 * 1000, Number(req.body?.durationMs || RUNTIME_ACTOR_COOLDOWN_MS))
+    );
+    const record = applyRuntimeActorCooldown(store, {
+      actorKey,
+      actorUserId: normalizeString(req.body?.actorUserId, 120),
+      ip: normalizeString(req.body?.ip, 120),
+      userAgent: normalizeString(req.body?.userAgent, 220),
+      reason,
+      durationMs,
+      updatedByActorUserId: normalizeString(req.user && req.user.id, 120),
+      updatedByIp: getClientIp(req),
+      metadata: {
+        source: 'admin_manual_actor_cooldown'
+      }
+    });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: '__global__',
+      type: 'admin_manual_actor_cooldown',
+      severity: 'high',
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        actorKey,
+        cooldownUntil: record ? record.cooldownUntil : null,
+        durationMs
+      }
+    });
+    const actorEvent = addRuntimeActorEvent(store, {
+      action: 'manual_cooldown',
+      actorKey,
+      actorUserId: record ? normalizeString(record.actorUserId, 120) : normalizeString(req.body?.actorUserId, 120),
+      ip: record ? normalizeString(record.ip, 120) : normalizeString(req.body?.ip, 120),
+      userAgent: record ? normalizeString(record.userAgent, 220) : normalizeString(req.body?.userAgent, 220),
+      userKey: '__global__',
+      reason,
+      metadata: {
+        cooldownUntil: record ? record.cooldownUntil : null,
+        durationMs
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_actor_cooldown_manual', {
+      actorKey,
+      reason,
+      durationMs,
+      cooldownUntil: record ? record.cooldownUntil : null,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      securityIncidentId: incident ? incident.id : null,
+      actorEventId: actorEvent ? actorEvent.id : null
+    });
+    queuePersist();
+
+    return res.status(201).json({
+      message: 'Actor cooldown applied',
+      record,
+      securityIncidentId: incident ? incident.id : null,
+      actorEventId: actorEvent ? actorEvent.id : null,
+      runtimeEventId: event ? event.id : null
+    });
+  });
+
+  router.post('/runtime/security/actor-cooldown/:actorKey/release', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const actorKey = normalizeString(req.params.actorKey, 80).toLowerCase();
+    if (!isRuntimeSha256Key(actorKey)) {
+      return res.status(400).json({ message: 'Valid sha256 actorKey is required' });
+    }
+
+    const reason = sanitizeText(req.body?.reason || 'manual_actor_cooldown_release', 160) || 'manual_actor_cooldown_release';
+    const existing = getRuntimeActorCooldownRecord(store, actorKey);
+    if (!existing) {
+      return res.status(404).json({ message: 'No actor cooldown record found' });
+    }
+
+    const record = releaseRuntimeActorCooldown(store, {
+      actorKey,
+      reason,
+      updatedByActorUserId: normalizeString(req.user && req.user.id, 120),
+      updatedByIp: getClientIp(req)
+    });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: '__global__',
+      type: 'admin_manual_actor_cooldown_release',
+      severity: 'medium',
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        actorKey,
+        releasedAt: record ? record.releasedAt : null
+      }
+    });
+    const actorEvent = addRuntimeActorEvent(store, {
+      action: 'manual_cooldown_release',
+      actorKey,
+      actorUserId: record ? normalizeString(record.actorUserId, 120) : '',
+      ip: record ? normalizeString(record.ip, 120) : '',
+      userAgent: record ? normalizeString(record.userAgent, 220) : '',
+      userKey: '__global__',
+      reason,
+      metadata: {
+        releasedAt: record ? record.releasedAt : null
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_actor_cooldown_manual_release', {
+      actorKey,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      securityIncidentId: incident ? incident.id : null,
+      actorEventId: actorEvent ? actorEvent.id : null
+    });
+    queuePersist();
+
+    return res.status(200).json({
+      message: 'Actor cooldown released',
+      record,
+      securityIncidentId: incident ? incident.id : null,
+      actorEventId: actorEvent ? actorEvent.id : null,
+      runtimeEventId: event ? event.id : null
+    });
+  });
+
   router.get('/runtime/security/policy', requireAdmin, (req, res) => {
     const store = getStore();
     const state = getRuntimeSecurityState(store);
@@ -4758,6 +5470,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         referenceReplayWindowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
         referenceQuarantineMs: RUNTIME_REFERENCE_QUARANTINE_MS,
         referenceQuarantineMaxMs: RUNTIME_REFERENCE_QUARANTINE_MAX_MS,
+        actorFailWindowMs: RUNTIME_ACTOR_FAIL_WINDOW_MS,
+        actorFailMax: RUNTIME_ACTOR_FAIL_MAX,
+        actorCooldownMs: RUNTIME_ACTOR_COOLDOWN_MS,
+        actorCooldownMaxMs: RUNTIME_ACTOR_COOLDOWN_MAX_MS,
+        actorCooldownEscalationFactor: RUNTIME_ACTOR_COOLDOWN_ESCALATION_FACTOR,
         minRiskDenyThreshold: 50,
         maxRiskDenyThreshold: 100
       }
