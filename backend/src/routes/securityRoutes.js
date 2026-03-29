@@ -9,6 +9,11 @@ const { logSecurityEvent } = require('../services/securityLogService');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { evaluateAiThreat, applyAutoResponse } = require('../services/aiSecurityDetectiveService');
+const {
+  getAuthAbuseShieldSnapshot,
+  releaseAuthAbuseShieldLocks,
+  isAuthAbuseShieldSha256
+} = require('../middleware/authAbuseShieldMiddleware');
 
 const router = express.Router();
 
@@ -557,6 +562,60 @@ router.patch('/incidents/:incidentId', authenticate, requireAdmin, async (req, r
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to update incident' });
+  }
+});
+
+router.get('/shield/auth-abuse/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeInactive = String(req.query?.includeInactive || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+    const failWindowMsInput = Number(req.query?.failWindowMs);
+
+    const snapshot = getAuthAbuseShieldSnapshot({
+      includeInactive,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100,
+      failWindowMs: Number.isFinite(failWindowMsInput) && failWindowMsInput > 0 ? failWindowMsInput : undefined
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch auth abuse shield snapshot' });
+  }
+});
+
+router.post('/shield/auth-abuse/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const principalKey = String(req.body?.principalKey || '').trim().toLowerCase();
+    const ipKey = String(req.body?.ipKey || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !principalKey && !ipKey) {
+      return res.status(400).json({ message: 'principalKey or ipKey is required when clearAll is false' });
+    }
+
+    if (principalKey && !isAuthAbuseShieldSha256(principalKey)) {
+      return res.status(400).json({ message: 'principalKey must be a SHA-256 hash' });
+    }
+    if (ipKey && !isAuthAbuseShieldSha256(ipKey)) {
+      return res.status(400).json({ message: 'ipKey must be a SHA-256 hash' });
+    }
+
+    const result = releaseAuthAbuseShieldLocks({
+      principalKey,
+      ipKey,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Auth abuse shield lock release completed',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release auth abuse shield lock' });
   }
 });
 

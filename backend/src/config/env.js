@@ -57,5 +57,15 @@ module.exports = {
   recaptchaVerifyServerSide: String(process.env.RECAPTCHA_VERIFY_SERVER_SIDE || 'true').toLowerCase() === 'true',
   recaptchaFailOpen: String(process.env.RECAPTCHA_FAIL_OPEN || 'false').toLowerCase() === 'true',
   recaptchaMinScore: Number(process.env.RECAPTCHA_MIN_SCORE || 0.5),
+
+  authAbuseShieldEnabled: String(process.env.AUTH_ABUSE_SHIELD_ENABLED || 'true').toLowerCase() === 'true',
+  authAbuseFailWindowMs: Number(process.env.AUTH_ABUSE_FAIL_WINDOW_MS || 15 * 60 * 1000),
+  authAbusePrincipalFailMax: Number(process.env.AUTH_ABUSE_PRINCIPAL_FAIL_MAX || 8),
+  authAbuseIpFailMax: Number(process.env.AUTH_ABUSE_IP_FAIL_MAX || 25),
+  authAbuseBlockMs: Number(process.env.AUTH_ABUSE_BLOCK_MS || 30 * 60 * 1000),
+  authAbuseBlockMaxMs: Number(process.env.AUTH_ABUSE_BLOCK_MAX_MS || 24 * 60 * 60 * 1000),
+  authAbuseEscalationFactor: Number(process.env.AUTH_ABUSE_ESCALATION_FACTOR || 2),
+  authAbuseResetOnSuccess: String(process.env.AUTH_ABUSE_RESET_ON_SUCCESS || 'true').toLowerCase() === 'true',
+  authAbuseTrackPaths: splitCsv(process.env.AUTH_ABUSE_TRACK_PATHS),
   recaptchaVerifyTimeoutMs: Number(process.env.RECAPTCHA_VERIFY_TIMEOUT_MS || 3500)
 };

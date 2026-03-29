@@ -19,6 +19,7 @@ const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
+const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
 const { csrfShieldMiddleware, issueCsrfToken } = require('./middleware/csrfShieldMiddleware');
@@ -130,6 +131,17 @@ app.use('/api/security', strictCsrfShield);
 app.use('/api/notifications', strictCsrfShield);
 app.use('/api/wallet', strictCsrfShield);
 app.use('/api/wallets', strictCsrfShield);
+app.use('/api/auth', authAbuseShieldMiddleware({
+  enabled: env.authAbuseShieldEnabled,
+  failWindowMs: env.authAbuseFailWindowMs,
+  principalFailMax: env.authAbusePrincipalFailMax,
+  ipFailMax: env.authAbuseIpFailMax,
+  blockMs: env.authAbuseBlockMs,
+  blockMaxMs: env.authAbuseBlockMaxMs,
+  escalationFactor: env.authAbuseEscalationFactor,
+  resetOnSuccess: env.authAbuseResetOnSuccess,
+  trackPaths: env.authAbuseTrackPaths
+}));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
