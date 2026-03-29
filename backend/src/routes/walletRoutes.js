@@ -1819,6 +1819,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   const RUNTIME_SNAPSHOTS_ENABLED = String(process.env.RUNTIME_SNAPSHOTS_ENABLED || 'true').trim().toLowerCase() === 'true';
   const RUNTIME_SNAPSHOT_HASH_SECRET = String(process.env.RUNTIME_SNAPSHOT_HASH_SECRET || process.env.API_SIGNATURE_SECRET || process.env.JWT_SECRET || 'runtime_snapshot_hash_secret');
   const RUNTIME_AUDIT_MAX_LIMIT = Math.max(50, Number(process.env.RUNTIME_AUDIT_MAX_LIMIT || 2000));
+  const RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS = Math.max(60 * 1000, Number(process.env.RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS || 10 * 60 * 1000));
+  const RUNTIME_AUTO_DEDUCT_RATE_MAX = Math.max(1, Number(process.env.RUNTIME_AUTO_DEDUCT_RATE_MAX || 20));
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -2280,6 +2282,34 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     )) || null;
   }
 
+  function getRecentAutoDeductions(store, userKey, limit = 20) {
+    const safeLimit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(limit || 20)));
+    const rows = Array.isArray(store.autoDeductions) ? store.autoDeductions : [];
+    return rows
+      .filter((row) => String(row.userKey) === String(userKey) && row.status === 'settled')
+      .sort((a, b) => {
+        const left = new Date(b.createdAt).getTime();
+        const right = new Date(a.createdAt).getTime();
+        return left - right;
+      })
+      .slice(0, safeLimit);
+  }
+
+  function countRecentAutoDeductions(store, userKey, windowMs) {
+    const rows = Array.isArray(store.autoDeductions) ? store.autoDeductions : [];
+    const threshold = Date.now() - Math.max(1000, Number(windowMs || RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS));
+    let count = 0;
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = rows[i];
+      if (String(row.userKey) !== String(userKey) || row.status !== 'settled') continue;
+      const createdAt = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAt)) continue;
+      if (createdAt < threshold) break;
+      count += 1;
+    }
+    return count;
+  }
+
   function getSignedAutoDeductionsForUser(store, userKey) {
     const rows = Array.isArray(store.autoDeductions) ? store.autoDeductions : [];
     return rows
@@ -2688,6 +2718,30 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     }
   }
 
+  function computeFileSha256(filePath) {
+    try {
+      if (!fs.existsSync(filePath)) return null;
+      const buffer = fs.readFileSync(filePath);
+      return crypto.createHash('sha256').update(buffer).digest('hex');
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function countNdjsonLines(filePath) {
+    try {
+      if (!fs.existsSync(filePath)) return 0;
+      const raw = fs.readFileSync(filePath, 'utf8');
+      return String(raw || '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .length;
+    } catch (_error) {
+      return 0;
+    }
+  }
+
   function generateOtpCode() {
     return String(Math.floor(100000 + Math.random() * 900000));
   }
@@ -2885,6 +2939,46 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       });
     }
 
+    if (actorType !== 'admin') {
+      const recentCount = countRecentAutoDeductions(store, userKey, RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS);
+      if (recentCount >= RUNTIME_AUTO_DEDUCT_RATE_MAX) {
+        logSecurityEvent({
+          userId: req.user && req.user.id,
+          action: 'legacy_wallet_auto_deduct_rate_limited',
+          ip: getClientIp(req),
+          riskScore: 65,
+          result: 'blocked',
+          metadata: {
+            userKey,
+            recentCount,
+            windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
+            max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
+            autoDeductReference
+          }
+        }).catch(() => {});
+
+        const rateEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_rate_limited', {
+          userKey,
+          recentCount,
+          windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
+          max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
+          autoDeductReference,
+          actorUserId: normalizeString(req.user && req.user.id, 120),
+          ip: getClientIp(req)
+        });
+        queuePersist();
+
+        return res.status(429).json({
+          ok: false,
+          message: 'Auto deduction rate limit exceeded, try again later',
+          recentCount,
+          windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
+          max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
+          runtimeEventId: rateEvent ? rateEvent.id : null
+        });
+      }
+    }
+
     const wallet = walletForUser(store, userKey);
     if (wallet.balance < amount) {
       return res.status(409).json({
@@ -3005,6 +3099,72 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       auditEventId: auditEvent ? auditEvent.id : null,
       eventDigest: getRuntimeEventDigest(store),
       snapshotDigest: getRuntimeSnapshotDigest(store)
+    });
+  });
+
+  router.get('/runtime/audit/checksums', requireAdmin, (req, res) => {
+    return res.status(200).json({
+      checksums: {
+        store: computeFileSha256(DATA_FILE),
+        backup: computeFileSha256(DATA_FILE_BACKUP),
+        events: computeFileSha256(DATA_EVENTS_FILE),
+        snapshots: computeFileSha256(DATA_SNAPSHOTS_FILE)
+      },
+      lineCounts: {
+        events: countNdjsonLines(DATA_EVENTS_FILE),
+        snapshots: countNdjsonLines(DATA_SNAPSHOTS_FILE)
+      },
+      files: {
+        store: getRuntimeFileMetadata(DATA_FILE),
+        backup: getRuntimeFileMetadata(DATA_FILE_BACKUP),
+        events: getRuntimeFileMetadata(DATA_EVENTS_FILE),
+        snapshots: getRuntimeFileMetadata(DATA_SNAPSHOTS_FILE)
+      }
+    });
+  });
+
+  router.post('/runtime/audit/snapshot', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const reason = sanitizeText(req.body?.reason || req.query?.reason || 'manual_snapshot', 80) || 'manual_snapshot';
+    const snapshot = appendRuntimeSnapshot(store, reason);
+    const auditEvent = appendRuntimeEvent(store, 'runtime_manual_snapshot', {
+      reason,
+      snapshotId: snapshot ? snapshot.id : null,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    queuePersist();
+
+    return res.status(snapshot ? 201 : 500).json({
+      message: snapshot ? 'Runtime snapshot recorded' : 'Runtime snapshot write failed',
+      snapshot,
+      auditEventId: auditEvent ? auditEvent.id : null,
+      snapshotDigest: getRuntimeSnapshotDigest(store)
+    });
+  });
+
+  router.get('/runtime/audit/auto-deduct/:userKey', requireAdmin, (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.params.userKey, 80);
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 50)));
+    if (!userKey) {
+      return res.status(400).json({ message: 'userKey is required' });
+    }
+
+    const rows = getRecentAutoDeductions(store, userKey, limit);
+    const integrity = verifyAutoDeductionIntegrityChain(store, userKey);
+    const recentCount = countRecentAutoDeductions(store, userKey, RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS);
+
+    return res.status(integrity.ok ? 200 : 409).json({
+      userKey,
+      integrity,
+      velocity: {
+        recentCount,
+        windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
+        max: RUNTIME_AUTO_DEDUCT_RATE_MAX
+      },
+      limit,
+      rows
     });
   });
 
