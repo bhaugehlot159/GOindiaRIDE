@@ -47,6 +47,8 @@ const WALLET_STRICT_SIGNATURE = String(process.env.WALLET_STRICT_SIGNATURE || pr
 const RUNTIME_AUTO_DEDUCT_REQUIRE_OTP = String(process.env.RUNTIME_AUTO_DEDUCT_REQUIRE_OTP || 'true').trim().toLowerCase() === 'true';
 const RUNTIME_AUTO_DEDUCT_HIGH_VALUE = Math.max(1000, Number(process.env.RUNTIME_AUTO_DEDUCT_HIGH_VALUE || 50000));
 const AUTO_DEDUCT_REF_MIN_LENGTH = Math.max(6, Number(process.env.AUTO_DEDUCT_REF_MIN_LENGTH || 8));
+const WALLET_CONFIRM_LOCK_TTL_MS = Math.max(30 * 1000, Number(process.env.WALLET_CONFIRM_LOCK_TTL_MS || 3 * 60 * 1000));
+const WALLET_REVIEW_LOCK_TTL_MS = Math.max(30 * 1000, Number(process.env.WALLET_REVIEW_LOCK_TTL_MS || 3 * 60 * 1000));
 
 const DEFAULT_PAYMENT_MODES = [
   { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 1 },
@@ -328,6 +330,83 @@ function strictWalletSignature(req, res, next) {
   return verifyApiSignature(req, res, next);
 }
 
+function buildLockQuery(lockField, lockAtField, ttlMs) {
+  return {
+    $or: [
+      { [lockField]: { $ne: true } },
+      { [lockAtField]: { $lte: new Date(Date.now() - ttlMs) } }
+    ]
+  };
+}
+
+async function claimTopupOrderConfirmationLock({ orderId, walletType, ownerId, actorId, providerReference }) {
+  return WalletTopupOrder.findOneAndUpdate(
+    {
+      orderId,
+      walletType,
+      ownerId,
+      status: 'pending',
+      ...buildLockQuery('metadata.confirmationLock', 'metadata.confirmationLockAt', WALLET_CONFIRM_LOCK_TTL_MS)
+    },
+    {
+      $set: {
+        'metadata.confirmationLock': true,
+        'metadata.confirmationLockAt': new Date(),
+        'metadata.confirmationLockActorId': sanitizeText(actorId, 120),
+        'metadata.confirmationLockProviderReference': sanitizeText(providerReference, 180)
+      }
+    },
+    { new: true }
+  );
+}
+
+async function releaseTopupOrderConfirmationLock(orderId, reason = 'released') {
+  if (!orderId) return;
+  await WalletTopupOrder.updateOne(
+    { _id: orderId },
+    {
+      $set: {
+        'metadata.confirmationLock': false,
+        'metadata.confirmationLockReleasedAt': new Date(),
+        'metadata.confirmationLockReason': sanitizeText(reason, 120)
+      }
+    }
+  );
+}
+
+async function claimWithdrawalReviewLock({ requestId, actorId, decision }) {
+  return WalletWithdrawalRequest.findOneAndUpdate(
+    {
+      requestId,
+      status: 'pending_admin_approval',
+      ...buildLockQuery('metadata.reviewLock', 'metadata.reviewLockAt', WALLET_REVIEW_LOCK_TTL_MS)
+    },
+    {
+      $set: {
+        'metadata.reviewLock': true,
+        'metadata.reviewLockAt': new Date(),
+        'metadata.reviewLockActorId': sanitizeText(actorId, 120),
+        'metadata.reviewDecision': sanitizeText(decision, 40)
+      }
+    },
+    { new: true }
+  );
+}
+
+async function releaseWithdrawalReviewLock(requestMongoId, reason = 'released') {
+  if (!requestMongoId) return;
+  await WalletWithdrawalRequest.updateOne(
+    { _id: requestMongoId },
+    {
+      $set: {
+        'metadata.reviewLock': false,
+        'metadata.reviewLockReleasedAt': new Date(),
+        'metadata.reviewLockReason': sanitizeText(reason, 120)
+      }
+    }
+  );
+}
+
 router.use(authenticate);
 
 router.get('/my', wrapAsync(async (req, res) => {
@@ -534,102 +613,159 @@ router.post('/topup/confirm', walletCriticalLimiter, strictWalletSignature, wrap
     return res.status(409).json({ message: 'providerReference already used by another confirmed top-up/donation order' });
   }
 
-  const order = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId });
-  if (!order) {
+  const existingOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId });
+  if (!existingOrder) {
     return res.status(404).json({ message: 'Top-up order not found' });
   }
 
-  if (order.status === 'confirmed') {
+  if (existingOrder.status === 'confirmed') {
     const wallet = await ensureWallet(actorType, ownerId);
     return res.status(200).json({
       message: 'Top-up already confirmed',
-      order,
+      order: existingOrder,
       wallet
     });
   }
 
-  if (order.status !== 'pending') {
-    return res.status(400).json({ message: `Top-up order is ${order.status}` });
+  if (existingOrder.status !== 'pending') {
+    return res.status(400).json({ message: `Top-up order is ${existingOrder.status}` });
+  }
+
+  const order = await claimTopupOrderConfirmationLock({
+    orderId,
+    walletType: actorType,
+    ownerId,
+    actorId: String(req.user.id),
+    providerReference
+  });
+
+  if (!order) {
+    const latestOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId }).lean();
+    if (!latestOrder) {
+      return res.status(404).json({ message: 'Top-up order not found' });
+    }
+    if (latestOrder.status === 'confirmed') {
+      const wallet = await ensureWallet(actorType, ownerId);
+      return res.status(200).json({
+        message: 'Top-up already confirmed',
+        order: latestOrder,
+        wallet
+      });
+    }
+    if (latestOrder.status !== 'pending') {
+      return res.status(400).json({ message: `Top-up order is ${latestOrder.status}` });
+    }
+    return res.status(409).json({ message: 'Top-up confirmation is already in progress' });
   }
 
   if (new Date(order.expiresAt).getTime() <= Date.now()) {
-    order.status = 'expired';
-    await order.save();
+    await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending' },
+      {
+        $set: {
+          status: 'expired',
+          'metadata.confirmationLock': false,
+          'metadata.expiredAt': new Date()
+        }
+      }
+    );
     return res.status(410).json({ message: 'Top-up order expired. Create a new order.' });
   }
 
-  const customerWallet = await adjustWallet({
-    walletType: actorType,
-    ownerId,
-    amount: order.amount,
-    direction: 'credit'
-  });
-
-  const adminWallet = await adjustWallet({
-    walletType: 'admin',
-    ownerId: 'platform',
-    amount: order.amount,
-    direction: 'credit'
-  });
-
-  order.status = 'confirmed';
-  order.providerReference = providerReference;
-  await order.save();
-
-  await createWalletTransaction({
-    walletType: actorType,
-    ownerId,
-    direction: 'credit',
-    amount: order.amount,
-    currency: order.currency,
-    source: 'topup_confirmed',
-    status: 'settled',
-    paymentMode: order.paymentMode,
-    clientReference: order.clientReference,
-    providerReference,
-    description: `Top-up confirmed via ${order.paymentModeLabel}`,
-    actorRole: actorType,
-    actorId: String(req.user.id),
-    metadata: { orderId: order.orderId }
-  });
-
-  await createWalletTransaction({
-    walletType: 'admin',
-    ownerId: 'platform',
-    direction: 'credit',
-    amount: order.amount,
-    currency: order.currency,
-    source: 'payment_settlement',
-    status: 'settled',
-    paymentMode: order.paymentMode,
-    providerReference,
-    description: `Auto-settlement from ${actorType} wallet top-up (${ownerId})`,
-    actorRole: 'system',
-    actorId: String(req.user.id),
-    metadata: { orderId: order.orderId, sourceWalletType: actorType, sourceOwnerId: ownerId }
-  });
-
-  if (order.amount >= 100000) {
-    await logSecurityEvent({
-      userId: req.user.id,
-      action: 'wallet_high_value_topup_confirmed',
-      ip: getClientIp(req),
-      riskScore: 35,
-      result: 'flagged',
-      metadata: {
-        orderId: order.orderId,
-        amount: order.amount,
-        paymentMode: order.paymentMode
-      }
+  try {
+    const customerWallet = await adjustWallet({
+      walletType: actorType,
+      ownerId,
+      amount: order.amount,
+      direction: 'credit'
     });
-  }
 
-  return res.status(200).json({
-    message: 'Top-up confirmed securely',
-    order,
-    wallet: customerWallet,
-    adminWallet
-  });
+    const adminWallet = await adjustWallet({
+      walletType: 'admin',
+      ownerId: 'platform',
+      amount: order.amount,
+      direction: 'credit'
+    });
+
+    const finalized = await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending' },
+      {
+        $set: {
+          status: 'confirmed',
+          providerReference,
+          'metadata.confirmationLock': false,
+          'metadata.confirmedAt': new Date(),
+          'metadata.confirmedBy': String(req.user.id)
+        }
+      }
+    );
+
+    if (!Number(finalized.matchedCount || 0)) {
+      const error = new Error('Top-up confirmation state changed. Retry safely.');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    await createWalletTransaction({
+      walletType: actorType,
+      ownerId,
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'topup_confirmed',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      clientReference: order.clientReference,
+      providerReference,
+      description: `Top-up confirmed via ${order.paymentModeLabel}`,
+      actorRole: actorType,
+      actorId: String(req.user.id),
+      metadata: { orderId: order.orderId }
+    });
+
+    await createWalletTransaction({
+      walletType: 'admin',
+      ownerId: 'platform',
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'payment_settlement',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      providerReference,
+      description: `Auto-settlement from ${actorType} wallet top-up (${ownerId})`,
+      actorRole: 'system',
+      actorId: String(req.user.id),
+      metadata: { orderId: order.orderId, sourceWalletType: actorType, sourceOwnerId: ownerId }
+    });
+
+    if (order.amount >= 100000) {
+      await logSecurityEvent({
+        userId: req.user.id,
+        action: 'wallet_high_value_topup_confirmed',
+        ip: getClientIp(req),
+        riskScore: 35,
+        result: 'flagged',
+        metadata: {
+          orderId: order.orderId,
+          amount: order.amount,
+          paymentMode: order.paymentMode
+        }
+      });
+    }
+
+    const confirmedOrder = await WalletTopupOrder.findById(order._id).lean();
+
+    return res.status(200).json({
+      message: 'Top-up confirmed securely',
+      order: confirmedOrder || order,
+      wallet: customerWallet,
+      adminWallet
+    });
+  } catch (error) {
+    await releaseTopupOrderConfirmationLock(order._id, 'confirmation_failed');
+    throw error;
+  }
 }));
 
 router.post('/donations/intent', wrapAsync(async (req, res) => {
@@ -730,87 +866,144 @@ router.post('/donations/confirm', walletCriticalLimiter, strictWalletSignature, 
     return res.status(409).json({ message: 'providerReference already used by another confirmed top-up/donation order' });
   }
 
-  const order = await WalletTopupOrder.findOne({ orderId, walletType: 'donation', ownerId: 'pool' });
-  if (!order) {
+  const existingOrder = await WalletTopupOrder.findOne({ orderId, walletType: 'donation', ownerId: 'pool' });
+  if (!existingOrder) {
     return res.status(404).json({ message: 'Donation intent not found' });
   }
 
-  if (order.donorUserId && actorType !== 'admin' && String(order.donorUserId) !== String(req.user.id)) {
+  if (existingOrder.donorUserId && actorType !== 'admin' && String(existingOrder.donorUserId) !== String(req.user.id)) {
     return res.status(403).json({ message: 'You cannot confirm this donation' });
   }
 
-  if (order.status === 'confirmed') {
+  if (existingOrder.status === 'confirmed') {
     const donationWallet = await ensureWallet('donation', 'pool');
     return res.status(200).json({
       message: 'Donation already confirmed',
-      order,
+      order: existingOrder,
       donationWallet
     });
   }
 
-  if (order.status !== 'pending') {
-    return res.status(400).json({ message: `Donation intent is ${order.status}` });
+  if (existingOrder.status !== 'pending') {
+    return res.status(400).json({ message: `Donation intent is ${existingOrder.status}` });
+  }
+
+  const order = await claimTopupOrderConfirmationLock({
+    orderId,
+    walletType: 'donation',
+    ownerId: 'pool',
+    actorId: String(req.user.id),
+    providerReference
+  });
+
+  if (!order) {
+    const latestOrder = await WalletTopupOrder.findOne({ orderId, walletType: 'donation', ownerId: 'pool' }).lean();
+    if (!latestOrder) {
+      return res.status(404).json({ message: 'Donation intent not found' });
+    }
+    if (latestOrder.status === 'confirmed') {
+      const donationWallet = await ensureWallet('donation', 'pool');
+      return res.status(200).json({
+        message: 'Donation already confirmed',
+        order: latestOrder,
+        donationWallet
+      });
+    }
+    if (latestOrder.status !== 'pending') {
+      return res.status(400).json({ message: `Donation intent is ${latestOrder.status}` });
+    }
+    return res.status(409).json({ message: 'Donation confirmation is already in progress' });
   }
 
   if (new Date(order.expiresAt).getTime() <= Date.now()) {
-    order.status = 'expired';
-    await order.save();
+    await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending' },
+      {
+        $set: {
+          status: 'expired',
+          'metadata.confirmationLock': false,
+          'metadata.expiredAt': new Date()
+        }
+      }
+    );
     return res.status(410).json({ message: 'Donation intent expired. Start again.' });
   }
 
-  const donationWallet = await adjustWallet({
-    walletType: 'donation',
-    ownerId: 'pool',
-    amount: order.amount,
-    direction: 'credit'
-  });
+  try {
+    const donationWallet = await adjustWallet({
+      walletType: 'donation',
+      ownerId: 'pool',
+      amount: order.amount,
+      direction: 'credit'
+    });
 
-  order.status = 'confirmed';
-  order.providerReference = providerReference;
-  await order.save();
+    const finalized = await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending' },
+      {
+        $set: {
+          status: 'confirmed',
+          providerReference,
+          'metadata.confirmationLock': false,
+          'metadata.confirmedAt': new Date(),
+          'metadata.confirmedBy': String(req.user.id)
+        }
+      }
+    );
 
-  await createWalletTransaction({
-    walletType: 'donation',
-    ownerId: 'pool',
-    direction: 'credit',
-    amount: order.amount,
-    currency: order.currency,
-    source: 'donation_confirmed',
-    status: 'settled',
-    paymentMode: order.paymentMode,
-    clientReference: order.clientReference,
-    providerReference,
-    description: `Donation confirmed via ${order.paymentModeLabel}`,
-    actorRole: actorType,
-    actorId: String(req.user.id),
-    metadata: {
-      orderId: order.orderId,
-      donorId: order.donorUserId || String(req.user.id),
-      donorAccountType: order.donorAccountType,
-      donorNote: order.donorNote
+    if (!Number(finalized.matchedCount || 0)) {
+      const error = new Error('Donation confirmation state changed. Retry safely.');
+      error.statusCode = 409;
+      throw error;
     }
-  });
 
-  if (order.amount >= 100000) {
-    await logSecurityEvent({
-      userId: req.user.id,
-      action: 'high_value_donation_confirmed',
-      ip: getClientIp(req),
-      riskScore: 40,
-      result: 'flagged',
+    await createWalletTransaction({
+      walletType: 'donation',
+      ownerId: 'pool',
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'donation_confirmed',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      clientReference: order.clientReference,
+      providerReference,
+      description: `Donation confirmed via ${order.paymentModeLabel}`,
+      actorRole: actorType,
+      actorId: String(req.user.id),
       metadata: {
         orderId: order.orderId,
-        amount: order.amount,
-        paymentMode: order.paymentMode
+        donorId: order.donorUserId || String(req.user.id),
+        donorAccountType: order.donorAccountType,
+        donorNote: order.donorNote
       }
     });
-  }
 
-  return res.status(200).json({
-    message: 'Donation confirmed securely',
-    order,
-    donationWallet
-  });
+    if (order.amount >= 100000) {
+      await logSecurityEvent({
+        userId: req.user.id,
+        action: 'high_value_donation_confirmed',
+        ip: getClientIp(req),
+        riskScore: 40,
+        result: 'flagged',
+        metadata: {
+          orderId: order.orderId,
+          amount: order.amount,
+          paymentMode: order.paymentMode
+        }
+      });
+    }
+
+    const confirmedOrder = await WalletTopupOrder.findById(order._id).lean();
+
+    return res.status(200).json({
+      message: 'Donation confirmed securely',
+      order: confirmedOrder || order,
+      donationWallet
+    });
+  } catch (error) {
+    await releaseTopupOrderConfirmationLock(order._id, 'donation_confirmation_failed');
+    throw error;
+  }
 }));
 
 router.get('/donations/overview', wrapAsync(async (req, res) => {
@@ -1354,100 +1547,143 @@ router.post('/admin/withdrawals/:requestId/review', requireAdmin, walletCritical
     return res.status(400).json({ message: 'decision must be approved or rejected' });
   }
 
-  const request = await WalletWithdrawalRequest.findOne({ requestId });
-  if (!request) {
+  const existingRequest = await WalletWithdrawalRequest.findOne({ requestId });
+  if (!existingRequest) {
     return res.status(404).json({ message: 'Withdrawal request not found' });
   }
 
-  if (request.status !== 'pending_admin_approval') {
-    return res.status(400).json({ message: `Request already ${request.status}` });
+  if (existingRequest.status !== 'pending_admin_approval') {
+    return res.status(400).json({ message: `Request already ${existingRequest.status}` });
   }
 
-  const sourceWallet = await ensureWallet(request.walletType, request.ownerId);
-  const adminWallet = await ensureWallet('admin', 'platform');
-
-  if (decision === 'approved') {
-    if (Number(sourceWallet.balance || 0) < Number(request.amount || 0)) {
-      return res.status(400).json({ message: 'Source wallet has insufficient balance' });
-    }
-
-    if (Number(adminWallet.balance || 0) < Number(request.amount || 0)) {
-      return res.status(400).json({ message: 'Admin settlement wallet has insufficient payout balance' });
-    }
-
-    await adjustWallet({
-      walletType: request.walletType,
-      ownerId: request.ownerId,
-      amount: request.amount,
-      direction: 'debit'
-    });
-
-    await adjustWallet({
-      walletType: 'admin',
-      ownerId: 'platform',
-      amount: request.amount,
-      direction: 'debit'
-    });
-
-    await createWalletTransaction({
-      walletType: request.walletType,
-      ownerId: request.ownerId,
-      direction: 'debit',
-      amount: request.amount,
-      currency: request.currency,
-      source: 'withdrawal_approved',
-      status: 'settled',
-      paymentMode: request.method,
-      relatedRequestId: request.requestId,
-      description: `Withdrawal approved by admin (${request.methodLabel})`,
-      actorRole: 'admin',
-      actorId: String(req.user.id),
-      metadata: { remarks }
-    });
-
-    await createWalletTransaction({
-      walletType: 'admin',
-      ownerId: 'platform',
-      direction: 'debit',
-      amount: request.amount,
-      currency: request.currency,
-      source: 'payout_processed',
-      status: 'settled',
-      paymentMode: request.method,
-      relatedRequestId: request.requestId,
-      description: `Payout processed for ${request.walletType}:${request.ownerId}`,
-      actorRole: 'admin',
-      actorId: String(req.user.id),
-      metadata: { remarks }
-    });
-  } else {
-    await createWalletTransaction({
-      walletType: request.walletType,
-      ownerId: request.ownerId,
-      direction: 'release',
-      amount: request.amount,
-      currency: request.currency,
-      source: 'withdrawal_rejected',
-      status: 'cancelled',
-      paymentMode: request.method,
-      relatedRequestId: request.requestId,
-      description: 'Withdrawal rejected by admin',
-      actorRole: 'admin',
-      actorId: String(req.user.id),
-      metadata: { remarks }
-    });
-  }
-
-  request.status = decision;
-  request.reviewedAt = new Date();
-  request.reviewedBy = String(req.user.id);
-  request.remarks = remarks;
-  await request.save();
-
-  return res.status(200).json({
-    message: `Withdrawal request ${decision}`,
-    request
+  const request = await claimWithdrawalReviewLock({
+    requestId,
+    actorId: String(req.user.id),
+    decision
   });
+
+  if (!request) {
+    const latestRequest = await WalletWithdrawalRequest.findOne({ requestId }).lean();
+    if (!latestRequest) {
+      return res.status(404).json({ message: 'Withdrawal request not found' });
+    }
+    if (latestRequest.status !== 'pending_admin_approval') {
+      return res.status(400).json({ message: `Request already ${latestRequest.status}` });
+    }
+    return res.status(409).json({ message: 'Withdrawal review is already in progress' });
+  }
+
+  try {
+    const sourceWallet = await ensureWallet(request.walletType, request.ownerId);
+    const adminWallet = await ensureWallet('admin', 'platform');
+
+    if (decision === 'approved') {
+      if (Number(sourceWallet.balance || 0) < Number(request.amount || 0)) {
+        const error = new Error('Source wallet has insufficient balance');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      if (Number(adminWallet.balance || 0) < Number(request.amount || 0)) {
+        const error = new Error('Admin settlement wallet has insufficient payout balance');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      await adjustWallet({
+        walletType: request.walletType,
+        ownerId: request.ownerId,
+        amount: request.amount,
+        direction: 'debit'
+      });
+
+      await adjustWallet({
+        walletType: 'admin',
+        ownerId: 'platform',
+        amount: request.amount,
+        direction: 'debit'
+      });
+
+      await createWalletTransaction({
+        walletType: request.walletType,
+        ownerId: request.ownerId,
+        direction: 'debit',
+        amount: request.amount,
+        currency: request.currency,
+        source: 'withdrawal_approved',
+        status: 'settled',
+        paymentMode: request.method,
+        relatedRequestId: request.requestId,
+        description: `Withdrawal approved by admin (${request.methodLabel})`,
+        actorRole: 'admin',
+        actorId: String(req.user.id),
+        metadata: { remarks }
+      });
+
+      await createWalletTransaction({
+        walletType: 'admin',
+        ownerId: 'platform',
+        direction: 'debit',
+        amount: request.amount,
+        currency: request.currency,
+        source: 'payout_processed',
+        status: 'settled',
+        paymentMode: request.method,
+        relatedRequestId: request.requestId,
+        description: `Payout processed for ${request.walletType}:${request.ownerId}`,
+        actorRole: 'admin',
+        actorId: String(req.user.id),
+        metadata: { remarks }
+      });
+    } else {
+      await createWalletTransaction({
+        walletType: request.walletType,
+        ownerId: request.ownerId,
+        direction: 'release',
+        amount: request.amount,
+        currency: request.currency,
+        source: 'withdrawal_rejected',
+        status: 'cancelled',
+        paymentMode: request.method,
+        relatedRequestId: request.requestId,
+        description: 'Withdrawal rejected by admin',
+        actorRole: 'admin',
+        actorId: String(req.user.id),
+        metadata: { remarks }
+      });
+    }
+
+    const reviewedAt = new Date();
+    const finalized = await WalletWithdrawalRequest.updateOne(
+      { _id: request._id, status: 'pending_admin_approval' },
+      {
+        $set: {
+          status: decision,
+          reviewedAt,
+          reviewedBy: String(req.user.id),
+          remarks,
+          'metadata.reviewLock': false,
+          'metadata.reviewedAt': reviewedAt
+        }
+      }
+    );
+
+    if (!Number(finalized.matchedCount || 0)) {
+      const error = new Error('Withdrawal review state changed. Retry safely.');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const finalRequest = await WalletWithdrawalRequest.findById(request._id).lean();
+
+    return res.status(200).json({
+      message: `Withdrawal request ${decision}`,
+      request: finalRequest || request
+    });
+  } catch (error) {
+    await releaseWithdrawalReviewLock(request._id, 'review_failed');
+    throw error;
+  }
 }));
 
 router.put('/admin/payment-modes', requireAdmin, wrapAsync(async (req, res) => {
