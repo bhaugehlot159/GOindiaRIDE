@@ -24,8 +24,17 @@ const otpLimiter = rateLimit({
   message: { message: 'Too many OTP attempts, try again later' }
 });
 
+const walletCriticalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many sensitive wallet requests, please try again later' }
+});
+
 module.exports = {
   globalLimiter,
   loginLimiter,
-  otpLimiter
+  otpLimiter,
+  walletCriticalLimiter
 };

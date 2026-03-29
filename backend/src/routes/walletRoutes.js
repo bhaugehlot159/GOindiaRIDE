@@ -5,6 +5,8 @@ const WalletTopupOrder = require('../models/WalletTopupOrder');
 const WalletTransaction = require('../models/WalletTransaction');
 const WalletWithdrawalRequest = require('../models/WalletWithdrawalRequest');
 const { authenticate } = require('../middleware/authMiddleware');
+const { walletCriticalLimiter } = require('../middleware/rateLimiters');
+const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware');
 const { getClientIp } = require('../utils/device');
 const { logSecurityEvent } = require('../services/securityLogService');
 const {
@@ -41,6 +43,10 @@ const DONATION_MIN = 1;
 const DONATION_MAX = 1000000;
 const DONATION_EXPIRY_MS = 30 * 60 * 1000;
 const COMMISSION_ALERT_AMOUNT = 200000;
+const WALLET_STRICT_SIGNATURE = String(process.env.WALLET_STRICT_SIGNATURE || process.env.STRICT_SECURITY_MODE || 'true').trim().toLowerCase() === 'true';
+const RUNTIME_AUTO_DEDUCT_REQUIRE_OTP = String(process.env.RUNTIME_AUTO_DEDUCT_REQUIRE_OTP || 'true').trim().toLowerCase() === 'true';
+const RUNTIME_AUTO_DEDUCT_HIGH_VALUE = Math.max(1000, Number(process.env.RUNTIME_AUTO_DEDUCT_HIGH_VALUE || 50000));
+const AUTO_DEDUCT_REF_MIN_LENGTH = Math.max(6, Number(process.env.AUTO_DEDUCT_REF_MIN_LENGTH || 8));
 
 const DEFAULT_PAYMENT_MODES = [
   { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 1 },
@@ -315,6 +321,13 @@ function requireAdmin(req, res, next) {
   return next();
 }
 
+function strictWalletSignature(req, res, next) {
+  if (!WALLET_STRICT_SIGNATURE) {
+    return next();
+  }
+  return verifyApiSignature(req, res, next);
+}
+
 router.use(authenticate);
 
 router.get('/my', wrapAsync(async (req, res) => {
@@ -494,7 +507,7 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   });
 }));
 
-router.post('/topup/confirm', wrapAsync(async (req, res) => {
+router.post('/topup/confirm', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!TOPUP_ALLOWED_TYPES.has(actorType)) {
     return res.status(403).json({ message: 'Top-up not allowed for this account' });
@@ -695,7 +708,7 @@ router.post('/donations/intent', wrapAsync(async (req, res) => {
   });
 }));
 
-router.post('/donations/confirm', wrapAsync(async (req, res) => {
+router.post('/donations/confirm', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   const orderId = sanitizeText(req.body.orderId, 120);
   const providerReference = sanitizeText(req.body.providerReference, 180);
@@ -863,7 +876,7 @@ router.get('/admin/donations/summary', requireAdmin, wrapAsync(async (req, res) 
     lastDonations
   });
 }));
-router.post('/commissions/collect', wrapAsync(async (req, res) => {
+router.post('/commissions/collect', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!['customer', 'admin'].includes(actorType)) {
     return res.status(403).json({ message: 'Only customer or admin can settle customer commission payments' });
@@ -984,7 +997,7 @@ router.get('/admin/commissions/summary', requireAdmin, wrapAsync(async (req, res
   const summary = await buildCommissionAdminSummary(Number(req.query.limit || 100));
   return res.status(200).json(summary);
 }));
-router.post('/driver-commissions/settle', wrapAsync(async (req, res) => {
+router.post('/driver-commissions/settle', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (actorType !== 'admin') {
     return res.status(403).json({ message: 'Admin approval required for driver commission settlement' });
@@ -1064,7 +1077,7 @@ router.post('/driver-commissions/settle', wrapAsync(async (req, res) => {
   });
 }));
 
-router.post('/driver-commissions/refund', wrapAsync(async (req, res) => {
+router.post('/driver-commissions/refund', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (actorType !== 'admin') {
     return res.status(403).json({ message: 'Admin approval required for driver refund' });
@@ -1174,7 +1187,7 @@ router.get('/admin/driver-commissions/summary', requireAdmin, wrapAsync(async (r
   const summary = await buildDriverCommissionAdminSummary(Number(req.query.limit || 100));
   return res.status(200).json(summary);
 }));
-router.post('/withdrawals', wrapAsync(async (req, res) => {
+router.post('/withdrawals', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!['customer', 'driver'].includes(actorType)) {
     return res.status(403).json({ message: 'Withdrawal not allowed for this account' });
@@ -1332,7 +1345,7 @@ router.get('/admin/withdrawals', requireAdmin, wrapAsync(async (req, res) => {
   return res.status(200).json({ rows });
 }));
 
-router.post('/admin/withdrawals/:requestId/review', requireAdmin, wrapAsync(async (req, res) => {
+router.post('/admin/withdrawals/:requestId/review', requireAdmin, walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const requestId = sanitizeText(req.params.requestId, 140);
   const decision = sanitizeText(req.body.decision, 40).toLowerCase();
   const remarks = sanitizeText(req.body.remarks, 240);
@@ -1477,7 +1490,7 @@ router.put('/admin/payment-modes', requireAdmin, wrapAsync(async (req, res) => {
   });
 }));
 
-router.post('/admin/wallet-adjust', requireAdmin, wrapAsync(async (req, res) => {
+router.post('/admin/wallet-adjust', requireAdmin, walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
   const walletType = ensureWalletType(req.body.walletType);
   const fallbackOwnerId = walletType === 'admin'
     ? 'platform'
@@ -1587,6 +1600,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   const MAX_FEATURE_ACTIONS = 120000;
   const MAX_AUTO_DEDUCTIONS = 100000;
   const MAX_RUNTIME_WALLET_AMOUNT = 5000000;
+  const AUTO_DEDUCT_HASH_SECRET = String(process.env.AUTO_DEDUCT_HASH_SECRET || process.env.API_SIGNATURE_SECRET || process.env.JWT_SECRET || 'runtime_auto_deduct_secret');
+  const AUTO_DEDUCT_HASH_GENESIS = 'GENESIS';
 
   let persistTimer = null;
   let gitSyncTimer = null;
@@ -1993,7 +2008,72 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     )) || null;
   }
 
+  function getSignedAutoDeductionsForUser(store, userKey) {
+    const rows = Array.isArray(store.autoDeductions) ? store.autoDeductions : [];
+    return rows
+      .filter((row) => (
+        String(row.userKey) === String(userKey)
+        && normalizeString(row.integrityHash, 128)
+      ))
+      .sort((a, b) => {
+        const left = new Date(a.createdAt).getTime();
+        const right = new Date(b.createdAt).getTime();
+        if (left !== right) return left - right;
+        return String(a.id || '').localeCompare(String(b.id || ''));
+      });
+  }
+
+  function computeAutoDeductionIntegrityHash(payload) {
+    const data = JSON.stringify({
+      previousHash: normalizeString(payload.previousHash, 128) || AUTO_DEDUCT_HASH_GENESIS,
+      userKey: normalizeString(payload.userKey, 80),
+      reference: normalizeString(payload.reference, 140),
+      amount: normalizeAmount(payload.amount),
+      reason: normalizeString(payload.reason, 250),
+      walletEntryId: normalizeString(payload.walletEntryId, 120),
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      createdAt: normalizeString(payload.createdAt, 80)
+    });
+    return crypto.createHmac('sha256', AUTO_DEDUCT_HASH_SECRET).update(data).digest('hex');
+  }
+
+  function verifyAutoDeductionIntegrityChain(store, userKey) {
+    const rows = getSignedAutoDeductionsForUser(store, userKey);
+    if (!rows.length) {
+      return { ok: true, headHash: AUTO_DEDUCT_HASH_GENESIS };
+    }
+
+    let previousHash = AUTO_DEDUCT_HASH_GENESIS;
+    for (let i = 0; i < rows.length; i += 1) {
+      const row = rows[i];
+      const expectedHash = computeAutoDeductionIntegrityHash({
+        previousHash,
+        userKey: row.userKey,
+        reference: row.reference,
+        amount: row.amount,
+        reason: row.reason,
+        walletEntryId: row.walletEntryId,
+        actorUserId: row.actorUserId,
+        createdAt: row.createdAt
+      });
+
+      if (String(row.previousHash || AUTO_DEDUCT_HASH_GENESIS) !== String(previousHash) || String(row.integrityHash) !== String(expectedHash)) {
+        return {
+          ok: false,
+          rowId: row.id
+        };
+      }
+
+      previousHash = expectedHash;
+    }
+
+    return { ok: true, headHash: previousHash };
+  }
+
   function addAutoDeduction(store, payload) {
+    const integrity = verifyAutoDeductionIntegrityChain(store, payload.userKey);
+    const previousHash = integrity.ok ? integrity.headHash : AUTO_DEDUCT_HASH_GENESIS;
+    const createdAt = new Date().toISOString();
     const event = {
       id: crypto.randomUUID(),
       userKey: normalizeString(payload.userKey, 80),
@@ -2003,14 +2083,16 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       walletEntryId: normalizeString(payload.walletEntryId, 120),
       actorUserId: normalizeString(payload.actorUserId, 120),
       status: 'settled',
-      createdAt: new Date().toISOString()
+      previousHash,
+      createdAt
     };
+    event.integrityHash = computeAutoDeductionIntegrityHash(event);
 
     if (!Array.isArray(store.autoDeductions)) {
       store.autoDeductions = [];
     }
 
-    pushWithCap(store.autoDeductions, event, MAX_AUTO_DEDUCTIONS);
+    pushWithCap(store.autoDeductions, event);
     return event;
   }
 
@@ -2124,7 +2206,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       message: normalizeString(payload.message, 320),
       createdAt: new Date().toISOString()
     };
-    pushWithCap(store.authLogs, item, MAX_AUTH_LOGS);
+    pushWithCap(store.authLogs, item);
     return item;
   }
 
@@ -2134,7 +2216,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
 
   // Route: /wallet/topup
-  router.post('/wallet/topup', (req, res) => {
+  router.post('/wallet/topup', walletCriticalLimiter, strictWalletSignature, (req, res) => {
     const store = getStore();
     const requestedUserKey = normalizeString(req.body?.userKey, 80);
     if (requestedUserKey && !canAccessRuntimeWallet(req, requestedUserKey)) {
@@ -2181,8 +2263,9 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
 
   // Route: /wallet/spend
-  router.post('/wallet/spend', (req, res) => {
+  router.post('/wallet/spend', walletCriticalLimiter, strictWalletSignature, (req, res) => {
     const store = getStore();
+    const actorType = resolveActorWalletType(req.user);
     const requestedUserKey = normalizeString(req.body?.userKey, 80);
     if (requestedUserKey && !canAccessRuntimeWallet(req, requestedUserKey)) {
       return res.status(403).json({ ok: false, message: 'Forbidden wallet access' });
@@ -2205,6 +2288,58 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
     if (amount <= 0 || amount > MAX_RUNTIME_WALLET_AMOUNT) {
       return res.status(400).json({ ok: false, message: `amount must be between 0 and ${MAX_RUNTIME_WALLET_AMOUNT}` });
+    }
+
+    if (!autoDeductReference || autoDeductReference.length < AUTO_DEDUCT_REF_MIN_LENGTH) {
+      return res.status(400).json({
+        ok: false,
+        message: `autoDeductRef (or bookingId/clientReference/x-idempotency-key) with minimum ${AUTO_DEDUCT_REF_MIN_LENGTH} chars is required`
+      });
+    }
+
+    const integrityCheck = verifyAutoDeductionIntegrityChain(store, userKey);
+    if (!integrityCheck.ok) {
+      logSecurityEvent({
+        userId: req.user && req.user.id,
+        action: 'legacy_wallet_auto_deduct_chain_tamper_detected',
+        ip: getClientIp(req),
+        riskScore: 90,
+        result: 'blocked',
+        metadata: {
+          userKey,
+          rowId: integrityCheck.rowId
+        }
+      }).catch(() => {});
+
+      return res.status(409).json({
+        ok: false,
+        message: 'Auto deduction integrity validation failed. Contact admin.'
+      });
+    }
+
+    if (
+      actorType !== 'admin'
+      && RUNTIME_AUTO_DEDUCT_REQUIRE_OTP
+      && amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE
+      && String(req.headers['x-otp-verified'] || '').toLowerCase() !== 'true'
+    ) {
+      logSecurityEvent({
+        userId: req.user && req.user.id,
+        action: 'legacy_wallet_high_value_auto_deduct_otp_required',
+        ip: getClientIp(req),
+        riskScore: 70,
+        result: 'blocked',
+        metadata: {
+          userKey,
+          amount,
+          autoDeductReference
+        }
+      }).catch(() => {});
+
+      return res.status(401).json({
+        ok: false,
+        message: `OTP verification required for auto deduction >= ${RUNTIME_AUTO_DEDUCT_HIGH_VALUE}`
+      });
     }
 
     const existingAutoDeduction = findAutoDeduction(store, userKey, autoDeductReference);
@@ -2250,6 +2385,21 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         actorUserId: normalizeString(req.user && req.user.id, 120)
       })
       : null;
+
+    if (amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE) {
+      logSecurityEvent({
+        userId: req.user && req.user.id,
+        action: 'legacy_wallet_high_value_auto_deduct_completed',
+        ip: getClientIp(req),
+        riskScore: 45,
+        result: 'flagged',
+        metadata: {
+          userKey,
+          amount,
+          autoDeductReference
+        }
+      }).catch(() => {});
+    }
 
     queuePersist();
 
