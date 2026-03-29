@@ -1837,6 +1837,14 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS,
     Math.max(RUNTIME_AUTO_DEDUCT_BLOCK_MS, Number(process.env.RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS || 4 * 60 * 60 * 1000))
   );
+  const RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD = Math.max(
+    50,
+    Math.min(100, Number(process.env.RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD || 85))
+  );
+  const RUNTIME_SECURITY_LOCKDOWN_MAX_MS = Math.max(
+    5 * 60 * 1000,
+    Number(process.env.RUNTIME_SECURITY_LOCKDOWN_MAX_MS || 24 * 60 * 60 * 1000)
+  );
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -2070,7 +2078,23 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       runtimeSecurityState: {
         blockedUsers: {},
         failedAutoDeductAttempts: [],
-        securityIncidents: []
+        securityIncidents: [],
+        policy: {
+          riskDenyThreshold: RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD,
+          lockdown: {
+            active: false,
+            reason: '',
+            startedAt: null,
+            expiresAt: null,
+            actorUserId: '',
+            releasedAt: null,
+            releasedByActorUserId: '',
+            releaseReason: '',
+            metadata: {}
+          },
+          updatedAt: null
+        },
+        policyHistory: []
       },
       tourismPlaces: seedTourismPlaces.map((item) => ({
         id: crypto.randomUUID(),
@@ -2156,6 +2180,19 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           ? safeObject(source.runtimeSecurityState).securityIncidents
           : Array.isArray(safeObject(store.runtimeSecurityState).securityIncidents)
             ? safeObject(store.runtimeSecurityState).securityIncidents
+            : [],
+        policy: {
+          ...safeObject(safeObject(store.runtimeSecurityState).policy),
+          ...safeObject(safeObject(source.runtimeSecurityState).policy),
+          lockdown: {
+            ...safeObject(safeObject(safeObject(store.runtimeSecurityState).policy).lockdown),
+            ...safeObject(safeObject(safeObject(source.runtimeSecurityState).policy).lockdown)
+          }
+        },
+        policyHistory: Array.isArray(safeObject(source.runtimeSecurityState).policyHistory)
+          ? safeObject(source.runtimeSecurityState).policyHistory
+          : Array.isArray(safeObject(store.runtimeSecurityState).policyHistory)
+            ? safeObject(store.runtimeSecurityState).policyHistory
             : []
       },
       tourismPlaces: Array.isArray(source.tourismPlaces) && source.tourismPlaces.length
@@ -2356,10 +2393,35 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const securityIncidents = Array.isArray(source.securityIncidents)
       ? source.securityIncidents
       : [];
+    const policyInput = safeObject(source.policy);
+    const lockdownInput = safeObject(policyInput.lockdown);
+    const riskDenyThresholdValue = Number(policyInput.riskDenyThreshold);
+    const policy = {
+      riskDenyThreshold: Number.isFinite(riskDenyThresholdValue)
+        ? Math.max(50, Math.min(100, riskDenyThresholdValue))
+        : RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD,
+      lockdown: {
+        active: Boolean(lockdownInput.active),
+        reason: normalizeString(lockdownInput.reason, 160),
+        startedAt: lockdownInput.startedAt || null,
+        expiresAt: lockdownInput.expiresAt || null,
+        actorUserId: normalizeString(lockdownInput.actorUserId, 120),
+        releasedAt: lockdownInput.releasedAt || null,
+        releasedByActorUserId: normalizeString(lockdownInput.releasedByActorUserId, 120),
+        releaseReason: normalizeString(lockdownInput.releaseReason, 160),
+        metadata: safeObject(lockdownInput.metadata)
+      },
+      updatedAt: policyInput.updatedAt || null
+    };
+    const policyHistory = Array.isArray(source.policyHistory)
+      ? source.policyHistory
+      : [];
     const state = {
       blockedUsers,
       failedAutoDeductAttempts,
-      securityIncidents
+      securityIncidents,
+      policy,
+      policyHistory
     };
     store.runtimeSecurityState = state;
     return state;
@@ -2387,6 +2449,161 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     }
 
     return { blocked: true, record, remainingMs };
+  }
+
+  function getRuntimeSecurityPolicy(store) {
+    const state = getRuntimeSecurityState(store);
+    const policy = safeObject(state.policy);
+    state.policy = policy;
+    store.runtimeSecurityState = state;
+    return policy;
+  }
+
+  function addRuntimeSecurityPolicyHistory(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const item = {
+      id: crypto.randomUUID(),
+      action: normalizeString(payload.action, 80) || 'policy_update',
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      reason: normalizeString(payload.reason, 160),
+      metadata: safeObject(payload.metadata),
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(state.policyHistory, item);
+    store.runtimeSecurityState = state;
+    return item;
+  }
+
+  function getRuntimeSecurityLockdownStatus(store) {
+    const state = getRuntimeSecurityState(store);
+    const policy = safeObject(state.policy);
+    const lockdown = safeObject(policy.lockdown);
+
+    if (!lockdown.active) {
+      return { active: false, lockdown, remainingMs: 0, releasedBecauseExpired: false };
+    }
+
+    const expiresAtMs = new Date(lockdown.expiresAt).getTime();
+    if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) {
+      const now = new Date().toISOString();
+      policy.lockdown = {
+        ...lockdown,
+        active: false,
+        releasedAt: now,
+        releasedByActorUserId: 'system',
+        releaseReason: 'lockdown_expired_auto_release'
+      };
+      policy.updatedAt = now;
+      state.policy = policy;
+      store.runtimeSecurityState = state;
+      return { active: false, lockdown: policy.lockdown, remainingMs: 0, releasedBecauseExpired: true };
+    }
+
+    const remainingMs = Number.isFinite(expiresAtMs) ? Math.max(0, expiresAtMs - Date.now()) : Number.MAX_SAFE_INTEGER;
+    return { active: true, lockdown, remainingMs, releasedBecauseExpired: false };
+  }
+
+  function activateRuntimeSecurityLockdown(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const policy = safeObject(state.policy);
+    const now = new Date();
+    const durationMs = Math.min(
+      RUNTIME_SECURITY_LOCKDOWN_MAX_MS,
+      Math.max(5 * 60 * 1000, Number(payload.durationMs || 2 * 60 * 60 * 1000))
+    );
+    const nextLockdown = {
+      active: true,
+      reason: normalizeString(payload.reason, 160) || 'runtime_security_lockdown',
+      startedAt: now.toISOString(),
+      expiresAt: new Date(now.getTime() + durationMs).toISOString(),
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      releasedAt: null,
+      releasedByActorUserId: '',
+      releaseReason: '',
+      metadata: {
+        durationMs,
+        ...safeObject(payload.metadata)
+      }
+    };
+
+    policy.lockdown = nextLockdown;
+    policy.updatedAt = now.toISOString();
+    state.policy = policy;
+    store.runtimeSecurityState = state;
+
+    const history = addRuntimeSecurityPolicyHistory(store, {
+      action: 'lockdown_activate',
+      actorUserId: payload.actorUserId,
+      ip: payload.ip,
+      reason: nextLockdown.reason,
+      metadata: {
+        durationMs,
+        expiresAt: nextLockdown.expiresAt,
+        ...safeObject(payload.metadata)
+      }
+    });
+
+    return { lockdown: nextLockdown, policy, history };
+  }
+
+  function releaseRuntimeSecurityLockdown(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const policy = safeObject(state.policy);
+    const existing = safeObject(policy.lockdown);
+    if (!existing.active) {
+      return null;
+    }
+
+    const now = new Date().toISOString();
+    const nextLockdown = {
+      ...existing,
+      active: false,
+      releasedAt: now,
+      releasedByActorUserId: normalizeString(payload.actorUserId, 120) || 'system',
+      releaseReason: normalizeString(payload.reason, 160) || 'lockdown_manual_release'
+    };
+    policy.lockdown = nextLockdown;
+    policy.updatedAt = now;
+    state.policy = policy;
+    store.runtimeSecurityState = state;
+
+    const history = addRuntimeSecurityPolicyHistory(store, {
+      action: 'lockdown_release',
+      actorUserId: payload.actorUserId,
+      ip: payload.ip,
+      reason: nextLockdown.releaseReason,
+      metadata: safeObject(payload.metadata)
+    });
+
+    return { lockdown: nextLockdown, policy, history };
+  }
+
+  function setRuntimeRiskDenyThreshold(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const policy = safeObject(state.policy);
+    const requestedThreshold = Number(payload.threshold);
+    const threshold = Number.isFinite(requestedThreshold)
+      ? Math.max(50, Math.min(100, requestedThreshold))
+      : RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD;
+    const previous = Number(policy.riskDenyThreshold);
+    policy.riskDenyThreshold = threshold;
+    policy.updatedAt = new Date().toISOString();
+    state.policy = policy;
+    store.runtimeSecurityState = state;
+
+    const history = addRuntimeSecurityPolicyHistory(store, {
+      action: 'risk_threshold_update',
+      actorUserId: payload.actorUserId,
+      ip: payload.ip,
+      reason: normalizeString(payload.reason, 160) || 'risk_threshold_update',
+      metadata: {
+        previous: Number.isFinite(previous) ? previous : null,
+        threshold
+      }
+    });
+
+    return { threshold, previous: Number.isFinite(previous) ? previous : null, policy, history };
   }
 
   function countRecentFailedAutoDeductAttempts(store, userKey, windowMs = RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS) {
@@ -2641,6 +2858,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   function buildRuntimeUserRiskProfile(store, userKey) {
     const normalizedUserKey = normalizeString(userKey, 80);
     if (!normalizedUserKey) return null;
+    const policy = getRuntimeSecurityPolicy(store);
+    const denyThreshold = Math.max(
+      50,
+      Math.min(100, Number(policy.riskDenyThreshold || RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD))
+    );
 
     const recentFailures10m = countRecentFailedAutoDeductAttempts(store, normalizedUserKey, 10 * 60 * 1000);
     const recentFailures1h = countRecentFailedAutoDeductAttempts(store, normalizedUserKey, 60 * 60 * 1000);
@@ -2689,6 +2911,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       userKey: normalizedUserKey,
       score,
       level,
+      denyThreshold,
+      denyByPolicy: score >= denyThreshold,
       blocked: blockStatus.blocked,
       blockedUntil: blockStatus.record ? blockStatus.record.blockedUntil : null,
       indicators: {
@@ -3247,6 +3471,54 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Valid userKey is required' });
     }
 
+    const policy = getRuntimeSecurityPolicy(store);
+    const lockdownStatus = getRuntimeSecurityLockdownStatus(store);
+    if (lockdownStatus.releasedBecauseExpired) {
+      appendRuntimeEvent(store, 'runtime_security_lockdown_auto_released', {
+        actorUserId: 'system',
+        releasedAt: lockdownStatus.lockdown ? lockdownStatus.lockdown.releasedAt : null,
+        releaseReason: lockdownStatus.lockdown ? lockdownStatus.lockdown.releaseReason : null
+      });
+      queuePersist();
+    }
+
+    if (actorType !== 'admin' && lockdownStatus.active) {
+      const incident = addRuntimeSecurityIncident(store, {
+        userKey,
+        type: 'runtime_security_lockdown_block',
+        severity: 'critical',
+        reason: normalizeString(lockdownStatus.lockdown.reason, 160) || 'runtime_security_lockdown',
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        metadata: {
+          lockdownStartedAt: lockdownStatus.lockdown.startedAt || null,
+          lockdownExpiresAt: lockdownStatus.lockdown.expiresAt || null,
+          remainingMs: lockdownStatus.remainingMs
+        }
+      });
+      const lockdownEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_lockdown_blocked', {
+        userKey,
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        lockdownReason: lockdownStatus.lockdown.reason || null,
+        lockdownExpiresAt: lockdownStatus.lockdown.expiresAt || null,
+        remainingMs: lockdownStatus.remainingMs,
+        securityIncidentId: incident ? incident.id : null
+      });
+      queuePersist();
+      return res.status(423).json({
+        ok: false,
+        message: 'Auto deduction temporarily disabled by runtime security lockdown',
+        lockdown: lockdownStatus.lockdown,
+        remainingMs: lockdownStatus.remainingMs,
+        runtimeEventId: lockdownEvent ? lockdownEvent.id : null
+      });
+    }
+
     const blockStatus = getRuntimeBlockStatus(store, userKey);
     if (blockStatus.blocked) {
       const riskProfile = buildRuntimeUserRiskProfile(store, userKey);
@@ -3292,6 +3564,61 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       });
     }
 
+    const preRiskProfile = buildRuntimeUserRiskProfile(store, userKey);
+    if (actorType !== 'admin' && preRiskProfile && preRiskProfile.denyByPolicy) {
+      const proactiveBlock = applyRuntimeAutoDeductBlock(store, {
+        userKey,
+        reason: 'risk_policy_threshold_exceeded',
+        actorUserId: 'system',
+        ip: getClientIp(req),
+        metadata: {
+          riskScore: preRiskProfile.score,
+          riskLevel: preRiskProfile.level,
+          denyThreshold: preRiskProfile.denyThreshold,
+          source: 'risk_policy_guard'
+        }
+      });
+      const incident = addRuntimeSecurityIncident(store, {
+        userKey,
+        type: 'auto_deduct_risk_policy_block',
+        severity: 'high',
+        reason: 'risk_policy_threshold_exceeded',
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        metadata: {
+          riskScore: preRiskProfile.score,
+          riskLevel: preRiskProfile.level,
+          denyThreshold: preRiskProfile.denyThreshold,
+          blockedUntil: proactiveBlock ? proactiveBlock.blockedUntil : null
+        }
+      });
+      const riskEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_risk_threshold_blocked', {
+        userKey,
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        riskScore: preRiskProfile.score,
+        riskLevel: preRiskProfile.level,
+        denyThreshold: preRiskProfile.denyThreshold,
+        securityIncidentId: incident ? incident.id : null,
+        blockedUntil: proactiveBlock ? proactiveBlock.blockedUntil : null
+      });
+      queuePersist();
+      return res.status(423).json({
+        ok: false,
+        message: 'Auto deduction temporarily blocked due to high runtime risk score',
+        blockedUntil: proactiveBlock ? proactiveBlock.blockedUntil : null,
+        risk: preRiskProfile,
+        policy: {
+          riskDenyThreshold: policy.riskDenyThreshold
+        },
+        runtimeEventId: riskEvent ? riskEvent.id : null
+      });
+    }
+
     function registerSpendFailure(reason) {
       const failure = registerFailedAutoDeductAndMaybeBlock(store, {
         userKey,
@@ -3316,7 +3643,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         blockedUntil: failure.block ? failure.block.blockedUntil : null,
         securityIncidentId: failure.incident ? failure.incident.id : null,
         riskScore: riskProfile ? riskProfile.score : null,
-        riskLevel: riskProfile ? riskProfile.level : null
+        riskLevel: riskProfile ? riskProfile.level : null,
+        riskDenyThreshold: riskProfile ? riskProfile.denyThreshold : null
       });
       queuePersist();
       return {
@@ -3568,6 +3896,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   router.get('/runtime/audit/digest', requireAdmin, (req, res) => {
     const store = getStore();
     const state = getRuntimeSecurityState(store);
+    const policy = getRuntimeSecurityPolicy(store);
+    const lockdownStatus = getRuntimeSecurityLockdownStatus(store);
     const blockedRecords = Object.values(safeObject(state.blockedUsers || {})).map((row) => safeObject(row));
     return res.status(200).json({
       eventDigest: getRuntimeEventDigest(store),
@@ -3577,7 +3907,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         blockedUsersTotal: blockedRecords.length,
         blockedUsersActive: blockedRecords.filter((row) => row.active).length,
         failedAutoDeductAttempts: Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts.length : 0,
-        securityIncidents: Array.isArray(state.securityIncidents) ? state.securityIncidents.length : 0
+        securityIncidents: Array.isArray(state.securityIncidents) ? state.securityIncidents.length : 0,
+        policy: {
+          riskDenyThreshold: policy.riskDenyThreshold,
+          lockdown: {
+            active: lockdownStatus.active,
+            reason: lockdownStatus.lockdown ? lockdownStatus.lockdown.reason : null,
+            startedAt: lockdownStatus.lockdown ? lockdownStatus.lockdown.startedAt : null,
+            expiresAt: lockdownStatus.lockdown ? lockdownStatus.lockdown.expiresAt : null,
+            remainingMs: lockdownStatus.remainingMs
+          }
+        },
+        policyHistoryCount: Array.isArray(state.policyHistory) ? state.policyHistory.length : 0
       },
       files: {
         store: getRuntimeFileMetadata(DATA_FILE),
@@ -3770,6 +4111,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
     const profile = buildRuntimeUserRiskProfile(store, userKey);
     const blockedRecord = getRuntimeBlockedUserRecord(store, userKey);
+    const policy = getRuntimeSecurityPolicy(store);
     return res.status(200).json({
       userKey,
       profile,
@@ -3781,8 +4123,180 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         maxBlockMs: RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS,
         escalationFactor: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_FACTOR,
         escalationWindowMs: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS,
-        integrityBlockMs: RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS
+        integrityBlockMs: RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS,
+        riskDenyThreshold: policy.riskDenyThreshold,
+        lockdownMaxMs: RUNTIME_SECURITY_LOCKDOWN_MAX_MS
       }
+    });
+  });
+
+  router.get('/runtime/security/policy', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const policy = getRuntimeSecurityPolicy(store);
+    const lockdownStatus = getRuntimeSecurityLockdownStatus(store);
+    if (lockdownStatus.releasedBecauseExpired) {
+      appendRuntimeEvent(store, 'runtime_security_lockdown_auto_released', {
+        actorUserId: 'system',
+        releasedAt: lockdownStatus.lockdown ? lockdownStatus.lockdown.releasedAt : null,
+        releaseReason: lockdownStatus.lockdown ? lockdownStatus.lockdown.releaseReason : null
+      });
+      queuePersist();
+    }
+
+    return res.status(200).json({
+      policy,
+      lockdown: lockdownStatus.lockdown,
+      lockdownActive: lockdownStatus.active,
+      lockdownRemainingMs: lockdownStatus.remainingMs,
+      policyHistoryCount: Array.isArray(state.policyHistory) ? state.policyHistory.length : 0,
+      limits: {
+        maxLockdownMs: RUNTIME_SECURITY_LOCKDOWN_MAX_MS,
+        minRiskDenyThreshold: 50,
+        maxRiskDenyThreshold: 100
+      }
+    });
+  });
+
+  router.get('/runtime/security/policy/history', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 100)));
+    const rows = (Array.isArray(state.policyHistory) ? state.policyHistory : [])
+      .slice(-limit)
+      .reverse();
+    return res.status(200).json({
+      limit,
+      count: rows.length,
+      rows
+    });
+  });
+
+  router.post('/runtime/security/policy/risk-threshold', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const thresholdInput = Number(req.body?.riskDenyThreshold);
+    if (!Number.isFinite(thresholdInput)) {
+      return res.status(400).json({ message: 'riskDenyThreshold must be a valid number between 50 and 100' });
+    }
+
+    const reason = sanitizeText(req.body?.reason || 'risk_threshold_update', 160) || 'risk_threshold_update';
+    const update = setRuntimeRiskDenyThreshold(store, {
+      threshold: thresholdInput,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    const event = appendRuntimeEvent(store, 'runtime_security_policy_risk_threshold_updated', {
+      threshold: update.threshold,
+      previous: update.previous,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      policyHistoryId: update.history ? update.history.id : null
+    });
+    queuePersist();
+
+    return res.status(200).json({
+      message: 'Runtime risk deny threshold updated',
+      threshold: update.threshold,
+      previous: update.previous,
+      policyHistoryId: update.history ? update.history.id : null,
+      runtimeEventId: event ? event.id : null
+    });
+  });
+
+  router.post('/runtime/security/policy/lockdown', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const reason = sanitizeText(req.body?.reason || 'runtime_security_lockdown', 160) || 'runtime_security_lockdown';
+    const durationMs = Math.min(
+      RUNTIME_SECURITY_LOCKDOWN_MAX_MS,
+      Math.max(5 * 60 * 1000, Number(req.body?.durationMs || 2 * 60 * 60 * 1000))
+    );
+
+    const activation = activateRuntimeSecurityLockdown(store, {
+      reason,
+      durationMs,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        source: 'admin_policy_lockdown'
+      }
+    });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: '__global__',
+      type: 'runtime_security_lockdown_activated',
+      severity: 'critical',
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        durationMs,
+        expiresAt: activation.lockdown.expiresAt
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_security_lockdown_activated', {
+      reason,
+      durationMs,
+      startedAt: activation.lockdown.startedAt,
+      expiresAt: activation.lockdown.expiresAt,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      policyHistoryId: activation.history ? activation.history.id : null,
+      securityIncidentId: incident ? incident.id : null
+    });
+    queuePersist();
+
+    return res.status(201).json({
+      message: 'Runtime security lockdown activated',
+      lockdown: activation.lockdown,
+      policyHistoryId: activation.history ? activation.history.id : null,
+      securityIncidentId: incident ? incident.id : null,
+      runtimeEventId: event ? event.id : null
+    });
+  });
+
+  router.post('/runtime/security/policy/lockdown/release', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const reason = sanitizeText(req.body?.reason || 'lockdown_manual_release', 160) || 'lockdown_manual_release';
+    const release = releaseRuntimeSecurityLockdown(store, {
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        source: 'admin_policy_lockdown_release'
+      }
+    });
+    if (!release) {
+      return res.status(404).json({ message: 'No active runtime lockdown found' });
+    }
+
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: '__global__',
+      type: 'runtime_security_lockdown_released',
+      severity: 'high',
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        releasedAt: release.lockdown.releasedAt
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_security_lockdown_released', {
+      reason,
+      releasedAt: release.lockdown.releasedAt,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      policyHistoryId: release.history ? release.history.id : null,
+      securityIncidentId: incident ? incident.id : null
+    });
+    queuePersist();
+
+    return res.status(200).json({
+      message: 'Runtime security lockdown released',
+      lockdown: release.lockdown,
+      policyHistoryId: release.history ? release.history.id : null,
+      securityIncidentId: incident ? incident.id : null,
+      runtimeEventId: event ? event.id : null
     });
   });
 
