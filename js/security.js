@@ -83,7 +83,7 @@ function sanitizePhone(phone) {
 
 /**
  * Validate password strength
- * Requirements: minimum 6 characters, at least 1 number, 1 uppercase letter
+ * Requirements: minimum 8 characters, at least 1 lowercase, 1 uppercase, 1 number, 1 special char
  * @param {string} password - The password to validate
  * @returns {object} - Object with isValid boolean and message string
  */
@@ -95,10 +95,17 @@ function validatePassword(password) {
         };
     }
     
-    if (password.length < 6) {
+    if (password.length < 8) {
         return {
             isValid: false,
-            message: 'Password must be at least 6 characters long'
+            message: 'Password must be at least 8 characters long'
+        };
+    }
+    
+    if (!/[a-z]/.test(password)) {
+        return {
+            isValid: false,
+            message: 'Password must contain at least one lowercase letter'
         };
     }
     
@@ -113,6 +120,13 @@ function validatePassword(password) {
         return {
             isValid: false,
             message: 'Password must contain at least one uppercase letter'
+        };
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        return {
+            isValid: false,
+            message: 'Password must contain at least one special character'
         };
     }
     

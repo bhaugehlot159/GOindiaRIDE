@@ -10,8 +10,14 @@ async function authenticate(req, res, next) {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
+  if (String(token).length > 5000) {
+    return res.status(401).json({ message: 'Invalid token format' });
+  }
+
   try {
-    const payload = jwt.verify(token, env.jwtSecret);
+    const payload = jwt.verify(token, env.jwtSecret, {
+      algorithms: ['HS256']
+    });
     const user = await User.findById(payload.sub);
 
     if (!user) {

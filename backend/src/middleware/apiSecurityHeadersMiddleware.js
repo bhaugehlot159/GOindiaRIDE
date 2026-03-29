@@ -14,6 +14,10 @@ function isSensitivePath(pathname) {
   return path.startsWith('/api/auth') || path.startsWith('/api/admin') || path.startsWith('/api/security');
 }
 
+function isApiPath(pathname) {
+  return String(pathname || '').startsWith('/api/');
+}
+
 function apiSecurityHeadersMiddleware() {
   return (req, res, next) => {
     const requestId = String(req.headers['x-request-id'] || buildRequestId());
@@ -31,9 +35,20 @@ function apiSecurityHeadersMiddleware() {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
     res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+    res.setHeader('X-DNS-Prefetch-Control', 'off');
+    res.setHeader('Origin-Agent-Cluster', '?1');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
 
     if (isHttpsRequest(req)) {
       res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+
+    if (isApiPath(req.originalUrl)) {
+      res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+      );
+      res.setHeader('Cache-Control', 'no-store');
     }
 
     if (isSensitivePath(req.originalUrl)) {

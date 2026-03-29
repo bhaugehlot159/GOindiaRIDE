@@ -18,6 +18,7 @@ const walletRoutes = require('./routes/walletRoutes');
 const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
+const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
 const { csrfShieldMiddleware, issueCsrfToken } = require('./middleware/csrfShieldMiddleware');
@@ -59,7 +60,22 @@ app.use(cors({
     if (allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error('CORS blocked by security policy'));
   },
-  credentials: true
+  methods: ['GET', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: [
+    'Authorization',
+    'Content-Type',
+    'X-CSRF-Token',
+    'X-XSRF-Token',
+    'X-Request-Id',
+    'X-Timestamp',
+    'X-Signature',
+    'X-OTP-Verified',
+    'X-Recaptcha-Token',
+    'X-Idempotency-Key'
+  ],
+  exposedHeaders: ['X-Request-Id', 'X-CSRF-Token'],
+  credentials: true,
+  maxAge: 600
 }));
 
 app.use(express.json({ limit: `${env.maxJsonBodyKb}kb` }));
@@ -69,6 +85,21 @@ app.get('/health', (req, res) => {
   return res.status(200).json({ status: 'ok', security: 'hardened' });
 });
 
+app.use('/api', globalAbuseDefenseMiddleware({
+  enabled: env.securityGatewayEnabled,
+  maxUrlLength: env.securityGatewayMaxUrlLength,
+  maxHeaderCount: env.securityGatewayMaxHeaderCount,
+  maxBodyDepth: env.securityGatewayMaxBodyDepth,
+  maxBodyKeys: env.securityGatewayMaxBodyKeys,
+  maxArrayLength: env.securityGatewayMaxArrayLength,
+  maxStringLength: env.securityGatewayMaxStringLength,
+  requireKnownContentType: env.securityGatewayRequireKnownContentType,
+  principalFailWindowMs: env.securityGatewayPrincipalFailWindowMs,
+  principalFailMax: env.securityGatewayPrincipalFailMax,
+  principalBlockMs: env.securityGatewayPrincipalBlockMs,
+  principalBlockMaxMs: env.securityGatewayPrincipalBlockMaxMs,
+  principalEscalationFactor: env.securityGatewayPrincipalEscalationFactor
+}));
 app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,

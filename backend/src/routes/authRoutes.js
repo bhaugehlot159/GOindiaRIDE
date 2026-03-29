@@ -133,20 +133,29 @@ function isStrongPassword(value) {
 }
 router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   const { name, email, phone, password, role, accountType } = req.body;
+  const normalizedName = String(name || '').trim().slice(0, 80);
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const normalizedPhone = String(phone || '').replace(/\D/g, '').slice(-10);
 
   if (!name || !email || !phone || !password) {
     return res.status(400).json({ message: 'name, email, phone, password are required' });
   }
 
-  if (!validator.isEmail(email)) {
+  if (!validator.isEmail(normalizedEmail)) {
     return res.status(400).json({ message: 'Invalid email' });
   }
 
-  if (!validator.isMobilePhone(String(phone), 'any', { strictMode: false })) {
+  if (!validator.isMobilePhone(String(normalizedPhone), 'any', { strictMode: false })) {
     return res.status(400).json({ message: 'Invalid phone' });
   }
 
-  const existing = await User.findOne({ $or: [{ email }, { phone }] });
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({
+      message: 'Password must be 8+ chars with uppercase, lowercase, number, and special character'
+    });
+  }
+
+  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
   if (existing) {
     return res.status(409).json({ message: 'Email or phone already registered' });
   }
@@ -154,9 +163,9 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
   const passwordHash = await hashPassword(password);
   const normalizedAccountType = role === 'admin' ? 'admin' : (String(accountType || role || '').toLowerCase() === 'driver' ? 'driver' : 'customer');
   const user = await User.create({
-    name,
-    email,
-    phone,
+    name: normalizedName,
+    email: normalizedEmail,
+    phone: normalizedPhone,
     passwordHash,
     role: role === 'admin' ? 'admin' : 'user',
     accountType: normalizedAccountType
@@ -165,15 +174,20 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
   return res.status(201).json({ id: user._id, email: user.email, phone: user.phone, role: user.role, accountType: user.accountType });
 });
 
-router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, proxyVpnRiskCheck, async (req, res) => {
+router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, async (req, res) => {
   const { email, password } = req.body;
+  const normalizedEmail = String(email || '').trim().toLowerCase();
   const ip = getClientIp(req);
   const country = getCountry(req);
   const device = getDeviceMeta(req);
 
-  const user = await User.findOne({ email });
+  if (!normalizedEmail || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  const user = await User.findOne({ email: normalizedEmail });
   if (!user) {
-    await LoginLog.create({ email, ip, country, ...device, status: 'fail', reason: 'User not found' });
+    await LoginLog.create({ email: normalizedEmail, ip, country, ...device, status: 'fail', reason: 'User not found' });
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
@@ -226,7 +240,7 @@ if (user.isTwoFactorEnabled) {
   const trustedDevice = user.trustedDevices.find((item) => item.fingerprint === device.fingerprint);
   const isNewDevice = !trustedDevice;
   const geoMismatch = country !== 'unknown' && user.lastLoginIp && user.lastLoginIp !== ip;
-  const riskScore = await calculateLoginRisk({ email, ip, isNewDevice });
+  const riskScore = await calculateLoginRisk({ email: normalizedEmail, ip, isNewDevice });
 
   if (riskScore > 70) {
     user.isTemporarilyBannedUntil = new Date(Date.now() + 30 * 60 * 1000);
@@ -319,7 +333,7 @@ if (user.role === "admin") {
   });
 });
 
-router.post('/admin/login', loginLimiter, restrictAdminIp, requireAdmin2FA, honeypotCheck, submissionTimingCheck, proxyVpnRiskCheck, async (req, res, next) => {
+router.post('/admin/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, restrictAdminIp, requireAdmin2FA, async (req, res, next) => {
   req.body.role = 'admin';
   next();
 }, async (req, res) => {
@@ -1235,7 +1249,7 @@ router.post('/change-password', authenticate, async (req, res) => {
   }
 });
 
-router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTimingCheck, async (req, res) => {
+router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   try {
     const email = String(req.body?.email || '').trim().toLowerCase();
     const accountType = normalizeAccountType(req.body?.accountType);
@@ -1332,7 +1346,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
   }
 });
 
-router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, async (req, res) => {
+router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   try {
     const email = String(req.body?.email || '').trim().toLowerCase();
     const accountType = normalizeAccountType(req.body?.accountType);

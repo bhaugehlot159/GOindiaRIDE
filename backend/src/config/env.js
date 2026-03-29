@@ -38,5 +38,24 @@ module.exports = {
   requestIncidentScore: Number(process.env.REQUEST_INCIDENT_SCORE || 55),
   securityAllowedOrigins: splitCsv(process.env.SECURITY_ALLOWED_ORIGINS),
   csrfCookieName: String(process.env.CSRF_COOKIE_NAME || 'gir_csrf_token'),
-  csrfTokenTtlMinutes: Number(process.env.CSRF_TOKEN_TTL_MINUTES || 720)
+  csrfTokenTtlMinutes: Number(process.env.CSRF_TOKEN_TTL_MINUTES || 720),
+
+  securityGatewayEnabled: String(process.env.SECURITY_GATEWAY_ENABLED || 'true').toLowerCase() === 'true',
+  securityGatewayMaxUrlLength: Number(process.env.SECURITY_GATEWAY_MAX_URL_LENGTH || 2048),
+  securityGatewayMaxHeaderCount: Number(process.env.SECURITY_GATEWAY_MAX_HEADER_COUNT || 120),
+  securityGatewayMaxBodyDepth: Number(process.env.SECURITY_GATEWAY_MAX_BODY_DEPTH || 10),
+  securityGatewayMaxBodyKeys: Number(process.env.SECURITY_GATEWAY_MAX_BODY_KEYS || 800),
+  securityGatewayMaxArrayLength: Number(process.env.SECURITY_GATEWAY_MAX_ARRAY_LENGTH || 5000),
+  securityGatewayMaxStringLength: Number(process.env.SECURITY_GATEWAY_MAX_STRING_LENGTH || 10000),
+  securityGatewayRequireKnownContentType: String(process.env.SECURITY_GATEWAY_REQUIRE_KNOWN_CONTENT_TYPE || 'true').toLowerCase() === 'true',
+  securityGatewayPrincipalFailWindowMs: Number(process.env.SECURITY_GATEWAY_PRINCIPAL_FAIL_WINDOW_MS || 10 * 60 * 1000),
+  securityGatewayPrincipalFailMax: Number(process.env.SECURITY_GATEWAY_PRINCIPAL_FAIL_MAX || 15),
+  securityGatewayPrincipalBlockMs: Number(process.env.SECURITY_GATEWAY_PRINCIPAL_BLOCK_MS || 30 * 60 * 1000),
+  securityGatewayPrincipalBlockMaxMs: Number(process.env.SECURITY_GATEWAY_PRINCIPAL_BLOCK_MAX_MS || 24 * 60 * 60 * 1000),
+  securityGatewayPrincipalEscalationFactor: Number(process.env.SECURITY_GATEWAY_PRINCIPAL_ESCALATION_FACTOR || 2),
+
+  recaptchaVerifyServerSide: String(process.env.RECAPTCHA_VERIFY_SERVER_SIDE || 'true').toLowerCase() === 'true',
+  recaptchaFailOpen: String(process.env.RECAPTCHA_FAIL_OPEN || 'false').toLowerCase() === 'true',
+  recaptchaMinScore: Number(process.env.RECAPTCHA_MIN_SCORE || 0.5),
+  recaptchaVerifyTimeoutMs: Number(process.env.RECAPTCHA_VERIFY_TIMEOUT_MS || 3500)
 };
