@@ -1821,6 +1821,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   const RUNTIME_AUDIT_MAX_LIMIT = Math.max(50, Number(process.env.RUNTIME_AUDIT_MAX_LIMIT || 2000));
   const RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS = Math.max(60 * 1000, Number(process.env.RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS || 10 * 60 * 1000));
   const RUNTIME_AUTO_DEDUCT_RATE_MAX = Math.max(1, Number(process.env.RUNTIME_AUTO_DEDUCT_RATE_MAX || 20));
+  const RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS = Math.max(60 * 1000, Number(process.env.RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS || 10 * 60 * 1000));
+  const RUNTIME_AUTO_DEDUCT_FAIL_MAX = Math.max(1, Number(process.env.RUNTIME_AUTO_DEDUCT_FAIL_MAX || 10));
+  const RUNTIME_AUTO_DEDUCT_BLOCK_MS = Math.max(30 * 1000, Number(process.env.RUNTIME_AUTO_DEDUCT_BLOCK_MS || 30 * 60 * 1000));
+  const RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS = Math.max(RUNTIME_AUTO_DEDUCT_BLOCK_MS, Number(process.env.RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS || 24 * 60 * 60 * 1000));
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -2051,6 +2055,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         totalSnapshots: 0,
         lastSnapshotAt: null
       },
+      runtimeSecurityState: {
+        blockedUsers: {},
+        failedAutoDeductAttempts: []
+      },
       tourismPlaces: seedTourismPlaces.map((item) => ({
         id: crypto.randomUUID(),
         district: item.district,
@@ -2120,6 +2128,17 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       runtimeSnapshotDigest: {
         ...safeObject(store.runtimeSnapshotDigest),
         ...safeObject(source.runtimeSnapshotDigest)
+      },
+      runtimeSecurityState: {
+        blockedUsers: {
+          ...safeObject(safeObject(store.runtimeSecurityState).blockedUsers),
+          ...safeObject(safeObject(source.runtimeSecurityState).blockedUsers)
+        },
+        failedAutoDeductAttempts: Array.isArray(safeObject(source.runtimeSecurityState).failedAutoDeductAttempts)
+          ? safeObject(source.runtimeSecurityState).failedAutoDeductAttempts
+          : Array.isArray(safeObject(store.runtimeSecurityState).failedAutoDeductAttempts)
+            ? safeObject(store.runtimeSecurityState).failedAutoDeductAttempts
+            : []
       },
       tourismPlaces: Array.isArray(source.tourismPlaces) && source.tourismPlaces.length
         ? source.tourismPlaces
@@ -2308,6 +2327,182 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       count += 1;
     }
     return count;
+  }
+
+  function getRuntimeSecurityState(store) {
+    const source = safeObject(store.runtimeSecurityState);
+    const blockedUsers = safeObject(source.blockedUsers);
+    const failedAutoDeductAttempts = Array.isArray(source.failedAutoDeductAttempts)
+      ? source.failedAutoDeductAttempts
+      : [];
+    const state = {
+      blockedUsers,
+      failedAutoDeductAttempts
+    };
+    store.runtimeSecurityState = state;
+    return state;
+  }
+
+  function getRuntimeBlockedUserRecord(store, userKey) {
+    const state = getRuntimeSecurityState(store);
+    return safeObject(state.blockedUsers)[String(userKey)] || null;
+  }
+
+  function getRuntimeBlockStatus(store, userKey) {
+    const record = getRuntimeBlockedUserRecord(store, userKey);
+    if (!record || !record.active) {
+      return { blocked: false, record: record || null, remainingMs: 0 };
+    }
+
+    const blockedUntilMs = new Date(record.blockedUntil).getTime();
+    if (!Number.isFinite(blockedUntilMs)) {
+      return { blocked: true, record, remainingMs: Number.MAX_SAFE_INTEGER };
+    }
+
+    const remainingMs = blockedUntilMs - Date.now();
+    if (remainingMs <= 0) {
+      return { blocked: false, record, remainingMs: 0 };
+    }
+
+    return { blocked: true, record, remainingMs };
+  }
+
+  function countRecentFailedAutoDeductAttempts(store, userKey, windowMs = RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS) {
+    const state = getRuntimeSecurityState(store);
+    const rows = Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts : [];
+    const threshold = Date.now() - Math.max(1000, Number(windowMs || RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS));
+    let count = 0;
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = rows[i];
+      if (String(row.userKey) !== String(userKey)) continue;
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold) break;
+      count += 1;
+    }
+    return count;
+  }
+
+  function addFailedAutoDeductAttempt(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const item = {
+      id: crypto.randomUUID(),
+      userKey: normalizeString(payload.userKey, 80),
+      reason: normalizeString(payload.reason, 120) || 'unknown',
+      amount: normalizeAmount(payload.amount),
+      autoDeductReference: normalizeString(payload.autoDeductReference, 140),
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(state.failedAutoDeductAttempts, item);
+    store.runtimeSecurityState = state;
+    return item;
+  }
+
+  function applyRuntimeAutoDeductBlock(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const userKey = normalizeString(payload.userKey, 80);
+    if (!userKey) return null;
+
+    const existing = safeObject(state.blockedUsers[userKey]);
+    const now = new Date();
+    const durationMs = Math.min(
+      Math.max(30 * 1000, Number(payload.durationMs || RUNTIME_AUTO_DEDUCT_BLOCK_MS)),
+      RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS
+    );
+    const blockedUntil = new Date(now.getTime() + durationMs).toISOString();
+    const history = Array.isArray(existing.history) ? existing.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'block',
+      reason: normalizeString(payload.reason, 160) || 'auto_deduct_protection',
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      createdAt: now.toISOString(),
+      blockedUntil
+    });
+
+    const nextRecord = {
+      ...existing,
+      userKey,
+      active: true,
+      reason: normalizeString(payload.reason, 160) || normalizeString(existing.reason, 160) || 'auto_deduct_protection',
+      blockedAt: now.toISOString(),
+      blockedUntil,
+      blockedByActorUserId: normalizeString(payload.actorUserId, 120) || normalizeString(existing.blockedByActorUserId, 120) || 'system',
+      metadata: {
+        ...safeObject(existing.metadata),
+        ...safeObject(payload.metadata)
+      },
+      history
+    };
+
+    state.blockedUsers[userKey] = nextRecord;
+    store.runtimeSecurityState = state;
+    return nextRecord;
+  }
+
+  function releaseRuntimeAutoDeductBlock(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const userKey = normalizeString(payload.userKey, 80);
+    if (!userKey || !state.blockedUsers[userKey]) return null;
+
+    const existing = safeObject(state.blockedUsers[userKey]);
+    const now = new Date().toISOString();
+    const history = Array.isArray(existing.history) ? existing.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'unblock',
+      reason: normalizeString(payload.reason, 160) || 'manual_unblock',
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      createdAt: now
+    });
+
+    const nextRecord = {
+      ...existing,
+      userKey,
+      active: false,
+      releasedAt: now,
+      releasedByActorUserId: normalizeString(payload.actorUserId, 120) || 'system',
+      releaseReason: normalizeString(payload.reason, 160) || 'manual_unblock',
+      history
+    };
+
+    state.blockedUsers[userKey] = nextRecord;
+    store.runtimeSecurityState = state;
+    return nextRecord;
+  }
+
+  function registerFailedAutoDeductAndMaybeBlock(store, payload = {}) {
+    const attempt = addFailedAutoDeductAttempt(store, payload);
+    const recentFailures = countRecentFailedAutoDeductAttempts(
+      store,
+      payload.userKey,
+      RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS
+    );
+
+    let block = null;
+    if (recentFailures >= RUNTIME_AUTO_DEDUCT_FAIL_MAX && String(payload.actorType || '') !== 'admin') {
+      block = applyRuntimeAutoDeductBlock(store, {
+        userKey: payload.userKey,
+        reason: `auto_deduct_fail_threshold:${normalizeString(payload.reason, 80) || 'unknown'}`,
+        actorUserId: 'system',
+        ip: payload.ip,
+        metadata: {
+          recentFailures,
+          windowMs: RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS,
+          failMax: RUNTIME_AUTO_DEDUCT_FAIL_MAX
+        }
+      });
+    }
+
+    return {
+      attempt,
+      recentFailures,
+      block
+    };
   }
 
   function getSignedAutoDeductionsForUser(store, userKey) {
@@ -2857,6 +3052,36 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Valid userKey is required' });
     }
 
+    const blockStatus = getRuntimeBlockStatus(store, userKey);
+    if (blockStatus.blocked) {
+      const blockEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_blocked', {
+        userKey,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        blockedUntil: blockStatus.record ? blockStatus.record.blockedUntil : null,
+        remainingMs: blockStatus.remainingMs
+      });
+      queuePersist();
+
+      return res.status(423).json({
+        ok: false,
+        message: 'Auto deduction temporarily blocked for this user',
+        blockedUntil: blockStatus.record ? blockStatus.record.blockedUntil : null,
+        remainingMs: blockStatus.remainingMs,
+        runtimeEventId: blockEvent ? blockEvent.id : null
+      });
+    }
+
+    if (blockStatus.record && blockStatus.record.active && !blockStatus.blocked) {
+      releaseRuntimeAutoDeductBlock(store, {
+        userKey,
+        reason: 'block_expired',
+        actorUserId: 'system',
+        ip: getClientIp(req)
+      });
+    }
+
     if (amount <= 0 || amount > MAX_RUNTIME_WALLET_AMOUNT) {
       return res.status(400).json({ ok: false, message: `amount must be between 0 and ${MAX_RUNTIME_WALLET_AMOUNT}` });
     }
@@ -2868,8 +3093,37 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       });
     }
 
+    function registerSpendFailure(reason) {
+      const failure = registerFailedAutoDeductAndMaybeBlock(store, {
+        userKey,
+        reason,
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        actorType,
+        ip: getClientIp(req)
+      });
+      const failureEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_failed', {
+        userKey,
+        reason,
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        recentFailures: failure.recentFailures,
+        blocked: Boolean(failure.block),
+        blockedUntil: failure.block ? failure.block.blockedUntil : null
+      });
+      queuePersist();
+      return {
+        failure,
+        failureEvent
+      };
+    }
+
     const integrityCheck = verifyAutoDeductionIntegrityChain(store, userKey);
     if (!integrityCheck.ok) {
+      const { failure, failureEvent } = registerSpendFailure('integrity_failed');
       logSecurityEvent({
         userId: req.user && req.user.id,
         action: 'legacy_wallet_auto_deduct_chain_tamper_detected',
@@ -2882,9 +3136,19 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         }
       }).catch(() => {});
 
+      if (failure.block) {
+        return res.status(423).json({
+          ok: false,
+          message: 'Auto deduction temporarily blocked due to suspicious activity',
+          blockedUntil: failure.block.blockedUntil,
+          runtimeEventId: failureEvent ? failureEvent.id : null
+        });
+      }
+
       return res.status(409).json({
         ok: false,
-        message: 'Auto deduction integrity validation failed. Contact admin.'
+        message: 'Auto deduction integrity validation failed. Contact admin.',
+        runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
 
@@ -2894,6 +3158,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       && amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE
       && String(req.headers['x-otp-verified'] || '').toLowerCase() !== 'true'
     ) {
+      const { failure, failureEvent } = registerSpendFailure('otp_required');
       logSecurityEvent({
         userId: req.user && req.user.id,
         action: 'legacy_wallet_high_value_auto_deduct_otp_required',
@@ -2907,9 +3172,19 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         }
       }).catch(() => {});
 
+      if (failure.block) {
+        return res.status(423).json({
+          ok: false,
+          message: 'Auto deduction temporarily blocked due to repeated failed checks',
+          blockedUntil: failure.block.blockedUntil,
+          runtimeEventId: failureEvent ? failureEvent.id : null
+        });
+      }
+
       return res.status(401).json({
         ok: false,
-        message: `OTP verification required for auto deduction >= ${RUNTIME_AUTO_DEDUCT_HIGH_VALUE}`
+        message: `OTP verification required for auto deduction >= ${RUNTIME_AUTO_DEDUCT_HIGH_VALUE}`,
+        runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
 
@@ -2942,6 +3217,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     if (actorType !== 'admin') {
       const recentCount = countRecentAutoDeductions(store, userKey, RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS);
       if (recentCount >= RUNTIME_AUTO_DEDUCT_RATE_MAX) {
+        const { failure, failureEvent } = registerSpendFailure('rate_limited');
         logSecurityEvent({
           userId: req.user && req.user.id,
           action: 'legacy_wallet_auto_deduct_rate_limited',
@@ -2957,7 +3233,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           }
         }).catch(() => {});
 
-        const rateEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_rate_limited', {
+        appendRuntimeEvent(store, 'runtime_wallet_spend_rate_limited', {
           userKey,
           recentCount,
           windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
@@ -2968,23 +3244,43 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         });
         queuePersist();
 
+        if (failure.block) {
+          return res.status(423).json({
+            ok: false,
+            message: 'Auto deduction temporarily blocked due to repeated rate-limit hits',
+            blockedUntil: failure.block.blockedUntil,
+            runtimeEventId: failureEvent ? failureEvent.id : null
+          });
+        }
+
         return res.status(429).json({
           ok: false,
           message: 'Auto deduction rate limit exceeded, try again later',
           recentCount,
           windowMs: RUNTIME_AUTO_DEDUCT_RATE_WINDOW_MS,
           max: RUNTIME_AUTO_DEDUCT_RATE_MAX,
-          runtimeEventId: rateEvent ? rateEvent.id : null
+          runtimeEventId: failureEvent ? failureEvent.id : null
         });
       }
     }
 
     const wallet = walletForUser(store, userKey);
     if (wallet.balance < amount) {
+      const { failure, failureEvent } = registerSpendFailure('insufficient_balance');
+      if (failure.block) {
+        return res.status(423).json({
+          ok: false,
+          message: 'Auto deduction temporarily blocked due to repeated failed attempts',
+          blockedUntil: failure.block.blockedUntil,
+          runtimeEventId: failureEvent ? failureEvent.id : null
+        });
+      }
+
       return res.status(409).json({
         ok: false,
         message: 'Insufficient wallet balance',
-        balance: wallet.balance
+        balance: wallet.balance,
+        runtimeEventId: failureEvent ? failureEvent.id : null
       });
     }
 
@@ -3165,6 +3461,111 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       },
       limit,
       rows
+    });
+  });
+
+  router.get('/runtime/security/blocked-users', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const records = Object.values(safeObject(state.blockedUsers || {}))
+      .map((item) => safeObject(item))
+      .filter((item) => normalizeString(item.userKey, 80));
+
+    return res.status(200).json({
+      total: records.length,
+      active: records.filter((item) => item.active).length,
+      records
+    });
+  });
+
+  router.get('/runtime/security/failures', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const userKey = normalizeString(req.query.userKey, 80);
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 100)));
+    const rows = (Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts : [])
+      .filter((item) => !userKey || String(item.userKey) === String(userKey))
+      .slice(-limit)
+      .reverse();
+
+    return res.status(200).json({
+      userKey: userKey || null,
+      limit,
+      count: rows.length,
+      rows
+    });
+  });
+
+  router.post('/runtime/security/block/:userKey', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.params.userKey, 80);
+    const reason = sanitizeText(req.body?.reason || 'manual_admin_block', 160) || 'manual_admin_block';
+    const durationMs = Math.min(
+      Math.max(30 * 1000, Number(req.body?.durationMs || RUNTIME_AUTO_DEDUCT_BLOCK_MS)),
+      RUNTIME_AUTO_DEDUCT_BLOCK_MAX_MS
+    );
+
+    if (!userKey) {
+      return res.status(400).json({ message: 'userKey is required' });
+    }
+
+    const record = applyRuntimeAutoDeductBlock(store, {
+      userKey,
+      reason,
+      durationMs,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        source: 'admin_manual_block'
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_manual_user_block', {
+      userKey,
+      reason,
+      durationMs,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    queuePersist();
+
+    return res.status(201).json({
+      message: 'User blocked for auto-deduct actions',
+      record,
+      runtimeEventId: event ? event.id : null
+    });
+  });
+
+  router.post('/runtime/security/unblock/:userKey', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const userKey = normalizeString(req.params.userKey, 80);
+    const reason = sanitizeText(req.body?.reason || 'manual_admin_unblock', 160) || 'manual_admin_unblock';
+    if (!userKey) {
+      return res.status(400).json({ message: 'userKey is required' });
+    }
+
+    const existing = getRuntimeBlockedUserRecord(store, userKey);
+    if (!existing) {
+      return res.status(404).json({ message: 'No block record found for userKey' });
+    }
+
+    const record = releaseRuntimeAutoDeductBlock(store, {
+      userKey,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    const event = appendRuntimeEvent(store, 'runtime_manual_user_unblock', {
+      userKey,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    queuePersist();
+
+    return res.status(200).json({
+      message: 'User unblocked for auto-deduct actions',
+      record,
+      runtimeEventId: event ? event.id : null
     });
   });
 
