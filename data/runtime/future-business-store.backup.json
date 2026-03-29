@@ -1,0 +1,280 @@
+{
+  "wallets": {
+    "u1": {
+      "userKey": "u1",
+      "balance": 190,
+      "history": [
+        {
+          "id": "0ce4fa10-a9f5-4a76-ae82-f0539c589c6a",
+          "type": "credit",
+          "amount": 100,
+          "meta": {
+            "method": "manual",
+            "note": ""
+          },
+          "createdAt": "2026-03-16T10:49:46.017Z"
+        },
+        {
+          "id": "8bfc965a-31cb-4606-a298-11dec3772064",
+          "type": "debit",
+          "amount": 10,
+          "meta": {
+            "reason": "ride-payment"
+          },
+          "createdAt": "2026-03-16T10:49:56.033Z"
+        },
+        {
+          "id": "cb605716-8d25-47c2-b89a-50e247292f6b",
+          "type": "credit",
+          "amount": 100,
+          "meta": {
+            "method": "manual",
+            "note": ""
+          },
+          "createdAt": "2026-03-16T10:54:11.655Z"
+        }
+      ]
+    }
+  },
+  "notifications": [
+    {
+      "id": "4fb1a7dc-4826-4b32-9cf6-ec1c99e21962",
+      "userKey": "u1",
+      "type": "system",
+      "channel": "in_app",
+      "title": "t",
+      "message": "m",
+      "read": false,
+      "meta": {},
+      "createdAt": "2026-03-16T10:53:06.374Z"
+    },
+    {
+      "id": "1895a8bf-a284-4005-8ebb-a6f7416147f3",
+      "userKey": "u1",
+      "type": "system",
+      "channel": "in_app",
+      "title": "t",
+      "message": "m",
+      "read": false,
+      "meta": {},
+      "createdAt": "2026-03-16T10:55:47.798Z"
+    }
+  ],
+  "travelCards": {},
+  "commissions": [],
+  "listings": [
+    {
+      "id": "3cb04a28-60cb-4e8f-b718-e3ee1cbbbc2d",
+      "type": "hotel",
+      "name": "Place1",
+      "city": "Jaipur",
+      "contact": "",
+      "address": "",
+      "specialty": "",
+      "bookingUrl": "",
+      "rating": 0,
+      "photo": "",
+      "createdAt": "2026-03-16T10:56:11.833Z"
+    }
+  ],
+  "packages": [],
+  "packageBookings": [],
+  "referrals": [],
+  "reviews": [],
+  "otpEvents": [],
+  "authLogs": [],
+  "bookingActions": [
+    {
+      "id": "0c27e7f7-b55a-4729-995b-3a61942c8634",
+      "userKey": "u1",
+      "bookingId": "B1",
+      "action": "accepted",
+      "currentStatus": "updated",
+      "pickedUp": false,
+      "allowed": true,
+      "message": "",
+      "scheduleAt": "",
+      "createdAt": "2026-03-16T10:51:06.167Z"
+    },
+    {
+      "id": "f5bdd5b6-2a2b-44ae-a8f9-5ecec7ea1517",
+      "userKey": "u1",
+      "bookingId": "B1",
+      "action": "accepted",
+      "currentStatus": "updated",
+      "pickedUp": false,
+      "allowed": true,
+      "message": "",
+      "scheduleAt": "",
+      "createdAt": "2026-03-16T10:54:59.747Z"
+    }
+  ],
+  "disputes": [
+    {
+      "id": "45b52d11-cae7-4aaf-879d-762c258ca87f",
+      "disputeCode": "DSP-1773658286202-211",
+      "userKey": "u1",
+      "bookingId": "B1",
+      "issue": "late",
+      "status": "open",
+      "evidence": [],
+      "createdAt": "2026-03-16T10:51:26.202Z"
+    }
+  ],
+  "fraudAlerts": [],
+  "aiChats": [
+    {
+      "id": "aefd5f12-c982-41ef-b516-dd7697d399ea",
+      "userKey": "u1",
+      "question": "hi",
+      "answer": "Thanks for your question. Support team will help you shortly.",
+      "createdAt": "2026-03-16T10:52:06.272Z"
+    }
+  ],
+  "savedLocations": [
+    {
+      "id": "d414265d-0b5c-4981-88c9-36d2d2d16174",
+      "userKey": "u1",
+      "label": "Home",
+      "address": "Jaipur",
+      "district": "",
+      "latitude": 0,
+      "longitude": 0,
+      "createdAt": "2026-03-16T10:50:46.133Z"
+    },
+    {
+      "id": "619d3df7-f385-44be-8c6d-918596d8f745",
+      "userKey": "u1",
+      "label": "Home",
+      "address": "Jaipur",
+      "district": "",
+      "latitude": 0,
+      "longitude": 0,
+      "createdAt": "2026-03-16T10:54:43.712Z"
+    }
+  ],
+  "featureStates": {
+    "u1::F1": {
+      "featureId": "F1",
+      "userKey": "u1",
+      "category": "general",
+      "description": "",
+      "status": "active",
+      "owner": "",
+      "dueDate": "",
+      "notes": "",
+      "payload": {},
+      "updatedAt": "2026-03-16T10:55:15.764Z",
+      "createdAt": "2026-03-16T10:52:26.305Z"
+    }
+  },
+  "featureActions": [
+    {
+      "id": "d4f8f3c4-f255-49c9-9e8f-439980eedc3c",
+      "featureId": "F1",
+      "userKey": "u1",
+      "category": "general",
+      "action": "run",
+      "status": "executed",
+      "payload": {},
+      "result": "",
+      "createdAt": "2026-03-16T10:52:46.340Z"
+    },
+    {
+      "id": "87159d73-4ec6-4986-826c-3ca3d47c60c7",
+      "featureId": "F1",
+      "userKey": "u1",
+      "category": "general",
+      "action": "run",
+      "status": "executed",
+      "payload": {},
+      "result": "",
+      "createdAt": "2026-03-16T10:55:31.781Z"
+    }
+  ],
+  "termsConsents": [],
+  "supportTickets": [],
+  "webhookEvents": [],
+  "tourismPlaces": [
+    {
+      "id": "06c9fdc0-fab7-48d4-bb11-cc6ee95ffeec",
+      "district": "Jaipur",
+      "name": "Amer Fort",
+      "category": "Fort",
+      "history": "16th century hill fort.",
+      "entryFee": "100",
+      "openTime": "08:00",
+      "closeTime": "17:30",
+      "parking": true,
+      "createdAt": "2026-03-16T10:49:35.984Z"
+    },
+    {
+      "id": "8baf9279-1412-40ac-b916-ba22642cace0",
+      "district": "Jaipur",
+      "name": "Hawa Mahal",
+      "category": "Palace",
+      "history": "Pink sandstone palace facade.",
+      "entryFee": "50",
+      "openTime": "09:00",
+      "closeTime": "17:00",
+      "parking": true,
+      "createdAt": "2026-03-16T10:49:35.985Z"
+    },
+    {
+      "id": "9cd0f803-7d4e-470b-8890-5d47cc0b4322",
+      "district": "Jodhpur",
+      "name": "Mehrangarh Fort",
+      "category": "Fort",
+      "history": "Rao Jodha era fort.",
+      "entryFee": "200",
+      "openTime": "09:00",
+      "closeTime": "17:30",
+      "parking": true,
+      "createdAt": "2026-03-16T10:49:35.985Z"
+    },
+    {
+      "id": "9eeb2df9-f78f-43f2-9a95-5213f5bf168c",
+      "district": "Udaipur",
+      "name": "City Palace",
+      "category": "Palace",
+      "history": "Mewar dynasty royal complex.",
+      "entryFee": "300",
+      "openTime": "09:30",
+      "closeTime": "17:30",
+      "parking": true,
+      "createdAt": "2026-03-16T10:49:35.985Z"
+    },
+    {
+      "id": "858cbf0e-585b-4800-8369-b89d683ff8f0",
+      "district": "Ajmer",
+      "name": "Ajmer Sharif Dargah",
+      "category": "Heritage",
+      "history": "Sufi shrine and spiritual site.",
+      "entryFee": "0",
+      "openTime": "05:00",
+      "closeTime": "22:00",
+      "parking": true,
+      "createdAt": "2026-03-16T10:49:35.985Z"
+    },
+    {
+      "id": "2fb2cbbb-4dcb-4424-91c2-d64487c00a13",
+      "district": "Pushkar",
+      "name": "Brahma Temple",
+      "category": "Temple",
+      "history": "Rare temple dedicated to Lord Brahma.",
+      "entryFee": "0",
+      "openTime": "06:00",
+      "closeTime": "20:00",
+      "parking": true,
+      "createdAt": "2026-03-16T10:49:35.985Z"
+    }
+  ],
+  "rideHistory": {},
+  "preferences": {},
+  "counters": {
+    "packagesBooked": 0,
+    "referralsTracked": 0,
+    "supportTickets": 0,
+    "webhookEvents": 0
+  }
+}
