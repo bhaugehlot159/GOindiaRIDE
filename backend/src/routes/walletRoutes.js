@@ -1803,13 +1803,17 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   const DATA_FILE = path.join(DATA_DIR, 'future-business-store.json');
   const DATA_FILE_BACKUP = path.join(DATA_DIR, 'future-business-store.backup.json');
   const DATA_FILE_TEMP = path.join(DATA_DIR, 'future-business-store.tmp.json');
+  const DATA_EVENTS_FILE = path.join(DATA_DIR, 'future-business-store.events.ndjson');
   const RUNTIME_REPO_ROOT = path.resolve(__dirname, '../../..');
   const REL_DATA_FILE = path.relative(RUNTIME_REPO_ROOT, DATA_FILE).replace(/\\/g, '/');
   const REL_DATA_FILE_BACKUP = path.relative(RUNTIME_REPO_ROOT, DATA_FILE_BACKUP).replace(/\\/g, '/');
+  const REL_DATA_EVENTS_FILE = path.relative(RUNTIME_REPO_ROOT, DATA_EVENTS_FILE).replace(/\\/g, '/');
   const RUNTIME_GIT_SYNC_ENABLED = String(process.env.RUNTIME_GIT_SYNC_ENABLED || 'true').trim().toLowerCase() === 'true';
   const RUNTIME_GIT_SYNC_REMOTE = String(process.env.RUNTIME_GIT_SYNC_REMOTE || 'origin').trim() || 'origin';
   const RUNTIME_GIT_SYNC_TARGET = String(process.env.RUNTIME_GIT_SYNC_TARGET || 'HEAD').trim() || 'HEAD';
   const RUNTIME_GIT_SYNC_DEBOUNCE_MS = Math.max(1000, Number(process.env.RUNTIME_GIT_SYNC_DEBOUNCE_MS || 5000));
+  const RUNTIME_EVENTS_ENABLED = String(process.env.RUNTIME_EVENTS_ENABLED || 'true').trim().toLowerCase() === 'true';
+  const RUNTIME_EVENT_HASH_SECRET = String(process.env.RUNTIME_EVENT_HASH_SECRET || process.env.API_SIGNATURE_SECRET || process.env.JWT_SECRET || 'runtime_event_hash_secret');
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -1936,7 +1940,12 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     if (!RUNTIME_GIT_SYNC_ENABLED || gitSyncInFlight) return;
     gitSyncInFlight = true;
 
-    runGitCommand(['add', REL_DATA_FILE, REL_DATA_FILE_BACKUP], (addError) => {
+    const addTargets = [REL_DATA_FILE, REL_DATA_FILE_BACKUP];
+    if (fs.existsSync(DATA_EVENTS_FILE)) {
+      addTargets.push(REL_DATA_EVENTS_FILE);
+    }
+
+    runGitCommand(['add', ...addTargets], (addError) => {
       if (addError) {
         gitSyncInFlight = false;
         return;
@@ -2022,6 +2031,11 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       supportTickets: [],
       webhookEvents: [],
       autoDeductions: [],
+      runtimeEventDigest: {
+        lastHash: AUTO_DEDUCT_HASH_GENESIS,
+        totalEvents: 0,
+        lastEventAt: null
+      },
       tourismPlaces: seedTourismPlaces.map((item) => ({
         id: crypto.randomUUID(),
         district: item.district,
@@ -2084,6 +2098,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       supportTickets: Array.isArray(source.supportTickets) ? source.supportTickets : [],
       webhookEvents: Array.isArray(source.webhookEvents) ? source.webhookEvents : [],
       autoDeductions: Array.isArray(source.autoDeductions) ? source.autoDeductions : [],
+      runtimeEventDigest: {
+        ...safeObject(store.runtimeEventDigest),
+        ...safeObject(source.runtimeEventDigest)
+      },
       tourismPlaces: Array.isArray(source.tourismPlaces) && source.tourismPlaces.length
         ? source.tourismPlaces
         : store.tourismPlaces,
@@ -2416,6 +2434,58 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     list.push(item);
   }
 
+  function getRuntimeEventDigest(store) {
+    const input = safeObject(store.runtimeEventDigest);
+    return {
+      lastHash: normalizeString(input.lastHash, 128) || AUTO_DEDUCT_HASH_GENESIS,
+      totalEvents: Number.isFinite(Number(input.totalEvents)) ? Number(input.totalEvents) : 0,
+      lastEventAt: input.lastEventAt || null,
+      lastWriteErrorAt: input.lastWriteErrorAt || null
+    };
+  }
+
+  function computeRuntimeEventHash({ previousHash, eventType, createdAt, payload }) {
+    const serializedPayload = JSON.stringify(safeObject(payload));
+    const base = `${normalizeString(previousHash, 128) || AUTO_DEDUCT_HASH_GENESIS}:${normalizeString(eventType, 80)}:${normalizeString(createdAt, 80)}:${serializedPayload}`;
+    return crypto.createHmac('sha256', RUNTIME_EVENT_HASH_SECRET).update(base).digest('hex');
+  }
+
+  function appendRuntimeEvent(store, eventType, payload = {}) {
+    if (!RUNTIME_EVENTS_ENABLED) return null;
+
+    const digest = getRuntimeEventDigest(store);
+    const createdAt = new Date().toISOString();
+    const eventPayload = safeObject(payload);
+    const event = {
+      id: crypto.randomUUID(),
+      eventType: normalizeString(eventType, 80) || 'runtime_event',
+      createdAt,
+      previousHash: digest.lastHash,
+      payload: eventPayload
+    };
+    event.hash = computeRuntimeEventHash({
+      previousHash: event.previousHash,
+      eventType: event.eventType,
+      createdAt: event.createdAt,
+      payload: event.payload
+    });
+
+    try {
+      ensureDir();
+      fs.appendFileSync(DATA_EVENTS_FILE, `${JSON.stringify(event)}\n`, 'utf8');
+      digest.lastHash = event.hash;
+      digest.totalEvents += 1;
+      digest.lastEventAt = createdAt;
+      store.runtimeEventDigest = digest;
+      queueRuntimeGitSync();
+      return event;
+    } catch (_error) {
+      digest.lastWriteErrorAt = createdAt;
+      store.runtimeEventDigest = digest;
+      return null;
+    }
+  }
+
   function generateOtpCode() {
     return String(Math.floor(100000 + Math.random() * 900000));
   }
@@ -2488,12 +2558,21 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       actorUserId: normalizeString(req.user && req.user.id, 120),
       source: 'legacy_wallet_topup'
     });
+    const runtimeEvent = appendRuntimeEvent(store, 'runtime_wallet_topup', {
+      userKey,
+      amount,
+      method,
+      walletEntryId: entry.id,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
     queuePersist();
 
     return res.status(200).json({
       ok: true,
       wallet: clone(wallet),
-      entry
+      entry,
+      runtimeEventId: runtimeEvent ? runtimeEvent.id : null
     });
   });
 
@@ -2584,13 +2663,23 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       const existingEntry = Array.isArray(wallet.history)
         ? wallet.history.find((item) => String(item.id) === String(existingAutoDeduction.walletEntryId))
         : null;
+      const reusedRuntimeEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_reused', {
+        userKey,
+        amount,
+        autoDeductReference,
+        autoDeductionId: existingAutoDeduction.id,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req)
+      });
+      queuePersist();
 
       return res.status(200).json({
         ok: true,
         reused: true,
         wallet: clone(wallet),
         entry: existingEntry || null,
-        autoDeduction: existingAutoDeduction
+        autoDeduction: existingAutoDeduction,
+        runtimeEventId: reusedRuntimeEvent ? reusedRuntimeEvent.id : null
       });
     }
 
@@ -2621,6 +2710,16 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         actorUserId: normalizeString(req.user && req.user.id, 120)
       })
       : null;
+    const runtimeEvent = appendRuntimeEvent(store, 'runtime_wallet_spend', {
+      userKey,
+      amount,
+      reason,
+      autoDeductReference,
+      walletEntryId: entry.id,
+      autoDeductionId: autoDeduction ? autoDeduction.id : null,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
 
     if (amount >= RUNTIME_AUTO_DEDUCT_HIGH_VALUE) {
       logSecurityEvent({
@@ -2643,7 +2742,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       ok: true,
       wallet: clone(wallet),
       entry,
-      autoDeduction
+      autoDeduction,
+      runtimeEventId: runtimeEvent ? runtimeEvent.id : null
     });
   });
 
@@ -2687,8 +2787,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     };
 
     store.commissions.push(item);
+    const runtimeEvent = appendRuntimeEvent(store, 'runtime_partner_commission', {
+      bookingId,
+      partnerType,
+      partnerName,
+      amount,
+      commissionPercent: item.commissionPercent,
+      commissionAmount: item.commissionAmount,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
     queuePersist();
-    return res.status(201).json({ ok: true, item });
+    return res.status(201).json({ ok: true, item, runtimeEventId: runtimeEvent ? runtimeEvent.id : null });
   });
 
 
