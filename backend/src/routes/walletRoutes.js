@@ -1845,6 +1845,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     5 * 60 * 1000,
     Number(process.env.RUNTIME_SECURITY_LOCKDOWN_MAX_MS || 24 * 60 * 60 * 1000)
   );
+  const RUNTIME_REFERENCE_REPLAY_WINDOW_MS = Math.max(
+    10 * 60 * 1000,
+    Number(process.env.RUNTIME_REFERENCE_REPLAY_WINDOW_MS || 24 * 60 * 60 * 1000)
+  );
+  const RUNTIME_REFERENCE_QUARANTINE_MS = Math.max(
+    5 * 60 * 1000,
+    Number(process.env.RUNTIME_REFERENCE_QUARANTINE_MS || 6 * 60 * 60 * 1000)
+  );
+  const RUNTIME_REFERENCE_QUARANTINE_MAX_MS = Math.max(
+    RUNTIME_REFERENCE_QUARANTINE_MS,
+    Number(process.env.RUNTIME_REFERENCE_QUARANTINE_MAX_MS || 72 * 60 * 60 * 1000)
+  );
   const RAJASTHAN_DETAILS_FILE = path.join(__dirname, '../../../data/format-2-json/states/rajasthan-50-complete.json');
 
   const MAX_NOTIFICATIONS = 20000;
@@ -2079,6 +2091,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         blockedUsers: {},
         failedAutoDeductAttempts: [],
         securityIncidents: [],
+        referenceEvents: [],
+        quarantinedReferences: {},
         policy: {
           riskDenyThreshold: RUNTIME_AUTO_DEDUCT_RISK_DENY_THRESHOLD,
           lockdown: {
@@ -2181,6 +2195,15 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
           : Array.isArray(safeObject(store.runtimeSecurityState).securityIncidents)
             ? safeObject(store.runtimeSecurityState).securityIncidents
             : [],
+        referenceEvents: Array.isArray(safeObject(source.runtimeSecurityState).referenceEvents)
+          ? safeObject(source.runtimeSecurityState).referenceEvents
+          : Array.isArray(safeObject(store.runtimeSecurityState).referenceEvents)
+            ? safeObject(store.runtimeSecurityState).referenceEvents
+            : [],
+        quarantinedReferences: {
+          ...safeObject(safeObject(store.runtimeSecurityState).quarantinedReferences),
+          ...safeObject(safeObject(source.runtimeSecurityState).quarantinedReferences)
+        },
         policy: {
           ...safeObject(safeObject(store.runtimeSecurityState).policy),
           ...safeObject(safeObject(source.runtimeSecurityState).policy),
@@ -2393,6 +2416,10 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     const securityIncidents = Array.isArray(source.securityIncidents)
       ? source.securityIncidents
       : [];
+    const referenceEvents = Array.isArray(source.referenceEvents)
+      ? source.referenceEvents
+      : [];
+    const quarantinedReferences = safeObject(source.quarantinedReferences);
     const policyInput = safeObject(source.policy);
     const lockdownInput = safeObject(policyInput.lockdown);
     const riskDenyThresholdValue = Number(policyInput.riskDenyThreshold);
@@ -2420,6 +2447,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       blockedUsers,
       failedAutoDeductAttempts,
       securityIncidents,
+      referenceEvents,
+      quarantinedReferences,
       policy,
       policyHistory
     };
@@ -2604,6 +2633,191 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     });
 
     return { threshold, previous: Number.isFinite(previous) ? previous : null, policy, history };
+  }
+
+  function normalizeAutoDeductReferenceKey(reference) {
+    const normalized = normalizeString(reference, 140).toLowerCase();
+    if (!normalized) return '';
+    return crypto.createHash('sha256').update(normalized).digest('hex');
+  }
+
+  function getRuntimeReferenceQuarantineRecord(store, referenceKey) {
+    const state = getRuntimeSecurityState(store);
+    const key = normalizeString(referenceKey, 80);
+    if (!key) return null;
+    return safeObject(state.quarantinedReferences)[key] || null;
+  }
+
+  function getRuntimeReferenceQuarantineStatus(store, referenceKey) {
+    const state = getRuntimeSecurityState(store);
+    const key = normalizeString(referenceKey, 80);
+    if (!key) return { active: false, record: null, remainingMs: 0, releasedBecauseExpired: false };
+
+    const record = safeObject(state.quarantinedReferences)[key];
+    if (!record || !record.active) {
+      return { active: false, record: record || null, remainingMs: 0, releasedBecauseExpired: false };
+    }
+
+    const quarantineUntilMs = new Date(record.quarantineUntil).getTime();
+    if (!Number.isFinite(quarantineUntilMs)) {
+      return { active: true, record, remainingMs: Number.MAX_SAFE_INTEGER, releasedBecauseExpired: false };
+    }
+
+    const remainingMs = quarantineUntilMs - Date.now();
+    if (remainingMs > 0) {
+      return { active: true, record, remainingMs, releasedBecauseExpired: false };
+    }
+
+    const now = new Date().toISOString();
+    const history = Array.isArray(record.history) ? record.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'auto_release',
+      reason: 'reference_quarantine_expired',
+      actorUserId: 'system',
+      createdAt: now
+    });
+
+    const nextRecord = {
+      ...record,
+      active: false,
+      releasedAt: now,
+      releasedByActorUserId: 'system',
+      releaseReason: 'reference_quarantine_expired',
+      history
+    };
+    state.quarantinedReferences[key] = nextRecord;
+    store.runtimeSecurityState = state;
+    return { active: false, record: nextRecord, remainingMs: 0, releasedBecauseExpired: true };
+  }
+
+  function addRuntimeReferenceEvent(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const reference = normalizeString(payload.reference, 140);
+    const referenceKey = normalizeString(payload.referenceKey, 80) || normalizeAutoDeductReferenceKey(reference);
+    if (!referenceKey) return null;
+
+    const item = {
+      id: crypto.randomUUID(),
+      action: normalizeString(payload.action, 80) || 'reference_event',
+      reference,
+      referenceKey,
+      userKey: normalizeString(payload.userKey, 80),
+      amount: normalizeAmount(payload.amount),
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      metadata: safeObject(payload.metadata),
+      createdAt: new Date().toISOString()
+    };
+    pushWithCap(state.referenceEvents, item);
+    store.runtimeSecurityState = state;
+    return item;
+  }
+
+  function countRecentCrossUserReferenceSettlements(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const rows = Array.isArray(state.referenceEvents) ? state.referenceEvents : [];
+    const referenceKey = normalizeString(payload.referenceKey, 80);
+    const userKey = normalizeString(payload.userKey, 80);
+    const threshold = Date.now() - Math.max(60 * 1000, Number(payload.windowMs || RUNTIME_REFERENCE_REPLAY_WINDOW_MS));
+    const users = new Set();
+    let count = 0;
+
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      const row = safeObject(rows[i]);
+      if (String(row.action || '') !== 'settled') continue;
+      if (String(row.referenceKey || '') !== String(referenceKey)) continue;
+
+      const createdAtMs = new Date(row.createdAt).getTime();
+      if (!Number.isFinite(createdAtMs)) continue;
+      if (createdAtMs < threshold) break;
+
+      if (String(row.userKey || '') === String(userKey)) continue;
+      users.add(String(row.userKey || ''));
+      count += 1;
+    }
+
+    return {
+      count,
+      uniqueUserCount: users.size,
+      users: Array.from(users)
+    };
+  }
+
+  function applyRuntimeReferenceQuarantine(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const reference = normalizeString(payload.reference, 140);
+    const referenceKey = normalizeString(payload.referenceKey, 80) || normalizeAutoDeductReferenceKey(reference);
+    if (!referenceKey) return null;
+
+    const existing = safeObject(state.quarantinedReferences[referenceKey]);
+    const now = new Date();
+    const durationMs = Math.min(
+      RUNTIME_REFERENCE_QUARANTINE_MAX_MS,
+      Math.max(5 * 60 * 1000, Number(payload.durationMs || RUNTIME_REFERENCE_QUARANTINE_MS))
+    );
+    const quarantineUntil = new Date(now.getTime() + durationMs).toISOString();
+    const history = Array.isArray(existing.history) ? existing.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'quarantine',
+      reason: normalizeString(payload.reason, 160) || 'reference_quarantine',
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      createdAt: now.toISOString(),
+      quarantineUntil
+    });
+
+    const nextRecord = {
+      ...existing,
+      reference,
+      referenceKey,
+      active: true,
+      reason: normalizeString(payload.reason, 160) || normalizeString(existing.reason, 160) || 'reference_quarantine',
+      quarantinedAt: now.toISOString(),
+      quarantineUntil,
+      quarantinedByActorUserId: normalizeString(payload.actorUserId, 120) || 'system',
+      metadata: {
+        ...safeObject(existing.metadata),
+        durationMs,
+        ...safeObject(payload.metadata)
+      },
+      history
+    };
+    state.quarantinedReferences[referenceKey] = nextRecord;
+    store.runtimeSecurityState = state;
+    return nextRecord;
+  }
+
+  function releaseRuntimeReferenceQuarantine(store, payload = {}) {
+    const state = getRuntimeSecurityState(store);
+    const reference = normalizeString(payload.reference, 140);
+    const referenceKey = normalizeString(payload.referenceKey, 80) || normalizeAutoDeductReferenceKey(reference);
+    if (!referenceKey || !state.quarantinedReferences[referenceKey]) return null;
+
+    const existing = safeObject(state.quarantinedReferences[referenceKey]);
+    const now = new Date().toISOString();
+    const history = Array.isArray(existing.history) ? existing.history : [];
+    history.push({
+      id: crypto.randomUUID(),
+      action: 'release',
+      reason: normalizeString(payload.reason, 160) || 'reference_quarantine_release',
+      actorUserId: normalizeString(payload.actorUserId, 120),
+      ip: normalizeString(payload.ip, 120),
+      createdAt: now
+    });
+
+    const nextRecord = {
+      ...existing,
+      active: false,
+      releasedAt: now,
+      releasedByActorUserId: normalizeString(payload.actorUserId, 120) || 'system',
+      releaseReason: normalizeString(payload.reason, 160) || 'reference_quarantine_release',
+      history
+    };
+    state.quarantinedReferences[referenceKey] = nextRecord;
+    store.runtimeSecurityState = state;
+    return nextRecord;
   }
 
   function countRecentFailedAutoDeductAttempts(store, userKey, windowMs = RUNTIME_AUTO_DEDUCT_FAIL_WINDOW_MS) {
@@ -3564,6 +3778,69 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       });
     }
 
+    const referenceKey = normalizeAutoDeductReferenceKey(autoDeductReference);
+    const referenceQuarantineStatus = getRuntimeReferenceQuarantineStatus(store, referenceKey);
+    if (referenceQuarantineStatus.releasedBecauseExpired) {
+      appendRuntimeEvent(store, 'runtime_reference_quarantine_auto_released', {
+        reference: autoDeductReference,
+        referenceKey,
+        actorUserId: 'system',
+        releasedAt: referenceQuarantineStatus.record ? referenceQuarantineStatus.record.releasedAt : null
+      });
+      queuePersist();
+    }
+
+    if (actorType !== 'admin' && referenceQuarantineStatus.active) {
+      const incident = addRuntimeSecurityIncident(store, {
+        userKey,
+        type: 'auto_deduct_reference_quarantine_block',
+        severity: 'high',
+        reason: normalizeString(referenceQuarantineStatus.record && referenceQuarantineStatus.record.reason, 160) || 'reference_quarantine_active',
+        amount,
+        autoDeductReference,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        metadata: {
+          referenceKey,
+          quarantineUntil: referenceQuarantineStatus.record ? referenceQuarantineStatus.record.quarantineUntil : null,
+          remainingMs: referenceQuarantineStatus.remainingMs
+        }
+      });
+      const refEvent = addRuntimeReferenceEvent(store, {
+        action: 'quarantine_blocked',
+        reference: autoDeductReference,
+        referenceKey,
+        userKey,
+        amount,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        metadata: {
+          quarantineUntil: referenceQuarantineStatus.record ? referenceQuarantineStatus.record.quarantineUntil : null,
+          remainingMs: referenceQuarantineStatus.remainingMs
+        }
+      });
+      const runtimeEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_reference_quarantine_blocked', {
+        userKey,
+        amount,
+        autoDeductReference,
+        referenceKey,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        quarantineUntil: referenceQuarantineStatus.record ? referenceQuarantineStatus.record.quarantineUntil : null,
+        remainingMs: referenceQuarantineStatus.remainingMs,
+        securityIncidentId: incident ? incident.id : null,
+        referenceEventId: refEvent ? refEvent.id : null
+      });
+      queuePersist();
+      return res.status(423).json({
+        ok: false,
+        message: 'Auto deduction blocked because reference is under security quarantine',
+        quarantineUntil: referenceQuarantineStatus.record ? referenceQuarantineStatus.record.quarantineUntil : null,
+        remainingMs: referenceQuarantineStatus.remainingMs,
+        runtimeEventId: runtimeEvent ? runtimeEvent.id : null
+      });
+    }
+
     const preRiskProfile = buildRuntimeUserRiskProfile(store, userKey);
     if (actorType !== 'admin' && preRiskProfile && preRiskProfile.denyByPolicy) {
       const proactiveBlock = applyRuntimeAutoDeductBlock(store, {
@@ -3629,6 +3906,18 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         actorType,
         ip: getClientIp(req)
       });
+      const referenceFailureEvent = addRuntimeReferenceEvent(store, {
+        action: 'failed_attempt',
+        reference: autoDeductReference,
+        referenceKey,
+        userKey,
+        amount,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        metadata: {
+          reason
+        }
+      });
       const riskProfile = buildRuntimeUserRiskProfile(store, userKey);
       const failureEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_failed', {
         userKey,
@@ -3642,6 +3931,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         blocked: Boolean(failure.block),
         blockedUntil: failure.block ? failure.block.blockedUntil : null,
         securityIncidentId: failure.incident ? failure.incident.id : null,
+        referenceEventId: referenceFailureEvent ? referenceFailureEvent.id : null,
         riskScore: riskProfile ? riskProfile.score : null,
         riskLevel: riskProfile ? riskProfile.level : null,
         riskDenyThreshold: riskProfile ? riskProfile.denyThreshold : null
@@ -3731,13 +4021,27 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       const existingEntry = Array.isArray(wallet.history)
         ? wallet.history.find((item) => String(item.id) === String(existingAutoDeduction.walletEntryId))
         : null;
+      const referenceEvent = addRuntimeReferenceEvent(store, {
+        action: 'reused',
+        reference: autoDeductReference,
+        referenceKey,
+        userKey,
+        amount,
+        actorUserId: normalizeString(req.user && req.user.id, 120),
+        ip: getClientIp(req),
+        metadata: {
+          autoDeductionId: existingAutoDeduction.id
+        }
+      });
       const reusedRuntimeEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_reused', {
         userKey,
         amount,
         autoDeductReference,
         autoDeductionId: existingAutoDeduction.id,
         actorUserId: normalizeString(req.user && req.user.id, 120),
-        ip: getClientIp(req)
+        ip: getClientIp(req),
+        referenceKey,
+        referenceEventId: referenceEvent ? referenceEvent.id : null
       });
       queuePersist();
 
@@ -3749,6 +4053,79 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         autoDeduction: existingAutoDeduction,
         runtimeEventId: reusedRuntimeEvent ? reusedRuntimeEvent.id : null
       });
+    }
+
+    if (actorType !== 'admin') {
+      const crossUserReplay = countRecentCrossUserReferenceSettlements(store, {
+        referenceKey,
+        userKey,
+        windowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS
+      });
+      if (crossUserReplay.uniqueUserCount > 0) {
+        const quarantine = applyRuntimeReferenceQuarantine(store, {
+          reference: autoDeductReference,
+          referenceKey,
+          reason: 'cross_user_reference_replay_suspected',
+          actorUserId: 'system',
+          ip: getClientIp(req),
+          metadata: {
+            windowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
+            crossUserCount: crossUserReplay.uniqueUserCount,
+            crossUsers: crossUserReplay.users
+          }
+        });
+        const incident = addRuntimeSecurityIncident(store, {
+          userKey,
+          type: 'auto_deduct_reference_replay_suspected',
+          severity: 'critical',
+          reason: 'cross_user_reference_replay_suspected',
+          amount,
+          autoDeductReference,
+          actorUserId: normalizeString(req.user && req.user.id, 120),
+          ip: getClientIp(req),
+          metadata: {
+            referenceKey,
+            crossUserCount: crossUserReplay.uniqueUserCount,
+            crossUsers: crossUserReplay.users,
+            quarantineUntil: quarantine ? quarantine.quarantineUntil : null
+          }
+        });
+        const referenceEvent = addRuntimeReferenceEvent(store, {
+          action: 'replay_probe_blocked',
+          reference: autoDeductReference,
+          referenceKey,
+          userKey,
+          amount,
+          actorUserId: normalizeString(req.user && req.user.id, 120),
+          ip: getClientIp(req),
+          metadata: {
+            crossUserCount: crossUserReplay.uniqueUserCount,
+            crossUsers: crossUserReplay.users
+          }
+        });
+        const replayEvent = appendRuntimeEvent(store, 'runtime_wallet_spend_reference_replay_blocked', {
+          userKey,
+          amount,
+          autoDeductReference,
+          referenceKey,
+          actorUserId: normalizeString(req.user && req.user.id, 120),
+          ip: getClientIp(req),
+          windowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
+          crossUserCount: crossUserReplay.uniqueUserCount,
+          quarantineUntil: quarantine ? quarantine.quarantineUntil : null,
+          securityIncidentId: incident ? incident.id : null,
+          referenceEventId: referenceEvent ? referenceEvent.id : null
+        });
+        queuePersist();
+
+        return res.status(423).json({
+          ok: false,
+          message: 'Auto deduction blocked due to suspicious cross-user reference replay',
+          reference: autoDeductReference,
+          quarantineUntil: quarantine ? quarantine.quarantineUntil : null,
+          runtimeEventId: replayEvent ? replayEvent.id : null
+        });
+      }
     }
 
     if (actorType !== 'admin') {
@@ -3843,13 +4220,28 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         actorUserId: normalizeString(req.user && req.user.id, 120)
       })
       : null;
+    const referenceEvent = addRuntimeReferenceEvent(store, {
+      action: 'settled',
+      reference: autoDeductReference,
+      referenceKey,
+      userKey,
+      amount,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        walletEntryId: entry.id,
+        autoDeductionId: autoDeduction ? autoDeduction.id : null
+      }
+    });
     const runtimeEvent = appendRuntimeEvent(store, 'runtime_wallet_spend', {
       userKey,
       amount,
       reason,
       autoDeductReference,
+      referenceKey,
       walletEntryId: entry.id,
       autoDeductionId: autoDeduction ? autoDeduction.id : null,
+      referenceEventId: referenceEvent ? referenceEvent.id : null,
       actorUserId: normalizeString(req.user && req.user.id, 120),
       ip: getClientIp(req)
     });
@@ -3908,6 +4300,12 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         blockedUsersActive: blockedRecords.filter((row) => row.active).length,
         failedAutoDeductAttempts: Array.isArray(state.failedAutoDeductAttempts) ? state.failedAutoDeductAttempts.length : 0,
         securityIncidents: Array.isArray(state.securityIncidents) ? state.securityIncidents.length : 0,
+        referenceEvents: Array.isArray(state.referenceEvents) ? state.referenceEvents.length : 0,
+        quarantinedReferencesTotal: Object.keys(safeObject(state.quarantinedReferences)).length,
+        quarantinedReferencesActive: Object.values(safeObject(state.quarantinedReferences))
+          .map((row) => safeObject(row))
+          .filter((row) => row.active)
+          .length,
         policy: {
           riskDenyThreshold: policy.riskDenyThreshold,
           lockdown: {
@@ -4125,8 +4523,213 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
         escalationWindowMs: RUNTIME_AUTO_DEDUCT_BLOCK_ESCALATION_WINDOW_MS,
         integrityBlockMs: RUNTIME_AUTO_DEDUCT_INTEGRITY_BLOCK_MS,
         riskDenyThreshold: policy.riskDenyThreshold,
-        lockdownMaxMs: RUNTIME_SECURITY_LOCKDOWN_MAX_MS
+        lockdownMaxMs: RUNTIME_SECURITY_LOCKDOWN_MAX_MS,
+        referenceReplayWindowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
+        referenceQuarantineMs: RUNTIME_REFERENCE_QUARANTINE_MS,
+        referenceQuarantineMaxMs: RUNTIME_REFERENCE_QUARANTINE_MAX_MS
       }
+    });
+  });
+
+  router.get('/runtime/security/references', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const userKey = normalizeString(req.query.userKey, 80);
+    const action = normalizeString(req.query.action, 80);
+    const referenceInput = normalizeString(req.query.reference, 140);
+    const referenceKey = normalizeString(req.query.referenceKey, 80) || normalizeAutoDeductReferenceKey(referenceInput);
+    const limit = Math.min(RUNTIME_AUDIT_MAX_LIMIT, Math.max(1, Number(req.query.limit || 100)));
+    const rows = (Array.isArray(state.referenceEvents) ? state.referenceEvents : [])
+      .filter((item) => !userKey || String(item.userKey) === String(userKey))
+      .filter((item) => !action || String(item.action) === String(action))
+      .filter((item) => !referenceKey || String(item.referenceKey) === String(referenceKey))
+      .slice(-limit)
+      .reverse();
+    const summary = rows.reduce((acc, item) => {
+      const key = normalizeString(item.action, 80) || 'unknown';
+      acc[key] = Number(acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return res.status(200).json({
+      userKey: userKey || null,
+      action: action || null,
+      reference: referenceInput || null,
+      referenceKey: referenceKey || null,
+      limit,
+      count: rows.length,
+      summary,
+      rows
+    });
+  });
+
+  router.get('/runtime/security/quarantined-references', requireAdmin, (req, res) => {
+    const store = getStore();
+    const state = getRuntimeSecurityState(store);
+    const keys = Object.keys(safeObject(state.quarantinedReferences || {}));
+    let autoReleased = 0;
+    for (let i = 0; i < keys.length; i += 1) {
+      const status = getRuntimeReferenceQuarantineStatus(store, keys[i]);
+      if (status.releasedBecauseExpired) {
+        autoReleased += 1;
+      }
+    }
+
+    if (autoReleased > 0) {
+      appendRuntimeEvent(store, 'runtime_reference_quarantine_auto_release_batch', {
+        actorUserId: 'system',
+        releasedCount: autoReleased
+      });
+      queuePersist();
+    }
+
+    const hydratedState = getRuntimeSecurityState(store);
+    const records = Object.values(safeObject(hydratedState.quarantinedReferences || {}))
+      .map((item) => safeObject(item))
+      .filter((item) => normalizeString(item.referenceKey, 80));
+
+    return res.status(200).json({
+      autoReleased,
+      total: records.length,
+      active: records.filter((item) => item.active).length,
+      records
+    });
+  });
+
+  router.post('/runtime/security/quarantine-reference/:reference', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const reference = normalizeString(req.params.reference || req.body?.reference || req.query?.reference, 140);
+    if (!reference) {
+      return res.status(400).json({ message: 'reference is required' });
+    }
+
+    const referenceKey = normalizeAutoDeductReferenceKey(reference);
+    const reason = sanitizeText(req.body?.reason || 'manual_reference_quarantine', 160) || 'manual_reference_quarantine';
+    const durationMs = Math.min(
+      RUNTIME_REFERENCE_QUARANTINE_MAX_MS,
+      Math.max(5 * 60 * 1000, Number(req.body?.durationMs || RUNTIME_REFERENCE_QUARANTINE_MS))
+    );
+    const record = applyRuntimeReferenceQuarantine(store, {
+      reference,
+      referenceKey,
+      reason,
+      durationMs,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        source: 'admin_manual_reference_quarantine'
+      }
+    });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: '__global__',
+      type: 'admin_manual_reference_quarantine',
+      severity: 'high',
+      reason,
+      autoDeductReference: reference,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        referenceKey,
+        durationMs,
+        quarantineUntil: record ? record.quarantineUntil : null
+      }
+    });
+    const referenceEvent = addRuntimeReferenceEvent(store, {
+      action: 'manual_quarantine',
+      reference,
+      referenceKey,
+      userKey: '__global__',
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        durationMs,
+        quarantineUntil: record ? record.quarantineUntil : null
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_reference_quarantine_manual', {
+      reference,
+      referenceKey,
+      reason,
+      durationMs,
+      quarantineUntil: record ? record.quarantineUntil : null,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      securityIncidentId: incident ? incident.id : null,
+      referenceEventId: referenceEvent ? referenceEvent.id : null
+    });
+    queuePersist();
+
+    return res.status(201).json({
+      message: 'Reference quarantined for auto-deduct protection',
+      record,
+      securityIncidentId: incident ? incident.id : null,
+      referenceEventId: referenceEvent ? referenceEvent.id : null,
+      runtimeEventId: event ? event.id : null
+    });
+  });
+
+  router.post('/runtime/security/unquarantine-reference/:reference', requireAdmin, walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    const store = getStore();
+    const reference = normalizeString(req.params.reference || req.body?.reference || req.query?.reference, 140);
+    if (!reference) {
+      return res.status(400).json({ message: 'reference is required' });
+    }
+
+    const referenceKey = normalizeAutoDeductReferenceKey(reference);
+    const reason = sanitizeText(req.body?.reason || 'manual_reference_quarantine_release', 160) || 'manual_reference_quarantine_release';
+    const existing = getRuntimeReferenceQuarantineRecord(store, referenceKey);
+    if (!existing) {
+      return res.status(404).json({ message: 'No quarantine record found for reference' });
+    }
+
+    const record = releaseRuntimeReferenceQuarantine(store, {
+      reference,
+      referenceKey,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req)
+    });
+    const incident = addRuntimeSecurityIncident(store, {
+      userKey: '__global__',
+      type: 'admin_manual_reference_quarantine_release',
+      severity: 'medium',
+      reason,
+      autoDeductReference: reference,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        referenceKey,
+        releasedAt: record ? record.releasedAt : null
+      }
+    });
+    const referenceEvent = addRuntimeReferenceEvent(store, {
+      action: 'manual_quarantine_release',
+      reference,
+      referenceKey,
+      userKey: '__global__',
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      metadata: {
+        releasedAt: record ? record.releasedAt : null
+      }
+    });
+    const event = appendRuntimeEvent(store, 'runtime_reference_quarantine_manual_release', {
+      reference,
+      referenceKey,
+      reason,
+      actorUserId: normalizeString(req.user && req.user.id, 120),
+      ip: getClientIp(req),
+      securityIncidentId: incident ? incident.id : null,
+      referenceEventId: referenceEvent ? referenceEvent.id : null
+    });
+    queuePersist();
+
+    return res.status(200).json({
+      message: 'Reference quarantine released',
+      record,
+      securityIncidentId: incident ? incident.id : null,
+      referenceEventId: referenceEvent ? referenceEvent.id : null,
+      runtimeEventId: event ? event.id : null
     });
   });
 
@@ -4152,6 +4755,9 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
       policyHistoryCount: Array.isArray(state.policyHistory) ? state.policyHistory.length : 0,
       limits: {
         maxLockdownMs: RUNTIME_SECURITY_LOCKDOWN_MAX_MS,
+        referenceReplayWindowMs: RUNTIME_REFERENCE_REPLAY_WINDOW_MS,
+        referenceQuarantineMs: RUNTIME_REFERENCE_QUARANTINE_MS,
+        referenceQuarantineMaxMs: RUNTIME_REFERENCE_QUARANTINE_MAX_MS,
         minRiskDenyThreshold: 50,
         maxRiskDenyThreshold: 100
       }
