@@ -32,6 +32,11 @@ const {
   isDenylistSha256
 } = require('../middleware/denylistEnforcementMiddleware');
 const {
+  addOrUpdateRouteGuardPolicy,
+  getRouteGuardPolicySnapshot,
+  releaseRouteGuardPolicies
+} = require('../services/routeGuardPolicyShieldService');
+const {
   getAttackPatternQuarantineSnapshot,
   releaseAttackPatternQuarantineRecords,
   isAttackPatternQuarantineSha256
@@ -1287,6 +1292,114 @@ router.post('/shield/denylist/release', authenticate, requireAdmin, async (req, 
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release denylist entries' });
+  }
+});
+
+router.get('/shield/route-guard/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeInactive = String(req.query?.includeInactive || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const routePrefix = String(req.query?.routePrefix || '').trim().toLowerCase();
+
+    const snapshot = await getRouteGuardPolicySnapshot({
+      includeInactive,
+      status,
+      routePrefix,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch route guard policy snapshot' });
+  }
+});
+
+router.post('/shield/route-guard/add', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const routePrefix = String(req.body?.routePrefix || '').trim().toLowerCase();
+    const method = String(req.body?.method || '').trim().toUpperCase();
+    const methods = Array.isArray(req.body?.methods) ? req.body.methods : undefined;
+    const reason = String(req.body?.reason || '').trim();
+    const durationMsInput = Number(req.body?.durationMs);
+    const activeFrom = req.body?.activeFrom || null;
+    const activeUntil = req.body?.activeUntil || null;
+    const priorityInput = Number(req.body?.priority);
+
+    if (!routePrefix) {
+      return res.status(400).json({ message: 'routePrefix is required' });
+    }
+
+    const actor = getUserContext(req);
+    const policy = await addOrUpdateRouteGuardPolicy({
+      routePrefix,
+      method,
+      methods,
+      reason: reason || 'admin_manual_route_guard',
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput >= 0 ? durationMsInput : undefined,
+      activeFrom,
+      activeUntil,
+      priority: Number.isFinite(priorityInput) ? priorityInput : undefined,
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/route-guard/add'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Route guard policy upserted',
+      policy: {
+        id: String(policy._id || ''),
+        routePrefix: String(policy.routePrefix || ''),
+        methods: Array.isArray(policy.methods) ? policy.methods : [],
+        mode: String(policy.mode || ''),
+        status: String(policy.status || ''),
+        priority: Number(policy.priority || 0),
+        reason: String(policy.reason || ''),
+        activeFrom: policy.activeFrom ? new Date(policy.activeFrom).toISOString() : null,
+        activeUntil: policy.activeUntil ? new Date(policy.activeUntil).toISOString() : null,
+        hitCount: Number(policy.hitCount || 0)
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to add route guard policy'
+    });
+  }
+});
+
+router.post('/shield/route-guard/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const routePrefix = String(req.body?.routePrefix || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !routePrefix) {
+      return res.status(400).json({ message: 'Provide id or routePrefix, or set clearAll=true' });
+    }
+
+    const actor = getUserContext(req);
+    const result = await releaseRouteGuardPolicies({
+      id,
+      routePrefix,
+      clearAll,
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req)
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Route guard policies released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release route guard policies' });
   }
 });
 

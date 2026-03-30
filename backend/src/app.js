@@ -25,6 +25,7 @@ const { attackPatternQuarantineShieldMiddleware } = require('./middleware/attack
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
 const { refreshTokenReplayShieldMiddleware } = require('./middleware/refreshTokenReplayShieldMiddleware');
+const { routeGuardPolicyShieldMiddleware } = require('./middleware/routeGuardPolicyShieldMiddleware');
 const { denylistEnforcementMiddleware } = require('./middleware/denylistEnforcementMiddleware');
 const { idempotencyEnforcementMiddleware } = require('./middleware/idempotencyEnforcementMiddleware');
 const { securityControlPlaneShieldMiddleware } = require('./middleware/securityControlPlaneShieldMiddleware');
@@ -142,6 +143,12 @@ app.use('/api', denylistEnforcementMiddleware({
   failOpen: env.denylistShieldFailOpen,
   cacheTtlMs: env.denylistShieldCacheTtlMs,
   protectedPrefixes: env.denylistShieldProtectedPrefixes
+}));
+app.use('/api', routeGuardPolicyShieldMiddleware({
+  enabled: env.routeGuardPolicyShieldEnabled,
+  failOpen: env.routeGuardPolicyShieldFailOpen,
+  cacheTtlMs: env.routeGuardPolicyCacheTtlMs,
+  bypassPrefixes: env.routeGuardPolicyBypassPrefixes
 }));
 app.use('/api', idempotencyEnforcementMiddleware({
   enabled: env.idempotencyShieldEnabled,
