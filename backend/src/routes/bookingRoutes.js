@@ -9,6 +9,8 @@ const User = require('../models/User');
 const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const { verifyFareIntegrity, computeFareHash } = require('../middleware/fareIntegrityMiddleware');
+const { walletCriticalLimiter } = require('../middleware/rateLimiters');
+const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
 const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 const {
@@ -23,6 +25,52 @@ const {
 
 
 const router = express.Router();
+const BOOKING_STRICT_SIGNATURE = String(process.env.BOOKING_STRICT_SIGNATURE || process.env.STRICT_SECURITY_MODE || 'true').trim().toLowerCase() === 'true';
+const BOOKING_CRITICAL_RATE_LIMIT_ENABLED = String(process.env.BOOKING_CRITICAL_RATE_LIMIT_ENABLED || 'true').trim().toLowerCase() === 'true';
+const BOOKING_SIGNATURE_INCLUDE_CREATE = String(process.env.BOOKING_SIGNATURE_INCLUDE_CREATE || 'true').trim().toLowerCase() === 'true';
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function isBookingCriticalMutation(req) {
+  const method = String(req.method || '').toUpperCase();
+  if (!MUTATING_METHODS.has(method)) return false;
+
+  const normalizedPath = String(req.path || '').trim().toLowerCase();
+  if (!normalizedPath) return false;
+
+  if (BOOKING_SIGNATURE_INCLUDE_CREATE && normalizedPath === '/') {
+    return true;
+  }
+
+  return (
+    /\/[^/]+\/complete$/.test(normalizedPath)
+    || /\/[^/]+\/refund$/.test(normalizedPath)
+    || /\/[^/]+\/cancel$/.test(normalizedPath)
+  );
+}
+
+function bookingCriticalSecurityShield(req, res, next) {
+  if (!isBookingCriticalMutation(req)) {
+    return next();
+  }
+
+  const applySignatureCheck = () => {
+    if (!BOOKING_STRICT_SIGNATURE) {
+      return next();
+    }
+    return verifyApiSignature(req, res, next);
+  };
+
+  if (!BOOKING_CRITICAL_RATE_LIMIT_ENABLED) {
+    return applySignatureCheck();
+  }
+
+  return walletCriticalLimiter(req, res, (error) => {
+    if (error) return next(error);
+    return applySignatureCheck();
+  });
+}
+
+router.use(bookingCriticalSecurityShield);
 
 async function continuousRiskGate(req, res, next) {
   const user = await User.findById(req.user.id);
