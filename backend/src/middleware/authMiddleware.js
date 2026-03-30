@@ -8,6 +8,7 @@ const { inspectUserSessionContextDrift } = require('../services/sessionContextDr
 const { inspectUserSessionFanout } = require('../services/sessionFanoutShieldService');
 const { inspectUserActionVelocity } = require('../services/userActionVelocityShieldService');
 const { inspectUserPrivilegeClaimIntegrity } = require('../services/privilegeClaimIntegrityShieldService');
+const { inspectUserStepUpAuth } = require('../services/stepUpAuthShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -165,6 +166,29 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.actionVelocityShieldFailOpen) {
           return res.status(503).json({ message: 'Action velocity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.stepUpAuthShieldEnabled) {
+      try {
+        const stepUpState = await inspectUserStepUpAuth({
+          user,
+          payload,
+          req
+        });
+        if (!stepUpState || stepUpState.ok === false) {
+          return res.status(403).json({
+            message: 'Step-up authentication shield blocked this session',
+            reason: String(stepUpState?.reason || 'step_up_auth_blocked'),
+            quarantineUntil: stepUpState?.quarantineUntil || null,
+            stepUpRequired: Boolean(stepUpState?.stepUpRequired || false),
+            requiredHeaders: Array.isArray(stepUpState?.requiredHeaders) ? stepUpState.requiredHeaders : undefined
+          });
+        }
+      } catch (_error) {
+        if (!env.stepUpAuthShieldFailOpen) {
+          return res.status(503).json({ message: 'Step-up authentication shield unavailable' });
         }
       }
     }
