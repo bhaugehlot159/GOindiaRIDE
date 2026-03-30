@@ -28,6 +28,7 @@ const { inspectUserTokenSessionPrincipalBinding } = require('../services/tokenSe
 const { inspectUserTokenSessionFingerprintBinding } = require('../services/tokenSessionFingerprintBindingShieldService');
 const { inspectUserTokenSessionGeoBinding } = require('../services/tokenSessionGeoBindingShieldService');
 const { inspectUserTokenSessionNetworkBinding } = require('../services/tokenSessionNetworkBindingShieldService');
+const { inspectUserTokenSessionClientBinding } = require('../services/tokenSessionClientBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -667,6 +668,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionNetworkBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session network binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionClientBindingShieldEnabled) {
+      try {
+        const sessionClientBindingState = await inspectUserTokenSessionClientBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionClientBindingState || sessionClientBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session client binding shield blocked this session',
+            reason: String(sessionClientBindingState?.reason || 'token_session_client_binding_blocked'),
+            violationCount: Number(sessionClientBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionClientBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionClientBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionClientBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionClientBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionClientBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session client binding shield unavailable' });
         }
       }
     }
