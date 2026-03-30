@@ -23,6 +23,7 @@ const { inspectUserTokenIdentifierHardening } = require('../services/tokenIdenti
 const { inspectUserTokenTypeSeparation } = require('../services/tokenTypeSeparationShieldService');
 const { inspectUserTokenSessionAnchor } = require('../services/tokenSessionAnchorShieldService');
 const { inspectUserTokenRotationContinuity } = require('../services/tokenRotationContinuityShieldService');
+const { inspectUserTokenClaimProfileContinuity } = require('../services/tokenClaimProfileContinuityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -537,6 +538,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenRotationContinuityShieldFailOpen) {
           return res.status(503).json({ message: 'Token rotation continuity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenClaimProfileContinuityShieldEnabled) {
+      try {
+        const tokenClaimProfileState = await inspectUserTokenClaimProfileContinuity({
+          user,
+          payload,
+          req
+        });
+        if (!tokenClaimProfileState || tokenClaimProfileState.ok === false) {
+          return res.status(403).json({
+            message: 'Token claim profile continuity shield blocked this session',
+            reason: String(tokenClaimProfileState?.reason || 'token_claim_profile_continuity_blocked'),
+            violationCount: Number(tokenClaimProfileState?.violationCount || 0),
+            violationThreshold: Number(tokenClaimProfileState?.violationThreshold || 0),
+            missingClaimCount: Number(tokenClaimProfileState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(tokenClaimProfileState?.missingClaimThreshold || 0),
+            quarantineUntil: tokenClaimProfileState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenClaimProfileContinuityShieldFailOpen) {
+          return res.status(503).json({ message: 'Token claim profile continuity shield unavailable' });
         }
       }
     }
