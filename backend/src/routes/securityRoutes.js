@@ -14,6 +14,11 @@ const {
   releaseAuthAbuseShieldLocks,
   isAuthAbuseShieldSha256
 } = require('../middleware/authAbuseShieldMiddleware');
+const {
+  getPersistentAuthAbuseShieldSnapshot,
+  releasePersistentAuthAbuseShieldLocks,
+  isPersistentAuthAbuseShieldSha256
+} = require('../middleware/authPersistentAbuseShieldMiddleware');
 
 const router = express.Router();
 
@@ -616,6 +621,58 @@ router.post('/shield/auth-abuse/release', authenticate, requireAdmin, async (req
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release auth abuse shield lock' });
+  }
+});
+
+router.get('/shield/auth-abuse/persistent/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeInactive = String(req.query?.includeInactive || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+
+    const snapshot = await getPersistentAuthAbuseShieldSnapshot({
+      includeInactive,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch persistent auth abuse shield snapshot' });
+  }
+});
+
+router.post('/shield/auth-abuse/persistent/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const principalKey = String(req.body?.principalKey || '').trim().toLowerCase();
+    const ipKey = String(req.body?.ipKey || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !principalKey && !ipKey) {
+      return res.status(400).json({ message: 'principalKey or ipKey is required when clearAll is false' });
+    }
+
+    if (principalKey && !isPersistentAuthAbuseShieldSha256(principalKey)) {
+      return res.status(400).json({ message: 'principalKey must be a SHA-256 hash' });
+    }
+    if (ipKey && !isPersistentAuthAbuseShieldSha256(ipKey)) {
+      return res.status(400).json({ message: 'ipKey must be a SHA-256 hash' });
+    }
+
+    const result = await releasePersistentAuthAbuseShieldLocks({
+      principalKey,
+      ipKey,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Persistent auth abuse shield lock release completed',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release persistent auth abuse shield lock' });
   }
 });
 

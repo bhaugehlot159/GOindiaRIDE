@@ -59,6 +59,9 @@ module.exports = {
   recaptchaMinScore: Number(process.env.RECAPTCHA_MIN_SCORE || 0.5),
 
   authAbuseShieldEnabled: String(process.env.AUTH_ABUSE_SHIELD_ENABLED || 'true').toLowerCase() === 'true',
+  authAbusePersistentEnabled: String(process.env.AUTH_ABUSE_PERSISTENT_ENABLED || 'true').toLowerCase() === 'true',
+  authAbusePersistentFailOpen: String(process.env.AUTH_ABUSE_PERSISTENT_FAIL_OPEN || 'true').toLowerCase() === 'true',
+  authAbusePersistentRetentionMs: Number(process.env.AUTH_ABUSE_PERSISTENT_RETENTION_MS || 14 * 24 * 60 * 60 * 1000),
   authAbuseFailWindowMs: Number(process.env.AUTH_ABUSE_FAIL_WINDOW_MS || 15 * 60 * 1000),
   authAbusePrincipalFailMax: Number(process.env.AUTH_ABUSE_PRINCIPAL_FAIL_MAX || 8),
   authAbuseIpFailMax: Number(process.env.AUTH_ABUSE_IP_FAIL_MAX || 25),
