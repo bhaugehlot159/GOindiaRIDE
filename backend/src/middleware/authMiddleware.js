@@ -6,6 +6,7 @@ const { inspectAccessTokenReplay } = require('../services/accessTokenReplayShiel
 const { inspectUserGeoVelocity } = require('../services/geoVelocityShieldService');
 const { inspectUserSessionContextDrift } = require('../services/sessionContextDriftShieldService');
 const { inspectUserSessionFanout } = require('../services/sessionFanoutShieldService');
+const { inspectUserActionVelocity } = require('../services/userActionVelocityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -122,6 +123,26 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.sessionFanoutShieldFailOpen) {
           return res.status(503).json({ message: 'Session fanout shield unavailable' });
+        }
+      }
+    }
+
+    if (env.actionVelocityShieldEnabled) {
+      try {
+        const actionVelocityState = await inspectUserActionVelocity({
+          user,
+          req
+        });
+        if (!actionVelocityState || actionVelocityState.ok === false) {
+          return res.status(403).json({
+            message: 'Action velocity shield blocked this session',
+            reason: String(actionVelocityState?.reason || 'action_velocity_blocked'),
+            quarantineUntil: actionVelocityState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.actionVelocityShieldFailOpen) {
+          return res.status(503).json({ message: 'Action velocity shield unavailable' });
         }
       }
     }
