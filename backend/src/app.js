@@ -21,6 +21,7 @@ const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
+const { denylistEnforcementMiddleware } = require('./middleware/denylistEnforcementMiddleware');
 const { idempotencyEnforcementMiddleware } = require('./middleware/idempotencyEnforcementMiddleware');
 const { securityControlPlaneShieldMiddleware } = require('./middleware/securityControlPlaneShieldMiddleware');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
@@ -108,6 +109,12 @@ app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,
   incidentScore: env.requestIncidentScore
+}));
+app.use('/api', denylistEnforcementMiddleware({
+  enabled: env.denylistShieldEnabled,
+  failOpen: env.denylistShieldFailOpen,
+  cacheTtlMs: env.denylistShieldCacheTtlMs,
+  protectedPrefixes: env.denylistShieldProtectedPrefixes
 }));
 app.use('/api', idempotencyEnforcementMiddleware({
   enabled: env.idempotencyShieldEnabled,

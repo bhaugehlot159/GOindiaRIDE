@@ -9,6 +9,7 @@ const { logSecurityEvent } = require('../services/securityLogService');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { evaluateAiThreat, applyAutoResponse } = require('../services/aiSecurityDetectiveService');
+const env = require('../config/env');
 const {
   getAuthAbuseShieldSnapshot,
   releaseAuthAbuseShieldLocks,
@@ -24,6 +25,12 @@ const {
   releaseIdempotencyShieldRecords,
   isIdempotencyShieldSha256
 } = require('../middleware/idempotencyEnforcementMiddleware');
+const {
+  addOrUpdateDenylistEntry,
+  getDenylistSnapshot,
+  releaseDenylistEntries,
+  isDenylistSha256
+} = require('../middleware/denylistEnforcementMiddleware');
 const {
   isTokenRevocationSha256,
   revokeAccessTokenByJti,
@@ -862,6 +869,122 @@ router.post('/shield/token/access/revoke-user', authenticate, requireAdmin, asyn
     return res.status(error.statusCode || 500).json({
       message: error.message || 'Unable to revoke user access sessions'
     });
+  }
+});
+
+router.get('/shield/denylist/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeInactive = String(req.query?.includeInactive || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+    const scope = String(req.query?.scope || '').trim().toLowerCase();
+    const targetType = String(req.query?.targetType || '').trim().toLowerCase();
+
+    const snapshot = await getDenylistSnapshot({
+      includeInactive,
+      scope,
+      targetType,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch denylist snapshot' });
+  }
+});
+
+router.post('/shield/denylist/add', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const targetType = String(req.body?.targetType || '').trim().toLowerCase();
+    const targetValue = String(req.body?.targetValue || '').trim();
+    const scope = String(req.body?.scope || 'all').trim().toLowerCase();
+    const reason = String(req.body?.reason || '').trim();
+    const durationMsInput = Number(req.body?.durationMs);
+    const activeUntil = req.body?.activeUntil || null;
+    const status = String(req.body?.status || 'active').trim().toLowerCase();
+
+    if (!targetType || !targetValue) {
+      return res.status(400).json({ message: 'targetType and targetValue are required' });
+    }
+
+    const actor = getUserContext(req);
+    const entry = await addOrUpdateDenylistEntry({
+      targetType,
+      targetValue,
+      scope,
+      reason: reason || 'admin_manual_denylist_entry',
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput >= 0 ? durationMsInput : undefined,
+      defaultDurationMs: Number.isFinite(Number(req.body?.defaultDurationMs))
+        ? Number(req.body.defaultDurationMs)
+        : env.denylistDefaultDurationMs,
+      activeUntil,
+      status,
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/denylist/add'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Denylist entry upserted',
+      entry: {
+        id: String(entry._id),
+        targetType: String(entry.targetType || ''),
+        targetHash: String(entry.targetHash || ''),
+        targetPreview: String(entry.targetPreview || ''),
+        scope: String(entry.scope || ''),
+        status: String(entry.status || ''),
+        reason: String(entry.reason || ''),
+        activeFrom: entry.activeFrom ? new Date(entry.activeFrom).toISOString() : null,
+        activeUntil: entry.activeUntil ? new Date(entry.activeUntil).toISOString() : null,
+        hitCount: Number(entry.hitCount || 0)
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to add denylist entry'
+    });
+  }
+});
+
+router.post('/shield/denylist/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const targetType = String(req.body?.targetType || '').trim().toLowerCase();
+    const targetHash = String(req.body?.targetHash || '').trim().toLowerCase();
+    const scope = String(req.body?.scope || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !targetHash && !targetType && !scope) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+    if (targetHash && !isDenylistSha256(targetHash)) {
+      return res.status(400).json({ message: 'targetHash must be a SHA-256 hash' });
+    }
+
+    const actor = getUserContext(req);
+    const result = await releaseDenylistEntries({
+      id,
+      targetType,
+      targetHash,
+      scope,
+      clearAll,
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req)
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Denylist entries released (disabled)',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release denylist entries' });
   }
 });
 
