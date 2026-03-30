@@ -19,6 +19,7 @@ const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
+const { adminAuditChainMiddleware } = require('./middleware/adminAuditChainMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
 const { denylistEnforcementMiddleware } = require('./middleware/denylistEnforcementMiddleware');
@@ -109,6 +110,11 @@ app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,
   incidentScore: env.requestIncidentScore
+}));
+app.use('/api', adminAuditChainMiddleware({
+  enabled: env.adminAuditChainEnabled,
+  trackReadOps: env.adminAuditChainTrackReadOps,
+  prefixes: env.adminAuditChainTrackPrefixes
 }));
 app.use('/api', denylistEnforcementMiddleware({
   enabled: env.denylistShieldEnabled,

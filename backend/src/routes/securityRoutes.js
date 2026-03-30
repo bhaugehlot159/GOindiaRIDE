@@ -37,6 +37,11 @@ const {
   revokeAllAccessTokensForUser,
   getAccessTokenRevocationSnapshot
 } = require('../services/tokenRevocationService');
+const {
+  getAdminAuditChainSnapshot,
+  verifyAdminAuditChain,
+  GENESIS_HASH
+} = require('../services/adminAuditChainService');
 
 const router = express.Router();
 
@@ -985,6 +990,45 @@ router.post('/shield/denylist/release', authenticate, requireAdmin, async (req, 
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release denylist entries' });
+  }
+});
+
+router.get('/audit/admin-chain/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const actorUserId = String(req.query?.actorUserId || '').trim();
+    const action = String(req.query?.action || '').trim();
+
+    const snapshot = await getAdminAuditChainSnapshot({
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100,
+      actorUserId,
+      action
+    });
+
+    return res.status(200).json({
+      ok: true,
+      genesisHash: GENESIS_HASH,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch admin audit chain snapshot' });
+  }
+});
+
+router.post('/audit/admin-chain/verify', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.body?.limit ?? req.query?.limit);
+    const verification = await verifyAdminAuditChain({
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? limitInput : undefined
+    });
+
+    return res.status(200).json({
+      ok: verification.ok,
+      genesisHash: GENESIS_HASH,
+      ...verification
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to verify admin audit chain' });
   }
 });
 
