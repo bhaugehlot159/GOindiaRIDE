@@ -18,6 +18,7 @@ const { inspectUserRefreshInventory } = require('../services/refreshInventoryShi
 const { inspectUserRequestFreshness } = require('../services/requestFreshnessShieldService');
 const { inspectUserTokenClaimBoundary } = require('../services/tokenClaimBoundaryShieldService');
 const { inspectUserTokenHeaderIntegrity } = require('../services/tokenHeaderIntegrityShieldService');
+const { inspectUserTokenPayloadHygiene } = require('../services/tokenPayloadHygieneShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -406,6 +407,32 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenHeaderIntegrityShieldFailOpen) {
           return res.status(503).json({ message: 'Token header integrity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenPayloadHygieneShieldEnabled) {
+      try {
+        const tokenPayloadState = await inspectUserTokenPayloadHygiene({
+          user,
+          payload,
+          token,
+          req
+        });
+        if (!tokenPayloadState || tokenPayloadState.ok === false) {
+          return res.status(403).json({
+            message: 'Token payload hygiene shield blocked this session',
+            reason: String(tokenPayloadState?.reason || 'token_payload_hygiene_blocked'),
+            violationCount: Number(tokenPayloadState?.violationCount || 0),
+            violationThreshold: Number(tokenPayloadState?.violationThreshold || 0),
+            missingClaimCount: Number(tokenPayloadState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(tokenPayloadState?.missingClaimThreshold || 0),
+            quarantineUntil: tokenPayloadState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenPayloadHygieneShieldFailOpen) {
+          return res.status(503).json({ message: 'Token payload hygiene shield unavailable' });
         }
       }
     }
