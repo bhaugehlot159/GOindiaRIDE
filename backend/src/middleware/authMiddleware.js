@@ -19,6 +19,7 @@ const { inspectUserRequestFreshness } = require('../services/requestFreshnessShi
 const { inspectUserTokenClaimBoundary } = require('../services/tokenClaimBoundaryShieldService');
 const { inspectUserTokenHeaderIntegrity } = require('../services/tokenHeaderIntegrityShieldService');
 const { inspectUserTokenPayloadHygiene } = require('../services/tokenPayloadHygieneShieldService');
+const { inspectUserTokenIdentifierHardening } = require('../services/tokenIdentifierHardeningShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -433,6 +434,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenPayloadHygieneShieldFailOpen) {
           return res.status(503).json({ message: 'Token payload hygiene shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenIdentifierHardeningShieldEnabled) {
+      try {
+        const identifierState = await inspectUserTokenIdentifierHardening({
+          user,
+          payload,
+          req
+        });
+        if (!identifierState || identifierState.ok === false) {
+          return res.status(403).json({
+            message: 'Token identifier hardening shield blocked this session',
+            reason: String(identifierState?.reason || 'token_identifier_hardening_blocked'),
+            violationCount: Number(identifierState?.violationCount || 0),
+            violationThreshold: Number(identifierState?.violationThreshold || 0),
+            missingClaimCount: Number(identifierState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(identifierState?.missingClaimThreshold || 0),
+            quarantineUntil: identifierState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenIdentifierHardeningShieldFailOpen) {
+          return res.status(503).json({ message: 'Token identifier hardening shield unavailable' });
         }
       }
     }
