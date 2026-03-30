@@ -25,6 +25,7 @@ const { inspectUserTokenSessionAnchor } = require('../services/tokenSessionAncho
 const { inspectUserTokenRotationContinuity } = require('../services/tokenRotationContinuityShieldService');
 const { inspectUserTokenClaimProfileContinuity } = require('../services/tokenClaimProfileContinuityShieldService');
 const { inspectUserTokenSessionPrincipalBinding } = require('../services/tokenSessionPrincipalBindingShieldService');
+const { inspectUserTokenSessionFingerprintBinding } = require('../services/tokenSessionFingerprintBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -589,6 +590,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionPrincipalBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session principal binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionFingerprintBindingShieldEnabled) {
+      try {
+        const sessionFingerprintBindingState = await inspectUserTokenSessionFingerprintBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionFingerprintBindingState || sessionFingerprintBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session fingerprint binding shield blocked this session',
+            reason: String(sessionFingerprintBindingState?.reason || 'token_session_fingerprint_binding_blocked'),
+            violationCount: Number(sessionFingerprintBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionFingerprintBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionFingerprintBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionFingerprintBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionFingerprintBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionFingerprintBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session fingerprint binding shield unavailable' });
         }
       }
     }
