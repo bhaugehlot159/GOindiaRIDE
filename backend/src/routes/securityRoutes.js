@@ -32,6 +32,11 @@ const {
   isDenylistSha256
 } = require('../middleware/denylistEnforcementMiddleware');
 const {
+  getAttackPatternQuarantineSnapshot,
+  releaseAttackPatternQuarantineRecords,
+  isAttackPatternQuarantineSha256
+} = require('../middleware/attackPatternQuarantineShieldMiddleware');
+const {
   isTokenRevocationSha256,
   revokeAccessTokenByJti,
   revokeAllAccessTokensForUser,
@@ -932,6 +937,58 @@ router.post('/shield/token/replay/release', authenticate, requireAdmin, async (r
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release access token replay records' });
+  }
+});
+
+router.get('/shield/attack-pattern/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const pathGroup = String(req.query?.pathGroup || '').trim().toLowerCase();
+
+    const snapshot = await getAttackPatternQuarantineSnapshot({
+      includeReleased,
+      pathGroup,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch attack-pattern quarantine snapshot' });
+  }
+});
+
+router.post('/shield/attack-pattern/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const keyHash = String(req.body?.keyHash || '').trim().toLowerCase();
+    const pathGroup = String(req.body?.pathGroup || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !keyHash && !pathGroup) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+    if (keyHash && !isAttackPatternQuarantineSha256(keyHash)) {
+      return res.status(400).json({ message: 'keyHash must be a SHA-256 hash' });
+    }
+
+    const result = await releaseAttackPatternQuarantineRecords({
+      id,
+      keyHash,
+      pathGroup,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Attack-pattern quarantine records released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release attack-pattern quarantine records' });
   }
 });
 

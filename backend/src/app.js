@@ -20,6 +20,7 @@ const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { adminAuditChainMiddleware } = require('./middleware/adminAuditChainMiddleware');
+const { attackPatternQuarantineShieldMiddleware } = require('./middleware/attackPatternQuarantineShieldMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
 const { denylistEnforcementMiddleware } = require('./middleware/denylistEnforcementMiddleware');
@@ -115,6 +116,17 @@ app.use('/api', adminAuditChainMiddleware({
   enabled: env.adminAuditChainEnabled,
   trackReadOps: env.adminAuditChainTrackReadOps,
   prefixes: env.adminAuditChainTrackPrefixes
+}));
+app.use('/api', attackPatternQuarantineShieldMiddleware({
+  enabled: env.attackPatternShieldEnabled,
+  failOpen: env.attackPatternShieldFailOpen,
+  failWindowMs: env.attackPatternShieldFailWindowMs,
+  hitMax: env.attackPatternShieldHitMax,
+  quarantineMs: env.attackPatternShieldQuarantineMs,
+  quarantineMaxMs: env.attackPatternShieldQuarantineMaxMs,
+  escalationFactor: env.attackPatternShieldEscalationFactor,
+  recordTtlMs: env.attackPatternShieldRecordTtlMs,
+  protectedPrefixes: env.attackPatternShieldProtectedPrefixes
 }));
 app.use('/api', denylistEnforcementMiddleware({
   enabled: env.denylistShieldEnabled,
