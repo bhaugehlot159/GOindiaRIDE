@@ -5,6 +5,7 @@ const { checkAccessTokenRevocation } = require('../services/tokenRevocationServi
 const { inspectAccessTokenReplay } = require('../services/accessTokenReplayShieldService');
 const { inspectUserGeoVelocity } = require('../services/geoVelocityShieldService');
 const { inspectUserSessionContextDrift } = require('../services/sessionContextDriftShieldService');
+const { inspectUserSessionFanout } = require('../services/sessionFanoutShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -101,6 +102,26 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.sessionContextDriftShieldFailOpen) {
           return res.status(503).json({ message: 'Session context drift shield unavailable' });
+        }
+      }
+    }
+
+    if (env.sessionFanoutShieldEnabled) {
+      try {
+        const fanoutState = await inspectUserSessionFanout({
+          user,
+          req
+        });
+        if (!fanoutState || fanoutState.ok === false) {
+          return res.status(403).json({
+            message: 'Session fanout shield blocked this session',
+            reason: String(fanoutState?.reason || 'session_fanout_blocked'),
+            quarantineUntil: fanoutState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.sessionFanoutShieldFailOpen) {
+          return res.status(503).json({ message: 'Session fanout shield unavailable' });
         }
       }
     }
