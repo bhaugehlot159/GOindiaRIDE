@@ -29,6 +29,7 @@ const { inspectUserTokenSessionFingerprintBinding } = require('../services/token
 const { inspectUserTokenSessionGeoBinding } = require('../services/tokenSessionGeoBindingShieldService');
 const { inspectUserTokenSessionNetworkBinding } = require('../services/tokenSessionNetworkBindingShieldService');
 const { inspectUserTokenSessionClientBinding } = require('../services/tokenSessionClientBindingShieldService');
+const { inspectUserTokenSessionTransportBinding } = require('../services/tokenSessionTransportBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -693,6 +694,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionClientBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session client binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionTransportBindingShieldEnabled) {
+      try {
+        const sessionTransportBindingState = await inspectUserTokenSessionTransportBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionTransportBindingState || sessionTransportBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session transport binding shield blocked this session',
+            reason: String(sessionTransportBindingState?.reason || 'token_session_transport_binding_blocked'),
+            violationCount: Number(sessionTransportBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionTransportBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionTransportBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionTransportBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionTransportBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionTransportBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session transport binding shield unavailable' });
         }
       }
     }
