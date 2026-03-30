@@ -13,6 +13,7 @@ const { inspectUserSessionLineage } = require('../services/sessionLineageShieldS
 const { inspectUserTokenTemporalIntegrity } = require('../services/tokenTemporalIntegrityShieldService');
 const { inspectUserRoleBoundary } = require('../services/roleBoundaryShieldService');
 const { inspectUserDeviceApprovalBoundary } = require('../services/deviceApprovalBoundaryShieldService');
+const { inspectUserCriticalPathCooldown } = require('../services/criticalPathCooldownShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -103,6 +104,29 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.deviceApprovalBoundaryShieldFailOpen) {
           return res.status(503).json({ message: 'Device approval boundary shield unavailable' });
+        }
+      }
+    }
+
+    if (env.criticalPathCooldownShieldEnabled) {
+      try {
+        const cooldownState = await inspectUserCriticalPathCooldown({
+          user,
+          req
+        });
+        if (!cooldownState || cooldownState.ok === false) {
+          return res.status(429).json({
+            message: 'Critical path cooldown shield blocked this request',
+            reason: String(cooldownState?.reason || 'critical_path_cooldown_blocked'),
+            retryAfterMs: Number(cooldownState?.retryAfterMs || 0),
+            violationCount: Number(cooldownState?.violationCount || 0),
+            violationThreshold: Number(cooldownState?.violationThreshold || 0),
+            quarantineUntil: cooldownState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.criticalPathCooldownShieldFailOpen) {
+          return res.status(503).json({ message: 'Critical path cooldown shield unavailable' });
         }
       }
     }
