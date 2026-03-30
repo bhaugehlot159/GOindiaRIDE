@@ -12,6 +12,7 @@ const { inspectUserStepUpAuth } = require('../services/stepUpAuthShieldService')
 const { inspectUserSessionLineage } = require('../services/sessionLineageShieldService');
 const { inspectUserTokenTemporalIntegrity } = require('../services/tokenTemporalIntegrityShieldService');
 const { inspectUserRoleBoundary } = require('../services/roleBoundaryShieldService');
+const { inspectUserDeviceApprovalBoundary } = require('../services/deviceApprovalBoundaryShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -79,6 +80,29 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.roleBoundaryShieldFailOpen) {
           return res.status(503).json({ message: 'Role boundary shield unavailable' });
+        }
+      }
+    }
+
+    if (env.deviceApprovalBoundaryShieldEnabled) {
+      try {
+        const deviceBoundaryState = await inspectUserDeviceApprovalBoundary({
+          user,
+          req
+        });
+        if (!deviceBoundaryState || deviceBoundaryState.ok === false) {
+          return res.status(403).json({
+            message: 'Device approval boundary shield blocked this session',
+            reason: String(deviceBoundaryState?.reason || 'device_approval_boundary_blocked'),
+            deviceStatus: String(deviceBoundaryState?.deviceStatus || ''),
+            violationCount: Number(deviceBoundaryState?.violationCount || 0),
+            violationThreshold: Number(deviceBoundaryState?.violationThreshold || 0),
+            quarantineUntil: deviceBoundaryState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.deviceApprovalBoundaryShieldFailOpen) {
+          return res.status(503).json({ message: 'Device approval boundary shield unavailable' });
         }
       }
     }
