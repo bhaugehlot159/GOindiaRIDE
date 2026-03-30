@@ -26,6 +26,7 @@ const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersis
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
 const { refreshTokenReplayShieldMiddleware } = require('./middleware/refreshTokenReplayShieldMiddleware');
 const { routeGuardPolicyShieldMiddleware } = require('./middleware/routeGuardPolicyShieldMiddleware');
+const { networkIntelPolicyShieldMiddleware } = require('./middleware/networkIntelPolicyShieldMiddleware');
 const { denylistEnforcementMiddleware } = require('./middleware/denylistEnforcementMiddleware');
 const { idempotencyEnforcementMiddleware } = require('./middleware/idempotencyEnforcementMiddleware');
 const { securityControlPlaneShieldMiddleware } = require('./middleware/securityControlPlaneShieldMiddleware');
@@ -137,6 +138,16 @@ app.use('/api', attackPatternQuarantineShieldMiddleware({
   escalationFactor: env.attackPatternShieldEscalationFactor,
   recordTtlMs: env.attackPatternShieldRecordTtlMs,
   protectedPrefixes: env.attackPatternShieldProtectedPrefixes
+}));
+app.use('/api', networkIntelPolicyShieldMiddleware({
+  enabled: env.networkIntelPolicyShieldEnabled,
+  failOpen: env.networkIntelPolicyShieldFailOpen,
+  cacheTtlMs: env.networkIntelPolicyCacheTtlMs,
+  protectedPrefixes: env.networkIntelPolicyProtectedPrefixes,
+  defaultBlockedIpPrefixes: env.networkIntelDefaultBlockedIpPrefixes,
+  defaultBlockedAsnHints: env.networkIntelDefaultBlockedAsnHints,
+  enforceHostConsistency: env.networkIntelEnforceHostConsistency,
+  blockHeaderInjection: env.networkIntelBlockHeaderInjection
 }));
 app.use('/api', denylistEnforcementMiddleware({
   enabled: env.denylistShieldEnabled,

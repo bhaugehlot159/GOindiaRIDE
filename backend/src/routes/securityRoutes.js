@@ -37,6 +37,11 @@ const {
   releaseRouteGuardPolicies
 } = require('../services/routeGuardPolicyShieldService');
 const {
+  addOrUpdateNetworkIntelPolicy,
+  getNetworkIntelPolicySnapshot,
+  releaseNetworkIntelPolicies
+} = require('../services/networkIntelPolicyShieldService');
+const {
   getAttackPatternQuarantineSnapshot,
   releaseAttackPatternQuarantineRecords,
   isAttackPatternQuarantineSha256
@@ -1292,6 +1297,120 @@ router.post('/shield/denylist/release', authenticate, requireAdmin, async (req, 
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release denylist entries' });
+  }
+});
+
+router.get('/shield/network-intel/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeInactive = String(req.query?.includeInactive || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const targetType = String(req.query?.targetType || '').trim().toLowerCase();
+    const scope = String(req.query?.scope || '').trim().toLowerCase();
+
+    const snapshot = await getNetworkIntelPolicySnapshot({
+      includeInactive,
+      status,
+      targetType,
+      scope,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch network intel policy snapshot' });
+  }
+});
+
+router.post('/shield/network-intel/add', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const targetType = String(req.body?.targetType || '').trim().toLowerCase();
+    const matchValue = String(req.body?.matchValue || '').trim().toLowerCase();
+    const scope = String(req.body?.scope || 'all').trim().toLowerCase();
+    const reason = String(req.body?.reason || '').trim();
+    const durationMsInput = Number(req.body?.durationMs);
+    const activeFrom = req.body?.activeFrom || null;
+    const activeUntil = req.body?.activeUntil || null;
+    const priorityInput = Number(req.body?.priority);
+
+    if (!targetType || !matchValue) {
+      return res.status(400).json({ message: 'targetType and matchValue are required' });
+    }
+
+    const actor = getUserContext(req);
+    const policy = await addOrUpdateNetworkIntelPolicy({
+      targetType,
+      matchValue,
+      scope,
+      reason: reason || 'admin_manual_network_intel_policy',
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput >= 0 ? durationMsInput : undefined,
+      activeFrom,
+      activeUntil,
+      priority: Number.isFinite(priorityInput) ? priorityInput : undefined,
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/network-intel/add'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Network intel policy upserted',
+      policy: {
+        id: String(policy._id || ''),
+        targetType: String(policy.targetType || ''),
+        matchValue: String(policy.matchValue || ''),
+        scope: String(policy.scope || ''),
+        status: String(policy.status || ''),
+        priority: Number(policy.priority || 0),
+        reason: String(policy.reason || ''),
+        activeFrom: policy.activeFrom ? new Date(policy.activeFrom).toISOString() : null,
+        activeUntil: policy.activeUntil ? new Date(policy.activeUntil).toISOString() : null,
+        hitCount: Number(policy.hitCount || 0)
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to add network intel policy'
+    });
+  }
+});
+
+router.post('/shield/network-intel/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const targetType = String(req.body?.targetType || '').trim().toLowerCase();
+    const matchValue = String(req.body?.matchValue || '').trim().toLowerCase();
+    const scope = String(req.body?.scope || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !targetType && !matchValue && !scope) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+
+    const actor = getUserContext(req);
+    const result = await releaseNetworkIntelPolicies({
+      id,
+      targetType,
+      matchValue,
+      scope,
+      clearAll,
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req)
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Network intel policies released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release network intel policies' });
   }
 });
 
