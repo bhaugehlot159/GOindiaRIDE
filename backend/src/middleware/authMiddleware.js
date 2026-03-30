@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const User = require('../models/User');
 const { checkAccessTokenRevocation } = require('../services/tokenRevocationService');
+const { inspectAccessTokenReplay } = require('../services/accessTokenReplayShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -41,6 +42,23 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.accessTokenRevocationFailOpen) {
           return res.status(503).json({ message: 'Token revocation service unavailable' });
+        }
+      }
+    }
+
+    if (env.accessTokenReplayShieldEnabled) {
+      try {
+        const replayState = await inspectAccessTokenReplay({
+          payload,
+          user,
+          req
+        });
+        if (!replayState || replayState.ok === false) {
+          return res.status(401).json({ message: 'Access token replay detected' });
+        }
+      } catch (_error) {
+        if (!env.accessTokenReplayShieldFailOpen) {
+          return res.status(503).json({ message: 'Access token replay shield unavailable' });
         }
       }
     }

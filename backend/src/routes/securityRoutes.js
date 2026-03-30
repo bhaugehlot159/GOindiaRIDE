@@ -38,6 +38,10 @@ const {
   getAccessTokenRevocationSnapshot
 } = require('../services/tokenRevocationService');
 const {
+  getAccessTokenReplaySnapshot,
+  releaseAccessTokenReplayRecords
+} = require('../services/accessTokenReplayShieldService');
+const {
   getAdminAuditChainSnapshot,
   verifyAdminAuditChain,
   GENESIS_HASH
@@ -874,6 +878,60 @@ router.post('/shield/token/access/revoke-user', authenticate, requireAdmin, asyn
     return res.status(error.statusCode || 500).json({
       message: error.message || 'Unable to revoke user access sessions'
     });
+  }
+});
+
+router.get('/shield/token/replay/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const userId = String(req.query?.userId || '').trim();
+
+    const snapshot = await getAccessTokenReplaySnapshot({
+      includeReleased,
+      status,
+      userId,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch access token replay snapshot' });
+  }
+});
+
+router.post('/shield/token/replay/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const jtiHash = String(req.body?.jtiHash || '').trim().toLowerCase();
+    const userId = String(req.body?.userId || '').trim();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !jtiHash && !userId) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+    if (jtiHash && !isTokenRevocationSha256(jtiHash)) {
+      return res.status(400).json({ message: 'jtiHash must be a SHA-256 hash' });
+    }
+
+    const result = await releaseAccessTokenReplayRecords({
+      id,
+      jtiHash,
+      userId,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Access token replay records released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release access token replay records' });
   }
 });
 

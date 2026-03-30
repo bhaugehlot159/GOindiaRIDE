@@ -66,6 +66,12 @@ module.exports = {
   accessTokenCutoffEnabled: String(process.env.ACCESS_TOKEN_CUTOFF_ENABLED || 'true').toLowerCase() === 'true',
   accessTokenRevocationFailOpen: String(process.env.ACCESS_TOKEN_REVOCATION_FAIL_OPEN || 'false').toLowerCase() === 'true',
   accessTokenRevocationDefaultTtlMs: Number(process.env.ACCESS_TOKEN_REVOCATION_DEFAULT_TTL_MS || 24 * 60 * 60 * 1000),
+  accessTokenReplayShieldEnabled: String(process.env.ACCESS_TOKEN_REPLAY_SHIELD_ENABLED || 'true').toLowerCase() === 'true',
+  accessTokenReplayShieldFailOpen: String(process.env.ACCESS_TOKEN_REPLAY_SHIELD_FAIL_OPEN || 'false').toLowerCase() === 'true',
+  accessTokenReplayMaxDeltaMs: Number(process.env.ACCESS_TOKEN_REPLAY_MAX_DELTA_MS || 10 * 60 * 1000),
+  accessTokenReplayRequireFingerprintChange: String(process.env.ACCESS_TOKEN_REPLAY_REQUIRE_FINGERPRINT_CHANGE || 'true').toLowerCase() === 'true',
+  accessTokenReplayUserCutoffOnDetect: String(process.env.ACCESS_TOKEN_REPLAY_USER_CUTOFF_ON_DETECT || 'false').toLowerCase() === 'true',
+  accessTokenReplayRecordTtlMs: Number(process.env.ACCESS_TOKEN_REPLAY_RECORD_TTL_MS || 24 * 60 * 60 * 1000),
   csrfCookieName: String(process.env.CSRF_COOKIE_NAME || 'gir_csrf_token'),
   csrfTokenTtlMinutes: Number(process.env.CSRF_TOKEN_TTL_MINUTES || 720),
 
