@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const User = require('../models/User');
+const { checkAccessTokenRevocation } = require('../services/tokenRevocationService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -26,6 +27,22 @@ async function authenticate(req, res, next) {
 
     if (user.isTemporarilyBannedUntil && user.isTemporarilyBannedUntil > new Date()) {
       return res.status(403).json({ message: 'Temporarily banned due to suspicious activity' });
+    }
+
+    if (env.accessTokenRevocationEnabled || env.accessTokenCutoffEnabled) {
+      try {
+        const revocationState = await checkAccessTokenRevocation({
+          payload,
+          userId: user._id
+        });
+        if (revocationState && revocationState.revoked) {
+          return res.status(401).json({ message: 'Access token revoked' });
+        }
+      } catch (_error) {
+        if (!env.accessTokenRevocationFailOpen) {
+          return res.status(503).json({ message: 'Token revocation service unavailable' });
+        }
+      }
     }
 
     req.user = { id: user._id.toString(), role: user.role, accountType: user.accountType, email: user.email };

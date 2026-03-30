@@ -52,6 +52,10 @@ module.exports = {
   idempotencyShieldTtlMs: Number(process.env.IDEMPOTENCY_SHIELD_TTL_MS || 24 * 60 * 60 * 1000),
   idempotencyShieldProcessingTtlMs: Number(process.env.IDEMPOTENCY_SHIELD_PROCESSING_TTL_MS || 2 * 60 * 1000),
   idempotencyShieldProtectedPrefixes: splitCsv(process.env.IDEMPOTENCY_SHIELD_PROTECTED_PREFIXES || '/api/wallet,/api/wallets,/api/bookings,/api/security/shield,/api/security/runtime/security,/api/security/incidents,/api/security/policy'),
+  accessTokenRevocationEnabled: String(process.env.ACCESS_TOKEN_REVOCATION_ENABLED || 'true').toLowerCase() === 'true',
+  accessTokenCutoffEnabled: String(process.env.ACCESS_TOKEN_CUTOFF_ENABLED || 'true').toLowerCase() === 'true',
+  accessTokenRevocationFailOpen: String(process.env.ACCESS_TOKEN_REVOCATION_FAIL_OPEN || 'false').toLowerCase() === 'true',
+  accessTokenRevocationDefaultTtlMs: Number(process.env.ACCESS_TOKEN_REVOCATION_DEFAULT_TTL_MS || 24 * 60 * 60 * 1000),
   csrfCookieName: String(process.env.CSRF_COOKIE_NAME || 'gir_csrf_token'),
   csrfTokenTtlMinutes: Number(process.env.CSRF_TOKEN_TTL_MINUTES || 720),
 

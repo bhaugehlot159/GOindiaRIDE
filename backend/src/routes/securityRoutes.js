@@ -24,6 +24,12 @@ const {
   releaseIdempotencyShieldRecords,
   isIdempotencyShieldSha256
 } = require('../middleware/idempotencyEnforcementMiddleware');
+const {
+  isTokenRevocationSha256,
+  revokeAccessTokenByJti,
+  revokeAllAccessTokensForUser,
+  getAccessTokenRevocationSnapshot
+} = require('../services/tokenRevocationService');
 
 const router = express.Router();
 
@@ -733,6 +739,129 @@ router.post('/shield/idempotency/release', authenticate, requireAdmin, async (re
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release idempotency shield record' });
+  }
+});
+
+router.get('/shield/token/access/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeExpired = String(req.query?.includeExpired || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+    const userId = String(req.query?.userId || '').trim();
+
+    const snapshot = await getAccessTokenRevocationSnapshot({
+      includeExpired,
+      userId,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch access token revocation snapshot' });
+  }
+});
+
+router.post('/shield/token/access/revoke', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const jti = String(req.body?.jti || '').trim();
+    const jtiHash = String(req.body?.jtiHash || '').trim().toLowerCase();
+    const userId = String(req.body?.userId || '').trim() || null;
+    const reason = String(req.body?.reason || '').trim();
+    const expiresAt = req.body?.expiresAt || null;
+
+    if (!jti && !jtiHash) {
+      return res.status(400).json({ message: 'jti or jtiHash is required' });
+    }
+    if (jtiHash && !isTokenRevocationSha256(jtiHash)) {
+      return res.status(400).json({ message: 'jtiHash must be a SHA-256 hash' });
+    }
+
+    if (userId) {
+      const userExists = await User.exists({ _id: userId });
+      if (!userExists) {
+        return res.status(404).json({ message: 'User not found for userId' });
+      }
+    }
+
+    const actor = getUserContext(req);
+    const record = await revokeAccessTokenByJti({
+      jti,
+      jtiHash,
+      userId,
+      reason: reason || 'admin_manual_access_token_revoke',
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      expiresAt,
+      metadata: {
+        route: '/api/security/shield/token/access/revoke'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Access token revocation applied',
+      record: {
+        id: String(record._id),
+        jtiHash: String(record.jtiHash || ''),
+        userId: record.userId ? String(record.userId) : null,
+        reason: String(record.reason || ''),
+        revokedAt: record.revokedAt ? new Date(record.revokedAt).toISOString() : null,
+        expiresAt: record.expiresAt ? new Date(record.expiresAt).toISOString() : null
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to revoke access token'
+    });
+  }
+});
+
+router.post('/shield/token/access/revoke-user', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const userId = String(req.body?.userId || '').trim();
+    const reason = String(req.body?.reason || '').trim();
+    const revokeBefore = req.body?.revokeBefore || null;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    const userExists = await User.exists({ _id: userId });
+    if (!userExists) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const actor = getUserContext(req);
+    const cutoff = await revokeAllAccessTokensForUser({
+      userId,
+      revokeBefore,
+      reason: reason || 'admin_manual_user_session_revoke',
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/token/access/revoke-user'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'User access token cutoff updated',
+      cutoff: {
+        id: String(cutoff._id),
+        userId: cutoff.userId ? String(cutoff.userId) : null,
+        revokeBefore: cutoff.revokeBefore ? new Date(cutoff.revokeBefore).toISOString() : null,
+        reason: String(cutoff.reason || ''),
+        updatedAt: cutoff.updatedAt ? new Date(cutoff.updatedAt).toISOString() : null
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to revoke user access sessions'
+    });
   }
 });
 
