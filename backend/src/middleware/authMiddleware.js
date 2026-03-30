@@ -20,6 +20,7 @@ const { inspectUserTokenClaimBoundary } = require('../services/tokenClaimBoundar
 const { inspectUserTokenHeaderIntegrity } = require('../services/tokenHeaderIntegrityShieldService');
 const { inspectUserTokenPayloadHygiene } = require('../services/tokenPayloadHygieneShieldService');
 const { inspectUserTokenIdentifierHardening } = require('../services/tokenIdentifierHardeningShieldService');
+const { inspectUserTokenTypeSeparation } = require('../services/tokenTypeSeparationShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -459,6 +460,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenIdentifierHardeningShieldFailOpen) {
           return res.status(503).json({ message: 'Token identifier hardening shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenTypeSeparationShieldEnabled) {
+      try {
+        const tokenTypeState = await inspectUserTokenTypeSeparation({
+          user,
+          payload,
+          req
+        });
+        if (!tokenTypeState || tokenTypeState.ok === false) {
+          return res.status(403).json({
+            message: 'Token type separation shield blocked this session',
+            reason: String(tokenTypeState?.reason || 'token_type_separation_blocked'),
+            violationCount: Number(tokenTypeState?.violationCount || 0),
+            violationThreshold: Number(tokenTypeState?.violationThreshold || 0),
+            missingClaimCount: Number(tokenTypeState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(tokenTypeState?.missingClaimThreshold || 0),
+            quarantineUntil: tokenTypeState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenTypeSeparationShieldFailOpen) {
+          return res.status(503).json({ message: 'Token type separation shield unavailable' });
         }
       }
     }
