@@ -16,6 +16,7 @@ const { inspectUserDeviceApprovalBoundary } = require('../services/deviceApprova
 const { inspectUserCriticalPathCooldown } = require('../services/criticalPathCooldownShieldService');
 const { inspectUserRefreshInventory } = require('../services/refreshInventoryShieldService');
 const { inspectUserRequestFreshness } = require('../services/requestFreshnessShieldService');
+const { inspectUserTokenClaimBoundary } = require('../services/tokenClaimBoundaryShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -350,6 +351,34 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenTemporalIntegrityShieldFailOpen) {
           return res.status(503).json({ message: 'Token temporal integrity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenClaimBoundaryShieldEnabled) {
+      try {
+        const tokenClaimBoundaryState = await inspectUserTokenClaimBoundary({
+          user,
+          payload,
+          req
+        });
+        if (!tokenClaimBoundaryState || tokenClaimBoundaryState.ok === false) {
+          return res.status(403).json({
+            message: 'Token claim boundary shield blocked this session',
+            reason: String(tokenClaimBoundaryState?.reason || 'token_claim_boundary_blocked'),
+            violationCount: Number(tokenClaimBoundaryState?.violationCount || 0),
+            violationThreshold: Number(tokenClaimBoundaryState?.violationThreshold || 0),
+            missingClaimCount: Number(tokenClaimBoundaryState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(tokenClaimBoundaryState?.missingClaimThreshold || 0),
+            requiredScopes: Array.isArray(tokenClaimBoundaryState?.requiredScopes)
+              ? tokenClaimBoundaryState.requiredScopes
+              : undefined,
+            quarantineUntil: tokenClaimBoundaryState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenClaimBoundaryShieldFailOpen) {
+          return res.status(503).json({ message: 'Token claim boundary shield unavailable' });
         }
       }
     }
