@@ -37,6 +37,12 @@ const {
   releaseRouteGuardPolicies
 } = require('../services/routeGuardPolicyShieldService');
 const {
+  isCredentialStuffingSha256,
+  getCredentialStuffingShieldSnapshot,
+  releaseCredentialStuffingShieldRecords,
+  quarantineCredentialStuffingKey
+} = require('../services/credentialStuffingShieldService');
+const {
   addOrUpdateNetworkIntelPolicy,
   getNetworkIntelPolicySnapshot,
   releaseNetworkIntelPolicies
@@ -728,6 +734,107 @@ router.post('/shield/auth-abuse/persistent/release', authenticate, requireAdmin,
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release persistent auth abuse shield lock' });
+  }
+});
+
+router.get('/shield/credential-stuffing/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const pathGroup = String(req.query?.pathGroup || '').trim().toLowerCase();
+
+    const snapshot = await getCredentialStuffingShieldSnapshot({
+      includeReleased,
+      status,
+      pathGroup,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch credential stuffing shield snapshot' });
+  }
+});
+
+router.post('/shield/credential-stuffing/quarantine', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const ipHash = String(req.body?.ipHash || '').trim().toLowerCase();
+    const pathGroup = String(req.body?.pathGroup || 'auth').trim().toLowerCase();
+    const reason = String(req.body?.reason || '').trim();
+    const durationMsInput = Number(req.body?.durationMs);
+
+    if (!ipHash) {
+      return res.status(400).json({ message: 'ipHash is required' });
+    }
+    if (!isCredentialStuffingSha256(ipHash)) {
+      return res.status(400).json({ message: 'ipHash must be a SHA-256 hash' });
+    }
+
+    const actor = getUserContext(req);
+    const record = await quarantineCredentialStuffingKey({
+      ipHash,
+      pathGroup,
+      reason: reason || 'admin_manual_credential_stuffing_quarantine',
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput > 0 ? durationMsInput : undefined,
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/credential-stuffing/quarantine'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Credential stuffing key quarantined',
+      record: {
+        id: String(record._id || ''),
+        ipHash: String(record.ipHash || ''),
+        pathGroup: String(record.pathGroup || ''),
+        status: String(record.status || ''),
+        escalationLevel: Number(record.escalationLevel || 0),
+        quarantineUntil: record.quarantineUntil ? new Date(record.quarantineUntil).toISOString() : null,
+        lastReason: String(record.lastReason || '')
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to quarantine credential stuffing key'
+    });
+  }
+});
+
+router.post('/shield/credential-stuffing/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const ipHash = String(req.body?.ipHash || '').trim().toLowerCase();
+    const pathGroup = String(req.body?.pathGroup || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !ipHash && !pathGroup) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+    if (ipHash && !isCredentialStuffingSha256(ipHash)) {
+      return res.status(400).json({ message: 'ipHash must be a SHA-256 hash' });
+    }
+
+    const result = await releaseCredentialStuffingShieldRecords({
+      id,
+      ipHash,
+      pathGroup,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Credential stuffing shield records released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release credential stuffing shield records' });
   }
 });
 

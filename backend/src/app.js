@@ -24,6 +24,7 @@ const { adminAuditChainMiddleware } = require('./middleware/adminAuditChainMiddl
 const { attackPatternQuarantineShieldMiddleware } = require('./middleware/attackPatternQuarantineShieldMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
+const { credentialStuffingShieldMiddleware } = require('./middleware/credentialStuffingShieldMiddleware');
 const { refreshTokenReplayShieldMiddleware } = require('./middleware/refreshTokenReplayShieldMiddleware');
 const { routeGuardPolicyShieldMiddleware } = require('./middleware/routeGuardPolicyShieldMiddleware');
 const { networkIntelPolicyShieldMiddleware } = require('./middleware/networkIntelPolicyShieldMiddleware');
@@ -229,6 +230,18 @@ app.use('/api/auth', authAbuseShieldMiddleware({
   escalationFactor: env.authAbuseEscalationFactor,
   resetOnSuccess: env.authAbuseResetOnSuccess,
   trackPaths: env.authAbuseTrackPaths
+}));
+app.use('/api/auth', credentialStuffingShieldMiddleware({
+  enabled: env.credentialStuffingShieldEnabled,
+  failOpen: env.credentialStuffingShieldFailOpen,
+  failWindowMs: env.credentialStuffingFailWindowMs,
+  failureMax: env.credentialStuffingFailureMax,
+  uniquePrincipalMax: env.credentialStuffingUniquePrincipalMax,
+  quarantineMs: env.credentialStuffingQuarantineMs,
+  quarantineMaxMs: env.credentialStuffingQuarantineMaxMs,
+  escalationFactor: env.credentialStuffingEscalationFactor,
+  recordTtlMs: env.credentialStuffingRecordTtlMs,
+  trackPaths: env.credentialStuffingTrackPaths
 }));
 app.use('/api/auth', refreshTokenReplayShieldMiddleware({
   enabled: env.refreshTokenReplayShieldEnabled,

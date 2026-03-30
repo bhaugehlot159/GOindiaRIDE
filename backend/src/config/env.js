@@ -158,5 +158,15 @@ module.exports = {
   authAbuseEscalationFactor: Number(process.env.AUTH_ABUSE_ESCALATION_FACTOR || 2),
   authAbuseResetOnSuccess: String(process.env.AUTH_ABUSE_RESET_ON_SUCCESS || 'true').toLowerCase() === 'true',
   authAbuseTrackPaths: splitCsv(process.env.AUTH_ABUSE_TRACK_PATHS),
+  credentialStuffingShieldEnabled: String(process.env.CREDENTIAL_STUFFING_SHIELD_ENABLED || 'true').toLowerCase() === 'true',
+  credentialStuffingShieldFailOpen: String(process.env.CREDENTIAL_STUFFING_SHIELD_FAIL_OPEN || 'false').toLowerCase() === 'true',
+  credentialStuffingFailWindowMs: Number(process.env.CREDENTIAL_STUFFING_FAIL_WINDOW_MS || 10 * 60 * 1000),
+  credentialStuffingFailureMax: Number(process.env.CREDENTIAL_STUFFING_FAILURE_MAX || 20),
+  credentialStuffingUniquePrincipalMax: Number(process.env.CREDENTIAL_STUFFING_UNIQUE_PRINCIPAL_MAX || 8),
+  credentialStuffingQuarantineMs: Number(process.env.CREDENTIAL_STUFFING_QUARANTINE_MS || 30 * 60 * 1000),
+  credentialStuffingQuarantineMaxMs: Number(process.env.CREDENTIAL_STUFFING_QUARANTINE_MAX_MS || 24 * 60 * 60 * 1000),
+  credentialStuffingEscalationFactor: Number(process.env.CREDENTIAL_STUFFING_ESCALATION_FACTOR || 2),
+  credentialStuffingRecordTtlMs: Number(process.env.CREDENTIAL_STUFFING_RECORD_TTL_MS || 14 * 24 * 60 * 60 * 1000),
+  credentialStuffingTrackPaths: splitCsv(process.env.CREDENTIAL_STUFFING_TRACK_PATHS || '/api/auth/login,/api/auth/admin/login,/api/auth/register,/api/auth/forgot-password/request,/api/auth/forgot-password/confirm'),
   recaptchaVerifyTimeoutMs: Number(process.env.RECAPTCHA_VERIFY_TIMEOUT_MS || 3500)
 };
