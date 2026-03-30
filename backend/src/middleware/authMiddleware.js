@@ -10,6 +10,7 @@ const { inspectUserActionVelocity } = require('../services/userActionVelocityShi
 const { inspectUserPrivilegeClaimIntegrity } = require('../services/privilegeClaimIntegrityShieldService');
 const { inspectUserStepUpAuth } = require('../services/stepUpAuthShieldService');
 const { inspectUserSessionLineage } = require('../services/sessionLineageShieldService');
+const { inspectUserTokenTemporalIntegrity } = require('../services/tokenTemporalIntegrityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -211,6 +212,27 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.sessionLineageShieldFailOpen) {
           return res.status(503).json({ message: 'Session lineage shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenTemporalIntegrityShieldEnabled) {
+      try {
+        const temporalIntegrityState = await inspectUserTokenTemporalIntegrity({
+          user,
+          payload,
+          req
+        });
+        if (!temporalIntegrityState || temporalIntegrityState.ok === false) {
+          return res.status(403).json({
+            message: 'Token temporal integrity shield blocked this session',
+            reason: String(temporalIntegrityState?.reason || 'token_temporal_integrity_blocked'),
+            quarantineUntil: temporalIntegrityState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenTemporalIntegrityShieldFailOpen) {
+          return res.status(503).json({ message: 'Token temporal integrity shield unavailable' });
         }
       }
     }
