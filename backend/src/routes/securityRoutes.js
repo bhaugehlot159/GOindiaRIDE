@@ -52,6 +52,10 @@ const {
   releaseAccessTokenReplayRecords
 } = require('../services/accessTokenReplayShieldService');
 const {
+  getRefreshTokenReplaySnapshot,
+  releaseRefreshTokenReplayStates
+} = require('../services/refreshTokenReplayShieldService');
+const {
   getGeoVelocityShieldSnapshot,
   releaseGeoVelocityShieldStates
 } = require('../services/geoVelocityShieldService');
@@ -946,6 +950,60 @@ router.post('/shield/token/replay/release', authenticate, requireAdmin, async (r
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release access token replay records' });
+  }
+});
+
+router.get('/shield/token/refresh/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const userId = String(req.query?.userId || '').trim();
+
+    const snapshot = await getRefreshTokenReplaySnapshot({
+      includeReleased,
+      status,
+      userId,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch refresh token replay snapshot' });
+  }
+});
+
+router.post('/shield/token/refresh/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const tokenHash = String(req.body?.tokenHash || '').trim().toLowerCase();
+    const userId = String(req.body?.userId || '').trim();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !tokenHash && !userId) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+    if (tokenHash && !isTokenRevocationSha256(tokenHash)) {
+      return res.status(400).json({ message: 'tokenHash must be a SHA-256 hash' });
+    }
+
+    const result = await releaseRefreshTokenReplayStates({
+      id,
+      tokenHash,
+      userId,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Refresh token replay records released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release refresh token replay records' });
   }
 });
 

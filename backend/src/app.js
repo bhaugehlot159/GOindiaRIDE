@@ -24,6 +24,7 @@ const { adminAuditChainMiddleware } = require('./middleware/adminAuditChainMiddl
 const { attackPatternQuarantineShieldMiddleware } = require('./middleware/attackPatternQuarantineShieldMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
+const { refreshTokenReplayShieldMiddleware } = require('./middleware/refreshTokenReplayShieldMiddleware');
 const { denylistEnforcementMiddleware } = require('./middleware/denylistEnforcementMiddleware');
 const { idempotencyEnforcementMiddleware } = require('./middleware/idempotencyEnforcementMiddleware');
 const { securityControlPlaneShieldMiddleware } = require('./middleware/securityControlPlaneShieldMiddleware');
@@ -210,6 +211,11 @@ app.use('/api/auth', authAbuseShieldMiddleware({
   escalationFactor: env.authAbuseEscalationFactor,
   resetOnSuccess: env.authAbuseResetOnSuccess,
   trackPaths: env.authAbuseTrackPaths
+}));
+app.use('/api/auth', refreshTokenReplayShieldMiddleware({
+  enabled: env.refreshTokenReplayShieldEnabled,
+  failOpen: env.refreshTokenReplayShieldFailOpen,
+  protectedPaths: env.refreshTokenReplayShieldProtectedPaths
 }));
 
 app.use('/api/auth', authRoutes);
