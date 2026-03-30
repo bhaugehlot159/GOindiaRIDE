@@ -21,6 +21,7 @@ const { inspectUserTokenHeaderIntegrity } = require('../services/tokenHeaderInte
 const { inspectUserTokenPayloadHygiene } = require('../services/tokenPayloadHygieneShieldService');
 const { inspectUserTokenIdentifierHardening } = require('../services/tokenIdentifierHardeningShieldService');
 const { inspectUserTokenTypeSeparation } = require('../services/tokenTypeSeparationShieldService');
+const { inspectUserTokenSessionAnchor } = require('../services/tokenSessionAnchorShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -485,6 +486,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenTypeSeparationShieldFailOpen) {
           return res.status(503).json({ message: 'Token type separation shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionAnchorShieldEnabled) {
+      try {
+        const tokenSessionAnchorState = await inspectUserTokenSessionAnchor({
+          user,
+          payload,
+          req
+        });
+        if (!tokenSessionAnchorState || tokenSessionAnchorState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session anchor shield blocked this session',
+            reason: String(tokenSessionAnchorState?.reason || 'token_session_anchor_blocked'),
+            violationCount: Number(tokenSessionAnchorState?.violationCount || 0),
+            violationThreshold: Number(tokenSessionAnchorState?.violationThreshold || 0),
+            missingClaimCount: Number(tokenSessionAnchorState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(tokenSessionAnchorState?.missingClaimThreshold || 0),
+            quarantineUntil: tokenSessionAnchorState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionAnchorShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session anchor shield unavailable' });
         }
       }
     }
