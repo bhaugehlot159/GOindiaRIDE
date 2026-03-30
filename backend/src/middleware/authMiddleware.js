@@ -14,6 +14,7 @@ const { inspectUserTokenTemporalIntegrity } = require('../services/tokenTemporal
 const { inspectUserRoleBoundary } = require('../services/roleBoundaryShieldService');
 const { inspectUserDeviceApprovalBoundary } = require('../services/deviceApprovalBoundaryShieldService');
 const { inspectUserCriticalPathCooldown } = require('../services/criticalPathCooldownShieldService');
+const { inspectUserRefreshInventory } = require('../services/refreshInventoryShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -127,6 +128,26 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.criticalPathCooldownShieldFailOpen) {
           return res.status(503).json({ message: 'Critical path cooldown shield unavailable' });
+        }
+      }
+    }
+
+    if (env.refreshInventoryShieldEnabled) {
+      try {
+        const refreshInventoryState = await inspectUserRefreshInventory({
+          user,
+          req
+        });
+        if (!refreshInventoryState || refreshInventoryState.ok === false) {
+          return res.status(403).json({
+            message: 'Refresh inventory shield blocked this session',
+            reason: String(refreshInventoryState?.reason || 'refresh_inventory_blocked'),
+            quarantineUntil: refreshInventoryState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.refreshInventoryShieldFailOpen) {
+          return res.status(503).json({ message: 'Refresh inventory shield unavailable' });
         }
       }
     }
