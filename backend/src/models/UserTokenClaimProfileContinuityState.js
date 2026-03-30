@@ -9,6 +9,7 @@ const sidClaimProfileSchema = new mongoose.Schema({
   tokenType: { type: String, default: '', trim: true },
   scopeFingerprint: { type: String, default: '', trim: true },
   scopeValueCount: { type: Number, min: 0, default: 0 },
+  scopeValues: [{ type: String, trim: true }],
   lastIatSec: { type: Number, min: 0, default: 0 },
   lastJtiHash: { type: String, default: '', trim: true },
   lastSeenAt: { type: Date, default: null },
