@@ -11,6 +11,7 @@ const { inspectUserPrivilegeClaimIntegrity } = require('../services/privilegeCla
 const { inspectUserStepUpAuth } = require('../services/stepUpAuthShieldService');
 const { inspectUserSessionLineage } = require('../services/sessionLineageShieldService');
 const { inspectUserTokenTemporalIntegrity } = require('../services/tokenTemporalIntegrityShieldService');
+const { inspectUserRoleBoundary } = require('../services/roleBoundaryShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -55,6 +56,29 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.privilegeIntegrityShieldFailOpen) {
           return res.status(503).json({ message: 'Privilege integrity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.roleBoundaryShieldEnabled) {
+      try {
+        const roleBoundaryState = await inspectUserRoleBoundary({
+          user,
+          req
+        });
+        if (!roleBoundaryState || roleBoundaryState.ok === false) {
+          return res.status(403).json({
+            message: 'Role boundary shield blocked this session',
+            reason: String(roleBoundaryState?.reason || 'role_boundary_blocked'),
+            requiredRole: roleBoundaryState?.requiredRole || null,
+            violationCount: Number(roleBoundaryState?.violationCount || 0),
+            violationThreshold: Number(roleBoundaryState?.violationThreshold || 0),
+            quarantineUntil: roleBoundaryState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.roleBoundaryShieldFailOpen) {
+          return res.status(503).json({ message: 'Role boundary shield unavailable' });
         }
       }
     }
