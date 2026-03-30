@@ -21,6 +21,7 @@ const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
+const { idempotencyEnforcementMiddleware } = require('./middleware/idempotencyEnforcementMiddleware');
 const { securityControlPlaneShieldMiddleware } = require('./middleware/securityControlPlaneShieldMiddleware');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
@@ -107,6 +108,17 @@ app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,
   incidentScore: env.requestIncidentScore
+}));
+app.use('/api', idempotencyEnforcementMiddleware({
+  enabled: env.idempotencyShieldEnabled,
+  requireHeader: env.idempotencyShieldRequireHeader,
+  strictPayloadMatch: env.idempotencyShieldStrictPayloadMatch,
+  failOpen: env.idempotencyShieldFailOpen,
+  minKeyLength: env.idempotencyShieldMinKeyLength,
+  maxKeyLength: env.idempotencyShieldMaxKeyLength,
+  ttlMs: env.idempotencyShieldTtlMs,
+  processingTtlMs: env.idempotencyShieldProcessingTtlMs,
+  protectedPrefixes: env.idempotencyShieldProtectedPrefixes
 }));
 
 const strictCsrfShield = csrfShieldMiddleware({

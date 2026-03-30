@@ -19,6 +19,11 @@ const {
   releasePersistentAuthAbuseShieldLocks,
   isPersistentAuthAbuseShieldSha256
 } = require('../middleware/authPersistentAbuseShieldMiddleware');
+const {
+  getIdempotencyShieldSnapshot,
+  releaseIdempotencyShieldRecords,
+  isIdempotencyShieldSha256
+} = require('../middleware/idempotencyEnforcementMiddleware');
 
 const router = express.Router();
 
@@ -673,6 +678,61 @@ router.post('/shield/auth-abuse/persistent/release', authenticate, requireAdmin,
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release persistent auth abuse shield lock' });
+  }
+});
+
+router.get('/shield/idempotency/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const includeExpired = String(req.query?.includeExpired || 'false').trim().toLowerCase() === 'true';
+    const limitInput = Number(req.query?.limit);
+    const scope = String(req.query?.scope || '').trim().toLowerCase();
+
+    const snapshot = await getIdempotencyShieldSnapshot({
+      includeExpired,
+      scope,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch idempotency shield snapshot' });
+  }
+});
+
+router.post('/shield/idempotency/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const keyHash = String(req.body?.keyHash || '').trim().toLowerCase();
+    const actorKey = String(req.body?.actorKey || '').trim();
+    const scope = String(req.body?.scope || '').trim().toLowerCase();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !keyHash && !actorKey && !scope) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+
+    if (keyHash && !isIdempotencyShieldSha256(keyHash)) {
+      return res.status(400).json({ message: 'keyHash must be a SHA-256 hash' });
+    }
+
+    const result = await releaseIdempotencyShieldRecords({
+      id,
+      keyHash,
+      actorKey,
+      scope,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Idempotency shield release completed',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release idempotency shield record' });
   }
 });
 
