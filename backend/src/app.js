@@ -19,6 +19,7 @@ const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
+const { globalLockdownShieldMiddleware } = require('./middleware/globalLockdownShieldMiddleware');
 const { adminAuditChainMiddleware } = require('./middleware/adminAuditChainMiddleware');
 const { attackPatternQuarantineShieldMiddleware } = require('./middleware/attackPatternQuarantineShieldMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
@@ -111,6 +112,13 @@ app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,
   incidentScore: env.requestIncidentScore
+}));
+app.use('/api', globalLockdownShieldMiddleware({
+  enabled: env.globalLockdownShieldEnabled,
+  failOpen: env.globalLockdownFailOpen,
+  cacheTtlMs: env.globalLockdownCacheTtlMs,
+  logThrottleMs: env.globalLockdownLogThrottleMs,
+  bypassPrefixes: env.globalLockdownBypassPrefixes
 }));
 app.use('/api', adminAuditChainMiddleware({
   enabled: env.adminAuditChainEnabled,

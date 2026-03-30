@@ -37,6 +37,11 @@ const {
   isAttackPatternQuarantineSha256
 } = require('../middleware/attackPatternQuarantineShieldMiddleware');
 const {
+  getGlobalLockdownStatus,
+  activateGlobalLockdown,
+  releaseGlobalLockdown
+} = require('../services/globalSecurityLockdownService');
+const {
   isTokenRevocationSha256,
   revokeAccessTokenByJti,
   revokeAllAccessTokensForUser,
@@ -989,6 +994,72 @@ router.post('/shield/attack-pattern/release', authenticate, requireAdmin, async 
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release attack-pattern quarantine records' });
+  }
+});
+
+router.get('/lockdown/global/status', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const status = await getGlobalLockdownStatus();
+    return res.status(200).json({
+      ok: true,
+      ...status
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch global lockdown status' });
+  }
+});
+
+router.post('/lockdown/global/activate', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const durationMsInput = Number(req.body?.durationMs);
+    const reason = String(req.body?.reason || '').trim();
+    const activeUntil = req.body?.activeUntil || null;
+    const actor = getUserContext(req);
+
+    const status = await activateGlobalLockdown({
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput > 0 ? durationMsInput : undefined,
+      activeUntil,
+      reason: reason || 'admin_manual_global_lockdown',
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/lockdown/global/activate'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Global lockdown activated',
+      ...status
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to activate global lockdown' });
+  }
+});
+
+router.post('/lockdown/global/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const reason = String(req.body?.reason || '').trim();
+    const actor = getUserContext(req);
+
+    const status = await releaseGlobalLockdown({
+      reason: reason || 'admin_manual_global_lockdown_release',
+      source: 'admin',
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/lockdown/global/release'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Global lockdown released',
+      ...status
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release global lockdown' });
   }
 });
 
