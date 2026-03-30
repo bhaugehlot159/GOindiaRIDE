@@ -15,6 +15,7 @@ const { inspectUserRoleBoundary } = require('../services/roleBoundaryShieldServi
 const { inspectUserDeviceApprovalBoundary } = require('../services/deviceApprovalBoundaryShieldService');
 const { inspectUserCriticalPathCooldown } = require('../services/criticalPathCooldownShieldService');
 const { inspectUserRefreshInventory } = require('../services/refreshInventoryShieldService');
+const { inspectUserRequestFreshness } = require('../services/requestFreshnessShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -148,6 +149,29 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.refreshInventoryShieldFailOpen) {
           return res.status(503).json({ message: 'Refresh inventory shield unavailable' });
+        }
+      }
+    }
+
+    if (env.requestFreshnessShieldEnabled) {
+      try {
+        const freshnessState = await inspectUserRequestFreshness({
+          user,
+          req
+        });
+        if (!freshnessState || freshnessState.ok === false) {
+          return res.status(403).json({
+            message: 'Request freshness shield blocked this request',
+            reason: String(freshnessState?.reason || 'request_freshness_blocked'),
+            retryAfterMs: Number(freshnessState?.retryAfterMs || 0),
+            violationCount: Number(freshnessState?.violationCount || 0),
+            violationThreshold: Number(freshnessState?.violationThreshold || 0),
+            quarantineUntil: freshnessState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.requestFreshnessShieldFailOpen) {
+          return res.status(503).json({ message: 'Request freshness shield unavailable' });
         }
       }
     }
