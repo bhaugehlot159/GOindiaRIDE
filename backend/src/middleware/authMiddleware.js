@@ -9,6 +9,7 @@ const { inspectUserSessionFanout } = require('../services/sessionFanoutShieldSer
 const { inspectUserActionVelocity } = require('../services/userActionVelocityShieldService');
 const { inspectUserPrivilegeClaimIntegrity } = require('../services/privilegeClaimIntegrityShieldService');
 const { inspectUserStepUpAuth } = require('../services/stepUpAuthShieldService');
+const { inspectUserSessionLineage } = require('../services/sessionLineageShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -189,6 +190,27 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.stepUpAuthShieldFailOpen) {
           return res.status(503).json({ message: 'Step-up authentication shield unavailable' });
+        }
+      }
+    }
+
+    if (env.sessionLineageShieldEnabled) {
+      try {
+        const sessionLineageState = await inspectUserSessionLineage({
+          user,
+          payload,
+          req
+        });
+        if (!sessionLineageState || sessionLineageState.ok === false) {
+          return res.status(403).json({
+            message: 'Session lineage shield blocked this session',
+            reason: String(sessionLineageState?.reason || 'session_lineage_blocked'),
+            quarantineUntil: sessionLineageState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.sessionLineageShieldFailOpen) {
+          return res.status(503).json({ message: 'Session lineage shield unavailable' });
         }
       }
     }
