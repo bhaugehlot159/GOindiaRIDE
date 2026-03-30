@@ -7,6 +7,7 @@ const { inspectUserGeoVelocity } = require('../services/geoVelocityShieldService
 const { inspectUserSessionContextDrift } = require('../services/sessionContextDriftShieldService');
 const { inspectUserSessionFanout } = require('../services/sessionFanoutShieldService');
 const { inspectUserActionVelocity } = require('../services/userActionVelocityShieldService');
+const { inspectUserPrivilegeClaimIntegrity } = require('../services/privilegeClaimIntegrityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -32,6 +33,27 @@ async function authenticate(req, res, next) {
 
     if (user.isTemporarilyBannedUntil && user.isTemporarilyBannedUntil > new Date()) {
       return res.status(403).json({ message: 'Temporarily banned due to suspicious activity' });
+    }
+
+    if (env.privilegeIntegrityShieldEnabled) {
+      try {
+        const integrityState = await inspectUserPrivilegeClaimIntegrity({
+          user,
+          payload,
+          req
+        });
+        if (!integrityState || integrityState.ok === false) {
+          return res.status(403).json({
+            message: 'Privilege integrity shield blocked this session',
+            reason: String(integrityState?.reason || 'privilege_integrity_blocked'),
+            quarantineUntil: integrityState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.privilegeIntegrityShieldFailOpen) {
+          return res.status(503).json({ message: 'Privilege integrity shield unavailable' });
+        }
+      }
     }
 
     if (env.accessTokenRevocationEnabled || env.accessTokenCutoffEnabled) {

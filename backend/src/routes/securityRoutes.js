@@ -91,6 +91,11 @@ const {
   quarantineActionVelocityUser
 } = require('../services/userActionVelocityShieldService');
 const {
+  getPrivilegeIntegrityShieldSnapshot,
+  releasePrivilegeIntegrityShieldStates,
+  quarantinePrivilegeIntegrityUser
+} = require('../services/privilegeClaimIntegrityShieldService');
+const {
   getAdminAuditChainSnapshot,
   verifyAdminAuditChain,
   GENESIS_HASH
@@ -1470,6 +1475,101 @@ router.post('/shield/action-velocity/release', authenticate, requireAdmin, async
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release action-velocity shield states' });
+  }
+});
+
+router.get('/shield/privilege-integrity/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const userId = String(req.query?.userId || '').trim();
+
+    const snapshot = await getPrivilegeIntegrityShieldSnapshot({
+      includeReleased,
+      status,
+      userId,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch privilege-integrity shield snapshot' });
+  }
+});
+
+router.post('/shield/privilege-integrity/quarantine', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const userId = String(req.body?.userId || '').trim();
+    const reason = String(req.body?.reason || '').trim();
+    const durationMsInput = Number(req.body?.durationMs);
+
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    const userExists = await User.exists({ _id: userId });
+    if (!userExists) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const actor = getUserContext(req);
+    const record = await quarantinePrivilegeIntegrityUser({
+      userId,
+      reason: reason || 'admin_manual_privilege_integrity_quarantine',
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput > 0 ? durationMsInput : undefined,
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/privilege-integrity/quarantine'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Privilege-integrity user quarantined',
+      record: {
+        id: String(record._id || ''),
+        userId: record.userId ? String(record.userId) : null,
+        status: String(record.status || ''),
+        escalationLevel: Number(record.escalationLevel || 0),
+        quarantineUntil: record.quarantineUntil ? new Date(record.quarantineUntil).toISOString() : null,
+        lastReason: String(record.lastReason || '')
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to quarantine privilege-integrity user'
+    });
+  }
+});
+
+router.post('/shield/privilege-integrity/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const userId = String(req.body?.userId || '').trim();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !userId) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+
+    const result = await releasePrivilegeIntegrityShieldStates({
+      id,
+      userId,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Privilege-integrity shield records released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release privilege-integrity shield states' });
   }
 });
 
