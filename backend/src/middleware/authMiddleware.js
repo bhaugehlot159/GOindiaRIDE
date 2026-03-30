@@ -27,6 +27,7 @@ const { inspectUserTokenClaimProfileContinuity } = require('../services/tokenCla
 const { inspectUserTokenSessionPrincipalBinding } = require('../services/tokenSessionPrincipalBindingShieldService');
 const { inspectUserTokenSessionFingerprintBinding } = require('../services/tokenSessionFingerprintBindingShieldService');
 const { inspectUserTokenSessionGeoBinding } = require('../services/tokenSessionGeoBindingShieldService');
+const { inspectUserTokenSessionNetworkBinding } = require('../services/tokenSessionNetworkBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -641,6 +642,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionGeoBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session geo binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionNetworkBindingShieldEnabled) {
+      try {
+        const sessionNetworkBindingState = await inspectUserTokenSessionNetworkBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionNetworkBindingState || sessionNetworkBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session network binding shield blocked this session',
+            reason: String(sessionNetworkBindingState?.reason || 'token_session_network_binding_blocked'),
+            violationCount: Number(sessionNetworkBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionNetworkBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionNetworkBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionNetworkBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionNetworkBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionNetworkBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session network binding shield unavailable' });
         }
       }
     }
