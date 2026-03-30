@@ -17,6 +17,7 @@ const { inspectUserCriticalPathCooldown } = require('../services/criticalPathCoo
 const { inspectUserRefreshInventory } = require('../services/refreshInventoryShieldService');
 const { inspectUserRequestFreshness } = require('../services/requestFreshnessShieldService');
 const { inspectUserTokenClaimBoundary } = require('../services/tokenClaimBoundaryShieldService');
+const { inspectUserTokenHeaderIntegrity } = require('../services/tokenHeaderIntegrityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -379,6 +380,32 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenClaimBoundaryShieldFailOpen) {
           return res.status(503).json({ message: 'Token claim boundary shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenHeaderIntegrityShieldEnabled) {
+      try {
+        const tokenHeaderState = await inspectUserTokenHeaderIntegrity({
+          user,
+          payload,
+          token,
+          req
+        });
+        if (!tokenHeaderState || tokenHeaderState.ok === false) {
+          return res.status(403).json({
+            message: 'Token header integrity shield blocked this session',
+            reason: String(tokenHeaderState?.reason || 'token_header_integrity_blocked'),
+            violationCount: Number(tokenHeaderState?.violationCount || 0),
+            violationThreshold: Number(tokenHeaderState?.violationThreshold || 0),
+            missingFieldCount: Number(tokenHeaderState?.missingFieldCount || 0),
+            missingFieldThreshold: Number(tokenHeaderState?.missingFieldThreshold || 0),
+            quarantineUntil: tokenHeaderState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenHeaderIntegrityShieldFailOpen) {
+          return res.status(503).json({ message: 'Token header integrity shield unavailable' });
         }
       }
     }
