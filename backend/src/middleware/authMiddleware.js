@@ -30,6 +30,7 @@ const { inspectUserTokenSessionGeoBinding } = require('../services/tokenSessionG
 const { inspectUserTokenSessionNetworkBinding } = require('../services/tokenSessionNetworkBindingShieldService');
 const { inspectUserTokenSessionClientBinding } = require('../services/tokenSessionClientBindingShieldService');
 const { inspectUserTokenSessionTransportBinding } = require('../services/tokenSessionTransportBindingShieldService');
+const { inspectUserTokenSessionTrustBinding } = require('../services/tokenSessionTrustBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -719,6 +720,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionTransportBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session transport binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionTrustBindingShieldEnabled) {
+      try {
+        const sessionTrustBindingState = await inspectUserTokenSessionTrustBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionTrustBindingState || sessionTrustBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session trust binding shield blocked this session',
+            reason: String(sessionTrustBindingState?.reason || 'token_session_trust_binding_blocked'),
+            violationCount: Number(sessionTrustBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionTrustBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionTrustBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionTrustBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionTrustBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionTrustBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session trust binding shield unavailable' });
         }
       }
     }
