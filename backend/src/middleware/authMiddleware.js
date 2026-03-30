@@ -22,6 +22,7 @@ const { inspectUserTokenPayloadHygiene } = require('../services/tokenPayloadHygi
 const { inspectUserTokenIdentifierHardening } = require('../services/tokenIdentifierHardeningShieldService');
 const { inspectUserTokenTypeSeparation } = require('../services/tokenTypeSeparationShieldService');
 const { inspectUserTokenSessionAnchor } = require('../services/tokenSessionAnchorShieldService');
+const { inspectUserTokenRotationContinuity } = require('../services/tokenRotationContinuityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -511,6 +512,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionAnchorShieldFailOpen) {
           return res.status(503).json({ message: 'Token session anchor shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenRotationContinuityShieldEnabled) {
+      try {
+        const tokenRotationState = await inspectUserTokenRotationContinuity({
+          user,
+          payload,
+          req
+        });
+        if (!tokenRotationState || tokenRotationState.ok === false) {
+          return res.status(403).json({
+            message: 'Token rotation continuity shield blocked this session',
+            reason: String(tokenRotationState?.reason || 'token_rotation_continuity_blocked'),
+            violationCount: Number(tokenRotationState?.violationCount || 0),
+            violationThreshold: Number(tokenRotationState?.violationThreshold || 0),
+            missingClaimCount: Number(tokenRotationState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(tokenRotationState?.missingClaimThreshold || 0),
+            quarantineUntil: tokenRotationState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenRotationContinuityShieldFailOpen) {
+          return res.status(503).json({ message: 'Token rotation continuity shield unavailable' });
         }
       }
     }
