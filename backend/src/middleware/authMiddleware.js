@@ -24,6 +24,7 @@ const { inspectUserTokenTypeSeparation } = require('../services/tokenTypeSeparat
 const { inspectUserTokenSessionAnchor } = require('../services/tokenSessionAnchorShieldService');
 const { inspectUserTokenRotationContinuity } = require('../services/tokenRotationContinuityShieldService');
 const { inspectUserTokenClaimProfileContinuity } = require('../services/tokenClaimProfileContinuityShieldService');
+const { inspectUserTokenSessionPrincipalBinding } = require('../services/tokenSessionPrincipalBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -563,6 +564,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenClaimProfileContinuityShieldFailOpen) {
           return res.status(503).json({ message: 'Token claim profile continuity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionPrincipalBindingShieldEnabled) {
+      try {
+        const sessionPrincipalBindingState = await inspectUserTokenSessionPrincipalBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionPrincipalBindingState || sessionPrincipalBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session principal binding shield blocked this session',
+            reason: String(sessionPrincipalBindingState?.reason || 'token_session_principal_binding_blocked'),
+            violationCount: Number(sessionPrincipalBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionPrincipalBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionPrincipalBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionPrincipalBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionPrincipalBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionPrincipalBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session principal binding shield unavailable' });
         }
       }
     }
