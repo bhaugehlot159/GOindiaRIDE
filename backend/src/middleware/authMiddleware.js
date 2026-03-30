@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { checkAccessTokenRevocation } = require('../services/tokenRevocationService');
 const { inspectAccessTokenReplay } = require('../services/accessTokenReplayShieldService');
 const { inspectUserGeoVelocity } = require('../services/geoVelocityShieldService');
+const { inspectUserSessionContextDrift } = require('../services/sessionContextDriftShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -80,6 +81,26 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.geoVelocityShieldFailOpen) {
           return res.status(503).json({ message: 'Geo-velocity shield unavailable' });
+        }
+      }
+    }
+
+    if (env.sessionContextDriftShieldEnabled) {
+      try {
+        const sessionContextState = await inspectUserSessionContextDrift({
+          user,
+          req
+        });
+        if (!sessionContextState || sessionContextState.ok === false) {
+          return res.status(403).json({
+            message: 'Session context drift shield blocked this session',
+            reason: String(sessionContextState?.reason || 'session_context_drift_blocked'),
+            quarantineUntil: sessionContextState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.sessionContextDriftShieldFailOpen) {
+          return res.status(503).json({ message: 'Session context drift shield unavailable' });
         }
       }
     }
