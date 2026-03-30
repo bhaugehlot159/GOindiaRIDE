@@ -26,6 +26,7 @@ const { inspectUserTokenRotationContinuity } = require('../services/tokenRotatio
 const { inspectUserTokenClaimProfileContinuity } = require('../services/tokenClaimProfileContinuityShieldService');
 const { inspectUserTokenSessionPrincipalBinding } = require('../services/tokenSessionPrincipalBindingShieldService');
 const { inspectUserTokenSessionFingerprintBinding } = require('../services/tokenSessionFingerprintBindingShieldService');
+const { inspectUserTokenSessionGeoBinding } = require('../services/tokenSessionGeoBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -615,6 +616,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionFingerprintBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session fingerprint binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionGeoBindingShieldEnabled) {
+      try {
+        const sessionGeoBindingState = await inspectUserTokenSessionGeoBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionGeoBindingState || sessionGeoBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session geo binding shield blocked this session',
+            reason: String(sessionGeoBindingState?.reason || 'token_session_geo_binding_blocked'),
+            violationCount: Number(sessionGeoBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionGeoBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionGeoBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionGeoBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionGeoBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionGeoBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session geo binding shield unavailable' });
         }
       }
     }
