@@ -3,6 +3,7 @@ const env = require('../config/env');
 const User = require('../models/User');
 const { checkAccessTokenRevocation } = require('../services/tokenRevocationService');
 const { inspectAccessTokenReplay } = require('../services/accessTokenReplayShieldService');
+const { inspectUserGeoVelocity } = require('../services/geoVelocityShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -59,6 +60,26 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.accessTokenReplayShieldFailOpen) {
           return res.status(503).json({ message: 'Access token replay shield unavailable' });
+        }
+      }
+    }
+
+    if (env.geoVelocityShieldEnabled) {
+      try {
+        const geoVelocityState = await inspectUserGeoVelocity({
+          user,
+          req
+        });
+        if (!geoVelocityState || geoVelocityState.ok === false) {
+          return res.status(403).json({
+            message: 'Geo-velocity shield blocked this session',
+            reason: String(geoVelocityState?.reason || 'geo_velocity_blocked'),
+            quarantineUntil: geoVelocityState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.geoVelocityShieldFailOpen) {
+          return res.status(503).json({ message: 'Geo-velocity shield unavailable' });
         }
       }
     }

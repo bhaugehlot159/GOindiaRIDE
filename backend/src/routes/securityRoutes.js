@@ -52,6 +52,10 @@ const {
   releaseAccessTokenReplayRecords
 } = require('../services/accessTokenReplayShieldService');
 const {
+  getGeoVelocityShieldSnapshot,
+  releaseGeoVelocityShieldStates
+} = require('../services/geoVelocityShieldService');
+const {
   getAdminAuditChainSnapshot,
   verifyAdminAuditChain,
   GENESIS_HASH
@@ -942,6 +946,55 @@ router.post('/shield/token/replay/release', authenticate, requireAdmin, async (r
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release access token replay records' });
+  }
+});
+
+router.get('/shield/geo-velocity/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const userId = String(req.query?.userId || '').trim();
+
+    const snapshot = await getGeoVelocityShieldSnapshot({
+      includeReleased,
+      status,
+      userId,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch geo-velocity shield snapshot' });
+  }
+});
+
+router.post('/shield/geo-velocity/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const userId = String(req.body?.userId || '').trim();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !userId) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+
+    const result = await releaseGeoVelocityShieldStates({
+      id,
+      userId,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Geo-velocity shield states released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release geo-velocity shield states' });
   }
 });
 
