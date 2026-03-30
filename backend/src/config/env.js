@@ -37,6 +37,12 @@ module.exports = {
   requestAutoBlockScore: Number(process.env.REQUEST_AUTO_BLOCK_SCORE || 85),
   requestIncidentScore: Number(process.env.REQUEST_INCIDENT_SCORE || 55),
   securityAllowedOrigins: splitCsv(process.env.SECURITY_ALLOWED_ORIGINS),
+  securityControlPlaneShieldEnabled: String(process.env.SECURITY_CONTROL_PLANE_SHIELD_ENABLED || 'true').toLowerCase() === 'true',
+  securityControlPlaneStrictSignature: String(process.env.SECURITY_CONTROL_PLANE_STRICT_SIGNATURE || 'true').toLowerCase() === 'true',
+  securityControlPlaneEnforceAdminIp: String(process.env.SECURITY_CONTROL_PLANE_ENFORCE_ADMIN_IP || 'true').toLowerCase() === 'true',
+  securityControlPlaneCriticalRateLimitEnabled: String(process.env.SECURITY_CONTROL_PLANE_CRITICAL_RATE_LIMIT_ENABLED || 'true').toLowerCase() === 'true',
+  securityControlPlaneFailOpen: String(process.env.SECURITY_CONTROL_PLANE_FAIL_OPEN || 'false').toLowerCase() === 'true',
+  securityControlPlaneProtectedPrefixes: splitCsv(process.env.SECURITY_CONTROL_PLANE_PROTECTED_PREFIXES || '/api/security/incidents,/api/security/shield,/api/security/runtime/security,/api/security/policy'),
   csrfCookieName: String(process.env.CSRF_COOKIE_NAME || 'gir_csrf_token'),
   csrfTokenTtlMinutes: Number(process.env.CSRF_TOKEN_TTL_MINUTES || 720),
 

@@ -21,6 +21,7 @@ const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { authPersistentAbuseShieldMiddleware } = require('./middleware/authPersistentAbuseShieldMiddleware');
 const { authAbuseShieldMiddleware } = require('./middleware/authAbuseShieldMiddleware');
+const { securityControlPlaneShieldMiddleware } = require('./middleware/securityControlPlaneShieldMiddleware');
 const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShieldMiddleware');
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
 const { csrfShieldMiddleware, issueCsrfToken } = require('./middleware/csrfShieldMiddleware');
@@ -129,6 +130,15 @@ app.get('/api/security/csrf-token', (req, res) => {
 app.use('/api/admin', strictCsrfShield);
 app.use('/api/bookings', strictCsrfShield);
 app.use('/api/security', strictCsrfShield);
+app.use('/api/security', securityControlPlaneShieldMiddleware({
+  enabled: env.securityControlPlaneShieldEnabled,
+  strictSignature: env.securityControlPlaneStrictSignature,
+  enforceAdminIp: env.securityControlPlaneEnforceAdminIp,
+  criticalRateLimitEnabled: env.securityControlPlaneCriticalRateLimitEnabled,
+  failOpen: env.securityControlPlaneFailOpen,
+  protectedPrefixes: env.securityControlPlaneProtectedPrefixes,
+  adminAllowedIps: env.adminAllowedIps
+}));
 app.use('/api/notifications', strictCsrfShield);
 app.use('/api/wallet', strictCsrfShield);
 app.use('/api/wallets', strictCsrfShield);
