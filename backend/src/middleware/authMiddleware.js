@@ -33,6 +33,7 @@ const { inspectUserTokenSessionTransportBinding } = require('../services/tokenSe
 const { inspectUserTokenSessionTrustBinding } = require('../services/tokenSessionTrustBindingShieldService');
 const { inspectUserTokenSessionEdgeBinding } = require('../services/tokenSessionEdgeBindingShieldService');
 const { inspectUserTokenSessionRouteBinding } = require('../services/tokenSessionRouteBindingShieldService');
+const { inspectUserTokenSessionOriginBinding } = require('../services/tokenSessionOriginBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -797,6 +798,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionRouteBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session route binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionOriginBindingShieldEnabled) {
+      try {
+        const sessionOriginBindingState = await inspectUserTokenSessionOriginBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionOriginBindingState || sessionOriginBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session origin binding shield blocked this session',
+            reason: String(sessionOriginBindingState?.reason || 'token_session_origin_binding_blocked'),
+            violationCount: Number(sessionOriginBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionOriginBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionOriginBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionOriginBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionOriginBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionOriginBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session origin binding shield unavailable' });
         }
       }
     }
