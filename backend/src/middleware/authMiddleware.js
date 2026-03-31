@@ -35,6 +35,7 @@ const { inspectUserTokenSessionEdgeBinding } = require('../services/tokenSession
 const { inspectUserTokenSessionRouteBinding } = require('../services/tokenSessionRouteBindingShieldService');
 const { inspectUserTokenSessionOriginBinding } = require('../services/tokenSessionOriginBindingShieldService');
 const { inspectUserTokenSessionTimezoneBinding } = require('../services/tokenSessionTimezoneBindingShieldService');
+const { inspectUserTokenSessionLocaleBinding } = require('../services/tokenSessionLocaleBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -849,6 +850,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionTimezoneBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session timezone binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionLocaleBindingShieldEnabled) {
+      try {
+        const sessionLocaleBindingState = await inspectUserTokenSessionLocaleBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionLocaleBindingState || sessionLocaleBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session locale binding shield blocked this session',
+            reason: String(sessionLocaleBindingState?.reason || 'token_session_locale_binding_blocked'),
+            violationCount: Number(sessionLocaleBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionLocaleBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionLocaleBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionLocaleBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionLocaleBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionLocaleBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session locale binding shield unavailable' });
         }
       }
     }
