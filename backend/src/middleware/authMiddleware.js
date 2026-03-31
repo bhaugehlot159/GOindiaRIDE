@@ -36,6 +36,7 @@ const { inspectUserTokenSessionRouteBinding } = require('../services/tokenSessio
 const { inspectUserTokenSessionOriginBinding } = require('../services/tokenSessionOriginBindingShieldService');
 const { inspectUserTokenSessionTimezoneBinding } = require('../services/tokenSessionTimezoneBindingShieldService');
 const { inspectUserTokenSessionLocaleBinding } = require('../services/tokenSessionLocaleBindingShieldService');
+const { inspectUserTokenSessionPlatformBinding } = require('../services/tokenSessionPlatformBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -875,6 +876,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionLocaleBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session locale binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionPlatformBindingShieldEnabled) {
+      try {
+        const sessionPlatformBindingState = await inspectUserTokenSessionPlatformBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionPlatformBindingState || sessionPlatformBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session platform binding shield blocked this session',
+            reason: String(sessionPlatformBindingState?.reason || 'token_session_platform_binding_blocked'),
+            violationCount: Number(sessionPlatformBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionPlatformBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionPlatformBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionPlatformBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionPlatformBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionPlatformBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session platform binding shield unavailable' });
         }
       }
     }
