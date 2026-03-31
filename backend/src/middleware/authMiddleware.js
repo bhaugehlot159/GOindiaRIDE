@@ -38,6 +38,7 @@ const { inspectUserTokenSessionTimezoneBinding } = require('../services/tokenSes
 const { inspectUserTokenSessionLocaleBinding } = require('../services/tokenSessionLocaleBindingShieldService');
 const { inspectUserTokenSessionPlatformBinding } = require('../services/tokenSessionPlatformBindingShieldService');
 const { inspectUserTokenSessionDeviceClassBinding } = require('../services/tokenSessionDeviceClassBindingShieldService');
+const { inspectUserTokenSessionPresentationBinding } = require('../services/tokenSessionPresentationBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -927,6 +928,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionDeviceClassBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session device class binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionPresentationBindingShieldEnabled) {
+      try {
+        const sessionPresentationBindingState = await inspectUserTokenSessionPresentationBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionPresentationBindingState || sessionPresentationBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session presentation binding shield blocked this session',
+            reason: String(sessionPresentationBindingState?.reason || 'token_session_presentation_binding_blocked'),
+            violationCount: Number(sessionPresentationBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionPresentationBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionPresentationBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionPresentationBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionPresentationBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionPresentationBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session presentation binding shield unavailable' });
         }
       }
     }

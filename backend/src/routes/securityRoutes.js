@@ -260,6 +260,12 @@ const {
   quarantineTokenSessionDeviceClassBinding
 } = require('../services/tokenSessionDeviceClassBindingShieldService');
 const {
+  isTokenSessionPresentationBindingSha256,
+  getTokenSessionPresentationBindingShieldSnapshot,
+  releaseTokenSessionPresentationBindingShieldStates,
+  quarantineTokenSessionPresentationBinding
+} = require('../services/tokenSessionPresentationBindingShieldService');
+const {
   getAdminAuditChainSnapshot,
   verifyAdminAuditChain,
   GENESIS_HASH
@@ -4752,6 +4758,113 @@ router.post('/shield/token-session-device-class/release', authenticate, requireA
     });
   } catch (error) {
     return res.status(500).json({ message: 'Unable to release token session device class binding shield states' });
+  }
+});
+
+router.get('/shield/token-session-presentation/snapshot', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const limitInput = Number(req.query?.limit);
+    const includeReleased = String(req.query?.includeReleased || 'false').trim().toLowerCase() === 'true';
+    const status = String(req.query?.status || '').trim().toLowerCase();
+    const userId = String(req.query?.userId || '').trim();
+    const sidHash = String(req.query?.sidHash || '').trim().toLowerCase();
+
+    if (sidHash && !isTokenSessionPresentationBindingSha256(sidHash)) {
+      return res.status(400).json({ message: 'sidHash must be a SHA-256 hash' });
+    }
+
+    const snapshot = await getTokenSessionPresentationBindingShieldSnapshot({
+      includeReleased,
+      status,
+      userId,
+      sidHash,
+      limit: Number.isFinite(limitInput) && limitInput > 0 ? Math.min(limitInput, 2000) : 100
+    });
+
+    return res.status(200).json({
+      ok: true,
+      ...snapshot
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to fetch token session presentation binding shield snapshot' });
+  }
+});
+
+router.post('/shield/token-session-presentation/quarantine', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const sidHash = String(req.body?.sidHash || '').trim().toLowerCase();
+    const userId = String(req.body?.userId || '').trim();
+    const reason = String(req.body?.reason || '').trim();
+    const durationMsInput = Number(req.body?.durationMs);
+
+    if (!id && !sidHash && !userId) {
+      return res.status(400).json({ message: 'Provide at least one selector' });
+    }
+    if (sidHash && !isTokenSessionPresentationBindingSha256(sidHash)) {
+      return res.status(400).json({ message: 'sidHash must be a SHA-256 hash' });
+    }
+    if (userId) {
+      const userExists = await User.exists({ _id: userId });
+      if (!userExists) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+    }
+
+    const actor = getUserContext(req);
+    const result = await quarantineTokenSessionPresentationBinding({
+      id,
+      sidHash,
+      userId,
+      reason: reason || 'admin_manual_session_presentation_binding_quarantine',
+      durationMs: Number.isFinite(durationMsInput) && durationMsInput > 0 ? durationMsInput : undefined,
+      actorUserId: actor.id || null,
+      actorIp: getClientIp(req),
+      metadata: {
+        route: '/api/security/shield/token-session-presentation/quarantine'
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Token session presentation binding quarantined',
+      ...result
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      message: error.message || 'Unable to quarantine token session presentation binding'
+    });
+  }
+});
+
+router.post('/shield/token-session-presentation/release', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = String(req.body?.id || '').trim();
+    const sidHash = String(req.body?.sidHash || '').trim().toLowerCase();
+    const userId = String(req.body?.userId || '').trim();
+    const clearAll = req.body?.clearAll === true || String(req.body?.clearAll || '').trim().toLowerCase() === 'true';
+
+    if (!clearAll && !id && !sidHash && !userId) {
+      return res.status(400).json({ message: 'Provide at least one selector or set clearAll=true' });
+    }
+    if (sidHash && !isTokenSessionPresentationBindingSha256(sidHash)) {
+      return res.status(400).json({ message: 'sidHash must be a SHA-256 hash' });
+    }
+
+    const result = await releaseTokenSessionPresentationBindingShieldStates({
+      id,
+      sidHash,
+      userId,
+      clearAll
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Token session presentation binding shield records released',
+      ...result
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Unable to release token session presentation binding shield states' });
   }
 });
 
