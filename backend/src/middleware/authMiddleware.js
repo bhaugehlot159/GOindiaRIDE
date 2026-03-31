@@ -31,6 +31,7 @@ const { inspectUserTokenSessionNetworkBinding } = require('../services/tokenSess
 const { inspectUserTokenSessionClientBinding } = require('../services/tokenSessionClientBindingShieldService');
 const { inspectUserTokenSessionTransportBinding } = require('../services/tokenSessionTransportBindingShieldService');
 const { inspectUserTokenSessionTrustBinding } = require('../services/tokenSessionTrustBindingShieldService');
+const { inspectUserTokenSessionEdgeBinding } = require('../services/tokenSessionEdgeBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -745,6 +746,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionTrustBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session trust binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionEdgeBindingShieldEnabled) {
+      try {
+        const sessionEdgeBindingState = await inspectUserTokenSessionEdgeBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionEdgeBindingState || sessionEdgeBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session edge binding shield blocked this session',
+            reason: String(sessionEdgeBindingState?.reason || 'token_session_edge_binding_blocked'),
+            violationCount: Number(sessionEdgeBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionEdgeBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionEdgeBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionEdgeBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionEdgeBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionEdgeBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session edge binding shield unavailable' });
         }
       }
     }
