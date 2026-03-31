@@ -37,6 +37,7 @@ const { inspectUserTokenSessionOriginBinding } = require('../services/tokenSessi
 const { inspectUserTokenSessionTimezoneBinding } = require('../services/tokenSessionTimezoneBindingShieldService');
 const { inspectUserTokenSessionLocaleBinding } = require('../services/tokenSessionLocaleBindingShieldService');
 const { inspectUserTokenSessionPlatformBinding } = require('../services/tokenSessionPlatformBindingShieldService');
+const { inspectUserTokenSessionDeviceClassBinding } = require('../services/tokenSessionDeviceClassBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -901,6 +902,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionPlatformBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session platform binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionDeviceClassBindingShieldEnabled) {
+      try {
+        const sessionDeviceClassBindingState = await inspectUserTokenSessionDeviceClassBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionDeviceClassBindingState || sessionDeviceClassBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session device class binding shield blocked this session',
+            reason: String(sessionDeviceClassBindingState?.reason || 'token_session_device_class_binding_blocked'),
+            violationCount: Number(sessionDeviceClassBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionDeviceClassBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionDeviceClassBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionDeviceClassBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionDeviceClassBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionDeviceClassBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session device class binding shield unavailable' });
         }
       }
     }
