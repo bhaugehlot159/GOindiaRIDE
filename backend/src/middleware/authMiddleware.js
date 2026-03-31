@@ -32,6 +32,7 @@ const { inspectUserTokenSessionClientBinding } = require('../services/tokenSessi
 const { inspectUserTokenSessionTransportBinding } = require('../services/tokenSessionTransportBindingShieldService');
 const { inspectUserTokenSessionTrustBinding } = require('../services/tokenSessionTrustBindingShieldService');
 const { inspectUserTokenSessionEdgeBinding } = require('../services/tokenSessionEdgeBindingShieldService');
+const { inspectUserTokenSessionRouteBinding } = require('../services/tokenSessionRouteBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -771,6 +772,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionEdgeBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session edge binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionRouteBindingShieldEnabled) {
+      try {
+        const sessionRouteBindingState = await inspectUserTokenSessionRouteBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionRouteBindingState || sessionRouteBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session route binding shield blocked this session',
+            reason: String(sessionRouteBindingState?.reason || 'token_session_route_binding_blocked'),
+            violationCount: Number(sessionRouteBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionRouteBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionRouteBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionRouteBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionRouteBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionRouteBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session route binding shield unavailable' });
         }
       }
     }
