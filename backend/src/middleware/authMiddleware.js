@@ -39,6 +39,7 @@ const { inspectUserTokenSessionLocaleBinding } = require('../services/tokenSessi
 const { inspectUserTokenSessionPlatformBinding } = require('../services/tokenSessionPlatformBindingShieldService');
 const { inspectUserTokenSessionDeviceClassBinding } = require('../services/tokenSessionDeviceClassBindingShieldService');
 const { inspectUserTokenSessionPresentationBinding } = require('../services/tokenSessionPresentationBindingShieldService');
+const { inspectUserTokenSessionInteractionBinding } = require('../services/tokenSessionInteractionBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -953,6 +954,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionPresentationBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session presentation binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionInteractionBindingShieldEnabled) {
+      try {
+        const sessionInteractionBindingState = await inspectUserTokenSessionInteractionBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionInteractionBindingState || sessionInteractionBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session interaction binding shield blocked this session',
+            reason: String(sessionInteractionBindingState?.reason || 'token_session_interaction_binding_blocked'),
+            violationCount: Number(sessionInteractionBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionInteractionBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionInteractionBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionInteractionBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionInteractionBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionInteractionBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session interaction binding shield unavailable' });
         }
       }
     }
