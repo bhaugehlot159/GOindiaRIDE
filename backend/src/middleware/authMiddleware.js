@@ -34,6 +34,7 @@ const { inspectUserTokenSessionTrustBinding } = require('../services/tokenSessio
 const { inspectUserTokenSessionEdgeBinding } = require('../services/tokenSessionEdgeBindingShieldService');
 const { inspectUserTokenSessionRouteBinding } = require('../services/tokenSessionRouteBindingShieldService');
 const { inspectUserTokenSessionOriginBinding } = require('../services/tokenSessionOriginBindingShieldService');
+const { inspectUserTokenSessionTimezoneBinding } = require('../services/tokenSessionTimezoneBindingShieldService');
 
 async function authenticate(req, res, next) {
   const bearer = req.headers.authorization || '';
@@ -823,6 +824,31 @@ async function authenticate(req, res, next) {
       } catch (_error) {
         if (!env.tokenSessionOriginBindingShieldFailOpen) {
           return res.status(503).json({ message: 'Token session origin binding shield unavailable' });
+        }
+      }
+    }
+
+    if (env.tokenSessionTimezoneBindingShieldEnabled) {
+      try {
+        const sessionTimezoneBindingState = await inspectUserTokenSessionTimezoneBinding({
+          user,
+          payload,
+          req
+        });
+        if (!sessionTimezoneBindingState || sessionTimezoneBindingState.ok === false) {
+          return res.status(403).json({
+            message: 'Token session timezone binding shield blocked this session',
+            reason: String(sessionTimezoneBindingState?.reason || 'token_session_timezone_binding_blocked'),
+            violationCount: Number(sessionTimezoneBindingState?.violationCount || 0),
+            violationThreshold: Number(sessionTimezoneBindingState?.violationThreshold || 0),
+            missingClaimCount: Number(sessionTimezoneBindingState?.missingClaimCount || 0),
+            missingClaimThreshold: Number(sessionTimezoneBindingState?.missingClaimThreshold || 0),
+            quarantineUntil: sessionTimezoneBindingState?.quarantineUntil || null
+          });
+        }
+      } catch (_error) {
+        if (!env.tokenSessionTimezoneBindingShieldFailOpen) {
+          return res.status(503).json({ message: 'Token session timezone binding shield unavailable' });
         }
       }
     }
