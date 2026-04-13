@@ -453,7 +453,11 @@ async function handleForgotPasswordReset(){
 function initializeAdminAccessGate(){
   const adminButton=document.querySelector('.admin-portal-link');if(!adminButton)return;
   const query=new URLSearchParams(window.location.search||'');
-  if(query.get('admin')==='1')adminButton.style.display='inline-flex';
+  if(query.get('admin')==='1'){
+    adminButton.style.display='inline-flex';
+    const adminForm=document.getElementById('adminForm');
+    if(adminForm&&adminForm.style.display==='none')toggleAdminLogin();
+  }
   document.addEventListener('keydown',(event)=>{if(event.ctrlKey&&event.shiftKey&&String(event.key||'').toLowerCase()==='a'){adminButton.style.display='inline-flex';showSuccess('Admin access unlocked.');}});
 }
 function setupOTPInputs(selector){

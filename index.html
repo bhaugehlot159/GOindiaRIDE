@@ -128,7 +128,7 @@
             flex-wrap: wrap;
         }
 
-        .btn-login, .btn-signup {
+        .btn-login, .btn-signup, .btn-admin {
             padding: 0.6rem 1.5rem;
             border: 2px solid white;
             border-radius: 8px;
@@ -157,6 +157,21 @@
         .btn-signup:hover {
             background: transparent;
             color: white;
+        }
+
+        .btn-admin {
+            background: #ff9933;
+            color: #0B1F3A;
+            border-color: #ff9933;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-admin:hover {
+            background: #0B1F3A;
+            color: #fff;
+            border-color: #0B1F3A;
         }
 
         /* Hero Section */
@@ -639,13 +654,26 @@
         }
 
         .btn-signup,
+        .btn-admin,
         .btn-primary {
             background: var(--india-navy);
             color: #fff;
         }
 
+        .btn-admin {
+            background: linear-gradient(135deg, #ff9933 0%, #ffb85e 100%);
+            color: var(--india-navy);
+            border-color: rgba(255, 153, 51, 0.62);
+        }
+
+        .btn-admin:hover {
+            background: linear-gradient(135deg, #e88725 0%, #fca344 100%);
+            color: var(--india-navy);
+        }
+
         .navbar-links .btn-login,
-        .navbar-links .btn-signup {
+        .navbar-links .btn-signup,
+        .navbar-links .btn-admin {
             min-width: 96px;
             text-align: center;
             text-decoration: none;
@@ -659,6 +687,12 @@
         .navbar-links .btn-signup:hover,
         .navbar-links .btn-signup:focus {
             color: #fff;
+        }
+
+        .navbar-links .btn-admin,
+        .navbar-links .btn-admin:hover,
+        .navbar-links .btn-admin:focus {
+            color: var(--india-navy);
         }
 
         .btn-signup:hover,
@@ -816,12 +850,12 @@
                 grid-column: 1 / -1;
                 width: 100%;
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 0.45rem;
                 justify-content: stretch;
             }
 
-            .btn-login, .btn-signup {
+            .btn-login, .btn-signup, .btn-admin {
                 width: 100%;
                 min-width: 0;
                 font-size: 0.82rem;
@@ -887,6 +921,7 @@
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login">Login</a>
                     <a href="./pages/signup.html" class="btn-signup" data-lang="nav.signup">Sign Up</a>
+                    <a href="./pages/login.html?admin=1" class="btn-admin" title="Open admin portal login"><i class="fas fa-user-shield"></i> Admin</a>
                 </div>
             </div>
         </div>
