@@ -163,7 +163,7 @@
             background: #ff9933;
             color: #0B1F3A;
             border-color: #ff9933;
-            display: inline-flex;
+            display: none;
             align-items: center;
             gap: 0.4rem;
         }
@@ -850,7 +850,7 @@
                 grid-column: 1 / -1;
                 width: 100%;
                 display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
                 gap: 0.45rem;
                 justify-content: stretch;
             }
@@ -921,7 +921,7 @@
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login">Login</a>
                     <a href="./pages/signup.html" class="btn-signup" data-lang="nav.signup">Sign Up</a>
-                    <a href="./pages/login.html?admin=1" class="btn-admin" title="Open admin portal login"><i class="fas fa-user-shield"></i> Admin</a>
+                    <a href="./pages/login.html?admin=1&next=%2Fadmin%2Findex.html" id="adminPortalBtn" class="btn-admin" title="Open admin portal login"><i class="fas fa-user-shield"></i> Admin</a>
                 </div>
             </div>
         </div>
@@ -1396,6 +1396,25 @@
                 });
             });
         }
+
+        // Admin entry stays hidden for public users; only visible for active admin session.
+        (function revealAdminEntryForAdminOnly() {
+            const adminBtn = document.getElementById('adminPortalBtn');
+            if (!adminBtn) return;
+
+            try {
+                const role = String(localStorage.getItem('userRole') || localStorage.getItem('role') || '').toLowerCase();
+                const accountType = String(localStorage.getItem('accountType') || '').toLowerCase();
+                const currentAdmin = localStorage.getItem('currentAdmin');
+                const isAdmin = role === 'admin' || accountType === 'admin' || Boolean(currentAdmin);
+
+                if (isAdmin) {
+                    adminBtn.style.display = 'inline-flex';
+                }
+            } catch (error) {
+                // Keep hidden if storage cannot be read.
+            }
+        })();
 
         console.log('✅ Homepage loaded successfully!');
     </script>

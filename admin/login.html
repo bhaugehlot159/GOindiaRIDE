@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO India RIDE Admin Access</title>
+    <style>
+        :root {
+            --navy: #0B1F3A;
+            --teal: #1493A6;
+            --saffron: #FF9933;
+            --card: rgba(255, 255, 255, 0.94);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--navy);
+            display: grid;
+            place-items: center;
+            padding: 16px;
+            background:
+                radial-gradient(circle at 8% 8%, rgba(255, 153, 51, 0.25), transparent 42%),
+                radial-gradient(circle at 92% 12%, rgba(20, 147, 166, 0.24), transparent 42%),
+                linear-gradient(145deg, #f8fbff 0%, #edf4fd 56%, #e3edf8 100%);
+        }
+
+        .panel {
+            width: min(560px, 100%);
+            background: var(--card);
+            border: 1px solid rgba(11, 31, 58, 0.14);
+            border-radius: 18px;
+            padding: 26px 22px;
+            box-shadow: 0 18px 36px rgba(11, 31, 58, 0.14);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 1.6rem;
+        }
+
+        p {
+            margin: 0;
+            color: rgba(11, 31, 58, 0.82);
+            line-height: 1.5;
+        }
+
+        .hint {
+            margin-top: 14px;
+            font-size: 0.9rem;
+            color: rgba(11, 31, 58, 0.66);
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 11px 16px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--navy) 0%, #1c4e82 100%);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--navy);
+            border: 1px solid rgba(11, 31, 58, 0.22);
+        }
+    </style>
+</head>
+<body>
+    <section class="panel">
+        <h1>Admin Secure Entry</h1>
+        <p>
+            This portal is restricted. Continue only with approved admin credentials and 2FA.
+        </p>
+        <p class="hint">
+            Public users cannot view admin controls without successful admin authentication.
+        </p>
+        <div class="actions">
+            <a class="btn btn-primary" href="../pages/login.html?admin=1&next=%2Fadmin%2Findex.html">Continue to Admin Login</a>
+            <a class="btn btn-secondary" href="../index.html">Go Home</a>
+        </div>
+    </section>
+
+    <script>
+        (function redirectIfAlreadyAdmin() {
+            try {
+                const role = String(localStorage.getItem('userRole') || localStorage.getItem('role') || '').toLowerCase();
+                const accountType = String(localStorage.getItem('accountType') || '').toLowerCase();
+                const currentAdmin = localStorage.getItem('currentAdmin');
+                const isAdmin = role === 'admin' || accountType === 'admin' || Boolean(currentAdmin);
+                if (isAdmin) {
+                    window.location.replace('./index.html');
+                }
+            } catch (_error) {
+                // Keep current view if storage is unavailable.
+            }
+        })();
+    </script>
+</body>
+</html>

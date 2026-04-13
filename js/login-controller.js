@@ -396,6 +396,21 @@ function sendAdmin2FAOTP(){
   document.getElementById('adminStep3').style.display='block';
   setupOTPInputs('.admin2fa-otp');
 }
+function resolveAdminNextPath(){
+  const fallback='../admin/index.html';
+  try{
+    const query=new URLSearchParams(window.location.search||'');
+    const next=String(query.get('next')||'').trim();
+    if(!next)return fallback;
+
+    if(next.startsWith('/admin/'))return '..'+next;
+    if(next.startsWith('../admin/'))return next;
+    if(next.startsWith('./admin/'))return next;
+    return fallback;
+  }catch(_error){
+    return fallback;
+  }
+}
 async function verifyAdmin2FA(){
   const otp=readOtpDigits('.admin2fa-otp');const expected=localStorage.getItem(ADMIN_OTP_KEY)||'';
   if(!expected||otp!==expected){showError('Wrong 2FA code.');return;}
@@ -408,7 +423,9 @@ async function verifyAdmin2FA(){
   localStorage.setItem('userRole','admin');
   localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({active:true,email:profile.email,loggedInAt:new Date().toISOString()}));
   localStorage.removeItem(ADMIN_OTP_KEY);localStorage.removeItem(ADMIN_OTP_EMAIL_KEY);localStorage.removeItem(ADMIN_OTP_METHOD_KEY);
-  showSuccess('Admin login successful.');setTimeout(()=>{window.location.href='./admin-dashboard.html';},700);
+  showSuccess('Admin login successful.');
+  const nextPath=resolveAdminNextPath();
+  setTimeout(()=>{window.location.href=nextPath;},700);
 }
 function adminResetTo2FAMethod(){document.getElementById('adminStep2').style.display='block';document.getElementById('adminStep3').style.display='none';document.querySelectorAll('.admin2fa-otp').forEach((i)=>{i.value='';});}
 function toggleAdminLogin(){

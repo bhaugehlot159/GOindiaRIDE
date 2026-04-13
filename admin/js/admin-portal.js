@@ -113,7 +113,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('currentAdmin');
         localStorage.removeItem('userRole');
-        window.location.href = '../pages/login.html';
+        window.location.href = './login.html';
     }
 });
 
@@ -270,6 +270,73 @@ function getBackendAccessToken() {
         localStorage.getItem('token') ||
         ''
     );
+}
+
+function getAdminLoginPath() {
+    return './login.html';
+}
+
+function hasLocalAdminSession() {
+    const role = String(localStorage.getItem('userRole') || localStorage.getItem('role') || '').toLowerCase();
+    const accountType = String(localStorage.getItem('accountType') || '').toLowerCase();
+    const currentAdminRaw = localStorage.getItem('currentAdmin');
+
+    let currentAdmin = null;
+    try {
+        currentAdmin = currentAdminRaw ? JSON.parse(currentAdminRaw) : null;
+    } catch (error) {
+        currentAdmin = null;
+    }
+
+    const hasAdminIdentity = Boolean(currentAdmin && (currentAdmin.email || currentAdmin.id));
+    const roleAllowsAdmin = role === 'admin' || accountType === 'admin';
+
+    return roleAllowsAdmin && hasAdminIdentity;
+}
+
+async function enforceAdminPortalAccess() {
+    const token = String(getBackendAccessToken() || '').trim();
+    const localAdminSession = hasLocalAdminSession();
+
+    if (!token) {
+        if (localAdminSession) return true;
+        window.location.replace(getAdminLoginPath());
+        return false;
+    }
+
+    try {
+        const response = await fetch(`${getBackendApiBase()}/api/users/profile`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            if (localAdminSession) return true;
+            window.location.replace(getAdminLoginPath());
+            return false;
+        }
+
+        const data = await response.json().catch(() => ({}));
+        const user = data && typeof data.user === 'object' ? data.user : {};
+        const role = String(user.role || '').toLowerCase();
+        const accountType = String(user.accountType || '').toLowerCase();
+        const isAdmin = role === 'admin' || accountType === 'admin';
+
+        if (!isAdmin) {
+            window.location.replace('../index.html');
+            return false;
+        }
+
+        localStorage.setItem('userRole', 'admin');
+        return true;
+    } catch (error) {
+        if (localAdminSession) return true;
+        window.location.replace(getAdminLoginPath());
+        return false;
+    }
 }
 
 function isAdminBookingAlarmEnabled() {
@@ -775,13 +842,9 @@ function logAdminAction(action, details) {
 }
 
 // Initialize on page load
-window.addEventListener('DOMContentLoaded', () => {
-    // Check authentication
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'admin') {
-        // Redirect to login for demo purposes, or allow access
-        console.log('Admin access - demo mode');
-    }
+window.addEventListener('DOMContentLoaded', async () => {
+    const accessAllowed = await enforceAdminPortalAccess();
+    if (!accessAllowed) return;
     
     // Initialize demo data
     initializeDemoData();
