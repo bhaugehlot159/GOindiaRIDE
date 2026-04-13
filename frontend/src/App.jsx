@@ -624,6 +624,12 @@ function Dashboard() {
     success: "",
     error: "",
   });
+  const [pendingBookingItems, setPendingBookingItems] = useState([]);
+  const [pendingBookingCount, setPendingBookingCount] = useState(0);
+  const [pendingBookingLoading, setPendingBookingLoading] = useState(false);
+  const [pendingBookingError, setPendingBookingError] = useState("");
+  const [pendingBookingReviewSuccess, setPendingBookingReviewSuccess] = useState("");
+  const [pendingBookingReviewingId, setPendingBookingReviewingId] = useState("");
   const [sosState, setSosState] = useState({
     loading: false,
     channel: "",
@@ -1446,6 +1452,26 @@ function Dashboard() {
   }, [loadNotifications]);
 
   useEffect(() => {
+    if (!token || !isAdminPortal) return undefined;
+
+    let active = true;
+    const run = async (silent = false) => {
+      if (!active) return;
+      await loadPendingBookings({ silent });
+    };
+
+    run(false);
+    const timer = setInterval(() => {
+      run(true);
+    }, 15000);
+
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [token, isAdminPortal, loadPendingBookings]);
+
+  useEffect(() => {
     let active = true;
 
     const run = async (silent = false) => {
@@ -1563,6 +1589,81 @@ function Dashboard() {
     }
   };
 
+  const loadPendingBookings = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!token || !isAdminPortal) return;
+
+      if (!silent) {
+        setPendingBookingLoading(true);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/bookings/admin/pending?limit=40`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Pending bookings unavailable");
+        }
+
+        const items = Array.isArray(data.items) ? data.items : [];
+        setPendingBookingItems(items);
+        setPendingBookingCount(Number(data.pendingCount || 0));
+        setPendingBookingError("");
+      } catch (error) {
+        if (!silent) {
+          setPendingBookingError(error.message || "Pending bookings unavailable");
+        }
+      } finally {
+        if (!silent) {
+          setPendingBookingLoading(false);
+        }
+      }
+    },
+    [token, isAdminPortal]
+  );
+
+  const reviewPendingBooking = useCallback(
+    async (bookingId, decision) => {
+      if (!token || !isAdminPortal || !bookingId) return;
+
+      setPendingBookingReviewingId(bookingId);
+      setPendingBookingReviewSuccess("");
+      setPendingBookingError("");
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/bookings/${encodeURIComponent(bookingId)}/admin/review`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ decision }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Review action failed");
+        }
+
+        setPendingBookingReviewSuccess(`Booking ${bookingId} ${decision} by admin`);
+        setPendingBookingItems((prev) => prev.filter((item) => String(item.bookingId || "") !== String(bookingId)));
+        setPendingBookingCount((prev) => Math.max(0, prev - 1));
+        loadNotifications({ silent: true });
+        loadPendingBookings({ silent: true });
+      } catch (error) {
+        setPendingBookingError(error.message || "Review action failed");
+      } finally {
+        setPendingBookingReviewingId("");
+      }
+    },
+    [token, isAdminPortal, loadPendingBookings, loadNotifications]
+  );
+
   const createDemoBooking = async () => {
     if (!token) return;
 
@@ -1615,6 +1716,9 @@ function Dashboard() {
       }
       loadNotifications({ silent: false });
       loadAiSummary({ silent: true });
+      if (isAdminPortal) {
+        loadPendingBookings({ silent: true });
+      }
     } catch (error) {
       setBookingActionState({
         loading: false,
@@ -1861,6 +1965,91 @@ function Dashboard() {
             )}
           </div>
         </div>
+
+        {isAdminPortal && (
+          <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[#0B1F3A]">Pending booking approvals</p>
+                <p className="text-xs text-[#0B1F3A]/65">
+                  Customer booking create होते ही yaha aayegi. Approve/reject directly yahi se karo.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-[#fff5e8] border border-[#FF9933]/60 text-xs font-semibold text-[#0B1F3A]">
+                  Pending: {pendingBookingCount}
+                </span>
+                <button
+                  onClick={() => loadPendingBookings({ silent: false })}
+                  className="px-3 py-2 rounded-lg bg-white border border-[#0B1F3A]/20 text-xs"
+                  disabled={pendingBookingLoading}
+                >
+                  {pendingBookingLoading ? "Refreshing..." : "Refresh list"}
+                </button>
+              </div>
+            </div>
+
+            {pendingBookingError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mt-3">
+                {pendingBookingError}
+              </p>
+            )}
+            {pendingBookingReviewSuccess && (
+              <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-2 mt-3">
+                {pendingBookingReviewSuccess}
+              </p>
+            )}
+
+            {pendingBookingLoading && pendingBookingItems.length === 0 && (
+              <p className="text-xs text-[#0B1F3A]/70 mt-3">Loading pending bookings...</p>
+            )}
+
+            {!pendingBookingLoading && pendingBookingItems.length === 0 && !pendingBookingError && (
+              <p className="text-xs text-[#0B1F3A]/70 mt-3">No pending admin approvals.</p>
+            )}
+
+            <div className="mt-3 space-y-2 max-h-80 overflow-y-auto pr-1">
+              {pendingBookingItems.map((row) => {
+                const rowBookingId = String(row?.bookingId || "");
+                const reviewInProgress = pendingBookingReviewingId === rowBookingId;
+                return (
+                  <div key={rowBookingId} className="rounded-xl border border-[#0B1F3A]/12 bg-white/80 p-3">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold text-[#0B1F3A]">{rowBookingId || "Booking"}</p>
+                        <p className="text-xs text-[#0B1F3A]/70 mt-1">
+                          Customer: {row?.customer?.name || "-"} {row?.customer?.phone ? `(${row.customer.phone})` : ""}
+                        </p>
+                        <p className="text-xs text-[#0B1F3A]/70">
+                          Fare: ₹{Number(row?.amount || 0).toLocaleString("en-IN")} | Distance: {Number(row?.distanceKm || 0).toFixed(1)} km
+                        </p>
+                        <p className="text-[11px] text-[#0B1F3A]/55">
+                          {formatNotificationTime(row?.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => reviewPendingBooking(rowBookingId, "approved")}
+                          disabled={!rowBookingId || reviewInProgress}
+                          className="px-3 py-2 rounded-lg bg-[#138808] text-white text-xs disabled:opacity-50"
+                        >
+                          {reviewInProgress ? "Saving..." : "Approve"}
+                        </button>
+                        <button
+                          onClick={() => reviewPendingBooking(rowBookingId, "rejected")}
+                          disabled={!rowBookingId || reviewInProgress}
+                          className="px-3 py-2 rounded-lg bg-[#b91c1c] text-white text-xs disabled:opacity-50"
+                        >
+                          {reviewInProgress ? "Saving..." : "Reject"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
                 <section className="glass-card rounded-2xl p-5 border border-[#0B1F3A]/15">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
