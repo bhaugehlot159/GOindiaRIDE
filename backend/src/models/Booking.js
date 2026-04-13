@@ -14,6 +14,15 @@ const bookingSchema = new mongoose.Schema({
   settlementReference: { type: String, default: null, trim: true },
   customerPaymentSettledAt: { type: Date, default: null },
   driverPaymentSettledAt: { type: Date, default: null },
+  adminReviewStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+    index: true
+  },
+  adminReviewedBy: { type: String, default: null, trim: true, index: true },
+  adminReviewedAt: { type: Date, default: null, index: true },
+  adminReviewNote: { type: String, default: null, trim: true, maxlength: 280 },
   status: { type: String, enum: ['created', 'cancelled', 'completed'], default: 'created' }
 }, {
   timestamps: true,
@@ -23,6 +32,7 @@ const bookingSchema = new mongoose.Schema({
 bookingSchema.index({ userId: 1, createdAt: -1 });
 bookingSchema.index({ driverId: 1, createdAt: -1 });
 bookingSchema.index({ ip: 1, createdAt: -1 });
+bookingSchema.index({ adminReviewStatus: 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
 

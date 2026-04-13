@@ -144,3 +144,66 @@ async function createBookingPortalNotifications({
 module.exports = {
   createBookingPortalNotifications
 };
+
+async function createBookingAdminReviewAlert({
+  bookingId,
+  amount,
+  distanceKm,
+  customerId,
+  pickup = '',
+  drop = '',
+  vehicleType = '',
+  currency = 'INR'
+}) {
+  const payload = {
+    bookingId,
+    amount,
+    distanceKm,
+    action: 'admin_pending_review',
+    metadata: {
+      customerId,
+      source: 'booking_routes',
+      requiresAdminReview: true,
+      pickup: sanitizeText(pickup, 120),
+      drop: sanitizeText(drop, 120),
+      vehicleType: sanitizeText(vehicleType, 40),
+      currency: sanitizeText(currency || 'INR', 8).toUpperCase() || 'INR'
+    }
+  };
+
+  return pushAudienceNotifications({
+    ...payload,
+    audience: 'admin'
+  });
+}
+
+async function createBookingCustomerReviewNotification({
+  bookingId,
+  customerId,
+  decision,
+  note = ''
+}) {
+  const normalizedDecision = String(decision || '').trim().toLowerCase();
+  const safeDecision = normalizedDecision === 'approved' ? 'approved' : 'rejected';
+  const title = safeDecision === 'approved' ? 'Booking approved' : 'Booking rejected';
+  const message = safeDecision === 'approved'
+    ? `Booking ${bookingId} approved by admin.`
+    : `Booking ${bookingId} rejected by admin.`;
+
+  await Notification.create({
+    userId: customerId || null,
+    audience: 'customer',
+    bookingId,
+    type: safeDecision === 'approved' ? 'booking_admin_approved' : 'booking_admin_rejected',
+    title,
+    message,
+    metadata: {
+      source: 'booking_admin_review',
+      adminReviewStatus: safeDecision,
+      adminReviewNote: sanitizeText(note, 260)
+    }
+  });
+}
+
+module.exports.createBookingAdminReviewAlert = createBookingAdminReviewAlert;
+module.exports.createBookingCustomerReviewNotification = createBookingCustomerReviewNotification;

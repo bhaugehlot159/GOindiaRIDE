@@ -14,6 +14,10 @@ const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware
 const { logSecurityEvent } = require('../services/securityLogService');
 const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 const {
+  createBookingAdminReviewAlert,
+  createBookingCustomerReviewNotification
+} = require('../services/portalNotificationService');
+const {
   collectCustomerPaymentToCommissionWallet,
   resolveCommissionRegion
 } = require('../services/commissionWalletService');
@@ -105,6 +109,10 @@ function resolveCompletionActor(req) {
   if (req.user?.role === 'admin' || req.user?.accountType === 'admin') return 'admin';
   if (req.user?.accountType === 'driver') return 'driver';
   return 'customer';
+}
+
+function isAdminUser(user) {
+  return Boolean(user && (user.role === 'admin' || user.accountType === 'admin'));
 }
 
 function getBookingAmount(req, booking) {
@@ -203,6 +211,18 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
 
   const bookingId = `BK${Date.now()}${Math.floor(Math.random() * 1000)}`;
   const booking = await Booking.create({ userId: req.user.id, bookingId, cardHash, ip, distanceKm, amount: req.recalculatedFare, referralCode, status: 'created' });
+  await Booking.updateOne(
+    { _id: booking._id },
+    {
+      $set: {
+        adminReviewStatus: 'pending',
+        adminReviewedBy: null,
+        adminReviewedAt: null,
+        adminReviewNote: null
+      }
+    }
+  );
+  booking.adminReviewStatus = 'pending';
 
   await trackBehaviorEvent({
     userId: req.user.id,
@@ -236,6 +256,17 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
       vehicleType,
       currency: 'INR'
     });
+
+    await createBookingAdminReviewAlert({
+      bookingId: booking.bookingId,
+      amount: req.recalculatedFare,
+      distanceKm: booking.distanceKm,
+      customerId: req.user.id,
+      pickup,
+      drop,
+      vehicleType,
+      currency: 'INR'
+    });
   } catch (error) {
     await logSecurityEvent({
       userId: req.user.id,
@@ -250,6 +281,7 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   return res.status(201).json({
     bookingId: booking.bookingId,
     status: booking.status,
+    adminReviewStatus: booking.adminReviewStatus || 'pending',
     riskScore: behavior.score,
     notifications: notificationSummary
   });
@@ -263,6 +295,14 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
 
   if (actorType === 'customer' && String(booking.userId) !== String(req.user.id)) {
     return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  const adminReviewStatus = String(booking.adminReviewStatus || 'pending').toLowerCase();
+  if (actorType !== 'admin' && adminReviewStatus !== 'approved') {
+    return res.status(403).json({
+      message: 'Booking pending admin approval',
+      adminReviewStatus
+    });
   }
 
   const requestedDriverId = sanitizeText(req.body.driverId, 120);
@@ -564,6 +604,124 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
     bookingId: booking.bookingId,
     status: booking.status,
     notifications: notificationSummary
+  });
+});
+
+router.get('/admin/pending', authenticate, async (req, res) => {
+  if (!isAdminUser(req.user)) {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  const limit = Math.min(Math.max(Number(req.query.limit || 100), 1), 500);
+  const status = sanitizeText(req.query.status, 20).toLowerCase();
+  const query = {
+    adminReviewStatus: status === 'approved' || status === 'rejected' ? status : 'pending'
+  };
+
+  if (query.adminReviewStatus === 'pending') {
+    query.status = 'created';
+  }
+
+  const rows = await Booking.find(query)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate('userId', 'name email phone accountType')
+    .lean();
+
+  const pendingCount = await Booking.countDocuments({ adminReviewStatus: 'pending', status: 'created' });
+
+  return res.status(200).json({
+    count: rows.length,
+    pendingCount,
+    items: rows.map((row) => ({
+      bookingId: row.bookingId,
+      status: row.status,
+      adminReviewStatus: row.adminReviewStatus || 'pending',
+      distanceKm: Number(row.distanceKm || 0),
+      amount: Number(row.amount || 0),
+      referralCode: row.referralCode || '',
+      driverId: row.driverId || null,
+      adminReviewedBy: row.adminReviewedBy || null,
+      adminReviewedAt: row.adminReviewedAt || null,
+      adminReviewNote: row.adminReviewNote || null,
+      customer: row.userId && typeof row.userId === 'object'
+        ? {
+            id: String(row.userId._id || ''),
+            name: row.userId.name || '',
+            email: row.userId.email || '',
+            phone: row.userId.phone || '',
+            accountType: row.userId.accountType || ''
+          }
+        : null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }))
+  });
+});
+
+router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, res) => {
+  if (!isAdminUser(req.user)) {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  const decision = sanitizeText(req.body.decision || req.body.action, 20).toLowerCase();
+  if (!['approved', 'rejected'].includes(decision)) {
+    return res.status(400).json({ message: 'decision must be approved or rejected' });
+  }
+
+  const note = sanitizeText(req.body.note || req.body.reason, 260);
+  const requestedDriverId = sanitizeText(req.body.driverId, 120);
+
+  const booking = await Booking.findOne({ bookingId: req.params.id });
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  if (booking.status === 'completed') {
+    return res.status(400).json({ message: 'Completed bookings cannot be reviewed' });
+  }
+
+  booking.adminReviewStatus = decision;
+  booking.adminReviewedBy = String(req.user.id);
+  booking.adminReviewedAt = new Date();
+  booking.adminReviewNote = note || null;
+
+  if (decision === 'approved' && requestedDriverId) {
+    booking.driverId = requestedDriverId;
+  }
+
+  if (decision === 'rejected' && booking.status === 'created') {
+    booking.status = 'cancelled';
+  }
+
+  await booking.save();
+
+  try {
+    await createBookingCustomerReviewNotification({
+      bookingId: booking.bookingId,
+      customerId: booking.userId,
+      decision,
+      note
+    });
+  } catch (error) {
+    await logSecurityEvent({
+      userId: String(req.user.id),
+      action: 'booking_admin_review_customer_notification_failed',
+      ip: getClientIp(req),
+      riskScore: 10,
+      result: 'warning',
+      metadata: { bookingId: booking.bookingId, message: error.message }
+    });
+  }
+
+  return res.status(200).json({
+    bookingId: booking.bookingId,
+    status: booking.status,
+    adminReviewStatus: booking.adminReviewStatus,
+    adminReviewedBy: booking.adminReviewedBy,
+    adminReviewedAt: booking.adminReviewedAt,
+    adminReviewNote: booking.adminReviewNote,
+    driverId: booking.driverId || null
   });
 });
 
