@@ -602,6 +602,14 @@ function Dashboard() {
   const [notificationError, setNotificationError] = useState("");
   const [bookingAlarmEnabled, setBookingAlarmEnabled] = useState(() => {
     try {
+      const storedBookingAlarm = localStorage.getItem(bookingAlarmPrefKey);
+      if (storedBookingAlarm === "1" || storedBookingAlarm === "0") {
+        return storedBookingAlarm === "1";
+      }
+      if (isAdminPortal) {
+        localStorage.setItem(bookingAlarmPrefKey, "1");
+        return true;
+      }
       return localStorage.getItem(bookingAlarmPrefKey) === "1";
     } catch (error) {
       return false;
@@ -862,6 +870,15 @@ function Dashboard() {
           if (wasSeen) return false;
 
           const type = String(item?.type || "").toLowerCase();
+          const metadata = item?.metadata && typeof item.metadata === "object" ? item.metadata : {};
+          const metadataWantsAlarm =
+            Boolean(metadata.requiresAdminReview)
+            || Boolean(metadata.playSound)
+            || Boolean(metadata.ring)
+            || String(metadata.audioCue || "").toLowerCase() === "booking_alarm";
+          if (!item?.isRead && metadataWantsAlarm) {
+            return true;
+          }
           return !item?.isRead && (type === "booking_created" || type === "new_booking");
         });
 
