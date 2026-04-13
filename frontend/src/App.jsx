@@ -2613,8 +2613,625 @@ function Dashboard() {
   );
 }
 
+function AdminPortal() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role") || "user";
+  const accountType = localStorage.getItem("accountType") || "customer";
+  const isAdmin = role === "admin" || accountType === "admin";
+
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
+  const [markingAllRead, setMarkingAllRead] = useState(false);
+
+  const [pendingItems, setPendingItems] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingLoading, setPendingLoading] = useState(false);
+  const [pendingError, setPendingError] = useState("");
+  const [reviewingBookingId, setReviewingBookingId] = useState("");
+  const [reviewSuccess, setReviewSuccess] = useState("");
+
+  const [automationSummary, setAutomationSummary] = useState(null);
+  const [automationLoading, setAutomationLoading] = useState(false);
+  const [automationError, setAutomationError] = useState("");
+
+  const [alarmEnabled, setAlarmEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem("gir_admin_portal_alarm_enabled");
+      if (saved === "0") return false;
+      if (saved === "1") return true;
+      localStorage.setItem("gir_admin_portal_alarm_enabled", "1");
+      return true;
+    } catch (_error) {
+      return true;
+    }
+  });
+  const alarmAudioContextRef = useRef(null);
+  const alarmLastAtRef = useRef(0);
+  const seenNotificationIdsRef = useRef(new Set());
+
+  const ensureAlarmAudioContext = useCallback(() => {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!alarmAudioContextRef.current) {
+      alarmAudioContextRef.current = new AudioCtx();
+    }
+    return alarmAudioContextRef.current;
+  }, []);
+
+  const persistAlarmEnabled = useCallback((enabled) => {
+    setAlarmEnabled(enabled);
+    try {
+      localStorage.setItem("gir_admin_portal_alarm_enabled", enabled ? "1" : "0");
+    } catch (_error) {
+      // ignore storage failures
+    }
+  }, []);
+
+  const playAdminAlarm = useCallback(() => {
+    if (!alarmEnabled) return;
+
+    const nowMs = Date.now();
+    if (nowMs - alarmLastAtRef.current < 2500) return;
+    alarmLastAtRef.current = nowMs;
+
+    const ctx = ensureAlarmAudioContext();
+    if (!ctx) return;
+
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+      if (ctx.state === "suspended") return;
+    }
+
+    const start = ctx.currentTime + 0.02;
+    [0, 0.2, 0.4].forEach((offset) => {
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(920, start + offset);
+      gain.gain.setValueAtTime(0.0001, start + offset);
+      gain.gain.exponentialRampToValueAtTime(0.18, start + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + 0.16);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start(start + offset);
+      oscillator.stop(start + offset + 0.18);
+    });
+  }, [alarmEnabled, ensureAlarmAudioContext]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAdmin, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+
+    const unlockAudio = () => {
+      const ctx = ensureAlarmAudioContext();
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio);
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+  }, [isAdmin, ensureAlarmAudioContext]);
+
+  const loadNotifications = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!token || !isAdmin) return;
+
+      if (!silent) {
+        setNotificationLoading(true);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/notifications?limit=20`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Unable to load notifications");
+        }
+
+        const items = Array.isArray(data.items) ? data.items : [];
+        setNotifications(items);
+        setUnreadCount(Number(data.unreadCount || 0));
+        setNotificationError("");
+
+        const freshBookingAlert = items.find((item) => {
+          const id = String(item?._id || "");
+          if (!id) return false;
+
+          const seen = seenNotificationIdsRef.current.has(id);
+          seenNotificationIdsRef.current.add(id);
+          if (seen) return false;
+
+          if (item?.isRead) return false;
+          const type = String(item?.type || "").toLowerCase();
+          const metadata = item?.metadata && typeof item.metadata === "object" ? item.metadata : {};
+          const metadataWantsAlarm =
+            Boolean(metadata.requiresAdminReview)
+            || Boolean(metadata.playSound)
+            || Boolean(metadata.ring)
+            || String(metadata.audioCue || "").toLowerCase() === "booking_alarm";
+
+          if (metadataWantsAlarm) return true;
+          return type.includes("booking");
+        });
+
+        if (freshBookingAlert) {
+          playAdminAlarm();
+        }
+      } catch (error) {
+        if (!silent) {
+          setNotificationError(error.message || "Notifications unavailable");
+        }
+      } finally {
+        if (!silent) {
+          setNotificationLoading(false);
+        }
+      }
+    },
+    [token, isAdmin, playAdminAlarm]
+  );
+
+  const loadPendingBookings = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!token || !isAdmin) return;
+
+      if (!silent) {
+        setPendingLoading(true);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/bookings/admin/pending?limit=80`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Unable to load pending bookings");
+        }
+
+        setPendingItems(Array.isArray(data.items) ? data.items : []);
+        setPendingCount(Number(data.pendingCount || 0));
+        setPendingError("");
+      } catch (error) {
+        if (!silent) {
+          setPendingError(error.message || "Pending bookings unavailable");
+        }
+      } finally {
+        if (!silent) {
+          setPendingLoading(false);
+        }
+      }
+    },
+    [token, isAdmin]
+  );
+
+  const loadAutomationSummary = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!token || !isAdmin) return;
+
+      if (!silent) {
+        setAutomationLoading(true);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/security/automation/summary`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Automation summary unavailable");
+        }
+        setAutomationSummary(data);
+        setAutomationError("");
+      } catch (error) {
+        if (!silent) {
+          setAutomationError(error.message || "Automation summary unavailable");
+        }
+      } finally {
+        if (!silent) {
+          setAutomationLoading(false);
+        }
+      }
+    },
+    [token, isAdmin]
+  );
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([
+      loadNotifications({ silent: false }),
+      loadPendingBookings({ silent: false }),
+      loadAutomationSummary({ silent: false }),
+    ]);
+  }, [loadNotifications, loadPendingBookings, loadAutomationSummary]);
+
+  useEffect(() => {
+    if (!token || !isAdmin) return undefined;
+
+    let active = true;
+    const run = async (silent = false) => {
+      if (!active) return;
+      await Promise.all([
+        loadNotifications({ silent }),
+        loadPendingBookings({ silent }),
+        loadAutomationSummary({ silent }),
+      ]);
+    };
+
+    run(false);
+    const timer = setInterval(() => run(true), 15000);
+
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [token, isAdmin, loadNotifications, loadPendingBookings, loadAutomationSummary]);
+
+  const markAllNotificationsRead = async () => {
+    if (!token || markingAllRead || unreadCount === 0) return;
+
+    setMarkingAllRead(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to mark all notifications");
+      }
+
+      setNotifications((prev) =>
+        prev.map((item) => ({
+          ...item,
+          isRead: true,
+          readAt: item.readAt || new Date().toISOString(),
+        }))
+      );
+      setUnreadCount(0);
+      setNotificationError("");
+    } catch (error) {
+      setNotificationError(error.message || "Failed to mark all notifications");
+    } finally {
+      setMarkingAllRead(false);
+    }
+  };
+
+  const markOneNotificationRead = async (id, isRead) => {
+    if (!token || !id || isRead) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to mark notification");
+      }
+
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item._id === id
+            ? {
+                ...item,
+                isRead: true,
+                readAt: data.readAt || new Date().toISOString(),
+              }
+            : item
+        )
+      );
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
+    } catch (error) {
+      setNotificationError(error.message || "Unable to update notification");
+    }
+  };
+
+  const reviewPendingBooking = async (bookingId, decision) => {
+    if (!token || !bookingId || !decision || reviewingBookingId) return;
+
+    setReviewingBookingId(bookingId);
+    setReviewSuccess("");
+    setPendingError("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/bookings/${encodeURIComponent(bookingId)}/admin/review`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ decision }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Review action failed");
+      }
+
+      setReviewSuccess(`Booking ${bookingId} ${decision} by admin`);
+      setPendingItems((prev) => prev.filter((item) => String(item.bookingId || "") !== String(bookingId)));
+      setPendingCount((prev) => Math.max(0, prev - 1));
+      await Promise.all([
+        loadNotifications({ silent: true }),
+        loadPendingBookings({ silent: true }),
+      ]);
+    } catch (error) {
+      setPendingError(error.message || "Review action failed");
+    } finally {
+      setReviewingBookingId("");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("accountType");
+    navigate("/");
+  };
+
+  if (!isAdmin) return null;
+
+  const modules = Array.isArray(automationSummary?.modules) ? automationSummary.modules : aiAutomationDefaults;
+
+  return (
+    <div className="min-h-screen relative text-[#0B1F3A]">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0B1F3A] via-[#123a68] to-[#FF9933]" />
+      <div className="absolute inset-0 dash-grid opacity-35" />
+      <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px]" />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+        <section className="glass-card rounded-2xl p-4 sm:p-6 border border-[#0B1F3A]/10 shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#0B1F3A]/70 mb-1">GoIndiaRide Control Plane</p>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#0B1F3A]">Admin Management Portal</h1>
+              <p className="text-xs sm:text-sm text-[#0B1F3A]/70 mt-1">
+                Live booking approvals, alerts, and automation health in one place.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => persistAlarmEnabled(!alarmEnabled)}
+                className={`px-3 py-2 rounded-full text-xs font-semibold border ${
+                  alarmEnabled
+                    ? "bg-[#0B1F3A] text-white border-[#0B1F3A]"
+                    : "bg-white text-[#0B1F3A] border-[#0B1F3A]/25"
+                }`}
+              >
+                {alarmEnabled ? "Ring on" : "Ring off"}
+              </button>
+              <button
+                onClick={refreshAll}
+                className="px-3 py-2 rounded-full text-xs font-semibold bg-white border border-[#0B1F3A]/20"
+              >
+                Refresh all
+              </button>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="px-3 py-2 rounded-full text-xs font-semibold bg-white border border-[#0B1F3A]/20"
+              >
+                Open user cockpit
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 rounded-full text-xs font-semibold bg-[#0B1F3A] text-white"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="glass-card rounded-2xl p-3 sm:p-4 border border-[#0B1F3A]/12">
+            <p className="text-[11px] uppercase tracking-[0.15em] text-[#0B1F3A]/65">Unread alerts</p>
+            <p className="text-xl font-bold text-[#0B1F3A] mt-1">{unreadCount}</p>
+          </div>
+          <div className="glass-card rounded-2xl p-3 sm:p-4 border border-[#FF9933]/40">
+            <p className="text-[11px] uppercase tracking-[0.15em] text-[#0B1F3A]/65">Pending approvals</p>
+            <p className="text-xl font-bold text-[#0B1F3A] mt-1">{pendingCount}</p>
+          </div>
+          <div className="glass-card rounded-2xl p-3 sm:p-4 border border-[#138808]/40">
+            <p className="text-[11px] uppercase tracking-[0.15em] text-[#0B1F3A]/65">Automation modules</p>
+            <p className="text-xl font-bold text-[#0B1F3A] mt-1">{modules.length}</p>
+          </div>
+          <div className="glass-card rounded-2xl p-3 sm:p-4 border border-[#0B1F3A]/12">
+            <p className="text-[11px] uppercase tracking-[0.15em] text-[#0B1F3A]/65">Portal health</p>
+            <p className="text-xl font-bold text-emerald-700 mt-1">Live</p>
+          </div>
+        </section>
+
+        <section className="grid lg:grid-cols-2 gap-4">
+          <div className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/12">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <p className="text-sm font-semibold text-[#0B1F3A]">Live alerts</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => loadNotifications({ silent: false })}
+                  className="text-xs px-2 py-1 rounded bg-white border border-[#0B1F3A]/20"
+                  disabled={notificationLoading}
+                >
+                  {notificationLoading ? "Loading..." : "Refresh"}
+                </button>
+                <button
+                  onClick={markAllNotificationsRead}
+                  className="text-xs px-2 py-1 rounded bg-[#0B1F3A] text-white disabled:opacity-50"
+                  disabled={markingAllRead || unreadCount === 0}
+                >
+                  {markingAllRead ? "Saving..." : "Mark all read"}
+                </button>
+              </div>
+            </div>
+
+            {notificationError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mb-2">
+                {notificationError}
+              </p>
+            )}
+
+            {!notificationLoading && notifications.length === 0 && !notificationError && (
+              <p className="text-xs text-[#0B1F3A]/70">No alerts right now.</p>
+            )}
+
+            <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+              {notifications.map((item) => (
+                <button
+                  key={item._id}
+                  onClick={() => markOneNotificationRead(item._id, item.isRead)}
+                  className={`w-full text-left rounded-xl border p-3 transition ${
+                    item.isRead
+                      ? "border-[#0B1F3A]/10 bg-white/70"
+                      : "border-[#FF9933]/50 bg-[#fff5e8]"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-semibold text-[#0B1F3A]">{item.title || "Notification"}</p>
+                    {!item.isRead && <span className="w-2 h-2 rounded-full bg-[#FF9933] mt-1" />}
+                  </div>
+                  <p className="text-xs text-[#0B1F3A]/80 mt-1">{item.message}</p>
+                  <p className="text-[11px] text-[#0B1F3A]/60 mt-2">{formatNotificationTime(item.createdAt)}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/12">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <p className="text-sm font-semibold text-[#0B1F3A]">Pending booking approvals</p>
+              <button
+                onClick={() => loadPendingBookings({ silent: false })}
+                className="text-xs px-2 py-1 rounded bg-white border border-[#0B1F3A]/20"
+                disabled={pendingLoading}
+              >
+                {pendingLoading ? "Loading..." : "Refresh"}
+              </button>
+            </div>
+
+            {pendingError && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mb-2">
+                {pendingError}
+              </p>
+            )}
+            {reviewSuccess && (
+              <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-2 mb-2">
+                {reviewSuccess}
+              </p>
+            )}
+
+            {!pendingLoading && pendingItems.length === 0 && !pendingError && (
+              <p className="text-xs text-[#0B1F3A]/70">No pending approvals.</p>
+            )}
+
+            <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+              {pendingItems.map((row) => {
+                const bookingId = String(row?.bookingId || "");
+                const inProgress = reviewingBookingId === bookingId;
+                return (
+                  <div key={bookingId} className="rounded-xl border border-[#0B1F3A]/12 bg-white/80 p-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold text-[#0B1F3A]">{bookingId || "Booking"}</p>
+                        <p className="text-xs text-[#0B1F3A]/70 mt-1">
+                          Customer: {row?.customer?.name || "-"} {row?.customer?.phone ? `(${row.customer.phone})` : ""}
+                        </p>
+                        <p className="text-xs text-[#0B1F3A]/70">
+                          Fare ₹{Number(row?.amount || 0).toLocaleString("en-IN")} | {Number(row?.distanceKm || 0).toFixed(1)} km
+                        </p>
+                        <p className="text-[11px] text-[#0B1F3A]/55">{formatNotificationTime(row?.createdAt)}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => reviewPendingBooking(bookingId, "approved")}
+                          className="px-3 py-2 rounded-lg bg-[#138808] text-white text-xs disabled:opacity-50"
+                          disabled={!bookingId || inProgress}
+                        >
+                          {inProgress ? "Saving..." : "Approve"}
+                        </button>
+                        <button
+                          onClick={() => reviewPendingBooking(bookingId, "rejected")}
+                          className="px-3 py-2 rounded-lg bg-[#b91c1c] text-white text-xs disabled:opacity-50"
+                          disabled={!bookingId || inProgress}
+                        >
+                          {inProgress ? "Saving..." : "Reject"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="glass-card rounded-2xl p-4 border border-[#0B1F3A]/12">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Automation control status</p>
+            <button
+              onClick={() => loadAutomationSummary({ silent: false })}
+              className="text-xs px-2 py-1 rounded bg-white border border-[#0B1F3A]/20"
+              disabled={automationLoading}
+            >
+              {automationLoading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
+
+          {automationError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2 mb-2">
+              {automationError}
+            </p>
+          )}
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {modules.map((module) => (
+              <div key={module.id || module.title} className="rounded-xl border border-[#0B1F3A]/10 bg-white/75 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-[#0B1F3A]">{module.title || "Module"}</p>
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full border ${getStatusStyle(module.status || "healthy")}`}>
+                    {String(module.status || "healthy")}
+                  </span>
+                </div>
+                <p className="text-xs text-[#0B1F3A]/70 mt-1">{module.detail || "No detail available"}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 function AdminDashboard() {
-  return <Dashboard />;
+  return <AdminPortal />;
 }
 
 function DriverDashboard() {
