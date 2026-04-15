@@ -192,7 +192,6 @@ async function inspectRefreshTokenReplay({ token = '', req = null } = {}) {
       userId: userId || null,
       status: 'active',
       seenCount: 1,
-      suspiciousCount: 0,
       firstSeenAt: nowDate,
       lastSeenAt: nowDate,
       firstIp: ip,

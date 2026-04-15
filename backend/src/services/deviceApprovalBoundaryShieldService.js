@@ -249,7 +249,6 @@ async function inspectUserDeviceApprovalBoundary({ user = null, req = null } = {
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(violationInfo.violation ? { $inc: { suspiciousCount: 1 } } : {})
       },
@@ -320,7 +319,6 @@ async function inspectUserDeviceApprovalBoundary({ user = null, req = null } = {
         })
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -527,7 +525,6 @@ async function quarantineDeviceApprovalBoundaryUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowViolationCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastDeviceFingerprint: '',

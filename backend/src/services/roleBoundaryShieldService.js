@@ -300,7 +300,6 @@ async function inspectUserRoleBoundary({ user = null, req = null } = {}) {
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         $inc: {
           suspiciousCount: 1
@@ -368,7 +367,6 @@ async function inspectUserRoleBoundary({ user = null, req = null } = {}) {
         })
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -577,7 +575,6 @@ async function quarantineRoleBoundaryUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowViolationCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastActorRole: '',

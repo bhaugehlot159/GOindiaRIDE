@@ -153,7 +153,6 @@ async function inspectAccessTokenReplay({ payload = {}, user = null, req = null 
       firstCountry: country,
       lastCountry: country,
       seenCount: 1,
-      suspiciousCount: 0,
       status: 'active',
       lastReason: 'first_seen',
       metadata: {},

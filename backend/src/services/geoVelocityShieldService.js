@@ -111,7 +111,6 @@ async function upsertPassiveState({ userId, country, ip, fingerprint, userAgent 
       },
       $setOnInsert: {
         escalationLevel: 0,
-        suspiciousCount: 0,
         metadata: {}
       }
     },

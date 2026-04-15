@@ -228,7 +228,6 @@ async function inspectUserPrivilegeClaimIntegrity({ user = null, payload = null,
       $set: update,
       $setOnInsert: {
         escalationLevel: 0,
-        suspiciousCount: 0
       }
     };
 
@@ -275,7 +274,6 @@ async function inspectUserPrivilegeClaimIntegrity({ user = null, payload = null,
         })
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -484,7 +482,6 @@ async function quarantinePrivilegeIntegrityUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowMismatchCount: 0,
-        suspiciousCount: 0,
         lastTokenRole: '',
         lastDbRole: '',
         lastTokenAccountType: '',

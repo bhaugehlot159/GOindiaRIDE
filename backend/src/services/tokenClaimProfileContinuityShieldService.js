@@ -629,7 +629,6 @@ async function inspectUserTokenClaimProfileContinuity({ user = null, payload = n
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -708,7 +707,6 @@ async function inspectUserTokenClaimProfileContinuity({ user = null, payload = n
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -917,7 +915,6 @@ async function quarantineTokenClaimProfileContinuityUser({
         windowStartAt: nowDate,
         windowViolationCount: 0,
         windowMissingClaimCount: 0,
-        suspiciousCount: 0,
         sidProfiles: [],
         lastPath: '',
         lastMethod: '',

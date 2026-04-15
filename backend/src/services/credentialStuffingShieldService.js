@@ -352,7 +352,6 @@ async function quarantineCredentialStuffingKey({
         windowFailureCount: 0,
         windowPrincipalHashes: [],
         totalFailureCount: 0,
-        suspiciousCount: 0,
         lastIp: ''
       }
     },

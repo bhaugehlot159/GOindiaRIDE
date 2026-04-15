@@ -468,8 +468,7 @@ async function inspectUserTokenClaimBoundary({ user = null, payload = null, req 
           expiresAt: computeExpiryDate(options)
         },
         $setOnInsert: {
-          escalationLevel: 0,
-          suspiciousCount: 0
+          escalationLevel: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -550,9 +549,6 @@ async function inspectUserTokenClaimBoundary({ user = null, payload = null, req 
           escalationLevel
         }),
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
-      },
-      $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -765,7 +761,6 @@ async function quarantineTokenClaimBoundaryUser({
         windowStartAt: nowDate,
         windowViolationCount: 0,
         windowMissingClaimCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastIssuer: '',

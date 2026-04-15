@@ -493,7 +493,6 @@ async function inspectUserTokenSessionOriginBinding({ user = null, payload = nul
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -580,7 +579,6 @@ async function inspectUserTokenSessionOriginBinding({ user = null, payload = nul
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1

@@ -229,7 +229,6 @@ async function inspectUserCriticalPathCooldown({ user = null, req = null } = {})
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(cooldownViolated ? { $inc: { suspiciousCount: 1 } } : {})
       },
@@ -298,7 +297,6 @@ async function inspectUserCriticalPathCooldown({ user = null, req = null } = {})
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -502,7 +500,6 @@ async function quarantineCriticalPathCooldownUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowViolationCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: ''
       }

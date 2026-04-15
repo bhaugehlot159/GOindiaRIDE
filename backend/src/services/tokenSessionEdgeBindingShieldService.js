@@ -580,7 +580,6 @@ async function inspectUserTokenSessionEdgeBinding({ user = null, payload = null,
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -671,7 +670,6 @@ async function inspectUserTokenSessionEdgeBinding({ user = null, payload = null,
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1

@@ -66,10 +66,22 @@ const allowedOrigins = new Set([
   ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
 ]);
 
+function isDevLocalOrigin(origin) {
+  if (process.env.NODE_ENV === 'production') return false;
+  try {
+    const parsed = new URL(String(origin || ''));
+    const host = String(parsed.hostname || '').toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1';
+  } catch (_error) {
+    return false;
+  }
+}
+
 app.use(cors({
   origin(origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.has(origin)) return callback(null, true);
+    if (isDevLocalOrigin(origin)) return callback(null, true);
     return callback(new Error('CORS blocked by security policy'));
   },
   methods: ['GET', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE'],

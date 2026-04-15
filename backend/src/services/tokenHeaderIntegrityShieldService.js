@@ -451,7 +451,6 @@ async function inspectUserTokenHeaderIntegrity({ user = null, payload = null, to
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -535,7 +534,6 @@ async function inspectUserTokenHeaderIntegrity({ user = null, payload = null, to
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -747,7 +745,6 @@ async function quarantineTokenHeaderIntegrityUser({
         windowStartAt: nowDate,
         windowViolationCount: 0,
         windowMissingFieldCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastAlg: '',

@@ -2,6 +2,16 @@ const LoginLog = require('../models/LoginLog');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+const FAKE_RIDE_IP_BULK_THRESHOLD = Math.max(5, Number(process.env.FAKE_RIDE_IP_BULK_THRESHOLD || 25));
+const FAKE_RIDE_CARD_ACROSS_USERS_THRESHOLD = Math.max(2, Number(process.env.FAKE_RIDE_CARD_ACROSS_USERS_THRESHOLD || 4));
+const FAKE_RIDE_REFERRAL_BURST_THRESHOLD = Math.max(3, Number(process.env.FAKE_RIDE_REFERRAL_BURST_THRESHOLD || 8));
+
+function isLoopbackIp(ip) {
+  const normalized = String(ip || '').trim().toLowerCase();
+  return LOOPBACK_IPS.has(normalized);
+}
+
 async function calculateLoginRisk({ email, ip, isNewDevice, failedOtpAttempts = 0 }) {
   const failedAttempts = await LoginLog.countDocuments({
     email,
@@ -73,10 +83,12 @@ async function detectFakeRideSignals({ ip, deviceFingerprint, referralCode, card
   ]);
 
   const cardAcrossUsers = sameCardAcrossUsers[0]?.users || 0;
-  const referralAbuse = referralCode && referralBurst >= 8;
+  const referralAbuse = referralCode && referralBurst >= FAKE_RIDE_REFERRAL_BURST_THRESHOLD;
+  const ipBulkTriggered = !isLoopbackIp(ip) && ipBulkAccounts >= FAKE_RIDE_IP_BULK_THRESHOLD;
+  const cardAcrossUsersTriggered = cardAcrossUsers >= FAKE_RIDE_CARD_ACROSS_USERS_THRESHOLD;
 
   return {
-    suspicious: ipBulkAccounts >= 5 || cardAcrossUsers >= 4 || referralAbuse || Boolean(deviceFingerprint && deviceFingerprint.includes('emulator')),
+    suspicious: ipBulkTriggered || cardAcrossUsersTriggered || referralAbuse || Boolean(deviceFingerprint && deviceFingerprint.includes('emulator')),
     ipBulkAccounts,
     cardAcrossUsers,
     referralBurst

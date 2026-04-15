@@ -300,7 +300,6 @@ async function inspectUserTokenTemporalIntegrity({ user = null, payload = null, 
       $set: update,
       $setOnInsert: {
         escalationLevel: 0,
-        suspiciousCount: 0
       }
     };
 
@@ -357,7 +356,6 @@ async function inspectUserTokenTemporalIntegrity({ user = null, payload = null, 
         })
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -568,7 +566,6 @@ async function quarantineTokenTemporalIntegrityUser({
         windowStartAt: nowDate,
         windowAnomalyCount: 0,
         windowMissingClaimCount: 0,
-        suspiciousCount: 0,
         lastTokenIssuedAt: null,
         lastTokenExpiresAt: null,
         lastTokenNotBeforeAt: null,

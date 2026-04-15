@@ -233,7 +233,6 @@ async function inspectUserStepUpAuth({ user = null, payload = null, req = null }
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         }
       },
       { upsert: true, setDefaultsOnInsert: true }
@@ -265,7 +264,6 @@ async function inspectUserStepUpAuth({ user = null, payload = null, req = null }
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         }
       },
       { upsert: true, setDefaultsOnInsert: true }
@@ -303,7 +301,6 @@ async function inspectUserStepUpAuth({ user = null, payload = null, req = null }
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         $inc: {
           suspiciousCount: 1
@@ -370,7 +367,6 @@ async function inspectUserStepUpAuth({ user = null, payload = null, req = null }
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -573,7 +569,6 @@ async function quarantineStepUpAuthUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowBypassCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: ''
       }

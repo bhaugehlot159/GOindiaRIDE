@@ -495,7 +495,6 @@ async function inspectUserTokenPayloadHygiene({ user = null, payload = null, tok
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -572,7 +571,6 @@ async function inspectUserTokenPayloadHygiene({ user = null, payload = null, tok
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -778,7 +776,6 @@ async function quarantineTokenPayloadHygieneUser({
         windowStartAt: nowDate,
         windowViolationCount: 0,
         windowMissingClaimCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastPayloadHash: ''

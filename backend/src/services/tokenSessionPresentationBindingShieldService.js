@@ -518,7 +518,6 @@ async function inspectUserTokenSessionPresentationBinding({ user = null, payload
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -603,7 +602,6 @@ async function inspectUserTokenSessionPresentationBinding({ user = null, payload
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1

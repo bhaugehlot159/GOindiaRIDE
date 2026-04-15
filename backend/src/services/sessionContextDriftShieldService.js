@@ -143,7 +143,6 @@ async function inspectUserSessionContextDrift({ user = null, req = null } = {}) 
       userId,
       status: 'active',
       escalationLevel: 0,
-      suspiciousCount: 0,
       windowStartAt: nowDate,
       windowAnomalyCount: 0,
       quarantineUntil: null,
@@ -456,7 +455,6 @@ async function quarantineSessionContextUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowAnomalyCount: 0,
-        suspiciousCount: 0,
         lastCountry: '',
         lastIp: '',
         lastFingerprint: '',

@@ -410,7 +410,6 @@ async function inspectUserTokenSessionAnchor({ user = null, payload = null, req 
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(evaluation.detected ? {
           $inc: {
@@ -489,7 +488,6 @@ async function inspectUserTokenSessionAnchor({ user = null, payload = null, req 
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -696,7 +694,6 @@ async function quarantineTokenSessionAnchorUser({
         windowStartAt: nowDate,
         windowViolationCount: 0,
         windowMissingClaimCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastSidHash: '',

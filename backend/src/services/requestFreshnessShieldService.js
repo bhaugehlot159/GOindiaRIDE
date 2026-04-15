@@ -293,7 +293,6 @@ async function inspectUserRequestFreshness({ user = null, req = null } = {}) {
         },
         $setOnInsert: {
           escalationLevel: 0,
-          suspiciousCount: 0
         },
         ...(freshness.detected ? { $inc: { suspiciousCount: 1 } } : {})
       },
@@ -364,7 +363,6 @@ async function inspectUserRequestFreshness({ user = null, req = null } = {}) {
         expiresAt: computeExpiryDate(options, quarantineUntil.getTime())
       },
       $setOnInsert: {
-        suspiciousCount: 0
       },
       $inc: {
         suspiciousCount: 1
@@ -568,7 +566,6 @@ async function quarantineRequestFreshnessUser({
       $setOnInsert: {
         windowStartAt: nowDate,
         windowViolationCount: 0,
-        suspiciousCount: 0,
         lastPath: '',
         lastMethod: '',
         lastRequestIdHash: '',

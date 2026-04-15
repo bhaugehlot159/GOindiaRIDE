@@ -400,6 +400,12 @@ async function authenticate(req, res, next) {
           });
         }
       } catch (_error) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('token_claim_boundary_shield_error', {
+            message: _error?.message || 'unknown_error',
+            name: _error?.name || 'Error'
+          });
+        }
         if (!env.tokenClaimBoundaryShieldFailOpen) {
           return res.status(503).json({ message: 'Token claim boundary shield unavailable' });
         }
