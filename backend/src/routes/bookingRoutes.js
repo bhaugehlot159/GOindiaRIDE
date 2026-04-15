@@ -12,6 +12,8 @@ const { verifyFareIntegrity, computeFareHash } = require('../middleware/fareInte
 const { walletCriticalLimiter } = require('../middleware/rateLimiters');
 const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
+const { sendEmail } = require('../utils/mailer');
+const logger = require('../utils/logger');
 const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 const {
   createBookingAdminReviewAlert,
@@ -34,6 +36,7 @@ const BOOKING_CRITICAL_RATE_LIMIT_ENABLED = String(process.env.BOOKING_CRITICAL_
 const BOOKING_SIGNATURE_INCLUDE_CREATE = String(process.env.BOOKING_SIGNATURE_INCLUDE_CREATE || 'true').trim().toLowerCase() === 'true';
 const BOOKING_ALLOW_BROWSER_AUTH_CREATE = String(process.env.BOOKING_ALLOW_BROWSER_AUTH_CREATE || 'true').trim().toLowerCase() === 'true';
 const BOOKING_BROWSER_CLIENT_HEADER = String(process.env.BOOKING_BROWSER_CLIENT_HEADER || 'goindiaride-web').trim().toLowerCase();
+const ADMIN_EMAIL_RECIPIENT_VARS = ['BOOKING_ADMIN_ALERT_EMAILS', 'ADMIN_ALERT_EMAILS', 'ADMIN_EMAILS'];
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 function hasBearerAuth(req) {
@@ -126,6 +129,226 @@ function sanitizeText(value, maxLen = 180) {
     .slice(0, maxLen);
 }
 
+function sanitizeStringArray(value, maxItems = 8, maxLen = 120) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => sanitizeText(entry, maxLen))
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+function sanitizeBooleanMap(value, maxKeys = 40) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const entries = Object.entries(value).slice(0, maxKeys);
+  return entries.reduce((acc, [key, raw]) => {
+    const safeKey = sanitizeText(key, 60).replace(/\s+/g, '_');
+    if (!safeKey) return acc;
+    acc[safeKey] = Boolean(raw);
+    return acc;
+  }, {});
+}
+
+function normalizeInteger(value, fallback = 1, min = 1, max = 20) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function buildBookingContext(body = {}) {
+  return {
+    pickupLocation: sanitizeText(body.pickup || body.pickupLocation, 180),
+    dropLocation: sanitizeText(body.drop || body.dropLocation, 180),
+    rideDate: sanitizeText(body.rideDate, 40),
+    rideTime: sanitizeText(body.rideTime, 40),
+    returnDate: sanitizeText(body.returnDate, 40),
+    returnTime: sanitizeText(body.returnTime, 40),
+    tripPlan: sanitizeText(body.tripPlan, 80),
+    paymentMethod: sanitizeText(body.paymentMethod, 80),
+    vehicleType: sanitizeText(body.vehicleType || body.rideType, 80),
+    passengers: normalizeInteger(body.passengers, 1, 1, 20),
+    luggage: sanitizeText(body.luggage, 80),
+    notes: sanitizeText(body.notes, 600),
+    stops: sanitizeStringArray(body.stops, 8, 160),
+    specialRequests: sanitizeBooleanMap(body.specialRequests, 60),
+    safetyAccessibility: sanitizeBooleanMap(body.safetyAccessibility, 60)
+  };
+}
+
+function splitCsvValues(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isLikelyEmail(value) {
+  const email = normalizeEmail(value);
+  return Boolean(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+}
+
+function uniqueEmails(list = []) {
+  return [...new Set(list.map(normalizeEmail).filter(isLikelyEmail))];
+}
+
+async function resolveAdminAlertRecipients() {
+  const envEmails = ADMIN_EMAIL_RECIPIENT_VARS.flatMap((key) => splitCsvValues(process.env[key]));
+  const adminUsers = await User.find({
+    $or: [{ role: 'admin' }, { accountType: 'admin' }],
+    email: { $exists: true, $ne: null }
+  }).select('email').lean();
+
+  const adminUserEmails = adminUsers
+    .map((user) => normalizeEmail(user.email))
+    .filter(isLikelyEmail);
+
+  return uniqueEmails([...envEmails, ...adminUserEmails]);
+}
+
+function humanizeKey(key) {
+  return String(key || '')
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
+
+function listEnabledFlags(map = {}) {
+  const enabled = Object.entries(map || {})
+    .filter(([, value]) => Boolean(value))
+    .map(([key]) => humanizeKey(key));
+  return enabled.length ? enabled.join(', ') : 'None';
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function buildBookingAdminEmailText({ booking, context, customer }) {
+  const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
+  return [
+    `New booking pending admin review`,
+    `Booking ID: ${booking.bookingId}`,
+    `Status: ${booking.status}`,
+    `Admin Review: ${booking.adminReviewStatus || 'pending'}`,
+    `Amount: INR ${Number(booking.amount || 0).toFixed(2)}`,
+    `Distance: ${Number(booking.distanceKm || 0).toFixed(2)} km`,
+    `Pickup: ${context.pickupLocation || 'N/A'}`,
+    `Drop: ${context.dropLocation || 'N/A'}`,
+    `Stops: ${stopsText}`,
+    `Ride Date/Time: ${(context.rideDate || 'N/A')} ${(context.rideTime || '')}`.trim(),
+    `Return Date/Time: ${(context.returnDate || 'N/A')} ${(context.returnTime || '')}`.trim(),
+    `Trip Plan: ${context.tripPlan || 'N/A'}`,
+    `Vehicle Type: ${context.vehicleType || 'N/A'}`,
+    `Payment Method: ${context.paymentMethod || 'N/A'}`,
+    `Passengers: ${context.passengers || 1}`,
+    `Luggage: ${context.luggage || 'N/A'}`,
+    `Special Requests: ${listEnabledFlags(context.specialRequests)}`,
+    `Safety & Accessibility: ${listEnabledFlags(context.safetyAccessibility)}`,
+    `Notes: ${context.notes || 'None'}`,
+    `Customer Name: ${customer.name || 'N/A'}`,
+    `Customer Email: ${customer.email || 'N/A'}`,
+    `Customer Phone: ${customer.phone || 'N/A'}`,
+    `Created At: ${booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()}`
+  ].join('\n');
+}
+
+function buildBookingAdminEmailHtml({ booking, context, customer }) {
+  const stopsText = context.stops.length ? context.stops.join(', ') : 'None';
+  const dataRows = [
+    ['Booking ID', booking.bookingId],
+    ['Status', booking.status],
+    ['Admin Review', booking.adminReviewStatus || 'pending'],
+    ['Amount', `INR ${Number(booking.amount || 0).toFixed(2)}`],
+    ['Distance', `${Number(booking.distanceKm || 0).toFixed(2)} km`],
+    ['Pickup', context.pickupLocation || 'N/A'],
+    ['Drop', context.dropLocation || 'N/A'],
+    ['Stops', stopsText],
+    ['Ride Date/Time', `${context.rideDate || 'N/A'} ${context.rideTime || ''}`.trim()],
+    ['Return Date/Time', `${context.returnDate || 'N/A'} ${context.returnTime || ''}`.trim()],
+    ['Trip Plan', context.tripPlan || 'N/A'],
+    ['Vehicle Type', context.vehicleType || 'N/A'],
+    ['Payment Method', context.paymentMethod || 'N/A'],
+    ['Passengers', String(context.passengers || 1)],
+    ['Luggage', context.luggage || 'N/A'],
+    ['Special Requests', listEnabledFlags(context.specialRequests)],
+    ['Safety & Accessibility', listEnabledFlags(context.safetyAccessibility)],
+    ['Notes', context.notes || 'None'],
+    ['Customer Name', customer.name || 'N/A'],
+    ['Customer Email', customer.email || 'N/A'],
+    ['Customer Phone', customer.phone || 'N/A'],
+    ['Created At', booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()]
+  ];
+
+  const rows = dataRows
+    .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
+    .join('');
+
+  return `<div style="font-family:Arial,sans-serif;color:#1f2d3d;line-height:1.5;">
+<h2 style="margin:0 0 12px;color:#0b2f5c;">New Booking Pending Admin Review</h2>
+<p style="margin:0 0 14px;">A new customer booking has been created and is waiting for admin approval.</p>
+<table style="border-collapse:collapse;width:100%;max-width:820px;background:#ffffff;">${rows}</table>
+</div>`;
+}
+
+async function sendBookingAdminAlertEmail({ booking, context, customer }) {
+  const recipients = await resolveAdminAlertRecipients();
+  if (!recipients.length) {
+    logger.warn('booking_admin_email_skipped', {
+      bookingId: booking.bookingId,
+      reason: 'no_admin_recipients'
+    });
+    return { sent: false, skipped: true, reason: 'no_admin_recipients' };
+  }
+
+  const subject = `[GO India RIDE] New booking pending admin review - ${booking.bookingId}`;
+  const text = buildBookingAdminEmailText({ booking, context, customer });
+  const html = buildBookingAdminEmailHtml({ booking, context, customer });
+
+  try {
+    const mailResult = await sendEmail({
+      to: recipients.join(','),
+      subject,
+      text,
+      html
+    });
+
+    if (mailResult && mailResult.skipped) {
+      return {
+        sent: false,
+        skipped: true,
+        reason: 'smtp_not_configured'
+      };
+    }
+
+    return {
+      sent: true,
+      skipped: false,
+      recipients: recipients.length
+    };
+  } catch (error) {
+    logger.error('booking_admin_email_failed', {
+      bookingId: booking.bookingId,
+      message: error.message
+    });
+    return {
+      sent: false,
+      skipped: false,
+      reason: 'send_failed',
+      message: error.message
+    };
+  }
+}
+
 function toAmount(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return NaN;
@@ -206,6 +429,13 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
 
   const ip = getClientIp(req);
   const device = getDeviceMeta(req);
+  const bookingContext = buildBookingContext(req.body);
+  const customerRecord = await User.findById(req.user.id).select('name email phone').lean();
+  const customerSnapshot = {
+    name: sanitizeText(customerRecord?.name, 140),
+    email: sanitizeText(customerRecord?.email || req.user.email, 180),
+    phone: sanitizeText(customerRecord?.phone, 40)
+  };
   const cardHash = crypto.createHash('sha256').update(cardToken).digest('hex');
 
   const fraud = await detectBookingFraud({ userId: req.user.id, ip, cardHash });
@@ -237,7 +467,32 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   }
 
   const bookingId = `BK${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  const booking = await Booking.create({ userId: req.user.id, bookingId, cardHash, ip, distanceKm, amount: req.recalculatedFare, referralCode, status: 'created' });
+  const booking = await Booking.create({
+    userId: req.user.id,
+    bookingId,
+    cardHash,
+    ip,
+    distanceKm,
+    amount: req.recalculatedFare,
+    referralCode: sanitizeText(referralCode, 80),
+    pickupLocation: bookingContext.pickupLocation,
+    dropLocation: bookingContext.dropLocation,
+    rideDate: bookingContext.rideDate,
+    rideTime: bookingContext.rideTime,
+    returnDate: bookingContext.returnDate,
+    returnTime: bookingContext.returnTime,
+    tripPlan: bookingContext.tripPlan,
+    paymentMethod: bookingContext.paymentMethod,
+    vehicleType: bookingContext.vehicleType,
+    passengers: bookingContext.passengers,
+    luggage: bookingContext.luggage,
+    notes: bookingContext.notes,
+    stops: bookingContext.stops,
+    specialRequests: bookingContext.specialRequests,
+    safetyAccessibility: bookingContext.safetyAccessibility,
+    customerSnapshot,
+    status: 'created'
+  });
   await Booking.updateOne(
     { _id: booking._id },
     {
@@ -257,7 +512,15 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     ip,
     city: req.headers['x-city'] || 'unknown',
     deviceFingerprint: device.fingerprint,
-    metadata: { distanceKm, amount, referralCode }
+    metadata: {
+      distanceKm,
+      amount,
+      referralCode,
+      pickup: bookingContext.pickupLocation,
+      drop: bookingContext.dropLocation,
+      tripPlan: bookingContext.tripPlan,
+      paymentMethod: bookingContext.paymentMethod
+    }
   });
 
   const behavior = await evaluateBehaviorRisk(req.user.id);
@@ -267,32 +530,44 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   });
 
   let notificationSummary = null;
+  let adminEmail = null;
   try {
-    const pickup = sanitizeText(req.body.pickup || req.body.pickupLocation, 120);
-    const drop = sanitizeText(req.body.drop || req.body.dropLocation, 120);
-    const vehicleType = sanitizeText(req.body.vehicleType, 40);
-
-    notificationSummary = await createBookingPortalNotifications({
+    const reviewAlert = await createBookingAdminReviewAlert({
       bookingId: booking.bookingId,
       amount: req.recalculatedFare,
       distanceKm: booking.distanceKm,
-      action: 'created',
       customerId: req.user.id,
-      pickup,
-      drop,
-      vehicleType,
+      pickup: bookingContext.pickupLocation,
+      drop: bookingContext.dropLocation,
+      vehicleType: bookingContext.vehicleType,
+      rideDate: bookingContext.rideDate,
+      rideTime: bookingContext.rideTime,
+      returnDate: bookingContext.returnDate,
+      returnTime: bookingContext.returnTime,
+      tripPlan: bookingContext.tripPlan,
+      paymentMethod: bookingContext.paymentMethod,
+      passengers: bookingContext.passengers,
+      luggage: bookingContext.luggage,
+      notes: bookingContext.notes,
+      stops: bookingContext.stops,
+      specialRequests: bookingContext.specialRequests,
+      safetyAccessibility: bookingContext.safetyAccessibility,
+      customerSnapshot,
       currency: 'INR'
     });
 
-    await createBookingAdminReviewAlert({
-      bookingId: booking.bookingId,
-      amount: req.recalculatedFare,
-      distanceKm: booking.distanceKm,
-      customerId: req.user.id,
-      pickup,
-      drop,
-      vehicleType,
-      currency: 'INR'
+    notificationSummary = {
+      adminReview: reviewAlert,
+      driverDispatch: {
+        skipped: true,
+        reason: 'awaiting_admin_review'
+      }
+    };
+
+    adminEmail = await sendBookingAdminAlertEmail({
+      booking,
+      context: bookingContext,
+      customer: customerSnapshot
     });
   } catch (error) {
     await logSecurityEvent({
@@ -310,7 +585,8 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     status: booking.status,
     adminReviewStatus: booking.adminReviewStatus || 'pending',
     riskScore: behavior.score,
-    notifications: notificationSummary
+    notifications: notificationSummary,
+    adminEmail
   });
 });
 
@@ -667,6 +943,28 @@ router.get('/admin/pending', authenticate, async (req, res) => {
       distanceKm: Number(row.distanceKm || 0),
       amount: Number(row.amount || 0),
       referralCode: row.referralCode || '',
+      pickupLocation: row.pickupLocation || '',
+      dropLocation: row.dropLocation || '',
+      rideDate: row.rideDate || '',
+      rideTime: row.rideTime || '',
+      returnDate: row.returnDate || '',
+      returnTime: row.returnTime || '',
+      tripPlan: row.tripPlan || '',
+      paymentMethod: row.paymentMethod || '',
+      vehicleType: row.vehicleType || '',
+      passengers: Number(row.passengers || 1),
+      luggage: row.luggage || '',
+      notes: row.notes || '',
+      stops: Array.isArray(row.stops) ? row.stops : [],
+      specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
+      safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
+      customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
+        ? {
+            name: row.customerSnapshot.name || '',
+            email: row.customerSnapshot.email || '',
+            phone: row.customerSnapshot.phone || ''
+          }
+        : null,
       driverId: row.driverId || null,
       adminReviewedBy: row.adminReviewedBy || null,
       adminReviewedAt: row.adminReviewedAt || null,

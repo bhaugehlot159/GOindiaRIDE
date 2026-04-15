@@ -153,8 +153,25 @@ async function createBookingAdminReviewAlert({
   pickup = '',
   drop = '',
   vehicleType = '',
+  rideDate = '',
+  rideTime = '',
+  returnDate = '',
+  returnTime = '',
+  tripPlan = '',
+  paymentMethod = '',
+  passengers = 1,
+  luggage = '',
+  notes = '',
+  stops = [],
+  specialRequests = {},
+  safetyAccessibility = {},
+  customerSnapshot = {},
   currency = 'INR'
 }) {
+  const safeStops = Array.isArray(stops)
+    ? stops.map((item) => sanitizeText(item, 120)).filter(Boolean).slice(0, 8)
+    : [];
+
   const payload = {
     bookingId,
     amount,
@@ -170,6 +187,25 @@ async function createBookingAdminReviewAlert({
       pickup: sanitizeText(pickup, 120),
       drop: sanitizeText(drop, 120),
       vehicleType: sanitizeText(vehicleType, 40),
+      rideDate: sanitizeText(rideDate, 40),
+      rideTime: sanitizeText(rideTime, 40),
+      returnDate: sanitizeText(returnDate, 40),
+      returnTime: sanitizeText(returnTime, 40),
+      tripPlan: sanitizeText(tripPlan, 80),
+      paymentMethod: sanitizeText(paymentMethod, 80),
+      passengers: Number.isFinite(Number(passengers)) ? Math.max(1, Math.min(20, Number(passengers))) : 1,
+      luggage: sanitizeText(luggage, 80),
+      notes: sanitizeText(notes, 260),
+      stops: safeStops,
+      specialRequests: specialRequests && typeof specialRequests === 'object' ? specialRequests : {},
+      safetyAccessibility: safetyAccessibility && typeof safetyAccessibility === 'object' ? safetyAccessibility : {},
+      customerSnapshot: customerSnapshot && typeof customerSnapshot === 'object'
+        ? {
+            name: sanitizeText(customerSnapshot.name, 120),
+            email: sanitizeText(customerSnapshot.email, 160),
+            phone: sanitizeText(customerSnapshot.phone, 40)
+          }
+        : {},
       currency: sanitizeText(currency || 'INR', 8).toUpperCase() || 'INR'
     }
   };
