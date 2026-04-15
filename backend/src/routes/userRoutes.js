@@ -1,10 +1,31 @@
 ﻿const express = require('express');
 const { authenticate } = require('../middleware/authMiddleware');
+const User = require('../models/User');
 
 const router = express.Router();
 
 router.get('/profile', authenticate, async (req, res) => {
-  return res.json({ message: 'Authenticated user route access granted', user: req.user });
+  const user = await User.findById(req.user.id)
+    .select('_id name email phone role accountType createdAt updatedAt')
+    .lean();
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  return res.status(200).json({
+    message: 'Authenticated user route access granted',
+    user: {
+      id: String(user._id),
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      role: user.role || '',
+      accountType: user.accountType || '',
+      createdAt: user.createdAt || null,
+      updatedAt: user.updatedAt || null
+    }
+  });
 });
 
 // === FUTURE_ROUTES_BUSINESS_USERROUTES_START ===

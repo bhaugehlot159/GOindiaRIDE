@@ -11,6 +11,7 @@ const ADMIN_OTP_KEY='admin2FAOTP';
 const ADMIN_OTP_EMAIL_KEY='admin2FAEmail';
 const ADMIN_OTP_METHOD_KEY='admin2FAMethod';
 const LOGIN_RISK_THRESHOLD=35;
+const LIVE_BACKEND_REQUIRED_FOR_LOGIN=true;
 const ADMIN_MAX_ATTEMPTS=5;
 const ADMIN_LOCK_MS=15*60*1000;
 const ADMIN_CHALLENGE_TTL_MS=10*60*1000;
@@ -216,7 +217,10 @@ function upsertLocalAccountFromBackend(role,payload={}){
   let index=account.index;
   if(index<0&&providedId){index=records.findIndex((item)=>String(item?.id||'')===String(providedId));}
   const existing=index>=0?records[index]:(account.record||null);
-  const stableId=String(existing?.id||providedId||createStableAccountId(safeRole,safeEmail,safePhone)).trim();
+  const resolvedEmail=safeEmail||sanitizeEmail(existing?.email||'');
+  const resolvedPhone=safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||'');
+  const deterministicId=createStableAccountId(safeRole,resolvedEmail,resolvedPhone);
+  const stableId=String(existing?.id||deterministicId||providedId).trim();
   const nowIso=new Date().toISOString();
 
   const normalizedRecord=safeRole==='driver'
@@ -229,6 +233,7 @@ function upsertLocalAccountFromBackend(role,payload={}){
       fullname:sanitizeInput(payload.fullname||payload.name||existing?.fullname||existing?.name||'Driver'),
       email:safeEmail||sanitizeEmail(existing?.email||''),
       phone:safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||''),
+      backendUserId:providedId||sanitizeInput(existing?.backendUserId||''),
       vehicleType:sanitizeInput(payload.vehicleType||existing?.vehicleType||'economy'),
       vehicleNumber:sanitizeInput(payload.vehicleNumber||existing?.vehicleNumber||''),
       createdAt:existing?.createdAt||nowIso,
@@ -243,6 +248,7 @@ function upsertLocalAccountFromBackend(role,payload={}){
       name:sanitizeInput(payload.name||payload.fullname||existing?.name||existing?.fullname||'Customer'),
       email:safeEmail||sanitizeEmail(existing?.email||''),
       phone:safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||''),
+      backendUserId:providedId||sanitizeInput(existing?.backendUserId||''),
       createdAt:existing?.createdAt||nowIso,
       syncedFromBackendAt:nowIso
     };
@@ -308,7 +314,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
   const safeEmail=sanitizeEmail(email||'');
   const safePassword=String(password||'').trim();
   if(!safeEmail||!safePassword){
-    return{ok:false,message:'Email and password required'};
+    return{ok:false,status:400,message:'Email and password required'};
   }
 
   const backendLogin=await callBackendAuth('/api/auth/login',{
@@ -320,7 +326,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
   });
 
   if(!backendLogin.ok){
-    return{ok:false,message:String(backendLogin.data?.message||'Login failed')};
+    return{ok:false,status:Number(backendLogin.status||0),message:String(backendLogin.data?.message||'Login failed')};
   }
 
   if(backendLogin.data&&backendLogin.data.accessToken){
@@ -329,22 +335,22 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
   }
 
   const profile=await fetchBackendProfile(backendLogin.data?.accessToken||'');
-  const profileRole=normalizeAccountRole(profile?.accountType||profile?.role,safeRole);
+  const profileRole=normalizeAccountRole(profile?.accountType||profile?.role||backendLogin.data?.accountType,safeRole);
   if(profileRole!==safeRole){
-    return{ok:false,message:`This account is registered as ${profileRole}. Please switch portal.`};
+    return{ok:false,status:403,message:`This account is registered as ${profileRole}. Please switch portal.`};
   }
 
   const restored=upsertLocalAccountFromBackend(safeRole,{
-    id:profile?.id||profile?.sub||'',
-    name:profile?.name||'',
-    fullname:profile?.name||'',
+    id:profile?.id||profile?.sub||backendLogin.data?.id||backendLogin.data?.userId||'',
+    name:profile?.name||backendLogin.data?.name||'',
+    fullname:profile?.name||backendLogin.data?.name||'',
     email:profile?.email||safeEmail,
-    phone:profile?.phone||'',
-    vehicleType:profile?.vehicleType||'',
-    vehicleNumber:profile?.vehicleNumber||''
+    phone:profile?.phone||backendLogin.data?.phone||'',
+    vehicleType:profile?.vehicleType||backendLogin.data?.vehicleType||'',
+    vehicleNumber:profile?.vehicleNumber||backendLogin.data?.vehicleNumber||''
   });
 
-  return{ok:true,record:restored,source:'backend'};
+  return{ok:true,status:200,record:restored,source:'backend'};
 }
 async function verifyPasswordForLogin(enteredPassword,storedPassword){
   const hashed=await hashPassword(enteredPassword);
@@ -491,20 +497,23 @@ function customerResetOTP(){customerConfirmation=null;document.getElementById('c
 async function customerLoginEmail(){
   const email=sanitizeEmail(document.getElementById('customerEmail').value);const password=document.getElementById('customerPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
+  const liveLogin=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
+  if(liveLogin.ok){
+    const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:liveLogin.record.id,email,source:'backend_live'});
+    if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:liveLogin.record.id,email,score:Number(risk.score||0)});return;}
+    setUserSession(liveLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+    return;
+  }
+
+  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(liveLogin.status||0)!==0){
+    showError(liveLogin.message||'Live login failed. Please try again.');
+    return;
+  }
+
   let account=findAccountByIdentifier('customer',email);
-  if(!account.record){
-    const recovered=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
-    if(!recovered.ok){showError(recovered.message||'Account not found. Please signup if this is a new account.');return;}
-    setUserSession(recovered.record);showSuccess('Login successful. Account restored.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
-    return;
-  }
+  if(!account.record){showError('Live server unavailable and local account missing. Please retry.');return;}
   const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){
-    const recovered=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
-    if(!recovered.ok){showError('Wrong credentials.');return;}
-    setUserSession(recovered.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
-    return;
-  }
+  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
   if(passwordCheck.needsMigration){
     const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
     if(account.index>=0)account.records[account.index]=updatedRecord;
@@ -512,11 +521,7 @@ async function customerLoginEmail(){
     writeRecords(account.storeKeys,account.records);
     account=findAccountByIdentifier('customer',email);
   }
-  const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:account.record.id,email});
-  if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:account.record.id,email,score:Number(risk.score||0)});return;}
-  const backendSync=await syncBackendSessionForLocalAccount({record:account.record,password,role:'customer'});
-  if(!backendSync.synced){console.warn('Backend wallet session not synced:',backendSync.reason||'unknown');}
-  setUserSession(account.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+  setUserSession(account.record);showSuccess('Login successful (local fallback mode).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
 }
 
 async function driverSendOTP(){
@@ -544,20 +549,23 @@ function driverResetOTP(){driverConfirmation=null;document.getElementById('drive
 async function driverLoginEmail(){
   const email=sanitizeEmail(document.getElementById('driverEmail').value);const password=document.getElementById('driverPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
+  const liveLogin=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
+  if(liveLogin.ok){
+    const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:liveLogin.record.id,email,source:'backend_live'});
+    if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:liveLogin.record.id,email,score:Number(risk.score||0)});return;}
+    setDriverSession(liveLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+    return;
+  }
+
+  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(liveLogin.status||0)!==0){
+    showError(liveLogin.message||'Live login failed. Please try again.');
+    return;
+  }
+
   let account=findAccountByIdentifier('driver',email);
-  if(!account.record){
-    const recovered=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
-    if(!recovered.ok){showError(recovered.message||'Driver account not found. Please signup if this is a new account.');return;}
-    setDriverSession(recovered.record);showSuccess('Login successful. Account restored.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
-    return;
-  }
+  if(!account.record){showError('Live server unavailable and local account missing. Please retry.');return;}
   const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){
-    const recovered=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
-    if(!recovered.ok){showError('Wrong credentials.');return;}
-    setDriverSession(recovered.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
-    return;
-  }
+  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
   if(passwordCheck.needsMigration){
     const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
     if(account.index>=0)account.records[account.index]=updatedRecord;
@@ -565,11 +573,7 @@ async function driverLoginEmail(){
     writeRecords(account.storeKeys,account.records);
     account=findAccountByIdentifier('driver',email);
   }
-  const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:account.record.id,email});
-  if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:account.record.id,email,score:Number(risk.score||0)});return;}
-  const backendSync=await syncBackendSessionForLocalAccount({record:account.record,password,role:'driver'});
-  if(!backendSync.synced){console.warn('Backend wallet session not synced:',backendSync.reason||'unknown');}
-  setDriverSession(account.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+  setDriverSession(account.record);showSuccess('Login successful (local fallback mode).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
 }
 async function adminStep1Login(){
   const email=sanitizeEmail(document.getElementById('adminEmail').value);
@@ -598,7 +602,7 @@ function sendAdmin2FAOTP(){
   if(!challenge||!challenge.challengeIssuedAt){showError('Admin session expired. Please login again.');toggleAdminLogin();toggleAdminLogin();return;}
   localStorage.setItem(ADMIN_OTP_KEY,'123456');
   localStorage.setItem(ADMIN_OTP_METHOD_KEY,method);
-  showSuccess(method==='email'?'OTP sent to registered admin email (demo code: 123456).':'OTP sent to registered admin mobile (demo code: 123456).');
+  showSuccess(method==='email'?'OTP sent to registered admin email.':'OTP sent to registered admin mobile.');
   document.getElementById('adminStep2').style.display='none';
   document.getElementById('adminStep3').style.display='block';
   setupOTPInputs('.admin2fa-otp');

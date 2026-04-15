@@ -2001,6 +2001,8 @@
             if (idx !== -1) {
                 drivers[idx] = currentDriver;
                 localStorage.setItem('drivers', JSON.stringify(drivers));
+                localStorage.setItem('goride_drivers', JSON.stringify(drivers));
+                localStorage.setItem('goindiaride_drivers', JSON.stringify(drivers));
                 localStorage.setItem('currentDriver', JSON.stringify(currentDriver));
             }
 

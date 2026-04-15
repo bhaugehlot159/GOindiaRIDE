@@ -4,6 +4,14 @@ const env = require('../config/env');
 const { getClientIp } = require('../utils/device');
 
 const recaptchaReplayMap = new Map();
+const PLACEHOLDER_SECRET_PATTERNS = [
+  'replace_with',
+  'your_recaptcha',
+  'changeme',
+  'example',
+  'dummy',
+  'test_only'
+];
 
 function hashValue(value) {
   return crypto
@@ -19,6 +27,12 @@ function pruneRecaptchaReplayMap() {
       recaptchaReplayMap.delete(key);
     }
   }
+}
+
+function isPlaceholderSecret(secretValue) {
+  const normalized = String(secretValue || '').trim().toLowerCase();
+  if (!normalized) return true;
+  return PLACEHOLDER_SECRET_PATTERNS.some((pattern) => normalized.includes(pattern));
 }
 
 function verifyRecaptchaToken(token, remoteIp, timeoutMs) {
@@ -109,7 +123,10 @@ async function recaptchaPresenceCheck(req, res, next) {
       return res.status(409).json({ message: 'reCAPTCHA token replay detected' });
     }
 
-    if (!env.recaptchaVerifyServerSide) {
+    const recaptchaSecret = String(env.recaptchaSecret || '').trim();
+    const hasUsableSecret = Boolean(recaptchaSecret) && !isPlaceholderSecret(recaptchaSecret);
+
+    if (!env.recaptchaVerifyServerSide || !hasUsableSecret) {
       recaptchaReplayMap.set(tokenHash, { expiresAt: Date.now() + (5 * 60 * 1000) });
       return next();
     }

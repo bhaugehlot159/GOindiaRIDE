@@ -1223,6 +1223,7 @@
         const CUSTOMER_STORAGE_KEYS = ['users', 'goride_users', 'customers', 'goindiaride_users', 'goindiaride_customers'];
         const DRIVER_STORAGE_KEYS = ['drivers', 'goride_drivers', 'goindiaride_drivers'];
         const ACCOUNT_BACKUP_KEY = 'goindiaride_accounts_backup_v2';
+        const LIVE_BACKEND_REQUIRED_FOR_SIGNUP = true;
 
         function safeReadArray(key) {
             try {
@@ -1473,6 +1474,52 @@
                     return;
                 }
 
+                // Backend registration is primary (live mode)
+                const apiBaseRaw = (window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin));
+                const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
+                try {
+                    const backendRes = await fetch(apiBase + '/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            name: fullname,
+                            email,
+                            phone,
+                            password,
+                            role: 'user',
+                            accountType: role === 'driver' ? 'driver' : 'customer',
+                            website: '',
+                            submittedAt: Date.now() - 1500,
+                            recaptchaToken: createPseudoRecaptchaToken('gir-signup')
+                        })
+                    });
+
+                    const backendPayload = await backendRes.json().catch(() => ({}));
+                    if (backendRes.status === 409) {
+                        signupForm.style.opacity = '1';
+                        signupForm.style.pointerEvents = 'auto';
+                        signupBtnText.textContent = 'Create Account';
+                        showError(backendPayload.message || 'Account already exists. Please login.');
+                        return;
+                    }
+                    if (!backendRes.ok) {
+                        throw new Error(backendPayload.message || backendRes.statusText || 'Live registration failed');
+                    }
+                } catch (backendError) {
+                    console.error('Backend register failed:', backendError.message || backendError);
+                    signupForm.style.opacity = '1';
+                    signupForm.style.pointerEvents = 'auto';
+                    signupBtnText.textContent = 'Create Account';
+                    showError(LIVE_BACKEND_REQUIRED_FOR_SIGNUP
+                        ? 'Live server response nahi mila. Signup save nahi hua. Backend ko check karke dubara try karein.'
+                        : 'Backend sync failed. Please try again.');
+                    return;
+                }
+
                 if (role === 'customer') {
                     const newUser = {
                         id: createStableAccountId('customer', email, phone),
@@ -1508,38 +1555,6 @@
                 }
 
                 persistAccountBackup(users, drivers);
-
-                // Backend sync for live secure mode (local data stays safe)
-                const apiBaseRaw = (window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin));
-                const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
-                try {
-                    const backendRes = await fetch(apiBase + '/api/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Accept: 'application/json'
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            name: fullname,
-                            email,
-                            phone,
-                            password,
-                            role: 'user',
-                            accountType: role === 'driver' ? 'driver' : 'customer',
-                            website: '',
-                            submittedAt: Date.now() - 1500,
-                            recaptchaToken: createPseudoRecaptchaToken('gir-signup')
-                        })
-                    });
-
-                    if (!backendRes.ok && backendRes.status !== 409) {
-                        const backendPayload = await backendRes.json().catch(() => ({}));
-                        console.warn('Backend register warning:', backendPayload.message || backendRes.statusText);
-                    }
-                } catch (backendError) {
-                    console.warn('Backend register failed, local signup preserved:', backendError.message || backendError);
-                }
 
                 showSuccess('Account created successfully! Redirecting to login...');
 
