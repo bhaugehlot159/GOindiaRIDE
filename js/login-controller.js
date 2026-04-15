@@ -1,7 +1,8 @@
-const CUSTOMER_STORAGE_KEYS=['users','goride_users'];
-const DRIVER_STORAGE_KEYS=['drivers','goride_drivers'];
-const CUSTOMER_READ_STORAGE_KEYS=[...new Set([...CUSTOMER_STORAGE_KEYS,'customers','goindiaride_users','goindiaride_customers'])];
-const DRIVER_READ_STORAGE_KEYS=[...new Set([...DRIVER_STORAGE_KEYS,'goindiaride_drivers'])];
+const CUSTOMER_STORAGE_KEYS=[...new Set(['users','goride_users','customers','goindiaride_users','goindiaride_customers'])];
+const DRIVER_STORAGE_KEYS=[...new Set(['drivers','goride_drivers','goindiaride_drivers'])];
+const CUSTOMER_READ_STORAGE_KEYS=[...CUSTOMER_STORAGE_KEYS];
+const DRIVER_READ_STORAGE_KEYS=[...DRIVER_STORAGE_KEYS];
+const ACCOUNT_BACKUP_KEY='goindiaride_accounts_backup_v2';
 const ADMIN_PROFILE_KEY='goindiaride_admin_profile';
 const ADMIN_SESSION_KEY='goindiaride_admin_session';
 const ADMIN_FAILURE_KEY='goindiaride_admin_failures';
@@ -25,6 +26,25 @@ function safeReadArray(key){
 function safeReadObject(key,fallback={}){
   try{const raw=localStorage.getItem(key);const parsed=raw?JSON.parse(raw):fallback;return parsed&&typeof parsed==='object'?parsed:fallback;}catch(e){return fallback;}
 }
+function fnv1aHash(input){
+  let hash=0x811c9dc5;
+  const text=String(input||'');
+  for(let i=0;i<text.length;i+=1){
+    hash^=text.charCodeAt(i);
+    hash=(hash>>>0)*0x01000193;
+  }
+  return (hash>>>0).toString(16);
+}
+function createStableAccountId(role,email,phone){
+  const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'user';
+  const identity=`${sanitizeEmail(email||'')}|${normalizePhoneForLookup(phone||'')}`;
+  return `${safeRole}_${fnv1aHash(identity||('fallback_'+Date.now()))}`;
+}
+function createPseudoRecaptchaToken(prefix='gir'){
+  const partA=Math.random().toString(36).slice(2,16);
+  const partB=Math.random().toString(36).slice(2,16);
+  return `${prefix}_${Date.now()}_${partA}_${partB}`;
+}
 function isCustomerRecord(record){
   if(!record||typeof record!=='object')return false;
   const role=String(record.role||record.userType||'customer').toLowerCase();
@@ -46,7 +66,31 @@ function mergeRecords(keys){
   });
   return Array.from(map.values());
 }
-function writeRecords(keys,records){const arr=Array.isArray(records)?records:[];keys.forEach((k)=>localStorage.setItem(k,JSON.stringify(arr)));}
+function persistAccountBackup(){
+  const customers=mergeRecords(CUSTOMER_READ_STORAGE_KEYS).filter((row)=>isCustomerRecord(row));
+  const drivers=mergeRecords(DRIVER_READ_STORAGE_KEYS).filter((row)=>isDriverRecord(row));
+  const payload={version:2,updatedAt:new Date().toISOString(),customers,drivers};
+  localStorage.setItem(ACCOUNT_BACKUP_KEY,JSON.stringify(payload));
+}
+function restoreAccountBackupIfNeeded(){
+  const payload=safeReadObject(ACCOUNT_BACKUP_KEY,null);
+  if(!payload||typeof payload!=='object')return;
+
+  const safeCustomers=Array.isArray(payload.customers)?payload.customers.filter((row)=>isCustomerRecord(row)):[];
+  const safeDrivers=Array.isArray(payload.drivers)?payload.drivers.filter((row)=>isDriverRecord(row)):[];
+
+  if(!mergeRecords(CUSTOMER_READ_STORAGE_KEYS).length&&safeCustomers.length){
+    CUSTOMER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(safeCustomers)));
+  }
+  if(!mergeRecords(DRIVER_READ_STORAGE_KEYS).length&&safeDrivers.length){
+    DRIVER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(safeDrivers)));
+  }
+}
+function writeRecords(keys,records){
+  const arr=Array.isArray(records)?records:[];
+  keys.forEach((k)=>localStorage.setItem(k,JSON.stringify(arr)));
+  persistAccountBackup();
+}
 function normalizePhoneForLookup(value){
   const raw=sanitizeInput(value||''); if(!raw)return'';
   let n=raw.replace(/\s+/g,''); if(n.startsWith('00'))n='+'+n.slice(2);
@@ -103,7 +147,7 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
   const accountType=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
   if(!email||!phone||!plainPassword)return{synced:false,reason:'missing_identity'};
 
-  const loginPayload={email,password:plainPassword,website:'',submittedAt:Date.now()-1500};
+  const loginPayload={email,password:plainPassword,website:'',submittedAt:Date.now()-1500,recaptchaToken:createPseudoRecaptchaToken('gir-login-sync')};
   let loginResult=await callBackendAuth('/api/auth/login',loginPayload);
 
   if(!loginResult.ok&&(loginResult.status===401||loginResult.status===404||loginResult.status===409)){
@@ -116,7 +160,7 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
       accountType,
       website:'',
       submittedAt:Date.now()-1500,
-      recaptchaToken:'local-sync-token'
+      recaptchaToken:createPseudoRecaptchaToken('gir-register-sync')
     });
 
     loginResult=await callBackendAuth('/api/auth/login',loginPayload);
@@ -161,6 +205,147 @@ function findAccountByIdentifier(role,identifierInput){
 }
 function findCustomerByPhone(phone){return mergeRecords(CUSTOMER_READ_STORAGE_KEYS).find((u)=>isCustomerRecord(u)&&isPhoneMatch(phone,u.phone||u.mobile||''))||null;}
 function findDriverByPhone(phone){return mergeRecords(DRIVER_READ_STORAGE_KEYS).find((d)=>isDriverRecord(d)&&isPhoneMatch(phone,d.phone||d.mobile||''))||null;}
+function upsertLocalAccountFromBackend(role,payload={}){
+  const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
+  const safeEmail=sanitizeEmail(payload.email||'');
+  const safePhone=normalizePhoneForLookup(payload.phone||payload.mobile||'');
+  const providedId=sanitizeInput(payload.id||payload.userId||'');
+  const identifier=safeEmail?{kind:'email',value:safeEmail}:(safePhone?{kind:'phone',value:safePhone}:{kind:'unknown',value:''});
+  const account=findAccountByIdentifier(safeRole,identifier);
+  const records=Array.isArray(account.records)?account.records:[];
+  let index=account.index;
+  if(index<0&&providedId){index=records.findIndex((item)=>String(item?.id||'')===String(providedId));}
+  const existing=index>=0?records[index]:(account.record||null);
+  const stableId=String(existing?.id||providedId||createStableAccountId(safeRole,safeEmail,safePhone)).trim();
+  const nowIso=new Date().toISOString();
+
+  const normalizedRecord=safeRole==='driver'
+    ? {
+      ...existing,
+      id:stableId,
+      role:'driver',
+      userType:'driver',
+      name:sanitizeInput(payload.name||payload.fullname||existing?.name||existing?.fullname||'Driver'),
+      fullname:sanitizeInput(payload.fullname||payload.name||existing?.fullname||existing?.name||'Driver'),
+      email:safeEmail||sanitizeEmail(existing?.email||''),
+      phone:safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||''),
+      vehicleType:sanitizeInput(payload.vehicleType||existing?.vehicleType||'economy'),
+      vehicleNumber:sanitizeInput(payload.vehicleNumber||existing?.vehicleNumber||''),
+      createdAt:existing?.createdAt||nowIso,
+      syncedFromBackendAt:nowIso
+    }
+    : {
+      ...existing,
+      id:stableId,
+      role:'customer',
+      userType:'customer',
+      fullname:sanitizeInput(payload.fullname||payload.name||existing?.fullname||existing?.name||'Customer'),
+      name:sanitizeInput(payload.name||payload.fullname||existing?.name||existing?.fullname||'Customer'),
+      email:safeEmail||sanitizeEmail(existing?.email||''),
+      phone:safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||''),
+      createdAt:existing?.createdAt||nowIso,
+      syncedFromBackendAt:nowIso
+    };
+
+  if(index>=0)records[index]=normalizedRecord;
+  else records.push(normalizedRecord);
+  writeRecords(account.storeKeys,records);
+  return normalizedRecord;
+}
+function ensureStableAccountIds(){
+  const fixRecords=(role)=>{
+    const safeRole=normalizeAccountRole(role,'customer');
+    const keys=getStoreKeysByRole(safeRole);
+    const rows=mergeRecords(getReadKeysByRole(safeRole));
+    let changed=false;
+    const normalized=rows.map((row)=>{
+      const safeRow=row&&typeof row==='object'?{...row}:{};
+      if(!safeRow.id){
+        const email=sanitizeEmail(safeRow.email||'');
+        const phone=normalizePhoneForLookup(safeRow.phone||safeRow.mobile||'');
+        safeRow.id=createStableAccountId(safeRole,email,phone);
+        changed=true;
+      }
+      if(!safeRow.role){
+        safeRow.role=safeRole;
+        changed=true;
+      }
+      if(!safeRow.userType){
+        safeRow.userType=safeRole;
+        changed=true;
+      }
+      return safeRow;
+    });
+    if(changed)writeRecords(keys,normalized);
+  };
+  fixRecords('customer');
+  fixRecords('driver');
+}
+async function fetchBackendProfile(accessToken){
+  const token=String(accessToken||'').trim();
+  if(!token)return null;
+  try{
+    const response=await fetch(`${getBackendApiBase()}/api/user/profile`,{
+      method:'GET',
+      headers:{Accept:'application/json',Authorization:`Bearer ${token}`},
+      credentials:'include'
+    });
+    if(!response.ok)return null;
+    const payload=await response.json().catch(()=>({}));
+    return payload&&payload.user?payload.user:null;
+  }catch(_error){
+    return null;
+  }
+}
+function normalizeAccountRole(value,fallback='customer'){
+  const normalized=String(value||'').trim().toLowerCase();
+  if(normalized==='driver')return'driver';
+  if(normalized==='customer'||normalized==='user')return'customer';
+  return String(fallback||'customer').toLowerCase()==='driver'?'driver':'customer';
+}
+async function loginViaBackendAndRestoreLocal({role,email,password}){
+  const safeRole=normalizeAccountRole(role,'customer');
+  const safeEmail=sanitizeEmail(email||'');
+  const safePassword=String(password||'').trim();
+  if(!safeEmail||!safePassword){
+    return{ok:false,message:'Email and password required'};
+  }
+
+  const backendLogin=await callBackendAuth('/api/auth/login',{
+    email:safeEmail,
+    password:safePassword,
+    website:'',
+    submittedAt:Date.now()-1500,
+    recaptchaToken:createPseudoRecaptchaToken('gir-login-recovery')
+  });
+
+  if(!backendLogin.ok){
+    return{ok:false,message:String(backendLogin.data?.message||'Login failed')};
+  }
+
+  if(backendLogin.data&&backendLogin.data.accessToken){
+    saveBackendAccessToken(backendLogin.data.accessToken);
+    localStorage.setItem('goindiaride_auth_mode','secure_backend');
+  }
+
+  const profile=await fetchBackendProfile(backendLogin.data?.accessToken||'');
+  const profileRole=normalizeAccountRole(profile?.accountType||profile?.role,safeRole);
+  if(profileRole!==safeRole){
+    return{ok:false,message:`This account is registered as ${profileRole}. Please switch portal.`};
+  }
+
+  const restored=upsertLocalAccountFromBackend(safeRole,{
+    id:profile?.id||profile?.sub||'',
+    name:profile?.name||'',
+    fullname:profile?.name||'',
+    email:profile?.email||safeEmail,
+    phone:profile?.phone||'',
+    vehicleType:profile?.vehicleType||'',
+    vehicleNumber:profile?.vehicleNumber||''
+  });
+
+  return{ok:true,record:restored,source:'backend'};
+}
 async function verifyPasswordForLogin(enteredPassword,storedPassword){
   const hashed=await hashPassword(enteredPassword);
   if(storedPassword===hashed)return{isValid:true,needsMigration:false,hashed};
@@ -285,7 +470,7 @@ async function customerSendOTP(){
   const phone=normalizePhoneForLookup(document.getElementById('customerPhone').value);
   if(!phone){showError('Please enter valid mobile with country code (example: +919876543210).');return;}
   const customer=findCustomerByPhone(phone);
-  if(!customer){showError('Customer account registered nahi hai. Pehle signup complete karein.');return;}
+  if(!customer){showError('Local customer record nahi mila. Email/password login karein, account auto-restore ho jayega.');return;}
   const risk=evaluateLoginRisk('customer_otp_send',{role:'customer',customerId:customer.id,phone});
   if(shouldBlockByRisk(risk)){showError('Security check failed. Please use email login or try later.');notifyAdminSecurityEvent('Customer OTP blocked','AI risk filter blocked customer OTP send.',{customerId:customer.id,phone,score:Number(risk.score||0)});return;}
   try{customerConfirmation=await sendOtpByFirebase(phone);document.getElementById('customerOTPSection').classList.add('show');document.getElementById('customerPhone').disabled=true;showSuccess('OTP sent successfully.');setupOTPInputs('.customer-otp');}
@@ -297,7 +482,7 @@ async function customerVerifyOTP(){
 }
 function customerLoginOTP(phone){
   const customer=findCustomerByPhone(phone);
-  if(!customer){showError('Customer account not found. Signup compulsory hai.');customerResetOTP();return;}
+  if(!customer){showError('Customer local record missing hai. Email/password login se account auto-restore karein.');customerResetOTP();return;}
   const risk=evaluateLoginRisk('customer_otp_verify',{role:'customer',customerId:customer.id,phone});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer OTP login blocked','AI risk blocked customer OTP login.',{customerId:customer.id,phone,score:Number(risk.score||0)});customerResetOTP();return;}
   setUserSession(customer);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
@@ -306,15 +491,26 @@ function customerResetOTP(){customerConfirmation=null;document.getElementById('c
 async function customerLoginEmail(){
   const email=sanitizeEmail(document.getElementById('customerEmail').value);const password=document.getElementById('customerPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
-  const account=findAccountByIdentifier('customer',email);
-  if(!account.record){showError('Account not found. Signup compulsory hai.');return;}
+  let account=findAccountByIdentifier('customer',email);
+  if(!account.record){
+    const recovered=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
+    if(!recovered.ok){showError(recovered.message||'Account not found. Please signup if this is a new account.');return;}
+    setUserSession(recovered.record);showSuccess('Login successful. Account restored.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+    return;
+  }
   const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
+  if(!passwordCheck.isValid){
+    const recovered=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
+    if(!recovered.ok){showError('Wrong credentials.');return;}
+    setUserSession(recovered.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+    return;
+  }
   if(passwordCheck.needsMigration){
     const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
     if(account.index>=0)account.records[account.index]=updatedRecord;
     else account.records.push(updatedRecord);
     writeRecords(account.storeKeys,account.records);
+    account=findAccountByIdentifier('customer',email);
   }
   const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:account.record.id,email});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:account.record.id,email,score:Number(risk.score||0)});return;}
@@ -327,7 +523,7 @@ async function driverSendOTP(){
   const phone=normalizePhoneForLookup(document.getElementById('driverPhone').value);
   if(!phone){showError('Please enter valid mobile with country code (example: +919876543210).');return;}
   const driver=findDriverByPhone(phone);
-  if(!driver){showError('Driver number registered nahi hai. Pehle driver signup complete karein.');return;}
+  if(!driver){showError('Local driver record nahi mila. Email/password login karein, account auto-restore ho jayega.');return;}
   const risk=evaluateLoginRisk('driver_otp_send',{role:'driver',driverId:driver.id,phone});
   if(shouldBlockByRisk(risk)){showError('Security check failed. Please use email login or contact support.');notifyAdminSecurityEvent('Driver OTP blocked','AI risk filter blocked driver OTP send.',{driverId:driver.id,phone,score:Number(risk.score||0)});return;}
   try{driverConfirmation=await sendOtpByFirebase(phone);document.getElementById('driverOTPSection').classList.add('show');document.getElementById('driverPhone').disabled=true;showSuccess('OTP sent successfully.');setupOTPInputs('.driver-otp');}
@@ -339,7 +535,7 @@ async function driverVerifyOTP(){
 }
 function driverLoginOTP(phone){
   const driver=findDriverByPhone(phone);
-  if(!driver){showError('Driver account not found. Signup compulsory hai.');driverResetOTP();return;}
+  if(!driver){showError('Driver local record missing hai. Email/password login se account auto-restore karein.');driverResetOTP();return;}
   const risk=evaluateLoginRisk('driver_otp_verify',{role:'driver',driverId:driver.id,phone});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver OTP login blocked','AI risk blocked driver OTP login.',{driverId:driver.id,phone,score:Number(risk.score||0)});driverResetOTP();return;}
   setDriverSession(driver);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
@@ -348,15 +544,26 @@ function driverResetOTP(){driverConfirmation=null;document.getElementById('drive
 async function driverLoginEmail(){
   const email=sanitizeEmail(document.getElementById('driverEmail').value);const password=document.getElementById('driverPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
-  const account=findAccountByIdentifier('driver',email);
-  if(!account.record){showError('Driver account not found. Signup compulsory hai.');return;}
+  let account=findAccountByIdentifier('driver',email);
+  if(!account.record){
+    const recovered=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
+    if(!recovered.ok){showError(recovered.message||'Driver account not found. Please signup if this is a new account.');return;}
+    setDriverSession(recovered.record);showSuccess('Login successful. Account restored.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+    return;
+  }
   const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
+  if(!passwordCheck.isValid){
+    const recovered=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
+    if(!recovered.ok){showError('Wrong credentials.');return;}
+    setDriverSession(recovered.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+    return;
+  }
   if(passwordCheck.needsMigration){
     const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
     if(account.index>=0)account.records[account.index]=updatedRecord;
     else account.records.push(updatedRecord);
     writeRecords(account.storeKeys,account.records);
+    account=findAccountByIdentifier('driver',email);
   }
   const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:account.record.id,email});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:account.record.id,email,score:Number(risk.score||0)});return;}
@@ -485,7 +692,16 @@ function setupOTPInputs(selector){
 function showError(msg){const errorDiv=document.getElementById('errorMessage');const errorText=document.getElementById('errorText');errorText.textContent=msg;errorDiv.classList.add('show');setTimeout(()=>errorDiv.classList.remove('show'),4500);}
 function showSuccess(msg){alert(msg);}
 
-window.addEventListener('load',async()=>{await ensureAdminProfile();updateLoginMethod();initFirebasePhoneAuth();initializeAdminAccessGate();console.log('Login page ready');});
+window.addEventListener('load',async()=>{
+  restoreAccountBackupIfNeeded();
+  ensureStableAccountIds();
+  persistAccountBackup();
+  await ensureAdminProfile();
+  updateLoginMethod();
+  initFirebasePhoneAuth();
+  initializeAdminAccessGate();
+  console.log('Login page ready');
+});
 
 
 

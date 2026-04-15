@@ -1220,6 +1220,111 @@
             return /^[A-Z]{2}[0-9]{2}[A-Z0-9]{8,14}$/.test(compact);
         }
 
+        const CUSTOMER_STORAGE_KEYS = ['users', 'goride_users', 'customers', 'goindiaride_users', 'goindiaride_customers'];
+        const DRIVER_STORAGE_KEYS = ['drivers', 'goride_drivers', 'goindiaride_drivers'];
+        const ACCOUNT_BACKUP_KEY = 'goindiaride_accounts_backup_v2';
+
+        function safeReadArray(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (_error) {
+                return [];
+            }
+        }
+
+        function isCustomerRecord(record) {
+            if (!record || typeof record !== 'object') return false;
+            const role = String(record.role || record.userType || 'customer').toLowerCase();
+            return ['customer', 'user', 'passenger', 'rider', 'client'].includes(role);
+        }
+
+        function isDriverRecord(record) {
+            if (!record || typeof record !== 'object') return false;
+            const role = String(record.role || record.userType || 'driver').toLowerCase();
+            return ['driver', 'captain', 'chauffeur'].includes(role);
+        }
+
+        function mergeRecords(keys) {
+            const map = new Map();
+            keys.forEach((key) => {
+                safeReadArray(key).forEach((row) => {
+                    if (!row || typeof row !== 'object') return;
+                    const idSeed = String(row.id || '').trim();
+                    const emailSeed = sanitizeEmail(row.email || '');
+                    const phoneSeed = normalizePhoneForStorage(row.phone || row.mobile || '');
+                    const roleSeed = String(row.role || row.userType || '').toLowerCase();
+                    const identity = idSeed || `${emailSeed}|${phoneSeed}|${roleSeed}`;
+                    if (!identity) return;
+                    map.set(identity, map.has(identity) ? { ...map.get(identity), ...row } : { ...row });
+                });
+            });
+            return Array.from(map.values());
+        }
+
+        function writeRecords(keys, records) {
+            const safe = Array.isArray(records) ? records : [];
+            keys.forEach((key) => {
+                localStorage.setItem(key, JSON.stringify(safe));
+            });
+        }
+
+        function fnv1aHash(value) {
+            let hash = 0x811c9dc5;
+            const text = String(value || '');
+            for (let i = 0; i < text.length; i += 1) {
+                hash ^= text.charCodeAt(i);
+                hash = (hash >>> 0) * 0x01000193;
+            }
+            return (hash >>> 0).toString(16);
+        }
+
+        function createStableAccountId(role, email, phone) {
+            const safeRole = String(role || '').toLowerCase() === 'driver' ? 'driver' : 'user';
+            const identity = `${sanitizeEmail(email || '')}|${normalizePhoneForStorage(phone || '')}`;
+            return `${safeRole}_${fnv1aHash(identity || ('fallback_' + Date.now()))}`;
+        }
+
+        function createPseudoRecaptchaToken(prefix = 'gir-signup') {
+            const a = Math.random().toString(36).slice(2, 16);
+            const b = Math.random().toString(36).slice(2, 16);
+            return `${prefix}_${Date.now()}_${a}_${b}`;
+        }
+
+        function persistAccountBackup(customers, drivers) {
+            const payload = {
+                version: 2,
+                updatedAt: new Date().toISOString(),
+                customers: Array.isArray(customers) ? customers.filter((row) => isCustomerRecord(row)) : [],
+                drivers: Array.isArray(drivers) ? drivers.filter((row) => isDriverRecord(row)) : []
+            };
+            localStorage.setItem(ACCOUNT_BACKUP_KEY, JSON.stringify(payload));
+        }
+
+        function restoreAccountBackupIfNeeded() {
+            let backup = null;
+            try {
+                const raw = localStorage.getItem(ACCOUNT_BACKUP_KEY);
+                backup = raw ? JSON.parse(raw) : null;
+            } catch (_error) {
+                backup = null;
+            }
+            if (!backup || typeof backup !== 'object') return;
+
+            const customers = Array.isArray(backup.customers) ? backup.customers.filter((row) => isCustomerRecord(row)) : [];
+            const drivers = Array.isArray(backup.drivers) ? backup.drivers.filter((row) => isDriverRecord(row)) : [];
+
+            if (!mergeRecords(CUSTOMER_STORAGE_KEYS).length && customers.length) {
+                writeRecords(CUSTOMER_STORAGE_KEYS, customers);
+            }
+            if (!mergeRecords(DRIVER_STORAGE_KEYS).length && drivers.length) {
+                writeRecords(DRIVER_STORAGE_KEYS, drivers);
+            }
+        }
+
+        restoreAccountBackupIfNeeded();
+
         function toggleDriverFields() {
             const isDriver = roleDriverInput.checked;
             driverOnlyFields.classList.toggle('show', isDriver);
@@ -1353,8 +1458,8 @@
 
                 const hashedPassword = await hashPassword(password);
 
-                const users = JSON.parse(localStorage.getItem('users')) || [];
-                const drivers = JSON.parse(localStorage.getItem('drivers')) || [];
+                const users = mergeRecords(CUSTOMER_STORAGE_KEYS).filter((row) => isCustomerRecord(row));
+                const drivers = mergeRecords(DRIVER_STORAGE_KEYS).filter((row) => isDriverRecord(row));
                 const allAccounts = [...users, ...drivers];
                 const emailExists = allAccounts.some((account) => sanitizeEmail(account.email || '') === email);
                 const phoneExists = allAccounts.some((account) => normalizePhoneForStorage(account.phone || account.mobile || '') === phone);
@@ -1370,21 +1475,22 @@
 
                 if (role === 'customer') {
                     const newUser = {
-                        id: 'user_' + Date.now(),
+                        id: createStableAccountId('customer', email, phone),
                         fullname,
                         email,
                         phone,
                         password: hashedPassword,
                         role: 'customer',
+                        userType: 'customer',
                         createdAt: new Date().toISOString()
                     };
                     users.push(newUser);
-                    localStorage.setItem('users', JSON.stringify(users));
-                    localStorage.setItem('goride_users', JSON.stringify(users));
+                    writeRecords(CUSTOMER_STORAGE_KEYS, users);
                 } else {
                     const newDriver = {
-                        id: 'driver_' + Date.now(),
+                        id: createStableAccountId('driver', email, phone),
                         name: fullname,
+                        fullname,
                         email,
                         phone,
                         password: hashedPassword,
@@ -1393,13 +1499,15 @@
                         drivingLicenseExpiry: licenseExpiry,
                         licenseVerified: false,
                         vehicleNumber: '',
+                        userType: 'driver',
                         role: 'driver',
                         createdAt: new Date().toISOString()
                     };
                     drivers.push(newDriver);
-                    localStorage.setItem('drivers', JSON.stringify(drivers));
-                    localStorage.setItem('goride_drivers', JSON.stringify(drivers));
+                    writeRecords(DRIVER_STORAGE_KEYS, drivers);
                 }
+
+                persistAccountBackup(users, drivers);
 
                 // Backend sync for live secure mode (local data stays safe)
                 const apiBaseRaw = (window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin));
@@ -1421,7 +1529,7 @@
                             accountType: role === 'driver' ? 'driver' : 'customer',
                             website: '',
                             submittedAt: Date.now() - 1500,
-                            recaptchaToken: 'signup-live-token'
+                            recaptchaToken: createPseudoRecaptchaToken('gir-signup')
                         })
                     });
 
@@ -1447,6 +1555,9 @@
                 showError('An error occurred. Please try again.');
             }
         });
+        const existingCustomers = mergeRecords(CUSTOMER_STORAGE_KEYS).filter((row) => isCustomerRecord(row));
+        const existingDrivers = mergeRecords(DRIVER_STORAGE_KEYS).filter((row) => isDriverRecord(row));
+        persistAccountBackup(existingCustomers, existingDrivers);
         console.log('✅ Signup page loaded');
     </script>
 
