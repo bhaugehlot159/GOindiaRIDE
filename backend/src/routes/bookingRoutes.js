@@ -32,7 +32,31 @@ const router = express.Router();
 const BOOKING_STRICT_SIGNATURE = String(process.env.BOOKING_STRICT_SIGNATURE || process.env.STRICT_SECURITY_MODE || 'true').trim().toLowerCase() === 'true';
 const BOOKING_CRITICAL_RATE_LIMIT_ENABLED = String(process.env.BOOKING_CRITICAL_RATE_LIMIT_ENABLED || 'true').trim().toLowerCase() === 'true';
 const BOOKING_SIGNATURE_INCLUDE_CREATE = String(process.env.BOOKING_SIGNATURE_INCLUDE_CREATE || 'true').trim().toLowerCase() === 'true';
+const BOOKING_ALLOW_BROWSER_AUTH_CREATE = String(process.env.BOOKING_ALLOW_BROWSER_AUTH_CREATE || 'true').trim().toLowerCase() === 'true';
+const BOOKING_BROWSER_CLIENT_HEADER = String(process.env.BOOKING_BROWSER_CLIENT_HEADER || 'goindiaride-web').trim().toLowerCase();
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function hasBearerAuth(req) {
+  const authHeader = String(req.headers.authorization || '').trim();
+  return authHeader.startsWith('Bearer ');
+}
+
+function isBrowserAuthCreateWithoutSignature(req) {
+  if (!BOOKING_ALLOW_BROWSER_AUTH_CREATE) return false;
+
+  const method = String(req.method || '').toUpperCase();
+  const normalizedPath = String(req.path || '').trim().toLowerCase();
+  if (!(method === 'POST' && BOOKING_SIGNATURE_INCLUDE_CREATE && normalizedPath === '/')) {
+    return false;
+  }
+
+  const signature = String(req.headers['x-signature'] || '').trim();
+  if (signature) return false;
+  if (!hasBearerAuth(req)) return false;
+
+  const bookingClient = String(req.headers['x-booking-client'] || '').trim().toLowerCase();
+  return Boolean(bookingClient && bookingClient === BOOKING_BROWSER_CLIENT_HEADER);
+}
 
 function isBookingCriticalMutation(req) {
   const method = String(req.method || '').toUpperCase();
@@ -58,6 +82,9 @@ function bookingCriticalSecurityShield(req, res, next) {
   }
 
   const applySignatureCheck = () => {
+    if (isBrowserAuthCreateWithoutSignature(req)) {
+      return next();
+    }
     if (!BOOKING_STRICT_SIGNATURE) {
       return next();
     }
