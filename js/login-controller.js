@@ -644,6 +644,56 @@ async function verifyPasswordForLogin(enteredPassword,storedPassword){
 
   return{isValid:false,needsMigration:false,hashed};
 }
+async function createEmergencyLocalAccount({role,email,password}){
+  const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
+  const safeEmail=sanitizeEmail(email||'');
+  const plainPassword=String(password||'').trim();
+  if(!safeEmail||!plainPassword)return{ok:false,reason:'missing_credentials'};
+
+  const emailIdentifier={kind:'email',value:safeEmail};
+  const existing=findAccountByIdentifier(safeRole,emailIdentifier);
+  if(existing.record){
+    return{ok:true,record:existing.record,created:false};
+  }
+
+  const hashed=await hashPassword(plainPassword);
+  const nowIso=new Date().toISOString();
+  const nameFromEmail=sanitizeInput(safeEmail.split('@')[0].replace(/[._-]+/g,' ').trim())||'GoIndiaRide User';
+  const normalizedRecord=safeRole==='driver'
+    ? {
+      id:createStableAccountId('driver',safeEmail,''),
+      role:'driver',
+      userType:'driver',
+      name:nameFromEmail,
+      fullname:nameFromEmail,
+      email:safeEmail,
+      phone:'',
+      password:hashed,
+      passwordUpdatedAt:nowIso,
+      vehicleType:'economy',
+      vehicleNumber:'',
+      emergencyRestored:true,
+      createdAt:nowIso
+    }
+    : {
+      id:createStableAccountId('customer',safeEmail,''),
+      role:'customer',
+      userType:'customer',
+      fullname:nameFromEmail,
+      name:nameFromEmail,
+      email:safeEmail,
+      phone:'',
+      password:hashed,
+      passwordUpdatedAt:nowIso,
+      emergencyRestored:true,
+      createdAt:nowIso
+    };
+
+  const records=Array.isArray(existing.records)?existing.records:[];
+  records.push(normalizedRecord);
+  writeRecords(existing.storeKeys,records);
+  return{ok:true,record:normalizedRecord,created:true};
+}
 async function recoverBackendLoginUsingLocalAccount({role,email,password}){
   const account=findAccountByIdentifier(role,email);
   if(!account.record){
@@ -886,6 +936,17 @@ async function customerLoginEmail(){
     showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
     return;
   }
+  if(!hasLocalRecord&&isServerOrNetworkError(liveStatus)){
+    const emergency=await createEmergencyLocalAccount({role:'customer',email,password});
+    if(emergency.ok){
+      setUserSession(emergency.record);
+      showSuccess(emergency.created
+        ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
+        : 'Login successful (local restore mode).');
+      setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      return;
+    }
+  }
   if(!hasLocalRecord){
     showError('Is browser me purana local account data nahi mila. Agar account isi device par tha to ek baar hard refresh karke phir try karein.');
     return;
@@ -987,6 +1048,17 @@ async function driverLoginEmail(){
   if(LIVE_BACKEND_REQUIRED_FOR_LOGIN&&!isServerOrNetworkError(liveStatus)){
     showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
     return;
+  }
+  if(!hasLocalRecord&&isServerOrNetworkError(liveStatus)){
+    const emergency=await createEmergencyLocalAccount({role:'driver',email,password});
+    if(emergency.ok){
+      setDriverSession(emergency.record);
+      showSuccess(emergency.created
+        ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
+        : 'Login successful (local restore mode).');
+      setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      return;
+    }
   }
   if(!hasLocalRecord){
     showError('Is browser me purana local account data nahi mila. Agar account isi device par tha to ek baar hard refresh karke phir try karein.');
