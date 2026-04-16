@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v5';
+const CACHE_NAME = 'goindiaride-pwa-v6-20260416';
 const ASSETS = [
   './',
   './index.html',
@@ -17,7 +17,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.map((key) => {
-      if (key !== CACHE_NAME) {
+      if (key !== CACHE_NAME && key.startsWith('goindiaride-pwa-')) {
         return caches.delete(key);
       }
       return Promise.resolve();

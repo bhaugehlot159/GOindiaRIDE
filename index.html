@@ -1391,9 +1391,15 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch((error) => {
-                    console.warn('Service worker registration failed:', error);
-                });
+                const swVersion = '20260416-1';
+                navigator.serviceWorker
+                    .register(`./sw.js?v=${swVersion}`)
+                    .then((registration) => {
+                        registration.update().catch(() => {});
+                    })
+                    .catch((error) => {
+                        console.warn('Service worker registration failed:', error);
+                    });
             });
         }
 
