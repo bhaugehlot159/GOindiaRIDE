@@ -9,6 +9,13 @@ const DRIVER_READ_STORAGE_KEYS=[...new Set([
   'registeredDrivers','registered_drivers','goindia_drivers','goindiaride_driver_accounts','driver_accounts'
 ])];
 const ACCOUNT_BACKUP_KEY='goindiaride_accounts_backup_v2';
+const LEGACY_ACCOUNT_BACKUP_KEYS=[...new Set([
+  ACCOUNT_BACKUP_KEY,
+  'goindiaride_accounts_backup_v1',
+  'goindiaride_accounts_backup',
+  'goride_accounts_backup',
+  'goindia_accounts_backup'
+])];
 const ADMIN_PROFILE_KEY='goindiaride_admin_profile';
 const ADMIN_SESSION_KEY='goindiaride_admin_session';
 const ADMIN_FAILURE_KEY='goindiaride_admin_failures';
@@ -27,11 +34,45 @@ let firebaseRecaptchaVerifier=null;
 let customerConfirmation=null;
 let driverConfirmation=null;
 
+function extractArrayLike(parsed){
+  if(Array.isArray(parsed))return parsed;
+  if(!parsed||typeof parsed!=='object')return[];
+
+  const preferredKeys=['items','data','records','users','drivers','customers','list','results','rows'];
+  for(let i=0;i<preferredKeys.length;i+=1){
+    const key=preferredKeys[i];
+    if(Array.isArray(parsed[key]))return parsed[key];
+  }
+
+  const values=Object.values(parsed);
+  const nestedArray=values.find((value)=>Array.isArray(value));
+  if(Array.isArray(nestedArray))return nestedArray;
+
+  const objectValues=values.filter((value)=>value&&typeof value==='object'&&!Array.isArray(value));
+  if(objectValues.length>=2&&objectValues.length===values.length)return objectValues;
+
+  return[];
+}
 function safeReadArray(key){
-  try{const raw=localStorage.getItem(key);const parsed=raw?JSON.parse(raw):[];return Array.isArray(parsed)?parsed:[];}catch(e){return[];}
+  try{
+    const raw=localStorage.getItem(key);
+    const parsed=raw?JSON.parse(raw):[];
+    return extractArrayLike(parsed);
+  }catch(e){return[];}
 }
 function safeReadObject(key,fallback={}){
   try{const raw=localStorage.getItem(key);const parsed=raw?JSON.parse(raw):fallback;return parsed&&typeof parsed==='object'?parsed:fallback;}catch(e){return fallback;}
+}
+function safeReadObjectFromStorage(storage,key,fallback=null){
+  try{
+    if(!storage||typeof storage.getItem!=='function')return fallback;
+    const raw=storage.getItem(key);
+    if(!raw)return fallback;
+    const parsed=JSON.parse(raw);
+    return parsed&&typeof parsed==='object'?parsed:fallback;
+  }catch(_error){
+    return fallback;
+  }
 }
 function fnv1aHash(input){
   let hash=0x811c9dc5;
@@ -80,11 +121,29 @@ function persistAccountBackup(){
   localStorage.setItem(ACCOUNT_BACKUP_KEY,JSON.stringify(payload));
 }
 function restoreAccountBackupIfNeeded(){
-  const payload=safeReadObject(ACCOUNT_BACKUP_KEY,null);
+  let payload=null;
+  for(let i=0;i<LEGACY_ACCOUNT_BACKUP_KEYS.length;i+=1){
+    const candidate=safeReadObject(LEGACY_ACCOUNT_BACKUP_KEYS[i],null);
+    if(candidate&&typeof candidate==='object'){
+      payload=candidate;
+      break;
+    }
+  }
   if(!payload||typeof payload!=='object')return;
 
-  const safeCustomers=Array.isArray(payload.customers)?payload.customers.filter((row)=>isCustomerRecord(row)):[];
-  const safeDrivers=Array.isArray(payload.drivers)?payload.drivers.filter((row)=>isDriverRecord(row)):[];
+  const baseCustomers=Array.isArray(payload.customers)
+    ? payload.customers
+    : (Array.isArray(payload.users)?payload.users:extractArrayLike(payload.customerAccounts||payload.customerData||[]));
+  const baseDrivers=Array.isArray(payload.drivers)
+    ? payload.drivers
+    : extractArrayLike(payload.driverAccounts||payload.driverData||[]);
+  const accounts=Array.isArray(payload.accounts)?payload.accounts:[];
+
+  const accountCustomers=accounts.filter((row)=>isCustomerRecord(row));
+  const accountDrivers=accounts.filter((row)=>isDriverRecord(row));
+
+  const safeCustomers=[...baseCustomers,...accountCustomers].filter((row)=>isCustomerRecord(row));
+  const safeDrivers=[...baseDrivers,...accountDrivers].filter((row)=>isDriverRecord(row));
 
   if(!mergeRecords(CUSTOMER_READ_STORAGE_KEYS).length&&safeCustomers.length){
     CUSTOMER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(safeCustomers)));
@@ -92,6 +151,88 @@ function restoreAccountBackupIfNeeded(){
   if(!mergeRecords(DRIVER_READ_STORAGE_KEYS).length&&safeDrivers.length){
     DRIVER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(safeDrivers)));
   }
+}
+function upsertSessionCustomerArtifact(record){
+  const safeEmail=sanitizeEmail(record?.email||record?.userEmail||'');
+  const safePhone=normalizePhoneForLookup(record?.phone||record?.mobile||record?.contact||record?.contact1||'');
+  if(!safeEmail&&!safePhone)return false;
+
+  const identifier=safeEmail?{kind:'email',value:safeEmail}:{kind:'phone',value:safePhone};
+  const account=findAccountByIdentifier('customer',identifier);
+  const records=Array.isArray(account.records)?account.records:[];
+  const normalized={
+    ...(account.record||{}),
+    id:String(account.record?.id||createStableAccountId('customer',safeEmail,safePhone)).trim(),
+    role:'customer',
+    userType:'customer',
+    fullname:sanitizeInput(record?.fullname||record?.name||account.record?.fullname||account.record?.name||'Customer'),
+    name:sanitizeInput(record?.name||record?.fullname||account.record?.name||account.record?.fullname||'Customer'),
+    email:safeEmail||sanitizeEmail(account.record?.email||''),
+    phone:safePhone||normalizePhoneForLookup(account.record?.phone||account.record?.mobile||''),
+    password:getAccountPasswordValue(account.record||record),
+    passwordHash:sanitizeInput(record?.passwordHash||account.record?.passwordHash||''),
+    createdAt:account.record?.createdAt||sanitizeInput(record?.createdAt||'')||new Date().toISOString(),
+    recoveredFromSessionAt:new Date().toISOString()
+  };
+  if(account.index>=0)records[account.index]=normalized;
+  else records.push(normalized);
+  writeRecords(account.storeKeys,records);
+  return true;
+}
+function upsertSessionDriverArtifact(record){
+  const safeEmail=sanitizeEmail(record?.email||record?.userEmail||'');
+  const safePhone=normalizePhoneForLookup(record?.phone||record?.mobile||record?.contact||record?.contact1||'');
+  if(!safeEmail&&!safePhone)return false;
+
+  const identifier=safeEmail?{kind:'email',value:safeEmail}:{kind:'phone',value:safePhone};
+  const account=findAccountByIdentifier('driver',identifier);
+  const records=Array.isArray(account.records)?account.records:[];
+  const normalized={
+    ...(account.record||{}),
+    id:String(account.record?.id||createStableAccountId('driver',safeEmail,safePhone)).trim(),
+    role:'driver',
+    userType:'driver',
+    name:sanitizeInput(record?.name||record?.fullname||account.record?.name||account.record?.fullname||'Driver'),
+    fullname:sanitizeInput(record?.fullname||record?.name||account.record?.fullname||account.record?.name||'Driver'),
+    email:safeEmail||sanitizeEmail(account.record?.email||''),
+    phone:safePhone||normalizePhoneForLookup(account.record?.phone||account.record?.mobile||''),
+    password:getAccountPasswordValue(account.record||record),
+    passwordHash:sanitizeInput(record?.passwordHash||account.record?.passwordHash||''),
+    vehicleType:sanitizeInput(record?.vehicleType||account.record?.vehicleType||'economy'),
+    vehicleNumber:sanitizeInput(record?.vehicleNumber||account.record?.vehicleNumber||''),
+    createdAt:account.record?.createdAt||sanitizeInput(record?.createdAt||'')||new Date().toISOString(),
+    recoveredFromSessionAt:new Date().toISOString()
+  };
+  if(account.index>=0)records[account.index]=normalized;
+  else records.push(normalized);
+  writeRecords(account.storeKeys,records);
+  return true;
+}
+function restoreAccountsFromSessionArtifacts(){
+  const localCurrentUser=safeReadObjectFromStorage(localStorage,'currentUser',null);
+  const localCurrentDriver=safeReadObjectFromStorage(localStorage,'currentDriver',null);
+  const sessionCurrentUser=safeReadObjectFromStorage(sessionStorage,'currentUser',null);
+  const sessionCurrentDriver=safeReadObjectFromStorage(sessionStorage,'currentDriver',null);
+  const runtimeProfile=safeReadObjectFromStorage(localStorage,'goindiaride.profile.runtime',null)||safeReadObjectFromStorage(localStorage,'goindiaride_profile_runtime',null);
+  const roleHint=String(localStorage.getItem('userRole')||sessionStorage.getItem('userRole')||'').toLowerCase();
+
+  let changed=false;
+  [localCurrentUser,sessionCurrentUser].forEach((artifact)=>{
+    if(artifact&&upsertSessionCustomerArtifact(artifact))changed=true;
+  });
+  [localCurrentDriver,sessionCurrentDriver].forEach((artifact)=>{
+    if(artifact&&upsertSessionDriverArtifact(artifact))changed=true;
+  });
+
+  if(runtimeProfile){
+    if(roleHint==='driver'){
+      if(upsertSessionDriverArtifact(runtimeProfile))changed=true;
+    }else{
+      if(upsertSessionCustomerArtifact(runtimeProfile))changed=true;
+    }
+  }
+
+  if(changed)persistAccountBackup();
 }
 function writeRecords(keys,records){
   const arr=Array.isArray(records)?records:[];
@@ -976,6 +1117,7 @@ function showSuccess(msg){alert(msg);}
 
 window.addEventListener('load',async()=>{
   restoreAccountBackupIfNeeded();
+  restoreAccountsFromSessionArtifacts();
   ensureStableAccountIds();
   persistAccountBackup();
   await ensureAdminProfile();
