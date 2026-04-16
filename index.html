@@ -21,7 +21,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="GO India RIDE - Your Trusted Ride Partner">
     <meta name="twitter:description" content="Safe, Affordable Rides for International & Domestic Travelers">
-    <meta http-equiv="Content-Security-Policy-Report-Only" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https:;">
+    <!-- CSP Report-Only must be delivered via HTTP response header, not meta tag. -->
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="geolocation=(self), microphone=(), camera=()">
     <meta name="security-monitor" content="AI Auto Detective Enabled">
@@ -39,7 +39,11 @@
     
     <link rel="stylesheet" href="./style.css">
     <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <meta name="theme-color" content="#0b1f3a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
