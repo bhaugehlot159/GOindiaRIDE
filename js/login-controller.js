@@ -1184,8 +1184,30 @@ function setupOTPInputs(selector){
   inputs.forEach((input,index)=>{input.value='';input.oninput=(e)=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');if(e.target.value&&index<inputs.length-1)inputs[index+1].focus();};input.onkeydown=(e)=>{if(e.key==='Backspace'&&input.value===''&&index>0)inputs[index-1].focus();};});
   inputs[0].focus();
 }
-function showError(msg){const errorDiv=document.getElementById('errorMessage');const errorText=document.getElementById('errorText');errorText.textContent=msg;errorDiv.classList.add('show');setTimeout(()=>errorDiv.classList.remove('show'),4500);}
-function showSuccess(msg){alert(msg);}
+function showError(msg){
+  const errorDiv=document.getElementById('errorMessage');
+  const errorText=document.getElementById('errorText');
+  if(!errorDiv||!errorText){console.error(msg);return;}
+  errorDiv.style.background='#ffebee';
+  errorDiv.style.color='#c62828';
+  errorDiv.style.borderLeft='4px solid #c62828';
+  errorText.textContent=String(msg||'Something went wrong');
+  errorDiv.classList.add('show');
+  if(window.__goindiaMessageTimer)clearTimeout(window.__goindiaMessageTimer);
+  window.__goindiaMessageTimer=setTimeout(()=>errorDiv.classList.remove('show'),4500);
+}
+function showSuccess(msg){
+  const errorDiv=document.getElementById('errorMessage');
+  const errorText=document.getElementById('errorText');
+  if(!errorDiv||!errorText){console.log(msg);return;}
+  errorDiv.style.background='#e8f5e9';
+  errorDiv.style.color='#1b5e20';
+  errorDiv.style.borderLeft='4px solid #2e7d32';
+  errorText.textContent=String(msg||'Success');
+  errorDiv.classList.add('show');
+  if(window.__goindiaMessageTimer)clearTimeout(window.__goindiaMessageTimer);
+  window.__goindiaMessageTimer=setTimeout(()=>errorDiv.classList.remove('show'),2500);
+}
 
 window.addEventListener('load',async()=>{
   restoreAccountBackupIfNeeded();
