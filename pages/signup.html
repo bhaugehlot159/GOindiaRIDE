@@ -1475,7 +1475,12 @@
                 }
 
                 // Backend registration is primary (live mode)
-                const apiBaseRaw = (window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin));
+                const apiBaseRaw = (
+                    window.GOINDIARIDE_API_BASE ||
+                    ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                        ? 'http://localhost:5000'
+                        : window.location.origin)
+                );
                 const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
                 try {
                     const backendRes = await fetch(apiBase + '/api/auth/register', {

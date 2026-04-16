@@ -122,12 +122,37 @@ function clearBackendAccessToken(){
   localStorage.removeItem('token');
 }
 function getBackendApiBase(){
+  const host=String(window.location.hostname||'').toLowerCase();
+  const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
+  const localBackendBase='http://localhost:5000';
   const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
   const fromStorage=sanitizeInput(localStorage.getItem('goindiaride_api_base')||'');
-  const base=fromWindow||fromStorage;
-  if(base)return base.replace(/\/$/, '');
-  const host=String(window.location.hostname||'').toLowerCase();
-  if(host==='localhost'||host==='127.0.0.1')return 'http://localhost:5000';
+
+  const normalizeCandidate=(value)=>{
+    const text=String(value||'').trim();
+    if(!text)return'';
+    return text.replace(/\/$/, '');
+  };
+
+  const resolveCandidate=(candidate)=>{
+    const normalized=normalizeCandidate(candidate);
+    if(!normalized)return'';
+    if(!isLocalHost)return normalized;
+    try{
+      const parsed=new URL(normalized);
+      const apiHost=String(parsed.hostname||'').toLowerCase();
+      const apiPort=String(parsed.port||(parsed.protocol==='https:'?'443':'80'));
+      const isLocalApi=apiHost==='localhost'||apiHost==='127.0.0.1'||apiHost==='::1'||apiHost==='[::1]';
+      if(isLocalApi&&apiPort!=='5000')return'';
+      return normalized;
+    }catch(_error){
+      return'';
+    }
+  };
+
+  const preferred=resolveCandidate(fromWindow)||resolveCandidate(fromStorage);
+  if(preferred)return preferred;
+  if(isLocalHost)return localBackendBase;
   return String(window.location.origin||'').replace(/\/$/, '');
 }
 async function callBackendAuth(path,payload){

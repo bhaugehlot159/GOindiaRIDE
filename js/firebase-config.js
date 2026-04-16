@@ -12,5 +12,41 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
 
 
 // Backend API base for secure wallet/payment flows.
-window.GOINDIARIDE_API_BASE = window.GOINDIARIDE_API_BASE || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+// Local pages can run on 127.0.0.1:<port>, but API must stay on :5000.
+(function resolveApiBase() {
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+    const localBackendBase = 'http://localhost:5000';
+    const productionBase = String(window.location.origin || '').replace(/\/$/, '');
+
+    function normalizeBase(value) {
+        const text = String(value || '').trim();
+        if (!text) return '';
+        return text.replace(/\/$/, '');
+    }
+
+    const existingBase = normalizeBase(window.GOINDIARIDE_API_BASE);
+    if (!existingBase) {
+        window.GOINDIARIDE_API_BASE = isLocalHost ? localBackendBase : productionBase;
+        return;
+    }
+
+    if (isLocalHost) {
+        try {
+            const parsed = new URL(existingBase);
+            const apiHost = String(parsed.hostname || '').toLowerCase();
+            const apiPort = String(parsed.port || (parsed.protocol === 'https:' ? '443' : '80'));
+            const isLocalApi = apiHost === 'localhost' || apiHost === '127.0.0.1' || apiHost === '::1' || apiHost === '[::1]';
+            if (isLocalApi && apiPort !== '5000') {
+                window.GOINDIARIDE_API_BASE = localBackendBase;
+                return;
+            }
+        } catch (_error) {
+            window.GOINDIARIDE_API_BASE = localBackendBase;
+            return;
+        }
+    }
+
+    window.GOINDIARIDE_API_BASE = existingBase;
+})();
 
