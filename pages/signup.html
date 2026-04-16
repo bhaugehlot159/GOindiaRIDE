@@ -1479,7 +1479,9 @@
                     window.GOINDIARIDE_API_BASE ||
                     ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                         ? 'http://localhost:5000'
-                        : window.location.origin)
+                        : ((window.location.hostname === 'goindiaride.in' || window.location.hostname === 'www.goindiaride.in')
+                            ? 'https://api.goindiaride.in'
+                            : window.location.origin))
                 );
                 const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
                 try {
@@ -1580,7 +1582,7 @@
         persistAccountBackup(existingCustomers, existingDrivers);
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260416-3';
+                const swVersion = '20260416-4';
                 navigator.serviceWorker
                     .register('../sw.js?v=' + swVersion)
                     .then((registration) => {

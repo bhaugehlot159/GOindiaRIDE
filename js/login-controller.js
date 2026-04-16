@@ -124,7 +124,10 @@ function clearBackendAccessToken(){
 function getBackendApiBase(){
   const host=String(window.location.hostname||'').toLowerCase();
   const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
+  const isPrimaryProductionHost=host==='goindiaride.in'||host==='www.goindiaride.in';
   const localBackendBase='http://localhost:5000';
+  const productionApiBase='https://api.goindiaride.in';
+  const fromRuntimeOrigin=sanitizeInput(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__||window.__GOINDIARIDE_API_ORIGIN__||'');
   const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
   const fromStorage=sanitizeInput(localStorage.getItem('goindiaride_api_base')||'');
 
@@ -150,9 +153,10 @@ function getBackendApiBase(){
     }
   };
 
-  const preferred=resolveCandidate(fromWindow)||resolveCandidate(fromStorage);
+  const preferred=resolveCandidate(fromRuntimeOrigin)||resolveCandidate(fromWindow)||resolveCandidate(fromStorage);
   if(preferred)return preferred;
   if(isLocalHost)return localBackendBase;
+  if(isPrimaryProductionHost)return productionApiBase;
   return String(window.location.origin||'').replace(/\/$/, '');
 }
 async function callBackendAuth(path,payload){
