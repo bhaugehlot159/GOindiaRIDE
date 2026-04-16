@@ -590,6 +590,58 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   });
 });
 
+router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
+  const actorType = resolveCompletionActor(req);
+  const limit = Math.min(Math.max(Number(req.query.limit || 60), 1), 300);
+
+  let query = {};
+  if (actorType === 'customer') {
+    query = { userId: req.user.id };
+  } else if (actorType === 'driver') {
+    query = { driverId: String(req.user.id) };
+  }
+
+  const rows = await Booking.find(query)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  const items = rows.map((row) => ({
+    bookingId: row.bookingId,
+    status: row.status || 'created',
+    adminReviewStatus: row.adminReviewStatus || 'pending',
+    adminReviewedAt: row.adminReviewedAt || null,
+    adminReviewedBy: row.adminReviewedBy || null,
+    adminReviewNote: row.adminReviewNote || null,
+    pickupLocation: row.pickupLocation || '',
+    dropLocation: row.dropLocation || '',
+    rideDate: row.rideDate || '',
+    rideTime: row.rideTime || '',
+    returnDate: row.returnDate || '',
+    returnTime: row.returnTime || '',
+    tripPlan: row.tripPlan || '',
+    paymentMethod: row.paymentMethod || '',
+    vehicleType: row.vehicleType || '',
+    passengers: Number(row.passengers || 1),
+    luggage: row.luggage || '',
+    notes: row.notes || '',
+    stops: Array.isArray(row.stops) ? row.stops : [],
+    specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
+    safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
+    amount: Number(row.amount || 0),
+    distanceKm: Number(row.distanceKm || 0),
+    driverId: row.driverId || null,
+    customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object' ? row.customerSnapshot : {},
+    createdAt: row.createdAt || null,
+    updatedAt: row.updatedAt || null
+  }));
+
+  return res.status(200).json({
+    count: items.length,
+    items
+  });
+});
+
 router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) => {
   const actorType = resolveCompletionActor(req);
   const booking = await Booking.findOne({ bookingId: req.params.id });

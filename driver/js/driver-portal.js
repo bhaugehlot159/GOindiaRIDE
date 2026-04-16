@@ -27,6 +27,11 @@ let driverState = {
 const DRIVER_BACKEND_BOOKING_ALERT_POLL_MS = 5000;
 const DRIVER_BOOKING_ALARM_PREF_KEY = 'goindiaride_driver_booking_alarm_enabled';
 const DRIVER_BOOKING_ALARM_BTN_ID = 'goiEnableDriverBookingAlarm';
+const DRIVER_DEMO_REQUESTS_ENABLED = String(
+    window.GOINDIARIDE_ENABLE_DRIVER_DEMO_REQUESTS
+    || localStorage.getItem('goindiaride_enable_driver_demo_requests')
+    || 'false'
+).toLowerCase() === 'true';
 let driverBackendBookingAlertTimer = null;
 let driverBackendAlarmContext = null;
 let driverBackendAlarmLastAt = 0;
@@ -689,6 +694,11 @@ function checkForRideRequests() {
     if (String(getBackendAccessToken() || '').trim()) {
         return;
     }
+
+    // Live mode default: do not generate synthetic demo ride requests.
+    if (!DRIVER_DEMO_REQUESTS_ENABLED) {
+        return;
+    }
     
     // Simulate ride request after random delay (demo)
     const delay = Math.random() * 30000 + 10000; // 10-40 seconds
@@ -701,6 +711,10 @@ function checkForRideRequests() {
 
 // Show Ride Request
 function showRideRequest(bookingData = null) {
+    if (!bookingData && !DRIVER_DEMO_REQUESTS_ENABLED) {
+        return;
+    }
+
     const modal = document.getElementById('rideRequestModal');
     modal.style.display = 'flex';
 
@@ -994,6 +1008,10 @@ function startStatusMonitoring() {
 
 // Load Demo Data
 function loadDemoData() {
+    if (!DRIVER_DEMO_REQUESTS_ENABLED) {
+        return;
+    }
+
     // Initialize with demo data if first time
     if (!localStorage.getItem(STORAGE_KEYS.DRIVER_DATA)) {
         driverState.rating = 4.8;

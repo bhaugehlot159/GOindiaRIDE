@@ -222,6 +222,53 @@ function getBackendAccessToken() {
     );
 }
 
+function normalizeBookingLifecycleStatus(booking = {}) {
+    const adminReviewStatus = String(booking.adminReviewStatus || '').toLowerCase();
+    const backendStatus = String(booking.backendStatus || booking.status || '').toLowerCase();
+
+    if (backendStatus === 'cancelled') return 'cancelled';
+    if (backendStatus === 'completed') return 'completed';
+    if (adminReviewStatus === 'rejected') return 'rejected_by_admin';
+    if (adminReviewStatus === 'pending' || backendStatus === 'created') return 'pending_admin_review';
+
+    const hasDriver = Boolean(booking.driverId || booking.driverName);
+    if (adminReviewStatus === 'approved' && hasDriver) return 'driver_assigned';
+    if (adminReviewStatus === 'approved') return 'approved_waiting_driver';
+
+    return 'pending_admin_review';
+}
+
+function mapBackendBookingToLocal(backend = {}) {
+    const mapped = {
+        id: backend.bookingId || `BOOK${Date.now()}`,
+        bookingId: backend.bookingId || `BOOK${Date.now()}`,
+        pickup: backend.pickupLocation || '',
+        drop: backend.dropLocation || '',
+        vehicleType: backend.vehicleType || 'sedan',
+        bookingMode: backend.tripPlan || 'standard',
+        bookingModeDuration: 1,
+        acPreference: false,
+        luggageSpace: false,
+        timestamp: backend.createdAt || new Date().toISOString(),
+        distanceKm: Number(backend.distanceKm || 0),
+        fare: Number(backend.amount || 0),
+        finalFare: Number(backend.amount || 0),
+        otp: '----',
+        backendStatus: String(backend.status || 'created'),
+        adminReviewStatus: String(backend.adminReviewStatus || 'pending'),
+        driverId: backend.driverId || null,
+        driverName: backend.driverName || '',
+        rideDate: backend.rideDate || '',
+        rideTime: backend.rideTime || '',
+        returnDate: backend.returnDate || '',
+        returnTime: backend.returnTime || '',
+        notes: backend.notes || ''
+    };
+
+    mapped.status = normalizeBookingLifecycleStatus(mapped);
+    return mapped;
+}
+
 async function createSecureBackendBooking({
     pickup,
     drop,
@@ -269,7 +316,9 @@ async function createSecureBackendBooking({
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-booking-client': 'goindiaride-web',
+            'x-idempotency-key': `gir-booking-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
         },
         credentials: 'include',
         body: JSON.stringify(bookingPayload)
@@ -323,12 +372,16 @@ async function handleBookingSubmit() {
             bookingModeDuration,
             acPreference,
             luggageSpace,
-            status: 'searching',
+            status: 'pending_admin_review',
             timestamp: new Date().toISOString(),
             distanceKm: lastEstimatedDistanceKm,
             fare: calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration),
             discount: isFirstBooking ? 5 : 0,
-            otp: generateOTP()
+            otp: '----',
+            backendStatus: String(bookingResponse.status || 'created'),
+            adminReviewStatus: String(bookingResponse.adminReviewStatus || 'pending'),
+            driverId: null,
+            driverName: ''
         };
         
         // Apply first booking discount
@@ -346,19 +399,24 @@ async function handleBookingSubmit() {
         CustomerPortal.closeModal('bookingModal');
         
         // Show success message
-        const notifiedAdminCount = Number(bookingResponse?.notifications?.admin?.count || 0);
-        const notifiedDriverCount = Number(bookingResponse?.notifications?.driver?.count || 0);
-        const notifiedText = (notifiedAdminCount + notifiedDriverCount) > 0
-            ? ` Admin notified (${notifiedAdminCount}), drivers notified (${notifiedDriverCount}).`
+        const notifiedAdminCount = Number(
+            bookingResponse?.notifications?.adminReview?.count
+            || bookingResponse?.notifications?.admin?.count
+            || 0
+        );
+        const adminEmailSent = Boolean(bookingResponse?.adminEmail?.sent);
+        const notifiedText = notifiedAdminCount > 0
+            ? ` Admin alerted (${notifiedAdminCount}).`
             : '';
 
-        const message = isFirstBooking 
-            ? `Booking confirmed! First ride discount applied: ₹${(booking.fare - booking.finalFare).toFixed(0)} saved!`
-            : 'Booking confirmed! Searching for driver...';
+        const message = isFirstBooking
+            ? `Booking submitted! First ride discount applied: ₹${(booking.fare - booking.finalFare).toFixed(0)} saved. Waiting for admin approval.`
+            : 'Booking submitted! Waiting for admin approval.';
+        const emailText = adminEmailSent ? ' Admin email sent instantly.' : '';
         
-        CustomerPortal.showToast(`${message}${notifiedText}`, 'success');
+        CustomerPortal.showToast(`${message}${notifiedText}${emailText}`, 'success');
         
-        // Open live trip modal
+        // Show live status modal (admin review state, no fake driver assignment)
         setTimeout(() => {
             openLiveTripModal(booking);
         }, 1000);
@@ -457,16 +515,55 @@ function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDist
  */
 function saveBooking(booking) {
     const bookings = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');
-    bookings.push(booking);
-    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings));
+    const key = String(booking.id || booking.bookingId || '');
+    const idx = bookings.findIndex((item) => String(item.id || item.bookingId || '') === key);
+
+    if (idx === -1) {
+        bookings.unshift(booking);
+    } else {
+        bookings[idx] = { ...bookings[idx], ...booking };
+    }
+
+    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings.slice(0, 200)));
     
     loadActiveBookings();
+}
+
+async function syncActiveBookingsFromBackend() {
+    const token = String(getBackendAccessToken() || '').trim();
+    if (!token) return [];
+
+    const response = await fetch(`${getBackendApiBase()}/api/bookings/my?limit=120`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json'
+        },
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const rows = Array.isArray(payload.items) ? payload.items : [];
+    const mapped = rows.map((row) => mapBackendBookingToLocal(row));
+
+    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(mapped.slice(0, 200)));
+    return mapped;
 }
 
 /**
  * Load active bookings
  */
-function loadActiveBookings() {
+async function loadActiveBookings() {
+    try {
+        await syncActiveBookingsFromBackend();
+    } catch (error) {
+        // Keep local snapshot if backend sync is temporarily unavailable.
+    }
+
     const bookings = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');
     const container = document.getElementById('activeBookingsList');
     
@@ -477,12 +574,21 @@ function loadActiveBookings() {
         return;
     }
     
+    const labelMap = {
+        pending_admin_review: 'Pending Admin Review',
+        approved_waiting_driver: 'Approved - Driver Queue',
+        driver_assigned: 'Driver Assigned',
+        rejected_by_admin: 'Rejected by Admin',
+        cancelled: 'Cancelled',
+        completed: 'Completed'
+    };
+
     container.innerHTML = bookings.map(booking => `
         <div class="booking-item">
             <div>
                 <strong>${booking.pickup} → ${booking.drop}</strong>
                 <div>
-                    <span class="badge badge-${booking.status}">${booking.status}</span> •
+                    <span class="badge badge-${booking.status}">${labelMap[booking.status] || booking.status}</span> •
                     <span>₹${booking.finalFare.toFixed(0)}</span>
                 </div>
                 <small>${new Date(booking.timestamp).toLocaleString()}</small>
@@ -498,46 +604,81 @@ function loadActiveBookings() {
  * Open live trip modal
  */
 function openLiveTripModal(booking) {
-    const registeredDrivers = JSON.parse(localStorage.getItem('drivers') || '[]');
-    const activeDriver = registeredDrivers.find((item) => item.status === 'available') || registeredDrivers[0] || null;
+    const status = normalizeBookingLifecycleStatus(booking);
+    const hasAssignedDriver = status === 'driver_assigned' && Boolean(booking.driverName || booking.driverId);
+    const isPendingAdmin = status === 'pending_admin_review';
 
-    const driver = activeDriver
-        ? {
-            name: activeDriver.name || 'Assigned Driver',
-            vehicle: (activeDriver.vehicleModel || 'Vehicle') + ' - ' + (activeDriver.vehicleNumber || 'Pending'),
-            rating: Number(activeDriver.rating || 4.7).toFixed(1),
-            phone: activeDriver.phone || '+91 **********'
-        }
-        : {
-            name: 'Assigned Driver',
-            vehicle: 'Vehicle details will appear soon',
-            rating: '4.7',
-            phone: '+91 **********'
+    let driver = {
+        name: 'Pending Admin Approval',
+        vehicle: 'Booking is in live admin review queue',
+        rating: '--',
+        phone: ''
+    };
+
+    if (hasAssignedDriver) {
+        const registeredDrivers = JSON.parse(localStorage.getItem('drivers') || '[]');
+        const matchedDriver = registeredDrivers.find((item) => String(item.id || '') === String(booking.driverId || ''));
+        driver = {
+            name: booking.driverName || matchedDriver?.name || 'Assigned Driver',
+            vehicle: matchedDriver
+                ? ((matchedDriver.vehicleModel || 'Vehicle') + ' - ' + (matchedDriver.vehicleNumber || 'Pending'))
+                : (booking.vehicleType || 'Vehicle details pending'),
+            rating: matchedDriver ? Number(matchedDriver.rating || 4.7).toFixed(1) : '4.7',
+            phone: matchedDriver?.phone || '+91 **********'
         };
-    
-    // Update modal content
+    } else if (status === 'approved_waiting_driver') {
+        driver = {
+            name: 'Approved by Admin',
+            vehicle: 'Driver will be assigned shortly',
+            rating: '--',
+            phone: ''
+        };
+    } else if (status === 'rejected_by_admin') {
+        driver = {
+            name: 'Booking Rejected',
+            vehicle: 'Please create a new booking or contact support',
+            rating: '--',
+            phone: ''
+        };
+    }
+
     document.getElementById('driverName').textContent = driver.name;
     document.getElementById('vehicleDetails').textContent = driver.vehicle;
     document.getElementById('driverRating').textContent = driver.rating;
-    document.getElementById('rideOTP').textContent = booking.otp;
-    
-    // Setup chat button
-    document.getElementById('chatWithDriver')?.addEventListener('click', () => {
-        CustomerPortal.closeModal('liveTripModal');
-        openChatModal(driver);
-    });
-    
-    // Setup call button (with masking)
-    document.getElementById('callDriver')?.addEventListener('click', () => {
-        initiateCallMasking(driver);
-    });
-    
-    // Setup share trip button
-    document.getElementById('shareTrip')?.addEventListener('click', () => {
-        shareTrip(booking, driver);
-    });
+    document.getElementById('rideOTP').textContent = hasAssignedDriver ? (booking.otp || '----') : 'N/A';
+
+    const chatBtn = document.getElementById('chatWithDriver');
+    const callBtn = document.getElementById('callDriver');
+    const shareBtn = document.getElementById('shareTrip');
+
+    if (chatBtn) {
+        chatBtn.disabled = !hasAssignedDriver;
+        chatBtn.style.opacity = hasAssignedDriver ? '1' : '0.5';
+        chatBtn.onclick = hasAssignedDriver ? () => {
+            CustomerPortal.closeModal('liveTripModal');
+            openChatModal(driver);
+        } : null;
+    }
+
+    if (callBtn) {
+        callBtn.disabled = !hasAssignedDriver;
+        callBtn.style.opacity = hasAssignedDriver ? '1' : '0.5';
+        callBtn.onclick = hasAssignedDriver ? () => {
+            initiateCallMasking(driver);
+        } : null;
+    }
+
+    if (shareBtn) {
+        shareBtn.onclick = () => {
+            shareTrip(booking, driver);
+        };
+    }
     
     CustomerPortal.openModal('liveTripModal');
+
+    if (isPendingAdmin) {
+        CustomerPortal.showToast('Booking is in admin review queue. Driver assignment is paused until admin approval.', 'info');
+    }
 }
 
 /**

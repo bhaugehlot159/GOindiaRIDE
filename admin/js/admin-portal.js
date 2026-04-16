@@ -10,6 +10,12 @@ let backendBookingAlertTimer = null;
 let backendBookingAlarmContext = null;
 let backendBookingAlarmLastAt = 0;
 const backendSeenNotificationIds = new Set();
+const ADMIN_LIVE_ONLY_MODE = true;
+const adminLiveCache = {
+    Users: [],
+    Drivers: [],
+    Bookings: []
+};
 
 // Set initial theme
 if (currentTheme === 'dark') {
@@ -163,7 +169,11 @@ function upsertAdminBookingFromNotification(booking, fallbackStatus) {
         adminBookings[idx] = { ...adminBookings[idx], ...normalized };
     }
 
-    localStorage.setItem('adminDemoBookings', JSON.stringify(adminBookings));
+    if (ADMIN_LIVE_ONLY_MODE) {
+        adminLiveCache.Bookings = adminBookings.slice(0, 500);
+    } else {
+        localStorage.setItem('adminDemoBookings', JSON.stringify(adminBookings));
+    }
     return normalized;
 }
 
@@ -184,7 +194,8 @@ function setupPortalNotifications() {
     PortalConnector.listen('admin', (notification) => {
         if (!notification) return;
 
-        if (notification.type === 'new_booking' && notification.booking) {
+        const normalizedType = String(notification.type || '').toLowerCase();
+        if ((normalizedType === 'new_booking' || normalizedType === 'booking_admin_pending_review') && notification.booking) {
             upsertAdminBookingFromNotification(notification.booking, 'new');
             showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
             logAdminAction('NEW_BOOKING_ALERT', `Booking ${notification.booking.id} from ${notification.sourcePortal || 'portal'}`);
@@ -272,6 +283,46 @@ function getBackendAccessToken() {
     );
 }
 
+function normalizePendingBookingForAdminPortal(row) {
+    const customer = row && typeof row.customer === 'object' ? row.customer : {};
+    return {
+        id: String(row.bookingId || `BK${Date.now()}`),
+        customerId: String(customer.id || customer.email || customer.phone || 'customer'),
+        driverId: String(row.driverId || ''),
+        from: row.pickup || '',
+        to: row.drop || '',
+        fare: Number(row.amount || 0),
+        status: String(row.adminReviewStatus || 'pending').toLowerCase() === 'approved'
+            ? (row.driverId ? 'driver_assigned' : 'approved')
+            : String(row.adminReviewStatus || 'pending').toLowerCase() === 'rejected'
+                ? 'rejected'
+                : 'pending_admin_review',
+        date: String((row.createdAt || '').slice(0, 10) || new Date().toISOString().slice(0, 10)),
+        updatedAt: new Date().toISOString(),
+        createdAt: row.createdAt || new Date().toISOString(),
+        adminReviewStatus: String(row.adminReviewStatus || 'pending').toLowerCase()
+    };
+}
+
+async function fetchLivePendingAdminBookings(limit = 120) {
+    const token = String(getBackendAccessToken() || '').trim();
+    if (!token) return [];
+
+    const response = await fetch(`${getBackendApiBase()}/api/bookings/admin/pending?limit=${encodeURIComponent(limit)}`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json'
+        },
+        credentials: 'include'
+    });
+
+    if (!response.ok) return [];
+    const payload = await response.json().catch(() => ({}));
+    const rows = Array.isArray(payload.items) ? payload.items : [];
+    return rows.map(normalizePendingBookingForAdminPortal);
+}
+
 function getAdminLoginPath() {
     return './login.html';
 }
@@ -296,10 +347,7 @@ function hasLocalAdminSession() {
 
 async function enforceAdminPortalAccess() {
     const token = String(getBackendAccessToken() || '').trim();
-    const localAdminSession = hasLocalAdminSession();
-
     if (!token) {
-        if (localAdminSession) return true;
         window.location.replace(getAdminLoginPath());
         return false;
     }
@@ -314,7 +362,6 @@ async function enforceAdminPortalAccess() {
         });
 
         if (!response.ok) {
-            if (localAdminSession) return true;
             window.location.replace(getAdminLoginPath());
             return false;
         }
@@ -333,7 +380,6 @@ async function enforceAdminPortalAccess() {
         localStorage.setItem('userRole', 'admin');
         return true;
     } catch (error) {
-        if (localAdminSession) return true;
         window.location.replace(getAdminLoginPath());
         return false;
     }
@@ -526,7 +572,7 @@ async function pollBackendBookingAlerts({ seedOnly = false } = {}) {
             if (seedOnly || alreadySeen) return;
 
             const type = String(item.type || '').toLowerCase();
-            if (type === 'booking_created' || type === 'new_booking') {
+            if (type === 'booking_created' || type === 'new_booking' || type === 'booking_admin_pending_review') {
                 freshBookingItems.push(item);
             }
         });
@@ -565,6 +611,13 @@ function startBackendBookingAlerts() {
 }
 // Initialize Demo Data
 function initializeDemoData() {
+    if (ADMIN_LIVE_ONLY_MODE) {
+        adminLiveCache.Users = [];
+        adminLiveCache.Drivers = [];
+        adminLiveCache.Bookings = [];
+        return;
+    }
+
     // Check if demo data already exists
     if (!localStorage.getItem('adminDemoInitialized')) {
         // Create demo users
@@ -604,19 +657,52 @@ function initializeDemoData() {
 
 // Get demo data
 function getDemoData(type) {
+    if (ADMIN_LIVE_ONLY_MODE && Object.prototype.hasOwnProperty.call(adminLiveCache, type)) {
+        return Array.isArray(adminLiveCache[type]) ? adminLiveCache[type] : [];
+    }
+
     const data = localStorage.getItem(`adminDemo${type}`);
     return data ? JSON.parse(data) : [];
 }
 
 // Update dashboard statistics
-function updateDashboardStats() {
+async function updateDashboardStats() {
+    if (ADMIN_LIVE_ONLY_MODE) {
+        try {
+            const pendingBookings = await fetchLivePendingAdminBookings(240);
+            adminLiveCache.Bookings = pendingBookings;
+
+            const uniqueCustomers = new Set(
+                pendingBookings
+                    .map((item) => String(item.customerId || '').trim())
+                    .filter(Boolean)
+            );
+            const uniqueDrivers = new Set(
+                pendingBookings
+                    .map((item) => String(item.driverId || '').trim())
+                    .filter(Boolean)
+            );
+
+            const pendingCount = pendingBookings.filter((item) => item.status === 'pending_admin_review').length;
+            const fareSum = pendingBookings.reduce((sum, item) => sum + Number(item.fare || 0), 0);
+
+            document.getElementById('stat-users').textContent = String(uniqueCustomers.size);
+            document.getElementById('stat-drivers').textContent = `${uniqueDrivers.size} active refs`;
+            document.getElementById('stat-bookings').textContent = `${pendingCount} pending`;
+            document.getElementById('stat-revenue').textContent = '₹' + Number(fareSum || 0).toLocaleString();
+            return;
+        } catch (error) {
+            // Fall back to existing local render if backend is temporarily unavailable.
+        }
+    }
+
     const users = getDemoData('Users');
     const drivers = getDemoData('Drivers');
     const bookings = getDemoData('Bookings');
-    
+
     const activeDrivers = drivers.filter(d => d.status === 'available' || d.status === 'on-trip').length;
     const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + b.fare, 0);
-    
+
     document.getElementById('stat-users').textContent = users.length;
     document.getElementById('stat-drivers').textContent = activeDrivers + ' / ' + drivers.length;
     document.getElementById('stat-bookings').textContent = bookings.length;
@@ -805,7 +891,41 @@ function initializeDashboardCharts() {
 function loadRecentActivity() {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
-    
+
+    if (ADMIN_LIVE_ONLY_MODE) {
+        const liveRows = (Array.isArray(adminLiveCache.Bookings) ? adminLiveCache.Bookings : [])
+            .slice(0, 5)
+            .map((item) => {
+                const ageMinutes = Math.max(
+                    1,
+                    Math.floor((Date.now() - new Date(item.createdAt || Date.now()).getTime()) / 60000)
+                );
+                return {
+                    icon: 'fas fa-taxi',
+                    bg: '#0b3d91',
+                    title: `Booking ${item.id} pending admin review`,
+                    time: `${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`
+                };
+            });
+
+        const activities = liveRows.length
+            ? liveRows
+            : [{ icon: 'fas fa-shield-alt', bg: '#4facfe', title: 'No pending live bookings right now', time: 'Live queue synced' }];
+
+        activityList.innerHTML = activities.map(activity => `
+            <div class="activity-item">
+                <div class="activity-icon" style="background: ${activity.bg};">
+                    <i class="${activity.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">${activity.title}</div>
+                    <div class="activity-time">${activity.time}</div>
+                </div>
+            </div>
+        `).join('');
+        return;
+    }
+
     const activities = [
         { icon: 'fas fa-user-plus', bg: '#667eea', title: 'New user registered', time: '5 minutes ago' },
         { icon: 'fas fa-car', bg: '#f093fb', title: 'Driver Ravi Kumar completed a ride', time: '12 minutes ago' },

@@ -50,12 +50,12 @@ function setupPortalNotifications() {
         if (!notification) return;
 
         if (notification.type === 'booking_confirmed' && notification.booking) {
-            showToast(`Booking ${notification.booking.id} confirmed. Driver matching started.`, 'success');
+            showToast(`Booking ${notification.booking.id} submitted. Admin review is pending.`, 'success');
             return;
         }
 
         if (notification.type === 'driver_assigned' && notification.booking) {
-            showToast(`Driver assigned for booking ${notification.booking.id}.`, 'success');
+            showToast(`Driver assigned for booking ${notification.booking.id} after admin approval.`, 'success');
             return;
         }
 
