@@ -1,7 +1,13 @@
 const CUSTOMER_STORAGE_KEYS=[...new Set(['users','goride_users','customers','goindiaride_users','goindiaride_customers'])];
 const DRIVER_STORAGE_KEYS=[...new Set(['drivers','goride_drivers','goindiaride_drivers'])];
-const CUSTOMER_READ_STORAGE_KEYS=[...CUSTOMER_STORAGE_KEYS];
-const DRIVER_READ_STORAGE_KEYS=[...DRIVER_STORAGE_KEYS];
+const CUSTOMER_READ_STORAGE_KEYS=[...new Set([
+  ...CUSTOMER_STORAGE_KEYS,
+  'registeredUsers','registered_users','goindia_users','goindiaride_user_accounts','user_accounts'
+])];
+const DRIVER_READ_STORAGE_KEYS=[...new Set([
+  ...DRIVER_STORAGE_KEYS,
+  'registeredDrivers','registered_drivers','goindia_drivers','goindiaride_driver_accounts','driver_accounts'
+])];
 const ACCOUNT_BACKUP_KEY='goindiaride_accounts_backup_v2';
 const ADMIN_PROFILE_KEY='goindiaride_admin_profile';
 const ADMIN_SESSION_KEY='goindiaride_admin_session';
@@ -120,6 +126,20 @@ function clearBackendAccessToken(){
   localStorage.removeItem('accessToken');
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
+}
+function getAccountPasswordValue(record){
+  if(!record||typeof record!=='object')return'';
+  return String(record.password||record.passwordHash||record.pass||'').trim();
+}
+function tryDecodeBase64(text){
+  const raw=String(text||'').trim();
+  if(!raw||!/^[A-Za-z0-9+/=]+$/.test(raw)||raw.length%4!==0)return'';
+  try{
+    if(typeof window!=='undefined'&&typeof window.atob==='function'){
+      return String(window.atob(raw)||'');
+    }
+  }catch(_error){}
+  return'';
 }
 function getBackendApiBase(){
   const host=String(window.location.hostname||'').toLowerCase();
@@ -469,9 +489,18 @@ function resolveFriendlyLoginError(role,statusCode,message){
   return safeMessage||'Live login failed. Please try again.';
 }
 async function verifyPasswordForLogin(enteredPassword,storedPassword){
-  const hashed=await hashPassword(enteredPassword);
-  if(storedPassword===hashed)return{isValid:true,needsMigration:false,hashed};
-  if(typeof storedPassword==='string'&&storedPassword===enteredPassword)return{isValid:true,needsMigration:true,hashed};
+  const normalizedStored=String(storedPassword||'').trim();
+  const normalizedEntered=String(enteredPassword||'').trim();
+  const hashed=await hashPassword(normalizedEntered);
+  if(!normalizedEntered||!normalizedStored)return{isValid:false,needsMigration:false,hashed};
+  if(normalizedStored===hashed)return{isValid:true,needsMigration:false,hashed};
+  if(normalizedStored===normalizedEntered)return{isValid:true,needsMigration:true,hashed};
+
+  const decoded=tryDecodeBase64(normalizedStored);
+  if(decoded&&decoded===normalizedEntered){
+    return{isValid:true,needsMigration:true,hashed};
+  }
+
   return{isValid:false,needsMigration:false,hashed};
 }
 async function recoverBackendLoginUsingLocalAccount({role,email,password}){
@@ -480,7 +509,7 @@ async function recoverBackendLoginUsingLocalAccount({role,email,password}){
     return{ok:false,message:'Local account not found'};
   }
 
-  const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+  const passwordCheck=await verifyPasswordForLogin(password,getAccountPasswordValue(account.record));
   if(!passwordCheck.isValid){
     return{ok:false,message:'Wrong credentials'};
   }
@@ -665,9 +694,13 @@ async function customerLoginEmail(){
   }
 
   const liveStatus=Number(resolvedLogin.status||0);
+  let hasLocalRecord=false;
+  let localPasswordMismatch=false;
+
   let account=findAccountByIdentifier('customer',email);
   if(account.record){
-    const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+    hasLocalRecord=true;
+    const passwordCheck=await verifyPasswordForLogin(password,getAccountPasswordValue(account.record));
     if(passwordCheck.isValid){
       if(passwordCheck.needsMigration){
         const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
@@ -679,6 +712,29 @@ async function customerLoginEmail(){
       setUserSession(account.record);showSuccess('Login successful (local account restored).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
       return;
     }
+    localPasswordMismatch=true;
+  }
+
+  const driverAccount=findAccountByIdentifier('driver',email);
+  if(driverAccount.record){
+    hasLocalRecord=true;
+    const driverPasswordCheck=await verifyPasswordForLogin(password,getAccountPasswordValue(driverAccount.record));
+    if(driverPasswordCheck.isValid){
+      if(driverPasswordCheck.needsMigration){
+        const updatedRecord={...driverAccount.record,password:driverPasswordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+        if(driverAccount.index>=0)driverAccount.records[driverAccount.index]=updatedRecord;
+        else driverAccount.records.push(updatedRecord);
+        writeRecords(driverAccount.storeKeys,driverAccount.records);
+      }
+      setDriverSession(driverAccount.record);showSuccess('Yeh account driver role me hai. Driver portal open kiya ja raha hai.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      return;
+    }
+    localPasswordMismatch=true;
+  }
+
+  if(localPasswordMismatch){
+    showError('Local account mila hai, lekin password match nahi hua. Forgot Password se reset karein.');
+    return;
   }
 
   if(isAuthCredentialError(liveStatus)){
@@ -687,6 +743,10 @@ async function customerLoginEmail(){
   }
   if(LIVE_BACKEND_REQUIRED_FOR_LOGIN&&!isServerOrNetworkError(liveStatus)){
     showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
+    return;
+  }
+  if(!hasLocalRecord){
+    showError('Is browser me purana local account data nahi mila. Agar account isi device par tha to ek baar hard refresh karke phir try karein.');
     return;
   }
   showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
@@ -736,9 +796,13 @@ async function driverLoginEmail(){
   }
 
   const liveStatus=Number(resolvedLogin.status||0);
+  let hasLocalRecord=false;
+  let localPasswordMismatch=false;
+
   let account=findAccountByIdentifier('driver',email);
   if(account.record){
-    const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+    hasLocalRecord=true;
+    const passwordCheck=await verifyPasswordForLogin(password,getAccountPasswordValue(account.record));
     if(passwordCheck.isValid){
       if(passwordCheck.needsMigration){
         const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
@@ -750,6 +814,29 @@ async function driverLoginEmail(){
       setDriverSession(account.record);showSuccess('Login successful (local account restored).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
       return;
     }
+    localPasswordMismatch=true;
+  }
+
+  const customerAccount=findAccountByIdentifier('customer',email);
+  if(customerAccount.record){
+    hasLocalRecord=true;
+    const customerPasswordCheck=await verifyPasswordForLogin(password,getAccountPasswordValue(customerAccount.record));
+    if(customerPasswordCheck.isValid){
+      if(customerPasswordCheck.needsMigration){
+        const updatedRecord={...customerAccount.record,password:customerPasswordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+        if(customerAccount.index>=0)customerAccount.records[customerAccount.index]=updatedRecord;
+        else customerAccount.records.push(updatedRecord);
+        writeRecords(customerAccount.storeKeys,customerAccount.records);
+      }
+      setUserSession(customerAccount.record);showSuccess('Yeh account customer role me hai. Customer portal open kiya ja raha hai.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      return;
+    }
+    localPasswordMismatch=true;
+  }
+
+  if(localPasswordMismatch){
+    showError('Local account mila hai, lekin password match nahi hua. Forgot Password se reset karein.');
+    return;
   }
 
   if(isAuthCredentialError(liveStatus)){
@@ -758,6 +845,10 @@ async function driverLoginEmail(){
   }
   if(LIVE_BACKEND_REQUIRED_FOR_LOGIN&&!isServerOrNetworkError(liveStatus)){
     showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
+    return;
+  }
+  if(!hasLocalRecord){
+    showError('Is browser me purana local account data nahi mila. Agar account isi device par tha to ek baar hard refresh karke phir try karein.');
     return;
   }
   showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
