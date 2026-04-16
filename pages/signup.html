@@ -857,6 +857,54 @@
                 flex: 1;
             }
         }
+
+        /* Device-safe responsive order: show signup form first on phones/tablets */
+        @media (max-width: 900px) {
+            html,
+            body {
+                overflow-x: hidden;
+            }
+
+            body {
+                align-items: flex-start;
+                justify-content: flex-start;
+                padding: 8px;
+            }
+
+            .signup-container {
+                width: 100%;
+                min-height: auto;
+                height: auto;
+                max-height: none;
+                grid-template-columns: 1fr !important;
+                overflow: visible;
+            }
+
+            .signup-right {
+                order: 1;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .signup-left {
+                order: 2;
+                width: 100%;
+                align-items: flex-start;
+                text-align: left;
+                padding: 1.1rem 1rem;
+                gap: 0.7rem;
+            }
+
+            .showcase-proof {
+                grid-template-columns: 1fr;
+                gap: 0.6rem;
+            }
+
+            .proof-card {
+                padding: 0.8rem;
+                border-radius: 14px;
+            }
+        }
     </style>
         <link rel="stylesheet" href="../brand-theme.css?v=20260314-auth2">
 <link rel="stylesheet" href="../fit-screen.css?v=20260314-auth2">

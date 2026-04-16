@@ -26442,7 +26442,7 @@
 <script id="future-runtime-external-loader">
 window.__GOINDIARIDE_RUNTIME_EXTERNAL_PREFERRED__ = true;
 if (!window.__GOINDIARIDE_API_ORIGIN__ && /(^|\\.)goindiaride\\.in$/i.test(window.location.hostname)) {
-  window.__GOINDIARIDE_API_ORIGIN__ = 'https://api.goindiaride.in';
+  window.__GOINDIARIDE_API_ORIGIN__ = String(window.location.origin || '').replace(/\/$/, '');
 }
 </script>
 <script src="/js/future-feature-runtime.js?v=20260317-ratingfare1"></script>

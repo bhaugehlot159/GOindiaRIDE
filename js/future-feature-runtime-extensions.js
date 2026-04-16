@@ -20,11 +20,7 @@
     );
     if (explicit) return explicit;
 
-    var host = String((window.location && window.location.hostname) || '').toLowerCase();
-    if (host === 'goindiaride.in' || host === 'www.goindiaride.in') {
-      return 'https://api.goindiaride.in';
-    }
-    return '';
+    return normalizeOrigin((window.location && window.location.origin) || '');
   }
 
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';

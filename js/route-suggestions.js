@@ -196,7 +196,7 @@ function generateRouteHighlightsHTML(routeData) {
         
         routeData.highlights.forEach(highlight => {
             html += '<div style="padding: 0.8rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">';
-            html += `<div style="display: flex; justify-content: space-between; align-items: start;">';
+            html += `<div style="display: flex; justify-content: space-between; align-items: start;">`;
             html += `<div style="flex: 1;">`;
             html += `<div style="font-weight: bold; color: #333;">${highlight.icon} ${highlight.name}</div>`;
             html += `<div style="font-size: 0.85rem; color: #666; margin-top: 0.2rem;">${highlight.description}</div>`;
