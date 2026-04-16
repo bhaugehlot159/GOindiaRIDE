@@ -7,7 +7,20 @@
     const MAX_INCIDENTS = 120;
     const SCORE_DECAY_INTERVAL_MS = 15000;
     const SCORE_DECAY_VALUE = 1;
+    const STALE_STATE_RESET_MS = 60 * 60 * 1000;
+    const LOCKDOWN_SCORE_THRESHOLD = 92;
+    const LOCKDOWN_RELEASE_THRESHOLD = 70;
+    const LOCKDOWN_MIN_HIGH_INCIDENTS = 2;
     const MAX_SCRIPT_NODES_PER_MUTATION = 30;
+    const currentPath = String(location.pathname || '/').toLowerCase();
+    const isPublicEntryPage =
+        currentPath === '/' ||
+        currentPath.endsWith('/index.html') ||
+        currentPath.endsWith('/pages/login.html') ||
+        currentPath.endsWith('/pages/signup.html');
+    const lockdownEnabled =
+        /\/pages\/(booking|payment|checkout|customer-dashboard|driver-dashboard|admin-dashboard|wallet|admin\/)/.test(currentPath) ||
+        document.documentElement.getAttribute('data-ai-lockdown-enabled') === 'true';
     const trustedScriptPrefixes = [
         location.origin,
         'https://cdnjs.cloudflare.com',
@@ -115,6 +128,10 @@
     }
 
     function notify(message, level) {
+        if (isPublicEntryPage && (level === 'medium' || level === 'high')) {
+            return;
+        }
+
         let container = document.getElementById('ai-security-toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -155,8 +172,11 @@
     }
 
     function toggleSensitiveActions(disabled) {
-        const targets = document.querySelectorAll('button, .btn-primary, .btn-login, .btn-signup, [data-sensitive-action]');
+        const targets = document.querySelectorAll('[data-sensitive-action], .btn-confirm, .btn-pay, .btn-book, .booking-submit, button[type="submit"]');
         targets.forEach((element) => {
+            if (!element || !(element instanceof HTMLElement)) return;
+            if (element.classList.contains('btn-login') || element.classList.contains('btn-signup')) return;
+
             if (disabled) {
                 if (element.dataset.aiSecurityLocked === '1') return;
 
@@ -188,13 +208,30 @@
     }
 
     function maybeToggleLockdown() {
-        if (state.score >= 80 && !state.lockdown) {
+        if (!lockdownEnabled) {
+            if (state.lockdown) {
+                state.lockdown = false;
+                toggleSensitiveActions(false);
+            }
+            return;
+        }
+
+        const now = Date.now();
+        const highIncidentCount = getStoredIncidents().filter((incident) => {
+            const level = String(incident.level || '').toLowerCase();
+            if (level !== 'high' && level !== 'critical') return false;
+            const atMs = Date.parse(incident.at || '');
+            if (Number.isNaN(atMs)) return false;
+            return now - atMs <= 20 * 60 * 1000;
+        }).length;
+
+        if (state.score >= LOCKDOWN_SCORE_THRESHOLD && highIncidentCount >= LOCKDOWN_MIN_HIGH_INCIDENTS && !state.lockdown) {
             state.lockdown = true;
             toggleSensitiveActions(true);
             notify('Risk high detected. Sensitive actions temporarily locked.', 'high');
         }
 
-        if (state.score < 55 && state.lockdown) {
+        if ((state.score < LOCKDOWN_RELEASE_THRESHOLD || highIncidentCount === 0) && state.lockdown) {
             state.lockdown = false;
             toggleSensitiveActions(false);
             notify('Risk normalized. Sensitive actions unlocked.', 'low');
@@ -508,6 +545,17 @@
         const previousState = readJsonStorage(STATE_STORAGE_KEY, null);
         if (previousState && typeof previousState.score === 'number') {
             state.score = clamp(previousState.score, 0, 100);
+            state.lockdown = Boolean(previousState.lockdown);
+
+            const lastUpdatedMs = Date.parse(previousState.lastUpdatedAt || '');
+            const stateIsStale = Number.isNaN(lastUpdatedMs) || (Date.now() - lastUpdatedMs > STALE_STATE_RESET_MS);
+
+            // Prevent stale/high public-page score from locking normal users.
+            if (stateIsStale || isPublicEntryPage) {
+                state.score = Math.min(state.score, 34);
+                state.lockdown = false;
+                toggleSensitiveActions(false);
+            }
         }
 
         updateStateStorage();

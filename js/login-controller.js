@@ -175,8 +175,25 @@ async function callBackendAuth(path,payload){
     const url=base+normalizedPath;
     try{
       const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},credentials:'include',body});
-      const data=await res.json().catch(()=>({}));
-      return{ok:res.ok,status:res.status,data};
+      const rawText=await res.text().catch(()=>'');
+      let data={};
+      if(rawText){
+        try{data=JSON.parse(rawText);}catch(_error){data={raw:rawText.slice(0,220)};}
+      }
+
+      if(!res.ok){
+        const resolvedMessage=sanitizeInput(
+          data?.message||
+          data?.error||
+          data?.detail||
+          data?.raw||
+          res.statusText||
+          `HTTP ${res.status}`
+        )||`HTTP ${res.status}`;
+        return{ok:false,status:res.status,data:{...data,message:resolvedMessage}};
+      }
+
+      return{ok:true,status:res.status,data};
     }catch(error){
       lastNetworkError=error;
     }
@@ -400,6 +417,34 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
 
   return{ok:true,status:200,record:restored,source:'backend'};
 }
+function isAuthCredentialError(statusCode){
+  return[400,401,403,404,409].includes(Number(statusCode||0));
+}
+function isServerOrNetworkError(statusCode){
+  const code=Number(statusCode||0);
+  return code===0||code>=500;
+}
+function resolveFriendlyLoginError(role,statusCode,message){
+  const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
+  const code=Number(statusCode||0);
+  const safeMessage=sanitizeInput(message||'');
+
+  if(code===401||code===404){
+    return safeRole==='driver'
+      ? 'Account nahi mila ya password galat hai. Driver account details check karke dubara login karein.'
+      : 'Account nahi mila ya password galat hai. Customer account details check karke dubara login karein.';
+  }
+  if(code===403){
+    return 'Access blocked by server policy. Please contact support.';
+  }
+  if(code===429){
+    return 'Too many attempts. Thodi der baad dubara try karein.';
+  }
+  if(code===0||code>=500){
+    return 'Live server temporary issue. Local account fallback try ho raha hai.';
+  }
+  return safeMessage||'Live login failed. Please try again.';
+}
 async function verifyPasswordForLogin(enteredPassword,storedPassword){
   const hashed=await hashPassword(enteredPassword);
   if(storedPassword===hashed)return{isValid:true,needsMigration:false,hashed};
@@ -596,20 +641,23 @@ async function customerLoginEmail(){
     return;
   }
 
-  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(resolvedLogin.status||0)!==0){
-    const code=Number(resolvedLogin.status||0);
-    if(code===401||code===404){
-      showError('Account not found ya password wrong. Ek baar Sign Up karein, phir login karein.');
-      return;
-    }
-    showError(resolvedLogin.message||'Live login failed. Please try again.');
+  const liveStatus=Number(resolvedLogin.status||0);
+  if(isAuthCredentialError(liveStatus)){
+    showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
+    return;
+  }
+  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN&&!isServerOrNetworkError(liveStatus)){
+    showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
     return;
   }
 
   let account=findAccountByIdentifier('customer',email);
-  if(!account.record){showError('Live server unavailable and local account missing. Please retry.');return;}
+  if(!account.record){
+    showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
+    return;
+  }
   const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
+  if(!passwordCheck.isValid){showError('Password mismatch. Please check and retry.');return;}
   if(passwordCheck.needsMigration){
     const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
     if(account.index>=0)account.records[account.index]=updatedRecord;
@@ -663,20 +711,23 @@ async function driverLoginEmail(){
     return;
   }
 
-  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(resolvedLogin.status||0)!==0){
-    const code=Number(resolvedLogin.status||0);
-    if(code===401||code===404){
-      showError('Account not found ya password wrong. Driver Sign Up karke phir login karein.');
-      return;
-    }
-    showError(resolvedLogin.message||'Live login failed. Please try again.');
+  const liveStatus=Number(resolvedLogin.status||0);
+  if(isAuthCredentialError(liveStatus)){
+    showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
+    return;
+  }
+  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN&&!isServerOrNetworkError(liveStatus)){
+    showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
     return;
   }
 
   let account=findAccountByIdentifier('driver',email);
-  if(!account.record){showError('Live server unavailable and local account missing. Please retry.');return;}
+  if(!account.record){
+    showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
+    return;
+  }
   const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){showError('Wrong credentials.');return;}
+  if(!passwordCheck.isValid){showError('Password mismatch. Please check and retry.');return;}
   if(passwordCheck.needsMigration){
     const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
     if(account.index>=0)account.records[account.index]=updatedRecord;
