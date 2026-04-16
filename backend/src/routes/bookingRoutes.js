@@ -36,6 +36,18 @@ const BOOKING_CRITICAL_RATE_LIMIT_ENABLED = String(process.env.BOOKING_CRITICAL_
 const BOOKING_SIGNATURE_INCLUDE_CREATE = String(process.env.BOOKING_SIGNATURE_INCLUDE_CREATE || 'true').trim().toLowerCase() === 'true';
 const BOOKING_ALLOW_BROWSER_AUTH_CREATE = String(process.env.BOOKING_ALLOW_BROWSER_AUTH_CREATE || 'true').trim().toLowerCase() === 'true';
 const BOOKING_BROWSER_CLIENT_HEADER = String(process.env.BOOKING_BROWSER_CLIENT_HEADER || 'goindiaride-web').trim().toLowerCase();
+const BOOKING_FALLBACK_ALERT_ENABLED = String(process.env.BOOKING_FALLBACK_ALERT_ENABLED || 'true').trim().toLowerCase() !== 'false';
+const BOOKING_FALLBACK_ALERT_REQUIRE_CLIENT_HEADER = String(process.env.BOOKING_FALLBACK_ALERT_REQUIRE_CLIENT_HEADER || 'true').trim().toLowerCase() !== 'false';
+const BOOKING_FALLBACK_ALERT_ALLOWED_ORIGINS = [...new Set(
+  splitCsvValues(
+    process.env.BOOKING_FALLBACK_ALERT_ALLOWED_ORIGINS
+    || process.env.BOOKING_FALLBACK_ALERT_ORIGINS
+    || process.env.CORS_ORIGIN
+    || 'https://goindiaride.in,https://www.goindiaride.in,http://localhost,http://127.0.0.1'
+  )
+    .map((item) => String(item || '').trim().toLowerCase())
+    .filter(Boolean)
+)];
 const ADMIN_EMAIL_RECIPIENT_VARS = ['BOOKING_ADMIN_ALERT_EMAILS', 'ADMIN_ALERT_EMAILS', 'ADMIN_EMAILS'];
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
@@ -196,16 +208,42 @@ function uniqueEmails(list = []) {
 
 async function resolveAdminAlertRecipients() {
   const envEmails = ADMIN_EMAIL_RECIPIENT_VARS.flatMap((key) => splitCsvValues(process.env[key]));
-  const adminUsers = await User.find({
-    $or: [{ role: 'admin' }, { accountType: 'admin' }],
-    email: { $exists: true, $ne: null }
-  }).select('email').lean();
+  let adminUserEmails = [];
+  try {
+    const adminUsers = await User.find({
+      $or: [{ role: 'admin' }, { accountType: 'admin' }],
+      email: { $exists: true, $ne: null }
+    }).select('email').lean();
 
-  const adminUserEmails = adminUsers
-    .map((user) => normalizeEmail(user.email))
-    .filter(isLikelyEmail);
+    adminUserEmails = adminUsers
+      .map((user) => normalizeEmail(user.email))
+      .filter(isLikelyEmail);
+  } catch (error) {
+    logger.warn('booking_admin_recipient_lookup_failed', {
+      message: error.message
+    });
+  }
 
   return uniqueEmails([...envEmails, ...adminUserEmails]);
+}
+
+function toOrigin(rawValue) {
+  try {
+    return new URL(String(rawValue || '').trim()).origin.toLowerCase();
+  } catch (_error) {
+    return '';
+  }
+}
+
+function resolveRequestOrigin(req) {
+  const directOrigin = toOrigin(req.headers.origin);
+  if (directOrigin) return directOrigin;
+  return toOrigin(req.headers.referer);
+}
+
+function isAllowedFallbackAlertOrigin(origin) {
+  if (!origin) return false;
+  return BOOKING_FALLBACK_ALERT_ALLOWED_ORIGINS.includes(origin);
 }
 
 function humanizeKey(key) {
@@ -405,6 +443,110 @@ async function buildDonationSuggestion() {
     suggestedAmounts: DONATION_SUGGESTIONS
   };
 }
+
+router.post('/fallback/admin-alert-email', walletCriticalLimiter, async (req, res) => {
+  if (!BOOKING_FALLBACK_ALERT_ENABLED) {
+    return res.status(403).json({ message: 'Fallback admin email alert is disabled' });
+  }
+
+  const bookingClient = String(req.headers['x-booking-client'] || '').trim().toLowerCase();
+  if (BOOKING_FALLBACK_ALERT_REQUIRE_CLIENT_HEADER && bookingClient !== BOOKING_BROWSER_CLIENT_HEADER) {
+    return res.status(403).json({ message: 'Booking client not allowed for fallback admin email alert' });
+  }
+
+  const requestOrigin = resolveRequestOrigin(req);
+  if (!isAllowedFallbackAlertOrigin(requestOrigin)) {
+    return res.status(403).json({ message: 'Origin not allowed for fallback admin email alert' });
+  }
+
+  const bookingId = sanitizeText(req.body.bookingId || req.body.id, 80).toUpperCase();
+  if (!bookingId || !/^(RID|BK)[A-Z0-9_-]{6,}$/.test(bookingId)) {
+    return res.status(400).json({ message: 'Valid bookingId is required' });
+  }
+
+  const bookingContext = buildBookingContext(req.body || {});
+  if (!bookingContext.pickupLocation || !bookingContext.dropLocation) {
+    return res.status(400).json({ message: 'Pickup and drop locations are required' });
+  }
+
+  const amountInput = toAmount(req.body.amount ?? req.body.totalFare);
+  const distanceInput = toAmount(req.body.distanceKm ?? req.body.distance);
+
+  const booking = {
+    bookingId,
+    status: 'created',
+    adminReviewStatus: 'pending',
+    amount: Number.isFinite(amountInput) ? amountInput : 0,
+    distanceKm: Number.isFinite(distanceInput) ? distanceInput : 0,
+    createdAt: new Date().toISOString()
+  };
+
+  const customerSnapshot = {
+    name: sanitizeText(req.body.customerName || req.body.fullname || req.body.name, 140),
+    email: sanitizeText(req.body.customerEmail || req.body.email, 180),
+    phone: sanitizeText(req.body.customerPhone || req.body.phone, 40)
+  };
+
+  let reviewAlert = null;
+  try {
+    reviewAlert = await createBookingAdminReviewAlert({
+      bookingId,
+      amount: booking.amount,
+      distanceKm: booking.distanceKm,
+      customerId: sanitizeText(req.body.customerId, 120) || null,
+      pickup: bookingContext.pickupLocation,
+      drop: bookingContext.dropLocation,
+      vehicleType: bookingContext.vehicleType,
+      rideDate: bookingContext.rideDate,
+      rideTime: bookingContext.rideTime,
+      returnDate: bookingContext.returnDate,
+      returnTime: bookingContext.returnTime,
+      tripPlan: bookingContext.tripPlan,
+      paymentMethod: bookingContext.paymentMethod,
+      passengers: bookingContext.passengers,
+      luggage: bookingContext.luggage,
+      notes: bookingContext.notes,
+      stops: bookingContext.stops,
+      specialRequests: bookingContext.specialRequests,
+      safetyAccessibility: bookingContext.safetyAccessibility,
+      customerSnapshot,
+      currency: sanitizeText(req.body.currency || 'INR', 8).toUpperCase() || 'INR'
+    });
+  } catch (error) {
+    logger.warn('fallback_booking_admin_review_notification_failed', {
+      bookingId,
+      message: error.message
+    });
+  }
+
+  const adminEmail = await sendBookingAdminAlertEmail({
+    booking,
+    context: bookingContext,
+    customer: customerSnapshot
+  });
+
+  if (!adminEmail || adminEmail.sent !== true) {
+    return res.status(202).json({
+      ok: false,
+      bookingId,
+      message: 'Admin email not sent in fallback flow',
+      adminEmail: adminEmail || { sent: false, reason: 'unknown' },
+      notifications: {
+        adminReview: reviewAlert
+      }
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    bookingId,
+    message: 'Fallback admin alert email sent',
+    adminEmail,
+    notifications: {
+      adminReview: reviewAlert
+    }
+  });
+});
 
 router.get('/quote', authenticate, continuousRiskGate, async (req, res) => {
   const parsedDistance = Number(req.query.distanceKm || req.query.distance || 10);
