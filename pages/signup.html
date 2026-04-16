@@ -1578,6 +1578,17 @@
         const existingCustomers = mergeRecords(CUSTOMER_STORAGE_KEYS).filter((row) => isCustomerRecord(row));
         const existingDrivers = mergeRecords(DRIVER_STORAGE_KEYS).filter((row) => isDriverRecord(row));
         persistAccountBackup(existingCustomers, existingDrivers);
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swVersion = '20260416-2';
+                navigator.serviceWorker
+                    .register('../sw.js?v=' + swVersion)
+                    .then((registration) => {
+                        registration.update().catch(() => {});
+                    })
+                    .catch(() => {});
+            });
+        }
         console.log('✅ Signup page loaded');
     </script>
 

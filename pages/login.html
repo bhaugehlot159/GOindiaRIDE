@@ -808,6 +808,19 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="../js/portal-connector.js"></script>
     <script src="../js/login-controller.js?v=20260416-loginfix1"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                const swVersion = '20260416-2';
+                navigator.serviceWorker
+                    .register('../sw.js?v=' + swVersion)
+                    .then(function (registration) {
+                        registration.update().catch(function () {});
+                    })
+                    .catch(function () {});
+            });
+        }
+    </script>
 
 </body>
 </html>

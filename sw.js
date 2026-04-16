@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v6-20260416';
+const CACHE_NAME = 'goindiaride-pwa-v7-20260416';
 const ASSETS = [
   './',
   './index.html',
@@ -30,13 +30,32 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Keep HTML/pages fresh so latest deploy appears immediately.
-  if (event.request.mode === 'navigate') {
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const path = String(requestUrl.pathname || '').toLowerCase();
+  const destination = String(event.request.destination || '').toLowerCase();
+  const shouldUseNetworkFirst = event.request.mode === 'navigate' || (
+    isSameOrigin && (
+      destination === 'script' ||
+      destination === 'style' ||
+      destination === 'document' ||
+      path.endsWith('.html') ||
+      path.endsWith('.js') ||
+      path.endsWith('.css') ||
+      path.startsWith('/pages/')
+    )
+  );
+
+  // Keep HTML/pages/scripts/styles fresh so latest deploy appears immediately.
+  if (shouldUseNetworkFirst) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          const isHttp = event.request.url.startsWith('http');
+          if (response && response.status === 200 && isHttp) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
           return response;
         })
         .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
