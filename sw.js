@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v9-20260416';
+const CACHE_NAME = 'goindiaride-pwa-v10-20260416';
 const ASSETS = [
   './',
   './index.html',
