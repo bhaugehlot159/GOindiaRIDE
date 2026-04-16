@@ -383,6 +383,39 @@ async function verifyPasswordForLogin(enteredPassword,storedPassword){
   if(typeof storedPassword==='string'&&storedPassword===enteredPassword)return{isValid:true,needsMigration:true,hashed};
   return{isValid:false,needsMigration:false,hashed};
 }
+async function recoverBackendLoginUsingLocalAccount({role,email,password}){
+  const account=findAccountByIdentifier(role,email);
+  if(!account.record){
+    return{ok:false,message:'Local account not found'};
+  }
+
+  const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+  if(!passwordCheck.isValid){
+    return{ok:false,message:'Wrong credentials'};
+  }
+
+  if(passwordCheck.needsMigration){
+    const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+    if(account.index>=0)account.records[account.index]=updatedRecord;
+    else account.records.push(updatedRecord);
+    writeRecords(account.storeKeys,account.records);
+  }
+
+  const sync=await syncBackendSessionForLocalAccount({
+    record:account.record,
+    password,
+    role
+  });
+  if(!sync.synced){
+    return{ok:false,message:sync.reason||'Backend sync failed'};
+  }
+
+  const recovered=await loginViaBackendAndRestoreLocal({role,email,password});
+  if(!recovered.ok){
+    return{ok:false,message:recovered.message||'Recovered login failed'};
+  }
+  return{ok:true,record:recovered.record};
+}
 function evaluateLoginRisk(action,payload={}){
   if(!window.GoIndiaAuthenticityEngine||typeof GoIndiaAuthenticityEngine.registerAction!=='function')return null;
   try{return GoIndiaAuthenticityEngine.registerAction('login',action,payload);}catch(e){console.warn('risk unavailable',e);return null;}
@@ -523,15 +556,30 @@ async function customerLoginEmail(){
   const email=sanitizeEmail(document.getElementById('customerEmail').value);const password=document.getElementById('customerPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
-  if(liveLogin.ok){
-    const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:liveLogin.record.id,email,source:'backend_live'});
-    if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:liveLogin.record.id,email,score:Number(risk.score||0)});return;}
-    setUserSession(liveLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+  let resolvedLogin=liveLogin;
+  if(!resolvedLogin.ok){
+    const canAttemptRecovery=[0,401,404,409].includes(Number(resolvedLogin.status||0));
+    if(canAttemptRecovery){
+      const recovered=await recoverBackendLoginUsingLocalAccount({role:'customer',email,password});
+      if(recovered.ok){
+        resolvedLogin={ok:true,record:recovered.record,status:200,message:'Recovered from local account'};
+      }
+    }
+  }
+  if(resolvedLogin.ok){
+    const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:resolvedLogin.record.id,email,source:'backend_live'});
+    if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:resolvedLogin.record.id,email,score:Number(risk.score||0)});return;}
+    setUserSession(resolvedLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
     return;
   }
 
-  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(liveLogin.status||0)!==0){
-    showError(liveLogin.message||'Live login failed. Please try again.');
+  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(resolvedLogin.status||0)!==0){
+    const code=Number(resolvedLogin.status||0);
+    if(code===401||code===404){
+      showError('Account not found ya password wrong. Ek baar Sign Up karein, phir login karein.');
+      return;
+    }
+    showError(resolvedLogin.message||'Live login failed. Please try again.');
     return;
   }
 
@@ -575,15 +623,30 @@ async function driverLoginEmail(){
   const email=sanitizeEmail(document.getElementById('driverEmail').value);const password=document.getElementById('driverPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
-  if(liveLogin.ok){
-    const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:liveLogin.record.id,email,source:'backend_live'});
-    if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:liveLogin.record.id,email,score:Number(risk.score||0)});return;}
-    setDriverSession(liveLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+  let resolvedLogin=liveLogin;
+  if(!resolvedLogin.ok){
+    const canAttemptRecovery=[0,401,404,409].includes(Number(resolvedLogin.status||0));
+    if(canAttemptRecovery){
+      const recovered=await recoverBackendLoginUsingLocalAccount({role:'driver',email,password});
+      if(recovered.ok){
+        resolvedLogin={ok:true,record:recovered.record,status:200,message:'Recovered from local account'};
+      }
+    }
+  }
+  if(resolvedLogin.ok){
+    const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:resolvedLogin.record.id,email,source:'backend_live'});
+    if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:resolvedLogin.record.id,email,score:Number(risk.score||0)});return;}
+    setDriverSession(resolvedLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
     return;
   }
 
-  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(liveLogin.status||0)!==0){
-    showError(liveLogin.message||'Live login failed. Please try again.');
+  if(LIVE_BACKEND_REQUIRED_FOR_LOGIN || Number(resolvedLogin.status||0)!==0){
+    const code=Number(resolvedLogin.status||0);
+    if(code===401||code===404){
+      showError('Account not found ya password wrong. Driver Sign Up karke phir login karein.');
+      return;
+    }
+    showError(resolvedLogin.message||'Live login failed. Please try again.');
     return;
   }
 

@@ -945,9 +945,9 @@
                     <i class="fas fa-user-plus"></i>
                     <span data-lang="hero.driver">Become a Driver</span>
                 </a>
-                <button id="installAppBtn" class="btn-secondary" style="display: none;" type="button">
+                <button id="installAppBtn" class="btn-secondary" style="display: inline-flex;" type="button">
                     <i class="fas fa-download"></i>
-                    <span>Install App</span>
+                    <span>Open / Install App</span>
                 </button>
             </div>
         </div>
@@ -1357,41 +1357,49 @@
 
         let deferredInstallPrompt = null;
         const installAppBtn = document.getElementById('installAppBtn');
+        const isStandaloneMode = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        const refreshInstallAppButton = () => {
+            if (!installAppBtn) return;
+            if (isStandaloneMode()) {
+                installAppBtn.style.display = 'none';
+                return;
+            }
+            installAppBtn.style.display = 'inline-flex';
+            const label = installAppBtn.querySelector('span');
+            if (label) {
+                label.textContent = deferredInstallPrompt ? 'Install App' : 'Open / Install App';
+            }
+        };
 
         window.addEventListener('beforeinstallprompt', (event) => {
             event.preventDefault();
             deferredInstallPrompt = event;
-            if (installAppBtn) {
-                installAppBtn.style.display = 'inline-flex';
-            }
+            refreshInstallAppButton();
         });
 
         if (installAppBtn) {
             installAppBtn.addEventListener('click', async () => {
                 if (!deferredInstallPrompt) {
-                    alert('Install option abhi available nahi hai. Browser menu se Add to Home Screen use karein.');
+                    alert('Agar address bar me "Open in app" button dikh raha hai to uspar click karein. Warna browser menu se "Install app / Add to Home Screen" use karein.');
                     return;
                 }
 
                 deferredInstallPrompt.prompt();
                 const choice = await deferredInstallPrompt.userChoice;
-                if (choice && choice.outcome === 'accepted') {
-                    installAppBtn.style.display = 'none';
-                }
                 deferredInstallPrompt = null;
+                refreshInstallAppButton();
             });
         }
 
         window.addEventListener('appinstalled', () => {
             deferredInstallPrompt = null;
-            if (installAppBtn) {
-                installAppBtn.style.display = 'none';
-            }
+            refreshInstallAppButton();
         });
+        refreshInstallAppButton();
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260416-2';
+                const swVersion = '20260416-3';
                 navigator.serviceWorker
                     .register(`./sw.js?v=${swVersion}`)
                     .then((registration) => {

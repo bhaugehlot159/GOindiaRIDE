@@ -1,9 +1,11 @@
-const CACHE_NAME = 'goindiaride-pwa-v7-20260416';
+const CACHE_NAME = 'goindiaride-pwa-v8-20260416';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
   './icons/icon-192.svg',
   './icons/icon-512.svg'
 ];
