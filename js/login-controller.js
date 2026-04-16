@@ -166,10 +166,18 @@ async function callBackendAuth(path,payload){
   const body=JSON.stringify(payload||{});
   const primaryBase=getBackendApiBase();
   const sameOriginBase=String(window.location.origin||'').replace(/\/$/, '');
-  const candidateBases=[primaryBase];
-  if(sameOriginBase&&sameOriginBase!==primaryBase)candidateBases.push(sameOriginBase);
+  const host=String(window.location.hostname||'').toLowerCase();
+  const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in';
+  const candidateBases=[];
+  if(isPrimaryWebsiteHost){
+    if(sameOriginBase)candidateBases.push(sameOriginBase);
+  }else{
+    if(primaryBase)candidateBases.push(primaryBase);
+    if(sameOriginBase&&!candidateBases.includes(sameOriginBase))candidateBases.push(sameOriginBase);
+  }
 
   let lastNetworkError=null;
+  let lastHttpFailure=null;
   for(let index=0;index<candidateBases.length;index+=1){
     const base=candidateBases[index];
     const url=base+normalizedPath;
@@ -190,7 +198,14 @@ async function callBackendAuth(path,payload){
           res.statusText||
           `HTTP ${res.status}`
         )||`HTTP ${res.status}`;
-        return{ok:false,status:res.status,data:{...data,message:resolvedMessage}};
+        lastHttpFailure={ok:false,status:res.status,data:{...data,message:resolvedMessage}};
+
+        const hasNextCandidate=index<candidateBases.length-1;
+        const shouldTryNextBase=[404,405,500,502,503,504].includes(Number(res.status||0));
+        if(hasNextCandidate&&shouldTryNextBase){
+          continue;
+        }
+        return lastHttpFailure;
       }
 
       return{ok:true,status:res.status,data};
@@ -198,6 +213,8 @@ async function callBackendAuth(path,payload){
       lastNetworkError=error;
     }
   }
+
+  if(lastHttpFailure)return lastHttpFailure;
 
   return{
     ok:false,
@@ -418,11 +435,11 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
   return{ok:true,status:200,record:restored,source:'backend'};
 }
 function isAuthCredentialError(statusCode){
-  return[400,401,403,404,409].includes(Number(statusCode||0));
+  return[400,401,403,409].includes(Number(statusCode||0));
 }
 function isServerOrNetworkError(statusCode){
   const code=Number(statusCode||0);
-  return code===0||code>=500;
+  return code===0||code===404||code===405||code>=500;
 }
 function resolveFriendlyLoginError(role,statusCode,message){
   const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
@@ -440,8 +457,14 @@ function resolveFriendlyLoginError(role,statusCode,message){
   if(code===429){
     return 'Too many attempts. Thodi der baad dubara try karein.';
   }
+  if(code===405){
+    return 'Login API route website host par allow nahi hai. Local account fallback try karein.';
+  }
   if(code===0||code>=500){
     return 'Live server temporary issue. Local account fallback try ho raha hai.';
+  }
+  if(code===404){
+    return 'Live login route unavailable ya account missing. Local account fallback try karein.';
   }
   return safeMessage||'Live login failed. Please try again.';
 }
@@ -626,7 +649,7 @@ async function customerLoginEmail(){
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
   let resolvedLogin=liveLogin;
   if(!resolvedLogin.ok){
-    const canAttemptRecovery=[0,401,404,409].includes(Number(resolvedLogin.status||0));
+    const canAttemptRecovery=[0,401,409,500,502,503].includes(Number(resolvedLogin.status||0));
     if(canAttemptRecovery){
       const recovered=await recoverBackendLoginUsingLocalAccount({role:'customer',email,password});
       if(recovered.ok){
@@ -642,6 +665,22 @@ async function customerLoginEmail(){
   }
 
   const liveStatus=Number(resolvedLogin.status||0);
+  let account=findAccountByIdentifier('customer',email);
+  if(account.record){
+    const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+    if(passwordCheck.isValid){
+      if(passwordCheck.needsMigration){
+        const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+        if(account.index>=0)account.records[account.index]=updatedRecord;
+        else account.records.push(updatedRecord);
+        writeRecords(account.storeKeys,account.records);
+        account=findAccountByIdentifier('customer',email);
+      }
+      setUserSession(account.record);showSuccess('Login successful (local account restored).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      return;
+    }
+  }
+
   if(isAuthCredentialError(liveStatus)){
     showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
     return;
@@ -650,22 +689,7 @@ async function customerLoginEmail(){
     showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
     return;
   }
-
-  let account=findAccountByIdentifier('customer',email);
-  if(!account.record){
-    showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
-    return;
-  }
-  const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){showError('Password mismatch. Please check and retry.');return;}
-  if(passwordCheck.needsMigration){
-    const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
-    if(account.index>=0)account.records[account.index]=updatedRecord;
-    else account.records.push(updatedRecord);
-    writeRecords(account.storeKeys,account.records);
-    account=findAccountByIdentifier('customer',email);
-  }
-  setUserSession(account.record);showSuccess('Login successful (local fallback mode).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+  showError(resolveFriendlyLoginError('customer',liveStatus,resolvedLogin.message));
 }
 
 async function driverSendOTP(){
@@ -696,7 +720,7 @@ async function driverLoginEmail(){
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
   let resolvedLogin=liveLogin;
   if(!resolvedLogin.ok){
-    const canAttemptRecovery=[0,401,404,409].includes(Number(resolvedLogin.status||0));
+    const canAttemptRecovery=[0,401,409,500,502,503].includes(Number(resolvedLogin.status||0));
     if(canAttemptRecovery){
       const recovered=await recoverBackendLoginUsingLocalAccount({role:'driver',email,password});
       if(recovered.ok){
@@ -712,6 +736,22 @@ async function driverLoginEmail(){
   }
 
   const liveStatus=Number(resolvedLogin.status||0);
+  let account=findAccountByIdentifier('driver',email);
+  if(account.record){
+    const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
+    if(passwordCheck.isValid){
+      if(passwordCheck.needsMigration){
+        const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+        if(account.index>=0)account.records[account.index]=updatedRecord;
+        else account.records.push(updatedRecord);
+        writeRecords(account.storeKeys,account.records);
+        account=findAccountByIdentifier('driver',email);
+      }
+      setDriverSession(account.record);showSuccess('Login successful (local account restored).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      return;
+    }
+  }
+
   if(isAuthCredentialError(liveStatus)){
     showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
     return;
@@ -720,22 +760,7 @@ async function driverLoginEmail(){
     showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
     return;
   }
-
-  let account=findAccountByIdentifier('driver',email);
-  if(!account.record){
-    showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
-    return;
-  }
-  const passwordCheck=await verifyPasswordForLogin(password,account.record.password);
-  if(!passwordCheck.isValid){showError('Password mismatch. Please check and retry.');return;}
-  if(passwordCheck.needsMigration){
-    const updatedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
-    if(account.index>=0)account.records[account.index]=updatedRecord;
-    else account.records.push(updatedRecord);
-    writeRecords(account.storeKeys,account.records);
-    account=findAccountByIdentifier('driver',email);
-  }
-  setDriverSession(account.record);showSuccess('Login successful (local fallback mode).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+  showError(resolveFriendlyLoginError('driver',liveStatus,resolvedLogin.message));
 }
 async function adminStep1Login(){
   const email=sanitizeEmail(document.getElementById('adminEmail').value);
