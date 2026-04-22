@@ -10,7 +10,10 @@
                     "pm2:restart":  "pm2 restart goindiaride-backend",
                     "pm2:stop":  "pm2 stop goindiaride-backend",
                     "test":  "node --test",
-                    "admin:create":  "node tools/create-admin.js"
+                    "admin:create":  "node tools/create-admin.js",
+                    "diagnose:live":  "node tools/production-live-diagnose.js",
+                    "smtp:test-admin":  "node tools/smtp-admin-email-selftest.js",
+                    "verify:live-admin-email":  "npm run diagnose:live && npm run smtp:test-admin"
                 },
     "dependencies":  {
                          "bcrypt":  "^5.1.1",

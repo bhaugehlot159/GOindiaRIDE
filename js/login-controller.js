@@ -327,14 +327,17 @@ async function callBackendAuth(path,payload){
   const body=JSON.stringify(payload||{});
   const primaryBase=getBackendApiBase();
   const sameOriginBase=String(window.location.origin||'').replace(/\/$/, '');
+  const sameOriginBackendBase=sameOriginBase?`${sameOriginBase}/backend`:'';
   const host=String(window.location.hostname||'').toLowerCase();
   const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in';
   const candidateBases=[];
   if(isPrimaryWebsiteHost){
     if(sameOriginBase)candidateBases.push(sameOriginBase);
+    if(sameOriginBackendBase&&!candidateBases.includes(sameOriginBackendBase))candidateBases.push(sameOriginBackendBase);
   }else{
     if(primaryBase)candidateBases.push(primaryBase);
     if(sameOriginBase&&!candidateBases.includes(sameOriginBase))candidateBases.push(sameOriginBase);
+    if(sameOriginBackendBase&&!candidateBases.includes(sameOriginBackendBase))candidateBases.push(sameOriginBackendBase);
   }
 
   let lastNetworkError=null;
