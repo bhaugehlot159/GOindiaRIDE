@@ -35,7 +35,7 @@ Update `/var/www/GOindiaRIDE/backend/.env` with real values:
 - `CORS_ORIGIN=https://goindiaride.in`
 - `SECURITY_ALLOWED_ORIGINS=https://goindiaride.in,https://www.goindiaride.in`
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`
-- `BOOKING_ADMIN_ALERT_EMAILS=admin@yourdomain.com`
+- `BOOKING_ADMIN_ALERT_EMAILS=bhaugehlot159@gmail.com`
 
 ## 3) Start Backend with PM2
 
@@ -168,7 +168,7 @@ For Option A (same-domain API), keep runtime API base same-origin:
 cd /var/www/GOindiaRIDE/backend
 npm install
 npm run diagnose:live -- --site https://goindiaride.in --api https://api.goindiaride.in --origin https://goindiaride.in
-npm run smtp:test-admin -- --to admin@yourdomain.com
+npm run smtp:test-admin -- --to bhaugehlot159@gmail.com
 
 curl -i https://goindiaride.in/pages/booking.html
 curl -i https://goindiaride.in/pages/customer-dashboard.html

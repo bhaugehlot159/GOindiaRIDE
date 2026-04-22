@@ -46,7 +46,8 @@ function resolveRecipients(explicitTo = '') {
   const envRecipients = [
     ...splitCsv(process.env.BOOKING_ADMIN_ALERT_EMAILS),
     ...splitCsv(process.env.ADMIN_ALERT_EMAILS),
-    ...splitCsv(process.env.ADMIN_EMAILS)
+    ...splitCsv(process.env.ADMIN_EMAILS),
+    ...splitCsv(process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com')
   ];
   return uniqueEmails(cli.length ? cli : envRecipients);
 }
@@ -109,4 +110,3 @@ run().catch((error) => {
   console.error('smtp-admin-email-selftest failed:', error && error.message ? error.message : error);
   process.exitCode = 1;
 });
-

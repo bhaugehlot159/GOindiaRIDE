@@ -49,6 +49,7 @@ const BOOKING_FALLBACK_ALERT_ALLOWED_ORIGINS = [...new Set(
     .filter(Boolean)
 )];
 const ADMIN_EMAIL_RECIPIENT_VARS = ['BOOKING_ADMIN_ALERT_EMAILS', 'ADMIN_ALERT_EMAILS', 'ADMIN_EMAILS'];
+const DEFAULT_ADMIN_ALERT_EMAIL = String(process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com').trim().toLowerCase();
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 function hasBearerAuth(req) {
@@ -208,6 +209,7 @@ function uniqueEmails(list = []) {
 
 async function resolveAdminAlertRecipients() {
   const envEmails = ADMIN_EMAIL_RECIPIENT_VARS.flatMap((key) => splitCsvValues(process.env[key]));
+  const defaultEmails = splitCsvValues(DEFAULT_ADMIN_ALERT_EMAIL);
   let adminUserEmails = [];
   try {
     const adminUsers = await User.find({
@@ -224,7 +226,7 @@ async function resolveAdminAlertRecipients() {
     });
   }
 
-  return uniqueEmails([...envEmails, ...adminUserEmails]);
+  return uniqueEmails([...envEmails, ...defaultEmails, ...adminUserEmails]);
 }
 
 function toOrigin(rawValue) {

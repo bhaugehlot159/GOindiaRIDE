@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-04-22T13:07:42.620Z",
+  "inputs": {
+    "siteBase": "https://goindiaride.in",
+    "apiBase": "https://api.goindiaride.in",
+    "origin": "https://goindiaride.in"
+  },
+  "dns": {
+    "site": {
+      "ok": true,
+      "addresses": [
+        "64:ff9b::b9c7:6f99",
+        "64:ff9b::b9c7:6c99",
+        "64:ff9b::b9c7:6d99",
+        "64:ff9b::b9c7:6e99",
+        "185.199.109.153",
+        "185.199.110.153",
+        "185.199.111.153",
+        "185.199.108.153"
+      ],
+      "error": null
+    },
+    "api": {
+      "ok": false,
+      "addresses": [],
+      "error": "queryA ECONNREFUSED api.goindiaride.in"
+    }
+  },
+  "checks": [
+    {
+      "name": "site-health-direct",
+      "method": "GET",
+      "url": "https://goindiaride.in/health",
+      "ok": false,
+      "status": 404,
+      "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
+      "error": null
+    },
+    {
+      "name": "site-future-runtime",
+      "method": "GET",
+      "url": "https://goindiaride.in/api/future-runtime/status",
+      "ok": false,
+      "status": 404,
+      "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
+      "error": null
+    },
+    {
+      "name": "site-booking-fallback-email",
+      "method": "POST",
+      "url": "https://goindiaride.in/api/bookings/fallback/admin-alert-email",
+      "ok": false,
+      "status": 405,
+      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
+      "error": null
+    },
+    {
+      "name": "api-health-direct",
+      "method": "GET",
+      "url": "https://api.goindiaride.in/health",
+      "ok": false,
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed"
+    },
+    {
+      "name": "api-future-runtime",
+      "method": "GET",
+      "url": "https://api.goindiaride.in/api/future-runtime/status",
+      "ok": false,
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed"
+    },
+    {
+      "name": "api-booking-fallback-email",
+      "method": "POST",
+      "url": "https://api.goindiaride.in/api/bookings/fallback/admin-alert-email",
+      "ok": false,
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed"
+    }
+  ],
+  "summary": {
+    "siteDnsOk": true,
+    "apiDnsOk": false,
+    "siteHealthOk": false,
+    "apiHealthOk": false,
+    "siteBookingRouteOk": false,
+    "apiBookingRouteOk": false
+  },
+  "recommendations": [
+    "Create/fix DNS A record for api domain and verify with nslookup.",
+    "Configure website reverse proxy for /api/* to backend Node app (avoid static host 405).",
+    "Ensure api domain reverse proxy points to backend :5000 and allows POST methods."
+  ]
+}
