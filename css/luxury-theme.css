@@ -1,0 +1,32 @@
+.luxury-theme {
+    background-color: #0b1f3a;
+    color: #ff9933;
+    font-family: 'Poppins', sans-serif;
+}
+
+.luxury-theme h1, .luxury-theme h2, .luxury-theme h3 {
+    color: #ff9933;
+}
+
+.luxury-theme a {
+    color: #138808;
+    text-decoration: none;
+}
+
+.luxury-theme a:hover {
+    text-decoration: underline;
+}
+
+.luxury-theme button {
+    background-color: #ff9933;
+    color: #0b1f3a;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.luxury-theme button:hover {
+    background-color: #0b1f3a;
+    color: #ff9933;
+}
