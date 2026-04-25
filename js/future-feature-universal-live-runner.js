@@ -98,6 +98,40 @@
     return String(value || '').trim().replace(/\/+$/, '');
   }
 
+  var PRIMARY_DOMAIN_REGEX = /(^|\.)goindiaride\.in$/i;
+  var GITHUB_PAGES_HOST_REGEX = /\.github\.io$/i;
+  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://api.goindiaride.in';
+
+  function currentHostname() {
+    return String((window.location && window.location.hostname) || '').toLowerCase();
+  }
+
+  function isLocalHostname(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    return host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '::1' ||
+      host === '[::1]' ||
+      host === '0.0.0.0';
+  }
+
+  function shouldAvoidRelativeApiFallback(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    return PRIMARY_DOMAIN_REGEX.test(host) || GITHUB_PAGES_HOST_REGEX.test(host);
+  }
+
+  function inferApiOriginFromHostname(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    if (!host) return '';
+    if (PRIMARY_DOMAIN_REGEX.test(host) || GITHUB_PAGES_HOST_REGEX.test(host)) {
+      return DEFAULT_PRODUCTION_API_ORIGIN;
+    }
+    if (isLocalHostname(host)) {
+      return normalizeOrigin((window.location && window.location.origin) || '');
+    }
+    return '';
+  }
+
   function detectApiOrigin() {
     var explicit = normalizeOrigin(
       window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ ||
@@ -106,11 +140,15 @@
     );
     if (explicit) return explicit;
 
+    var inferred = inferApiOriginFromHostname(currentHostname());
+    if (inferred) return inferred;
+
     return normalizeOrigin((window.location && window.location.origin) || '');
   }
 
+  var ALLOW_RELATIVE_API_FALLBACK = !shouldAvoidRelativeApiFallback(currentHostname());
   var API_ORIGIN = detectApiOrigin();
-  var API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : '/api/future-runtime-business';
+  var API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : (ALLOW_RELATIVE_API_FALLBACK ? '/api/future-runtime-business' : '');
 
   function parsePath(path) {
     var route = String(path || '/').trim() || '/';
@@ -209,9 +247,15 @@
     var route = String(path || '').trim();
     if (!route) return Promise.resolve({ ok: false, message: 'Empty route' });
     if (route.charAt(0) !== '/') route = '/' + route;
+    if (!API_BASE && !ALLOW_RELATIVE_API_FALLBACK) {
+      return localBusiness(method, route, payload);
+    }
 
     var tried = {};
-    var bases = [API_BASE, '/api/future-runtime-business'];
+    var bases = [API_BASE];
+    if (ALLOW_RELATIVE_API_FALLBACK) {
+      bases.push('/api/future-runtime-business');
+    }
     var targets = [];
     for (var i = 0; i < bases.length; i += 1) {
       var base = String(bases[i] || '').replace(/\/+$/, '');

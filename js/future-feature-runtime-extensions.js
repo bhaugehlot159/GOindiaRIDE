@@ -12,6 +12,43 @@
     return raw.replace(/\/+$/, '');
   }
 
+  var PRIMARY_DOMAIN_REGEX = /(^|\.)goindiaride\.in$/i;
+  var GITHUB_PAGES_HOST_REGEX = /\.github\.io$/i;
+  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://api.goindiaride.in';
+  var API_BREAKER_KEY = 'goindiaride.runtime.business-api-breaker.v1';
+  var API_BREAKER_WINDOW_MS = 5 * 60 * 1000;
+  var API_BREAKER_THRESHOLD = 3;
+
+  function currentHostname() {
+    return String((window.location && window.location.hostname) || '').toLowerCase();
+  }
+
+  function isLocalHostname(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    return host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '::1' ||
+      host === '[::1]' ||
+      host === '0.0.0.0';
+  }
+
+  function shouldAvoidRelativeApiFallback(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    return PRIMARY_DOMAIN_REGEX.test(host) || GITHUB_PAGES_HOST_REGEX.test(host);
+  }
+
+  function inferApiOriginFromHostname(hostname) {
+    var host = String(hostname || '').toLowerCase();
+    if (!host) return '';
+    if (PRIMARY_DOMAIN_REGEX.test(host) || GITHUB_PAGES_HOST_REGEX.test(host)) {
+      return DEFAULT_PRODUCTION_API_ORIGIN;
+    }
+    if (isLocalHostname(host)) {
+      return normalizeOrigin((window.location && window.location.origin) || '');
+    }
+    return '';
+  }
+
   function detectApiOrigin() {
     var explicit = normalizeOrigin(
       window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ ||
@@ -20,13 +57,17 @@
     );
     if (explicit) return explicit;
 
+    var inferred = inferApiOriginFromHostname(currentHostname());
+    if (inferred) return inferred;
+
     return normalizeOrigin((window.location && window.location.origin) || '');
   }
 
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';
+  var ALLOW_RELATIVE_API_FALLBACK = !shouldAvoidRelativeApiFallback(currentHostname());
   var API_ORIGIN = detectApiOrigin();
-  var API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime') : '/api/future-runtime';
-  var BUSINESS_API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : '/api/future-runtime-business';
+  var API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime') : (ALLOW_RELATIVE_API_FALLBACK ? '/api/future-runtime' : '');
+  var BUSINESS_API_BASE = API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : (ALLOW_RELATIVE_API_FALLBACK ? '/api/future-runtime-business' : '');
   var registry = window.__GOINDIARIDE_FUTURE_FEATURES || {};
   var extState = window.__GOINDIARIDE_FUTURE_RUNTIME_EXT_STATE || {
     activatedKeys: {},
@@ -107,13 +148,21 @@
   }
 
   function postJson(path, payload) {
-    if (typeof window.fetch !== 'function') return;
+    if (typeof window.fetch !== 'function' || !API_BASE) return;
+    if (shouldShortCircuitRemoteApi()) return;
     window.fetch(API_BASE + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload || {})
+    }).then(function (response) {
+      if (response && response.ok) {
+        markRemoteApiHealthy();
+      } else {
+        markRemoteApiFailure();
+      }
     }).catch(function () {
       // Best effort sync.
+      markRemoteApiFailure();
     });
   }
 
@@ -220,12 +269,11 @@
   };
   // On production custom domain we should avoid hitting GitHub Pages with
   // fallback API paths because that can trigger abuse/rate-limit pages.
-  var BUSINESS_API_BASES = API_ORIGIN
-    ? uniqueList([API_ORIGIN + '/api/future-runtime-business'])
-    : uniqueList([
-      BUSINESS_API_BASE,
-      '/api/future-runtime-business'
-    ]);
+  var BUSINESS_API_BASES = uniqueList(
+    API_ORIGIN
+      ? [API_ORIGIN + '/api/future-runtime-business']
+      : (ALLOW_RELATIVE_API_FALLBACK ? ['/api/future-runtime-business'] : [])
+  );
 
   function uniqueList(values) {
     var out = [];
@@ -240,6 +288,64 @@
   function toNumber(value, fallback) {
     var n = Number(value);
     return Number.isFinite(n) ? n : (Number.isFinite(fallback) ? fallback : 0);
+  }
+
+  function readRemoteApiBreakerState() {
+    try {
+      if (!window.localStorage) return null;
+      var raw = window.localStorage.getItem(API_BREAKER_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return {
+        failures: toNumber(parsed.failures, 0),
+        lastFailureAt: toNumber(parsed.lastFailureAt, 0)
+      };
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function writeRemoteApiBreakerState(state) {
+    try {
+      if (!window.localStorage) return;
+      window.localStorage.setItem(API_BREAKER_KEY, JSON.stringify({
+        failures: toNumber(state && state.failures, 0),
+        lastFailureAt: toNumber(state && state.lastFailureAt, 0)
+      }));
+    } catch (_error) {
+      // ignore persistence errors
+    }
+  }
+
+  function markRemoteApiHealthy() {
+    try {
+      if (!window.localStorage) return;
+      window.localStorage.removeItem(API_BREAKER_KEY);
+    } catch (_error) {
+      // ignore persistence errors
+    }
+  }
+
+  function markRemoteApiFailure() {
+    var now = Date.now();
+    var state = readRemoteApiBreakerState() || { failures: 0, lastFailureAt: 0 };
+    if (!state.lastFailureAt || (now - state.lastFailureAt) > API_BREAKER_WINDOW_MS) {
+      state.failures = 0;
+    }
+    state.failures += 1;
+    state.lastFailureAt = now;
+    writeRemoteApiBreakerState(state);
+  }
+
+  function shouldShortCircuitRemoteApi() {
+    var state = readRemoteApiBreakerState();
+    if (!state || !state.lastFailureAt) return false;
+    if ((Date.now() - state.lastFailureAt) > API_BREAKER_WINDOW_MS) {
+      markRemoteApiHealthy();
+      return false;
+    }
+    return toNumber(state.failures, 0) >= API_BREAKER_THRESHOLD;
   }
 
   function safeObject(value) {
@@ -1309,6 +1415,10 @@
     var route = String(path || '/').trim() || '/';
     if (route.charAt(0) !== '/') route = '/' + route;
 
+    if (!BUSINESS_API_BASES.length || shouldShortCircuitRemoteApi()) {
+      return localBusinessRequest(method, route, payload || {});
+    }
+
     var options = {
       method: method,
       headers: {
@@ -1334,7 +1444,11 @@
     }
 
     return tryAt(0).then(function (remote) {
-      if (remote !== null) return remote;
+      if (remote !== null) {
+        markRemoteApiHealthy();
+        return remote;
+      }
+      markRemoteApiFailure();
       return localBusinessRequest(method, route, payload || {});
     });
   }

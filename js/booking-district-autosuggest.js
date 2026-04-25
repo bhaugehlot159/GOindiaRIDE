@@ -65,9 +65,41 @@
     return uniqueDistricts(districts);
   }
 
+  function normalizeApiBase(value) {
+    var base = normalize(value);
+    return base ? base.replace(/\/+$/, '') : '';
+  }
+
+  function resolveApiBase() {
+    var host = String((window.location && window.location.hostname) || '').toLowerCase();
+    var fromRuntime = normalizeApiBase(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '');
+    var fromWindow = normalizeApiBase(window.GOINDIARIDE_API_BASE || '');
+    var fromStorage = '';
+    try {
+      fromStorage = normalizeApiBase(window.localStorage && window.localStorage.getItem('goindiaride_api_base'));
+    } catch (_error) {
+      fromStorage = '';
+    }
+
+    if (fromRuntime) return fromRuntime;
+    if (fromWindow) return fromWindow;
+    if (fromStorage) return fromStorage;
+
+    if (host === 'goindiaride.in' || host === 'www.goindiaride.in' || /\.github\.io$/i.test(host)) {
+      return 'https://api.goindiaride.in';
+    }
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {
+      return 'http://localhost:5000';
+    }
+
+    return normalizeApiBase((window.location && window.location.origin) || '');
+  }
+
   function fetchDistrictsFromApi() {
     if (typeof window.fetch !== 'function') return Promise.resolve([]);
-    return window.fetch('/api/future-runtime-business/districts')
+    var apiBase = resolveApiBase();
+    if (!apiBase) return Promise.resolve([]);
+    return window.fetch(apiBase + '/api/future-runtime-business/districts')
       .then(function (response) {
         if (!response.ok) return null;
         return response.json().catch(function () { return null; });

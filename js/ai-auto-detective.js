@@ -56,6 +56,43 @@
         /<\s*iframe/i
     ];
 
+    function normalizeApiBase(value) {
+        const raw = String(value || '').trim();
+        return raw ? raw.replace(/\/+$/, '') : '';
+    }
+
+    function resolveSecurityApiBase() {
+        const host = String(window.location.hostname || '').toLowerCase();
+        const fromRuntime = normalizeApiBase(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '');
+        const fromWindow = normalizeApiBase(window.GOINDIARIDE_API_BASE || '');
+        let fromStorage = '';
+        try {
+            fromStorage = normalizeApiBase(localStorage.getItem('goindiaride_api_base') || '');
+        } catch (_error) {
+            fromStorage = '';
+        }
+
+        if (fromRuntime) return fromRuntime;
+        if (fromWindow) return fromWindow;
+        if (fromStorage) return fromStorage;
+
+        if (
+            host === 'goindiaride.in' ||
+            host === 'www.goindiaride.in' ||
+            host.endsWith('.goindiaride.in') ||
+            host === 'github.io' ||
+            host.endsWith('.github.io')
+        ) {
+            return 'https://api.goindiaride.in';
+        }
+
+        if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {
+            return 'http://localhost:5000';
+        }
+
+        return normalizeApiBase(window.location.origin || '');
+    }
+
     function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
     }
@@ -293,8 +330,13 @@
             return;
         }
 
+        const apiBase = resolveSecurityApiBase();
+        if (!apiBase) {
+            return;
+        }
+
         try {
-            await fetch('/api/security/event', {
+            await fetch(`${apiBase}/api/security/event`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

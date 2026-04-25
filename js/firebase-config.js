@@ -16,9 +16,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
 (function resolveApiBase() {
     const host = String(window.location.hostname || '').toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
-    const isPrimaryProductionHost = host === 'goindiaride.in' || host === 'www.goindiaride.in';
     const localBackendBase = 'http://localhost:5000';
-    const productionApiBase = 'https://api.goindiaride.in';
     const productionBase = String(window.location.origin || '').replace(/\/$/, '');
 
     function normalizeBase(value) {
@@ -29,13 +27,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
 
     const existingBase = normalizeBase(window.GOINDIARIDE_API_BASE);
     if (!existingBase) {
-        if (isLocalHost) {
-            window.GOINDIARIDE_API_BASE = localBackendBase;
-        } else if (isPrimaryProductionHost) {
-            window.GOINDIARIDE_API_BASE = productionApiBase;
-        } else {
-            window.GOINDIARIDE_API_BASE = productionBase;
-        }
+        window.GOINDIARIDE_API_BASE = isLocalHost ? localBackendBase : productionBase;
         return;
     }
 

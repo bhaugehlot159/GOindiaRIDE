@@ -13,7 +13,8 @@
                     "admin:create":  "node tools/create-admin.js",
                     "diagnose:live":  "node tools/production-live-diagnose.js",
                     "smtp:test-admin":  "node tools/smtp-admin-email-selftest.js",
-                    "verify:live-admin-email":  "npm run diagnose:live && npm run smtp:test-admin"
+                    "verify:live-admin-email":  "npm run diagnose:live && npm run smtp:test-admin",
+                    "plan:prod-fix":  "node tools/generate-production-fix-plan.js"
                 },
     "dependencies":  {
                          "bcrypt":  "^5.1.1",

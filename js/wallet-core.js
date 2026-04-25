@@ -751,14 +751,24 @@
     }
 
     function getApiBaseUrl() {
-        const explicit = sanitizeText(window.GOINDIARIDE_API_BASE || '', 300) || sanitizeText(localStorage.getItem(API_BASE_OVERRIDE_KEY) || '', 300);
+        const runtimeBase = sanitizeText(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '', 300);
+        const explicit = runtimeBase || sanitizeText(window.GOINDIARIDE_API_BASE || '', 300) || sanitizeText(localStorage.getItem(API_BASE_OVERRIDE_KEY) || '', 300);
         if (explicit) {
             return explicit.replace(/\/$/, '');
         }
 
         const host = String(window.location.hostname || '').toLowerCase();
-        if (host === 'localhost' || host === '127.0.0.1') {
+        if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {
             return 'http://localhost:5000';
+        }
+        if (
+            host === 'goindiaride.in' ||
+            host === 'www.goindiaride.in' ||
+            host.endsWith('.goindiaride.in') ||
+            host === 'github.io' ||
+            host.endsWith('.github.io')
+        ) {
+            return 'https://api.goindiaride.in';
         }
 
         return String(window.location.origin || '').replace(/\/$/, '');

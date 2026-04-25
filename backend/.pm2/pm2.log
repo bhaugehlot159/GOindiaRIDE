@@ -1,0 +1,62 @@
+2026-04-16T09:43:03: PM2 log: ===============================================================================
+2026-04-16T09:43:03: PM2 log: --- New PM2 Daemon started ----------------------------------------------------
+2026-04-16T09:43:03: PM2 log: Time                 : Thu Apr 16 2026 09:43:03 GMT+0530 (India Standard Time)
+2026-04-16T09:43:03: PM2 log: PM2 version          : 5.4.3
+2026-04-16T09:43:03: PM2 log: Node.js version      : 24.13.1
+2026-04-16T09:43:03: PM2 log: Current arch         : x64
+2026-04-16T09:43:03: PM2 log: PM2 home             : C:\Users\Dhaval Gajjar\Desktop\GOindiaRIDE\backend\.pm2
+2026-04-16T09:43:03: PM2 log: PM2 PID file         : C:\Users\Dhaval Gajjar\Desktop\GOindiaRIDE\backend\.pm2\pm2.pid
+2026-04-16T09:43:03: PM2 log: RPC socket file      : \\.\pipe\rpc.sock
+2026-04-16T09:43:03: PM2 log: BUS socket file      : \\.\pipe\pub.sock
+2026-04-16T09:43:03: PM2 log: Application log path : C:\Users\Dhaval Gajjar\Desktop\GOindiaRIDE\backend\.pm2\logs
+2026-04-16T09:43:03: PM2 log: Worker Interval      : 30000
+2026-04-16T09:43:03: PM2 log: Process dump file    : C:\Users\Dhaval Gajjar\Desktop\GOindiaRIDE\backend\.pm2\dump.pm2
+2026-04-16T09:43:03: PM2 log: Concurrent actions   : 2
+2026-04-16T09:43:03: PM2 log: SIGTERM timeout      : 1600
+2026-04-16T09:43:03: PM2 log: ===============================================================================
+2026-04-16T09:43:04: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:43:05: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:44:13: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:44:13: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:44:13: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:44:13: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:44:44: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:44:44: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:44:45: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:44:45: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:45:17: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:45:17: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:45:17: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:45:18: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:45:50: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:45:50: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:45:50: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:45:50: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:46:23: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:46:23: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:46:23: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:46:23: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:46:56: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:46:56: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:46:56: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:46:56: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:47:32: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:47:32: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:47:32: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:47:32: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:48:05: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:48:05: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:48:05: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:48:05: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:48:38: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:48:38: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:48:40: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:48:40: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:49:13: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:49:13: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:49:14: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:49:14: PM2 log: App [goindiaride-backend:0] online
+2026-04-16T09:49:47: PM2 log: App name:goindiaride-backend id:0 disconnected
+2026-04-16T09:49:47: PM2 log: App [goindiaride-backend:0] exited with code [1] via signal [SIGINT]
+2026-04-16T09:49:47: PM2 log: App [goindiaride-backend:0] starting in -cluster mode-
+2026-04-16T09:49:47: PM2 log: App [goindiaride-backend:0] online

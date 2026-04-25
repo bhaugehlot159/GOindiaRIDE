@@ -1523,11 +1523,16 @@
                 }
 
                 // Backend registration is primary (live mode)
+                const runtimeApiBase = String(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '').trim();
+                const host = String(window.location.hostname || '').toLowerCase();
+                const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
+                const isGitHubPagesHost = host === 'github.io' || host.endsWith('.github.io');
                 const apiBaseRaw = (
+                    runtimeApiBase ||
                     window.GOINDIARIDE_API_BASE ||
-                    ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                    ((host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]')
                         ? 'http://localhost:5000'
-                        : window.location.origin)
+                        : ((isPrimaryWebsiteHost || isGitHubPagesHost) ? 'https://api.goindiaride.in' : window.location.origin))
                 );
                 const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
                 try {

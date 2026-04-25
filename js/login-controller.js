@@ -285,6 +285,8 @@ function tryDecodeBase64(text){
 function getBackendApiBase(){
   const host=String(window.location.hostname||'').toLowerCase();
   const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
+  const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
+  const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
   const localBackendBase='http://localhost:5000';
   const fromRuntimeOrigin=sanitizeInput(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__||window.__GOINDIARIDE_API_ORIGIN__||'');
   const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
@@ -312,13 +314,14 @@ function getBackendApiBase(){
     }
   };
 
-  const runtimePreferred=resolveCandidate(fromRuntimeOrigin)||resolveCandidate(fromWindow);
+  const runtimePreferred=resolveCandidate(fromRuntimeOrigin)||resolveCandidate(fromWindow)||resolveCandidate(fromStorage);
   if(runtimePreferred)return runtimePreferred;
 
   if(isLocalHost){
-    const storedPreferred=resolveCandidate(fromStorage);
-    return storedPreferred||localBackendBase;
+    return localBackendBase;
   }
+
+  if(isPrimaryWebsiteHost||isGitHubPagesHost)return'https://api.goindiaride.in';
 
   return String(window.location.origin||'').replace(/\/$/, '');
 }
@@ -329,15 +332,24 @@ async function callBackendAuth(path,payload){
   const sameOriginBase=String(window.location.origin||'').replace(/\/$/, '');
   const sameOriginBackendBase=sameOriginBase?`${sameOriginBase}/backend`:'';
   const host=String(window.location.hostname||'').toLowerCase();
-  const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in';
+  const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
+  const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
+  const avoidSameOriginApi=isPrimaryWebsiteHost||isGitHubPagesHost;
   const candidateBases=[];
-  if(isPrimaryWebsiteHost){
-    if(sameOriginBase)candidateBases.push(sameOriginBase);
-    if(sameOriginBackendBase&&!candidateBases.includes(sameOriginBackendBase))candidateBases.push(sameOriginBackendBase);
-  }else{
-    if(primaryBase)candidateBases.push(primaryBase);
-    if(sameOriginBase&&!candidateBases.includes(sameOriginBase))candidateBases.push(sameOriginBase);
-    if(sameOriginBackendBase&&!candidateBases.includes(sameOriginBackendBase))candidateBases.push(sameOriginBackendBase);
+  const pushBase=(value)=>{
+    const normalized=String(value||'').trim().replace(/\/$/, '');
+    if(!normalized)return;
+    if(!/^https?:\/\//i.test(normalized))return;
+    if(!candidateBases.includes(normalized))candidateBases.push(normalized);
+  };
+  pushBase(primaryBase);
+  if(isPrimaryWebsiteHost)pushBase('https://api.goindiaride.in');
+  if(!avoidSameOriginApi){
+    pushBase(sameOriginBase);
+    pushBase(sameOriginBackendBase);
+  }
+  if(!candidateBases.length&&sameOriginBase){
+    pushBase(sameOriginBase);
   }
 
   let lastNetworkError=null;
