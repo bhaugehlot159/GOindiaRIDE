@@ -74,7 +74,9 @@ async function httpProbe({ name, method, url, headers = {}, body = null, timeout
     ok: false,
     status: 0,
     bodyPreview: '',
-    error: null
+    error: null,
+    headers: {},
+    classification: ''
   };
 
   try {
@@ -88,11 +90,34 @@ async function httpProbe({ name, method, url, headers = {}, body = null, timeout
     result.status = Number(response.status || 0);
     result.bodyPreview = String(text || '').slice(0, 320);
     result.ok = response.ok;
+    result.headers = {
+      server: String(response.headers.get('server') || '').slice(0, 120),
+      via: String(response.headers.get('via') || '').slice(0, 120),
+      xServedBy: String(response.headers.get('x-served-by') || '').slice(0, 120),
+      xCache: String(response.headers.get('x-cache') || '').slice(0, 120)
+    };
+    result.classification = classifyProbe(result);
     return result;
   } catch (error) {
     result.error = String(error && error.message ? error.message : 'network_error');
     return result;
   }
+}
+
+function classifyProbe(probe) {
+  const status = Number(probe && probe.status || 0);
+  const body = String(probe && probe.bodyPreview || '').toLowerCase();
+  const server = String(probe && probe.headers && probe.headers.server || '').toLowerCase();
+  const via = String(probe && probe.headers && probe.headers.via || '').toLowerCase();
+  const looksLikeGitHubPages = server.includes('github') || body.includes('github pages');
+  const looksLikeStaticEdge405 = status === 405 && (server.includes('varnish') || via.includes('varnish'));
+
+  if (looksLikeGitHubPages) return 'github_pages_static_response';
+  if (looksLikeStaticEdge405) return 'static_edge_blocking_api';
+  if (status === 405) return 'method_not_allowed';
+  if (status === 404) return 'route_not_found';
+  if (status === 0) return 'network_or_dns_failure';
+  return '';
 }
 
 function routeReachableStatus(status) {
@@ -191,7 +216,8 @@ async function run() {
     apiHealthOk: checks.some((item) => item.name === 'api-health-direct' && healthReachableStatus(item.status)),
     siteBookingRouteOk: checks.some((item) => item.name === 'site-booking-fallback-email' && routeReachableStatus(item.status)),
     siteBackendBookingRouteOk: checks.some((item) => item.name === 'site-backend-booking-fallback-email' && routeReachableStatus(item.status)),
-    apiBookingRouteOk: checks.some((item) => item.name === 'api-booking-fallback-email' && routeReachableStatus(item.status))
+    apiBookingRouteOk: checks.some((item) => item.name === 'api-booking-fallback-email' && routeReachableStatus(item.status)),
+    siteStaticEdgeDetected: checks.some((item) => item.classification === 'github_pages_static_response' || item.classification === 'static_edge_blocking_api')
   };
 
   const recommendations = [];
@@ -206,6 +232,9 @@ async function run() {
   }
   if (!summary.apiHealthOk && summary.apiDnsOk) {
     recommendations.push('Restart backend service and validate nginx upstream/SSL for api domain.');
+  }
+  if (summary.siteStaticEdgeDetected) {
+    recommendations.push('Site domain currently serves static edge responses; route /api/* to backend reverse proxy (Nginx) instead of static host.');
   }
 
   const report = {

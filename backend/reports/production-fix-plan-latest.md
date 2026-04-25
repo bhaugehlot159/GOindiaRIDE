@@ -1,6 +1,6 @@
 # GOIndiaRIDE Production Fix Plan (Auto-Generated)
 
-Generated At: 2026-04-22T13:26:37.882Z
+Generated At: 2026-04-25T17:35:29.842Z
 Site Host: goindiaride.in
 API Host: api.goindiaride.in
 Admin Email: bhaugehlot159@gmail.com
@@ -13,6 +13,13 @@ sed -i 's|^CORS_ORIGIN=.*|CORS_ORIGIN=https://goindiaride.in|' .env
 sed -i 's|^SECURITY_ALLOWED_ORIGINS=.*|SECURITY_ALLOWED_ORIGINS=https://goindiaride.in,https://www.goindiaride.in|' .env
 grep -q '^BOOKING_ADMIN_ALERT_EMAILS=' .env && sed -i 's|^BOOKING_ADMIN_ALERT_EMAILS=.*|BOOKING_ADMIN_ALERT_EMAILS=bhaugehlot159@gmail.com|' .env || echo 'BOOKING_ADMIN_ALERT_EMAILS=bhaugehlot159@gmail.com' >> .env
 grep -q '^DEFAULT_ADMIN_ALERT_EMAIL=' .env && sed -i 's|^DEFAULT_ADMIN_ALERT_EMAIL=.*|DEFAULT_ADMIN_ALERT_EMAIL=bhaugehlot159@gmail.com|' .env || echo 'DEFAULT_ADMIN_ALERT_EMAIL=bhaugehlot159@gmail.com' >> .env
+```
+
+## Quick non-destructive repair script (backs up existing nginx config)
+```bash
+cd /var/www/GOindiaRIDE/backend
+chmod +x tools/repair-production-api-proxy.sh
+SITE_HOST=goindiaride.in API_HOST=api.goindiaride.in ./tools/repair-production-api-proxy.sh
 ```
 
 ## 2) Nginx proxy fix for website /api (removes HTTP 405)

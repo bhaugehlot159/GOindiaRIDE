@@ -16,8 +16,11 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
 (function resolveApiBase() {
     const host = String(window.location.hostname || '').toLowerCase();
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+    const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
     const localBackendBase = 'http://localhost:5000';
-    const productionBase = String(window.location.origin || '').replace(/\/$/, '');
+    const productionBase = isPrimaryWebsiteHost
+        ? 'https://api.goindiaride.in'
+        : String(window.location.origin || '').replace(/\/$/, '');
 
     function normalizeBase(value) {
         const text = String(value || '').trim();

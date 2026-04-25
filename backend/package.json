@@ -12,6 +12,7 @@
                     "test":  "node --test",
                     "admin:create":  "node tools/create-admin.js",
                     "diagnose:live":  "node tools/production-live-diagnose.js",
+                    "repair:prod:proxy":  "bash tools/repair-production-api-proxy.sh",
                     "smtp:test-admin":  "node tools/smtp-admin-email-selftest.js",
                     "verify:live-admin-email":  "npm run diagnose:live && npm run smtp:test-admin",
                     "plan:prod-fix":  "node tools/generate-production-fix-plan.js"

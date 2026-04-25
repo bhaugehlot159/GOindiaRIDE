@@ -118,6 +118,18 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
+### One-command non-destructive repair (recommended)
+
+If you want to repair proxy routing without deleting old config, run:
+
+```bash
+cd /var/www/GOindiaRIDE/backend
+chmod +x tools/repair-production-api-proxy.sh
+SITE_HOST=goindiaride.in API_HOST=api.goindiaride.in ./tools/repair-production-api-proxy.sh
+```
+
+This script creates timestamped backups of existing Nginx config files before writing updated proxy rules.
+
 ## 5) SSL (Let's Encrypt)
 
 ```bash

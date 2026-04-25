@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T17:03:54.557Z",
+  "generatedAt": "2026-04-25T17:35:02.763Z",
   "inputs": {
     "siteBase": "https://goindiaride.in",
     "apiBase": "https://api.goindiaride.in",
@@ -9,14 +9,14 @@
     "site": {
       "ok": true,
       "addresses": [
+        "64:ff9b::b9c7:6d99",
+        "64:ff9b::b9c7:6c99",
         "64:ff9b::b9c7:6e99",
         "64:ff9b::b9c7:6f99",
-        "64:ff9b::b9c7:6c99",
-        "64:ff9b::b9c7:6d99",
         "185.199.111.153",
+        "185.199.109.153",
         "185.199.110.153",
-        "185.199.108.153",
-        "185.199.109.153"
+        "185.199.108.153"
       ],
       "error": null
     },
@@ -34,7 +34,14 @@
       "ok": false,
       "status": 404,
       "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
-      "error": null
+      "error": null,
+      "headers": {
+        "server": "GitHub.com",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210098-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "github_pages_static_response"
     },
     {
       "name": "site-future-runtime",
@@ -43,7 +50,14 @@
       "ok": false,
       "status": 404,
       "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
-      "error": null
+      "error": null,
+      "headers": {
+        "server": "GitHub.com",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210098-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "github_pages_static_response"
     },
     {
       "name": "site-booking-fallback-email",
@@ -52,7 +66,14 @@
       "ok": false,
       "status": 405,
       "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
-      "error": null
+      "error": null,
+      "headers": {
+        "server": "Varnish",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210098-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "static_edge_blocking_api"
     },
     {
       "name": "site-backend-booking-fallback-email",
@@ -61,7 +82,14 @@
       "ok": false,
       "status": 405,
       "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
-      "error": null
+      "error": null,
+      "headers": {
+        "server": "Varnish",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210049-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "static_edge_blocking_api"
     },
     {
       "name": "api-health-direct",
@@ -70,7 +98,9 @@
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed"
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     },
     {
       "name": "api-future-runtime",
@@ -79,7 +109,9 @@
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed"
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     },
     {
       "name": "api-booking-fallback-email",
@@ -88,7 +120,9 @@
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed"
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     }
   ],
   "summary": {
@@ -98,11 +132,13 @@
     "apiHealthOk": false,
     "siteBookingRouteOk": false,
     "siteBackendBookingRouteOk": false,
-    "apiBookingRouteOk": false
+    "apiBookingRouteOk": false,
+    "siteStaticEdgeDetected": true
   },
   "recommendations": [
     "Create/fix DNS A record for api domain and verify with nslookup.",
     "Configure website reverse proxy for /api/* or /backend/api/* to backend Node app (avoid static host 405).",
-    "Ensure api domain reverse proxy points to backend :5000 and allows POST methods."
+    "Ensure api domain reverse proxy points to backend :5000 and allows POST methods.",
+    "Site domain currently serves static edge responses; route /api/* to backend reverse proxy (Nginx) instead of static host."
   ]
 }

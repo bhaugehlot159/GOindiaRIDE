@@ -54,6 +54,13 @@ grep -q '^BOOKING_ADMIN_ALERT_EMAILS=' .env && sed -i 's|^BOOKING_ADMIN_ALERT_EM
 grep -q '^DEFAULT_ADMIN_ALERT_EMAIL=' .env && sed -i 's|^DEFAULT_ADMIN_ALERT_EMAIL=.*|DEFAULT_ADMIN_ALERT_EMAIL=${adminEmail}|' .env || echo 'DEFAULT_ADMIN_ALERT_EMAIL=${adminEmail}' >> .env
 \`\`\`
 
+## Quick non-destructive repair script (backs up existing nginx config)
+\`\`\`bash
+cd /var/www/GOindiaRIDE/backend
+chmod +x tools/repair-production-api-proxy.sh
+SITE_HOST=${siteHost} API_HOST=${apiHost} ./tools/repair-production-api-proxy.sh
+\`\`\`
+
 ## 2) Nginx proxy fix for website /api (removes HTTP 405)
 \`\`\`bash
 sudo tee /etc/nginx/sites-available/goindiaride-site >/dev/null <<'NGINX'
