@@ -9,7 +9,7 @@ const User = require('../models/User');
 const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const { verifyFareIntegrity, computeFareHash } = require('../middleware/fareIntegrityMiddleware');
-const { walletCriticalLimiter } = require('../middleware/rateLimiters');
+const { walletCriticalLimiter, bookingFallbackEmailLimiter } = require('../middleware/rateLimiters');
 const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
 const { sendEmail } = require('../utils/mailer');
@@ -389,6 +389,108 @@ async function sendBookingAdminAlertEmail({ booking, context, customer }) {
   }
 }
 
+function buildBookingCustomerEmailText({ booking, context, customer }) {
+  const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
+  return [
+    'Your booking has been received by GO India RIDE.',
+    `Booking ID: ${booking.bookingId}`,
+    `Status: ${booking.status || 'created'}`,
+    `Admin Review: ${booking.adminReviewStatus || 'pending'}`,
+    `Pickup: ${context.pickupLocation || 'N/A'}`,
+    `Drop: ${context.dropLocation || 'N/A'}`,
+    `Ride Date/Time: ${(context.rideDate || 'N/A')} ${(context.rideTime || '')}`.trim(),
+    `Return Date/Time: ${(context.returnDate || 'N/A')} ${(context.returnTime || '')}`.trim(),
+    `Vehicle Type: ${context.vehicleType || 'N/A'}`,
+    `Trip Plan: ${context.tripPlan || 'N/A'}`,
+    `Payment Method: ${context.paymentMethod || 'N/A'}`,
+    `Stops: ${stopsText}`,
+    `Passengers: ${context.passengers || 1}`,
+    `Estimated Fare: INR ${Number(booking.amount || 0).toFixed(2)}`,
+    '',
+    'Thanks for booking with GO India RIDE.',
+    'A driver will be assigned after admin approval.',
+    `Customer: ${customer.name || 'N/A'}`
+  ].join('\n');
+}
+
+function buildBookingCustomerEmailHtml({ booking, context, customer }) {
+  const rows = [
+    ['Booking ID', booking.bookingId],
+    ['Status', booking.status || 'created'],
+    ['Admin Review', booking.adminReviewStatus || 'pending'],
+    ['Pickup', context.pickupLocation || 'N/A'],
+    ['Drop', context.dropLocation || 'N/A'],
+    ['Ride Date/Time', `${context.rideDate || 'N/A'} ${context.rideTime || ''}`.trim()],
+    ['Return Date/Time', `${context.returnDate || 'N/A'} ${context.returnTime || ''}`.trim()],
+    ['Vehicle Type', context.vehicleType || 'N/A'],
+    ['Trip Plan', context.tripPlan || 'N/A'],
+    ['Payment Method', context.paymentMethod || 'N/A'],
+    ['Passengers', String(context.passengers || 1)],
+    ['Estimated Fare', `INR ${Number(booking.amount || 0).toFixed(2)}`]
+  ];
+
+  const rowHtml = rows
+    .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
+    .join('');
+
+  return `<div style="font-family:Arial,sans-serif;color:#1f2d3d;line-height:1.5;">
+<h2 style="margin:0 0 12px;color:#0b2f5c;">Booking Received</h2>
+<p style="margin:0 0 14px;">Hi ${escapeHtml(customer.name || 'Customer')}, your booking has been received successfully. It is currently pending admin review.</p>
+<table style="border-collapse:collapse;width:100%;max-width:760px;background:#ffffff;">${rowHtml}</table>
+<p style="margin-top:14px;">Thanks for choosing GO India RIDE.</p>
+</div>`;
+}
+
+async function sendBookingCustomerConfirmationEmail({ booking, context, customer }) {
+  const customerEmail = normalizeEmail(customer && customer.email);
+  if (!isLikelyEmail(customerEmail)) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: 'missing_customer_email'
+    };
+  }
+
+  const subject = `[GO India RIDE] Booking received - ${booking.bookingId}`;
+  const text = buildBookingCustomerEmailText({ booking, context, customer });
+  const html = buildBookingCustomerEmailHtml({ booking, context, customer });
+
+  try {
+    const mailResult = await sendEmail({
+      to: customerEmail,
+      subject,
+      text,
+      html
+    });
+
+    if (mailResult && mailResult.skipped) {
+      return {
+        sent: false,
+        skipped: true,
+        reason: 'smtp_not_configured'
+      };
+    }
+
+    return {
+      sent: true,
+      skipped: false,
+      recipient: customerEmail
+    };
+  } catch (error) {
+    logger.error('booking_customer_email_failed', {
+      bookingId: booking.bookingId,
+      customerEmail,
+      message: error.message
+    });
+    return {
+      sent: false,
+      skipped: false,
+      reason: 'send_failed',
+      message: error.message
+    };
+  }
+}
+
 function toAmount(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return NaN;
@@ -446,7 +548,7 @@ async function buildDonationSuggestion() {
   };
 }
 
-router.post('/fallback/admin-alert-email', walletCriticalLimiter, async (req, res) => {
+router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (req, res) => {
   if (!BOOKING_FALLBACK_ALERT_ENABLED) {
     return res.status(403).json({ message: 'Fallback admin email alert is disabled' });
   }
@@ -526,6 +628,11 @@ router.post('/fallback/admin-alert-email', walletCriticalLimiter, async (req, re
     context: bookingContext,
     customer: customerSnapshot
   });
+  const customerEmail = await sendBookingCustomerConfirmationEmail({
+    booking,
+    context: bookingContext,
+    customer: customerSnapshot
+  });
 
   if (!adminEmail || adminEmail.sent !== true) {
     return res.status(202).json({
@@ -533,6 +640,7 @@ router.post('/fallback/admin-alert-email', walletCriticalLimiter, async (req, re
       bookingId,
       message: 'Admin email not sent in fallback flow',
       adminEmail: adminEmail || { sent: false, reason: 'unknown' },
+      customerEmail: customerEmail || { sent: false, reason: 'unknown' },
       notifications: {
         adminReview: reviewAlert
       }
@@ -544,6 +652,7 @@ router.post('/fallback/admin-alert-email', walletCriticalLimiter, async (req, re
     bookingId,
     message: 'Fallback admin alert email sent',
     adminEmail,
+    customerEmail,
     notifications: {
       adminReview: reviewAlert
     }
@@ -675,6 +784,7 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
 
   let notificationSummary = null;
   let adminEmail = null;
+  let customerEmail = null;
   try {
     const reviewAlert = await createBookingAdminReviewAlert({
       bookingId: booking.bookingId,
@@ -713,6 +823,11 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
       context: bookingContext,
       customer: customerSnapshot
     });
+    customerEmail = await sendBookingCustomerConfirmationEmail({
+      booking,
+      context: bookingContext,
+      customer: customerSnapshot
+    });
   } catch (error) {
     await logSecurityEvent({
       userId: req.user.id,
@@ -730,7 +845,8 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     adminReviewStatus: booking.adminReviewStatus || 'pending',
     riskScore: behavior.score,
     notifications: notificationSummary,
-    adminEmail
+    adminEmail,
+    customerEmail
   });
 });
 

@@ -32,9 +32,18 @@ const walletCriticalLimiter = rateLimit({
   message: { message: 'Too many sensitive wallet requests, please try again later' }
 });
 
+const bookingFallbackEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many booking email attempts, please retry shortly' }
+});
+
 module.exports = {
   globalLimiter,
   loginLimiter,
   otpLimiter,
-  walletCriticalLimiter
+  walletCriticalLimiter,
+  bookingFallbackEmailLimiter
 };

@@ -152,6 +152,17 @@ async function run() {
     body: payload
   }));
   checks.push(await httpProbe({
+    name: 'site-backend-booking-fallback-email',
+    method: 'POST',
+    url: `${siteBase}/backend/api/bookings/fallback/admin-alert-email`,
+    headers: {
+      Origin: origin,
+      'Content-Type': 'application/json',
+      'x-booking-client': 'goindiaride-web'
+    },
+    body: payload
+  }));
+  checks.push(await httpProbe({
     name: 'api-health-direct',
     method: 'GET',
     url: `${apiBase}/health`
@@ -179,6 +190,7 @@ async function run() {
     siteHealthOk: checks.some((item) => item.name === 'site-health-direct' && healthReachableStatus(item.status)),
     apiHealthOk: checks.some((item) => item.name === 'api-health-direct' && healthReachableStatus(item.status)),
     siteBookingRouteOk: checks.some((item) => item.name === 'site-booking-fallback-email' && routeReachableStatus(item.status)),
+    siteBackendBookingRouteOk: checks.some((item) => item.name === 'site-backend-booking-fallback-email' && routeReachableStatus(item.status)),
     apiBookingRouteOk: checks.some((item) => item.name === 'api-booking-fallback-email' && routeReachableStatus(item.status))
   };
 
@@ -186,8 +198,8 @@ async function run() {
   if (!summary.apiDnsOk) {
     recommendations.push('Create/fix DNS A record for api domain and verify with nslookup.');
   }
-  if (!summary.siteBookingRouteOk) {
-    recommendations.push('Configure website reverse proxy for /api/* to backend Node app (avoid static host 405).');
+  if (!summary.siteBookingRouteOk && !summary.siteBackendBookingRouteOk) {
+    recommendations.push('Configure website reverse proxy for /api/* or /backend/api/* to backend Node app (avoid static host 405).');
   }
   if (!summary.apiBookingRouteOk) {
     recommendations.push('Ensure api domain reverse proxy points to backend :5000 and allows POST methods.');
