@@ -18,8 +18,9 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
     const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
     const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
     const localBackendBase = 'http://localhost:5000';
+    const cloudFunctionsBase = 'https://us-central1-gehlot-86e38.cloudfunctions.net';
     const productionBase = isPrimaryWebsiteHost
-        ? 'https://api.goindiaride.in'
+        ? cloudFunctionsBase
         : String(window.location.origin || '').replace(/\/$/, '');
 
     function normalizeBase(value) {
