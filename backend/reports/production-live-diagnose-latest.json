@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-25T17:35:02.763Z",
+  "generatedAt": "2026-04-27T04:51:37.679Z",
   "inputs": {
     "siteBase": "https://goindiaride.in",
     "apiBase": "https://api.goindiaride.in",
@@ -10,20 +10,23 @@
       "ok": true,
       "addresses": [
         "64:ff9b::b9c7:6d99",
-        "64:ff9b::b9c7:6c99",
         "64:ff9b::b9c7:6e99",
         "64:ff9b::b9c7:6f99",
-        "185.199.111.153",
+        "64:ff9b::b9c7:6c99",
         "185.199.109.153",
         "185.199.110.153",
+        "185.199.111.153",
         "185.199.108.153"
       ],
       "error": null
     },
     "api": {
-      "ok": false,
-      "addresses": [],
-      "error": "queryA ECONNREFUSED api.goindiaride.in"
+      "ok": true,
+      "addresses": [
+        "64:ff9b::9d30:dad0",
+        "157.48.218.208"
+      ],
+      "error": null
     }
   },
   "checks": [
@@ -32,64 +35,66 @@
       "method": "GET",
       "url": "https://goindiaride.in/health",
       "ok": false,
-      "status": 404,
-      "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
-      "error": null,
-      "headers": {
-        "server": "GitHub.com",
-        "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210098-BOM",
-        "xCache": "MISS"
-      },
-      "classification": "github_pages_static_response"
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     },
     {
       "name": "site-future-runtime",
       "method": "GET",
       "url": "https://goindiaride.in/api/future-runtime/status",
       "ok": false,
-      "status": 404,
-      "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
-      "error": null,
-      "headers": {
-        "server": "GitHub.com",
-        "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210098-BOM",
-        "xCache": "MISS"
-      },
-      "classification": "github_pages_static_response"
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
+    },
+    {
+      "name": "site-auth-login",
+      "method": "POST",
+      "url": "https://goindiaride.in/api/auth/login",
+      "ok": false,
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
+    },
+    {
+      "name": "site-backend-auth-login",
+      "method": "POST",
+      "url": "https://goindiaride.in/backend/api/auth/login",
+      "ok": false,
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     },
     {
       "name": "site-booking-fallback-email",
       "method": "POST",
       "url": "https://goindiaride.in/api/bookings/fallback/admin-alert-email",
       "ok": false,
-      "status": 405,
-      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
-      "error": null,
-      "headers": {
-        "server": "Varnish",
-        "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210098-BOM",
-        "xCache": "MISS"
-      },
-      "classification": "static_edge_blocking_api"
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     },
     {
       "name": "site-backend-booking-fallback-email",
       "method": "POST",
       "url": "https://goindiaride.in/backend/api/bookings/fallback/admin-alert-email",
       "ok": false,
-      "status": 405,
-      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
-      "error": null,
-      "headers": {
-        "server": "Varnish",
-        "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210049-BOM",
-        "xCache": "MISS"
-      },
-      "classification": "static_edge_blocking_api"
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
     },
     {
       "name": "api-health-direct",
@@ -114,6 +119,17 @@
       "classification": ""
     },
     {
+      "name": "api-auth-login",
+      "method": "POST",
+      "url": "https://api.goindiaride.in/api/auth/login",
+      "ok": false,
+      "status": 0,
+      "bodyPreview": "",
+      "error": "fetch failed",
+      "headers": {},
+      "classification": ""
+    },
+    {
       "name": "api-booking-fallback-email",
       "method": "POST",
       "url": "https://api.goindiaride.in/api/bookings/fallback/admin-alert-email",
@@ -127,18 +143,22 @@
   ],
   "summary": {
     "siteDnsOk": true,
-    "apiDnsOk": false,
+    "apiDnsOk": true,
     "siteHealthOk": false,
     "apiHealthOk": false,
+    "siteAuthRouteOk": false,
+    "siteBackendAuthRouteOk": false,
+    "apiAuthRouteOk": false,
     "siteBookingRouteOk": false,
     "siteBackendBookingRouteOk": false,
     "apiBookingRouteOk": false,
-    "siteStaticEdgeDetected": true
+    "siteStaticEdgeDetected": false
   },
   "recommendations": [
-    "Create/fix DNS A record for api domain and verify with nslookup.",
     "Configure website reverse proxy for /api/* or /backend/api/* to backend Node app (avoid static host 405).",
+    "Login API route is unreachable on site host. Proxy /api/auth/* (and optionally /backend/api/auth/*) to backend Node app.",
+    "Ensure api domain proxies POST /api/auth/login to backend and does not block request methods.",
     "Ensure api domain reverse proxy points to backend :5000 and allows POST methods.",
-    "Site domain currently serves static edge responses; route /api/* to backend reverse proxy (Nginx) instead of static host."
+    "Restart backend service and validate nginx upstream/SSL for api domain."
   ]
 }
