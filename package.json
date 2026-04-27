@@ -1,24 +1,16 @@
 {
   "name": "goindiaride",
   "version": "1.0.0",
-  "description": "- ✅ Customer Booking System\r - ✅ Driver Management Dashboard\r - ✅ Admin Control Panel\r - ✅ Donation System (Integrated with Rides)\r - ✅ Real-time Fare Calculation\r - ✅ Automatic Driver Assignment\r - ✅ Receipt Generation",
-  "main": "sw.js",
+  "description": "Customer Booking System",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bhaugehlot159/GOindiaRIDE.git"
+    "url": "https://github.com/bhaugehlot159/GOindiaRIDE.git"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/bhaugehlot159/GOindiaRIDE/issues"
-  },
-  "homepage": "https://github.com/bhaugehlot159/GOindiaRIDE#readme"
-}
-
-"scripts": {
-  "start": "node server.js"
+  "license": "ISC"
 }
