@@ -153,6 +153,17 @@ nslookup api.goindiaride.in
 curl -i https://api.goindiaride.in/health
 curl -i https://api.goindiaride.in/api/future-runtime/status
 curl -i https://api.goindiaride.in/api/future-runtime-business/status
+
+# login route reachability (200/400/401/403/409/429 are acceptable; 404/405 are not)
+curl -i -X POST https://goindiaride.in/api/auth/login \
+  -H "Origin: https://goindiaride.in" \
+  -H "Content-Type: application/json" \
+  --data '{"email":"diagnose+auth@goindiaride.in","password":"Diagnose@123","website":"","submittedAt":1700000000000,"recaptchaToken":"gir_probe_abcdefghijklmnopqrstuvwxyz0123456789"}'
+
+curl -i -X POST https://api.goindiaride.in/api/auth/login \
+  -H "Origin: https://goindiaride.in" \
+  -H "Content-Type: application/json" \
+  --data '{"email":"diagnose+auth@goindiaride.in","password":"Diagnose@123","website":"","submittedAt":1700000000000,"recaptchaToken":"gir_probe_abcdefghijklmnopqrstuvwxyz0123456789"}'
 ```
 
 ## 7) Frontend Runtime API Target

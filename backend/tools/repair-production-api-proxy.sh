@@ -107,6 +107,19 @@ if [ -d "${BACKEND_ROOT}" ]; then
   if command -v curl >/dev/null 2>&1; then
     curl -fsS --max-time 10 "${UPSTREAM}/health" || true
     curl -fsS --max-time 10 "${UPSTREAM}/api/future-runtime/status" || true
+
+    AUTH_PROBE_PAYLOAD='{"email":"diagnose+auth@goindiaride.in","password":"Diagnose@123","website":"","submittedAt":1700000000000,"recaptchaToken":"gir_probe_abcdefghijklmnopqrstuvwxyz0123456789"}'
+    for AUTH_PROBE_URL in \
+      "https://${SITE_HOST}/api/auth/login" \
+      "https://${SITE_HOST}/backend/api/auth/login" \
+      "https://${API_HOST}/api/auth/login"; do
+      AUTH_CODE="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 12 \
+        -X POST "${AUTH_PROBE_URL}" \
+        -H "Origin: https://${SITE_HOST}" \
+        -H "Content-Type: application/json" \
+        --data "${AUTH_PROBE_PAYLOAD}" || true)"
+      echo "Auth probe ${AUTH_PROBE_URL} -> ${AUTH_CODE}"
+    done
   fi
   if command -v npm >/dev/null 2>&1; then
     (

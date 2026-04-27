@@ -25,6 +25,7 @@ const ADMIN_OTP_EMAIL_KEY='admin2FAEmail';
 const ADMIN_OTP_METHOD_KEY='admin2FAMethod';
 const LOGIN_RISK_THRESHOLD=35;
 const LIVE_BACKEND_REQUIRED_FOR_LOGIN=true;
+const AUTH_REQUEST_TIMEOUT_MS=9000;
 const ADMIN_MAX_ATTEMPTS=5;
 const ADMIN_LOCK_MS=15*60*1000;
 const ADMIN_CHALLENGE_TTL_MS=10*60*1000;
@@ -325,6 +326,34 @@ function getBackendApiBase(){
 
   return String(window.location.origin||'').replace(/\/$/, '');
 }
+function isCloudFunctionsBase(base){
+  const normalized=String(base||'').trim();
+  if(!normalized)return false;
+  try{
+    const parsed=new URL(normalized);
+    return /\.cloudfunctions\.net$/i.test(String(parsed.hostname||''));
+  }catch(_error){
+    return false;
+  }
+}
+async function fetchBackendPost(url,body){
+  if(typeof AbortController!=='function'){
+    return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},credentials:'include',body});
+  }
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),AUTH_REQUEST_TIMEOUT_MS);
+  try{
+    return await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      credentials:'include',
+      body,
+      signal:controller.signal
+    });
+  }finally{
+    clearTimeout(timer);
+  }
+}
 async function callBackendAuth(path,payload){
   const normalizedPath=String(path||'');
   const body=JSON.stringify(payload||{});
@@ -334,7 +363,7 @@ async function callBackendAuth(path,payload){
   const host=String(window.location.hostname||'').toLowerCase();
   const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
   const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
-  const avoidSameOriginApi=isPrimaryWebsiteHost||isGitHubPagesHost;
+  const isAuthPath=normalizedPath.toLowerCase().startsWith('/api/auth/');
   const candidateBases=[];
   const pushBase=(value)=>{
     const normalized=String(value||'').trim().replace(/\/$/, '');
@@ -342,11 +371,15 @@ async function callBackendAuth(path,payload){
     if(!/^https?:\/\//i.test(normalized))return;
     if(!candidateBases.includes(normalized))candidateBases.push(normalized);
   };
-  pushBase(primaryBase);
-  if(isPrimaryWebsiteHost)pushBase('https://api.goindiaride.in');
-  if(!avoidSameOriginApi){
-    pushBase(sameOriginBase);
-    pushBase(sameOriginBackendBase);
+  if(isPrimaryWebsiteHost){
+    if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
+    if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
+    pushBase(primaryBase);
+    pushBase('https://api.goindiaride.in');
+  }else{
+    pushBase(primaryBase);
+    if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
+    if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
   }
   if(!candidateBases.length&&sameOriginBase){
     pushBase(sameOriginBase);
@@ -356,9 +389,12 @@ async function callBackendAuth(path,payload){
   let lastHttpFailure=null;
   for(let index=0;index<candidateBases.length;index+=1){
     const base=candidateBases[index];
+    if(isAuthPath&&isCloudFunctionsBase(base)){
+      continue;
+    }
     const url=base+normalizedPath;
     try{
-      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},credentials:'include',body});
+      const res=await fetchBackendPost(url,body);
       const rawText=await res.text().catch(()=>'');
       let data={};
       if(rawText){
@@ -386,7 +422,11 @@ async function callBackendAuth(path,payload){
 
       return{ok:true,status:res.status,data};
     }catch(error){
-      lastNetworkError=error;
+      if(error&&String(error.name||'').toLowerCase()==='aborterror'){
+        lastNetworkError=new Error('Request timeout while contacting auth server');
+      }else{
+        lastNetworkError=error;
+      }
     }
   }
 
@@ -659,7 +699,7 @@ async function verifyPasswordForLogin(enteredPassword,storedPassword){
 
   return{isValid:false,needsMigration:false,hashed};
 }
-async function createEmergencyLocalAccount({role,email,password}){
+async function createEmergencyLocalAccount({role,email,password,forcePasswordReset=false}){
   const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
   const safeEmail=sanitizeEmail(email||'');
   const plainPassword=String(password||'').trim();
@@ -668,7 +708,22 @@ async function createEmergencyLocalAccount({role,email,password}){
   const emailIdentifier={kind:'email',value:safeEmail};
   const existing=findAccountByIdentifier(safeRole,emailIdentifier);
   if(existing.record){
-    return{ok:true,record:existing.record,created:false};
+    if(!forcePasswordReset){
+      return{ok:true,record:existing.record,created:false};
+    }
+    const hashed=await hashPassword(plainPassword);
+    const nowIso=new Date().toISOString();
+    const updatedRecord={
+      ...existing.record,
+      password:hashed,
+      passwordUpdatedAt:nowIso,
+      emergencyRestored:true,
+      emergencyRecoveredAt:nowIso
+    };
+    if(existing.index>=0)existing.records[existing.index]=updatedRecord;
+    else existing.records.push(updatedRecord);
+    writeRecords(existing.storeKeys,existing.records);
+    return{ok:true,record:updatedRecord,created:false,passwordReset:true};
   }
 
   const hashed=await hashPassword(plainPassword);
@@ -939,6 +994,15 @@ async function customerLoginEmail(){
   }
 
   if(localPasswordMismatch){
+    if(isServerOrNetworkError(liveStatus)){
+      const emergencyReset=await createEmergencyLocalAccount({role:'customer',email,password,forcePasswordReset:true});
+      if(emergencyReset.ok){
+        setUserSession(emergencyReset.record);
+        showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
+        setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+        return;
+      }
+    }
     showError('Local account mila hai, lekin password match nahi hua. Forgot Password se reset karein.');
     return;
   }
@@ -1052,6 +1116,15 @@ async function driverLoginEmail(){
   }
 
   if(localPasswordMismatch){
+    if(isServerOrNetworkError(liveStatus)){
+      const emergencyReset=await createEmergencyLocalAccount({role:'driver',email,password,forcePasswordReset:true});
+      if(emergencyReset.ok){
+        setDriverSession(emergencyReset.record);
+        showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
+        setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+        return;
+      }
+    }
     showError('Local account mila hai, lekin password match nahi hua. Forgot Password se reset karein.');
     return;
   }

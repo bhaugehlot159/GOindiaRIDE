@@ -150,6 +150,13 @@ async function run() {
     rideDate: '2026-04-22',
     rideTime: '10:00'
   };
+  const authPayload = {
+    email: 'diagnose+auth@goindiaride.in',
+    password: 'Diagnose@123',
+    website: '',
+    submittedAt: Date.now() - 2000,
+    recaptchaToken: `gir_diagnose_${Date.now()}_abcdefghijklmnopqrstuvwxyz`
+  };
 
   const dnsSite = await resolveDns(toHost(siteBase));
   const dnsApi = await resolveDns(toHost(apiBase));
@@ -164,6 +171,26 @@ async function run() {
     name: 'site-future-runtime',
     method: 'GET',
     url: `${siteBase}/api/future-runtime/status`
+  }));
+  checks.push(await httpProbe({
+    name: 'site-auth-login',
+    method: 'POST',
+    url: `${siteBase}/api/auth/login`,
+    headers: {
+      Origin: origin,
+      'Content-Type': 'application/json'
+    },
+    body: authPayload
+  }));
+  checks.push(await httpProbe({
+    name: 'site-backend-auth-login',
+    method: 'POST',
+    url: `${siteBase}/backend/api/auth/login`,
+    headers: {
+      Origin: origin,
+      'Content-Type': 'application/json'
+    },
+    body: authPayload
   }));
   checks.push(await httpProbe({
     name: 'site-booking-fallback-email',
@@ -198,6 +225,16 @@ async function run() {
     url: `${apiBase}/api/future-runtime/status`
   }));
   checks.push(await httpProbe({
+    name: 'api-auth-login',
+    method: 'POST',
+    url: `${apiBase}/api/auth/login`,
+    headers: {
+      Origin: origin,
+      'Content-Type': 'application/json'
+    },
+    body: authPayload
+  }));
+  checks.push(await httpProbe({
     name: 'api-booking-fallback-email',
     method: 'POST',
     url: `${apiBase}/api/bookings/fallback/admin-alert-email`,
@@ -214,6 +251,9 @@ async function run() {
     apiDnsOk: dnsApi.ok,
     siteHealthOk: checks.some((item) => item.name === 'site-health-direct' && healthReachableStatus(item.status)),
     apiHealthOk: checks.some((item) => item.name === 'api-health-direct' && healthReachableStatus(item.status)),
+    siteAuthRouteOk: checks.some((item) => item.name === 'site-auth-login' && routeReachableStatus(item.status)),
+    siteBackendAuthRouteOk: checks.some((item) => item.name === 'site-backend-auth-login' && routeReachableStatus(item.status)),
+    apiAuthRouteOk: checks.some((item) => item.name === 'api-auth-login' && routeReachableStatus(item.status)),
     siteBookingRouteOk: checks.some((item) => item.name === 'site-booking-fallback-email' && routeReachableStatus(item.status)),
     siteBackendBookingRouteOk: checks.some((item) => item.name === 'site-backend-booking-fallback-email' && routeReachableStatus(item.status)),
     apiBookingRouteOk: checks.some((item) => item.name === 'api-booking-fallback-email' && routeReachableStatus(item.status)),
@@ -226,6 +266,12 @@ async function run() {
   }
   if (!summary.siteBookingRouteOk && !summary.siteBackendBookingRouteOk) {
     recommendations.push('Configure website reverse proxy for /api/* or /backend/api/* to backend Node app (avoid static host 405).');
+  }
+  if (!summary.siteAuthRouteOk && !summary.siteBackendAuthRouteOk) {
+    recommendations.push('Login API route is unreachable on site host. Proxy /api/auth/* (and optionally /backend/api/auth/*) to backend Node app.');
+  }
+  if (!summary.apiAuthRouteOk) {
+    recommendations.push('Ensure api domain proxies POST /api/auth/login to backend and does not block request methods.');
   }
   if (!summary.apiBookingRouteOk) {
     recommendations.push('Ensure api domain reverse proxy points to backend :5000 and allows POST methods.');
@@ -270,7 +316,9 @@ async function run() {
     console.log('All critical live checks look healthy.');
   }
 
-  const criticalOk = summary.siteBookingRouteOk || summary.apiBookingRouteOk;
+  const criticalOk =
+    (summary.siteBookingRouteOk || summary.apiBookingRouteOk) &&
+    (summary.siteAuthRouteOk || summary.siteBackendAuthRouteOk || summary.apiAuthRouteOk);
   if (!criticalOk) {
     process.exitCode = 2;
   }
