@@ -2,9 +2,9 @@
   "name": "goindiaride",
   "version": "1.0.0",
   "description": "Ride booking app",
-  "main": "server.js",
+  "main": "js/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node js/server.js"
   },
   "author": "",
   "license": "ISC"
