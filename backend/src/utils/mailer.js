@@ -12,16 +12,17 @@ function toTimeoutMs(value, fallbackMs) {
 
 let cachedTransporter = null;
 
-function getTransporter() {
-  if (cachedTransporter) return cachedTransporter;
-
+function loadNodemailer() {
   let nodemailer;
   try {
     nodemailer = require('nodemailer');
   } catch (error) {
     return null;
   }
+  return nodemailer;
+}
 
+function getBaseTransportSettings() {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 465);
   const secure = toBool(process.env.SMTP_SECURE);
@@ -37,7 +38,7 @@ function getTransporter() {
     return null;
   }
 
-  cachedTransporter = nodemailer.createTransport({
+  return {
     host,
     port,
     secure,
@@ -47,15 +48,54 @@ function getTransporter() {
     greetingTimeout,
     socketTimeout,
     dnsTimeout
-  });
+  };
+}
+
+function getTransportConfigs() {
+  const base = getBaseTransportSettings();
+  if (!base) return [];
+
+  const fallbackPorts = String(process.env.SMTP_FALLBACK_PORTS || '2525,587,465')
+    .split(',')
+    .map((value) => Number(String(value || '').trim()))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  const configs = [base];
+  const seen = new Set([`${base.port}:${base.secure}`]);
+  for (const fallbackPort of fallbackPorts) {
+    const fallbackSecure = fallbackPort === 465;
+    const key = `${fallbackPort}:${fallbackSecure}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    configs.push({
+      ...base,
+      port: fallbackPort,
+      secure: fallbackSecure
+    });
+  }
+
+  return configs;
+}
+
+function getTransporter() {
+  if (cachedTransporter) return cachedTransporter;
+
+  const nodemailer = loadNodemailer();
+  if (!nodemailer) return null;
+
+  const primaryConfig = getBaseTransportSettings();
+  if (!primaryConfig) return null;
+
+  cachedTransporter = nodemailer.createTransport(primaryConfig);
 
   return cachedTransporter;
 }
 
 async function sendEmail({ to, subject, text, html }) {
-  const transporter = getTransporter();
+  const nodemailer = loadNodemailer();
+  const transportConfigs = getTransportConfigs();
 
-  if (!transporter) {
+  if (!nodemailer || !transportConfigs.length) {
     logger.warn('otp_email_skipped', {
       reason: 'smtp_not_configured_or_nodemailer_missing',
       to,
@@ -66,14 +106,34 @@ async function sendEmail({ to, subject, text, html }) {
 
   const fromName = process.env.SMTP_FROM_NAME || 'GOIndiaRIDE';
   const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
+  let lastError = null;
 
-  return transporter.sendMail({
-    from: `${fromName} <${fromEmail}>`,
-    to,
-    subject,
-    text,
-    html
-  });
+  for (const transportConfig of transportConfigs) {
+    const transporter = nodemailer.createTransport(transportConfig);
+    try {
+      return await transporter.sendMail({
+        from: `${fromName} <${fromEmail}>`,
+        to,
+        subject,
+        text,
+        html
+      });
+    } catch (error) {
+      lastError = error;
+      logger.warn('smtp_send_attempt_failed', {
+        host: transportConfig.host,
+        port: transportConfig.port,
+        secure: transportConfig.secure,
+        message: error.message
+      });
+    } finally {
+      if (typeof transporter.close === 'function') {
+        transporter.close();
+      }
+    }
+  }
+
+  throw lastError || new Error('smtp_send_failed');
 }
 
 module.exports = {
