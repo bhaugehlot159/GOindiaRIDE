@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userTokenSessionOriginBindingStateSchema = new mongoose.Schema({
   sidHash: { type: String, required: true, unique: true, index: true, trim: true },
@@ -28,7 +28,7 @@ const userTokenSessionOriginBindingStateSchema = new mongoose.Schema({
   lastJtiHash: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true

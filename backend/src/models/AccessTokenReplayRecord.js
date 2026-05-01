@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const accessTokenReplayRecordSchema = new mongoose.Schema({
   jtiHash: { type: String, required: true, unique: true, index: true },
@@ -24,7 +24,7 @@ const accessTokenReplayRecordSchema = new mongoose.Schema({
   },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -35,3 +35,4 @@ accessTokenReplayRecordSchema.index({ userId: 1, updatedAt: -1 });
 accessTokenReplayRecordSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('AccessTokenReplayRecord', accessTokenReplayRecordSchema);
+

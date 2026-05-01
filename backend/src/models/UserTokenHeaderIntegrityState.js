@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userTokenHeaderIntegrityStateSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
@@ -22,7 +22,7 @@ const userTokenHeaderIntegrityStateSchema = new mongoose.Schema({
   lastKid: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -32,3 +32,4 @@ userTokenHeaderIntegrityStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds
 userTokenHeaderIntegrityStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserTokenHeaderIntegrityState', userTokenHeaderIntegrityStateSchema);
+

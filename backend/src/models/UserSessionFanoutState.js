@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userSessionFanoutStateSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
@@ -22,7 +22,7 @@ const userSessionFanoutStateSchema = new mongoose.Schema({
   lastUserAgent: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -32,3 +32,4 @@ userSessionFanoutStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 userSessionFanoutStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserSessionFanoutState', userSessionFanoutStateSchema);
+

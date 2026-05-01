@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const sidLedgerEntrySchema = new mongoose.Schema({
   sidHash: { type: String, required: true, trim: true },
@@ -36,7 +36,7 @@ const userTokenRotationContinuityStateSchema = new mongoose.Schema({
   lastExpSec: { type: Number, min: 0, default: 0 },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -46,3 +46,4 @@ userTokenRotationContinuityStateSchema.index({ expiresAt: 1 }, { expireAfterSeco
 userTokenRotationContinuityStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserTokenRotationContinuityState', userTokenRotationContinuityStateSchema);
+

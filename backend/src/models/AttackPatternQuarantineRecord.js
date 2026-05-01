@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const attackPatternQuarantineRecordSchema = new mongoose.Schema({
   keyHash: { type: String, required: true, unique: true, index: true },
@@ -25,7 +25,7 @@ const attackPatternQuarantineRecordSchema = new mongoose.Schema({
   patternFamilies: [{ type: String }],
   patternCount: { type: Number, min: 0, default: 0 },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -36,3 +36,4 @@ attackPatternQuarantineRecordSchema.index({ status: 1, quarantinedUntil: -1 });
 attackPatternQuarantineRecordSchema.index({ pathGroup: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('AttackPatternQuarantineRecord', attackPatternQuarantineRecordSchema);
+

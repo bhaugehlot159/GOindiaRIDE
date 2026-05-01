@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const idempotencyShieldRecordSchema = new mongoose.Schema({
   scope: { type: String, required: true, trim: true, index: true },
@@ -21,7 +21,7 @@ const idempotencyShieldRecordSchema = new mongoose.Schema({
   hitCount: { type: Number, min: 1, default: 1 },
   lastStatusCode: { type: Number, default: null },
   lastReason: { type: String, default: '', trim: true },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -35,3 +35,4 @@ idempotencyShieldRecordSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 idempotencyShieldRecordSchema.index({ scope: 1, status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('IdempotencyShieldRecord', idempotencyShieldRecordSchema);
+

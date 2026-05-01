@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userDeviceApprovalBoundaryStateSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
@@ -20,7 +20,7 @@ const userDeviceApprovalBoundaryStateSchema = new mongoose.Schema({
   lastDeviceStatus: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -30,3 +30,4 @@ userDeviceApprovalBoundaryStateSchema.index({ expiresAt: 1 }, { expireAfterSecon
 userDeviceApprovalBoundaryStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserDeviceApprovalBoundaryState', userDeviceApprovalBoundaryStateSchema);
+

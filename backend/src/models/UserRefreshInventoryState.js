@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userRefreshInventoryStateSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
@@ -20,7 +20,7 @@ const userRefreshInventoryStateSchema = new mongoose.Schema({
   lastSeenAt: { type: Date, default: null, index: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -30,3 +30,4 @@ userRefreshInventoryStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 
 userRefreshInventoryStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserRefreshInventoryState', userRefreshInventoryStateSchema);
+

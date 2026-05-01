@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const credentialStuffingShieldRecordSchema = new mongoose.Schema({
   ipHash: { type: String, required: true, index: true },
@@ -20,7 +20,7 @@ const credentialStuffingShieldRecordSchema = new mongoose.Schema({
   lastIp: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -31,3 +31,4 @@ credentialStuffingShieldRecordSchema.index({ expiresAt: 1 }, { expireAfterSecond
 credentialStuffingShieldRecordSchema.index({ status: 1, quarantineUntil: -1, updatedAt: -1 });
 
 module.exports = mongoose.model('CredentialStuffingShieldRecord', credentialStuffingShieldRecordSchema);
+

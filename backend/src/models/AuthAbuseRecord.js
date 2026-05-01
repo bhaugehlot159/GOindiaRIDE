@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const authAbuseRecordSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true, index: true },
@@ -14,7 +14,7 @@ const authAbuseRecordSchema = new mongoose.Schema({
   lastReason: { type: String, default: '', trim: true },
   lastIp: { type: String, default: '', trim: true },
   lastUserId: { type: String, default: '', trim: true },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -25,3 +25,4 @@ authAbuseRecordSchema.index({ keyType: 1, blockedUntil: -1 });
 authAbuseRecordSchema.index({ keyType: 1, lastFailureAt: -1 });
 
 module.exports = mongoose.model('AuthAbuseRecord', authAbuseRecordSchema);
+

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const accessTokenRevocationSchema = new mongoose.Schema({
   jtiHash: { type: String, required: true, unique: true, index: true },
@@ -19,7 +19,7 @@ const accessTokenRevocationSchema = new mongoose.Schema({
   revokedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   revokedByIp: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -29,3 +29,4 @@ accessTokenRevocationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 accessTokenRevocationSchema.index({ userId: 1, revokedAt: -1 });
 
 module.exports = mongoose.model('AccessTokenRevocation', accessTokenRevocationSchema);
+

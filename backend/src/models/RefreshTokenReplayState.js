@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const refreshTokenReplayStateSchema = new mongoose.Schema({
   tokenHash: { type: String, required: true, unique: true, index: true },
@@ -23,7 +23,7 @@ const refreshTokenReplayStateSchema = new mongoose.Schema({
   lastUserAgent: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -33,3 +33,4 @@ refreshTokenReplayStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 refreshTokenReplayStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('RefreshTokenReplayState', refreshTokenReplayStateSchema);
+

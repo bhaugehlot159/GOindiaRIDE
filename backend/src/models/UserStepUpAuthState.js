@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userStepUpAuthStateSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
@@ -18,7 +18,7 @@ const userStepUpAuthStateSchema = new mongoose.Schema({
   lastMethod: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -28,3 +28,4 @@ userStepUpAuthStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 userStepUpAuthStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserStepUpAuthState', userStepUpAuthStateSchema);
+

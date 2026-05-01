@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const sidClaimProfileSchema = new mongoose.Schema({
   sidHash: { type: String, required: true, trim: true },
@@ -41,7 +41,7 @@ const userTokenClaimProfileContinuityStateSchema = new mongoose.Schema({
   lastClaimProfileHash: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -51,3 +51,4 @@ userTokenClaimProfileContinuityStateSchema.index({ expiresAt: 1 }, { expireAfter
 userTokenClaimProfileContinuityStateSchema.index({ status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserTokenClaimProfileContinuityState', userTokenClaimProfileContinuityStateSchema);
+

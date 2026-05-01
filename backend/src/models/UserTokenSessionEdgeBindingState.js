@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 
 const userTokenSessionEdgeBindingStateSchema = new mongoose.Schema({
   sidHash: { type: String, required: true, unique: true, index: true, trim: true },
@@ -32,7 +32,7 @@ const userTokenSessionEdgeBindingStateSchema = new mongoose.Schema({
   lastJtiHash: { type: String, default: '', trim: true },
   lastReason: { type: String, default: '', trim: true },
   metadata: { type: Object, default: {} },
-  expiresAt: { type: Date, required: true, index: true }
+  expiresAt: { type: Date, required: true }
 }, {
   timestamps: true,
   strict: true
@@ -43,6 +43,7 @@ userTokenSessionEdgeBindingStateSchema.index({ status: 1, updatedAt: -1 });
 userTokenSessionEdgeBindingStateSchema.index({ userId: 1, status: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('UserTokenSessionEdgeBindingState', userTokenSessionEdgeBindingStateSchema);
+
 
 
 
