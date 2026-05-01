@@ -493,6 +493,59 @@ async function sendBookingCustomerConfirmationEmail({ booking, context, customer
   }
 }
 
+function normalizeEmailDispatchResult(result, fallbackReason = 'send_failed') {
+  if (result && typeof result === 'object') {
+    return result;
+  }
+  return {
+    sent: false,
+    skipped: false,
+    reason: fallbackReason
+  };
+}
+
+async function dispatchBookingEmails({ booking, context, customer, source = 'booking' }) {
+  const [adminOutcome, customerOutcome] = await Promise.allSettled([
+    sendBookingAdminAlertEmail({ booking, context, customer }),
+    sendBookingCustomerConfirmationEmail({ booking, context, customer })
+  ]);
+
+  const adminEmail = adminOutcome.status === 'fulfilled'
+    ? normalizeEmailDispatchResult(adminOutcome.value)
+    : {
+        sent: false,
+        skipped: false,
+        reason: 'send_failed',
+        message: adminOutcome.reason?.message || 'send_failed'
+      };
+
+  const customerEmail = customerOutcome.status === 'fulfilled'
+    ? normalizeEmailDispatchResult(customerOutcome.value)
+    : {
+        sent: false,
+        skipped: false,
+        reason: 'send_failed',
+        message: customerOutcome.reason?.message || 'send_failed'
+      };
+
+  if (adminOutcome.status !== 'fulfilled') {
+    logger.error('booking_admin_email_dispatch_failed', {
+      bookingId: booking.bookingId,
+      source,
+      message: adminOutcome.reason?.message || 'send_failed'
+    });
+  }
+  if (customerOutcome.status !== 'fulfilled') {
+    logger.error('booking_customer_email_dispatch_failed', {
+      bookingId: booking.bookingId,
+      source,
+      message: customerOutcome.reason?.message || 'send_failed'
+    });
+  }
+
+  return { adminEmail, customerEmail };
+}
+
 function sendBookingCustomerConfirmationEmailAsync({ booking, context, customer, source = 'unknown' }) {
   setImmediate(async () => {
     try {
@@ -650,23 +703,12 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     });
   }
 
-  const adminEmail = await sendBookingAdminAlertEmail({
-    booking,
-    context: bookingContext,
-    customer: customerSnapshot
-  });
-
-  sendBookingCustomerConfirmationEmailAsync({
+  const { adminEmail, customerEmail } = await dispatchBookingEmails({
     booking,
     context: bookingContext,
     customer: customerSnapshot,
     source: 'fallback_admin_alert'
   });
-
-  const customerEmail = {
-    queued: true,
-    reason: 'queued_background_send'
-  };
 
   if (!adminEmail || adminEmail.sent !== true) {
     return res.status(202).json({
@@ -852,16 +894,14 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
       }
     };
 
-    adminEmail = await sendBookingAdminAlertEmail({
+    const emailDispatch = await dispatchBookingEmails({
       booking,
       context: bookingContext,
-      customer: customerSnapshot
+      customer: customerSnapshot,
+      source: 'live_booking_create'
     });
-    customerEmail = await sendBookingCustomerConfirmationEmail({
-      booking,
-      context: bookingContext,
-      customer: customerSnapshot
-    });
+    adminEmail = emailDispatch.adminEmail;
+    customerEmail = emailDispatch.customerEmail;
   } catch (error) {
     await logSecurityEvent({
       userId: req.user.id,
