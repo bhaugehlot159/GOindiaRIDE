@@ -2,6 +2,46 @@
 
 This runbook is command-ready for making all runtime/business features work end-to-end in production.
 
+## 0) One-Command Full VPS Setup (Non-Destructive Recommended)
+
+Use this when you want complete setup in one pass without deleting existing files/config.
+
+```bash
+cd /var/www
+sudo git clone https://github.com/bhaugehlot159/GOindiaRIDE.git || true
+sudo chown -R $USER:$USER /var/www/GOindiaRIDE
+cd /var/www/GOindiaRIDE/backend
+chmod +x tools/setup-vps-full.sh
+
+DEPLOY_USER=$USER \
+SITE_HOST=goindiaride.in \
+API_HOST=api.goindiaride.in \
+BRANCH=main \
+RUN_UFW=1 \
+ENABLE_SSL=0 \
+RUN_DIAGNOSE=1 \
+./tools/setup-vps-full.sh
+```
+
+Optional SSL run (after DNS resolves to VPS IP):
+
+```bash
+DEPLOY_USER=$USER \
+SITE_HOST=goindiaride.in \
+API_HOST=api.goindiaride.in \
+ENABLE_SSL=1 \
+CERTBOT_EMAIL=you@example.com \
+./tools/setup-vps-full.sh
+```
+
+What this script does safely:
+- Never deletes project files or Nginx configs.
+- Backs up existing files before rewriting:
+  - `/etc/nginx/sites-available/goindiaride-site.backup.<timestamp>`
+  - `/etc/nginx/sites-available/goindiaride-api.backup.<timestamp>`
+  - `/var/www/GOindiaRIDE/backend/.env.backup.<timestamp>`
+- Skips `git pull` if uncommitted repo changes are detected.
+
 ## 1) Server Provision (Ubuntu 22.04+)
 
 ```bash

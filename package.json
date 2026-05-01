@@ -2,9 +2,12 @@
   "name": "goindiaride",
   "version": "1.0.0",
   "description": "Ride booking app",
-  "main": "js/server.js",
+  "main": "backend/src/server.js",
   "scripts": {
-    "start": "node js/server.js"
+    "build": "npm --prefix backend install --no-package-lock",
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev",
+    "start:legacy-web": "node js/server.js"
   },
   "author": "",
   "license": "ISC"

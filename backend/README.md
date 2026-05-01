@@ -48,6 +48,7 @@ This backend layer was added without removing existing files and includes Level 
 - Atlas backup and security runbook: `docs/security-operations.md`
 - Complete architecture diagram: `docs/security-architecture.md`
 - Production deploy + DNS + proxy runbook: `docs/production-deploy-and-dns-checklist.md`
+- Full non-destructive VPS bootstrap script: `tools/setup-vps-full.sh` (`npm run setup:vps:full`)
 - Local one-click E2E smoke: `../tools/run-local-e2e-smoke.ps1`
 
 > Note: OTP verification, reCAPTCHA verification, and geo-country intelligence are skeleton logic and should be wired to production providers.
