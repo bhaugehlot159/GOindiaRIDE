@@ -188,6 +188,7 @@ app.use('/api', idempotencyEnforcementMiddleware({
 
 const strictCsrfShield = csrfShieldMiddleware({
   strict: env.strictSecurityMode,
+  ignorePaths: ['/api/bookings/fallback/admin-alert-email'],
   cookieName: env.csrfCookieName,
   tokenTtlMs: env.csrfTokenTtlMinutes * 60 * 1000
 });
