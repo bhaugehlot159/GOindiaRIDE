@@ -4,9 +4,39 @@ const User = require('../models/User');
 
 const router = express.Router();
 
+function normalizePhoneValue(value, { allowLocalIndian = false } = {}) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  let normalized = raw.replace(/\s+/g, '');
+  if (normalized.startsWith('00')) {
+    normalized = `+${normalized.slice(2)}`;
+  }
+
+  if (normalized.startsWith('+')) {
+    const digits = normalized.slice(1).replace(/\D/g, '');
+    return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : '';
+  }
+
+  const digitsOnly = normalized.replace(/\D/g, '');
+  if (allowLocalIndian && digitsOnly.length === 10 && /^[6-9]\d{9}$/.test(digitsOnly)) {
+    return `+91${digitsOnly}`;
+  }
+
+  return digitsOnly.length >= 8 && digitsOnly.length <= 15 ? `+${digitsOnly}` : '';
+}
+
+function buildPhoneLookupCandidates(phone) {
+  const normalized = normalizePhoneValue(phone, { allowLocalIndian: true });
+  if (!normalized) return [];
+  const digitsOnly = normalized.replace(/\D/g, '');
+  const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+  return [...new Set([normalized, digitsOnly, last10].filter(Boolean))];
+}
+
 router.get('/profile', authenticate, async (req, res) => {
   const user = await User.findById(req.user.id)
-    .select('_id name email phone role accountType createdAt updatedAt')
+    .select('_id name email phone isPhoneVerified role accountType createdAt updatedAt')
     .lean();
 
   if (!user) {
@@ -20,12 +50,59 @@ router.get('/profile', authenticate, async (req, res) => {
       name: user.name || '',
       email: user.email || '',
       phone: user.phone || '',
+      isPhoneVerified: Boolean(user.isPhoneVerified),
       role: user.role || '',
       accountType: user.accountType || '',
       createdAt: user.createdAt || null,
       updatedAt: user.updatedAt || null
     }
   });
+});
+
+router.patch('/profile/phone', authenticate, async (req, res) => {
+  try {
+    const normalizedPhone = normalizePhoneValue(req.body?.phone, { allowLocalIndian: true });
+    if (!normalizedPhone) {
+      return res.status(400).json({ message: 'Valid phone required' });
+    }
+
+    const phoneCandidates = buildPhoneLookupCandidates(normalizedPhone);
+    const conflict = await User.findOne({
+      _id: { $ne: req.user.id },
+      phone: { $in: phoneCandidates }
+    }).select('_id').lean();
+
+    if (conflict) {
+      return res.status(409).json({ message: 'Phone already in use by another account' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.phone = normalizedPhone;
+    user.isPhoneVerified = req.body?.verified === false ? false : true;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Phone updated successfully',
+      user: {
+        id: String(user._id),
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        isPhoneVerified: Boolean(user.isPhoneVerified),
+        role: user.role || '',
+        accountType: user.accountType || '',
+        createdAt: user.createdAt || null,
+        updatedAt: user.updatedAt || null
+      }
+    });
+  } catch (error) {
+    console.error('profile phone update error:', error);
+    return res.status(500).json({ message: 'Server error in profile phone update' });
+  }
 });
 
 // === FUTURE_ROUTES_BUSINESS_USERROUTES_START ===

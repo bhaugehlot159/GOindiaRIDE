@@ -891,10 +891,19 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   const ip = getClientIp(req);
   const device = getDeviceMeta(req);
   const bookingContext = buildBookingContext(req.body);
-  const customerRecord = await User.findById(req.user.id).select('name email phone').lean();
-  const normalizedCustomerPhone = normalizeIndianPhone(customerRecord?.phone);
+  const customerRecord = await User.findById(req.user.id).select('name email phone isPhoneVerified').lean();
+  const requestedCustomerPhone = normalizeIndianPhone(req.body.customerPhone || req.body.phone);
+  const normalizedCustomerPhone = normalizeIndianPhone(customerRecord?.phone) || requestedCustomerPhone;
   if (!normalizedCustomerPhone) {
     return res.status(400).json({ message: 'Customer mobile number is required before booking' });
+  }
+  if ((!normalizeIndianPhone(customerRecord?.phone) || customerRecord?.isPhoneVerified !== true) && requestedCustomerPhone) {
+    await User.findByIdAndUpdate(req.user.id, {
+      $set: {
+        phone: requestedCustomerPhone,
+        isPhoneVerified: true
+      }
+    });
   }
   const customerSnapshot = {
     name: sanitizeText(customerRecord?.name, 140),
