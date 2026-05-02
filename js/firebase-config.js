@@ -54,3 +54,83 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
     window.GOINDIARIDE_API_BASE = existingBase;
 })();
 
+(function initFirebaseClientConfigResolver() {
+    const defaultConfig = Object.freeze({
+        ...(window.GOINDIARIDE_FIREBASE_CONFIG || {})
+    });
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
+    const isRenderHost = host === 'goindiaride.onrender.com' || host.endsWith('.onrender.com');
+    const shouldPreferBackendConfig = isPrimaryWebsiteHost || isRenderHost;
+    const clientConfigPath = '/api/auth/firebase/client-config';
+    let configPromise = null;
+
+    function normalizeConfig(rawConfig) {
+        const candidate = rawConfig && typeof rawConfig === 'object' ? rawConfig : {};
+        return {
+            ...defaultConfig,
+            ...candidate
+        };
+    }
+
+    function isLikelyFirebaseApiKey(value) {
+        const key = String(value || '').trim();
+        return /^AIza[0-9A-Za-z_-]{20,}$/.test(key) && !key.includes('replace_with_');
+    }
+
+    async function loadFirebaseClientConfig(options = {}) {
+        const forceRefresh = Boolean(options && options.forceRefresh);
+        if (!shouldPreferBackendConfig) {
+            return normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+        }
+        if (configPromise && !forceRefresh) {
+            return configPromise;
+        }
+
+        const apiBase = String(window.GOINDIARIDE_API_BASE || '').trim().replace(/\/$/, '');
+        if (!apiBase) {
+            return normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+        }
+
+        configPromise = (async () => {
+            const fallbackConfig = normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+            try {
+                const controller = typeof AbortController === 'function' ? new AbortController() : null;
+                const timeoutId = controller ? window.setTimeout(() => controller.abort(), 8000) : null;
+                const response = await fetch(`${apiBase}${clientConfigPath}`, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: {
+                        Accept: 'application/json'
+                    },
+                    signal: controller ? controller.signal : undefined
+                });
+                if (timeoutId) window.clearTimeout(timeoutId);
+                if (!response.ok) {
+                    return fallbackConfig;
+                }
+                const data = await response.json().catch(() => ({}));
+                const resolvedConfig = normalizeConfig(data && data.config);
+                if (isLikelyFirebaseApiKey(resolvedConfig.apiKey)) {
+                    window.GOINDIARIDE_FIREBASE_CONFIG = resolvedConfig;
+                    return resolvedConfig;
+                }
+                return fallbackConfig;
+            } catch (_error) {
+                return fallbackConfig;
+            }
+        })();
+
+        const result = await configPromise;
+        if (forceRefresh) {
+            configPromise = Promise.resolve(result);
+        }
+        return result;
+    }
+
+    window.resolveGoIndiaFirebaseConfig = loadFirebaseClientConfig;
+    window.getGoIndiaFirebaseConfig = function getGoIndiaFirebaseConfig() {
+        return normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+    };
+})();
+

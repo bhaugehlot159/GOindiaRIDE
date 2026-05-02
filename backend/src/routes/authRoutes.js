@@ -163,6 +163,38 @@ function buildPhoneLookupCandidates(rawValue) {
   return [...candidates];
 }
 
+function getFirebaseClientConfig() {
+  const apiKey = String(env.firebaseKey || process.env.FIREBASE_KEY || '').trim();
+  if (!apiKey || apiKey.includes('replace_with_')) {
+    return null;
+  }
+
+  return {
+    apiKey,
+    authDomain: String(process.env.FIREBASE_AUTH_DOMAIN || 'gehlot-86e38.firebaseapp.com').trim(),
+    projectId: String(process.env.FIREBASE_PROJECT_ID || 'gehlot-86e38').trim(),
+    storageBucket: String(process.env.FIREBASE_STORAGE_BUCKET || 'gehlot-86e38.firebasestorage.app').trim(),
+    messagingSenderId: String(process.env.FIREBASE_MESSAGING_SENDER_ID || '1086303809008').trim(),
+    appId: String(process.env.FIREBASE_APP_ID || '1:1086303809008:web:4325934708c7770c2d4135').trim(),
+    measurementId: String(process.env.FIREBASE_MEASUREMENT_ID || 'G-LJSEHPM2XH').trim()
+  };
+}
+
+router.get('/firebase/client-config', (_req, res) => {
+  const config = getFirebaseClientConfig();
+  if (!config) {
+    return res.status(503).json({
+      ok: false,
+      message: 'Firebase client config unavailable'
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    config
+  });
+});
+
 function isStrongPassword(value) {
   const password = String(value || '');
   if (password.length < 8) return false;
