@@ -2,6 +2,19 @@
   const verificationSessions = new Map();
   let firebaseReady = false;
 
+  function isInvalidApiKeyError(error) {
+    const code = String(error && error.code || '').trim().toLowerCase();
+    const message = String(error && error.message || '').trim().toLowerCase();
+    return code === 'auth/invalid-api-key' || message.includes('auth/invalid-api-key') || message.includes('invalid api key');
+  }
+
+  function toFriendlyFirebaseError(error) {
+    if (isInvalidApiKeyError(error)) {
+      return new Error('Phone verification service abhi properly configured nahi hai. Firebase API key invalid hai.');
+    }
+    return error instanceof Error ? error : new Error(String(error || 'Phone verification failed'));
+  }
+
   function normalizePhone(value) {
     const raw = String(value || '').trim();
     if (!raw) return '';
@@ -24,8 +37,30 @@
     return digitsOnly.length >= 8 && digitsOnly.length <= 15 ? `+${digitsOnly}` : '';
   }
 
-  function ensureFirebaseReady() {
-    if (firebaseReady && window.firebase && window.firebase.auth) {
+  async function resetFirebaseState(sessionKey) {
+    if (sessionKey) {
+      clearSession(sessionKey);
+    } else {
+      Array.from(verificationSessions.keys()).forEach((key) => clearSession(key));
+    }
+    firebaseReady = false;
+    if (window.firebase && Array.isArray(window.firebase.apps) && window.firebase.apps.length) {
+      const apps = window.firebase.apps.slice();
+      for (const app of apps) {
+        if (app && typeof app.delete === 'function') {
+          try {
+            await app.delete();
+          } catch (_error) {
+            // Ignore delete issues and try fresh init.
+          }
+        }
+      }
+    }
+  }
+
+  async function ensureFirebaseReady(options = {}) {
+    const forceRefresh = Boolean(options && options.forceRefresh);
+    if (!forceRefresh && firebaseReady && window.firebase && window.firebase.auth) {
       return window.firebase.auth();
     }
 
@@ -33,7 +68,13 @@
       throw new Error('Phone verification library load nahi hui. Page reload karein.');
     }
 
-    const config = window.GOINDIARIDE_FIREBASE_CONFIG || {};
+    if (forceRefresh) {
+      await resetFirebaseState();
+    }
+
+    const config = typeof window.resolveGoIndiaFirebaseConfig === 'function'
+      ? await window.resolveGoIndiaFirebaseConfig({ forceRefresh })
+      : (window.GOINDIARIDE_FIREBASE_CONFIG || {});
     const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
     const missing = requiredKeys.filter((key) => !config[key]);
     if (missing.length) {
@@ -48,8 +89,8 @@
     return window.firebase.auth();
   }
 
-  function ensureRecaptcha(sessionKey, containerId) {
-    const auth = ensureFirebaseReady();
+  async function ensureRecaptcha(sessionKey, containerId) {
+    const auth = await ensureFirebaseReady();
     const existing = verificationSessions.get(sessionKey);
     if (existing && existing.recaptchaVerifier) {
       return existing.recaptchaVerifier;
@@ -75,24 +116,36 @@
     return verifier;
   }
 
-  async function sendOtp(phone, { sessionKey = 'default', containerId = 'goindiaride-phone-recaptcha' } = {}) {
+  async function sendOtp(phone, { sessionKey = 'default', containerId = 'goindiaride-phone-recaptcha', _retried = false } = {}) {
     const normalizedPhone = normalizePhone(phone);
     if (!normalizedPhone) {
       throw new Error('Please enter valid mobile with country code.');
     }
 
-    const auth = ensureFirebaseReady();
-    const verifier = ensureRecaptcha(sessionKey, containerId);
-    const confirmation = await auth.signInWithPhoneNumber(normalizedPhone, verifier);
+    try {
+      const auth = await ensureFirebaseReady();
+      const verifier = await ensureRecaptcha(sessionKey, containerId);
+      const confirmation = await auth.signInWithPhoneNumber(normalizedPhone, verifier);
 
-    verificationSessions.set(sessionKey, {
-      ...(verificationSessions.get(sessionKey) || {}),
-      confirmation,
-      phone: normalizedPhone,
-      verified: false
-    });
+      verificationSessions.set(sessionKey, {
+        ...(verificationSessions.get(sessionKey) || {}),
+        confirmation,
+        phone: normalizedPhone,
+        verified: false
+      });
 
-    return { phone: normalizedPhone };
+      return { phone: normalizedPhone };
+    } catch (error) {
+      if (!_retried && isInvalidApiKeyError(error)) {
+        await ensureFirebaseReady({ forceRefresh: true });
+        return sendOtp(normalizedPhone, {
+          sessionKey,
+          containerId,
+          _retried: true
+        });
+      }
+      throw toFriendlyFirebaseError(error);
+    }
   }
 
   async function verifyOtp(otp, { sessionKey = 'default' } = {}) {

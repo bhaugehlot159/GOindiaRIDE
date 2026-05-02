@@ -901,24 +901,55 @@ function registerAdminFailure(){
 }
 function clearAdminFailures(){localStorage.removeItem(ADMIN_FAILURE_KEY);}
 
-function initFirebasePhoneAuth(){
-  if(firebaseReady)return true;
+function isInvalidFirebaseApiKeyError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/invalid-api-key'||message.includes('auth/invalid-api-key')||message.includes('invalid api key');
+}
+async function resetFirebasePhoneAuth(){
+  firebaseReady=false;
+  if(firebaseRecaptchaVerifier&&typeof firebaseRecaptchaVerifier.clear==='function'){
+    try{firebaseRecaptchaVerifier.clear();}catch(_error){}
+  }
+  firebaseRecaptchaVerifier=null;
+  if(window.firebase&&Array.isArray(firebase.apps)&&firebase.apps.length){
+    for(const app of firebase.apps.slice()){
+      if(app&&typeof app.delete==='function'){
+        try{await app.delete();}catch(_error){}
+      }
+    }
+  }
+}
+async function initFirebasePhoneAuth(options={}){
+  const forceRefresh=Boolean(options&&options.forceRefresh);
+  if(firebaseReady&&!forceRefresh)return true;
   if(!window.firebase||typeof firebase.auth!=='function'){showError('Firebase Auth library load nahi hui. Page reload karein.');return false;}
-  const cfg=window.GOINDIARIDE_FIREBASE_CONFIG||{};
+  if(forceRefresh)await resetFirebasePhoneAuth();
+  const cfg=typeof window.resolveGoIndiaFirebaseConfig==='function'
+    ? await window.resolveGoIndiaFirebaseConfig({forceRefresh})
+    : (window.GOINDIARIDE_FIREBASE_CONFIG||{});
   const required=['apiKey','authDomain','projectId','appId'];
   const missing=required.filter((k)=>!cfg[k]);
-  if(missing.length){showError('Firebase config missing hai. js/firebase-config.js me project keys fill karein.');return false;}
-  try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebaseReady=true;return true;}catch(e){console.error('firebase init failed',e);showError('Firebase initialize nahi ho paya.');return false;}
+  if(missing.length){showError('Firebase config missing hai.');return false;}
+  try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebaseReady=true;return true;}
+  catch(e){console.error('firebase init failed',e);showError(isInvalidFirebaseApiKeyError(e)?'Phone verification service abhi properly configured nahi hai. Firebase API key invalid hai.':'Firebase initialize nahi ho paya.');return false;}
 }
-function ensureRecaptcha(){
-  if(!initFirebasePhoneAuth())return null;
+async function ensureRecaptcha(){
+  if(!await initFirebasePhoneAuth())return null;
   if(firebaseRecaptchaVerifier)return firebaseRecaptchaVerifier;
   try{firebaseRecaptchaVerifier=new firebase.auth.RecaptchaVerifier('firebaseRecaptchaContainer',{size:'invisible'});firebaseRecaptchaVerifier.render();return firebaseRecaptchaVerifier;}catch(e){console.error('recaptcha failed',e);showError('OTP reCAPTCHA setup failed.');return null;}
 }
-async function sendOtpByFirebase(phoneInput){
+async function sendOtpByFirebase(phoneInput,retried=false){
   const phone=normalizePhoneForOtp(phoneInput); if(!phone)throw new Error('Please enter valid mobile with country code.');
-  const verifier=ensureRecaptcha(); if(!verifier)throw new Error('Firebase OTP setup incomplete hai.');
-  return firebase.auth().signInWithPhoneNumber(phone,verifier);
+  const verifier=await ensureRecaptcha(); if(!verifier)throw new Error('Firebase OTP setup incomplete hai.');
+  try{return await firebase.auth().signInWithPhoneNumber(phone,verifier);}
+  catch(e){
+    if(!retried&&isInvalidFirebaseApiKeyError(e)){
+      const reloaded=await initFirebasePhoneAuth({forceRefresh:true});
+      if(reloaded)return sendOtpByFirebase(phone,true);
+    }
+    throw(isInvalidFirebaseApiKeyError(e)?new Error('Phone verification service abhi properly configured nahi hai. Firebase API key invalid hai.'):e);
+  }
 }
 async function verifyOtpByFirebase(confirmation,otp){
   if(!confirmation)throw new Error('Pehle OTP send karein.');
@@ -1396,7 +1427,7 @@ window.addEventListener('load',async()=>{
   persistAccountBackup();
   await ensureAdminProfile();
   updateLoginMethod();
-  initFirebasePhoneAuth();
+initFirebasePhoneAuth().catch(()=>{});
   initializeAdminAccessGate();
   console.log('Login page ready');
 });
