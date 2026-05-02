@@ -269,6 +269,21 @@ function clearBackendAccessToken(){
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
 }
+function markBackendAuthMode(mode,reason=''){
+  const normalizedMode=String(mode||'').trim()||'fallback_local';
+  localStorage.setItem('goindiaride_auth_mode',normalizedMode);
+  const normalizedReason=sanitizeInput(reason||'',180);
+  if(normalizedReason)localStorage.setItem('goindiaride_auth_reason',normalizedReason);
+  else localStorage.removeItem('goindiaride_auth_reason');
+}
+function readBackendAccessToken(){
+  return String(
+    localStorage.getItem('accessToken')||
+    localStorage.getItem('authToken')||
+    localStorage.getItem('token')||
+    ''
+  ).trim();
+}
 function getAccountPasswordValue(record){
   if(!record||typeof record!=='object')return'';
   return String(record.password||record.passwordHash||record.pass||'').trim();
@@ -282,6 +297,17 @@ function tryDecodeBase64(text){
     }
   }catch(_error){}
   return'';
+}
+function getUsableStoredPlainPassword(record){
+  const raw=String(record?.password||record?.pass||'').trim();
+  if(!raw)return'';
+  if(/^[a-f0-9]{64}$/i.test(raw))return'';
+
+  const decoded=tryDecodeBase64(raw);
+  const candidate=String(decoded||raw).trim();
+  if(candidate.length<6||candidate.length>160)return'';
+  if(/[\x00-\x08\x0E-\x1F]/.test(candidate))return'';
+  return candidate;
 }
 function getBackendApiBase(){
   const host=String(window.location.hostname||'').toLowerCase();
@@ -322,7 +348,7 @@ function getBackendApiBase(){
     return localBackendBase;
   }
 
-  if(isPrimaryWebsiteHost||isGitHubPagesHost)return'https://api.goindiaride.in';
+  if(isPrimaryWebsiteHost||isGitHubPagesHost)return'https://goindiaride.onrender.com';
 
   return String(window.location.origin||'').replace(/\/$/, '');
 }
@@ -372,10 +398,11 @@ async function callBackendAuth(path,payload){
     if(!candidateBases.includes(normalized))candidateBases.push(normalized);
   };
   if(isPrimaryWebsiteHost){
-    if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
-    if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
     pushBase(primaryBase);
+    pushBase('https://goindiaride.onrender.com');
     pushBase('https://api.goindiaride.in');
+    if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
+    if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
   }else{
     pushBase(primaryBase);
     if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
@@ -473,6 +500,42 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
 
   return{synced:false,reason:loginResult.data?.message||'backend_auth_failed'};
 }
+async function ensureBackendSessionForRole({record,password='',role='customer',source='local_session'}){
+  const safeRole=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
+  const usablePassword=String(password||'').trim()||getUsableStoredPlainPassword(record);
+  if(!record||typeof record!=='object'){
+    clearBackendAccessToken();
+    markBackendAuthMode('fallback_local',`${source}_missing_record`);
+    return{synced:false,reason:'missing_record'};
+  }
+
+  if(!sanitizeEmail(record.email||'')){
+    clearBackendAccessToken();
+    markBackendAuthMode('fallback_local',`${source}_missing_email`);
+    return{synced:false,reason:'missing_email'};
+  }
+
+  if(!usablePassword){
+    clearBackendAccessToken();
+    markBackendAuthMode('fallback_local',`${source}_missing_plain_password`);
+    return{synced:false,reason:'missing_plain_password'};
+  }
+
+  const sync=await syncBackendSessionForLocalAccount({
+    record,
+    password:usablePassword,
+    role:safeRole
+  });
+
+  if(sync.synced){
+    markBackendAuthMode('secure_backend');
+    return sync;
+  }
+
+  clearBackendAccessToken();
+  markBackendAuthMode('fallback_local',sync.reason||`${source}_backend_sync_failed`);
+  return sync;
+}
 function getStoreKeysByRole(role){return String(role||'customer').toLowerCase()==='driver'?DRIVER_STORAGE_KEYS:CUSTOMER_STORAGE_KEYS;}
 function getReadKeysByRole(role){return String(role||'customer').toLowerCase()==='driver'?DRIVER_READ_STORAGE_KEYS:CUSTOMER_READ_STORAGE_KEYS;}
 function matchesRoleRecord(role,record){
@@ -531,6 +594,7 @@ function upsertLocalAccountFromBackend(role,payload={}){
       fullname:sanitizeInput(payload.fullname||payload.name||existing?.fullname||existing?.name||'Driver'),
       email:safeEmail||sanitizeEmail(existing?.email||''),
       phone:safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||''),
+      isPhoneVerified: typeof payload.isPhoneVerified==='boolean'?payload.isPhoneVerified:Boolean(existing?.isPhoneVerified),
       backendUserId:providedId||sanitizeInput(existing?.backendUserId||''),
       vehicleType:sanitizeInput(payload.vehicleType||existing?.vehicleType||'economy'),
       vehicleNumber:sanitizeInput(payload.vehicleNumber||existing?.vehicleNumber||''),
@@ -546,6 +610,7 @@ function upsertLocalAccountFromBackend(role,payload={}){
       name:sanitizeInput(payload.name||payload.fullname||existing?.name||existing?.fullname||'Customer'),
       email:safeEmail||sanitizeEmail(existing?.email||''),
       phone:safePhone||normalizePhoneForLookup(existing?.phone||existing?.mobile||''),
+      isPhoneVerified: typeof payload.isPhoneVerified==='boolean'?payload.isPhoneVerified:Boolean(existing?.isPhoneVerified),
       backendUserId:providedId||sanitizeInput(existing?.backendUserId||''),
       createdAt:existing?.createdAt||nowIso,
       syncedFromBackendAt:nowIso
@@ -644,6 +709,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
     fullname:profile?.name||backendLogin.data?.name||'',
     email:profile?.email||safeEmail,
     phone:profile?.phone||backendLogin.data?.phone||'',
+    isPhoneVerified:Boolean(profile?.isPhoneVerified ?? backendLogin.data?.isPhoneVerified ?? false),
     vehicleType:profile?.vehicleType||backendLogin.data?.vehicleType||'',
     vehicleNumber:profile?.vehicleNumber||backendLogin.data?.vehicleNumber||''
   });
@@ -861,11 +927,11 @@ async function verifyOtpByFirebase(confirmation,otp){
 }
 function readOtpDigits(selector){return Array.from(document.querySelectorAll(selector)).map((i)=>i.value).join('');}
 function setUserSession(user){
-  localStorage.setItem('currentUser',JSON.stringify({id:user.id,fullname:user.fullname||user.name||'Customer',email:user.email||'',phone:normalizePhoneForLookup(user.phone||user.mobile||''),role:'customer'}));
+  localStorage.setItem('currentUser',JSON.stringify({id:user.id,fullname:user.fullname||user.name||'Customer',name:user.name||user.fullname||'Customer',email:user.email||'',phone:normalizePhoneForLookup(user.phone||user.mobile||''),isPhoneVerified:Boolean(user.isPhoneVerified||user.phoneVerified),role:'customer'}));
   localStorage.setItem('userRole','customer');
 }
 function setDriverSession(driver){
-  localStorage.setItem('currentDriver',JSON.stringify({id:driver.id,name:driver.name||driver.fullname||'Driver',email:driver.email||'',phone:normalizePhoneForLookup(driver.phone||driver.mobile||''),vehicleType:driver.vehicleType||'economy',vehicleNumber:driver.vehicleNumber||'',role:'driver'}));
+  localStorage.setItem('currentDriver',JSON.stringify({id:driver.id,name:driver.name||driver.fullname||'Driver',email:driver.email||'',phone:normalizePhoneForLookup(driver.phone||driver.mobile||''),isPhoneVerified:Boolean(driver.isPhoneVerified||driver.phoneVerified),vehicleType:driver.vehicleType||'economy',vehicleNumber:driver.vehicleNumber||'',role:'driver'}));
   localStorage.setItem('userRole','driver');
 }
 
@@ -923,14 +989,18 @@ async function customerSendOTP(){
 }
 async function customerVerifyOTP(){
   const otp=readOtpDigits('.customer-otp');const phone=normalizePhoneForLookup(document.getElementById('customerPhone').value);
-  try{await verifyOtpByFirebase(customerConfirmation,otp);customerLoginOTP(phone);}catch(e){console.error('customer otp verify failed',e);showError(e.message||'OTP verification failed.');}
+  try{await verifyOtpByFirebase(customerConfirmation,otp);await customerLoginOTP(phone);}catch(e){console.error('customer otp verify failed',e);showError(e.message||'OTP verification failed.');}
 }
-function customerLoginOTP(phone){
+async function customerLoginOTP(phone){
   const customer=findCustomerByPhone(phone);
   if(!customer){showError('Customer local record missing hai. Email/password login se account auto-restore karein.');customerResetOTP();return;}
   const risk=evaluateLoginRisk('customer_otp_verify',{role:'customer',customerId:customer.id,phone});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer OTP login blocked','AI risk blocked customer OTP login.',{customerId:customer.id,phone,score:Number(risk.score||0)});customerResetOTP();return;}
-  setUserSession(customer);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+  const verifiedCustomer=upsertLocalAccountFromBackend('customer',{...customer,phone,isPhoneVerified:true});
+  setUserSession(verifiedCustomer);
+  const sync=await ensureBackendSessionForRole({record:verifiedCustomer,role:'customer',source:'customer_otp'});
+  showSuccess(sync.synced?'Login successful. Live booking session connected.':'Login successful. Fallback local session active.');
+  setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
 }
 function customerResetOTP(){customerConfirmation=null;document.getElementById('customerOTPSection').classList.remove('show');document.getElementById('customerPhone').disabled=false;document.querySelectorAll('.customer-otp').forEach((i)=>{i.value='';});}
 async function customerLoginEmail(){
@@ -950,7 +1020,10 @@ async function customerLoginEmail(){
   if(resolvedLogin.ok){
     const risk=evaluateLoginRisk('customer_email_login',{role:'customer',customerId:resolvedLogin.record.id,email,source:'backend_live'});
     if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer email login blocked','AI risk blocked customer email login.',{customerId:resolvedLogin.record.id,email,score:Number(risk.score||0)});return;}
-    setUserSession(resolvedLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+    setUserSession(resolvedLogin.record);
+    if(readBackendAccessToken())markBackendAuthMode('secure_backend');
+    else await ensureBackendSessionForRole({record:resolvedLogin.record,password,role:'customer',source:'customer_backend_login'});
+    showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
     return;
   }
 
@@ -970,7 +1043,9 @@ async function customerLoginEmail(){
         writeRecords(account.storeKeys,account.records);
         account=findAccountByIdentifier('customer',email);
       }
-      setUserSession(account.record);showSuccess('Login successful (local account restored).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      setUserSession(account.record);
+      const sync=await ensureBackendSessionForRole({record:account.record,password,role:'customer',source:'customer_local_restore'});
+      showSuccess(sync.synced?'Login successful.':'Login successful (local account restored).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
       return;
     }
     localPasswordMismatch=true;
@@ -987,7 +1062,9 @@ async function customerLoginEmail(){
         else driverAccount.records.push(updatedRecord);
         writeRecords(driverAccount.storeKeys,driverAccount.records);
       }
-      setDriverSession(driverAccount.record);showSuccess('Yeh account driver role me hai. Driver portal open kiya ja raha hai.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      setDriverSession(driverAccount.record);
+      const sync=await ensureBackendSessionForRole({record:driverAccount.record,password,role:'driver',source:'customer_switch_driver'});
+      showSuccess(sync.synced?'Yeh account driver role me hai. Driver portal open kiya ja raha hai.':'Yeh account driver role me hai. Driver portal local restore mode me open ho raha hai.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
       return;
     }
     localPasswordMismatch=true;
@@ -998,6 +1075,7 @@ async function customerLoginEmail(){
       const emergencyReset=await createEmergencyLocalAccount({role:'customer',email,password,forcePasswordReset:true});
       if(emergencyReset.ok){
         setUserSession(emergencyReset.record);
+        await ensureBackendSessionForRole({record:emergencyReset.record,password,role:'customer',source:'customer_emergency_reset'});
         showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
         setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
         return;
@@ -1019,6 +1097,7 @@ async function customerLoginEmail(){
     const emergency=await createEmergencyLocalAccount({role:'customer',email,password});
     if(emergency.ok){
       setUserSession(emergency.record);
+      await ensureBackendSessionForRole({record:emergency.record,password,role:'customer',source:'customer_emergency_create'});
       showSuccess(emergency.created
         ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
         : 'Login successful (local restore mode).');
@@ -1045,14 +1124,18 @@ async function driverSendOTP(){
 }
 async function driverVerifyOTP(){
   const otp=readOtpDigits('.driver-otp');const phone=normalizePhoneForLookup(document.getElementById('driverPhone').value);
-  try{await verifyOtpByFirebase(driverConfirmation,otp);driverLoginOTP(phone);}catch(e){console.error('driver otp verify failed',e);showError(e.message||'OTP verification failed.');}
+  try{await verifyOtpByFirebase(driverConfirmation,otp);await driverLoginOTP(phone);}catch(e){console.error('driver otp verify failed',e);showError(e.message||'OTP verification failed.');}
 }
-function driverLoginOTP(phone){
+async function driverLoginOTP(phone){
   const driver=findDriverByPhone(phone);
   if(!driver){showError('Driver local record missing hai. Email/password login se account auto-restore karein.');driverResetOTP();return;}
   const risk=evaluateLoginRisk('driver_otp_verify',{role:'driver',driverId:driver.id,phone});
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver OTP login blocked','AI risk blocked driver OTP login.',{driverId:driver.id,phone,score:Number(risk.score||0)});driverResetOTP();return;}
-  setDriverSession(driver);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+  const verifiedDriver=upsertLocalAccountFromBackend('driver',{...driver,phone,isPhoneVerified:true});
+  setDriverSession(verifiedDriver);
+  const sync=await ensureBackendSessionForRole({record:verifiedDriver,role:'driver',source:'driver_otp'});
+  showSuccess(sync.synced?'Login successful. Live booking session connected.':'Login successful. Fallback local session active.');
+  setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
 }
 function driverResetOTP(){driverConfirmation=null;document.getElementById('driverOTPSection').classList.remove('show');document.getElementById('driverPhone').disabled=false;document.querySelectorAll('.driver-otp').forEach((i)=>{i.value='';});}
 async function driverLoginEmail(){
@@ -1072,7 +1155,10 @@ async function driverLoginEmail(){
   if(resolvedLogin.ok){
     const risk=evaluateLoginRisk('driver_email_login',{role:'driver',driverId:resolvedLogin.record.id,email,source:'backend_live'});
     if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver email login blocked','AI risk blocked driver email login.',{driverId:resolvedLogin.record.id,email,score:Number(risk.score||0)});return;}
-    setDriverSession(resolvedLogin.record);showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+    setDriverSession(resolvedLogin.record);
+    if(readBackendAccessToken())markBackendAuthMode('secure_backend');
+    else await ensureBackendSessionForRole({record:resolvedLogin.record,password,role:'driver',source:'driver_backend_login'});
+    showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
     return;
   }
 
@@ -1092,7 +1178,9 @@ async function driverLoginEmail(){
         writeRecords(account.storeKeys,account.records);
         account=findAccountByIdentifier('driver',email);
       }
-      setDriverSession(account.record);showSuccess('Login successful (local account restored).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      setDriverSession(account.record);
+      const sync=await ensureBackendSessionForRole({record:account.record,password,role:'driver',source:'driver_local_restore'});
+      showSuccess(sync.synced?'Login successful.':'Login successful (local account restored).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
       return;
     }
     localPasswordMismatch=true;
@@ -1109,7 +1197,9 @@ async function driverLoginEmail(){
         else customerAccount.records.push(updatedRecord);
         writeRecords(customerAccount.storeKeys,customerAccount.records);
       }
-      setUserSession(customerAccount.record);showSuccess('Yeh account customer role me hai. Customer portal open kiya ja raha hai.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      setUserSession(customerAccount.record);
+      const sync=await ensureBackendSessionForRole({record:customerAccount.record,password,role:'customer',source:'driver_switch_customer'});
+      showSuccess(sync.synced?'Yeh account customer role me hai. Customer portal open kiya ja raha hai.':'Yeh account customer role me hai. Customer portal local restore mode me open ho raha hai.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
       return;
     }
     localPasswordMismatch=true;
@@ -1120,6 +1210,7 @@ async function driverLoginEmail(){
       const emergencyReset=await createEmergencyLocalAccount({role:'driver',email,password,forcePasswordReset:true});
       if(emergencyReset.ok){
         setDriverSession(emergencyReset.record);
+        await ensureBackendSessionForRole({record:emergencyReset.record,password,role:'driver',source:'driver_emergency_reset'});
         showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
         setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
         return;
@@ -1141,6 +1232,7 @@ async function driverLoginEmail(){
     const emergency=await createEmergencyLocalAccount({role:'driver',email,password});
     if(emergency.ok){
       setDriverSession(emergency.record);
+      await ensureBackendSessionForRole({record:emergency.record,password,role:'driver',source:'driver_emergency_create'});
       showSuccess(emergency.created
         ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
         : 'Login successful (local restore mode).');

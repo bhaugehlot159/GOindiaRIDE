@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    match: [/^[6-9]\d{9}$/, 'Invalid Indian phone number format'],
+    match: [/^(?:[6-9]\d{9}|\+[1-9]\d{7,14})$/, 'Invalid phone number format'],
     index: true
   },
   accountType: {
