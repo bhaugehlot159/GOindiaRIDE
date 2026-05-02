@@ -100,7 +100,7 @@
 
   var PRIMARY_DOMAIN_REGEX = /(^|\.)goindiaride\.in$/i;
   var GITHUB_PAGES_HOST_REGEX = /\.github\.io$/i;
-  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://api.goindiaride.in';
+  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://goindiaride.onrender.com';
 
   function currentHostname() {
     return String((window.location && window.location.hostname) || '').toLowerCase();

@@ -768,7 +768,7 @@
             host === 'github.io' ||
             host.endsWith('.github.io')
         ) {
-            return 'https://api.goindiaride.in';
+            return 'https://goindiaride.onrender.com';
         }
 
         return String(window.location.origin || '').replace(/\/$/, '');

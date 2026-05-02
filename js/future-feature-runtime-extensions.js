@@ -14,7 +14,7 @@
 
   var PRIMARY_DOMAIN_REGEX = /(^|\.)goindiaride\.in$/i;
   var GITHUB_PAGES_HOST_REGEX = /\.github\.io$/i;
-  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://api.goindiaride.in';
+  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://goindiaride.onrender.com';
   var API_BREAKER_KEY = 'goindiaride.runtime.business-api-breaker.v1';
   var API_BREAKER_WINDOW_MS = 5 * 60 * 1000;
   var API_BREAKER_THRESHOLD = 3;

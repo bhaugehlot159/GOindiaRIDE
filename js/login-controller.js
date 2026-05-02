@@ -400,7 +400,7 @@ async function callBackendAuth(path,payload){
   if(isPrimaryWebsiteHost){
     pushBase(primaryBase);
     pushBase('https://goindiaride.onrender.com');
-    pushBase('https://api.goindiaride.in');
+    pushBase('https://goindiaride.onrender.com');
     if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
     if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
   }else{
@@ -906,6 +906,36 @@ function isInvalidFirebaseApiKeyError(error){
   const message=String(error&&error.message||'').trim().toLowerCase();
   return code==='auth/invalid-api-key'||message.includes('auth/invalid-api-key')||message.includes('invalid api key');
 }
+function isUnauthorizedDomainFirebaseError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/unauthorized-domain'||message.includes('unauthorized-domain')||message.includes('site_mismatch')||message.includes('domain');
+}
+function isCaptchaCheckFirebaseError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/captcha-check-failed'||message.includes('captcha-check-failed')||message.includes('recaptcha');
+}
+function isOperationNotAllowedFirebaseError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/operation-not-allowed'||message.includes('operation-not-allowed')||message.includes('sign in method')||message.includes('provider');
+}
+function toFriendlyFirebasePhoneError(error){
+  if(isUnauthorizedDomainFirebaseError(error)||isCaptchaCheckFirebaseError(error)){
+    const code=String(error&&error.code||'').trim()||'unknown';
+    return `Firebase domain/recaptcha mismatch hai (${code}). Authentication > Settings > Authorized domains me goindiaride.in, www.goindiaride.in, goindiaride.onrender.com add karo.`;
+  }
+  if(isOperationNotAllowedFirebaseError(error)){
+    const code=String(error&&error.code||'').trim()||'unknown';
+    return `Firebase Phone sign-in disabled hai (${code}). Authentication > Sign-in method me Phone provider enable karo.`;
+  }
+  if(isInvalidFirebaseApiKeyError(error)){
+    const code=String(error&&error.code||'').trim()||'unknown';
+    return `Firebase key mismatch lag raha hai (${code}). Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.`;
+  }
+  return '';
+}
 async function resetFirebasePhoneAuth(){
   firebaseReady=false;
   if(firebaseRecaptchaVerifier&&typeof firebaseRecaptchaVerifier.clear==='function'){
@@ -932,7 +962,7 @@ async function initFirebasePhoneAuth(options={}){
   const missing=required.filter((k)=>!cfg[k]);
   if(missing.length){showError('Firebase config missing hai.');return false;}
   try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebaseReady=true;return true;}
-  catch(e){console.error('firebase init failed',e);showError(isInvalidFirebaseApiKeyError(e)?'Phone verification service abhi properly configured nahi hai. Firebase API key invalid hai.':'Firebase initialize nahi ho paya.');return false;}
+  catch(e){console.error('firebase init failed',e);showError(toFriendlyFirebasePhoneError(e)||'Firebase initialize nahi ho paya.');return false;}
 }
 async function ensureRecaptcha(){
   if(!await initFirebasePhoneAuth())return null;
@@ -948,7 +978,7 @@ async function sendOtpByFirebase(phoneInput,retried=false){
       const reloaded=await initFirebasePhoneAuth({forceRefresh:true});
       if(reloaded)return sendOtpByFirebase(phone,true);
     }
-    throw(isInvalidFirebaseApiKeyError(e)?new Error('Phone verification service abhi properly configured nahi hai. Firebase API key invalid hai.'):e);
+    throw(toFriendlyFirebasePhoneError(e)?new Error(toFriendlyFirebasePhoneError(e)):e);
   }
 }
 async function verifyOtpByFirebase(confirmation,otp){

@@ -86,7 +86,7 @@
     if (fromStorage) return fromStorage;
 
     if (host === 'goindiaride.in' || host === 'www.goindiaride.in' || /\.github\.io$/i.test(host)) {
-      return 'https://api.goindiaride.in';
+      return 'https://goindiaride.onrender.com';
     }
     if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {
       return 'http://localhost:5000';
