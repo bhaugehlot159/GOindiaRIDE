@@ -74,6 +74,13 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
         };
     }
 
+    function applyResolvedConfig(rawConfig, source) {
+        const normalized = normalizeConfig(rawConfig);
+        window.GOINDIARIDE_FIREBASE_CONFIG = normalized;
+        window.GOINDIARIDE_FIREBASE_CONFIG_SOURCE = source || 'static';
+        return normalized;
+    }
+
     function isLikelyFirebaseApiKey(value) {
         const key = String(value || '').trim();
         return /^AIza[0-9A-Za-z_-]{20,}$/.test(key) && !key.includes('replace_with_');
@@ -81,13 +88,12 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
 
     async function loadFirebaseClientConfig(options = {}) {
         const forceRefresh = Boolean(options && options.forceRefresh);
-        if (forceStaticConfig) {
-            const staticConfig = normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
-            window.GOINDIARIDE_FIREBASE_CONFIG = staticConfig;
-            return staticConfig;
+        const preferDynamic = Boolean(options && options.preferDynamic);
+        if (forceStaticConfig && !preferDynamic) {
+            return applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
         }
         if (!shouldPreferBackendConfig) {
-            return normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+            return applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
         }
         if (configPromise && !forceRefresh) {
             return configPromise;
@@ -95,11 +101,11 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
 
         const apiBase = String(window.GOINDIARIDE_API_BASE || '').trim().replace(/\/$/, '');
         if (!apiBase) {
-            return normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+            return applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
         }
 
         configPromise = (async () => {
-            const fallbackConfig = normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
+            const fallbackConfig = applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
             try {
                 const controller = typeof AbortController === 'function' ? new AbortController() : null;
                 const timeoutId = controller ? window.setTimeout(() => controller.abort(), 8000) : null;
@@ -118,8 +124,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
                 const data = await response.json().catch(() => ({}));
                 const resolvedConfig = normalizeConfig(data && data.config);
                 if (isLikelyFirebaseApiKey(resolvedConfig.apiKey)) {
-                    window.GOINDIARIDE_FIREBASE_CONFIG = resolvedConfig;
-                    return resolvedConfig;
+                    return applyResolvedConfig(resolvedConfig, 'backend');
                 }
                 return fallbackConfig;
             } catch (_error) {

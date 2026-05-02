@@ -1,6 +1,7 @@
 (function initGoIndiaPhoneVerification() {
   const verificationSessions = new Map();
   let firebaseReady = false;
+  let activeFirebaseConfig = null;
 
   function isInvalidApiKeyError(error) {
     const code = String(error && error.code || '').trim().toLowerCase();
@@ -34,6 +35,24 @@
       || message.includes('provider');
   }
 
+  function maskFirebaseApiKey(value) {
+    const key = String(value || '').trim();
+    if (!key) return 'missing';
+    if (key.length <= 12) return `${key.slice(0, 4)}...`;
+    return `${key.slice(0, 7)}...${key.slice(-4)}`;
+  }
+
+  function getActiveFirebaseConfigSummary() {
+    const cfg = activeFirebaseConfig || window.GOINDIARIDE_FIREBASE_CONFIG || {};
+    const source = String(window.GOINDIARIDE_FIREBASE_CONFIG_SOURCE || 'static').trim() || 'static';
+    return {
+      apiKeyMasked: maskFirebaseApiKey(cfg.apiKey),
+      projectId: String(cfg.projectId || '').trim() || 'unknown',
+      authDomain: String(cfg.authDomain || '').trim() || 'unknown',
+      source
+    };
+  }
+
   function toFriendlyFirebaseError(error) {
     if (isUnauthorizedDomainError(error) || isCaptchaCheckFailedError(error)) {
       const code = String(error && error.code || '').trim() || 'unknown';
@@ -45,7 +64,8 @@
     }
     if (isInvalidApiKeyError(error)) {
       const code = String(error && error.code || '').trim() || 'unknown';
-      return new Error(`Firebase key mismatch lag raha hai (${code}). Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.`);
+      const summary = getActiveFirebaseConfigSummary();
+      return new Error(`Firebase key mismatch lag raha hai (${code}). Active key ${summary.apiKeyMasked} (${summary.source}), project ${summary.projectId}, authDomain ${summary.authDomain}. Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.`);
     }
     return error instanceof Error ? error : new Error(String(error || 'Phone verification failed'));
   }
@@ -95,6 +115,7 @@
 
   async function ensureFirebaseReady(options = {}) {
     const forceRefresh = Boolean(options && options.forceRefresh);
+    const preferDynamic = Boolean(options && options.preferDynamic);
     if (!forceRefresh && firebaseReady && window.firebase && window.firebase.auth) {
       return window.firebase.auth();
     }
@@ -108,13 +129,19 @@
     }
 
     const config = typeof window.resolveGoIndiaFirebaseConfig === 'function'
-      ? await window.resolveGoIndiaFirebaseConfig({ forceRefresh })
+      ? await window.resolveGoIndiaFirebaseConfig({ forceRefresh, preferDynamic })
       : (window.GOINDIARIDE_FIREBASE_CONFIG || {});
     const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
     const missing = requiredKeys.filter((key) => !config[key]);
     if (missing.length) {
       throw new Error('Firebase phone verification config missing hai.');
     }
+    activeFirebaseConfig = {
+      apiKey: String(config.apiKey || '').trim(),
+      authDomain: String(config.authDomain || '').trim(),
+      projectId: String(config.projectId || '').trim(),
+      appId: String(config.appId || '').trim()
+    };
 
     if (!window.firebase.apps.length) {
       window.firebase.initializeApp(config);
@@ -172,12 +199,16 @@
       return { phone: normalizedPhone };
     } catch (error) {
       if (!_retried && isInvalidApiKeyError(error)) {
-        await ensureFirebaseReady({ forceRefresh: true });
-        return sendOtp(normalizedPhone, {
-          sessionKey,
-          containerId,
-          _retried: true
-        });
+        try {
+          await ensureFirebaseReady({ forceRefresh: true, preferDynamic: true });
+          return sendOtp(normalizedPhone, {
+            sessionKey,
+            containerId,
+            _retried: true
+          });
+        } catch (retryError) {
+          throw toFriendlyFirebaseError(retryError);
+        }
       }
       throw toFriendlyFirebaseError(error);
     }
