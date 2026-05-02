@@ -35,14 +35,17 @@
   }
 
   function toFriendlyFirebaseError(error) {
-    if (isInvalidApiKeyError(error)) {
-      return new Error('Firebase key mismatch lag raha hai. Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.');
-    }
     if (isUnauthorizedDomainError(error) || isCaptchaCheckFailedError(error)) {
-      return new Error('Firebase domain/recaptcha mismatch hai. Authentication > Settings > Authorized domains me goindiaride.in, www.goindiaride.in, goindiaride.onrender.com add karo.');
+      const code = String(error && error.code || '').trim() || 'unknown';
+      return new Error(`Firebase domain/recaptcha mismatch hai (${code}). Authentication > Settings > Authorized domains me goindiaride.in, www.goindiaride.in, goindiaride.onrender.com add karo.`);
     }
     if (isOperationNotAllowedError(error)) {
-      return new Error('Firebase Phone sign-in currently disabled hai. Authentication > Sign-in method me Phone provider enable karo.');
+      const code = String(error && error.code || '').trim() || 'unknown';
+      return new Error(`Firebase Phone sign-in currently disabled hai (${code}). Authentication > Sign-in method me Phone provider enable karo.`);
+    }
+    if (isInvalidApiKeyError(error)) {
+      const code = String(error && error.code || '').trim() || 'unknown';
+      return new Error(`Firebase key mismatch lag raha hai (${code}). Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.`);
     }
     return error instanceof Error ? error : new Error(String(error || 'Phone verification failed'));
   }
