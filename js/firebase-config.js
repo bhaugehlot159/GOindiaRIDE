@@ -86,6 +86,29 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
         return /^AIza[0-9A-Za-z_-]{20,}$/.test(key) && !key.includes('replace_with_');
     }
 
+    function isLikelyFirebaseProjectId(value) {
+        const projectId = String(value || '').trim();
+        return /^[a-z][a-z0-9-]{4,30}$/.test(projectId);
+    }
+
+    function isLikelyFirebaseAuthDomain(value) {
+        const authDomain = String(value || '').trim();
+        return /^[a-z0-9-]+\.firebaseapp\.com$/i.test(authDomain);
+    }
+
+    function isLikelyFirebaseAppId(value) {
+        const appId = String(value || '').trim();
+        return /^\d+:\d+:[a-z]+:[0-9a-z]+$/i.test(appId);
+    }
+
+    function isLikelyFirebaseClientConfig(config) {
+        const candidate = config && typeof config === 'object' ? config : {};
+        return isLikelyFirebaseApiKey(candidate.apiKey)
+            && isLikelyFirebaseProjectId(candidate.projectId)
+            && isLikelyFirebaseAuthDomain(candidate.authDomain)
+            && isLikelyFirebaseAppId(candidate.appId);
+    }
+
     async function loadFirebaseClientConfig(options = {}) {
         const forceRefresh = Boolean(options && options.forceRefresh);
         const preferDynamic = Boolean(options && options.preferDynamic);
@@ -123,7 +146,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
                 }
                 const data = await response.json().catch(() => ({}));
                 const resolvedConfig = normalizeConfig(data && data.config);
-                if (isLikelyFirebaseApiKey(resolvedConfig.apiKey)) {
+                if (isLikelyFirebaseClientConfig(resolvedConfig)) {
                     return applyResolvedConfig(resolvedConfig, 'backend');
                 }
                 return fallbackConfig;

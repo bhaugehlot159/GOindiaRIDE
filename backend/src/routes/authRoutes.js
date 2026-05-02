@@ -164,19 +164,57 @@ function buildPhoneLookupCandidates(rawValue) {
 }
 
 function getFirebaseClientConfig() {
-  const apiKey = String(env.firebaseKey || process.env.FIREBASE_KEY || '').trim();
-  if (!apiKey || apiKey.includes('replace_with_')) {
+  const fallbackConfig = {
+    apiKey: 'AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik',
+    authDomain: 'gehlot-86e38.firebaseapp.com',
+    projectId: 'gehlot-86e38',
+    storageBucket: 'gehlot-86e38.firebasestorage.app',
+    messagingSenderId: '1086303809008',
+    appId: '1:1086303809008:web:4325934708c7770c2d4135',
+    measurementId: 'G-LJSEHPM2XH'
+  };
+  const fallbackApiKey = fallbackConfig.apiKey;
+  const apiKey = String(
+    env.firebaseKey
+    || process.env.FIREBASE_KEY
+    || process.env.FIREBASE_WEB_API_KEY
+    || fallbackApiKey
+    || ''
+  ).trim();
+  if (!/^AIza[0-9A-Za-z_-]{20,}$/.test(apiKey) || apiKey.includes('replace_with_')) {
     return null;
   }
 
+  const rawProjectId = String(process.env.FIREBASE_PROJECT_ID || fallbackConfig.projectId).trim();
+  const projectId = /^[a-z][a-z0-9-]{4,30}$/.test(rawProjectId) ? rawProjectId : fallbackConfig.projectId;
+
+  const rawAuthDomain = String(process.env.FIREBASE_AUTH_DOMAIN || '').trim();
+  const authDomain = /^[a-z0-9-]+\.firebaseapp\.com$/i.test(rawAuthDomain)
+    ? rawAuthDomain
+    : `${projectId}.firebaseapp.com`;
+
+  const rawStorageBucket = String(process.env.FIREBASE_STORAGE_BUCKET || '').trim();
+  const storageBucket = rawStorageBucket && /^[a-z0-9.-]+$/i.test(rawStorageBucket)
+    ? rawStorageBucket
+    : fallbackConfig.storageBucket;
+
+  const rawSenderId = String(process.env.FIREBASE_MESSAGING_SENDER_ID || '').trim();
+  const messagingSenderId = /^\d{6,20}$/.test(rawSenderId) ? rawSenderId : fallbackConfig.messagingSenderId;
+
+  const rawAppId = String(process.env.FIREBASE_APP_ID || '').trim();
+  const appId = /^\d+:\d+:[a-z]+:[0-9a-z]+$/i.test(rawAppId) ? rawAppId : fallbackConfig.appId;
+
+  const rawMeasurementId = String(process.env.FIREBASE_MEASUREMENT_ID || '').trim();
+  const measurementId = /^G-[0-9A-Z]+$/i.test(rawMeasurementId) ? rawMeasurementId : fallbackConfig.measurementId;
+
   return {
     apiKey,
-    authDomain: String(process.env.FIREBASE_AUTH_DOMAIN || 'gehlot-86e38.firebaseapp.com').trim(),
-    projectId: String(process.env.FIREBASE_PROJECT_ID || 'gehlot-86e38').trim(),
-    storageBucket: String(process.env.FIREBASE_STORAGE_BUCKET || 'gehlot-86e38.firebasestorage.app').trim(),
-    messagingSenderId: String(process.env.FIREBASE_MESSAGING_SENDER_ID || '1086303809008').trim(),
-    appId: String(process.env.FIREBASE_APP_ID || '1:1086303809008:web:4325934708c7770c2d4135').trim(),
-    measurementId: String(process.env.FIREBASE_MEASUREMENT_ID || 'G-LJSEHPM2XH').trim()
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId,
+    measurementId
   };
 }
 
