@@ -8,9 +8,41 @@
     return code === 'auth/invalid-api-key' || message.includes('auth/invalid-api-key') || message.includes('invalid api key');
   }
 
+  function isUnauthorizedDomainError(error) {
+    const code = String(error && error.code || '').trim().toLowerCase();
+    const message = String(error && error.message || '').trim().toLowerCase();
+    return code === 'auth/unauthorized-domain'
+      || message.includes('unauthorized-domain')
+      || message.includes('site_mismatch')
+      || message.includes('domain');
+  }
+
+  function isCaptchaCheckFailedError(error) {
+    const code = String(error && error.code || '').trim().toLowerCase();
+    const message = String(error && error.message || '').trim().toLowerCase();
+    return code === 'auth/captcha-check-failed'
+      || message.includes('captcha-check-failed')
+      || message.includes('recaptcha');
+  }
+
+  function isOperationNotAllowedError(error) {
+    const code = String(error && error.code || '').trim().toLowerCase();
+    const message = String(error && error.message || '').trim().toLowerCase();
+    return code === 'auth/operation-not-allowed'
+      || message.includes('operation-not-allowed')
+      || message.includes('sign in method')
+      || message.includes('provider');
+  }
+
   function toFriendlyFirebaseError(error) {
     if (isInvalidApiKeyError(error)) {
-      return new Error('Phone verification service abhi properly configured nahi hai. Firebase API key invalid hai.');
+      return new Error('Firebase key mismatch lag raha hai. Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.');
+    }
+    if (isUnauthorizedDomainError(error) || isCaptchaCheckFailedError(error)) {
+      return new Error('Firebase domain/recaptcha mismatch hai. Authentication > Settings > Authorized domains me goindiaride.in, www.goindiaride.in, goindiaride.onrender.com add karo.');
+    }
+    if (isOperationNotAllowedError(error)) {
+      return new Error('Firebase Phone sign-in currently disabled hai. Authentication > Sign-in method me Phone provider enable karo.');
     }
     return error instanceof Error ? error : new Error(String(error || 'Phone verification failed'));
   }
