@@ -90,6 +90,7 @@ app.use(cors({
     'Content-Type',
     'X-CSRF-Token',
     'X-XSRF-Token',
+    'X-Booking-Client',
     'X-Request-Id',
     'X-Timestamp',
     'X-Signature',
@@ -279,4 +280,3 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 module.exports = app;
-
