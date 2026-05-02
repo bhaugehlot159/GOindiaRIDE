@@ -383,6 +383,25 @@
             }
         }
 
+        function classifyAdminDashboardRequestFailure(apiBase, error) {
+            const rawMessage = String((error && error.message) || error || '').trim();
+            const normalized = rawMessage.toLowerCase();
+            if (normalized.includes('request_timeout') || normalized.includes('signal is aborted without reason')) {
+                return 'request_timeout';
+            }
+            if (
+                normalized.includes('failed to fetch') ||
+                normalized.includes('networkerror') ||
+                normalized.includes('load failed') ||
+                normalized.includes('preflight') ||
+                normalized.includes('blocked by cors policy') ||
+                normalized.includes('access-control-allow-headers')
+            ) {
+                return String(apiBase || '').startsWith(window.location.origin) ? 'network_error' : 'preflight_blocked';
+            }
+            return rawMessage || 'server_send_failed';
+        }
+
         function resolveAdminMailLabel(booking) {
             const state = String(booking?.adminEmailDispatch?.state || '').trim().toLowerCase();
             if (state === 'sent') return 'admin mail sent';
@@ -432,6 +451,7 @@
             };
 
             const apiBases = getAdminFallbackApiBases();
+            let lastReason = String(reason || 'admin_dashboard_retry').trim() || 'admin_dashboard_retry';
             for (const apiBase of apiBases) {
                 try {
                     const response = await adminDashboardFetchWithTimeout(`${apiBase}/api/bookings/fallback/admin-alert-email`, {
@@ -470,19 +490,20 @@
                         });
                         return { ok: true, data };
                     }
-                } catch (_error) {
-                    // Try the next API base.
+                    lastReason = String(data.adminEmail?.reason || data.message || `http_${response.status}`).trim() || 'server_send_failed';
+                } catch (error) {
+                    lastReason = classifyAdminDashboardRequestFailure(apiBase, error);
                 }
             }
 
             updateAdminBookingDeliveryState(bookingId, {
                 adminEmailDispatch: {
                     state: 'pending',
-                    reason,
+                    reason: lastReason,
                     updatedAt: new Date().toISOString()
                 }
             });
-            return { ok: false, reason };
+            return { ok: false, reason: lastReason };
         }
 
         async function flushAdminReviewInboxEmailDispatch() {

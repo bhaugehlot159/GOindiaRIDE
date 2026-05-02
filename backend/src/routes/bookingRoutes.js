@@ -52,6 +52,11 @@ const ADMIN_EMAIL_RECIPIENT_VARS = ['BOOKING_ADMIN_ALERT_EMAILS', 'ADMIN_ALERT_E
 const SMTP_FALLBACK_ADMIN_RECIPIENT_VARS = ['SMTP_FROM_EMAIL', 'SMTP_USER'];
 const DEFAULT_ADMIN_ALERT_EMAIL = String(process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com').trim().toLowerCase();
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS = Math.max(
+  60 * 1000,
+  Math.min(Number(process.env.BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS || 20 * 60 * 1000), 24 * 60 * 60 * 1000)
+);
+const recentFallbackAdminEmailDispatchCache = new Map();
 
 function hasBearerAuth(req) {
   const authHeader = String(req.headers.authorization || '').trim();
@@ -199,9 +204,109 @@ function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function normalizeIndianPhone(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  let normalized = raw.replace(/\s+/g, '');
+  if (normalized.startsWith('00')) {
+    normalized = `+${normalized.slice(2)}`;
+  }
+
+  if (normalized.startsWith('+')) {
+    const digits = normalized.slice(1).replace(/\D/g, '');
+    return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : '';
+  }
+
+  const digitsOnly = normalized.replace(/\D/g, '');
+  if (digitsOnly.length === 10 && /^[6-9]\d{9}$/.test(digitsOnly)) {
+    return `+91${digitsOnly}`;
+  }
+
+  return digitsOnly.length >= 8 && digitsOnly.length <= 15 ? `+${digitsOnly}` : '';
+}
+
+function formatCustomerPhoneForEmail(value) {
+  const normalized = normalizeIndianPhone(value);
+  return normalized || sanitizeText(value, 40);
+}
+
 function isLikelyEmail(value) {
   const email = normalizeEmail(value);
   return Boolean(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+}
+
+function pruneRecentFallbackAdminEmailDispatchCache() {
+  const cutoffMs = Date.now() - BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS;
+  for (const [bookingId, entry] of recentFallbackAdminEmailDispatchCache.entries()) {
+    if (!entry || Number(entry.sentAtMs || 0) < cutoffMs) {
+      recentFallbackAdminEmailDispatchCache.delete(bookingId);
+    }
+  }
+}
+
+function getRecentFallbackAdminEmailDispatch(bookingId) {
+  const safeBookingId = sanitizeText(bookingId, 80).toUpperCase();
+  if (!safeBookingId) return null;
+  pruneRecentFallbackAdminEmailDispatchCache();
+  const entry = recentFallbackAdminEmailDispatchCache.get(safeBookingId);
+  if (!entry) return null;
+  if (Number(entry.sentAtMs || 0) < (Date.now() - BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS)) {
+    recentFallbackAdminEmailDispatchCache.delete(safeBookingId);
+    return null;
+  }
+  return entry;
+}
+
+function rememberRecentFallbackAdminEmailDispatch(bookingId, payload = {}) {
+  const safeBookingId = sanitizeText(bookingId, 80).toUpperCase();
+  if (!safeBookingId) return;
+  pruneRecentFallbackAdminEmailDispatchCache();
+  recentFallbackAdminEmailDispatchCache.set(safeBookingId, {
+    sentAtMs: Date.now(),
+    payload
+  });
+}
+
+async function resolveFallbackCustomerSnapshot(body = {}) {
+  const snapshot = {
+    name: sanitizeText(body.customerName || body.fullname || body.name, 140),
+    email: normalizeEmail(body.customerEmail || body.email),
+    phone: formatCustomerPhoneForEmail(body.customerPhone || body.phone)
+  };
+
+  const shouldLookupUser = !snapshot.name || !snapshot.phone || !isLikelyEmail(snapshot.email);
+  if (!shouldLookupUser) {
+    return snapshot;
+  }
+
+  const customerId = sanitizeText(body.customerId, 120);
+  let matchedUser = null;
+  try {
+    if (customerId && /^[a-f\d]{24}$/i.test(customerId)) {
+      matchedUser = await User.findById(customerId).select('name email phone').lean();
+    }
+
+    if (!matchedUser && isLikelyEmail(snapshot.email)) {
+      matchedUser = await User.findOne({ email: snapshot.email }).select('name email phone').lean();
+    }
+  } catch (error) {
+    logger.warn('fallback_customer_snapshot_lookup_failed', {
+      customerId,
+      email: snapshot.email,
+      message: error.message
+    });
+  }
+
+  if (!matchedUser) {
+    return snapshot;
+  }
+
+  return {
+    name: snapshot.name || sanitizeText(matchedUser.name, 140),
+    email: isLikelyEmail(snapshot.email) ? snapshot.email : normalizeEmail(matchedUser.email),
+    phone: snapshot.phone || formatCustomerPhoneForEmail(matchedUser.phone)
+  };
 }
 
 function uniqueEmails(list = []) {
@@ -277,6 +382,7 @@ function escapeHtml(value) {
 
 function buildBookingAdminEmailText({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
+  const customerPhone = formatCustomerPhoneForEmail(customer.phone);
   return [
     `New booking pending admin review`,
     `Booking ID: ${booking.bookingId}`,
@@ -299,13 +405,14 @@ function buildBookingAdminEmailText({ booking, context, customer }) {
     `Notes: ${context.notes || 'None'}`,
     `Customer Name: ${customer.name || 'N/A'}`,
     `Customer Email: ${customer.email || 'N/A'}`,
-    `Customer Phone: ${customer.phone || 'N/A'}`,
+    `Customer Phone: ${customerPhone || 'N/A'}`,
     `Created At: ${booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()}`
   ].join('\n');
 }
 
 function buildBookingAdminEmailHtml({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(', ') : 'None';
+  const customerPhone = formatCustomerPhoneForEmail(customer.phone);
   const dataRows = [
     ['Booking ID', booking.bookingId],
     ['Status', booking.status],
@@ -327,7 +434,7 @@ function buildBookingAdminEmailHtml({ booking, context, customer }) {
     ['Notes', context.notes || 'None'],
     ['Customer Name', customer.name || 'N/A'],
     ['Customer Email', customer.email || 'N/A'],
-    ['Customer Phone', customer.phone || 'N/A'],
+    ['Customer Phone', customerPhone || 'N/A'],
     ['Created At', booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()]
   ];
 
@@ -648,6 +755,26 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     return res.status(400).json({ message: 'Valid bookingId is required' });
   }
 
+  const cachedDispatch = getRecentFallbackAdminEmailDispatch(bookingId);
+  if (cachedDispatch && cachedDispatch.payload) {
+    return res.status(200).json({
+      ok: true,
+      bookingId,
+      message: 'Fallback admin alert already sent recently',
+      deduped: true,
+      adminEmail: {
+        ...(cachedDispatch.payload.adminEmail || {}),
+        sent: true,
+        deduped: true,
+        reason: 'duplicate_suppressed'
+      },
+      customerEmail: cachedDispatch.payload.customerEmail || null,
+      notifications: {
+        adminReview: cachedDispatch.payload.reviewAlert || null
+      }
+    });
+  }
+
   const bookingContext = buildBookingContext(req.body || {});
   if (!bookingContext.pickupLocation || !bookingContext.dropLocation) {
     return res.status(400).json({ message: 'Pickup and drop locations are required' });
@@ -665,11 +792,10 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     createdAt: new Date().toISOString()
   };
 
-  const customerSnapshot = {
-    name: sanitizeText(req.body.customerName || req.body.fullname || req.body.name, 140),
-    email: sanitizeText(req.body.customerEmail || req.body.email, 180),
-    phone: sanitizeText(req.body.customerPhone || req.body.phone, 40)
-  };
+  const customerSnapshot = await resolveFallbackCustomerSnapshot(req.body || {});
+  if (!customerSnapshot.phone) {
+    return res.status(400).json({ message: 'Customer mobile number is required for booking emails' });
+  }
 
   let reviewAlert = null;
   try {
@@ -723,6 +849,12 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     });
   }
 
+  rememberRecentFallbackAdminEmailDispatch(bookingId, {
+    adminEmail,
+    customerEmail,
+    reviewAlert
+  });
+
   return res.status(200).json({
     ok: true,
     bookingId,
@@ -760,10 +892,14 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   const device = getDeviceMeta(req);
   const bookingContext = buildBookingContext(req.body);
   const customerRecord = await User.findById(req.user.id).select('name email phone').lean();
+  const normalizedCustomerPhone = normalizeIndianPhone(customerRecord?.phone);
+  if (!normalizedCustomerPhone) {
+    return res.status(400).json({ message: 'Customer mobile number is required before booking' });
+  }
   const customerSnapshot = {
     name: sanitizeText(customerRecord?.name, 140),
     email: sanitizeText(customerRecord?.email || req.user.email, 180),
-    phone: sanitizeText(customerRecord?.phone, 40)
+    phone: formatCustomerPhoneForEmail(normalizedCustomerPhone)
   };
   const cardHash = crypto.createHash('sha256').update(cardToken).digest('hex');
 
@@ -902,6 +1038,13 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     });
     adminEmail = emailDispatch.adminEmail;
     customerEmail = emailDispatch.customerEmail;
+    if (adminEmail && adminEmail.sent === true) {
+      rememberRecentFallbackAdminEmailDispatch(booking.bookingId, {
+        adminEmail,
+        customerEmail,
+        reviewAlert
+      });
+    }
   } catch (error) {
     await logSecurityEvent({
       userId: req.user.id,

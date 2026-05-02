@@ -30,7 +30,7 @@ const otpSchema = new mongoose.Schema({
     type: String,
     trim: true,
     index: true,
-    match: [/^[6-9]\d{9}$/, 'Invalid Indian phone number format'],
+    match: [/^(?:[6-9]\d{9}|\+[1-9]\d{7,14})$/, 'Invalid phone number format'],
     default: null
   },
   identifier: {

@@ -122,6 +122,47 @@ function normalizeAccountType(rawValue) {
   return 'customer';
 }
 
+function normalizePhoneValue(rawValue, options = {}) {
+  const { allowLocalIndian = true } = options;
+  const raw = String(rawValue || '').trim();
+  if (!raw) return '';
+
+  let normalized = raw.replace(/\s+/g, '');
+  if (normalized.startsWith('00')) {
+    normalized = `+${normalized.slice(2)}`;
+  }
+
+  if (normalized.startsWith('+')) {
+    const digits = normalized.slice(1).replace(/\D/g, '');
+    return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : '';
+  }
+
+  const digitsOnly = normalized.replace(/\D/g, '');
+  if (allowLocalIndian && digitsOnly.length === 10 && /^[6-9]\d{9}$/.test(digitsOnly)) {
+    return digitsOnly;
+  }
+
+  return digitsOnly.length >= 8 && digitsOnly.length <= 15 ? `+${digitsOnly}` : '';
+}
+
+function buildPhoneLookupCandidates(rawValue) {
+  const normalized = normalizePhoneValue(rawValue, { allowLocalIndian: true });
+  if (!normalized) return [];
+
+  const candidates = new Set([normalized]);
+  const digits = normalized.replace(/\D/g, '');
+
+  if (normalized.startsWith('+91') && digits.length === 12) {
+    candidates.add(digits.slice(2));
+  }
+  if (/^[6-9]\d{9}$/.test(digits)) {
+    candidates.add(digits);
+    candidates.add(`+91${digits}`);
+  }
+
+  return [...candidates];
+}
+
 function isStrongPassword(value) {
   const password = String(value || '');
   if (password.length < 8) return false;
@@ -135,7 +176,7 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
   const { name, email, phone, password, role, accountType } = req.body;
   const normalizedName = String(name || '').trim().slice(0, 80);
   const normalizedEmail = String(email || '').trim().toLowerCase();
-  const normalizedPhone = String(phone || '').replace(/\D/g, '').slice(-10);
+  const normalizedPhone = normalizePhoneValue(phone, { allowLocalIndian: true });
 
   if (!name || !email || !phone || !password) {
     return res.status(400).json({ message: 'name, email, phone, password are required' });
@@ -145,7 +186,7 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
     return res.status(400).json({ message: 'Invalid email' });
   }
 
-  if (!validator.isMobilePhone(String(normalizedPhone), 'any', { strictMode: false })) {
+  if (!normalizedPhone) {
     return res.status(400).json({ message: 'Invalid phone' });
   }
 
@@ -155,7 +196,8 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
     });
   }
 
-  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
+  const phoneCandidates = buildPhoneLookupCandidates(normalizedPhone);
+  const existing = await User.findOne({ $or: [{ email: normalizedEmail }, { phone: { $in: phoneCandidates } }] });
   if (existing) {
     return res.status(409).json({ message: 'Email or phone already registered' });
   }
@@ -801,7 +843,8 @@ router.post("/refresh-token-v2", async (req, res) => {
       identifier = cleanEmail;
     } else {
       if (!phone) return res.status(400).json({ message: "Phone required" });
-      cleanPhone = String(phone).trim();
+      cleanPhone = normalizePhoneValue(phone, { allowLocalIndian: true });
+      if (!cleanPhone) return res.status(400).json({ message: "Valid phone required" });
       identifier = cleanPhone;
     }
 
@@ -867,7 +910,7 @@ router.post("/refresh-token-v2", async (req, res) => {
     // ✅ find user
     let user = null;
     if (channel === "email") user = await User.findOne({ email: cleanEmail });
-    else user = await User.findOne({ phone: cleanPhone });
+    else user = await User.findOne({ phone: { $in: buildPhoneLookupCandidates(cleanPhone) } });
 
     // ✅ if not found: admin नहीं बनेगा; customer/driver auto-create
     if (!user) {
@@ -895,6 +938,7 @@ router.post("/refresh-token-v2", async (req, res) => {
         phone: fallbackPhone,
         passwordHash: generatedHash,
         accountType,
+        isPhoneVerified: channel === 'sms',
         role: "user",
       });
 
@@ -908,6 +952,10 @@ router.post("/refresh-token-v2", async (req, res) => {
       });
     }
     if (!user.accountType) user.accountType = accountType;
+    if (channel === 'sms' && cleanPhone) {
+      user.phone = cleanPhone;
+      user.isPhoneVerified = true;
+    }
     
     const clientIp =
   req.ip ||
@@ -1054,6 +1102,11 @@ if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
       message: "OTP verified successfully",
       accessToken,
       refreshToken, // testing के लिए; production में cookie में रख सकते हो
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      isPhoneVerified: Boolean(user.isPhoneVerified),
       role: user.role,
       accountType: user.accountType,
     });
@@ -1450,7 +1503,8 @@ router.post("/request-otp", async (req, res) => {
       identifier = cleanEmail;
     } else {
       if (!phone) return res.status(400).json({ message: "Phone required" });
-      cleanPhone = String(phone).trim();
+      cleanPhone = normalizePhoneValue(phone, { allowLocalIndian: true });
+      if (!cleanPhone) return res.status(400).json({ message: "Valid phone required" });
       identifier = cleanPhone;
     }
 
