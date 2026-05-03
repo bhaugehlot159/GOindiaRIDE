@@ -13,8 +13,14 @@ _restore_test/
 
 # Keep PropertySetu project isolated from GOindiaRIDE repo tracking
 PropertySetu/
-
 # Local MongoDB runtime data (never deploy)
 data/mongodb/
 data/mongodb-27018/
 data/mongodb-job/
+
+# Local Codex workspaces and temporary tooling artifacts
+.codex-main-push/
+.codex-phone-main/
+.tmp/
+.tools/
+.worktrees/
