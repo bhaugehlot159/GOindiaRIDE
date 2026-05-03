@@ -56,7 +56,12 @@ const BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS = Math.max(
   60 * 1000,
   Math.min(Number(process.env.BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS || 20 * 60 * 1000), 24 * 60 * 60 * 1000)
 );
+const BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS = Math.max(
+  60 * 1000,
+  Math.min(Number(process.env.BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS || 30 * 60 * 1000), 24 * 60 * 60 * 1000)
+);
 const recentFallbackAdminEmailDispatchCache = new Map();
+const recentBookingEmailDispatchCache = new Map();
 
 function hasBearerAuth(req) {
   const authHeader = String(req.headers.authorization || '').trim();
@@ -268,6 +273,49 @@ function rememberRecentFallbackAdminEmailDispatch(bookingId, payload = {}) {
   });
 }
 
+function pruneRecentBookingEmailDispatchCache() {
+  const cutoffMs = Date.now() - BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS;
+  for (const [bookingId, entry] of recentBookingEmailDispatchCache.entries()) {
+    if (!entry || Number(entry.sentAtMs || 0) < cutoffMs) {
+      recentBookingEmailDispatchCache.delete(bookingId);
+    }
+  }
+}
+
+function getRecentBookingEmailDispatch(bookingId) {
+  const safeBookingId = sanitizeText(bookingId, 80).toUpperCase();
+  if (!safeBookingId) return null;
+  pruneRecentBookingEmailDispatchCache();
+  const entry = recentBookingEmailDispatchCache.get(safeBookingId);
+  if (!entry) return null;
+  if (Number(entry.sentAtMs || 0) < (Date.now() - BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS)) {
+    recentBookingEmailDispatchCache.delete(safeBookingId);
+    return null;
+  }
+  return entry;
+}
+
+function rememberRecentBookingEmailDispatch(bookingId, payload = {}) {
+  const safeBookingId = sanitizeText(bookingId, 80).toUpperCase();
+  if (!safeBookingId) return;
+  pruneRecentBookingEmailDispatchCache();
+  recentBookingEmailDispatchCache.set(safeBookingId, {
+    sentAtMs: Date.now(),
+    payload: payload && typeof payload === 'object' ? payload : {}
+  });
+}
+
+function buildDuplicateSuppressedEmailResult(result = {}, channel = 'email') {
+  return {
+    ...(result && typeof result === 'object' ? result : {}),
+    sent: true,
+    skipped: false,
+    deduped: true,
+    reason: 'duplicate_suppressed',
+    message: sanitizeText(result?.message || `${channel}_duplicate_suppressed`, 120)
+  };
+}
+
 async function resolveFallbackCustomerSnapshot(body = {}) {
   const snapshot = {
     name: sanitizeText(body.customerName || body.fullname || body.name, 140),
@@ -468,7 +516,8 @@ async function sendBookingAdminAlertEmail({ booking, context, customer }) {
       to: recipients.join(','),
       subject,
       text,
-      html
+      html,
+      disablePortFallback: true
     });
 
     if (mailResult && mailResult.skipped) {
@@ -569,7 +618,8 @@ async function sendBookingCustomerConfirmationEmail({ booking, context, customer
       to: customerEmail,
       subject,
       text,
-      html
+      html,
+      disablePortFallback: true
     });
 
     if (mailResult && mailResult.skipped) {
@@ -612,9 +662,32 @@ function normalizeEmailDispatchResult(result, fallbackReason = 'send_failed') {
 }
 
 async function dispatchBookingEmails({ booking, context, customer, source = 'booking' }) {
+  const safeBookingId = sanitizeText(booking?.bookingId, 80).toUpperCase();
+  const cachedDispatch = safeBookingId ? getRecentBookingEmailDispatch(safeBookingId) : null;
+  const cachedPayload = cachedDispatch && cachedDispatch.payload && typeof cachedDispatch.payload === 'object'
+    ? cachedDispatch.payload
+    : {};
+  const cachedAdminSent = Boolean(cachedPayload.adminEmail && cachedPayload.adminEmail.sent === true);
+  const cachedCustomerSent = Boolean(cachedPayload.customerEmail && cachedPayload.customerEmail.sent === true);
+
+  if (cachedAdminSent && cachedCustomerSent) {
+    return {
+      adminEmail: buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'),
+      customerEmail: buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email')
+    };
+  }
+
+  const adminEmailPromise = cachedAdminSent
+    ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'))
+    : sendBookingAdminAlertEmail({ booking, context, customer });
+
+  const customerEmailPromise = cachedCustomerSent
+    ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email'))
+    : sendBookingCustomerConfirmationEmail({ booking, context, customer });
+
   const [adminOutcome, customerOutcome] = await Promise.allSettled([
-    sendBookingAdminAlertEmail({ booking, context, customer }),
-    sendBookingCustomerConfirmationEmail({ booking, context, customer })
+    adminEmailPromise,
+    customerEmailPromise
   ]);
 
   const adminEmail = adminOutcome.status === 'fulfilled'
@@ -647,6 +720,20 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
       bookingId: booking.bookingId,
       source,
       message: customerOutcome.reason?.message || 'send_failed'
+    });
+  }
+
+  const cacheAdminEmail = adminEmail && adminEmail.sent === true
+    ? { ...adminEmail, deduped: false }
+    : (cachedPayload.adminEmail || adminEmail);
+  const cacheCustomerEmail = customerEmail && customerEmail.sent === true
+    ? { ...customerEmail, deduped: false }
+    : (cachedPayload.customerEmail || customerEmail);
+  if (safeBookingId && ((cacheAdminEmail && cacheAdminEmail.sent === true) || (cacheCustomerEmail && cacheCustomerEmail.sent === true))) {
+    rememberRecentBookingEmailDispatch(safeBookingId, {
+      adminEmail: cacheAdminEmail,
+      customerEmail: cacheCustomerEmail,
+      source
     });
   }
 

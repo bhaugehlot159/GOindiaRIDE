@@ -91,9 +91,11 @@ function getTransporter() {
   return cachedTransporter;
 }
 
-async function sendEmail({ to, subject, text, html }) {
+async function sendEmail({ to, subject, text, html, disablePortFallback = false }) {
   const nodemailer = loadNodemailer();
-  const transportConfigs = getTransportConfigs();
+  const transportConfigs = disablePortFallback
+    ? (getBaseTransportSettings() ? [getBaseTransportSettings()] : [])
+    : getTransportConfigs();
 
   if (!nodemailer || !transportConfigs.length) {
     logger.warn('otp_email_skipped', {
@@ -124,6 +126,7 @@ async function sendEmail({ to, subject, text, html }) {
         host: transportConfig.host,
         port: transportConfig.port,
         secure: transportConfig.secure,
+        disablePortFallback: Boolean(disablePortFallback),
         message: error.message
       });
     } finally {
