@@ -286,7 +286,7 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
   return res.status(201).json({ id: user._id, email: user.email, phone: user.phone, role: user.role, accountType: user.accountType });
 });
 
-router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, async (req, res) => {
+router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   const { email, password } = req.body;
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const ip = getClientIp(req);

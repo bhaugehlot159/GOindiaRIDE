@@ -734,7 +734,7 @@ function resolveFriendlyLoginError(role,statusCode,message){
       : 'Account nahi mila ya password galat hai. Customer account details check karke dubara login karein.';
   }
   if(code===403){
-    return 'Access blocked by server policy. Please contact support.';
+    return safeMessage||'Access blocked by server policy. Please contact support.';
   }
   if(code===429){
     return 'Too many attempts. Thodi der baad dubara try karein.';
