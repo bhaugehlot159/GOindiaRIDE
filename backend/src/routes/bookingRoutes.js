@@ -498,8 +498,13 @@ function buildBookingAdminEmailHtml({ booking, context, customer }) {
 </div>`;
 }
 
-async function sendBookingAdminAlertEmail({ booking, context, customer }) {
-  const recipients = await resolveAdminAlertRecipients();
+async function sendBookingAdminAlertEmail({ booking, context, customer, recipients: providedRecipients = null }) {
+  const normalizedProvidedRecipients = Array.isArray(providedRecipients)
+    ? uniqueEmails(providedRecipients)
+    : [];
+  const recipients = normalizedProvidedRecipients.length
+    ? normalizedProvidedRecipients
+    : await resolveAdminAlertRecipients();
   if (!recipients.length) {
     logger.warn('booking_admin_email_skipped', {
       bookingId: booking.bookingId,
@@ -670,6 +675,22 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
     : {};
   const cachedAdminSent = Boolean(cachedPayload.adminEmail && cachedPayload.adminEmail.sent === true);
   const cachedCustomerSent = Boolean(cachedPayload.customerEmail && cachedPayload.customerEmail.sent === true);
+  const customerEmailAddress = normalizeEmail(customer && customer.email);
+  let adminRecipients = [];
+  try {
+    adminRecipients = await resolveAdminAlertRecipients();
+  } catch (error) {
+    logger.warn('booking_admin_recipient_resolve_failed_before_dispatch', {
+      bookingId: booking?.bookingId,
+      source,
+      message: error.message
+    });
+  }
+  const skipCustomerEmailBecauseAdminRecipient = (
+    isLikelyEmail(customerEmailAddress)
+    && Array.isArray(adminRecipients)
+    && adminRecipients.includes(customerEmailAddress)
+  );
 
   if (cachedAdminSent && cachedCustomerSent) {
     return {
@@ -680,11 +701,19 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
 
   const adminEmailPromise = cachedAdminSent
     ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'))
-    : sendBookingAdminAlertEmail({ booking, context, customer });
+    : sendBookingAdminAlertEmail({ booking, context, customer, recipients: adminRecipients });
 
   const customerEmailPromise = cachedCustomerSent
     ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email'))
-    : sendBookingCustomerConfirmationEmail({ booking, context, customer });
+    : (
+      skipCustomerEmailBecauseAdminRecipient
+        ? Promise.resolve({
+            sent: false,
+            skipped: true,
+            reason: 'same_as_admin_recipient'
+          })
+        : sendBookingCustomerConfirmationEmail({ booking, context, customer })
+    );
 
   const [adminOutcome, customerOutcome] = await Promise.allSettled([
     adminEmailPromise,
