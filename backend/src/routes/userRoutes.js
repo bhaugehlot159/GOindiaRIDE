@@ -34,6 +34,14 @@ function buildPhoneLookupCandidates(phone) {
   return [...new Set([normalized, digitsOnly, last10].filter(Boolean))];
 }
 
+function normalizeEmailValue(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function normalizeNameValue(value) {
+  return String(value || '').trim();
+}
+
 router.get('/profile', authenticate, async (req, res) => {
   const user = await User.findById(req.user.id)
     .select('_id name email phone isPhoneVerified role accountType createdAt updatedAt')
@@ -57,6 +65,83 @@ router.get('/profile', authenticate, async (req, res) => {
       updatedAt: user.updatedAt || null
     }
   });
+});
+
+router.patch('/profile', authenticate, async (req, res) => {
+  try {
+    const nextName = normalizeNameValue(req.body?.name);
+    const nextEmail = normalizeEmailValue(req.body?.email);
+    const nextPhone = normalizePhoneValue(req.body?.phone, { allowLocalIndian: true });
+
+    if (!nextName || nextName.length < 2 || nextName.length > 80) {
+      return res.status(400).json({ message: 'Valid name required' });
+    }
+
+    if (!nextEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
+      return res.status(400).json({ message: 'Valid email required' });
+    }
+
+    if (!nextPhone) {
+      return res.status(400).json({ message: 'Valid phone required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (nextEmail !== normalizeEmailValue(user.email)) {
+      const emailConflict = await User.findOne({
+        _id: { $ne: req.user.id },
+        email: nextEmail
+      }).select('_id').lean();
+
+      if (emailConflict) {
+        return res.status(409).json({ message: 'Email already in use by another account' });
+      }
+    }
+
+    const phoneCandidates = buildPhoneLookupCandidates(nextPhone);
+    const conflict = await User.findOne({
+      _id: { $ne: req.user.id },
+      phone: { $in: phoneCandidates }
+    }).select('_id').lean();
+
+    if (conflict) {
+      return res.status(409).json({ message: 'Phone already in use by another account' });
+    }
+
+    const phoneChanged = normalizePhoneValue(user.phone, { allowLocalIndian: true }) !== nextPhone;
+    user.name = nextName;
+    user.email = nextEmail;
+    user.phone = nextPhone;
+
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, 'verified')) {
+      user.isPhoneVerified = Boolean(req.body?.verified);
+    } else if (phoneChanged) {
+      user.isPhoneVerified = false;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Profile updated successfully',
+      user: {
+        id: String(user._id),
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        isPhoneVerified: Boolean(user.isPhoneVerified),
+        role: user.role || '',
+        accountType: user.accountType || '',
+        createdAt: user.createdAt || null,
+        updatedAt: user.updatedAt || null
+      }
+    });
+  } catch (error) {
+    console.error('profile update error:', error);
+    return res.status(500).json({ message: 'Server error in profile update' });
+  }
 });
 
 router.patch('/profile/phone', authenticate, async (req, res) => {
