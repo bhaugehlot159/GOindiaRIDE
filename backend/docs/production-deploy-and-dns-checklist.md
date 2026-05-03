@@ -76,6 +76,10 @@ Update `/var/www/GOindiaRIDE/backend/.env` with real values:
 - `SECURITY_ALLOWED_ORIGINS=https://goindiaride.in,https://www.goindiaride.in`
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`
 - `BOOKING_ADMIN_ALERT_EMAILS=bhaugehlot159@gmail.com`
+- `BOOKING_ADMIN_WHATSAPP_ENABLED=true`
+- `BOOKING_ADMIN_WHATSAPP_PROVIDER=meta`
+- `BOOKING_ADMIN_WHATSAPP_NUMBER=+918426891471`
+- `WHATSAPP_META_ACCESS_TOKEN` and `WHATSAPP_META_PHONE_NUMBER_ID` (for Meta Cloud API)
 
 ## 3) Start Backend with PM2
 
