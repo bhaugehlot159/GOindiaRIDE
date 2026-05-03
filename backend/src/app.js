@@ -112,6 +112,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api', globalAbuseDefenseMiddleware({
   enabled: env.securityGatewayEnabled,
+  bypassPaths: ['/api/bookings/fallback/admin-alert-email'],
   maxUrlLength: env.securityGatewayMaxUrlLength,
   maxHeaderCount: env.securityGatewayMaxHeaderCount,
   maxBodyDepth: env.securityGatewayMaxBodyDepth,

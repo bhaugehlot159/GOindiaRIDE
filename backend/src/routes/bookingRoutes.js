@@ -811,7 +811,14 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
     ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'))
     : sendBookingAdminAlertEmail({ booking, context, customer, recipients: adminRecipients });
 
-  const customerEmailPromise = cachedCustomerSent
+  const shouldSendCustomerEmail = source !== 'fallback_admin_alert';
+  const customerEmailPromise = !shouldSendCustomerEmail
+    ? Promise.resolve({
+        sent: false,
+        skipped: true,
+        reason: 'disabled_for_fallback_admin_alert'
+      })
+    : cachedCustomerSent
     ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email'))
     : (
       skipCustomerEmailBecauseAdminRecipient
