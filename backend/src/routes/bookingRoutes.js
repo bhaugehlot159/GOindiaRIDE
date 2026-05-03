@@ -56,6 +56,7 @@ const BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS = Math.max(
   60 * 1000,
   Math.min(Number(process.env.BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS || 20 * 60 * 1000), 24 * 60 * 60 * 1000)
 );
+const BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT = String(process.env.BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT || 'false').trim().toLowerCase() === 'true';
 const BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS = Math.max(
   60 * 1000,
   Math.min(Number(process.env.BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS || 30 * 60 * 1000), 24 * 60 * 60 * 1000)
@@ -517,7 +518,7 @@ async function sendBookingAdminAlertEmail({ booking, context, customer }) {
       subject,
       text,
       html,
-      disablePortFallback: true
+      disablePortFallback: BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT
     });
 
     if (mailResult && mailResult.skipped) {
@@ -619,7 +620,7 @@ async function sendBookingCustomerConfirmationEmail({ booking, context, customer
       subject,
       text,
       html,
-      disablePortFallback: true
+      disablePortFallback: BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT
     });
 
     if (mailResult && mailResult.skipped) {
