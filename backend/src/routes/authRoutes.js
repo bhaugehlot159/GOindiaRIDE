@@ -288,6 +288,8 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
 
 router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   const { email, password } = req.body;
+  const requestedAccountTypeRaw = String(req.body?.accountType || '').trim();
+  const requestedAccountType = requestedAccountTypeRaw ? normalizeAccountType(requestedAccountTypeRaw) : '';
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const ip = getClientIp(req);
   const country = getCountry(req);
@@ -323,6 +325,16 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recapt
     await user.save();
     await LoginLog.create({ userId: user._id, email: user.email, ip, country, ...device, status: 'fail', reason: 'Wrong password' });
     return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  if (requestedAccountType) {
+    const userType = user.role === 'admin' ? 'admin' : normalizeAccountType(user.accountType);
+    if (userType !== requestedAccountType) {
+      return res.status(403).json({
+        message: `Account type mismatch. This account is registered as ${userType}`,
+        accountType: userType
+      });
+    }
   }
 
   // 🔐 2FA Check for any user
@@ -440,6 +452,7 @@ if (user.role === "admin") {
   return res.status(200).json({
     accessToken,
     role: user.role,
+    accountType: user.accountType || (user.role === 'admin' ? 'admin' : 'customer'),
     riskScore: user.riskScore,
     requiresExtraOtp: isNewDevice || geoMismatch || behavior.score >= 40
   });

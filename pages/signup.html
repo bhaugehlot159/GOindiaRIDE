@@ -1386,6 +1386,33 @@
             return text.replace(/\/$/, '');
         }
 
+        function isTrustedPublicSignupApiBase(value) {
+            const normalized = normalizeSignupApiBase(value);
+            if (!normalized) return false;
+            try {
+                const parsed = new URL(normalized);
+                const apiHost = String(parsed.hostname || '').toLowerCase();
+                return apiHost === 'goindiaride.onrender.com'
+                    || apiHost === 'goindiaride.in'
+                    || apiHost === 'www.goindiaride.in'
+                    || apiHost.endsWith('.goindiaride.in');
+            } catch (_error) {
+                return false;
+            }
+        }
+
+        function persistSignupApiBase(value) {
+            const normalized = normalizeSignupApiBase(value);
+            if (!normalized) return;
+            const host = String(window.location.hostname || '').toLowerCase();
+            const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
+            const isGitHubPagesHost = host === 'github.io' || host.endsWith('.github.io');
+            if ((isPrimaryWebsiteHost || isGitHubPagesHost) && !isTrustedPublicSignupApiBase(normalized)) {
+                return;
+            }
+            localStorage.setItem('goindiaride_api_base', normalized);
+        }
+
         function isDeprecatedSignupApiBase(value) {
             const normalized = normalizeSignupApiBase(value).toLowerCase();
             if (!normalized) return false;
@@ -1403,7 +1430,10 @@
             const sameOriginBackendBase = sameOriginBase ? `${sameOriginBase}/backend` : '';
             const runtimeBase = normalizeSignupApiBase(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '');
             const explicitBase = normalizeSignupApiBase(window.GOINDIARIDE_API_BASE || '');
-            const storageBase = normalizeSignupApiBase(localStorage.getItem('goindiaride_api_base') || '');
+            const rawStorageBase = normalizeSignupApiBase(localStorage.getItem('goindiaride_api_base') || '');
+            const storageBase = (isPrimaryWebsiteHost || isGitHubPagesHost) && !isTrustedPublicSignupApiBase(rawStorageBase)
+                ? ''
+                : rawStorageBase;
             const bases = [];
 
             function pushBase(value) {
@@ -1491,7 +1521,7 @@
 
                     const backendPayload = await response.json().catch(() => ({}));
                     if (response.ok) {
-                        localStorage.setItem('goindiaride_api_base', apiBase);
+                        persistSignupApiBase(apiBase);
                         return {
                             ok: true,
                             apiBase,
@@ -1836,7 +1866,7 @@
         persistAccountBackup(existingCustomers, existingDrivers);
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260503-01';
+                const swVersion = '20260504-02';
                 navigator.serviceWorker
                     .register('../sw.js?v=' + swVersion)
                     .then((registration) => {

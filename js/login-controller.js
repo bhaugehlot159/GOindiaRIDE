@@ -309,6 +309,32 @@ function getUsableStoredPlainPassword(record){
   if(/[\x00-\x08\x0E-\x1F]/.test(candidate))return'';
   return candidate;
 }
+function normalizeApiBaseCandidate(value){
+  return String(value||'').trim().replace(/\/$/, '');
+}
+function isTrustedPublicApiBase(value){
+  const normalized=normalizeApiBaseCandidate(value);
+  if(!normalized)return false;
+  try{
+    const parsed=new URL(normalized);
+    const apiHost=String(parsed.hostname||'').toLowerCase();
+    return apiHost==='goindiaride.onrender.com'||apiHost==='goindiaride.in'||apiHost==='www.goindiaride.in'||apiHost.endsWith('.goindiaride.in');
+  }catch(_error){
+    return false;
+  }
+}
+function persistBackendApiBase(base){
+  const normalized=normalizeApiBaseCandidate(base);
+  if(!normalized)return;
+  const host=String(window.location.hostname||'').toLowerCase();
+  const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
+  const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
+  if((isPrimaryWebsiteHost||isGitHubPagesHost)&&!isTrustedPublicApiBase(normalized))return;
+  try{
+    localStorage.setItem('goindiaride_api_base',normalized);
+  }catch(_error){
+  }
+}
 function getBackendApiBase(){
   const host=String(window.location.hostname||'').toLowerCase();
   const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
@@ -317,7 +343,7 @@ function getBackendApiBase(){
   const localBackendBase='http://localhost:5000';
   const fromRuntimeOrigin=sanitizeInput(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__||window.__GOINDIARIDE_API_ORIGIN__||'');
   const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
-  const fromStorage=sanitizeInput(localStorage.getItem('goindiaride_api_base')||'');
+  const fromStorage=normalizeApiBaseCandidate(localStorage.getItem('goindiaride_api_base')||'');
 
   const normalizeCandidate=(value)=>{
     const text=String(value||'').trim();
@@ -328,6 +354,7 @@ function getBackendApiBase(){
   const resolveCandidate=(candidate)=>{
     const normalized=normalizeCandidate(candidate);
     if(!normalized)return'';
+    if((isPrimaryWebsiteHost||isGitHubPagesHost)&&normalizeCandidate(candidate)===fromStorage&&!isTrustedPublicApiBase(normalized))return'';
     if(!isLocalHost)return normalized;
     try{
       const parsed=new URL(normalized);
@@ -447,6 +474,7 @@ async function callBackendAuth(path,payload){
         return lastHttpFailure;
       }
 
+      persistBackendApiBase(base);
       return{ok:true,status:res.status,data};
     }catch(error){
       if(error&&String(error.name||'').toLowerCase()==='aborterror'){
@@ -473,7 +501,7 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
   const accountType=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
   if(!email||!phone||!plainPassword)return{synced:false,reason:'missing_identity'};
 
-  const loginPayload={email,password:plainPassword,website:'',submittedAt:Date.now()-1500,recaptchaToken:createPseudoRecaptchaToken('gir-login-sync')};
+  const loginPayload={email,password:plainPassword,accountType,website:'',submittedAt:Date.now()-1500,recaptchaToken:createPseudoRecaptchaToken('gir-login-sync')};
   let loginResult=await callBackendAuth('/api/auth/login',loginPayload);
 
   if(!loginResult.ok&&(loginResult.status===401||loginResult.status===404||loginResult.status===409)){
@@ -683,6 +711,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
   const backendLogin=await callBackendAuth('/api/auth/login',{
     email:safeEmail,
     password:safePassword,
+    accountType:safeRole,
     website:'',
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-login-recovery')
