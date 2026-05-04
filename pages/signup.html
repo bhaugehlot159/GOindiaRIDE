@@ -1565,7 +1565,21 @@
                         return;
                     }
                     if (!backendRes.ok) {
-                        throw new Error(backendPayload.message || backendRes.statusText || 'Live registration failed');
+                        signupForm.style.opacity = '1';
+                        signupForm.style.pointerEvents = 'auto';
+                        signupBtnText.textContent = 'Create Account';
+
+                        const rawMessage = sanitizeInput(backendPayload.message || backendRes.statusText || '').trim();
+                        if (backendRes.status === 429) {
+                            showError(rawMessage || 'Too many signup attempts. Thodi der baad dubara try karein.');
+                            return;
+                        }
+                        if (backendRes.status === 403 && /recaptcha/i.test(rawMessage)) {
+                            showError('Security verification failed. Please refresh page and try again.');
+                            return;
+                        }
+                        showError(rawMessage || 'Signup request reject ho gayi. Please try again.');
+                        return;
                     }
                 } catch (backendError) {
                     console.error('Backend register failed:', backendError.message || backendError);
@@ -1573,7 +1587,7 @@
                     signupForm.style.pointerEvents = 'auto';
                     signupBtnText.textContent = 'Create Account';
                     showError(LIVE_BACKEND_REQUIRED_FOR_SIGNUP
-                        ? 'Live server response nahi mila. Signup save nahi hua. Backend ko check karke dubara try karein.'
+                        ? `Live server response nahi mila (${sanitizeInput(backendError.message || 'network_error')}). Signup save nahi hua.`
                         : 'Backend sync failed. Please try again.');
                     return;
                 }

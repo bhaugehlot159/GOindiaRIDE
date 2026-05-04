@@ -904,6 +904,8 @@ module.exports = {
   recaptchaVerifyServerSide: String(process.env.RECAPTCHA_VERIFY_SERVER_SIDE || 'true').toLowerCase() === 'true',
   recaptchaFailOpen: String(process.env.RECAPTCHA_FAIL_OPEN || 'false').toLowerCase() === 'true',
   recaptchaMinScore: Number(process.env.RECAPTCHA_MIN_SCORE || 0.5),
+  recaptchaAllowPseudoTokens: String(process.env.RECAPTCHA_ALLOW_PSEUDO_TOKENS || 'true').toLowerCase() === 'true',
+  recaptchaPseudoTrustedOrigins: splitCsv(process.env.RECAPTCHA_PSEUDO_TRUSTED_ORIGINS || 'https://goindiaride.in,https://www.goindiaride.in,https://goindiaride.onrender.com'),
 
   authAbuseShieldEnabled: String(process.env.AUTH_ABUSE_SHIELD_ENABLED || 'true').toLowerCase() === 'true',
   authAbusePersistentEnabled: String(process.env.AUTH_ABUSE_PERSISTENT_ENABLED || 'true').toLowerCase() === 'true',
