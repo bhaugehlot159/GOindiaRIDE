@@ -61,6 +61,9 @@ app.use(hpp());
 
 const allowedOrigins = new Set([
   env.corsOrigin,
+  'https://goindiaride.in',
+  'https://www.goindiaride.in',
+  'https://goindiaride.onrender.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
