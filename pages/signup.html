@@ -1799,10 +1799,12 @@
                 if (role === 'customer') {
                     const newUser = {
                         id: createStableAccountId('customer', email, phone),
+                        backendUserId: backendResult.ok ? String(backendResult.data?.id || '').trim() : '',
                         fullname,
                         email,
                         phone,
                         password: hashedPassword,
+                        isPhoneVerified: Boolean(backendResult.data?.isPhoneVerified),
                         role: 'customer',
                         userType: 'customer',
                         createdAt: new Date().toISOString()
@@ -1812,6 +1814,7 @@
                 } else {
                     const newDriver = {
                         id: createStableAccountId('driver', email, phone),
+                        backendUserId: backendResult.ok ? String(backendResult.data?.id || '').trim() : '',
                         name: fullname,
                         fullname,
                         email,
@@ -1821,6 +1824,7 @@
                         licenseHolderName,
                         drivingLicenseExpiry: licenseExpiry,
                         licenseVerified: false,
+                        isPhoneVerified: Boolean(backendResult.data?.isPhoneVerified),
                         vehicleNumber: '',
                         userType: 'driver',
                         role: 'driver',
@@ -1864,11 +1868,11 @@
         const existingCustomers = mergeRecords(CUSTOMER_STORAGE_KEYS).filter((row) => isCustomerRecord(row));
         const existingDrivers = mergeRecords(DRIVER_STORAGE_KEYS).filter((row) => isDriverRecord(row));
         persistAccountBackup(existingCustomers, existingDrivers);
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swVersion = '20260504-02';
-                navigator.serviceWorker
-                    .register('../sw.js?v=' + swVersion)
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        const swVersion = '20260504-03';
+                        navigator.serviceWorker
+                            .register('../sw.js?v=' + swVersion)
                     .then((registration) => {
                         registration.update().catch(() => {});
                     })

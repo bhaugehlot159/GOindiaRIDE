@@ -263,11 +263,48 @@ function saveBackendAccessToken(token){
   localStorage.setItem('accessToken',normalized);
   localStorage.setItem('authToken',normalized);
   localStorage.setItem('token',normalized);
+  if(window.GoIndiaSessionContinuity&&typeof window.GoIndiaSessionContinuity.storeAuthArtifacts==='function'){
+    try{
+      window.GoIndiaSessionContinuity.storeAuthArtifacts({
+        accessToken:normalized,
+        apiBase:getBackendApiBase()
+      });
+    }catch(_error){
+    }
+  }
+}
+function saveBackendRefreshToken(token){
+  const normalized=String(token||'').trim();
+  if(!normalized)return;
+  localStorage.setItem('goindiaride_refresh_token',normalized);
+  localStorage.setItem('goindiaride_refresh_token_v1',normalized);
+  if(window.GoIndiaSessionContinuity&&typeof window.GoIndiaSessionContinuity.storeAuthArtifacts==='function'){
+    try{
+      window.GoIndiaSessionContinuity.storeAuthArtifacts({
+        refreshToken:normalized,
+        apiBase:getBackendApiBase()
+      });
+    }catch(_error){
+    }
+  }
 }
 function clearBackendAccessToken(){
   localStorage.removeItem('accessToken');
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
+}
+function persistSessionContinuity(role,user,overrides={}){
+  if(!window.GoIndiaSessionContinuity||typeof window.GoIndiaSessionContinuity.storeAuthArtifacts!=='function')return;
+  try{
+    window.GoIndiaSessionContinuity.storeAuthArtifacts({
+      accountType:role,
+      user:user&&typeof user==='object'?user:null,
+      accessToken:readBackendAccessToken(),
+      refreshToken:String(overrides.refreshToken||'').trim(),
+      apiBase:getBackendApiBase()
+    });
+  }catch(_error){
+  }
 }
 function markBackendAuthMode(mode,reason=''){
   const normalizedMode=String(mode||'').trim()||'fallback_local';
@@ -522,6 +559,14 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
 
   if(loginResult.ok&&loginResult.data&&loginResult.data.accessToken){
     saveBackendAccessToken(loginResult.data.accessToken);
+    saveBackendRefreshToken(loginResult.data.refreshToken||'');
+    persistSessionContinuity(accountType,{
+      ...record,
+      backendUserId:loginResult.data.id||loginResult.data.userId||record?.backendUserId||'',
+      isPhoneVerified:Boolean(loginResult.data.isPhoneVerified??record?.isPhoneVerified)
+    },{
+      refreshToken:loginResult.data.refreshToken||''
+    });
     localStorage.setItem('goindiaride_auth_mode','secure_backend');
     return{synced:true};
   }
@@ -723,6 +768,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
 
   if(backendLogin.data&&backendLogin.data.accessToken){
     saveBackendAccessToken(backendLogin.data.accessToken);
+    saveBackendRefreshToken(backendLogin.data.refreshToken||'');
     localStorage.setItem('goindiaride_auth_mode','secure_backend');
   }
 
@@ -741,6 +787,9 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
     isPhoneVerified:Boolean(profile?.isPhoneVerified ?? backendLogin.data?.isPhoneVerified ?? false),
     vehicleType:profile?.vehicleType||backendLogin.data?.vehicleType||'',
     vehicleNumber:profile?.vehicleNumber||backendLogin.data?.vehicleNumber||''
+  });
+  persistSessionContinuity(safeRole,restored,{
+    refreshToken:backendLogin.data?.refreshToken||''
   });
 
   return{ok:true,status:200,record:restored,source:'backend'};
@@ -1017,12 +1066,18 @@ async function verifyOtpByFirebase(confirmation,otp){
 }
 function readOtpDigits(selector){return Array.from(document.querySelectorAll(selector)).map((i)=>i.value).join('');}
 function setUserSession(user){
-  localStorage.setItem('currentUser',JSON.stringify({id:user.id,fullname:user.fullname||user.name||'Customer',name:user.name||user.fullname||'Customer',email:user.email||'',phone:normalizePhoneForLookup(user.phone||user.mobile||''),isPhoneVerified:Boolean(user.isPhoneVerified||user.phoneVerified),role:'customer'}));
+  const normalizedUser={id:user.id,backendUserId:user.backendUserId||user.userId||'',fullname:user.fullname||user.name||'Customer',name:user.name||user.fullname||'Customer',email:user.email||'',phone:normalizePhoneForLookup(user.phone||user.mobile||''),isPhoneVerified:Boolean(user.isPhoneVerified||user.phoneVerified),role:'customer'};
+  localStorage.setItem('currentUser',JSON.stringify(normalizedUser));
   localStorage.setItem('userRole','customer');
+  window.currentUser=normalizedUser;
+  persistSessionContinuity('customer',normalizedUser);
 }
 function setDriverSession(driver){
-  localStorage.setItem('currentDriver',JSON.stringify({id:driver.id,name:driver.name||driver.fullname||'Driver',email:driver.email||'',phone:normalizePhoneForLookup(driver.phone||driver.mobile||''),isPhoneVerified:Boolean(driver.isPhoneVerified||driver.phoneVerified),vehicleType:driver.vehicleType||'economy',vehicleNumber:driver.vehicleNumber||'',role:'driver'}));
+  const normalizedDriver={id:driver.id,backendUserId:driver.backendUserId||driver.userId||'',name:driver.name||driver.fullname||'Driver',fullname:driver.fullname||driver.name||'Driver',email:driver.email||'',phone:normalizePhoneForLookup(driver.phone||driver.mobile||''),isPhoneVerified:Boolean(driver.isPhoneVerified||driver.phoneVerified),vehicleType:driver.vehicleType||'economy',vehicleNumber:driver.vehicleNumber||'',role:'driver'};
+  localStorage.setItem('currentDriver',JSON.stringify(normalizedDriver));
   localStorage.setItem('userRole','driver');
+  window.currentDriver=normalizedDriver;
+  persistSessionContinuity('driver',normalizedDriver);
 }
 
 function updateLoginMethod(){

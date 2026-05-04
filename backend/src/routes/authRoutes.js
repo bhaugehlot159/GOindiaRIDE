@@ -451,6 +451,12 @@ if (user.role === "admin") {
 
   return res.status(200).json({
     accessToken,
+    refreshToken,
+    id: String(user._id),
+    name: user.name || '',
+    email: user.email || '',
+    phone: user.phone || '',
+    isPhoneVerified: Boolean(user.isPhoneVerified),
     role: user.role,
     accountType: user.accountType || (user.role === 'admin' ? 'admin' : 'customer'),
     riskScore: user.riskScore,

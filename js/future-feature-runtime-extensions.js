@@ -250,6 +250,27 @@
     return requestBusiness('GET', path, null);
   }
 
+  function readRuntimeDashboardUser() {
+    try {
+      if (window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ && typeof window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ === 'object') {
+        return window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__;
+      }
+      if (window.currentUser && typeof window.currentUser === 'object') {
+        return window.currentUser;
+      }
+      if (window.localStorage) {
+        var rawUser = window.localStorage.getItem('currentUser');
+        if (rawUser) {
+          var parsedUser = JSON.parse(rawUser);
+          if (parsedUser && typeof parsedUser === 'object') return parsedUser;
+        }
+      }
+    } catch (_error) {
+      // ignore
+    }
+    return null;
+  }
+
   function currentUserKey() {
     try {
       if (window.localStorage) {
@@ -261,6 +282,15 @@
           var candidate = parsed.email || parsed.phone || parsed.name;
           if (candidate) return normalize(candidate);
         }
+      }
+      var dashboardUser = readRuntimeDashboardUser();
+      if (dashboardUser) {
+        var userId = dashboardUser.id || dashboardUser.userId || dashboardUser.customerId;
+        if (userId) return normalize('customer:' + userId);
+        var userEmail = dashboardUser.email || dashboardUser.userEmail;
+        if (userEmail) return normalize(userEmail);
+        var userPhone = dashboardUser.phone || dashboardUser.mobile || dashboardUser.contact;
+        if (userPhone) return normalize(userPhone);
       }
     } catch (_error) {
       // ignore
@@ -1851,6 +1881,18 @@
       '</div>'
     ].join('');
 
+    var runtimeUser = readRuntimeDashboardUser() || {};
+    if (runtimeUser) {
+      var nameField = body.querySelector('#ffx-profile-name');
+      var addressField = body.querySelector('#ffx-profile-address');
+      var primaryContactField = body.querySelector('#ffx-profile-contact1');
+      if (nameField && !nameField.value) nameField.value = runtimeUser.fullname || runtimeUser.name || '';
+      if (addressField && !addressField.value) addressField.value = runtimeUser.address || runtimeUser.city || '';
+      if (primaryContactField && !primaryContactField.value) {
+        primaryContactField.value = runtimeUser.phone || runtimeUser.mobile || runtimeUser.contact || runtimeUser.email || '';
+      }
+    }
+
     body.querySelector('#ffx-profile-save').addEventListener('click', function () {
       var payload = {
         name: (body.querySelector('#ffx-profile-name') || {}).value || '',
@@ -1871,7 +1913,17 @@
 
       if (window.localStorage) {
         window.localStorage.setItem('goindiaride.profile.runtime', JSON.stringify(payload));
-        window.localStorage.setItem('goindiaride.runtime.userKey', normalize(payload.contact1 || payload.name || 'guest-user'));
+        window.localStorage.setItem('goindiaride.runtime.userKey', normalize(currentUserKey() || payload.contact1 || payload.name || 'guest-user'));
+      }
+
+      var nativeName = document.getElementById('profileNameInput');
+      var nativeEmail = document.getElementById('profileEmailInput');
+      var nativePhone = document.getElementById('profilePhoneInput');
+      if (nativeName) nativeName.value = payload.name || nativeName.value || '';
+      if (nativeEmail && runtimeUser && runtimeUser.email) nativeEmail.value = runtimeUser.email;
+      if (nativePhone) nativePhone.value = payload.contact1 || nativePhone.value || '';
+      if (typeof window.saveProfileDetails === 'function') {
+        window.saveProfileDetails();
       }
 
       postBusiness('/preferences/' + encodeURIComponent(currentUserKey()), {
