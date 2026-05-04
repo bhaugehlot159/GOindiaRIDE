@@ -72,37 +72,55 @@ const BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS = Math.max(
   60 * 1000,
   Math.min(Number(process.env.BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS || 30 * 60 * 1000), 24 * 60 * 60 * 1000)
 );
-const CUSTOMER_BOOKING_EDIT_MAX_COUNT = 1;
+const CUSTOMER_BOOKING_EDIT_MAX_COUNT = 5;
+const CUSTOMER_BOOKING_EDITABLE_FIELDS = [
+  'pickup',
+  'dropoff',
+  'rideDate',
+  'rideTime',
+  'returnDate',
+  'returnTime',
+  'tripPlan',
+  'paymentMethod',
+  'vehicleType',
+  'passengers',
+  'luggage',
+  'stop1',
+  'stop2',
+  'notes',
+  'specialRequests',
+  'safetyAccessibility'
+];
 const CUSTOMER_BOOKING_EDIT_WINDOWS = [
   {
     minHours: 72,
     tier: 'full_plus',
-    label: '72h+ Full Edit',
-    allowedFields: ['pickup', 'dropoff', 'rideDate', 'rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+    label: '72h+ Premium Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
   },
   {
     minHours: 48,
     tier: 'full',
-    label: '48-72h Full Edit',
-    allowedFields: ['pickup', 'dropoff', 'rideDate', 'rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+    label: '48-72h Flexible Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
   },
   {
     minHours: 24,
     tier: 'standard',
-    label: '24-48h Standard Edit',
-    allowedFields: ['pickup', 'dropoff', 'rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+    label: '24-48h Smart Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
   },
   {
     minHours: 12,
     tier: 'limited',
-    label: '12-24h Limited Edit',
-    allowedFields: ['rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+    label: '12-24h Priority Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
   },
   {
     minHours: 6,
     tier: 'minimal',
-    label: '6-12h Minimal Edit',
-    allowedFields: ['rideTime', 'notes']
+    label: '6-12h Fast Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
   }
 ];
 const CUSTOMER_BOOKING_EDIT_LOCK_HOURS = 6;
@@ -1593,10 +1611,17 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
     dropoff: sanitizeText(req.body.drop || req.body.dropoff || req.body.dropLocation, 180),
     rideDate: sanitizeText(req.body.rideDate, 40),
     rideTime: normalizeBookingTimeValue(req.body.rideTime),
+    returnDate: sanitizeText(req.body.returnDate, 40),
+    returnTime: normalizeBookingTimeValue(req.body.returnTime),
+    tripPlan: sanitizeText(req.body.tripPlan, 80),
+    paymentMethod: sanitizeText(req.body.paymentMethod, 80),
+    vehicleType: sanitizeText(req.body.vehicleType || req.body.rideType, 80),
     passengers: normalizeInteger(req.body.passengers, Number(booking.passengers || 1), 1, 20),
     luggage: sanitizeText(req.body.luggage, 80),
     notes: sanitizeText(req.body.notes, 600),
-    stops: sanitizeStringArray(req.body.stops, 2, 160)
+    stops: sanitizeStringArray(req.body.stops, 2, 160),
+    specialRequests: sanitizeBooleanMap(req.body.specialRequests, 60),
+    safetyAccessibility: sanitizeBooleanMap(req.body.safetyAccessibility, 60)
   };
 
   const changedFields = [];
@@ -1605,10 +1630,17 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
     dropLocation: booking.dropLocation || '',
     rideDate: booking.rideDate || '',
     rideTime: booking.rideTime || '',
+    returnDate: booking.returnDate || '',
+    returnTime: booking.returnTime || '',
+    tripPlan: booking.tripPlan || '',
+    paymentMethod: booking.paymentMethod || '',
+    vehicleType: booking.vehicleType || '',
     passengers: Number(booking.passengers || 1),
     luggage: booking.luggage || '',
     notes: booking.notes || '',
-    stops: Array.isArray(booking.stops) ? booking.stops : []
+    stops: Array.isArray(booking.stops) ? booking.stops : [],
+    specialRequests: booking.specialRequests && typeof booking.specialRequests === 'object' ? booking.specialRequests : {},
+    safetyAccessibility: booking.safetyAccessibility && typeof booking.safetyAccessibility === 'object' ? booking.safetyAccessibility : {}
   };
 
   if (allowedSet.has('pickup') && updates.pickup && updates.pickup !== previous.pickupLocation) {
@@ -1627,6 +1659,26 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
     booking.rideTime = updates.rideTime;
     changedFields.push('rideTime');
   }
+  if (allowedSet.has('returnDate') && updates.returnDate !== previous.returnDate) {
+    booking.returnDate = updates.returnDate;
+    changedFields.push('returnDate');
+  }
+  if (allowedSet.has('returnTime') && updates.returnTime !== previous.returnTime) {
+    booking.returnTime = updates.returnTime;
+    changedFields.push('returnTime');
+  }
+  if (allowedSet.has('tripPlan') && updates.tripPlan && updates.tripPlan !== previous.tripPlan) {
+    booking.tripPlan = updates.tripPlan;
+    changedFields.push('tripPlan');
+  }
+  if (allowedSet.has('paymentMethod') && updates.paymentMethod && updates.paymentMethod !== previous.paymentMethod) {
+    booking.paymentMethod = updates.paymentMethod;
+    changedFields.push('paymentMethod');
+  }
+  if (allowedSet.has('vehicleType') && updates.vehicleType && updates.vehicleType !== previous.vehicleType) {
+    booking.vehicleType = updates.vehicleType;
+    changedFields.push('vehicleType');
+  }
   if (allowedSet.has('passengers') && updates.passengers !== previous.passengers) {
     booking.passengers = updates.passengers;
     changedFields.push('passengers');
@@ -1644,6 +1696,16 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
     booking.stops = updates.stops;
     changedFields.push('stops');
   }
+  if (allowedSet.has('specialRequests')
+    && JSON.stringify(updates.specialRequests) !== JSON.stringify(previous.specialRequests)) {
+    booking.specialRequests = updates.specialRequests;
+    changedFields.push('specialRequests');
+  }
+  if (allowedSet.has('safetyAccessibility')
+    && JSON.stringify(updates.safetyAccessibility) !== JSON.stringify(previous.safetyAccessibility)) {
+    booking.safetyAccessibility = updates.safetyAccessibility;
+    changedFields.push('safetyAccessibility');
+  }
 
   if (!changedFields.length) {
     return res.status(200).json({
@@ -1657,7 +1719,7 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
   const nextEditCount = getBookingEditCount(booking) + 1;
   booking.lastEditedAt = now;
   booking.editCount = nextEditCount;
-  booking.editPolicyVersion = 'customer_dashboard_v2';
+  booking.editPolicyVersion = 'customer_dashboard_v3';
 
   booking.outboundDateTime = parseBookingRideStartDateTime({
     outboundDateTime: booking.outboundDateTime,
@@ -1693,10 +1755,17 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
       dropLocation: booking.dropLocation || '',
       rideDate: booking.rideDate || '',
       rideTime: booking.rideTime || '',
+      returnDate: booking.returnDate || '',
+      returnTime: booking.returnTime || '',
+      tripPlan: booking.tripPlan || '',
+      paymentMethod: booking.paymentMethod || '',
+      vehicleType: booking.vehicleType || '',
       passengers: Number(booking.passengers || 1),
       luggage: booking.luggage || '',
       notes: booking.notes || '',
       stops: Array.isArray(booking.stops) ? booking.stops : [],
+      specialRequests: booking.specialRequests && typeof booking.specialRequests === 'object' ? booking.specialRequests : {},
+      safetyAccessibility: booking.safetyAccessibility && typeof booking.safetyAccessibility === 'object' ? booking.safetyAccessibility : {},
       editCount: getBookingEditCount(booking),
       lastEditedAt: booking.lastEditedAt || null,
       outboundDateTime: booking.outboundDateTime || null
