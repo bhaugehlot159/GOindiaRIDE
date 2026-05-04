@@ -72,6 +72,40 @@ const BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS = Math.max(
   60 * 1000,
   Math.min(Number(process.env.BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS || 30 * 60 * 1000), 24 * 60 * 60 * 1000)
 );
+const CUSTOMER_BOOKING_EDIT_MAX_COUNT = 1;
+const CUSTOMER_BOOKING_EDIT_WINDOWS = [
+  {
+    minHours: 72,
+    tier: 'full_plus',
+    label: '72h+ Full Edit',
+    allowedFields: ['pickup', 'dropoff', 'rideDate', 'rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+  },
+  {
+    minHours: 48,
+    tier: 'full',
+    label: '48-72h Full Edit',
+    allowedFields: ['pickup', 'dropoff', 'rideDate', 'rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+  },
+  {
+    minHours: 24,
+    tier: 'standard',
+    label: '24-48h Standard Edit',
+    allowedFields: ['pickup', 'dropoff', 'rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+  },
+  {
+    minHours: 12,
+    tier: 'limited',
+    label: '12-24h Limited Edit',
+    allowedFields: ['rideTime', 'passengers', 'luggage', 'stop1', 'stop2', 'notes']
+  },
+  {
+    minHours: 6,
+    tier: 'minimal',
+    label: '6-12h Minimal Edit',
+    allowedFields: ['rideTime', 'notes']
+  }
+];
+const CUSTOMER_BOOKING_EDIT_LOCK_HOURS = 6;
 const recentFallbackAdminEmailDispatchCache = new Map();
 const recentBookingEmailDispatchCache = new Map();
 
@@ -188,6 +222,113 @@ function normalizeInteger(value, fallback = 1, min = 1, max = 20) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.max(min, Math.min(max, parsed));
+}
+
+function normalizeBookingTimeValue(value) {
+  const safeValue = sanitizeText(value, 40);
+  const match = safeValue.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return safeValue;
+  const hours = Math.max(0, Math.min(23, Number.parseInt(match[1], 10) || 0));
+  const minutes = Math.max(0, Math.min(59, Number.parseInt(match[2], 10) || 0));
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function parseBookingRideStartDateTime(booking) {
+  if (!booking || typeof booking !== 'object') return null;
+
+  const outbound = booking.outboundDateTime ? new Date(booking.outboundDateTime) : null;
+  if (outbound && !Number.isNaN(outbound.getTime())) {
+    return outbound;
+  }
+
+  const rideDate = sanitizeText(booking.rideDate, 40);
+  if (!rideDate) return null;
+  const rideTime = normalizeBookingTimeValue(booking.rideTime || '');
+  const normalizedTime = /^\d{2}:\d{2}$/.test(rideTime) ? rideTime : '00:00';
+
+  const isoCandidate = new Date(`${rideDate}T${normalizedTime}:00`);
+  if (!Number.isNaN(isoCandidate.getTime())) {
+    return isoCandidate;
+  }
+
+  const looseCandidate = new Date(`${rideDate} ${normalizedTime}`);
+  if (!Number.isNaN(looseCandidate.getTime())) {
+    return looseCandidate;
+  }
+
+  return null;
+}
+
+function getBookingEditCount(booking) {
+  const directCount = Number(booking && booking.editCount);
+  if (Number.isFinite(directCount)) {
+    return Math.max(0, directCount);
+  }
+  const historyLength = Array.isArray(booking && booking.editHistory) ? booking.editHistory.length : 0;
+  return Math.max(0, historyLength);
+}
+
+function resolveCustomerBookingEditPolicy(booking) {
+  const status = sanitizeText(booking?.status, 40).toLowerCase();
+  const editCount = getBookingEditCount(booking);
+  const rideStart = parseBookingRideStartDateTime(booking);
+  const hoursUntilRide = rideStart ? ((rideStart.getTime() - Date.now()) / (60 * 60 * 1000)) : null;
+
+  if (status === 'completed' || status === 'cancelled') {
+    return {
+      allowed: false,
+      windowTier: 'locked',
+      reason: 'Booking completed/cancelled hone ke baad edit allowed nahi hai.',
+      maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+      usedEdits: editCount,
+      remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - editCount),
+      allowedFields: [],
+      hoursUntilRide
+    };
+  }
+
+  if (editCount >= CUSTOMER_BOOKING_EDIT_MAX_COUNT) {
+    return {
+      allowed: false,
+      windowTier: 'locked',
+      reason: `Edit limit reach ho gayi hai (${CUSTOMER_BOOKING_EDIT_MAX_COUNT}/${CUSTOMER_BOOKING_EDIT_MAX_COUNT}).`,
+      maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+      usedEdits: editCount,
+      remainingEdits: 0,
+      allowedFields: [],
+      hoursUntilRide
+    };
+  }
+
+  if (Number.isFinite(hoursUntilRide) && hoursUntilRide < CUSTOMER_BOOKING_EDIT_LOCK_HOURS) {
+    return {
+      allowed: false,
+      windowTier: 'locked',
+      reason: `${CUSTOMER_BOOKING_EDIT_LOCK_HOURS} hours se kam time me booking edit lock ho jaati hai.`,
+      maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+      usedEdits: editCount,
+      remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - editCount),
+      allowedFields: [],
+      hoursUntilRide
+    };
+  }
+
+  const selectedWindow = Number.isFinite(hoursUntilRide)
+    ? (CUSTOMER_BOOKING_EDIT_WINDOWS.find((windowRule) => hoursUntilRide >= Number(windowRule.minHours || 0))
+      || CUSTOMER_BOOKING_EDIT_WINDOWS[CUSTOMER_BOOKING_EDIT_WINDOWS.length - 1])
+    : CUSTOMER_BOOKING_EDIT_WINDOWS[0];
+
+  return {
+    allowed: true,
+    windowTier: selectedWindow.tier,
+    windowLabel: selectedWindow.label,
+    reason: `${selectedWindow.label} active hai.`,
+    maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+    usedEdits: editCount,
+    remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - editCount),
+    allowedFields: Array.isArray(selectedWindow.allowedFields) ? selectedWindow.allowedFields : [],
+    hoursUntilRide
+  };
 }
 
 function buildBookingContext(body = {}) {
@@ -1230,6 +1371,10 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     dropLocation: bookingContext.dropLocation,
     rideDate: bookingContext.rideDate,
     rideTime: bookingContext.rideTime,
+    outboundDateTime: parseBookingRideStartDateTime({
+      rideDate: bookingContext.rideDate,
+      rideTime: bookingContext.rideTime
+    }),
     returnDate: bookingContext.returnDate,
     returnTime: bookingContext.returnTime,
     tripPlan: bookingContext.tripPlan,
@@ -1384,6 +1529,7 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     dropLocation: row.dropLocation || '',
     rideDate: row.rideDate || '',
     rideTime: row.rideTime || '',
+    outboundDateTime: row.outboundDateTime || null,
     returnDate: row.returnDate || '',
     returnTime: row.returnTime || '',
     tripPlan: row.tripPlan || '',
@@ -1399,6 +1545,10 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     distanceKm: Number(row.distanceKm || 0),
     driverId: row.driverId || null,
     customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object' ? row.customerSnapshot : {},
+    editCount: getBookingEditCount(row),
+    lastEditedAt: row.lastEditedAt || null,
+    editPolicyVersion: row.editPolicyVersion || '',
+    editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
     createdAt: row.createdAt || null,
     updatedAt: row.updatedAt || null
   }));
@@ -1406,6 +1556,157 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
   return res.status(200).json({
     count: items.length,
     items
+  });
+});
+
+router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
+  const actorType = resolveCompletionActor(req);
+  if (actorType !== 'customer') {
+    return res.status(403).json({ message: 'Only customer can edit booking from this endpoint' });
+  }
+
+  const bookingId = sanitizeText(req.params.id, 120).toUpperCase();
+  if (!bookingId) {
+    return res.status(400).json({ message: 'booking id is required' });
+  }
+
+  const booking = await Booking.findOne({ bookingId });
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  if (String(booking.userId) !== String(req.user.id)) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  const policy = resolveCustomerBookingEditPolicy(booking);
+  if (!policy.allowed) {
+    return res.status(409).json({
+      message: policy.reason,
+      editPolicy: policy
+    });
+  }
+
+  const allowedSet = new Set(Array.isArray(policy.allowedFields) ? policy.allowedFields : []);
+  const updates = {
+    pickup: sanitizeText(req.body.pickup || req.body.pickupLocation, 180),
+    dropoff: sanitizeText(req.body.drop || req.body.dropoff || req.body.dropLocation, 180),
+    rideDate: sanitizeText(req.body.rideDate, 40),
+    rideTime: normalizeBookingTimeValue(req.body.rideTime),
+    passengers: normalizeInteger(req.body.passengers, Number(booking.passengers || 1), 1, 20),
+    luggage: sanitizeText(req.body.luggage, 80),
+    notes: sanitizeText(req.body.notes, 600),
+    stops: sanitizeStringArray(req.body.stops, 2, 160)
+  };
+
+  const changedFields = [];
+  const previous = {
+    pickupLocation: booking.pickupLocation || '',
+    dropLocation: booking.dropLocation || '',
+    rideDate: booking.rideDate || '',
+    rideTime: booking.rideTime || '',
+    passengers: Number(booking.passengers || 1),
+    luggage: booking.luggage || '',
+    notes: booking.notes || '',
+    stops: Array.isArray(booking.stops) ? booking.stops : []
+  };
+
+  if (allowedSet.has('pickup') && updates.pickup && updates.pickup !== previous.pickupLocation) {
+    booking.pickupLocation = updates.pickup;
+    changedFields.push('pickup');
+  }
+  if (allowedSet.has('dropoff') && updates.dropoff && updates.dropoff !== previous.dropLocation) {
+    booking.dropLocation = updates.dropoff;
+    changedFields.push('dropoff');
+  }
+  if (allowedSet.has('rideDate') && updates.rideDate && updates.rideDate !== previous.rideDate) {
+    booking.rideDate = updates.rideDate;
+    changedFields.push('rideDate');
+  }
+  if (allowedSet.has('rideTime') && updates.rideTime && updates.rideTime !== previous.rideTime) {
+    booking.rideTime = updates.rideTime;
+    changedFields.push('rideTime');
+  }
+  if (allowedSet.has('passengers') && updates.passengers !== previous.passengers) {
+    booking.passengers = updates.passengers;
+    changedFields.push('passengers');
+  }
+  if (allowedSet.has('luggage') && updates.luggage !== previous.luggage) {
+    booking.luggage = updates.luggage;
+    changedFields.push('luggage');
+  }
+  if (allowedSet.has('notes') && updates.notes !== previous.notes) {
+    booking.notes = updates.notes;
+    changedFields.push('notes');
+  }
+  if ((allowedSet.has('stop1') || allowedSet.has('stop2'))
+    && JSON.stringify(updates.stops) !== JSON.stringify(previous.stops)) {
+    booking.stops = updates.stops;
+    changedFields.push('stops');
+  }
+
+  if (!changedFields.length) {
+    return res.status(200).json({
+      message: 'No editable changes detected',
+      changedFields,
+      editPolicy: policy
+    });
+  }
+
+  const now = new Date();
+  const nextEditCount = getBookingEditCount(booking) + 1;
+  booking.lastEditedAt = now;
+  booking.editCount = nextEditCount;
+  booking.editPolicyVersion = 'customer_dashboard_v2';
+
+  booking.outboundDateTime = parseBookingRideStartDateTime({
+    outboundDateTime: booking.outboundDateTime,
+    rideDate: booking.rideDate,
+    rideTime: booking.rideTime
+  });
+
+  booking.editHistory = Array.isArray(booking.editHistory) ? booking.editHistory : [];
+  booking.editHistory.push({
+    editedAt: now,
+    by: 'customer',
+    source: 'customer_dashboard',
+    windowTier: policy.windowTier,
+    hoursUntilRide: Number.isFinite(policy.hoursUntilRide) ? Number(policy.hoursUntilRide.toFixed(2)) : null,
+    changedFields
+  });
+
+  booking.statusHistory = Array.isArray(booking.statusHistory) ? booking.statusHistory : [];
+  booking.statusHistory.push({
+    status: 'edited',
+    at: now,
+    source: 'customer_dashboard',
+    note: `customer_edit_${policy.windowTier}`
+  });
+
+  await booking.save();
+
+  return res.status(200).json({
+    message: 'Booking updated successfully',
+    booking: {
+      bookingId: booking.bookingId,
+      pickupLocation: booking.pickupLocation || '',
+      dropLocation: booking.dropLocation || '',
+      rideDate: booking.rideDate || '',
+      rideTime: booking.rideTime || '',
+      passengers: Number(booking.passengers || 1),
+      luggage: booking.luggage || '',
+      notes: booking.notes || '',
+      stops: Array.isArray(booking.stops) ? booking.stops : [],
+      editCount: getBookingEditCount(booking),
+      lastEditedAt: booking.lastEditedAt || null,
+      outboundDateTime: booking.outboundDateTime || null
+    },
+    changedFields,
+    editPolicy: {
+      ...policy,
+      usedEdits: getBookingEditCount(booking),
+      remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - getBookingEditCount(booking))
+    }
   });
 });
 
@@ -1766,6 +2067,7 @@ router.get('/admin/pending', authenticate, async (req, res) => {
       dropLocation: row.dropLocation || '',
       rideDate: row.rideDate || '',
       rideTime: row.rideTime || '',
+      outboundDateTime: row.outboundDateTime || null,
       returnDate: row.returnDate || '',
       returnTime: row.returnTime || '',
       tripPlan: row.tripPlan || '',
@@ -1775,6 +2077,10 @@ router.get('/admin/pending', authenticate, async (req, res) => {
       luggage: row.luggage || '',
       notes: row.notes || '',
       stops: Array.isArray(row.stops) ? row.stops : [],
+      editCount: getBookingEditCount(row),
+      lastEditedAt: row.lastEditedAt || null,
+      editPolicyVersion: row.editPolicyVersion || '',
+      editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
       specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
       safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
       customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'

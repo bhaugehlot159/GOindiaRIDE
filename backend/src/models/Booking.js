@@ -21,6 +21,24 @@ const bookingSchema = new mongoose.Schema({
   luggage: { type: String, default: '', trim: true, maxlength: 80 },
   notes: { type: String, default: '', trim: true, maxlength: 600 },
   stops: [{ type: String, trim: true, maxlength: 180 }],
+  outboundDateTime: { type: Date, default: null },
+  editCount: { type: Number, default: 0, min: 0 },
+  lastEditedAt: { type: Date, default: null },
+  editPolicyVersion: { type: String, default: '', trim: true, maxlength: 80 },
+  editHistory: [{
+    editedAt: { type: Date, default: Date.now },
+    by: { type: String, default: 'customer', trim: true, maxlength: 40 },
+    source: { type: String, default: 'customer_dashboard', trim: true, maxlength: 80 },
+    windowTier: { type: String, default: '', trim: true, maxlength: 40 },
+    hoursUntilRide: { type: Number, default: null },
+    changedFields: [{ type: String, trim: true, maxlength: 40 }]
+  }],
+  statusHistory: [{
+    status: { type: String, default: '', trim: true, maxlength: 40 },
+    at: { type: Date, default: Date.now },
+    source: { type: String, default: '', trim: true, maxlength: 80 },
+    note: { type: String, default: '', trim: true, maxlength: 180 }
+  }],
   specialRequests: { type: mongoose.Schema.Types.Mixed, default: {} },
   safetyAccessibility: { type: mongoose.Schema.Types.Mixed, default: {} },
   customerSnapshot: {
