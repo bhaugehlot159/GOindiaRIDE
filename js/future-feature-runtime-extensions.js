@@ -147,6 +147,82 @@
     return false;
   }
 
+  var ACTIVATION_SYNC_DISABLED = !RUNTIME_DEBUG && PAGE_ROLE === 'booking';
+  var ACTIVATION_SYNC_MAX_PER_PAGE = PAGE_ROLE === 'admin' ? 200 : 80;
+  var ACTIVATION_SYNC_MIN_GAP_MS = PAGE_ROLE === 'admin' ? 40 : 120;
+  var activationSyncState = window.__GOINDIARIDE_FUTURE_RUNTIME_ACTIVATION_SYNC_STATE__ || {};
+  if (!Array.isArray(activationSyncState.queue)) activationSyncState.queue = [];
+  if (!activationSyncState.queuedKeys || typeof activationSyncState.queuedKeys !== 'object') activationSyncState.queuedKeys = {};
+  if (typeof activationSyncState.inFlight !== 'boolean') activationSyncState.inFlight = false;
+  var existingScheduledCount = Number(activationSyncState.scheduledCount);
+  activationSyncState.scheduledCount = Number.isFinite(existingScheduledCount) ? existingScheduledCount : 0;
+  activationSyncState.timerId = activationSyncState.timerId || null;
+  window.__GOINDIARIDE_FUTURE_RUNTIME_ACTIVATION_SYNC_STATE__ = activationSyncState;
+
+  function scheduleActivationSyncDispatch() {
+    if (activationSyncState.timerId || activationSyncState.inFlight || !activationSyncState.queue.length) return;
+    activationSyncState.timerId = window.setTimeout(function () {
+      activationSyncState.timerId = null;
+      flushActivationSyncQueue();
+    }, ACTIVATION_SYNC_MIN_GAP_MS);
+  }
+
+  function flushActivationSyncQueue() {
+    if (ACTIVATION_SYNC_DISABLED) return;
+    if (activationSyncState.inFlight) return;
+    if (!activationSyncState.queue.length) return;
+    if (typeof window.fetch !== 'function' || !API_BASE) return;
+    if (shouldShortCircuitRemoteApi()) {
+      activationSyncState.queue = [];
+      activationSyncState.queuedKeys = {};
+      return;
+    }
+
+    var item = activationSyncState.queue.shift();
+    if (!item || !item.key || !item.payload) {
+      scheduleActivationSyncDispatch();
+      return;
+    }
+
+    delete activationSyncState.queuedKeys[item.key];
+    activationSyncState.inFlight = true;
+
+    window.fetch(API_BASE + '/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item.payload || {})
+    }).then(function (response) {
+      if (response && response.ok) {
+        markRemoteApiHealthy();
+      } else {
+        markRemoteApiFailure();
+      }
+    }).catch(function () {
+      markRemoteApiFailure();
+    }).then(function () {
+      activationSyncState.inFlight = false;
+      scheduleActivationSyncDispatch();
+    });
+  }
+
+  function enqueueActivationSync(syncKey, payload) {
+    if (ACTIVATION_SYNC_DISABLED || !syncKey) return false;
+    if (typeof window.fetch !== 'function' || !API_BASE) return false;
+    if (activationSyncState.queuedKeys[syncKey]) return false;
+    if (activationSyncState.scheduledCount >= ACTIVATION_SYNC_MAX_PER_PAGE) return false;
+
+    activationSyncState.queuedKeys[syncKey] = true;
+    activationSyncState.scheduledCount += 1;
+    activationSyncState.queue.push({
+      key: syncKey,
+      payload: payload || {}
+    });
+    if (!activationSyncState.inFlight && !activationSyncState.timerId) {
+      flushActivationSyncQueue();
+    }
+    return true;
+  }
+
   function postJson(path, payload) {
     if (typeof window.fetch !== 'function' || !API_BASE) return;
     if (shouldShortCircuitRemoteApi()) return;
@@ -1560,7 +1636,7 @@
     if (extState.syncKeys[key]) return;
     extState.syncKeys[key] = true;
 
-    postJson('/activate', {
+    enqueueActivationSync(key, {
       source: 'frontend-runtime-extension',
       detail: detail || {},
       feature: {
