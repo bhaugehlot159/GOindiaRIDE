@@ -50,17 +50,22 @@
   }
 
   function detectApiOrigin() {
+    var host = currentHostname();
+    var sameOrigin = normalizeOrigin((window.location && window.location.origin) || '');
     var explicit = normalizeOrigin(
       window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ ||
       window.__GOINDIARIDE_API_ORIGIN__ ||
       ''
     );
+    if (PRIMARY_DOMAIN_REGEX.test(host) && (!explicit || explicit === sameOrigin)) {
+      return DEFAULT_PRODUCTION_API_ORIGIN;
+    }
     if (explicit) return explicit;
 
-    var inferred = inferApiOriginFromHostname(currentHostname());
+    var inferred = inferApiOriginFromHostname(host);
     if (inferred) return inferred;
 
-    return normalizeOrigin((window.location && window.location.origin) || '');
+    return sameOrigin;
   }
 
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';
@@ -373,12 +378,15 @@
     premium: 25,
     xl: 28
   };
-  // On production custom domain we should avoid hitting GitHub Pages with
-  // fallback API paths because that can trigger abuse/rate-limit pages.
+  // Keep primary website on same-origin first, but preserve Render fallback.
   var BUSINESS_API_BASES = uniqueList(
-    API_ORIGIN
-      ? [API_ORIGIN + '/api/future-runtime-business']
-      : (ALLOW_RELATIVE_API_FALLBACK ? ['/api/future-runtime-business'] : [])
+    [
+      API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : '',
+      normalizeOrigin((window.location && window.location.origin) || '') ? (normalizeOrigin((window.location && window.location.origin) || '') + '/api/future-runtime-business') : '',
+      normalizeOrigin(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || '') ? (normalizeOrigin(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || '') + '/api/future-runtime-business') : '',
+      normalizeOrigin(window.__GOINDIARIDE_API_ORIGIN__ || '') ? (normalizeOrigin(window.__GOINDIARIDE_API_ORIGIN__ || '') + '/api/future-runtime-business') : '',
+      DEFAULT_PRODUCTION_API_ORIGIN + '/api/future-runtime-business'
+    ].concat(ALLOW_RELATIVE_API_FALLBACK ? ['/api/future-runtime-business'] : [])
   );
 
   function uniqueList(values) {
@@ -1528,11 +1536,11 @@
     var options = {
       method: method,
       headers: {
-        'Content-Type': 'application/json',
-        'X-GoindiaRide-Runtime': 'future-feature-runtime-extensions'
+        Accept: 'application/json'
       }
     };
     if (method !== 'GET') {
+      options.headers['Content-Type'] = 'application/json';
       options.body = JSON.stringify(payload || {});
     }
 

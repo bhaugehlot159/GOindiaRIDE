@@ -71,10 +71,21 @@
   }
 
   function getDashboardApiBasesSafe() {
+    var host = String((window.location && window.location.hostname) || '').toLowerCase();
+    var isPrimaryWebsiteHost = /(^|\.)goindiaride\.in$/i.test(host);
+    var sameOriginBase = normalizeApiBaseValue((window.location && window.location.origin) || '');
+    var continuityBases = window.GoIndiaSessionContinuity && typeof window.GoIndiaSessionContinuity.getApiBases === 'function'
+      ? window.GoIndiaSessionContinuity.getApiBases(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '')
+      : [];
     var provided = typeof getDashboardAdminEmailApiBases === 'function'
       ? getDashboardAdminEmailApiBases()
-      : ['https://goindiaride.onrender.com'];
-    return [window.location.origin].concat(provided)
+      : [
+          isPrimaryWebsiteHost ? 'https://goindiaride.onrender.com' : sameOriginBase,
+          window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || '',
+          window.__GOINDIARIDE_API_ORIGIN__ || '',
+          isPrimaryWebsiteHost ? sameOriginBase : 'https://goindiaride.onrender.com'
+        ];
+    return continuityBases.concat(provided)
       .map(function (item) { return normalizeApiBaseValue(item); })
       .filter(function (item, index, arr) { return item && arr.indexOf(item) === index; });
   }
@@ -98,9 +109,13 @@
     var bases = getDashboardBusinessApiBases();
     for (var i = 0; i < bases.length; i += 1) {
       try {
+        var headers = { Accept: 'application/json' };
+        if (method !== 'GET') {
+          headers['Content-Type'] = 'application/json';
+        }
         var response = await fetchWithTimeoutSafe(bases[i] + route, {
           method: method,
-          headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-GoindiaRide-Dashboard-Live': 'customer-dashboard' },
+          headers: headers,
           body: method === 'GET' ? undefined : JSON.stringify(payload || {})
         }, 15000);
         var data = await response.json().catch(function () { return null; });

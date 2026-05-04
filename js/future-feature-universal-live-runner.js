@@ -133,17 +133,22 @@
   }
 
   function detectApiOrigin() {
+    var host = currentHostname();
+    var sameOrigin = normalizeOrigin((window.location && window.location.origin) || '');
     var explicit = normalizeOrigin(
       window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ ||
       window.__GOINDIARIDE_API_ORIGIN__ ||
       ''
     );
+    if (PRIMARY_DOMAIN_REGEX.test(host) && (!explicit || explicit === sameOrigin)) {
+      return DEFAULT_PRODUCTION_API_ORIGIN;
+    }
     if (explicit) return explicit;
 
-    var inferred = inferApiOriginFromHostname(currentHostname());
+    var inferred = inferApiOriginFromHostname(host);
     if (inferred) return inferred;
 
-    return normalizeOrigin((window.location && window.location.origin) || '');
+    return sameOrigin;
   }
 
   var ALLOW_RELATIVE_API_FALLBACK = !shouldAvoidRelativeApiFallback(currentHostname());
@@ -280,10 +285,9 @@
 
       return window.fetch(targets[index], {
         method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-GoindiaRide-Live-Runner': 'universal-live-runner'
-        },
+        headers: method === 'GET'
+          ? { Accept: 'application/json' }
+          : { Accept: 'application/json', 'Content-Type': 'application/json' },
         body: method === 'GET' ? undefined : JSON.stringify(payload || {})
       }).then(function (response) {
         return response.text().then(function (text) {

@@ -18,6 +18,33 @@
     return String(value || '').trim();
   }
 
+  function ensureLegacyWindowHelpers() {
+    if (typeof global.sanitizeInput !== 'function') {
+      global.sanitizeInput = function sanitizeInputFallback(value, maxLen) {
+        var limit = Number.isFinite(maxLen) ? maxLen : 180;
+        return String(value || '')
+          .replace(/[\u0000-\u001f<>]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, limit);
+      };
+    }
+    if (typeof global.escapeHtml !== 'function') {
+      global.escapeHtml = function escapeHtmlFallback(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      };
+    }
+    if (typeof global.escapeHtmlAttr !== 'function') {
+      global.escapeHtmlAttr = global.escapeHtml;
+    }
+  }
+  ensureLegacyWindowHelpers();
+
   function normalizeRole(value) {
     var normalized = normalizeText(value).toLowerCase();
     if (normalized === 'driver') return 'driver';
@@ -137,16 +164,26 @@
     var sameOriginBase = normalizeApiBase(global.location && global.location.origin);
     var sameOriginBackendBase = sameOriginBase ? (sameOriginBase + '/backend') : '';
     var candidates = [];
+    var deferredSameOriginCandidates = [];
 
-    function pushBase(value) {
+    function pushUnique(list, value) {
+      if (!value) return;
+      if (list.indexOf(value) === -1) {
+        list.push(value);
+      }
+    }
+
+    function pushBase(value, options) {
       var normalized = normalizeApiBase(value);
       if (!normalized) return;
       if ((isPrimaryWebsiteHost || isGitHubPagesHost) && !isTrustedPublicApiBase(normalized) && normalized === normalizeApiBase(global.localStorage && global.localStorage.getItem('goindiaride_api_base'))) {
         return;
       }
-      if (candidates.indexOf(normalized) === -1) {
-        candidates.push(normalized);
+      if ((isPrimaryWebsiteHost || isGitHubPagesHost) && (normalized === sameOriginBase || normalized === sameOriginBackendBase) && !(options && options.preferNow)) {
+        pushUnique(deferredSameOriginCandidates, normalized);
+        return;
       }
+      pushUnique(candidates, normalized);
     }
 
     pushBase(explicitBase);
@@ -157,18 +194,22 @@
     pushBase(global.localStorage && global.localStorage.getItem('goindiaride_api_base'));
 
     if (isPrimaryWebsiteHost || isGitHubPagesHost) {
-      pushBase(DEFAULT_PRODUCTION_API_ORIGIN);
+      pushBase(DEFAULT_PRODUCTION_API_ORIGIN, { preferNow: true });
       pushBase(sameOriginBackendBase);
       pushBase(sameOriginBase);
     } else {
       pushBase(sameOriginBackendBase);
       pushBase(sameOriginBase);
-      pushBase(DEFAULT_PRODUCTION_API_ORIGIN);
+      pushBase(DEFAULT_PRODUCTION_API_ORIGIN, { preferNow: true });
     }
 
     if (!candidates.length) {
       pushBase(inferApiBase());
     }
+
+    deferredSameOriginCandidates.forEach(function (value) {
+      pushUnique(candidates, value);
+    });
 
     return candidates;
   }
@@ -563,9 +604,10 @@
 
     if (lastKnownUser) {
       var fallbackUser = normalizeProfileToSession(lastKnownUser, role);
+      clearAccessToken();
       storeAuthArtifacts({
         accountType: role,
-        accessToken: accessToken,
+        accessToken: '',
         refreshToken: refreshToken,
         apiBase: apiBases[0] || inferApiBase(),
         user: fallbackUser

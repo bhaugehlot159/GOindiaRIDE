@@ -29,6 +29,7 @@ const {
   processDriverRideRefund,
   resolveDriverCommissionRegion
 } = require('../services/driverCommissionWalletService');
+const { estimateBookingFare } = require('../../../js/booking-fare-calculator');
 
 
 const router = express.Router();
@@ -358,14 +359,18 @@ function buildBookingContext(body = {}) {
     returnDate: sanitizeText(body.returnDate, 40),
     returnTime: sanitizeText(body.returnTime, 40),
     tripPlan: sanitizeText(body.tripPlan, 80),
+    tripServiceType: sanitizeText(body.tripServiceType || body.serviceType, 80),
     paymentMethod: sanitizeText(body.paymentMethod, 80),
     vehicleType: sanitizeText(body.vehicleType || body.rideType, 80),
+    vehicleModel: sanitizeText(body.vehicleModel, 80),
     passengers: normalizeInteger(body.passengers, 1, 1, 20),
     luggage: sanitizeText(body.luggage, 80),
     notes: sanitizeText(body.notes, 600),
+    budgetAmount: Math.max(0, normalizeAmount(body.budgetAmount || body.customerBidAmount || 0)),
     stops: sanitizeStringArray(body.stops, 8, 160),
     specialRequests: sanitizeBooleanMap(body.specialRequests, 60),
-    safetyAccessibility: sanitizeBooleanMap(body.safetyAccessibility, 60)
+    safetyAccessibility: sanitizeBooleanMap(body.safetyAccessibility, 60),
+    distanceSource: sanitizeText(body.distanceSource, 40)
   };
 }
 
@@ -618,6 +623,98 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function formatMoney(value) {
+  return `INR ${Number(value || 0).toFixed(2)}`;
+}
+
+function formatMoneyDelta(value) {
+  const amount = Number(value || 0);
+  const prefix = amount > 0 ? '+' : amount < 0 ? '-' : '';
+  return `${prefix}${formatMoney(Math.abs(amount))}`;
+}
+
+function getBookingFareSummary(booking = {}) {
+  const fare = booking && booking.fareBreakdown && typeof booking.fareBreakdown === 'object'
+    ? booking.fareBreakdown
+    : {};
+  const totalFare = Number(fare.totalFare ?? fare.finalFare ?? booking.amount ?? booking.totalFare ?? 0);
+  const budgetAmount = Number(
+    fare.customerBidAmount ??
+    fare.budgetAmount ??
+    booking.customerBidAmount ??
+    booking.budgetAmount ??
+    0
+  );
+
+  return {
+    fare,
+    totalFare,
+    budgetAmount,
+    distanceKm: Number(fare.distanceKm ?? booking.distanceKm ?? 0),
+    estimatedDurationMin: Number(fare.estimatedDurationMin ?? 0),
+    pickupState: sanitizeText(fare.pickupState || '', 80),
+    dropState: sanitizeText(fare.dropState || '', 80),
+    routeCategory: sanitizeText(fare.routeCategory || '', 80),
+    distanceSource: sanitizeText(fare.distanceSource || booking.distanceSource || '', 80),
+    interState: Boolean(fare.interState),
+    budgetGap: Number.isFinite(Number(fare.budgetGap)) ? Number(fare.budgetGap) : Math.round(budgetAmount - totalFare)
+  };
+}
+
+function buildFareBreakdownRows(booking = {}) {
+  const summary = getBookingFareSummary(booking);
+  const fare = summary.fare || {};
+  const rows = [];
+  const distanceSourceLabel = String(summary.distanceSource || 'manual').replace(/_/g, ' ');
+  const routeCategoryLabel = String(summary.routeCategory || 'local_route').replace(/_/g, ' ');
+  const includedDistanceKm = Number(fare.includedDistanceKm || 0);
+  const extraDistanceKm = Number(fare.extraDistanceKm || 0);
+  const includedDurationMin = Number(fare.includedDurationMin || 0);
+  const extraTimeMin = Number(fare.extraTimeMin || 0);
+
+  if (summary.budgetAmount > 0) {
+    rows.push(['Customer Bid / Budget', formatMoney(summary.budgetAmount)]);
+    rows.push(['Budget Gap vs Estimate', formatMoneyDelta(summary.budgetGap)]);
+  }
+
+  rows.push(['Distance Source', distanceSourceLabel]);
+  rows.push(['Route Category', routeCategoryLabel]);
+  rows.push(['Estimated Duration', summary.estimatedDurationMin ? `${summary.estimatedDurationMin} min` : 'N/A']);
+  rows.push(['Pickup State', summary.pickupState || 'N/A']);
+  rows.push(['Drop State', summary.dropState || 'N/A']);
+  rows.push(['Inter-State', summary.interState ? 'Yes' : 'No']);
+  rows.push(['Included Distance', includedDistanceKm ? `${includedDistanceKm} km` : 'N/A']);
+  rows.push(['Base Fare', formatMoney(fare.baseFare || 0)]);
+  rows.push(['Distance Fare', formatMoney(fare.distanceFare || 0)]);
+  rows.push(['Extra Kilometer Charge', formatMoney(fare.extraDistanceFare || 0)]);
+  rows.push(['Included Duration', includedDurationMin ? `${includedDurationMin} min` : 'N/A']);
+  rows.push(['Time / Traffic Charge', formatMoney(fare.timeFare || 0)]);
+  rows.push(['Extra Time Charge', formatMoney(fare.extraTimeFare || 0)]);
+  rows.push(['Passenger Surcharge', formatMoney(fare.passengerFare || 0)]);
+  rows.push(['Trip Plan Surcharge', formatMoney(fare.tripPlanFare || 0)]);
+  rows.push(['Luggage Charge', formatMoney(fare.luggageFare || 0)]);
+  rows.push(['Special Requests', formatMoney(fare.extrasFare || 0)]);
+  rows.push(['Safety & Accessibility', formatMoney(fare.safetyFare || 0)]);
+  rows.push(['Stopover Charge', formatMoney(fare.stopFare || 0)]);
+  rows.push(['Round Trip Charge', formatMoney(fare.roundTripCharge || fare.returnTripFare || 0)]);
+  rows.push(['Toll Charge', formatMoney(fare.tollCharge || 0)]);
+  rows.push(['Parking Charge', formatMoney(fare.parkingCharge || 0)]);
+  rows.push(['Other State Tax', formatMoney(fare.otherStateTax || fare.stateTax || 0)]);
+  rows.push(['Driver Night Bhatta', formatMoney(fare.driverNightBatta || fare.nightCharge || 0)]);
+  rows.push(['Payment Fee', formatMoney(fare.paymentFee || 0)]);
+  rows.push(['GST / Service Tax', formatMoney(fare.taxesFare || 0)]);
+  rows.push(['Promo Discount', `-${formatMoney(fare.promoDiscount || 0)}`]);
+  rows.push(['Total Fare', formatMoney(summary.totalFare || 0)]);
+
+  return rows;
+}
+
+function buildFareBreakdownText(booking = {}) {
+  return buildFareBreakdownRows(booking)
+    .map(([label, value]) => `${label}: ${value}`)
+    .join('\n');
+}
+
 function buildBookingAdminEmailText({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
   const customerPhone = formatCustomerPhoneForEmail(customer.phone);
@@ -638,12 +735,14 @@ function buildBookingAdminEmailText({ booking, context, customer }) {
     `Payment Method: ${context.paymentMethod || 'N/A'}`,
     `Passengers: ${context.passengers || 1}`,
     `Luggage: ${context.luggage || 'N/A'}`,
+    `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
     `Special Requests: ${listEnabledFlags(context.specialRequests)}`,
     `Safety & Accessibility: ${listEnabledFlags(context.safetyAccessibility)}`,
     `Notes: ${context.notes || 'None'}`,
     `Customer Name: ${customer.name || 'N/A'}`,
     `Customer Email: ${customer.email || 'N/A'}`,
     `Customer Phone: ${customerPhone || 'N/A'}`,
+    `Fare Breakdown:\n${buildFareBreakdownText(booking)}`,
     `Created At: ${booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()}`
   ].join('\n');
 }
@@ -657,6 +756,7 @@ function buildBookingAdminWhatsAppText({ booking, context, customer }) {
     `Status: ${booking.status}`,
     `Admin Review: ${booking.adminReviewStatus || 'pending'}`,
     `Amount: INR ${Number(booking.amount || 0).toFixed(2)}`,
+    `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
     `Distance: ${Number(booking.distanceKm || 0).toFixed(2)} km`,
     `Pickup: ${context.pickupLocation || 'N/A'}`,
     `Drop: ${context.dropLocation || 'N/A'}`,
@@ -674,6 +774,7 @@ function buildBookingAdminWhatsAppText({ booking, context, customer }) {
     `Customer Name: ${customer.name || 'N/A'}`,
     `Customer Email: ${customer.email || 'N/A'}`,
     `Customer Phone: ${customerPhone || 'N/A'}`,
+    `Fare Breakdown:\n${buildFareBreakdownText(booking)}`,
     `Created At: ${booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()}`
   ].join('\n');
 }
@@ -709,11 +810,17 @@ function buildBookingAdminEmailHtml({ booking, context, customer }) {
   const rows = dataRows
     .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
     .join('');
+  const fareRows = buildFareBreakdownRows(booking)
+    .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
+    .join('');
 
   return `<div style="font-family:Arial,sans-serif;color:#1f2d3d;line-height:1.5;">
 <h2 style="margin:0 0 12px;color:#0b2f5c;">New Booking Pending Admin Review</h2>
 <p style="margin:0 0 14px;">A new customer booking has been created and is waiting for admin approval.</p>
+<h3 style="margin:16px 0 10px;color:#0b2f5c;">Booking Details</h3>
 <table style="border-collapse:collapse;width:100%;max-width:820px;background:#ffffff;">${rows}</table>
+<h3 style="margin:16px 0 10px;color:#0b2f5c;">Fare Breakdown</h3>
+<table style="border-collapse:collapse;width:100%;max-width:820px;background:#ffffff;">${fareRows}</table>
 </div>`;
 }
 
@@ -789,6 +896,8 @@ function buildBookingCustomerEmailText({ booking, context, customer }) {
     `Stops: ${stopsText}`,
     `Passengers: ${context.passengers || 1}`,
     `Estimated Fare: INR ${Number(booking.amount || 0).toFixed(2)}`,
+    `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
+    `Fare Breakdown:\n${buildFareBreakdownText(booking)}`,
     '',
     'Thanks for booking with GO India RIDE.',
     'A driver will be assigned after admin approval.',
@@ -809,10 +918,14 @@ function buildBookingCustomerEmailHtml({ booking, context, customer }) {
     ['Trip Plan', context.tripPlan || 'N/A'],
     ['Payment Method', context.paymentMethod || 'N/A'],
     ['Passengers', String(context.passengers || 1)],
-    ['Estimated Fare', `INR ${Number(booking.amount || 0).toFixed(2)}`]
+    ['Estimated Fare', `INR ${Number(booking.amount || 0).toFixed(2)}`],
+    ['Customer Bid / Budget', Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A']
   ];
 
   const rowHtml = rows
+    .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
+    .join('');
+  const fareRows = buildFareBreakdownRows(booking)
     .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
     .join('');
 
@@ -820,6 +933,8 @@ function buildBookingCustomerEmailHtml({ booking, context, customer }) {
 <h2 style="margin:0 0 12px;color:#0b2f5c;">Booking Received</h2>
 <p style="margin:0 0 14px;">Hi ${escapeHtml(customer.name || 'Customer')}, your booking has been received successfully. It is currently pending admin review.</p>
 <table style="border-collapse:collapse;width:100%;max-width:760px;background:#ffffff;">${rowHtml}</table>
+<h3 style="margin:16px 0 10px;color:#0b2f5c;">Fare Breakdown</h3>
+<table style="border-collapse:collapse;width:100%;max-width:760px;background:#ffffff;">${fareRows}</table>
 <p style="margin-top:14px;">Thanks for choosing GO India RIDE.</p>
 </div>`;
 }
@@ -1213,15 +1328,33 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     return res.status(400).json({ message: 'Pickup and drop locations are required' });
   }
 
-  const amountInput = toAmount(req.body.amount ?? req.body.totalFare);
-  const distanceInput = toAmount(req.body.distanceKm ?? req.body.distance);
+  const fareEstimate = estimateBookingFare({
+    ...req.body,
+    pickup: bookingContext.pickupLocation,
+    drop: bookingContext.dropLocation,
+    tripPlan: bookingContext.tripPlan,
+    tripServiceType: bookingContext.tripServiceType,
+    vehicleType: bookingContext.vehicleType,
+    vehicleModel: bookingContext.vehicleModel,
+    passengers: bookingContext.passengers,
+    luggage: bookingContext.luggage,
+    stops: bookingContext.stops,
+    specialRequests: bookingContext.specialRequests,
+    safetyAccessibility: bookingContext.safetyAccessibility,
+    paymentMethod: bookingContext.paymentMethod,
+    budgetAmount: bookingContext.budgetAmount,
+    distanceSource: bookingContext.distanceSource
+  });
 
   const booking = {
     bookingId,
     status: 'created',
     adminReviewStatus: 'pending',
-    amount: Number.isFinite(amountInput) ? amountInput : 0,
-    distanceKm: Number.isFinite(distanceInput) ? distanceInput : 0,
+    amount: fareEstimate.totalFare,
+    distanceKm: fareEstimate.distanceKm,
+    budgetAmount: fareEstimate.budgetAmount,
+    customerBidAmount: fareEstimate.customerBidAmount,
+    fareBreakdown: fareEstimate,
     createdAt: new Date().toISOString()
   };
 
@@ -1304,17 +1437,19 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
 });
 
 router.get('/quote', authenticate, continuousRiskGate, async (req, res) => {
-  const parsedDistance = Number(req.query.distanceKm || req.query.distance || 10);
-  const distanceKm = Number.isFinite(parsedDistance) ? Math.max(parsedDistance, 1) : 10;
-  const normalizedDistance = Number(distanceKm.toFixed(2));
-  const amount = Number((normalizedDistance * 12).toFixed(2));
-  const fareHash = computeFareHash({ distanceKm: normalizedDistance, amount });
+  const estimate = estimateBookingFare({
+    ...req.query,
+    distanceKm: req.query.distanceKm || req.query.distance || 10,
+    currency: req.query.currency || 'INR'
+  });
+  const fareHash = computeFareHash({ distanceKm: estimate.distanceKm, amount: estimate.totalFare });
 
   return res.status(200).json({
-    distanceKm: normalizedDistance,
-    amount,
+    distanceKm: estimate.distanceKm,
+    amount: estimate.totalFare,
     fareHash,
-    currency: 'INR'
+    currency: 'INR',
+    estimate
   });
 });
 
@@ -1376,15 +1511,45 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     return res.status(403).json({ message: 'Fraud pattern detected, temporary ban applied', fraud });
   }
 
+  const fareEstimate = req.fareEstimate || estimateBookingFare({
+    ...req.body,
+    ...bookingContext,
+    pickup: bookingContext.pickupLocation,
+    drop: bookingContext.dropLocation,
+    vehicleType: bookingContext.vehicleType,
+    vehicleModel: bookingContext.vehicleModel,
+    tripPlan: bookingContext.tripPlan,
+    tripServiceType: bookingContext.tripServiceType,
+    paymentMethod: bookingContext.paymentMethod,
+    passengers: bookingContext.passengers,
+    luggage: bookingContext.luggage,
+    stops: bookingContext.stops,
+    specialRequests: bookingContext.specialRequests,
+    safetyAccessibility: bookingContext.safetyAccessibility,
+    budgetAmount: bookingContext.budgetAmount,
+    distanceSource: bookingContext.distanceSource,
+    promoCode: referralCode
+  });
+
   const bookingId = `BK${Date.now()}${Math.floor(Math.random() * 1000)}`;
   const booking = await Booking.create({
     userId: req.user.id,
     bookingId,
     cardHash,
     ip,
-    distanceKm,
-    amount: req.recalculatedFare,
+    distanceKm: fareEstimate.distanceKm || distanceKm,
+    amount: fareEstimate.totalFare,
     referralCode: sanitizeText(referralCode, 80),
+    budgetAmount: fareEstimate.budgetAmount,
+    customerBidAmount: fareEstimate.customerBidAmount,
+    fareBreakdown: fareEstimate,
+    fareHash: sanitizeText(req.body.fareHash || '', 240),
+    fareQuote: {
+      amount: fareEstimate.totalFare,
+      distanceKm: fareEstimate.distanceKm,
+      source: fareEstimate.distanceSource,
+      routeCategory: fareEstimate.routeCategory
+    },
     pickupLocation: bookingContext.pickupLocation,
     dropLocation: bookingContext.dropLocation,
     rideDate: bookingContext.rideDate,
@@ -1396,15 +1561,29 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     returnDate: bookingContext.returnDate,
     returnTime: bookingContext.returnTime,
     tripPlan: bookingContext.tripPlan,
+    tripServiceType: bookingContext.tripServiceType,
     paymentMethod: bookingContext.paymentMethod,
     vehicleType: bookingContext.vehicleType,
+    vehicleModel: bookingContext.vehicleModel,
     passengers: bookingContext.passengers,
     luggage: bookingContext.luggage,
     notes: bookingContext.notes,
     stops: bookingContext.stops,
+    distanceSource: fareEstimate.distanceSource,
     specialRequests: bookingContext.specialRequests,
     safetyAccessibility: bookingContext.safetyAccessibility,
     customerSnapshot,
+    payment: req.body.payment && typeof req.body.payment === 'object' ? req.body.payment : {},
+    promo: {
+      code: sanitizeText(referralCode, 80),
+      discount: fareEstimate.promoDiscount
+    },
+    customerFeatures: {
+      specialRequests: bookingContext.specialRequests,
+      safetyAccessibility: bookingContext.safetyAccessibility,
+      hasStops: bookingContext.stops.length > 0,
+      hasReturnTrip: Boolean(bookingContext.returnDate)
+    },
     status: 'created'
   });
   await Booking.updateOne(
@@ -1428,7 +1607,7 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     deviceFingerprint: device.fingerprint,
     metadata: {
       distanceKm,
-      amount,
+      amount: fareEstimate.totalFare,
       referralCode,
       pickup: bookingContext.pickupLocation,
       drop: bookingContext.dropLocation,
@@ -1450,7 +1629,7 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   try {
     const reviewAlert = await createBookingAdminReviewAlert({
       bookingId: booking.bookingId,
-      amount: req.recalculatedFare,
+      amount: booking.amount,
       distanceKm: booking.distanceKm,
       customerId: req.user.id,
       pickup: bookingContext.pickupLocation,
@@ -1557,12 +1736,23 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     luggage: row.luggage || '',
     notes: row.notes || '',
     stops: Array.isArray(row.stops) ? row.stops : [],
+    budgetAmount: Number(row.budgetAmount || 0),
+    customerBidAmount: Number(row.customerBidAmount || 0),
+    distanceSource: row.distanceSource || '',
+    vehicleModel: row.vehicleModel || '',
+    tripServiceType: row.tripServiceType || '',
     specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
     safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
     amount: Number(row.amount || 0),
     distanceKm: Number(row.distanceKm || 0),
     driverId: row.driverId || null,
     customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object' ? row.customerSnapshot : {},
+    fareBreakdown: row.fareBreakdown && typeof row.fareBreakdown === 'object' ? row.fareBreakdown : {},
+    fareQuote: row.fareQuote && typeof row.fareQuote === 'object' ? row.fareQuote : {},
+    fareHash: row.fareHash || '',
+    payment: row.payment && typeof row.payment === 'object' ? row.payment : {},
+    promo: row.promo && typeof row.promo === 'object' ? row.promo : {},
+    customerFeatures: row.customerFeatures && typeof row.customerFeatures === 'object' ? row.customerFeatures : {},
     editCount: getBookingEditCount(row),
     lastEditedAt: row.lastEditedAt || null,
     editPolicyVersion: row.editPolicyVersion || '',
@@ -2620,45 +2810,7 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
   }
 
   function estimateFare(payload) {
-    const distanceKm = Math.max(0, normalizeAmount(payload.distanceKm || payload.distance || 0));
-    const durationMin = Math.max(0, normalizeAmount(payload.durationMin || payload.duration || 0));
-    const vehicleType = normalizeVehicleType(payload.vehicleType || payload.rideType);
-    const basePerKm = vehicleBaseRates[vehicleType] || vehicleBaseRates.sedan;
-    const seasonMultiplier = Math.max(0.5, Math.min(3, normalizeAmount(payload.seasonMultiplier || 1) || 1));
-    const trafficMultiplier = Math.max(0.5, Math.min(2, normalizeAmount(payload.trafficMultiplier || 1) || 1));
-    const waitingCharge = Math.max(0, normalizeAmount(payload.waitingCharge || 0));
-    const tollCharge = Math.max(0, normalizeAmount(payload.tollCharge || 0));
-    const parkingCharge = Math.max(0, normalizeAmount(payload.parkingCharge || 0));
-    const offerPercent = Math.max(0, Math.min(80, normalizeAmount(payload.offerPercent || payload.discountPercent || 0)));
-
-    const distanceFare = normalizeAmount(distanceKm * basePerKm);
-    const timeFare = normalizeAmount(durationMin * 0.5);
-    const grossInr = normalizeAmount((distanceFare + timeFare + waitingCharge + tollCharge + parkingCharge) * seasonMultiplier * trafficMultiplier);
-    const discount = normalizeAmount((grossInr * offerPercent) / 100);
-    const netInr = Math.max(0, normalizeAmount(grossInr - discount));
-    const currency = normalizeCurrency(payload.currency);
-    const converted = normalizeAmount(netInr * (currencyRates[currency] || 1));
-
-    return {
-      vehicleType,
-      currency,
-      basePerKm,
-      distanceKm,
-      durationMin,
-      distanceFare,
-      timeFare,
-      waitingCharge,
-      tollCharge,
-      parkingCharge,
-      seasonMultiplier,
-      trafficMultiplier,
-      offerPercent,
-      grossInr,
-      discountInr: discount,
-      finalInr: netInr,
-      convertedFare: converted,
-      calculatedAt: new Date().toISOString()
-    };
+    return estimateBookingFare(payload);
   }
 
   function pushWithCap(list, item, maxLimit) {
@@ -2904,7 +3056,16 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
   // Route: /fare/estimate
   router.post('/fare/estimate', (req, res) => {
     const estimate = estimateFare(req.body || {});
-    return res.status(200).json({ ok: true, estimate });
+    const fareHash = computeFareHash({ distanceKm: estimate.distanceKm, amount: estimate.totalFare });
+    return res.status(200).json({
+      ok: true,
+      estimate: {
+        ...estimate,
+        fareHash,
+        currency: 'INR'
+      },
+      fareHash
+    });
   });
 
 

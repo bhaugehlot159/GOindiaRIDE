@@ -753,6 +753,12 @@
     function getApiBaseUrl() {
         const runtimeBase = sanitizeText(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '', 300);
         const explicit = runtimeBase || sanitizeText(window.GOINDIARIDE_API_BASE || '', 300) || sanitizeText(localStorage.getItem(API_BASE_OVERRIDE_KEY) || '', 300);
+        if (window.GoIndiaSessionContinuity && typeof window.GoIndiaSessionContinuity.getApiBases === 'function') {
+            const candidates = window.GoIndiaSessionContinuity.getApiBases(explicit);
+            if (Array.isArray(candidates) && candidates.length) {
+                return String(candidates[0] || '').replace(/\/$/, '');
+            }
+        }
         if (explicit) {
             return explicit.replace(/\/$/, '');
         }
