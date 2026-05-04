@@ -401,7 +401,12 @@ async function resolveAdminAlertRecipients() {
     });
   }
 
-  return uniqueEmails([...envEmails, ...defaultEmails, ...smtpFallbackEmails, ...adminUserEmails]);
+  const preferredRecipients = uniqueEmails([...envEmails, ...defaultEmails, ...adminUserEmails]);
+  if (preferredRecipients.length) {
+    return preferredRecipients;
+  }
+
+  return uniqueEmails(smtpFallbackEmails);
 }
 
 function resolveAdminWhatsAppRecipients() {
