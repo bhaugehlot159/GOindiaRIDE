@@ -1796,6 +1796,8 @@
   function executeFeature(feature, action, payload) {
     postJson('/execute/' + encodeURIComponent(feature.featureId || 'NA'), {
       category: feature.category || 'general',
+      blockKey: feature.blockKey || '',
+      description: feature.description || '',
       action: action || 'manual-run',
       pagePath: window.location.pathname,
       payload: payload || {}

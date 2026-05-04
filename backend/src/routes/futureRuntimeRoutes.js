@@ -176,6 +176,45 @@ function addOrUpdateFeature(feature, source) {
   };
 }
 
+function ensureRuntimeFeatureForExecution(featureId, requestBody) {
+  const store = getStore();
+  const safeFeatureId = normalizeString(featureId, 40) || 'NA';
+  const category = normalizeString(requestBody?.category, 50).toLowerCase() || 'general';
+  const pagePath = normalizeString(requestBody?.pagePath, 250);
+  const requestedBlockKey = normalizeString(
+    requestBody?.blockKey ||
+    requestBody?.featureBlockKey ||
+    requestBody?.payload?.blockKey ||
+    '',
+    120
+  );
+
+  const existing = store.features.find((item) => {
+    if (item.featureId !== safeFeatureId) return false;
+    if (!category) return true;
+    return String(item.category || '').toLowerCase() === category;
+  });
+  if (existing) return { item: existing, created: false, synthetic: false };
+
+  const syntheticFeature = {
+    featureId: safeFeatureId,
+    category: category || 'general',
+    blockKey: requestedBlockKey || ('autoseed:' + (pagePath || 'runtime')),
+    sourceLine: null,
+    description: normalizeString(requestBody?.description, 500) || 'Auto-seeded runtime feature from live execution event.',
+    implemented: true,
+    pagePath,
+    status: 'auto-seeded-from-execution',
+    meta: {
+      autoseeded: true,
+      action: normalizeString(requestBody?.action, 80) || 'manual-run'
+    }
+  };
+
+  const result = addOrUpdateFeature(syntheticFeature, 'runtime-execute-autoseed');
+  return { item: result.item, created: result.created, synthetic: true };
+}
+
 function summarize(store) {
   const byCategory = {};
   store.features.forEach((item) => {
@@ -302,23 +341,10 @@ router.post('/activate/bulk', (req, res) => {
 });
 
 router.post('/execute/:featureId', (req, res) => {
-  const store = getStore();
   const featureId = normalizeString(req.params.featureId, 40);
   const action = normalizeString(req.body?.action, 80) || 'manual-run';
-  const category = normalizeString(req.body?.category, 50).toLowerCase();
-
-  const match = store.features.find((item) => {
-    if (item.featureId !== featureId) return false;
-    if (!category) return true;
-    return item.category.toLowerCase() === category;
-  });
-
-  if (!match) {
-    return res.status(404).json({
-      ok: false,
-      message: 'Feature not found in active runtime store.'
-    });
-  }
+  const { item: match, created: autoCreated, synthetic } = ensureRuntimeFeatureForExecution(featureId, req.body);
+  const store = getStore();
 
   const event = {
     featureId: match.featureId,
@@ -338,7 +364,9 @@ router.post('/execute/:featureId', (req, res) => {
 
   return res.status(200).json({
     ok: true,
-    event
+    event,
+    autoCreated,
+    synthetic
   });
 });
 
