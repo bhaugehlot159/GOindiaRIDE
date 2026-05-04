@@ -67,7 +67,27 @@ const allowedOrigins = new Set([
 ]);
 
 const authGatewayBypassPrefixes = ['/api/auth'];
-const sharedGatewayBypassPaths = ['/api/bookings/fallback/admin-alert-email', ...authGatewayBypassPrefixes];
+function withApiMountVariants(paths = []) {
+  const variants = new Set();
+  for (const value of paths) {
+    const raw = String(value || '').trim();
+    if (!raw) continue;
+    variants.add(raw);
+    if (raw === '/api') {
+      variants.add('/');
+      continue;
+    }
+    if (raw.startsWith('/api/')) {
+      variants.add(raw.slice(4));
+    }
+  }
+  return [...variants];
+}
+
+const sharedGatewayBypassPaths = withApiMountVariants([
+  '/api/bookings/fallback/admin-alert-email',
+  ...authGatewayBypassPrefixes
+]);
 
 function removeAuthPrefix(prefixes = []) {
   const list = Array.isArray(prefixes) ? prefixes : [];
