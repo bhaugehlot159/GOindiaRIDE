@@ -89,14 +89,14 @@
         style.id = STYLE_ID;
         style.textContent = `
             :root {
-                --goi-navy: #0b2443;
-                --goi-navy-soft: #18436f;
-                --goi-teal: #1493a6;
-                --goi-gold: #f4b04e;
-                --goi-cream: #fff9f0;
+                --goi-navy: #241a47;
+                --goi-navy-soft: #35245f;
+                --goi-teal: #667eea;
+                --goi-gold: #764ba2;
+                --goi-cream: #f7f5ff;
                 --goi-card: rgba(255, 255, 255, 0.95);
-                --goi-border: rgba(11, 36, 67, 0.14);
-                --goi-shadow: 0 16px 34px rgba(11, 36, 67, 0.12);
+                --goi-border: rgba(102, 126, 234, 0.18);
+                --goi-shadow: 0 16px 34px rgba(72, 56, 140, 0.12);
             }
 
             html,
@@ -106,32 +106,32 @@
             }
 
             body.goi-global-theme {
-                --primary-color: #0b1f3a;
-                --primary-dark: #16355f;
-                --secondary-color: #1493a6;
-                --secondary-dark: #0f7080;
-                --accent-color: #f4b04e;
-                --bg-color: #f5f9fd;
+                --primary-color: #667eea;
+                --primary-dark: #764ba2;
+                --secondary-color: #764ba2;
+                --secondary-dark: #5f3f91;
+                --accent-color: #667eea;
+                --bg-color: #f7f5ff;
                 --bg-primary: #ffffff;
-                --bg-secondary: #f5f9fd;
+                --bg-secondary: #f7f5ff;
                 --bg-card: #ffffff;
-                --bg-light: #f5f9fd;
+                --bg-light: #f7f5ff;
                 --bg-white: #ffffff;
                 --card-bg: #ffffff;
-                --text-primary: #0b2443;
-                --text-dark: #0b2443;
-                --text-secondary: #38516f;
-                --text-light: #5f7791;
-                --border-color: rgba(11, 36, 67, 0.14);
-                --shadow-sm: 0 6px 16px rgba(11, 36, 67, 0.09);
-                --shadow-md: 0 12px 28px rgba(11, 36, 67, 0.12);
-                --shadow-lg: 0 18px 38px rgba(11, 36, 67, 0.15);
+                --text-primary: #241a47;
+                --text-dark: #241a47;
+                --text-secondary: #625b7e;
+                --text-light: #746d90;
+                --border-color: rgba(102, 126, 234, 0.18);
+                --shadow-sm: 0 6px 16px rgba(72, 56, 140, 0.09);
+                --shadow-md: 0 12px 28px rgba(72, 56, 140, 0.12);
+                --shadow-lg: 0 18px 38px rgba(72, 56, 140, 0.15);
 
                 position: relative;
                 background:
-                    radial-gradient(circle at 8% 10%, rgba(20, 147, 166, 0.18), transparent 36%),
-                    radial-gradient(circle at 92% 8%, rgba(244, 176, 78, 0.2), transparent 36%),
-                    linear-gradient(136deg, #f8fbff 0%, #eef4fb 52%, #e5f0fb 100%) !important;
+                    radial-gradient(circle at 8% 10%, rgba(102, 126, 234, 0.16), transparent 36%),
+                    radial-gradient(circle at 92% 8%, rgba(118, 75, 162, 0.17), transparent 36%),
+                    linear-gradient(136deg, #fbfaff 0%, #f7f5ff 52%, #efebff 100%) !important;
                 color: var(--goi-navy);
                 min-height: 100vh;
             }
@@ -139,9 +139,9 @@
             body.goi-global-theme.goi-page-login,
             body.goi-global-theme.goi-page-signup {
                 background:
-                    radial-gradient(circle at 0% 0%, rgba(20, 147, 166, 0.18), transparent 42%),
-                    radial-gradient(circle at 100% 10%, rgba(244, 176, 78, 0.24), transparent 36%),
-                    linear-gradient(138deg, #f9fcff 0%, #edf4fd 48%, #e3edf9 100%) !important;
+                    radial-gradient(circle at 0% 0%, rgba(102, 126, 234, 0.18), transparent 42%),
+                    radial-gradient(circle at 100% 10%, rgba(118, 75, 162, 0.2), transparent 36%),
+                    linear-gradient(138deg, #fbfaff 0%, #f7f5ff 48%, #efebff 100%) !important;
             }
 
             body.goi-global-theme *,
@@ -172,17 +172,20 @@
             body.goi-global-theme .sidebar-header,
             body.goi-global-theme .dashboard-header,
             body.goi-global-theme .topbar {
-                background: linear-gradient(120deg, var(--goi-gold) 0%, #fff8ef 46%, var(--goi-teal) 100%) !important;
-                color: var(--goi-navy) !important;
-                border-bottom: 1px solid var(--goi-border);
-                box-shadow: 0 5px 18px rgba(11, 31, 58, 0.08);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: #ffffff !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+                box-shadow: 0 12px 28px rgba(72, 56, 140, 0.22);
                 backdrop-filter: blur(4px);
             }
 
             body.goi-global-theme .navbar a,
             body.goi-global-theme .top-nav a,
             body.goi-global-theme .logo,
-            body.goi-global-theme .logo span,
+            body.goi-global-theme .logo span {
+                color: #ffffff !important;
+            }
+
             body.goi-global-theme h1,
             body.goi-global-theme h2,
             body.goi-global-theme h3,
@@ -220,7 +223,7 @@
 
             body.goi-global-theme.goi-page-login .login-left,
             body.goi-global-theme.goi-page-signup .signup-left {
-                background: linear-gradient(155deg, #0f2f53 0%, #1b4f80 58%, #1f7a9d 100%) !important;
+                background: linear-gradient(155deg, #667eea 0%, #764ba2 100%) !important;
                 color: #f3f9ff !important;
                 border-right: 1px solid rgba(255, 255, 255, 0.18);
             }
@@ -232,12 +235,12 @@
 
             body.goi-global-theme.goi-page-login .features-list i,
             body.goi-global-theme.goi-page-signup .features-list i {
-                color: #80e6ff !important;
+                color: #efeaff !important;
             }
 
             body.goi-global-theme.goi-page-login .login-right,
             body.goi-global-theme.goi-page-signup .signup-right {
-                background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%) !important;
+                background: linear-gradient(180deg, #ffffff 0%, #f7f5ff 100%) !important;
                 justify-content: flex-start !important;
                 overflow-y: auto !important;
             }
@@ -287,7 +290,7 @@
                 top: 0;
                 height: 3px;
                 border-radius: 999px;
-                background: linear-gradient(90deg, var(--goi-gold), #ffffff, var(--goi-teal));
+                background: linear-gradient(90deg, #667eea, #ffffff, #764ba2);
                 opacity: 0.75;
             }
 
@@ -303,10 +306,10 @@
             body.goi-global-theme .btn-signup,
             body.goi-global-theme .btn-submit,
             body.goi-global-theme button.primary {
-                background: linear-gradient(135deg, var(--goi-navy) 0%, var(--goi-navy-soft) 100%) !important;
+                background: linear-gradient(135deg, #35245f 0%, #241a47 100%) !important;
                 color: #fff !important;
-                border-color: var(--goi-navy) !important;
-                box-shadow: 0 7px 16px rgba(11, 31, 58, 0.22);
+                border-color: rgba(255, 255, 255, 0.2) !important;
+                box-shadow: 0 7px 16px rgba(72, 56, 140, 0.24);
             }
 
             body.goi-global-theme button *,
@@ -335,8 +338,8 @@
             body.goi-global-theme select:focus,
             body.goi-global-theme textarea:focus {
                 outline: none;
-                border-color: rgba(11, 31, 58, 0.42);
-                box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.1);
+                border-color: rgba(102, 126, 234, 0.56);
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.16);
             }
 
             .goi-rise-in {
@@ -409,10 +412,10 @@
 
             #${NAV_DOCK_ID} .goi-dock-btn.goi-dock-btn-primary,
             body.goi-global-theme .goi-native-nav-btn.goi-dock-btn-primary {
-                background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: #ffffff !important;
                 border-color: transparent;
-                box-shadow: 0 14px 28px rgba(10, 36, 67, 0.18);
+                box-shadow: 0 14px 28px rgba(72, 56, 140, 0.24);
             }
 
             #${NAV_DOCK_ID} .goi-dock-icon {

@@ -554,3 +554,46 @@ body [style*="background: white"],
 body [style*="background:white"] {
   border-color: var(--gir-purple-border) !important;
 }
+
+/* Runtime global-ui fallback: wins over dynamically injected old tricolor styles. */
+html body.goi-global-theme nav.navbar.navbar,
+html body.goi-global-theme .navbar.navbar,
+html body.goi-global-theme .top-nav.top-nav,
+html body.goi-global-theme .portal-header,
+html body.goi-global-theme .header,
+html body.goi-global-theme .app-header,
+html body.goi-global-theme .main-header,
+html body.goi-global-theme .sidebar-header,
+html body.goi-global-theme .dashboard-header,
+html body.goi-global-theme .topbar {
+  background: var(--gir-purple-gradient) !important;
+  color: #ffffff !important;
+  border-bottom-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 12px 28px rgba(72, 56, 140, 0.22) !important;
+}
+
+html body.goi-global-theme nav.navbar.navbar .logo,
+html body.goi-global-theme nav.navbar.navbar .logo span,
+html body.goi-global-theme nav.navbar.navbar .logo i,
+html body.goi-global-theme nav.navbar.navbar .navbar-links a,
+html body.goi-global-theme .top-nav.top-nav a,
+html body.goi-global-theme .top-nav.top-nav .logo,
+html body.goi-global-theme .top-nav.top-nav .logo span,
+html body.goi-global-theme .top-nav.top-nav .logo i {
+  color: #ffffff !important;
+}
+
+html body.goi-global-theme nav.navbar.navbar .btn-login,
+html body.goi-global-theme nav.navbar.navbar .btn-signup,
+html body.goi-global-theme nav.navbar.navbar .btn-admin {
+  background: rgba(36, 26, 71, 0.76) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.26) !important;
+}
+
+html body.goi-global-theme nav.navbar.navbar .btn-login:hover,
+html body.goi-global-theme nav.navbar.navbar .btn-signup:hover,
+html body.goi-global-theme nav.navbar.navbar .btn-admin:hover {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: var(--gir-purple-deep) !important;
+}

@@ -1,9 +1,10 @@
-const CACHE_NAME = 'goindiaride-pwa-v21-20260506';
+const CACHE_NAME = 'goindiaride-pwa-v22-20260506';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './css/professional-purple-theme.css',
+  './js/global-ui.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
