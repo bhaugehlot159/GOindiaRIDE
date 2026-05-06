@@ -94,6 +94,10 @@
     return safeRole + '_' + fnv1aHash(identity || ('fallback_' + Date.now()));
   }
 
+  function looksLikeBackendObjectId(value) {
+    return /^[a-f0-9]{24}$/i.test(normalizeText(value));
+  }
+
   function safeParse(raw, fallback) {
     try {
       if (!raw) return fallback;
@@ -418,9 +422,34 @@
     var safeRole = normalizeRole(profile && (profile.accountType || profile.role || roleHint));
     var safeEmail = normalizeEmail(profile && (profile.email || profile.userEmail || ''));
     var safePhone = normalizePhone(profile && (profile.phone || profile.mobile || profile.contact || ''));
-    var backendUserId = normalizeText(profile && (profile.id || profile._id || profile.sub || profile.userId || ''));
-    var existingId = normalizeText(profile && profile.id);
-    var stableId = existingId || createStableAccountId(safeRole, safeEmail, safePhone);
+    var profileId = normalizeText(profile && profile.id);
+    var backendUserId = normalizeText(profile && (
+      profile.backendUserId ||
+      profile._id ||
+      profile.sub ||
+      profile.userId ||
+      (looksLikeBackendObjectId(profileId) ? profileId : '')
+    ));
+    var portalSession = readPortalSession(safeRole) || {};
+    var stateUser = readState().user || {};
+    function matchesCurrentIdentity(candidate) {
+      if (!candidate || typeof candidate !== 'object') return false;
+      var candidateEmail = normalizeEmail(candidate.email || candidate.userEmail || '');
+      var candidatePhone = normalizePhone(candidate.phone || candidate.mobile || candidate.contact || '');
+      return Boolean(
+        (safeEmail && candidateEmail && safeEmail === candidateEmail) ||
+        (safePhone && candidatePhone && safePhone === candidatePhone)
+      );
+    }
+    function stableCandidate(value) {
+      var normalized = normalizeText(value);
+      if (!normalized || normalized === backendUserId || looksLikeBackendObjectId(normalized)) return '';
+      return normalized;
+    }
+    var existingId = stableCandidate(profile && (profile.localId || profile.clientId || profile.stableId || profile.id));
+    var portalId = matchesCurrentIdentity(portalSession) ? stableCandidate(portalSession.id) : '';
+    var stateId = matchesCurrentIdentity(stateUser) ? stableCandidate(stateUser.id) : '';
+    var stableId = existingId || portalId || stateId || createStableAccountId(safeRole, safeEmail, safePhone);
     var safeName = normalizeText(profile && (profile.fullname || profile.name || (safeRole === 'driver' ? 'Driver' : 'Customer'))) || (safeRole === 'driver' ? 'Driver' : 'Customer');
 
     if (safeRole === 'driver') {
