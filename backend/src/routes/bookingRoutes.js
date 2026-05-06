@@ -8,7 +8,7 @@ const WalletPaymentMode = require('../models/WalletPaymentMode');
 const User = require('../models/User');
 const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
-const { verifyFareIntegrity, computeFareHash } = require('../middleware/fareIntegrityMiddleware');
+const { verifyFareIntegrity, computeFareHash, estimateTrustedBookingFare } = require('../middleware/fareIntegrityMiddleware');
 const { walletCriticalLimiter, bookingFallbackEmailLimiter } = require('../middleware/rateLimiters');
 const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
@@ -1437,11 +1437,14 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
 });
 
 router.get('/quote', authenticate, continuousRiskGate, async (req, res) => {
-  const estimate = estimateBookingFare({
+  const estimate = estimateTrustedBookingFare({
     ...req.query,
     distanceKm: req.query.distanceKm || req.query.distance || 10,
     currency: req.query.currency || 'INR'
   });
+  if (!estimate.distanceTrusted) {
+    return res.status(422).json({ message: 'Trusted route distance unavailable for fare estimate' });
+  }
   const fareHash = computeFareHash({ distanceKm: estimate.distanceKm, amount: estimate.totalFare });
 
   return res.status(200).json({
@@ -1917,6 +1920,70 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
     rideTime: booking.rideTime
   });
 
+  const fareAffectingFields = new Set([
+    'pickup',
+    'dropoff',
+    'rideTime',
+    'returnDate',
+    'returnTime',
+    'tripPlan',
+    'paymentMethod',
+    'vehicleType',
+    'passengers',
+    'luggage',
+    'stops',
+    'specialRequests',
+    'safetyAccessibility'
+  ]);
+  const shouldRefreshFare = changedFields.some((field) => fareAffectingFields.has(field));
+  if (shouldRefreshFare) {
+    const updatedFareEstimate = estimateTrustedBookingFare({
+      pickup: booking.pickupLocation,
+      drop: booking.dropLocation,
+      rideDate: booking.rideDate,
+      rideTime: booking.rideTime,
+      returnDate: booking.returnDate,
+      returnTime: booking.returnTime,
+      tripPlan: booking.tripPlan,
+      tripServiceType: booking.tripServiceType,
+      vehicleType: booking.vehicleType,
+      vehicleModel: booking.vehicleModel,
+      paymentMethod: booking.paymentMethod,
+      passengers: booking.passengers,
+      luggage: booking.luggage,
+      stops: booking.stops,
+      specialRequests: booking.specialRequests,
+      safetyAccessibility: booking.safetyAccessibility,
+      budgetAmount: booking.budgetAmount,
+      customerBidAmount: booking.customerBidAmount,
+      promoCode: booking.referralCode
+    });
+
+    if (!updatedFareEstimate.distanceTrusted) {
+      return res.status(422).json({
+        message: 'Trusted route distance unavailable after booking edit',
+        changedFields,
+        editPolicy: policy
+      });
+    }
+
+    const updatedFareHash = computeFareHash({
+      distanceKm: updatedFareEstimate.distanceKm,
+      amount: updatedFareEstimate.totalFare
+    });
+    booking.amount = updatedFareEstimate.totalFare;
+    booking.distanceKm = updatedFareEstimate.distanceKm;
+    booking.distanceSource = updatedFareEstimate.distanceSource || booking.distanceSource || '';
+    booking.fareBreakdown = updatedFareEstimate;
+    booking.fareHash = updatedFareHash;
+    booking.fareQuote = {
+      amount: updatedFareEstimate.totalFare,
+      distanceKm: updatedFareEstimate.distanceKm,
+      source: updatedFareEstimate.distanceSource,
+      routeCategory: updatedFareEstimate.routeCategory
+    };
+  }
+
   booking.editHistory = Array.isArray(booking.editHistory) ? booking.editHistory : [];
   booking.editHistory.push({
     editedAt: now,
@@ -1956,6 +2023,12 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
       stops: Array.isArray(booking.stops) ? booking.stops : [],
       specialRequests: booking.specialRequests && typeof booking.specialRequests === 'object' ? booking.specialRequests : {},
       safetyAccessibility: booking.safetyAccessibility && typeof booking.safetyAccessibility === 'object' ? booking.safetyAccessibility : {},
+      amount: Number(booking.amount || 0),
+      distanceKm: Number(booking.distanceKm || 0),
+      distanceSource: booking.distanceSource || '',
+      fareBreakdown: booking.fareBreakdown && typeof booking.fareBreakdown === 'object' ? booking.fareBreakdown : {},
+      fareQuote: booking.fareQuote && typeof booking.fareQuote === 'object' ? booking.fareQuote : {},
+      fareHash: booking.fareHash || '',
       editCount: getBookingEditCount(booking),
       lastEditedAt: booking.lastEditedAt || null,
       outboundDateTime: booking.outboundDateTime || null
@@ -3055,7 +3128,13 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
 
   // Route: /fare/estimate
   router.post('/fare/estimate', (req, res) => {
-    const estimate = estimateFare(req.body || {});
+    const estimate = estimateTrustedBookingFare(req.body || {});
+    if (!estimate.distanceTrusted) {
+      return res.status(422).json({
+        ok: false,
+        message: 'Trusted route distance unavailable for fare estimate'
+      });
+    }
     const fareHash = computeFareHash({ distanceKm: estimate.distanceKm, amount: estimate.totalFare });
     return res.status(200).json({
       ok: true,

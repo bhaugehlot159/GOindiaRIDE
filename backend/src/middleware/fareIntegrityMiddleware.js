@@ -6,11 +6,22 @@ function computeFareHash({ distanceKm, amount }) {
   return crypto.createHmac('sha256', env.apiSignatureSecret).update(`${distanceKm}:${amount}`).digest('hex');
 }
 
+function estimateTrustedBookingFare(input = {}) {
+  return estimateBookingFare({
+    ...(input || {}),
+    enforceTrustedDistance: true
+  });
+}
+
 function verifyFareIntegrity(req, res, next) {
-  const fareEstimate = estimateBookingFare(req.body || {});
+  const fareEstimate = estimateTrustedBookingFare(req.body || {});
   const { fareHash } = req.body || {};
   if (!fareHash) {
     return res.status(400).json({ message: 'fareHash required for tamper detection' });
+  }
+
+  if (!fareEstimate.distanceTrusted) {
+    return res.status(422).json({ message: 'Trusted route distance unavailable for fare verification' });
   }
 
   const clientAmount = Number(req.body?.amount ?? req.body?.totalFare ?? fareEstimate.totalFare ?? 0);
@@ -28,4 +39,4 @@ function verifyFareIntegrity(req, res, next) {
   return next();
 }
 
-module.exports = { verifyFareIntegrity, computeFareHash };
+module.exports = { verifyFareIntegrity, computeFareHash, estimateTrustedBookingFare };

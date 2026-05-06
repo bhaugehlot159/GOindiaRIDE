@@ -195,6 +195,22 @@
     };
   }
 
+  function hasPendingLocalEdit(row) {
+    return String((row && row.editSyncStatus) || '').trim().toLowerCase() === 'pending';
+  }
+
+  function mergeBackendBookingRow(existing, mapped) {
+    if (!existing || !hasPendingLocalEdit(existing)) {
+      return Object.assign({}, existing || {}, mapped);
+    }
+
+    return Object.assign({}, mapped, existing, {
+      liveBackendSnapshot: mapped,
+      editSyncStatus: 'pending',
+      editSyncConflict: true
+    });
+  }
+
   function mergeBackendBookingsIntoLocal(items, user) {
     var localRows = readLocalBookings();
     var currentUserId = String((user && (user.id || user.userId)) || '').trim();
@@ -205,7 +221,7 @@
     safeArray(items).forEach(function (item) {
       var mapped = mapBackendBookingToLocal(item, user);
       var ref = getBookingRef(mapped);
-      if (ref) mergedMap[ref] = Object.assign({}, mergedMap[ref] || {}, mapped);
+      if (ref) mergedMap[ref] = mergeBackendBookingRow(mergedMap[ref] || null, mapped);
     });
     var mergedCurrentUserRows = Object.keys(mergedMap).map(function (key) { return mergedMap[key]; });
     mergedCurrentUserRows.sort(function (left, right) {
