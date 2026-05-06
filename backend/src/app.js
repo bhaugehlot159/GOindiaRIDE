@@ -35,6 +35,7 @@ const { requestThreatShieldMiddleware } = require('./middleware/requestThreatShi
 const { apiSecurityHeadersMiddleware } = require('./middleware/apiSecurityHeadersMiddleware');
 const { csrfShieldMiddleware, issueCsrfToken } = require('./middleware/csrfShieldMiddleware');
 const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware');
+const logger = require('./utils/logger');
 
 const app = express();
 
@@ -50,6 +51,14 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 app.use(apiSecurityHeadersMiddleware());
+
+// Meta sends dotted query keys like hub.mode, so this route must run before query sanitizers.
+app.get(['/webhook', '/api/webhook'], verifyWhatsAppWebhook);
+app.post(
+  ['/webhook', '/api/webhook'],
+  express.json({ limit: `${env.maxJsonBodyKb}kb` }),
+  receiveWhatsAppWebhook
+);
 
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
@@ -68,6 +77,40 @@ const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
   ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
 ]);
+
+const whatsappWebhookVerifyToken = String(
+  process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
+    || process.env.META_WHATSAPP_WEBHOOK_VERIFY_TOKEN
+    || 'GOIndiaRideSecurityToken123'
+).trim();
+
+function verifyWhatsAppWebhook(req, res) {
+  const mode = String(req.query['hub.mode'] || '').trim();
+  const token = String(req.query['hub.verify_token'] || '').trim();
+  const challenge = req.query['hub.challenge'];
+
+  if (mode === 'subscribe' && token === whatsappWebhookVerifyToken && challenge !== undefined) {
+    logger.info('whatsapp_webhook_verified', { path: req.path });
+    return res.status(200).type('text/plain').send(String(challenge));
+  }
+
+  logger.warn('whatsapp_webhook_verification_failed', {
+    path: req.path,
+    mode,
+    hasToken: Boolean(token),
+    hasChallenge: challenge !== undefined
+  });
+  return res.sendStatus(403);
+}
+
+function receiveWhatsAppWebhook(req, res) {
+  logger.info('whatsapp_webhook_received', {
+    path: req.path,
+    object: req.body && req.body.object,
+    entries: Array.isArray(req.body && req.body.entry) ? req.body.entry.length : 0
+  });
+  return res.sendStatus(200);
+}
 
 const authGatewayBypassPrefixes = ['/api/auth'];
 function withApiMountVariants(paths = []) {
