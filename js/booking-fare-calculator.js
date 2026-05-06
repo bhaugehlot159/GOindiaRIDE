@@ -96,6 +96,91 @@
     'tourist'
   ];
 
+  const STATIC_LOCATION_COORDINATES = {
+    jaipur: { lat: 26.9124, lon: 75.7873 },
+    jodhpur: { lat: 26.2389, lon: 73.0243 },
+    udaipur: { lat: 24.5854, lon: 73.7125 },
+    ajmer: { lat: 26.4499, lon: 74.6399 },
+    kota: { lat: 25.2138, lon: 75.8648 },
+    bikaner: { lat: 28.0229, lon: 73.3119 },
+    jaisalmer: { lat: 26.9157, lon: 70.9083 },
+    alwar: { lat: 27.5530, lon: 76.6346 },
+    bharatpur: { lat: 27.2173, lon: 77.49 },
+    bhilwara: { lat: 25.3471, lon: 74.6408 },
+    chittorgarh: { lat: 24.8887, lon: 74.6269 },
+    churu: { lat: 28.2921, lon: 74.9672 },
+    dausa: { lat: 26.893, lon: 76.333 },
+    dholpur: { lat: 26.702, lon: 77.8934 },
+    dungarpur: { lat: 23.843, lon: 73.7147 },
+    hanumangarh: { lat: 29.5818, lon: 74.3294 },
+    jalore: { lat: 25.345, lon: 72.615 },
+    jhalawar: { lat: 24.5963, lon: 76.163 },
+    jhunjhunu: { lat: 28.1289, lon: 75.3991 },
+    karauli: { lat: 26.4924, lon: 77.0276 },
+    nagaur: { lat: 27.202, lon: 73.733 },
+    pali: { lat: 25.7711, lon: 73.3234 },
+    pratapgarh: { lat: 23.8604, lon: 74.6273 },
+    rajsamand: { lat: 25.0713, lon: 73.8798 },
+    sawaimadhopur: { lat: 26.0173, lon: 76.3569 },
+    sikar: { lat: 27.6094, lon: 75.1399 },
+    sirohi: { lat: 24.8823, lon: 72.8577 },
+    sriganganagar: { lat: 29.9038, lon: 73.8772 },
+    ganganagar: { lat: 29.9038, lon: 73.8772 },
+    tonk: { lat: 26.166, lon: 75.788 },
+    banswara: { lat: 23.541, lon: 74.442 },
+    baran: { lat: 25.1015, lon: 76.513 },
+    barmer: { lat: 25.7447, lon: 71.3921 },
+    bundi: { lat: 25.441, lon: 75.637 },
+    deeg: { lat: 27.472, lon: 77.327 },
+    balotra: { lat: 25.837, lon: 72.247 },
+    beawar: { lat: 26.1013, lon: 74.321 },
+    didwanakuchaman: { lat: 27.149, lon: 74.854 },
+    gangapurcity: { lat: 26.473, lon: 76.716 },
+    jaipurrural: { lat: 26.9124, lon: 75.7873 },
+    jodhpurrural: { lat: 26.2389, lon: 73.0243 },
+    kekri: { lat: 25.969, lon: 75.149 },
+    khairthaltijara: { lat: 27.939, lon: 76.845 },
+    kotputlibehror: { lat: 27.706, lon: 76.2 },
+    neemkathana: { lat: 27.737, lon: 75.804 },
+    phalodi: { lat: 27.133, lon: 72.366 },
+    salumbar: { lat: 23.945, lon: 74.069 },
+    sanchore: { lat: 24.752, lon: 71.772 },
+    shahpura: { lat: 27.382, lon: 75.95 },
+    mountabu: { lat: 24.5937, lon: 72.7156 },
+    aburoad: { lat: 24.48, lon: 72.78 },
+    nathdwara: { lat: 24.93, lon: 73.823 },
+    kumbhalgarh: { lat: 25.147, lon: 73.586 },
+    ranakpur: { lat: 25.116, lon: 73.466 },
+    pushkar: { lat: 26.49, lon: 74.5511 },
+    kishangarh: { lat: 26.59, lon: 74.853 },
+    mertacity: { lat: 26.647, lon: 74.032 },
+    kankroli: { lat: 25.057, lon: 73.882 },
+    tijara: { lat: 27.938, lon: 76.844 },
+    kotputli: { lat: 27.706, lon: 76.2 },
+    behror: { lat: 27.883, lon: 76.285 },
+    kuchamancity: { lat: 27.152, lon: 74.856 },
+    didwana: { lat: 27.4, lon: 74.575 },
+    ranthambore: { lat: 26.0173, lon: 76.3569 },
+    delhi: { lat: 28.6139, lon: 77.209 },
+    newdelhi: { lat: 28.6139, lon: 77.209 },
+    gurugram: { lat: 28.4595, lon: 77.0266 },
+    gurgaon: { lat: 28.4595, lon: 77.0266 },
+    faridabad: { lat: 28.4089, lon: 77.3178 },
+    agra: { lat: 27.1767, lon: 78.0081 },
+    noida: { lat: 28.5355, lon: 77.391 },
+    ghaziabad: { lat: 28.6692, lon: 77.4538 },
+    ahmedabad: { lat: 23.0225, lon: 72.5714 },
+    indore: { lat: 22.7196, lon: 75.8577 },
+    bhopal: { lat: 23.2599, lon: 77.4126 },
+    chandigarh: { lat: 30.7333, lon: 76.7794 },
+    mumbai: { lat: 19.076, lon: 72.8777 },
+    pune: { lat: 18.5204, lon: 73.8567 },
+    bengaluru: { lat: 12.9716, lon: 77.5946 },
+    bangalore: { lat: 12.9716, lon: 77.5946 },
+    chennai: { lat: 13.0827, lon: 80.2707 },
+    kolkata: { lat: 22.5726, lon: 88.3639 }
+  };
+
   function sanitizeText(value, maxLen = 180) {
     return String(value || '')
       .replace(/[\u0000-\u001f<>]/g, ' ')
@@ -115,6 +200,10 @@
 
   function normalizeKey(value) {
     return sanitizeText(value, 80).toLowerCase();
+  }
+
+  function normalizeLookupKey(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   }
 
   function extractFirstNumber(value) {
@@ -196,9 +285,20 @@
   }
 
   function resolveRouteData(pickup, dropoff) {
-    const routeFn = globalScope && typeof globalScope.getRouteSuggestions === 'function'
+    let routeFn = globalScope && typeof globalScope.getRouteSuggestions === 'function'
       ? globalScope.getRouteSuggestions
       : null;
+
+    if (!routeFn && typeof module === 'object' && module.exports && typeof require === 'function') {
+      try {
+        const routeModule = require('./route-suggestions');
+        routeFn = routeModule && typeof routeModule.getRouteSuggestions === 'function'
+          ? routeModule.getRouteSuggestions
+          : null;
+      } catch (_error) {
+        routeFn = null;
+      }
+    }
 
     if (!routeFn) return null;
 
@@ -207,6 +307,66 @@
     } catch (_error) {
       return null;
     }
+  }
+
+  function resolveCoordinate(value) {
+    const normalized = normalizeLookupKey(value);
+    if (!normalized) return null;
+
+    if (STATIC_LOCATION_COORDINATES[normalized]) {
+      return STATIC_LOCATION_COORDINATES[normalized];
+    }
+
+    const keys = Object.keys(STATIC_LOCATION_COORDINATES).sort((a, b) => b.length - a.length);
+    for (const key of keys) {
+      if (normalized.includes(key) || key.includes(normalized)) {
+        return STATIC_LOCATION_COORDINATES[key];
+      }
+    }
+
+    return null;
+  }
+
+  function toRadians(value) {
+    return (value * Math.PI) / 180;
+  }
+
+  function haversineKm(a, b) {
+    const earthRadiusKm = 6371;
+    const dLat = toRadians(b.lat - a.lat);
+    const dLon = toRadians(b.lon - a.lon);
+    const lat1 = toRadians(a.lat);
+    const lat2 = toRadians(b.lat);
+    const sinLat = Math.sin(dLat / 2);
+    const sinLon = Math.sin(dLon / 2);
+    const aa = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLon * sinLon;
+    return earthRadiusKm * (2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa)));
+  }
+
+  function estimateRoadMultiplier(straightLineKm, fromText, toText) {
+    const combined = `${normalizeKey(fromText)} ${normalizeKey(toText)}`;
+    if (!Number.isFinite(straightLineKm) || straightLineKm <= 0) return 1.25;
+    if (/airport|station|railway|bus stand|terminal/.test(combined)) return straightLineKm < 25 ? 1.15 : 1.2;
+    if (/temple|fort|palace|museum|lake|market|tourist|dargah|garden|safari/.test(combined)) return straightLineKm < 50 ? 1.2 : 1.26;
+    if (/rural/.test(combined)) return straightLineKm < 50 ? 1.24 : 1.3;
+    if (straightLineKm < 20) return 1.12;
+    if (straightLineKm < 75) return 1.2;
+    return 1.28;
+  }
+
+  function estimateTrustedCoordinateDistanceKm(pickup, dropoff) {
+    const pickupPoint = resolveCoordinate(pickup);
+    const dropoffPoint = resolveCoordinate(dropoff);
+    if (!pickupPoint || !dropoffPoint) {
+      return { km: 0, source: '' };
+    }
+
+    const straightLineKm = haversineKm(pickupPoint, dropoffPoint);
+    const roadKm = Math.max(1, straightLineKm * estimateRoadMultiplier(straightLineKm, pickup, dropoff));
+    return {
+      km: roadKm,
+      source: 'server_coordinate'
+    };
   }
 
   function normalizeVehicleType(rideType, vehicleModel) {
@@ -541,12 +701,23 @@
     const pickup = sanitizeText(rawInput.pickup || rawInput.pickupLocation || rawInput.from || '', 180);
     const dropoff = sanitizeText(rawInput.drop || rawInput.dropoff || rawInput.dropLocation || rawInput.to || '', 180);
     const routeData = resolveRouteData(pickup, dropoff);
-    const distanceSource = normalizeKey(rawInput.distanceSource || (routeData ? 'route_table' : 'manual')) || 'manual';
+    const enforceTrustedDistance = rawInput.enforceTrustedDistance === true;
+    const requestedDistanceSource = normalizeKey(rawInput.distanceSource || (routeData ? 'route_table' : 'manual')) || 'manual';
     const providedDistance = Math.max(0, toNumber(rawInput.distanceKm ?? rawInput.distance ?? 0));
     const routeDistanceKm = routeData ? parseDistanceValue(routeData.distance) : 0;
-    const distanceKm = routeDistanceKm > 0 && (distanceSource === 'fallback' || distanceSource === 'route_table' || !providedDistance)
-      ? routeDistanceKm
-      : providedDistance || routeDistanceKm || 1;
+    const coordinateDistance = routeDistanceKm > 0
+      ? { km: 0, source: '' }
+      : estimateTrustedCoordinateDistanceKm(pickup, dropoff);
+    const trustedDistanceKm = routeDistanceKm || coordinateDistance.km || 0;
+    const distanceTrusted = trustedDistanceKm > 0;
+    const distanceSource = routeDistanceKm > 0
+      ? 'route_table'
+      : (coordinateDistance.source || (enforceTrustedDistance ? 'untrusted' : requestedDistanceSource));
+    const distanceKm = enforceTrustedDistance
+      ? (trustedDistanceKm || 0)
+      : (routeDistanceKm > 0 && (requestedDistanceSource === 'fallback' || requestedDistanceSource === 'route_table' || !providedDistance)
+        ? routeDistanceKm
+        : providedDistance || trustedDistanceKm || 1);
     const vehicleType = normalizeVehicleType(rawInput.vehicleType || rawInput.rideType, rawInput.vehicleModel);
     const vehicleProfile = resolveVehicleProfile(vehicleType);
     const tripPlan = normalizeTripPlan(rawInput.tripPlan);
@@ -684,6 +855,8 @@
       distanceSource,
       routeCategory,
       routeHighlights: routeHighLevel,
+      distanceTrusted,
+      trustedDistanceSource: distanceTrusted ? distanceSource : '',
       pickupState,
       dropState,
       interState,
