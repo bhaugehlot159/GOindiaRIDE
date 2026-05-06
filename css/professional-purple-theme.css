@@ -326,3 +326,231 @@ table th,
     min-height: 112px;
   }
 }
+
+/* Final site-wide brand completion: overrides older tricolor/inline accents without deleting them. */
+body .navbar,
+body nav.navbar,
+body header,
+body .top-nav,
+body .topbar,
+body .site-header,
+body .main-header,
+body .dashboard-header,
+body .admin-header,
+body .app-header {
+  background: var(--gir-purple-gradient) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+body .navbar .container,
+body .navbar .logo,
+body .navbar .logo i,
+body .navbar-links,
+body .navbar-links a,
+body .top-nav .logo,
+body .top-nav a,
+body header a,
+body header span,
+body nav.navbar a,
+body nav.navbar span,
+body nav.navbar i {
+  color: #ffffff !important;
+}
+
+body .navbar-links a:not(.btn-login):not(.btn-signup):not(.btn-admin),
+body .nav-links a:not(.btn-login):not(.btn-signup):not(.btn-admin) {
+  background: transparent !important;
+  border-radius: 10px;
+  text-shadow: 0 1px 1px rgba(26, 18, 67, 0.2);
+}
+
+body .navbar-links a:not(.btn-login):not(.btn-signup):not(.btn-admin):hover,
+body .nav-links a:not(.btn-login):not(.btn-signup):not(.btn-admin):hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+}
+
+body .navbar-switchers select,
+body .navbar select,
+body .language-selector,
+body .currency-selector {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: var(--gir-purple-ink) !important;
+  border: 1px solid rgba(255, 255, 255, 0.38) !important;
+  box-shadow: 0 10px 24px rgba(36, 26, 71, 0.18) !important;
+}
+
+body .btn-login,
+body .btn-signup,
+body .btn-admin,
+body .navbar .btn-login,
+body .navbar .btn-signup,
+body .navbar .btn-admin {
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  background: rgba(36, 26, 71, 0.72) !important;
+}
+
+body .btn-login:hover,
+body .btn-signup:hover,
+body .btn-admin:hover,
+body .navbar .btn-login:hover,
+body .navbar .btn-signup:hover,
+body .navbar .btn-admin:hover {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: var(--gir-purple-deep) !important;
+}
+
+body .hero,
+body section.hero,
+body .hero-section,
+body .page-hero,
+body .dashboard-hero {
+  background:
+    radial-gradient(520px 240px at 8% 18%, rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(460px 260px at 92% 18%, rgba(255, 255, 255, 0.1), transparent 62%),
+    var(--gir-purple-gradient) !important;
+  color: #ffffff !important;
+}
+
+body .hero h1,
+body .hero h1 *,
+body .hero h2,
+body .hero h2 *,
+body .hero h3,
+body .hero h3 *,
+body .hero p,
+body .hero p *,
+body .hero span,
+body .hero i,
+body .hero-content,
+body .hero-content * {
+  color: #ffffff !important;
+}
+
+body .hero p,
+body .hero .subtitle,
+body .hero .tagline {
+  color: rgba(255, 255, 255, 0.9) !important;
+  opacity: 1 !important;
+}
+
+body .hero .btn-secondary,
+body .hero button.btn-secondary,
+body .hero a.btn-secondary {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: var(--gir-purple-ink) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+body .hero .btn-secondary *,
+body .hero button.btn-secondary *,
+body .hero a.btn-secondary * {
+  color: inherit !important;
+}
+
+body .hero .btn-primary,
+body .hero a.btn-primary,
+body .hero button.btn-primary {
+  background: rgba(36, 26, 71, 0.88) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+body .hero .btn-primary *,
+body .hero a.btn-primary *,
+body .hero button.btn-primary * {
+  color: inherit !important;
+}
+
+body .quick-action-btn,
+body .quick-action-btn *,
+body .booking-type-btn,
+body .booking-type-btn *,
+body .dashboard-action,
+body .dashboard-action *,
+body .action-card,
+body .action-card * {
+  color: #ffffff !important;
+}
+
+body .quick-action-btn,
+body .booking-type-btn,
+body .dashboard-action,
+body .action-card {
+  background: var(--gir-purple-gradient) !important;
+}
+
+body [style*="#ff9933"],
+body [style*="#138808"],
+body [style*="#0B1F3A"],
+body [style*="#0b1f3a"],
+body [style*="#2e7d32"],
+body [style*="#1565c0"],
+body [style*="#e65100"] {
+  border-color: var(--gir-purple-border) !important;
+  color: var(--gir-purple-deep) !important;
+}
+
+body i[style*="#0B1F3A"],
+body i[style*="#0b1f3a"],
+body i[style*="#138808"],
+body i[style*="#ff9933"] {
+  color: var(--gir-purple-blue) !important;
+}
+
+body [style*="background: #e8f5e9"],
+body [style*="background:#e8f5e9"],
+body [style*="background: #e3f2fd"],
+body [style*="background:#e3f2fd"],
+body [style*="background: #fff3e0"],
+body [style*="background:#fff3e0"],
+body [style*="background: #fff7ed"],
+body [style*="background:#fff7ed"] {
+  background: var(--gir-purple-gradient-soft) !important;
+  color: var(--gir-purple-deep) !important;
+}
+
+body [style*="border-bottom: 4px solid #0B1F3A"],
+body [style*="border-bottom:4px solid #0B1F3A"],
+body [style*="border: 2px solid #0B1F3A"],
+body [style*="border:2px solid #0B1F3A"] {
+  border-color: var(--gir-purple-border) !important;
+}
+
+body [style*="color: #333"],
+body [style*="color:#333"],
+body [style*="color: #0B1F3A"],
+body [style*="color:#0B1F3A"],
+body [style*="color: #0b1f3a"],
+body [style*="color:#0b1f3a"] {
+  color: var(--gir-purple-ink) !important;
+}
+
+body [style*="color: #666"],
+body [style*="color:#666"],
+body [style*="color: #999"],
+body [style*="color:#999"] {
+  color: var(--gir-purple-muted) !important;
+}
+
+body .card,
+body .feature-card,
+body .pricing-card,
+body .service-card,
+body .contact-card,
+body .stat-card,
+body .quick-booking-card,
+body .wallet-card,
+body .profile-card,
+body .tourism-card,
+body .travel-card,
+body .support-option,
+body .booking-card,
+body .ride-card,
+body .modal-content,
+body [style*="background: white"],
+body [style*="background:white"] {
+  border-color: var(--gir-purple-border) !important;
+}
