@@ -1,3 +1,2 @@
-data/mongodb/** filter=lfs diff=lfs merge=lfs -text
-data/mongodb-27018/** filter=lfs diff=lfs merge=lfs -text
-data/mongodb-job/** filter=lfs diff=lfs merge=lfs -text
+# Runtime MongoDB files should not be tracked through Git LFS for production deploy clones.
+# Keeping this file to allow future explicit attributes when needed.

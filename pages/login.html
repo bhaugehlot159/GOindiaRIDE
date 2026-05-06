@@ -855,11 +855,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="../js/portal-connector.js"></script>
-    <script src="../js/login-controller.js?v=20260427-loginfix11"></script>
+    <script src="../js/session-continuity.js?v=20260504-session1"></script>
+    <script src="../js/login-controller.js?v=20260504-loginfix13"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                const swVersion = '20260427-11';
+                const swVersion = '20260504-03';
                 navigator.serviceWorker
                     .register('../sw.js?v=' + swVersion)
                     .then(function (registration) {

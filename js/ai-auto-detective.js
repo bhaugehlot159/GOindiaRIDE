@@ -83,7 +83,7 @@
             host === 'github.io' ||
             host.endsWith('.github.io')
         ) {
-            return 'https://api.goindiaride.in';
+            return 'https://goindiaride.onrender.com';
         }
 
         if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]') {

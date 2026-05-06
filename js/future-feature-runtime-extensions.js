@@ -14,7 +14,7 @@
 
   var PRIMARY_DOMAIN_REGEX = /(^|\.)goindiaride\.in$/i;
   var GITHUB_PAGES_HOST_REGEX = /\.github\.io$/i;
-  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://api.goindiaride.in';
+  var DEFAULT_PRODUCTION_API_ORIGIN = 'https://goindiaride.onrender.com';
   var API_BREAKER_KEY = 'goindiaride.runtime.business-api-breaker.v1';
   var API_BREAKER_WINDOW_MS = 5 * 60 * 1000;
   var API_BREAKER_THRESHOLD = 3;
@@ -50,17 +50,22 @@
   }
 
   function detectApiOrigin() {
+    var host = currentHostname();
+    var sameOrigin = normalizeOrigin((window.location && window.location.origin) || '');
     var explicit = normalizeOrigin(
       window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ ||
       window.__GOINDIARIDE_API_ORIGIN__ ||
       ''
     );
+    if (PRIMARY_DOMAIN_REGEX.test(host) && (!explicit || explicit === sameOrigin)) {
+      return DEFAULT_PRODUCTION_API_ORIGIN;
+    }
     if (explicit) return explicit;
 
-    var inferred = inferApiOriginFromHostname(currentHostname());
+    var inferred = inferApiOriginFromHostname(host);
     if (inferred) return inferred;
 
-    return normalizeOrigin((window.location && window.location.origin) || '');
+    return sameOrigin;
   }
 
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';
@@ -147,6 +152,82 @@
     return false;
   }
 
+  var ACTIVATION_SYNC_DISABLED = !RUNTIME_DEBUG && PAGE_ROLE === 'booking';
+  var ACTIVATION_SYNC_MAX_PER_PAGE = PAGE_ROLE === 'admin' ? 200 : 80;
+  var ACTIVATION_SYNC_MIN_GAP_MS = PAGE_ROLE === 'admin' ? 40 : 120;
+  var activationSyncState = window.__GOINDIARIDE_FUTURE_RUNTIME_ACTIVATION_SYNC_STATE__ || {};
+  if (!Array.isArray(activationSyncState.queue)) activationSyncState.queue = [];
+  if (!activationSyncState.queuedKeys || typeof activationSyncState.queuedKeys !== 'object') activationSyncState.queuedKeys = {};
+  if (typeof activationSyncState.inFlight !== 'boolean') activationSyncState.inFlight = false;
+  var existingScheduledCount = Number(activationSyncState.scheduledCount);
+  activationSyncState.scheduledCount = Number.isFinite(existingScheduledCount) ? existingScheduledCount : 0;
+  activationSyncState.timerId = activationSyncState.timerId || null;
+  window.__GOINDIARIDE_FUTURE_RUNTIME_ACTIVATION_SYNC_STATE__ = activationSyncState;
+
+  function scheduleActivationSyncDispatch() {
+    if (activationSyncState.timerId || activationSyncState.inFlight || !activationSyncState.queue.length) return;
+    activationSyncState.timerId = window.setTimeout(function () {
+      activationSyncState.timerId = null;
+      flushActivationSyncQueue();
+    }, ACTIVATION_SYNC_MIN_GAP_MS);
+  }
+
+  function flushActivationSyncQueue() {
+    if (ACTIVATION_SYNC_DISABLED) return;
+    if (activationSyncState.inFlight) return;
+    if (!activationSyncState.queue.length) return;
+    if (typeof window.fetch !== 'function' || !API_BASE) return;
+    if (shouldShortCircuitRemoteApi()) {
+      activationSyncState.queue = [];
+      activationSyncState.queuedKeys = {};
+      return;
+    }
+
+    var item = activationSyncState.queue.shift();
+    if (!item || !item.key || !item.payload) {
+      scheduleActivationSyncDispatch();
+      return;
+    }
+
+    delete activationSyncState.queuedKeys[item.key];
+    activationSyncState.inFlight = true;
+
+    window.fetch(API_BASE + '/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item.payload || {})
+    }).then(function (response) {
+      if (response && response.ok) {
+        markRemoteApiHealthy();
+      } else {
+        markRemoteApiFailure();
+      }
+    }).catch(function () {
+      markRemoteApiFailure();
+    }).then(function () {
+      activationSyncState.inFlight = false;
+      scheduleActivationSyncDispatch();
+    });
+  }
+
+  function enqueueActivationSync(syncKey, payload) {
+    if (ACTIVATION_SYNC_DISABLED || !syncKey) return false;
+    if (typeof window.fetch !== 'function' || !API_BASE) return false;
+    if (activationSyncState.queuedKeys[syncKey]) return false;
+    if (activationSyncState.scheduledCount >= ACTIVATION_SYNC_MAX_PER_PAGE) return false;
+
+    activationSyncState.queuedKeys[syncKey] = true;
+    activationSyncState.scheduledCount += 1;
+    activationSyncState.queue.push({
+      key: syncKey,
+      payload: payload || {}
+    });
+    if (!activationSyncState.inFlight && !activationSyncState.timerId) {
+      flushActivationSyncQueue();
+    }
+    return true;
+  }
+
   function postJson(path, payload) {
     if (typeof window.fetch !== 'function' || !API_BASE) return;
     if (shouldShortCircuitRemoteApi()) return;
@@ -174,6 +255,27 @@
     return requestBusiness('GET', path, null);
   }
 
+  function readRuntimeDashboardUser() {
+    try {
+      if (window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ && typeof window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ === 'object') {
+        return window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__;
+      }
+      if (window.currentUser && typeof window.currentUser === 'object') {
+        return window.currentUser;
+      }
+      if (window.localStorage) {
+        var rawUser = window.localStorage.getItem('currentUser');
+        if (rawUser) {
+          var parsedUser = JSON.parse(rawUser);
+          if (parsedUser && typeof parsedUser === 'object') return parsedUser;
+        }
+      }
+    } catch (_error) {
+      // ignore
+    }
+    return null;
+  }
+
   function currentUserKey() {
     try {
       if (window.localStorage) {
@@ -185,6 +287,15 @@
           var candidate = parsed.email || parsed.phone || parsed.name;
           if (candidate) return normalize(candidate);
         }
+      }
+      var dashboardUser = readRuntimeDashboardUser();
+      if (dashboardUser) {
+        var userId = dashboardUser.id || dashboardUser.userId || dashboardUser.customerId;
+        if (userId) return normalize('customer:' + userId);
+        var userEmail = dashboardUser.email || dashboardUser.userEmail;
+        if (userEmail) return normalize(userEmail);
+        var userPhone = dashboardUser.phone || dashboardUser.mobile || dashboardUser.contact;
+        if (userPhone) return normalize(userPhone);
       }
     } catch (_error) {
       // ignore
@@ -267,12 +378,15 @@
     premium: 25,
     xl: 28
   };
-  // On production custom domain we should avoid hitting GitHub Pages with
-  // fallback API paths because that can trigger abuse/rate-limit pages.
+  // Keep primary website on same-origin first, but preserve Render fallback.
   var BUSINESS_API_BASES = uniqueList(
-    API_ORIGIN
-      ? [API_ORIGIN + '/api/future-runtime-business']
-      : (ALLOW_RELATIVE_API_FALLBACK ? ['/api/future-runtime-business'] : [])
+    [
+      API_ORIGIN ? (API_ORIGIN + '/api/future-runtime-business') : '',
+      normalizeOrigin((window.location && window.location.origin) || '') ? (normalizeOrigin((window.location && window.location.origin) || '') + '/api/future-runtime-business') : '',
+      normalizeOrigin(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || '') ? (normalizeOrigin(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || '') + '/api/future-runtime-business') : '',
+      normalizeOrigin(window.__GOINDIARIDE_API_ORIGIN__ || '') ? (normalizeOrigin(window.__GOINDIARIDE_API_ORIGIN__ || '') + '/api/future-runtime-business') : '',
+      DEFAULT_PRODUCTION_API_ORIGIN + '/api/future-runtime-business'
+    ].concat(ALLOW_RELATIVE_API_FALLBACK ? ['/api/future-runtime-business'] : [])
   );
 
   function uniqueList(values) {
@@ -1422,11 +1536,11 @@
     var options = {
       method: method,
       headers: {
-        'Content-Type': 'application/json',
-        'X-GoindiaRide-Runtime': 'future-feature-runtime-extensions'
+        Accept: 'application/json'
       }
     };
     if (method !== 'GET') {
+      options.headers['Content-Type'] = 'application/json';
       options.body = JSON.stringify(payload || {});
     }
 
@@ -1473,8 +1587,120 @@
     return list[0] || null;
   }
 
-  function ensureWorkspace() {
-    if (PAGE_ROLE === 'generic' && !RUNTIME_DEBUG) return null;
+  function isCustomerDashboardRuntimePage() {
+    return PAGE_ROLE === 'customer' && !!document.getElementById('customerRuntimeActiveMount');
+  }
+
+  function getCustomerRuntimeSectionKey(cardId) {
+    switch (String(cardId || '')) {
+      case 'auth':
+      case 'profile':
+      case 'kyc':
+      case 'travel-card':
+      case 'saved-locations':
+      case 'terms-consent':
+        return 'profile';
+      case 'payment':
+      case 'referral':
+        return 'wallet';
+      case 'ride-history':
+      case 'rating':
+      case 'reviews':
+      case 'booking-policy':
+      case 'policy-rules':
+        return 'history';
+      case 'support-helpdesk':
+      case 'notifications':
+      case 'chatbot':
+      case 'translator':
+      case 'dispute':
+        return 'messages';
+      case 'live-tracking':
+      case 'tourism':
+      case 'ai-recommendation':
+      case 'trust-brand':
+      case 'fare-estimator':
+      case 'packages':
+        return 'active';
+      default:
+        return 'active';
+    }
+  }
+
+  function getCustomerRuntimeSectionConfig(sectionKey) {
+    var configs = {
+      active: {
+        mountId: 'customerRuntimeActiveMount',
+        title: 'Travel Tools & Suggestions',
+        description: 'Live tracking, smart suggestions, tourism discovery, and active-trip tools are grouped here.',
+        accent: '#38bdf8'
+      },
+      history: {
+        mountId: 'customerRuntimeHistoryMount',
+        title: 'History, Reviews & Policy',
+        description: 'Ride history, ratings, review tools, and booking policy actions stay together here.',
+        accent: '#f59e0b'
+      },
+      messages: {
+        mountId: 'customerRuntimeMessagesMount',
+        title: 'Support, Notifications & Help',
+        description: 'Helpdesk, alerts, chatbot, translation, and dispute tools appear in one support area.',
+        accent: '#2563eb'
+      },
+      wallet: {
+        mountId: 'customerRuntimeWalletMount',
+        title: 'Wallet, Coupon & Travel Pass',
+        description: 'Payment, coupon, wallet, and related financial utilities are placed together here.',
+        accent: '#0f766e'
+      },
+      profile: {
+        mountId: 'customerRuntimeProfileMount',
+        title: 'Account, Privacy & Verification',
+        description: 'Login, profile, KYC, saved details, and consent-related features are grouped here.',
+        accent: '#7c3aed'
+      }
+    };
+
+    return configs[sectionKey] || configs.active;
+  }
+
+  function getCustomerRuntimeOrderMap(sectionKey) {
+    var orders = {
+      active: ['live-tracking', 'ai-recommendation', 'tourism', 'fare-estimator', 'packages', 'trust-brand'],
+      history: ['ride-history', 'rating', 'reviews', 'booking-policy', 'policy-rules'],
+      messages: ['support-helpdesk', 'notifications', 'chatbot', 'translator', 'dispute'],
+      wallet: ['payment', 'referral'],
+      profile: ['auth', 'profile', 'kyc', 'travel-card', 'saved-locations', 'terms-consent']
+    };
+    return orders[sectionKey] || [];
+  }
+
+  function sortCustomerWorkspaceCards(workspace, sectionKey) {
+    if (!workspace) return;
+    var orderedIds = getCustomerRuntimeOrderMap(sectionKey);
+    if (!orderedIds.length) return;
+
+    var weights = {};
+    for (var i = 0; i < orderedIds.length; i += 1) {
+      weights[orderedIds[i]] = i;
+    }
+
+    var cards = Array.prototype.slice.call(workspace.children || []);
+    cards.sort(function (left, right) {
+      var leftId = String((left && left.id) || '').replace('ff-runtime-card-', '');
+      var rightId = String((right && right.id) || '').replace('ff-runtime-card-', '');
+      var leftWeight = Object.prototype.hasOwnProperty.call(weights, leftId) ? weights[leftId] : 999;
+      var rightWeight = Object.prototype.hasOwnProperty.call(weights, rightId) ? weights[rightId] : 999;
+      if (leftWeight === rightWeight) return leftId.localeCompare(rightId);
+      return leftWeight - rightWeight;
+    });
+
+    for (var j = 0; j < cards.length; j += 1) {
+      workspace.appendChild(cards[j]);
+    }
+  }
+
+  function ensureDefaultWorkspace() {
     var root = document.querySelector('.dashboard-main, .dashboard-content, .booking-panel, .container, main, body');
     if (!root) return null;
 
@@ -1488,50 +1714,71 @@
     return box;
   }
 
+  function ensureCustomerWorkspace(sectionKey) {
+    var config = getCustomerRuntimeSectionConfig(sectionKey);
+    var mount = document.getElementById(config.mountId);
+    if (!mount) return ensureDefaultWorkspace();
+
+    if (!mount.querySelector('.ff-runtime-section-grid')) {
+      mount.innerHTML = ''
+        + '<section class=\"ff-runtime-section-shell\" style=\"margin-top:18px;padding:18px;border:1px solid rgba(191,219,254,0.95);border-top:4px solid ' + config.accent + ';background:linear-gradient(180deg,#f8fbff 0%,#ffffff 100%);border-radius:16px;box-shadow:0 12px 28px rgba(15,23,42,0.04);\">'
+        +   '<div style=\"display:flex;flex-direction:column;gap:4px;margin-bottom:14px;\">'
+        +     '<h4 style=\"margin:0;color:#143a69;font-size:1.08rem;font-weight:700;\">' + config.title + '</h4>'
+        +     '<p style=\"margin:0;color:#5f6b7a;font-size:0.92rem;line-height:1.55;\">' + config.description + '</p>'
+        +   '</div>'
+        +   '<div class=\"ff-runtime-section-grid\" style=\"display:grid;gap:12px;\"></div>'
+        + '</section>';
+    }
+
+    mount.style.display = '';
+    return mount.querySelector('.ff-runtime-section-grid') || mount;
+  }
+
+  function ensureWorkspace(sectionKey) {
+    if (PAGE_ROLE === 'generic' && !RUNTIME_DEBUG) return null;
+    if (isCustomerDashboardRuntimePage()) {
+      return ensureCustomerWorkspace(sectionKey || 'active');
+    }
+    return ensureDefaultWorkspace();
+  }
+
   function ensureCard(cardId, title) {
-    var workspace = ensureWorkspace();
+    var sectionKey = isCustomerDashboardRuntimePage() ? getCustomerRuntimeSectionKey(cardId) : 'default';
+    var workspace = ensureWorkspace(sectionKey);
     if (!workspace) return null;
     var id = 'ff-runtime-card-' + cardId;
     var card = document.getElementById(id);
-    if (card) return card;
+    if (card) {
+      if (card.parentNode !== workspace) {
+        workspace.appendChild(card);
+      }
+      if (isCustomerDashboardRuntimePage()) {
+        sortCustomerWorkspaceCards(workspace, sectionKey);
+      }
+      return card;
+    }
 
     card = document.createElement('section');
     card.id = id;
-    card.style.cssText = 'padding:12px;border:1px solid #d9e7ff;background:#f8fbff;border-radius:10px;';
-    card.innerHTML = '<h5 style=\"margin:0 0 8px 0;color:#143a69;font-family:Segoe UI,Tahoma,sans-serif;\">' + title + '</h5><div class=\"ff-runtime-card-body\"></div>';
+    card.style.cssText = 'padding:14px 16px;border:1px solid rgba(148,163,184,0.22);background:#ffffff;border-radius:14px;box-shadow:0 8px 24px rgba(15,23,42,0.04);';
+    card.innerHTML = '<h5 style=\"margin:0 0 10px 0;color:#143a69;font-family:Segoe UI,Tahoma,sans-serif;font-size:1rem;\">' + title + '</h5><div class=\"ff-runtime-card-body\"></div>';
     workspace.appendChild(card);
+    if (isCustomerDashboardRuntimePage()) {
+      sortCustomerWorkspaceCards(workspace, sectionKey);
+    }
     return card;
   }
 
   function placeCustomerAccountCard(cardId) {
-    if (PAGE_ROLE !== 'customer') return;
-    var workspace = ensureWorkspace();
-    if (!workspace) return;
-
-    var authCard = document.getElementById('ff-runtime-card-auth');
-    var profileCard = document.getElementById('ff-runtime-card-profile');
+    if (!isCustomerDashboardRuntimePage()) return;
+    var sectionKey = getCustomerRuntimeSectionKey(cardId);
+    var workspace = ensureWorkspace(sectionKey);
     var targetCard = document.getElementById('ff-runtime-card-' + cardId);
-    if (!targetCard || targetCard.parentNode !== workspace) return;
-
-    if (cardId === 'auth') {
-      if (workspace.firstElementChild !== authCard) {
-        workspace.insertBefore(authCard, workspace.firstElementChild);
-      }
-      if (profileCard && authCard.nextElementSibling !== profileCard) {
-        workspace.insertBefore(profileCard, authCard.nextElementSibling);
-      }
-      return;
+    if (!workspace || !targetCard) return;
+    if (targetCard.parentNode !== workspace) {
+      workspace.appendChild(targetCard);
     }
-
-    if (cardId === 'profile') {
-      if (authCard) {
-        if (authCard.nextElementSibling !== profileCard) {
-          workspace.insertBefore(profileCard, authCard.nextElementSibling);
-        }
-      } else if (workspace.firstElementChild !== profileCard) {
-        workspace.insertBefore(profileCard, workspace.firstElementChild);
-      }
-    }
+    sortCustomerWorkspaceCards(workspace, sectionKey);
   }
 
   function ensureSelectOption(selectEl, value, label) {
@@ -1549,6 +1796,8 @@
   function executeFeature(feature, action, payload) {
     postJson('/execute/' + encodeURIComponent(feature.featureId || 'NA'), {
       category: feature.category || 'general',
+      blockKey: feature.blockKey || '',
+      description: feature.description || '',
       action: action || 'manual-run',
       pagePath: window.location.pathname,
       payload: payload || {}
@@ -1560,7 +1809,7 @@
     if (extState.syncKeys[key]) return;
     extState.syncKeys[key] = true;
 
-    postJson('/activate', {
+    enqueueActivationSync(key, {
       source: 'frontend-runtime-extension',
       detail: detail || {},
       feature: {
@@ -1584,14 +1833,18 @@
     if (!body || body.querySelector('#ffx-auth-login')) return;
 
     body.innerHTML = [
-      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;\">',
       '<input id=\"ffx-auth-email\" placeholder=\"Email\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-auth-phone\" placeholder=\"Phone\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-auth-otp\" placeholder=\"OTP\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '</div>',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-auth-signup\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Signup</button>',
       '<button type=\"button\" id=\"ffx-auth-login\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Login</button>',
       '<button type=\"button\" id=\"ffx-auth-google\" style=\"padding:8px;border:0;border-radius:8px;background:#ef4444;color:#fff;\">Google Login</button>',
       '<button type=\"button\" id=\"ffx-auth-facebook\" style=\"padding:8px;border:0;border-radius:8px;background:#1e40af;color:#fff;\">Facebook Login</button>',
+      '</div>',
       '</div>'
     ].join('');
 
@@ -1617,20 +1870,38 @@
     if (!body || body.querySelector('#ffx-profile-save')) return;
 
     body.innerHTML = [
-      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<input id=\"ffx-profile-name\" placeholder=\"Full name\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-profile-address\" placeholder=\"Address\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-profile-contact1\" placeholder=\"Emergency contact 1\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-profile-contact2\" placeholder=\"Emergency contact 2\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-profile-contact3\" placeholder=\"Emergency contact 3\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '</div>',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<input id=\"ffx-profile-photo\" type=\"file\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-profile-id\" type=\"file\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<select id=\"ffx-profile-lang\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>Hindi</option><option>English</option><option>Rajasthani</option></select>',
+      '</div>',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-profile-save\" style=\"padding:8px;border:0;border-radius:8px;background:#16a34a;color:#fff;\">Save Profile</button>',
       '<button type=\"button\" id=\"ffx-profile-password\" style=\"padding:8px;border:0;border-radius:8px;background:#334155;color:#fff;\">Change Password</button>',
       '<button type=\"button\" id=\"ffx-profile-delete\" style=\"padding:8px;border:0;border-radius:8px;background:#b91c1c;color:#fff;\">Delete Account</button>',
+      '</div>',
       '</div>'
     ].join('');
+
+    var runtimeUser = readRuntimeDashboardUser() || {};
+    if (runtimeUser) {
+      var nameField = body.querySelector('#ffx-profile-name');
+      var addressField = body.querySelector('#ffx-profile-address');
+      var primaryContactField = body.querySelector('#ffx-profile-contact1');
+      if (nameField && !nameField.value) nameField.value = runtimeUser.fullname || runtimeUser.name || '';
+      if (addressField && !addressField.value) addressField.value = runtimeUser.address || runtimeUser.city || '';
+      if (primaryContactField && !primaryContactField.value) {
+        primaryContactField.value = runtimeUser.phone || runtimeUser.mobile || runtimeUser.contact || runtimeUser.email || '';
+      }
+    }
 
     body.querySelector('#ffx-profile-save').addEventListener('click', function () {
       var payload = {
@@ -1652,7 +1923,17 @@
 
       if (window.localStorage) {
         window.localStorage.setItem('goindiaride.profile.runtime', JSON.stringify(payload));
-        window.localStorage.setItem('goindiaride.runtime.userKey', normalize(payload.contact1 || payload.name || 'guest-user'));
+        window.localStorage.setItem('goindiaride.runtime.userKey', normalize(currentUserKey() || payload.contact1 || payload.name || 'guest-user'));
+      }
+
+      var nativeName = document.getElementById('profileNameInput');
+      var nativeEmail = document.getElementById('profileEmailInput');
+      var nativePhone = document.getElementById('profilePhoneInput');
+      if (nativeName) nativeName.value = payload.name || nativeName.value || '';
+      if (nativeEmail && runtimeUser && runtimeUser.email) nativeEmail.value = runtimeUser.email;
+      if (nativePhone) nativePhone.value = payload.contact1 || nativePhone.value || '';
+      if (typeof window.saveProfileDetails === 'function') {
+        window.saveProfileDetails();
       }
 
       postBusiness('/preferences/' + encodeURIComponent(currentUserKey()), {
@@ -1684,13 +1965,15 @@
     if (!body || body.querySelector('#ffx-payment-apply')) return;
 
     body.innerHTML = [
-      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<input id=\"ffx-payment-coupon\" placeholder=\"Coupon code\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<button type=\"button\" id=\"ffx-payment-apply\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Apply Coupon</button>',
       '<input id=\"ffx-payment-wallet\" placeholder=\"Wallet amount\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<button type=\"button\" id=\"ffx-payment-wallet-add\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Add Wallet</button>',
       '</div>',
-      '<div id=\"ffx-payment-output\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#173b67;\">Wallet balance: loading...</div>'
+      '<div id=\"ffx-payment-output\" style=\"margin-top:8px;padding:8px;background:#fff;border:1px solid #dbe7ff;border-radius:8px;font-size:12px;color:#173b67;\">Wallet balance: loading...</div>',
+      '</div>'
     ].join('');
 
     var output = body.querySelector('#ffx-payment-output');
@@ -1892,7 +2175,8 @@
     if (!body || body.querySelector('#ffx-rating-save')) return;
 
     body.innerHTML = [
-      '<div style=\"display:flex;gap:6px;flex-wrap:wrap;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:8px;\">',
       '<button type=\"button\" data-rating=\"1\" style=\"padding:6px 8px;border:0;border-radius:8px;background:#dbeafe;\">1★</button>',
       '<button type=\"button\" data-rating=\"2\" style=\"padding:6px 8px;border:0;border-radius:8px;background:#dbeafe;\">2★</button>',
       '<button type=\"button\" data-rating=\"3\" style=\"padding:6px 8px;border:0;border-radius:8px;background:#dbeafe;\">3★</button>',
@@ -1900,8 +2184,11 @@
       '<button type=\"button\" data-rating=\"5\" style=\"padding:6px 8px;border:0;border-radius:8px;background:#dbeafe;\">5★</button>',
       '</div>',
       '<input id=\"ffx-rating-feedback\" placeholder=\"Feedback\" style=\"margin-top:8px;padding:8px;width:100%;border:1px solid #c8d8f8;border-radius:8px;\"/>',
-      '<button type=\"button\" id=\"ffx-rating-save\" style=\"margin-top:8px;padding:8px;border:0;border-radius:8px;background:#16a34a;color:#fff;\">Save Rating</button>',
-      '<div id=\"ffx-rating-output\" style=\"margin-top:8px;font-size:12px;color:#24416d;\"></div>'
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<button type=\"button\" id=\"ffx-rating-save\" style=\"padding:8px;border:0;border-radius:8px;background:#16a34a;color:#fff;\">Save Rating</button>',
+      '</div>',
+      '<div id=\"ffx-rating-output\" style=\"margin-top:8px;font-size:12px;color:#24416d;\"></div>',
+      '</div>'
     ].join('');
 
     var selected = 0;
@@ -1984,14 +2271,18 @@
     if (!body || body.querySelector('#ffx-kyc-upload')) return;
 
     body.innerHTML = [
-      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
-      '<input type=\"file\" id=\"ffx-kyc-license\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
-      '<input type=\"file\" id=\"ffx-kyc-rc\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
-      '<input type=\"file\" id=\"ffx-kyc-insurance\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
-      '<input type=\"file\" id=\"ffx-kyc-pan\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
-      '<input type=\"file\" id=\"ffx-kyc-aadhar\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
-      '<input type=\"file\" id=\"ffx-kyc-police\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
+      '<label style=\"display:grid;gap:6px;font-size:12px;color:#35557d;font-weight:600;\">Driving License<input type=\"file\" id=\"ffx-kyc-license\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;font-weight:400;\"/></label>',
+      '<label style=\"display:grid;gap:6px;font-size:12px;color:#35557d;font-weight:600;\">RC Book<input type=\"file\" id=\"ffx-kyc-rc\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;font-weight:400;\"/></label>',
+      '<label style=\"display:grid;gap:6px;font-size:12px;color:#35557d;font-weight:600;\">Insurance<input type=\"file\" id=\"ffx-kyc-insurance\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;font-weight:400;\"/></label>',
+      '<label style=\"display:grid;gap:6px;font-size:12px;color:#35557d;font-weight:600;\">PAN Card<input type=\"file\" id=\"ffx-kyc-pan\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;font-weight:400;\"/></label>',
+      '<label style=\"display:grid;gap:6px;font-size:12px;color:#35557d;font-weight:600;\">Aadhar Card<input type=\"file\" id=\"ffx-kyc-aadhar\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;font-weight:400;\"/></label>',
+      '<label style=\"display:grid;gap:6px;font-size:12px;color:#35557d;font-weight:600;\">Police Verification<input type=\"file\" id=\"ffx-kyc-police\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;font-weight:400;\"/></label>',
+      '</div>',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-kyc-upload\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Upload & Verify</button>',
+      '</div>',
       '</div>'
     ].join('');
 
@@ -2063,11 +2354,13 @@
     if (!body || body.querySelector('#ffx-live-track-start')) return;
 
     body.innerHTML = [
-      '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-live-track-start\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Start Tracking</button>',
       '<button type=\"button\" id=\"ffx-live-track-stop\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#334155;color:#fff;\">Stop</button>',
       '</div>',
-      '<div id=\"ffx-live-track-status\" style=\"margin-top:8px;padding:8px;border-radius:8px;background:#edf4ff;color:#1e3a5f;\">Tracking idle</div>'
+      '<div id=\"ffx-live-track-status\" style=\"margin-top:8px;padding:8px;border-radius:8px;background:#edf4ff;color:#1e3a5f;\">Tracking idle</div>',
+      '</div>'
     ].join('');
 
     var watchId = null;
@@ -2170,14 +2463,18 @@
     if (!body || body.querySelector('#ffx-notification-send')) return;
 
     body.innerHTML = [
-      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<input id=\"ffx-notification-title\" placeholder=\"Notification title\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<input id=\"ffx-notification-message\" placeholder=\"Notification message\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
       '<select id=\"ffx-notification-channel\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option value=\"in_app\">In-App</option><option value=\"sms\">SMS</option><option value=\"email\">Email</option><option value=\"whatsapp\">WhatsApp</option></select>',
+      '</div>',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-notification-send\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Send</button>',
       '<button type=\"button\" id=\"ffx-notification-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">Refresh Feed</button>',
       '</div>',
-      '<div id=\"ffx-notification-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+      '<div id=\"ffx-notification-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
+      '</div>'
     ].join('');
 
     var list = body.querySelector('#ffx-notification-list');
@@ -2276,11 +2573,13 @@
     if (!body || body.querySelector('#ffx-history-refresh')) return;
 
     body.innerHTML = [
-      '<div style=\"display:flex;gap:8px;flex-wrap:wrap;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-history-refresh\" style=\"padding:8px 10px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Refresh History</button>',
       '<a id=\"ffx-history-export\" href=\"#\" style=\"padding:8px 10px;border-radius:8px;background:#0f766e;color:#fff;text-decoration:none;\">Export CSV</a>',
       '</div>',
-      '<div id=\"ffx-history-list\" style=\"margin-top:8px;max-height:200px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+      '<div id=\"ffx-history-list\" style=\"margin-top:8px;max-height:200px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
+      '</div>'
     ].join('');
 
     var list = body.querySelector('#ffx-history-list');
@@ -2667,13 +2966,17 @@
     if (!body || body.querySelector('#ffx-support-create')) return;
 
     body.innerHTML = [
-      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;\">',
+      '<div style=\"display:grid;gap:10px;\">',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;\">',
       '<select id=\"ffx-support-category\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"><option>booking</option><option>payment</option><option>safety</option><option>refund</option><option>general</option></select>',
       '<input id=\"ffx-support-message\" placeholder=\"Issue details\" style=\"padding:8px;border:1px solid #c8d8f8;border-radius:8px;\"/>',
+      '</div>',
+      '<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;\">',
       '<button type=\"button\" id=\"ffx-support-create\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Raise Ticket</button>',
       '<button type=\"button\" id=\"ffx-support-refresh\" style=\"padding:8px;border:0;border-radius:8px;background:#0f766e;color:#fff;\">My Tickets</button>',
       '</div>',
-      '<div id=\"ffx-support-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+      '<div id=\"ffx-support-list\" style=\"margin-top:8px;max-height:180px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
+      '</div>'
     ].join('');
 
     var list = body.querySelector('#ffx-support-list');
@@ -2755,8 +3058,10 @@
     if (!body || body.querySelector('#ffx-ai-reco-load')) return;
 
     body.innerHTML = [
+      '<div style=\"display:grid;gap:10px;\">',
       '<button type=\"button\" id=\"ffx-ai-reco-load\" style=\"padding:8px;border:0;border-radius:8px;background:#1d4ed8;color:#fff;\">Load Smart Recommendations</button>',
-      '<div id=\"ffx-ai-reco-output\" style=\"margin-top:8px;max-height:200px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>'
+      '<div id=\"ffx-ai-reco-output\" style=\"margin-top:8px;max-height:200px;overflow:auto;background:#fff;border:1px solid #dbe7ff;border-radius:8px;padding:8px;font-size:12px;\"></div>',
+      '</div>'
     ].join('');
 
     var output = body.querySelector('#ffx-ai-reco-output');

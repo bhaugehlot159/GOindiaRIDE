@@ -163,6 +163,76 @@ function buildPhoneLookupCandidates(rawValue) {
   return [...candidates];
 }
 
+function getFirebaseClientConfig() {
+  const fallbackConfig = {
+    apiKey: 'AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik',
+    authDomain: 'gehlot-86e38.firebaseapp.com',
+    projectId: 'gehlot-86e38',
+    storageBucket: 'gehlot-86e38.firebasestorage.app',
+    messagingSenderId: '1086303809008',
+    appId: '1:1086303809008:web:4325934708c7770c2d4135',
+    measurementId: 'G-LJSEHPM2XH'
+  };
+  const fallbackApiKey = fallbackConfig.apiKey;
+  const apiKey = String(
+    env.firebaseKey
+    || process.env.FIREBASE_KEY
+    || process.env.FIREBASE_WEB_API_KEY
+    || fallbackApiKey
+    || ''
+  ).trim();
+  if (!/^AIza[0-9A-Za-z_-]{20,}$/.test(apiKey) || apiKey.includes('replace_with_')) {
+    return null;
+  }
+
+  const rawProjectId = String(process.env.FIREBASE_PROJECT_ID || fallbackConfig.projectId).trim();
+  const projectId = /^[a-z][a-z0-9-]{4,30}$/.test(rawProjectId) ? rawProjectId : fallbackConfig.projectId;
+
+  const rawAuthDomain = String(process.env.FIREBASE_AUTH_DOMAIN || '').trim();
+  const authDomain = /^[a-z0-9-]+\.firebaseapp\.com$/i.test(rawAuthDomain)
+    ? rawAuthDomain
+    : `${projectId}.firebaseapp.com`;
+
+  const rawStorageBucket = String(process.env.FIREBASE_STORAGE_BUCKET || '').trim();
+  const storageBucket = rawStorageBucket && /^[a-z0-9.-]+$/i.test(rawStorageBucket)
+    ? rawStorageBucket
+    : fallbackConfig.storageBucket;
+
+  const rawSenderId = String(process.env.FIREBASE_MESSAGING_SENDER_ID || '').trim();
+  const messagingSenderId = /^\d{6,20}$/.test(rawSenderId) ? rawSenderId : fallbackConfig.messagingSenderId;
+
+  const rawAppId = String(process.env.FIREBASE_APP_ID || '').trim();
+  const appId = /^\d+:\d+:[a-z]+:[0-9a-z]+$/i.test(rawAppId) ? rawAppId : fallbackConfig.appId;
+
+  const rawMeasurementId = String(process.env.FIREBASE_MEASUREMENT_ID || '').trim();
+  const measurementId = /^G-[0-9A-Z]+$/i.test(rawMeasurementId) ? rawMeasurementId : fallbackConfig.measurementId;
+
+  return {
+    apiKey,
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId,
+    measurementId
+  };
+}
+
+router.get('/firebase/client-config', (_req, res) => {
+  const config = getFirebaseClientConfig();
+  if (!config) {
+    return res.status(503).json({
+      ok: false,
+      message: 'Firebase client config unavailable'
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    config
+  });
+});
+
 function isStrongPassword(value) {
   const password = String(value || '');
   if (password.length < 8) return false;
@@ -216,8 +286,10 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
   return res.status(201).json({ id: user._id, email: user.email, phone: user.phone, role: user.role, accountType: user.accountType });
 });
 
-router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, async (req, res) => {
+router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   const { email, password } = req.body;
+  const requestedAccountTypeRaw = String(req.body?.accountType || '').trim();
+  const requestedAccountType = requestedAccountTypeRaw ? normalizeAccountType(requestedAccountTypeRaw) : '';
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const ip = getClientIp(req);
   const country = getCountry(req);
@@ -253,6 +325,16 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recapt
     await user.save();
     await LoginLog.create({ userId: user._id, email: user.email, ip, country, ...device, status: 'fail', reason: 'Wrong password' });
     return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  if (requestedAccountType) {
+    const userType = user.role === 'admin' ? 'admin' : normalizeAccountType(user.accountType);
+    if (userType !== requestedAccountType) {
+      return res.status(403).json({
+        message: `Account type mismatch. This account is registered as ${userType}`,
+        accountType: userType
+      });
+    }
   }
 
   // 🔐 2FA Check for any user
@@ -369,7 +451,14 @@ if (user.role === "admin") {
 
   return res.status(200).json({
     accessToken,
+    refreshToken,
+    id: String(user._id),
+    name: user.name || '',
+    email: user.email || '',
+    phone: user.phone || '',
+    isPhoneVerified: Boolean(user.isPhoneVerified),
     role: user.role,
+    accountType: user.accountType || (user.role === 'admin' ? 'admin' : 'customer'),
     riskScore: user.riskScore,
     requiresExtraOtp: isNewDevice || geoMismatch || behavior.score >= 40
   });

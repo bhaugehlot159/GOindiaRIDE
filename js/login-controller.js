@@ -263,11 +263,48 @@ function saveBackendAccessToken(token){
   localStorage.setItem('accessToken',normalized);
   localStorage.setItem('authToken',normalized);
   localStorage.setItem('token',normalized);
+  if(window.GoIndiaSessionContinuity&&typeof window.GoIndiaSessionContinuity.storeAuthArtifacts==='function'){
+    try{
+      window.GoIndiaSessionContinuity.storeAuthArtifacts({
+        accessToken:normalized,
+        apiBase:getBackendApiBase()
+      });
+    }catch(_error){
+    }
+  }
+}
+function saveBackendRefreshToken(token){
+  const normalized=String(token||'').trim();
+  if(!normalized)return;
+  localStorage.setItem('goindiaride_refresh_token',normalized);
+  localStorage.setItem('goindiaride_refresh_token_v1',normalized);
+  if(window.GoIndiaSessionContinuity&&typeof window.GoIndiaSessionContinuity.storeAuthArtifacts==='function'){
+    try{
+      window.GoIndiaSessionContinuity.storeAuthArtifacts({
+        refreshToken:normalized,
+        apiBase:getBackendApiBase()
+      });
+    }catch(_error){
+    }
+  }
 }
 function clearBackendAccessToken(){
   localStorage.removeItem('accessToken');
   localStorage.removeItem('authToken');
   localStorage.removeItem('token');
+}
+function persistSessionContinuity(role,user,overrides={}){
+  if(!window.GoIndiaSessionContinuity||typeof window.GoIndiaSessionContinuity.storeAuthArtifacts!=='function')return;
+  try{
+    window.GoIndiaSessionContinuity.storeAuthArtifacts({
+      accountType:role,
+      user:user&&typeof user==='object'?user:null,
+      accessToken:readBackendAccessToken(),
+      refreshToken:String(overrides.refreshToken||'').trim(),
+      apiBase:getBackendApiBase()
+    });
+  }catch(_error){
+  }
 }
 function markBackendAuthMode(mode,reason=''){
   const normalizedMode=String(mode||'').trim()||'fallback_local';
@@ -309,6 +346,32 @@ function getUsableStoredPlainPassword(record){
   if(/[\x00-\x08\x0E-\x1F]/.test(candidate))return'';
   return candidate;
 }
+function normalizeApiBaseCandidate(value){
+  return String(value||'').trim().replace(/\/$/, '');
+}
+function isTrustedPublicApiBase(value){
+  const normalized=normalizeApiBaseCandidate(value);
+  if(!normalized)return false;
+  try{
+    const parsed=new URL(normalized);
+    const apiHost=String(parsed.hostname||'').toLowerCase();
+    return apiHost==='goindiaride.onrender.com'||apiHost==='goindiaride.in'||apiHost==='www.goindiaride.in'||apiHost.endsWith('.goindiaride.in');
+  }catch(_error){
+    return false;
+  }
+}
+function persistBackendApiBase(base){
+  const normalized=normalizeApiBaseCandidate(base);
+  if(!normalized)return;
+  const host=String(window.location.hostname||'').toLowerCase();
+  const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
+  const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
+  if((isPrimaryWebsiteHost||isGitHubPagesHost)&&!isTrustedPublicApiBase(normalized))return;
+  try{
+    localStorage.setItem('goindiaride_api_base',normalized);
+  }catch(_error){
+  }
+}
 function getBackendApiBase(){
   const host=String(window.location.hostname||'').toLowerCase();
   const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
@@ -317,7 +380,7 @@ function getBackendApiBase(){
   const localBackendBase='http://localhost:5000';
   const fromRuntimeOrigin=sanitizeInput(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__||window.__GOINDIARIDE_API_ORIGIN__||'');
   const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
-  const fromStorage=sanitizeInput(localStorage.getItem('goindiaride_api_base')||'');
+  const fromStorage=normalizeApiBaseCandidate(localStorage.getItem('goindiaride_api_base')||'');
 
   const normalizeCandidate=(value)=>{
     const text=String(value||'').trim();
@@ -328,6 +391,7 @@ function getBackendApiBase(){
   const resolveCandidate=(candidate)=>{
     const normalized=normalizeCandidate(candidate);
     if(!normalized)return'';
+    if((isPrimaryWebsiteHost||isGitHubPagesHost)&&normalizeCandidate(candidate)===fromStorage&&!isTrustedPublicApiBase(normalized))return'';
     if(!isLocalHost)return normalized;
     try{
       const parsed=new URL(normalized);
@@ -400,7 +464,7 @@ async function callBackendAuth(path,payload){
   if(isPrimaryWebsiteHost){
     pushBase(primaryBase);
     pushBase('https://goindiaride.onrender.com');
-    pushBase('https://api.goindiaride.in');
+    pushBase('https://goindiaride.onrender.com');
     if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
     if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
   }else{
@@ -447,6 +511,7 @@ async function callBackendAuth(path,payload){
         return lastHttpFailure;
       }
 
+      persistBackendApiBase(base);
       return{ok:true,status:res.status,data};
     }catch(error){
       if(error&&String(error.name||'').toLowerCase()==='aborterror'){
@@ -473,7 +538,7 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
   const accountType=String(role||'customer').toLowerCase()==='driver'?'driver':'customer';
   if(!email||!phone||!plainPassword)return{synced:false,reason:'missing_identity'};
 
-  const loginPayload={email,password:plainPassword,website:'',submittedAt:Date.now()-1500,recaptchaToken:createPseudoRecaptchaToken('gir-login-sync')};
+  const loginPayload={email,password:plainPassword,accountType,website:'',submittedAt:Date.now()-1500,recaptchaToken:createPseudoRecaptchaToken('gir-login-sync')};
   let loginResult=await callBackendAuth('/api/auth/login',loginPayload);
 
   if(!loginResult.ok&&(loginResult.status===401||loginResult.status===404||loginResult.status===409)){
@@ -494,6 +559,14 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
 
   if(loginResult.ok&&loginResult.data&&loginResult.data.accessToken){
     saveBackendAccessToken(loginResult.data.accessToken);
+    saveBackendRefreshToken(loginResult.data.refreshToken||'');
+    persistSessionContinuity(accountType,{
+      ...record,
+      backendUserId:loginResult.data.id||loginResult.data.userId||record?.backendUserId||'',
+      isPhoneVerified:Boolean(loginResult.data.isPhoneVerified??record?.isPhoneVerified)
+    },{
+      refreshToken:loginResult.data.refreshToken||''
+    });
     localStorage.setItem('goindiaride_auth_mode','secure_backend');
     return{synced:true};
   }
@@ -683,6 +756,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
   const backendLogin=await callBackendAuth('/api/auth/login',{
     email:safeEmail,
     password:safePassword,
+    accountType:safeRole,
     website:'',
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-login-recovery')
@@ -694,6 +768,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
 
   if(backendLogin.data&&backendLogin.data.accessToken){
     saveBackendAccessToken(backendLogin.data.accessToken);
+    saveBackendRefreshToken(backendLogin.data.refreshToken||'');
     localStorage.setItem('goindiaride_auth_mode','secure_backend');
   }
 
@@ -712,6 +787,9 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
     isPhoneVerified:Boolean(profile?.isPhoneVerified ?? backendLogin.data?.isPhoneVerified ?? false),
     vehicleType:profile?.vehicleType||backendLogin.data?.vehicleType||'',
     vehicleNumber:profile?.vehicleNumber||backendLogin.data?.vehicleNumber||''
+  });
+  persistSessionContinuity(safeRole,restored,{
+    refreshToken:backendLogin.data?.refreshToken||''
   });
 
   return{ok:true,status:200,record:restored,source:'backend'};
@@ -734,7 +812,7 @@ function resolveFriendlyLoginError(role,statusCode,message){
       : 'Account nahi mila ya password galat hai. Customer account details check karke dubara login karein.';
   }
   if(code===403){
-    return 'Access blocked by server policy. Please contact support.';
+    return safeMessage||'Access blocked by server policy. Please contact support.';
   }
   if(code===429){
     return 'Too many attempts. Thodi der baad dubara try karein.';
@@ -901,24 +979,85 @@ function registerAdminFailure(){
 }
 function clearAdminFailures(){localStorage.removeItem(ADMIN_FAILURE_KEY);}
 
-function initFirebasePhoneAuth(){
-  if(firebaseReady)return true;
+function isInvalidFirebaseApiKeyError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/invalid-api-key'||message.includes('auth/invalid-api-key')||message.includes('invalid api key');
+}
+function isUnauthorizedDomainFirebaseError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/unauthorized-domain'||message.includes('unauthorized-domain')||message.includes('site_mismatch')||message.includes('domain');
+}
+function isCaptchaCheckFirebaseError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/captcha-check-failed'||message.includes('captcha-check-failed')||message.includes('recaptcha');
+}
+function isOperationNotAllowedFirebaseError(error){
+  const code=String(error&&error.code||'').trim().toLowerCase();
+  const message=String(error&&error.message||'').trim().toLowerCase();
+  return code==='auth/operation-not-allowed'||message.includes('operation-not-allowed')||message.includes('sign in method')||message.includes('provider');
+}
+function toFriendlyFirebasePhoneError(error){
+  if(isUnauthorizedDomainFirebaseError(error)||isCaptchaCheckFirebaseError(error)){
+    const code=String(error&&error.code||'').trim()||'unknown';
+    return `Firebase domain/recaptcha mismatch hai (${code}). Authentication > Settings > Authorized domains me goindiaride.in, www.goindiaride.in, goindiaride.onrender.com add karo.`;
+  }
+  if(isOperationNotAllowedFirebaseError(error)){
+    const code=String(error&&error.code||'').trim()||'unknown';
+    return `Firebase Phone sign-in disabled hai (${code}). Authentication > Sign-in method me Phone provider enable karo.`;
+  }
+  if(isInvalidFirebaseApiKeyError(error)){
+    const code=String(error&&error.code||'').trim()||'unknown';
+    return `Firebase key mismatch lag raha hai (${code}). Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.`;
+  }
+  return '';
+}
+async function resetFirebasePhoneAuth(){
+  firebaseReady=false;
+  if(firebaseRecaptchaVerifier&&typeof firebaseRecaptchaVerifier.clear==='function'){
+    try{firebaseRecaptchaVerifier.clear();}catch(_error){}
+  }
+  firebaseRecaptchaVerifier=null;
+  if(window.firebase&&Array.isArray(firebase.apps)&&firebase.apps.length){
+    for(const app of firebase.apps.slice()){
+      if(app&&typeof app.delete==='function'){
+        try{await app.delete();}catch(_error){}
+      }
+    }
+  }
+}
+async function initFirebasePhoneAuth(options={}){
+  const forceRefresh=Boolean(options&&options.forceRefresh);
+  if(firebaseReady&&!forceRefresh)return true;
   if(!window.firebase||typeof firebase.auth!=='function'){showError('Firebase Auth library load nahi hui. Page reload karein.');return false;}
-  const cfg=window.GOINDIARIDE_FIREBASE_CONFIG||{};
+  if(forceRefresh)await resetFirebasePhoneAuth();
+  const cfg=typeof window.resolveGoIndiaFirebaseConfig==='function'
+    ? await window.resolveGoIndiaFirebaseConfig({forceRefresh})
+    : (window.GOINDIARIDE_FIREBASE_CONFIG||{});
   const required=['apiKey','authDomain','projectId','appId'];
   const missing=required.filter((k)=>!cfg[k]);
-  if(missing.length){showError('Firebase config missing hai. js/firebase-config.js me project keys fill karein.');return false;}
-  try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebaseReady=true;return true;}catch(e){console.error('firebase init failed',e);showError('Firebase initialize nahi ho paya.');return false;}
+  if(missing.length){showError('Firebase config missing hai.');return false;}
+  try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebaseReady=true;return true;}
+  catch(e){console.error('firebase init failed',e);showError(toFriendlyFirebasePhoneError(e)||'Firebase initialize nahi ho paya.');return false;}
 }
-function ensureRecaptcha(){
-  if(!initFirebasePhoneAuth())return null;
+async function ensureRecaptcha(){
+  if(!await initFirebasePhoneAuth())return null;
   if(firebaseRecaptchaVerifier)return firebaseRecaptchaVerifier;
   try{firebaseRecaptchaVerifier=new firebase.auth.RecaptchaVerifier('firebaseRecaptchaContainer',{size:'invisible'});firebaseRecaptchaVerifier.render();return firebaseRecaptchaVerifier;}catch(e){console.error('recaptcha failed',e);showError('OTP reCAPTCHA setup failed.');return null;}
 }
-async function sendOtpByFirebase(phoneInput){
+async function sendOtpByFirebase(phoneInput,retried=false){
   const phone=normalizePhoneForOtp(phoneInput); if(!phone)throw new Error('Please enter valid mobile with country code.');
-  const verifier=ensureRecaptcha(); if(!verifier)throw new Error('Firebase OTP setup incomplete hai.');
-  return firebase.auth().signInWithPhoneNumber(phone,verifier);
+  const verifier=await ensureRecaptcha(); if(!verifier)throw new Error('Firebase OTP setup incomplete hai.');
+  try{return await firebase.auth().signInWithPhoneNumber(phone,verifier);}
+  catch(e){
+    if(!retried&&isInvalidFirebaseApiKeyError(e)){
+      const reloaded=await initFirebasePhoneAuth({forceRefresh:true});
+      if(reloaded)return sendOtpByFirebase(phone,true);
+    }
+    throw(toFriendlyFirebasePhoneError(e)?new Error(toFriendlyFirebasePhoneError(e)):e);
+  }
 }
 async function verifyOtpByFirebase(confirmation,otp){
   if(!confirmation)throw new Error('Pehle OTP send karein.');
@@ -927,12 +1066,18 @@ async function verifyOtpByFirebase(confirmation,otp){
 }
 function readOtpDigits(selector){return Array.from(document.querySelectorAll(selector)).map((i)=>i.value).join('');}
 function setUserSession(user){
-  localStorage.setItem('currentUser',JSON.stringify({id:user.id,fullname:user.fullname||user.name||'Customer',name:user.name||user.fullname||'Customer',email:user.email||'',phone:normalizePhoneForLookup(user.phone||user.mobile||''),isPhoneVerified:Boolean(user.isPhoneVerified||user.phoneVerified),role:'customer'}));
+  const normalizedUser={id:user.id,backendUserId:user.backendUserId||user.userId||'',fullname:user.fullname||user.name||'Customer',name:user.name||user.fullname||'Customer',email:user.email||'',phone:normalizePhoneForLookup(user.phone||user.mobile||''),isPhoneVerified:Boolean(user.isPhoneVerified||user.phoneVerified),role:'customer'};
+  localStorage.setItem('currentUser',JSON.stringify(normalizedUser));
   localStorage.setItem('userRole','customer');
+  window.currentUser=normalizedUser;
+  persistSessionContinuity('customer',normalizedUser);
 }
 function setDriverSession(driver){
-  localStorage.setItem('currentDriver',JSON.stringify({id:driver.id,name:driver.name||driver.fullname||'Driver',email:driver.email||'',phone:normalizePhoneForLookup(driver.phone||driver.mobile||''),isPhoneVerified:Boolean(driver.isPhoneVerified||driver.phoneVerified),vehicleType:driver.vehicleType||'economy',vehicleNumber:driver.vehicleNumber||'',role:'driver'}));
+  const normalizedDriver={id:driver.id,backendUserId:driver.backendUserId||driver.userId||'',name:driver.name||driver.fullname||'Driver',fullname:driver.fullname||driver.name||'Driver',email:driver.email||'',phone:normalizePhoneForLookup(driver.phone||driver.mobile||''),isPhoneVerified:Boolean(driver.isPhoneVerified||driver.phoneVerified),vehicleType:driver.vehicleType||'economy',vehicleNumber:driver.vehicleNumber||'',role:'driver'};
+  localStorage.setItem('currentDriver',JSON.stringify(normalizedDriver));
   localStorage.setItem('userRole','driver');
+  window.currentDriver=normalizedDriver;
+  persistSessionContinuity('driver',normalizedDriver);
 }
 
 function updateLoginMethod(){
@@ -1396,7 +1541,7 @@ window.addEventListener('load',async()=>{
   persistAccountBackup();
   await ensureAdminProfile();
   updateLoginMethod();
-  initFirebasePhoneAuth();
+initFirebasePhoneAuth().catch(()=>{});
   initializeAdminAccessGate();
   console.log('Login page ready');
 });

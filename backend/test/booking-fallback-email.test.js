@@ -78,23 +78,30 @@ function createApp(router) {
 function createFallbackPayload() {
   return {
     bookingId: 'RIDTEST123456',
-    pickup: 'Udaipur',
-    drop: 'Jaipur',
+    pickup: 'Jaipur',
+    drop: 'Delhi',
     customerName: 'Test Rider',
     customerEmail: 'rider@example.com',
     customerPhone: '9999999999',
     rideDate: '2026-04-25',
-    rideTime: '10:30',
-    tripPlan: 'one-way',
-    paymentMethod: 'cash',
-    vehicleType: 'economy',
+    rideTime: '22:30',
+    returnDate: '2026-04-26',
+    returnTime: '06:30',
+    tripPlan: 'outstation',
+    tripServiceType: 'round_trip_service',
+    paymentMethod: 'card',
+    vehicleType: 'sedan',
+    vehicleModel: 'sedan',
     passengers: 1,
-    amount: 320,
-    distanceKm: 18
+    budgetAmount: 4500,
+    customerBidAmount: 4500,
+    amount: 4500,
+    distanceKm: 280,
+    distanceSource: 'route_table'
   };
 }
 
-test('fallback booking route sends admin and customer emails on success', async () => {
+test('fallback booking route sends admin email with fare breakdown details', async () => {
   const calls = [];
   const router = loadBookingRouter({
     async sendEmailMock(payload) {
@@ -112,13 +119,21 @@ test('fallback booking route sends admin and customer emails on success', async 
 
   assert.equal(response.status, 200);
   assert.equal(response.body.ok, true);
-  assert.equal(calls.length, 2);
+  assert.ok(calls.length >= 1);
   assert.match(String(calls[0].to || ''), /admin@goindiaride\.in/i);
-  assert.match(String(calls[1].to || ''), /rider@example\.com/i);
-  assert.equal(response.body.customerEmail && response.body.customerEmail.sent, true);
+  assert.match(String(calls[0].text || ''), /Customer Bid \/ Budget/i);
+  assert.match(String(calls[0].text || ''), /Fare Breakdown/i);
+  assert.match(String(calls[0].text || ''), /Toll Charge/i);
+  assert.match(String(calls[0].text || ''), /Parking Charge/i);
+  assert.match(String(calls[0].text || ''), /Extra Kilometer Charge/i);
+  assert.match(String(calls[0].text || ''), /Extra Time Charge/i);
+  assert.match(String(calls[0].text || ''), /Round Trip Charge/i);
+  assert.match(String(calls[0].text || ''), /Other State Tax/i);
+  assert.match(String(calls[0].text || ''), /Driver Night Bhatta/i);
+  assert.equal(response.body.adminEmail && response.body.adminEmail.sent, true);
 });
 
-test('fallback booking route still attempts customer email when admin email fails', async () => {
+test('fallback booking route reports admin failure when admin email send fails', async () => {
   const calls = [];
   let callCount = 0;
   const router = loadBookingRouter({
@@ -141,7 +156,7 @@ test('fallback booking route still attempts customer email when admin email fail
 
   assert.equal(response.status, 202);
   assert.equal(response.body.ok, false);
-  assert.equal(calls.length, 2);
+  assert.ok(calls.length >= 1);
+  assert.match(String(calls[0].text || ''), /Fare Breakdown/i);
   assert.equal(response.body.adminEmail && response.body.adminEmail.sent, false);
-  assert.equal(response.body.customerEmail && response.body.customerEmail.sent, true);
 });

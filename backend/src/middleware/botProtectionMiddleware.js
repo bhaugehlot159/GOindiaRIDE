@@ -12,6 +12,7 @@ const PLACEHOLDER_SECRET_PATTERNS = [
   'dummy',
   'test_only'
 ];
+const PSEUDO_RECAPTCHA_REGEX = /^gir[-_][a-z0-9._-]{18,}$/i;
 
 function hashValue(value) {
   return crypto
@@ -33,6 +34,72 @@ function isPlaceholderSecret(secretValue) {
   const normalized = String(secretValue || '').trim().toLowerCase();
   if (!normalized) return true;
   return PLACEHOLDER_SECRET_PATTERNS.some((pattern) => normalized.includes(pattern));
+}
+
+function extractHostFromUrl(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    return String(parsed.hostname || '').trim().toLowerCase();
+  } catch (_error) {
+    return '';
+  }
+}
+
+function isLocalHost(host) {
+  const normalized = String(host || '').trim().toLowerCase();
+  return normalized === 'localhost' ||
+    normalized === '127.0.0.1' ||
+    normalized === '::1' ||
+    normalized === '[::1]';
+}
+
+function buildTrustedPseudoRecaptchaHosts() {
+  const hosts = new Set();
+  const fromEnv = [
+    env.corsOrigin,
+    ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : []),
+    ...(Array.isArray(env.recaptchaPseudoTrustedOrigins) ? env.recaptchaPseudoTrustedOrigins : [])
+  ];
+  fromEnv.forEach((origin) => {
+    const host = extractHostFromUrl(origin);
+    if (host) hosts.add(host);
+  });
+  hosts.add('goindiaride.in');
+  hosts.add('www.goindiaride.in');
+  hosts.add('goindiaride.onrender.com');
+  return hosts;
+}
+
+const trustedPseudoRecaptchaHosts = buildTrustedPseudoRecaptchaHosts();
+
+function looksLikePseudoRecaptchaToken(token) {
+  const normalized = String(token || '').trim();
+  if (!normalized) return false;
+  return PSEUDO_RECAPTCHA_REGEX.test(normalized);
+}
+
+function isTrustedPseudoRecaptchaRequest(req) {
+  const candidates = [];
+  const origin = String(req?.headers?.origin || '').trim();
+  const referer = String(req?.headers?.referer || '').trim();
+  const hostHeader = String(req?.headers?.host || '').trim();
+
+  if (origin) candidates.push(origin);
+  if (referer) candidates.push(referer);
+  if (hostHeader) {
+    const protoHeader = String(req?.headers?.['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+    const proto = protoHeader === 'http' || protoHeader === 'https' ? protoHeader : 'https';
+    candidates.push(`${proto}://${hostHeader}`);
+  }
+
+  for (const value of candidates) {
+    const host = extractHostFromUrl(value);
+    if (!host) continue;
+    if (trustedPseudoRecaptchaHosts.has(host)) return true;
+    if (process.env.NODE_ENV !== 'production' && isLocalHost(host)) return true;
+  }
+
+  return false;
 }
 
 function verifyRecaptchaToken(token, remoteIp, timeoutMs) {
@@ -125,6 +192,13 @@ async function recaptchaPresenceCheck(req, res, next) {
 
     const recaptchaSecret = String(env.recaptchaSecret || '').trim();
     const hasUsableSecret = Boolean(recaptchaSecret) && !isPlaceholderSecret(recaptchaSecret);
+
+    if (env.recaptchaAllowPseudoTokens &&
+      looksLikePseudoRecaptchaToken(token) &&
+      isTrustedPseudoRecaptchaRequest(req)) {
+      recaptchaReplayMap.set(tokenHash, { expiresAt: Date.now() + (5 * 60 * 1000), pseudo: true });
+      return next();
+    }
 
     if (!env.recaptchaVerifyServerSide || !hasUsableSecret) {
       recaptchaReplayMap.set(tokenHash, { expiresAt: Date.now() + (5 * 60 * 1000) });

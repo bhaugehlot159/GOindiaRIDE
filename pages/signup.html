@@ -1271,7 +1271,9 @@
         const CUSTOMER_STORAGE_KEYS = ['users', 'goride_users', 'customers', 'goindiaride_users', 'goindiaride_customers'];
         const DRIVER_STORAGE_KEYS = ['drivers', 'goride_drivers', 'goindiaride_drivers'];
         const ACCOUNT_BACKUP_KEY = 'goindiaride_accounts_backup_v2';
+        const SIGNUP_BACKEND_SYNC_QUEUE_KEY = 'goindiaride_signup_backend_sync_queue_v1';
         const LIVE_BACKEND_REQUIRED_FOR_SIGNUP = true;
+        const SIGNUP_REQUEST_TIMEOUT_MS = 15000;
 
         function safeReadArray(key) {
             try {
@@ -1373,6 +1375,243 @@
         }
 
         restoreAccountBackupIfNeeded();
+        flushPendingSignupSyncQueue().catch(() => {});
+        window.addEventListener('online', () => {
+            flushPendingSignupSyncQueue().catch(() => {});
+        });
+
+        function normalizeSignupApiBase(value) {
+            const text = String(value || '').trim();
+            if (!text) return '';
+            return text.replace(/\/$/, '');
+        }
+
+        function isTrustedPublicSignupApiBase(value) {
+            const normalized = normalizeSignupApiBase(value);
+            if (!normalized) return false;
+            try {
+                const parsed = new URL(normalized);
+                const apiHost = String(parsed.hostname || '').toLowerCase();
+                return apiHost === 'goindiaride.onrender.com'
+                    || apiHost === 'goindiaride.in'
+                    || apiHost === 'www.goindiaride.in'
+                    || apiHost.endsWith('.goindiaride.in');
+            } catch (_error) {
+                return false;
+            }
+        }
+
+        function persistSignupApiBase(value) {
+            const normalized = normalizeSignupApiBase(value);
+            if (!normalized) return;
+            const host = String(window.location.hostname || '').toLowerCase();
+            const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
+            const isGitHubPagesHost = host === 'github.io' || host.endsWith('.github.io');
+            if ((isPrimaryWebsiteHost || isGitHubPagesHost) && !isTrustedPublicSignupApiBase(normalized)) {
+                return;
+            }
+            localStorage.setItem('goindiaride_api_base', normalized);
+        }
+
+        function isDeprecatedSignupApiBase(value) {
+            const normalized = normalizeSignupApiBase(value).toLowerCase();
+            if (!normalized) return false;
+            return normalized.includes('cloudfunctions.net') || normalized.includes('api.goindiaride.in');
+        }
+
+        function getSignupApiBases() {
+            const host = String(window.location.hostname || '').toLowerCase();
+            const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+            const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
+            const isGitHubPagesHost = host === 'github.io' || host.endsWith('.github.io');
+            const localBackendBase = 'http://localhost:5000';
+            const renderPrimaryBase = 'https://goindiaride.onrender.com';
+            const sameOriginBase = normalizeSignupApiBase(window.location.origin || '');
+            const sameOriginBackendBase = sameOriginBase ? `${sameOriginBase}/backend` : '';
+            const runtimeBase = normalizeSignupApiBase(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '');
+            const explicitBase = normalizeSignupApiBase(window.GOINDIARIDE_API_BASE || '');
+            const rawStorageBase = normalizeSignupApiBase(localStorage.getItem('goindiaride_api_base') || '');
+            const storageBase = (isPrimaryWebsiteHost || isGitHubPagesHost) && !isTrustedPublicSignupApiBase(rawStorageBase)
+                ? ''
+                : rawStorageBase;
+            const bases = [];
+
+            function pushBase(value) {
+                const normalized = normalizeSignupApiBase(value);
+                if (!normalized || isDeprecatedSignupApiBase(normalized) || bases.includes(normalized)) return;
+                bases.push(normalized);
+            }
+
+            if (isLocalHost) {
+                pushBase(runtimeBase);
+                pushBase(explicitBase);
+                pushBase(storageBase);
+                pushBase(localBackendBase);
+                return bases;
+            }
+
+            if (isPrimaryWebsiteHost || isGitHubPagesHost) {
+                pushBase(runtimeBase);
+                pushBase(explicitBase);
+                pushBase(storageBase);
+                pushBase(sameOriginBackendBase);
+                pushBase(sameOriginBase);
+                pushBase(renderPrimaryBase);
+            } else {
+                pushBase(runtimeBase);
+                pushBase(explicitBase);
+                pushBase(storageBase);
+                pushBase(sameOriginBackendBase);
+                pushBase(sameOriginBase);
+                pushBase(renderPrimaryBase);
+            }
+
+            if (!bases.length) {
+                pushBase(renderPrimaryBase);
+            }
+
+            return bases;
+        }
+
+        async function signupFetchWithTimeout(url, options = {}, timeoutMs = SIGNUP_REQUEST_TIMEOUT_MS) {
+            if (typeof AbortController !== 'function') {
+                return fetch(url, options);
+            }
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function classifySignupNetworkError(error) {
+            const rawMessage = String((error && error.message) || error || '').trim();
+            const lower = rawMessage.toLowerCase();
+            if (String(error && error.name || '').toLowerCase() === 'aborterror') {
+                return 'request_timeout';
+            }
+            if (lower.includes('timeout')) return 'request_timeout';
+            if (lower.includes('failed to fetch')) return 'network_error';
+            if (lower.includes('load failed')) return 'network_error';
+            if (lower.includes('cors')) return 'preflight_blocked';
+            return rawMessage || 'network_error';
+        }
+
+        async function registerSignupWithBackend(payload) {
+            const apiBases = getSignupApiBases();
+            let lastHttpFailure = null;
+            let lastNetworkReason = 'network_error';
+
+            for (const apiBase of apiBases) {
+                try {
+                    const response = await signupFetchWithTimeout(`${apiBase}/api/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(payload)
+                    });
+
+                    const backendPayload = await response.json().catch(() => ({}));
+                    if (response.ok) {
+                        persistSignupApiBase(apiBase);
+                        return {
+                            ok: true,
+                            apiBase,
+                            status: response.status,
+                            data: backendPayload
+                        };
+                    }
+
+                    lastHttpFailure = {
+                        ok: false,
+                        apiBase,
+                        status: response.status,
+                        data: backendPayload
+                    };
+
+                    if (![404, 405, 500, 502, 503, 504].includes(Number(response.status || 0))) {
+                        return lastHttpFailure;
+                    }
+                } catch (backendError) {
+                    lastNetworkReason = classifySignupNetworkError(backendError);
+                }
+            }
+
+            if (lastHttpFailure) return lastHttpFailure;
+            return {
+                ok: false,
+                networkFailure: true,
+                reason: lastNetworkReason
+            };
+        }
+
+        function loadPendingSignupSyncQueue() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(SIGNUP_BACKEND_SYNC_QUEUE_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === 'object') : [];
+            } catch (_error) {
+                return [];
+            }
+        }
+
+        function savePendingSignupSyncQueue(items) {
+            localStorage.setItem(SIGNUP_BACKEND_SYNC_QUEUE_KEY, JSON.stringify(Array.isArray(items) ? items : []));
+        }
+
+        function queuePendingSignupSync(entry) {
+            const queue = loadPendingSignupSyncQueue();
+            const safeEmail = sanitizeEmail(entry && entry.email || '');
+            const safePhone = normalizePhoneForStorage(entry && entry.phone || '');
+            const deduped = queue.filter((item) => {
+                const itemEmail = sanitizeEmail(item && item.email || '');
+                const itemPhone = normalizePhoneForStorage(item && item.phone || '');
+                return !(safeEmail && itemEmail === safeEmail) && !(safePhone && itemPhone === safePhone);
+            });
+            deduped.push({
+                ...(entry && typeof entry === 'object' ? entry : {}),
+                queuedAt: new Date().toISOString()
+            });
+            savePendingSignupSyncQueue(deduped);
+        }
+
+        async function flushPendingSignupSyncQueue() {
+            const queue = loadPendingSignupSyncQueue();
+            if (!queue.length) return;
+
+            const remaining = [];
+            for (const item of queue) {
+                const payload = item && item.backendPayload && typeof item.backendPayload === 'object'
+                    ? item.backendPayload
+                    : null;
+                if (!payload) {
+                    continue;
+                }
+
+                const result = await registerSignupWithBackend(payload);
+                if (result.ok) {
+                    continue;
+                }
+
+                if (Number(result.status || 0) === 409) {
+                    continue;
+                }
+
+                remaining.push(item);
+                if (result.networkFailure) {
+                    break;
+                }
+            }
+
+            savePendingSignupSyncQueue(remaining);
+        }
 
         function toggleDriverFields() {
             const isDriver = roleDriverInput.checked;
@@ -1522,69 +1761,50 @@
                     return;
                 }
 
-                // Backend registration is primary (live mode)
-                const runtimeApiBase = String(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '').trim();
-                const host = String(window.location.hostname || '').toLowerCase();
-                const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
-                const isGitHubPagesHost = host === 'github.io' || host.endsWith('.github.io');
-                const apiBaseRaw = (
-                    runtimeApiBase ||
-                    window.GOINDIARIDE_API_BASE ||
-                    ((host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]')
-                        ? 'http://localhost:5000'
-                        : ((isPrimaryWebsiteHost || isGitHubPagesHost) ? 'https://api.goindiaride.in' : window.location.origin))
-                );
-                const apiBase = String(apiBaseRaw).endsWith('/') ? String(apiBaseRaw).slice(0, -1) : String(apiBaseRaw);
-                try {
-                    const backendRes = await fetch(apiBase + '/api/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Accept: 'application/json'
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            name: fullname,
-                            email,
-                            phone,
-                            password,
-                            role: 'user',
-                            accountType: role === 'driver' ? 'driver' : 'customer',
-                            website: '',
-                            submittedAt: Date.now() - 1500,
-                            recaptchaToken: createPseudoRecaptchaToken('gir-signup')
-                        })
-                    });
+                const backendRegisterPayload = {
+                    name: fullname,
+                    email,
+                    phone,
+                    password,
+                    role: 'user',
+                    accountType: role === 'driver' ? 'driver' : 'customer',
+                    website: '',
+                    submittedAt: Date.now() - 1500,
+                    recaptchaToken: createPseudoRecaptchaToken('gir-signup')
+                };
+                const backendResult = await registerSignupWithBackend(backendRegisterPayload);
 
-                    const backendPayload = await backendRes.json().catch(() => ({}));
-                    if (backendRes.status === 409) {
-                        signupForm.style.opacity = '1';
-                        signupForm.style.pointerEvents = 'auto';
-                        signupBtnText.textContent = 'Create Account';
-                        showError(backendPayload.message || 'Account already exists. Please login.');
-                        return;
-                    }
-                    if (!backendRes.ok) {
-                        throw new Error(backendPayload.message || backendRes.statusText || 'Live registration failed');
-                    }
-                } catch (backendError) {
-                    console.error('Backend register failed:', backendError.message || backendError);
+                if (!backendResult.ok && !backendResult.networkFailure) {
                     signupForm.style.opacity = '1';
                     signupForm.style.pointerEvents = 'auto';
                     signupBtnText.textContent = 'Create Account';
-                    showError(LIVE_BACKEND_REQUIRED_FOR_SIGNUP
-                        ? 'Live server response nahi mila. Signup save nahi hua. Backend ko check karke dubara try karein.'
-                        : 'Backend sync failed. Please try again.');
+
+                    const rawMessage = sanitizeInput((backendResult.data && backendResult.data.message) || '', 200).trim();
+                    if (Number(backendResult.status || 0) === 409) {
+                        showError(rawMessage || 'Account already exists. Please login.');
+                        return;
+                    }
+                    if (Number(backendResult.status || 0) === 429) {
+                        showError(rawMessage || 'Too many signup attempts. Thodi der baad dubara try karein.');
+                        return;
+                    }
+                    if (Number(backendResult.status || 0) === 403 && /recaptcha/i.test(rawMessage)) {
+                        showError('Security verification failed. Please refresh page and try again.');
+                        return;
+                    }
+                    showError(rawMessage || 'Signup request reject ho gayi. Please try again.');
                     return;
                 }
 
                 if (role === 'customer') {
                     const newUser = {
                         id: createStableAccountId('customer', email, phone),
+                        backendUserId: backendResult.ok ? String(backendResult.data?.id || '').trim() : '',
                         fullname,
                         email,
                         phone,
                         password: hashedPassword,
+                        isPhoneVerified: Boolean(backendResult.data?.isPhoneVerified),
                         role: 'customer',
                         userType: 'customer',
                         createdAt: new Date().toISOString()
@@ -1594,6 +1814,7 @@
                 } else {
                     const newDriver = {
                         id: createStableAccountId('driver', email, phone),
+                        backendUserId: backendResult.ok ? String(backendResult.data?.id || '').trim() : '',
                         name: fullname,
                         fullname,
                         email,
@@ -1603,6 +1824,7 @@
                         licenseHolderName,
                         drivingLicenseExpiry: licenseExpiry,
                         licenseVerified: false,
+                        isPhoneVerified: Boolean(backendResult.data?.isPhoneVerified),
                         vehicleNumber: '',
                         userType: 'driver',
                         role: 'driver',
@@ -1614,7 +1836,22 @@
 
                 persistAccountBackup(users, drivers);
 
-                showSuccess('Account created successfully! Redirecting to login...');
+                if (backendResult.ok) {
+                    showSuccess('Account created successfully! Redirecting to login...');
+                } else {
+                    queuePendingSignupSync({
+                        role,
+                        fullname,
+                        email,
+                        phone,
+                        backendPayload: backendRegisterPayload
+                    });
+                    showSuccess(
+                        LIVE_BACKEND_REQUIRED_FOR_SIGNUP
+                            ? 'Account is device par save ho gaya hai. Live server sync pending hai, aap login kar sakte hain.'
+                            : 'Account created successfully! Redirecting to login...'
+                    );
+                }
 
                 setTimeout(() => {
                     window.location.href = './login.html';
@@ -1631,11 +1868,11 @@
         const existingCustomers = mergeRecords(CUSTOMER_STORAGE_KEYS).filter((row) => isCustomerRecord(row));
         const existingDrivers = mergeRecords(DRIVER_STORAGE_KEYS).filter((row) => isDriverRecord(row));
         persistAccountBackup(existingCustomers, existingDrivers);
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swVersion = '20260416-11';
-                navigator.serviceWorker
-                    .register('../sw.js?v=' + swVersion)
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        const swVersion = '20260504-03';
+                        navigator.serviceWorker
+                            .register('../sw.js?v=' + swVersion)
                     .then((registration) => {
                         registration.update().catch(() => {});
                     })

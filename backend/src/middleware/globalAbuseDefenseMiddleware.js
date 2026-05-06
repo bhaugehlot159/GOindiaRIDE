@@ -41,6 +41,34 @@ function normalizeBoolean(value, fallback = false) {
   return String(value).trim().toLowerCase() === 'true';
 }
 
+function normalizePathList(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item || '').trim())
+      .filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function shouldBypassPath(pathname, bypassPaths = []) {
+  const normalizedPath = String(pathname || '').split('?')[0].trim().toLowerCase();
+  if (!normalizedPath || !Array.isArray(bypassPaths) || !bypassPaths.length) return false;
+  return bypassPaths.some((rawPath) => {
+    const normalizedBypassPath = String(rawPath || '').trim().toLowerCase();
+    if (!normalizedBypassPath) return false;
+    return (
+      normalizedPath === normalizedBypassPath
+      || normalizedPath.startsWith(`${normalizedBypassPath}/`)
+    );
+  });
+}
+
 function hashValue(value) {
   return crypto.createHash('sha256').update(String(value || '')).digest('hex');
 }
@@ -289,6 +317,7 @@ async function recordGatewayIncident(req, payload = {}) {
 function buildOptions(input = {}) {
   return {
     enabled: normalizeBoolean(input.enabled, true),
+    bypassPaths: normalizePathList(input.bypassPaths),
     maxUrlLength: normalizeNumber(input.maxUrlLength, 2048, 512, 12000),
     maxHeaderCount: normalizeNumber(input.maxHeaderCount, 120, 20, 500),
     maxBodyDepth: normalizeNumber(input.maxBodyDepth, 10, 2, 30),
@@ -309,6 +338,10 @@ function globalAbuseDefenseMiddleware(userOptions = {}) {
 
   return async (req, res, next) => {
     if (!options.enabled) {
+      return next();
+    }
+
+    if (shouldBypassPath(req.path || req.originalUrl || req.url || '', options.bypassPaths)) {
       return next();
     }
 
@@ -485,4 +518,3 @@ function globalAbuseDefenseMiddleware(userOptions = {}) {
 module.exports = {
   globalAbuseDefenseMiddleware
 };
-

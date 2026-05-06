@@ -142,22 +142,162 @@ const routeSuggestions = {
             { name: "HP Petrol", km: 50 },
             { name: "Indian Oil", km: 120 }
         ]
+    },
+
+    "Udaipur-Nathdwara": {
+        distance: "45 km",
+        duration: "1 hour",
+        highlights: [
+            { name: "Eklingji Temple", km: 20, type: "religious", icon: "🛕", description: "Historic Shiva temple on the way" },
+            { name: "Nathdwara Shrinathji", km: 45, type: "religious", icon: "🛕", description: "Famous Shrinathji temple town" }
+        ],
+        restaurants: [
+            { name: "Lake View Dhaba", km: 20, type: "dhaba", rating: 4.2 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 15 },
+            { name: "HP Petrol", km: 32 }
+        ]
+    },
+
+    "Nathdwara-Rajsamand": {
+        distance: "24 km",
+        duration: "40 minutes",
+        highlights: [
+            { name: "Shri Nathji Temple", km: 2, type: "religious", icon: "🛕", description: "Sacred Shrinathji darshan point" },
+            { name: "Kankroli Lake", km: 12, type: "tourist", icon: "🏞️", description: "Rajsamand side lake route" }
+        ],
+        restaurants: [
+            { name: "Temple Road Restaurant", km: 2, type: "restaurant", rating: 4.4 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 10 }
+        ]
+    },
+
+    "Udaipur-Rajsamand": {
+        distance: "55 km",
+        duration: "1.25 hours",
+        highlights: [
+            { name: "Eklingji Temple", km: 20, type: "religious", icon: "🛕", description: "Popular temple stop on the route" },
+            { name: "Nathdwara", km: 45, type: "religious", icon: "🛕", description: "Shrinathji temple town" }
+        ],
+        restaurants: [
+            { name: "Highway King", km: 25, type: "dhaba", rating: 4.3 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 18 },
+            { name: "HP Petrol", km: 40 }
+        ]
+    },
+
+    "Jodhpur-Rajsamand": {
+        distance: "165 km",
+        duration: "3.5 hours",
+        highlights: [
+            { name: "Ranakpur Jain Temple", km: 110, type: "religious", icon: "🛕", description: "Marble Jain temple near the route" },
+            { name: "Kumbhalgarh Fort", km: 135, type: "fort", icon: "🏰", description: "Heritage fort with mountain views" }
+        ],
+        restaurants: [
+            { name: "Ranakpur Cafe", km: 110, type: "cafe", rating: 4.5 }
+        ],
+        petrolPumps: [
+            { name: "HP Petrol", km: 60 },
+            { name: "Indian Oil", km: 125 }
+        ]
+    },
+
+    "Udaipur-Jodhpur": {
+        distance: "250 km",
+        duration: "4.5 hours",
+        highlights: [
+            { name: "Ranakpur Jain Temple", km: 90, type: "religious", icon: "🛕", description: "Major Jain pilgrimage stop" },
+            { name: "Kumbhalgarh Fort", km: 110, type: "fort", icon: "🏰", description: "UNESCO heritage fort area" },
+            { name: "Nathdwara", km: 45, type: "religious", icon: "🛕", description: "Shrinathji darshan town" }
+        ],
+        restaurants: [
+            { name: "Heritage Highway Dhaba", km: 95, type: "dhaba", rating: 4.4 },
+            { name: "Ranakpur Cafe", km: 110, type: "cafe", rating: 4.5 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 60 },
+            { name: "BPCL", km: 120 },
+            { name: "HP Petrol", km: 190 }
+        ]
+    },
+
+    "Udaipur-Ajmer": {
+        distance: "265 km",
+        duration: "5 hours",
+        highlights: [
+            { name: "Nathdwara", km: 45, type: "religious", icon: "🛕", description: "Shrinathji temple town" },
+            { name: "Pushkar", km: 195, type: "religious", icon: "🛕", description: "Sacred lake and pilgrimage town" },
+            { name: "Kishangarh", km: 220, type: "city", icon: "🏙️", description: "Marble city on the route" }
+        ],
+        restaurants: [
+            { name: "Highway King", km: 90, type: "dhaba", rating: 4.3 },
+            { name: "Pushkar Café", km: 195, type: "cafe", rating: 4.4 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 60 },
+            { name: "BPCL", km: 150 },
+            { name: "HP Petrol", km: 210 }
+        ]
+    },
+
+    "Jodhpur-Ajmer": {
+        distance: "205 km",
+        duration: "4 hours",
+        highlights: [
+            { name: "Merta City", km: 85, type: "city", icon: "🏙️", description: "Birthplace of Meera Bai" },
+            { name: "Pushkar", km: 165, type: "religious", icon: "🛕", description: "Sacred pilgrimage town" },
+            { name: "Ajmer Sharif Dargah", km: 205, type: "religious", icon: "🕌", description: "Famous Sufi shrine" }
+        ],
+        restaurants: [
+            { name: "Desert Dhaba", km: 75, type: "dhaba", rating: 4.2 },
+            { name: "Pushkar Rasoi", km: 165, type: "restaurant", rating: 4.4 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 55 },
+            { name: "HP Petrol", km: 130 },
+            { name: "BPCL", km: 185 }
+        ]
     }
 };
 
 // Get route key from pickup and dropoff
 function getRouteKey(pickup, dropoff) {
+    const normalizeRouteText = (value) => String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+
+    const pickupText = normalizeRouteText(pickup);
+    const dropoffText = normalizeRouteText(dropoff);
+
+    for (const routeKey of Object.keys(routeSuggestions)) {
+        const [leftRaw, rightRaw] = routeKey.split('-');
+        const left = normalizeRouteText(leftRaw);
+        const right = normalizeRouteText(rightRaw);
+
+        if (
+            (pickupText.includes(left) && dropoffText.includes(right)) ||
+            (pickupText.includes(right) && dropoffText.includes(left))
+        ) {
+            return routeKey;
+        }
+    }
+
     // Extract district names (assuming format: "District, Location" or just "District")
-    const pickupDistrict = pickup.split(',')[0].trim();
-    const dropoffDistrict = dropoff.split(',')[0].trim();
-    
+    const pickupDistrict = String(pickup || '').split(',')[0].trim();
+    const dropoffDistrict = String(dropoff || '').split(',')[0].trim();
+
     // Try both combinations
     const key1 = `${pickupDistrict}-${dropoffDistrict}`;
     const key2 = `${dropoffDistrict}-${pickupDistrict}`;
-    
+
     if (routeSuggestions[key1]) return key1;
     if (routeSuggestions[key2]) return key2;
-    
+
     return null;
 }
 

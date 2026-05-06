@@ -13,6 +13,7 @@ const { walletCriticalLimiter, bookingFallbackEmailLimiter } = require('../middl
 const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware');
 const { logSecurityEvent } = require('../services/securityLogService');
 const { sendEmail } = require('../utils/mailer');
+const { sendWhatsAppMessage, normalizePhone, maskPhone } = require('../utils/whatsapp');
 const logger = require('../utils/logger');
 const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 const {
@@ -28,6 +29,7 @@ const {
   processDriverRideRefund,
   resolveDriverCommissionRegion
 } = require('../services/driverCommissionWalletService');
+const { estimateBookingFare } = require('../../../js/booking-fare-calculator');
 
 
 const router = express.Router();
@@ -51,12 +53,80 @@ const BOOKING_FALLBACK_ALERT_ALLOWED_ORIGINS = [...new Set(
 const ADMIN_EMAIL_RECIPIENT_VARS = ['BOOKING_ADMIN_ALERT_EMAILS', 'ADMIN_ALERT_EMAILS', 'ADMIN_EMAILS'];
 const SMTP_FALLBACK_ADMIN_RECIPIENT_VARS = ['SMTP_FROM_EMAIL', 'SMTP_USER'];
 const DEFAULT_ADMIN_ALERT_EMAIL = String(process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com').trim().toLowerCase();
+const BOOKING_ADMIN_WHATSAPP_ENABLED = String(process.env.BOOKING_ADMIN_WHATSAPP_ENABLED || 'true').trim().toLowerCase() !== 'false';
+const BOOKING_ADMIN_WHATSAPP_PROVIDER = String(process.env.BOOKING_ADMIN_WHATSAPP_PROVIDER || process.env.BOOKING_WHATSAPP_PROVIDER || process.env.WHATSAPP_PROVIDER || 'meta').trim().toLowerCase();
+const BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY = String(process.env.BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY || '91').replace(/\D/g, '') || '91';
+const ADMIN_WHATSAPP_RECIPIENT_VARS = [
+  'BOOKING_ADMIN_WHATSAPP_NUMBERS',
+  'BOOKING_ADMIN_WHATSAPP_NUMBER',
+  'ADMIN_WHATSAPP_NUMBERS',
+  'ADMIN_WHATSAPP_NUMBER'
+];
+const DEFAULT_ADMIN_WHATSAPP_NUMBER = String(process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471').trim();
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS = Math.max(
   60 * 1000,
   Math.min(Number(process.env.BOOKING_FALLBACK_ALERT_DEDUPE_WINDOW_MS || 20 * 60 * 1000), 24 * 60 * 60 * 1000)
 );
+const BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT = String(process.env.BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT || 'false').trim().toLowerCase() === 'true';
+const BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS = Math.max(
+  60 * 1000,
+  Math.min(Number(process.env.BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS || 30 * 60 * 1000), 24 * 60 * 60 * 1000)
+);
+const CUSTOMER_BOOKING_EDIT_MAX_COUNT = 5;
+const CUSTOMER_BOOKING_EDITABLE_FIELDS = [
+  'pickup',
+  'dropoff',
+  'rideDate',
+  'rideTime',
+  'returnDate',
+  'returnTime',
+  'tripPlan',
+  'paymentMethod',
+  'vehicleType',
+  'passengers',
+  'luggage',
+  'stop1',
+  'stop2',
+  'notes',
+  'specialRequests',
+  'safetyAccessibility'
+];
+const CUSTOMER_BOOKING_EDIT_WINDOWS = [
+  {
+    minHours: 72,
+    tier: 'full_plus',
+    label: '72h+ Premium Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
+  },
+  {
+    minHours: 48,
+    tier: 'full',
+    label: '48-72h Flexible Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
+  },
+  {
+    minHours: 24,
+    tier: 'standard',
+    label: '24-48h Smart Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
+  },
+  {
+    minHours: 12,
+    tier: 'limited',
+    label: '12-24h Priority Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
+  },
+  {
+    minHours: 6,
+    tier: 'minimal',
+    label: '6-12h Fast Edit',
+    allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice()
+  }
+];
+const CUSTOMER_BOOKING_EDIT_LOCK_HOURS = 6;
 const recentFallbackAdminEmailDispatchCache = new Map();
+const recentBookingEmailDispatchCache = new Map();
 
 function hasBearerAuth(req) {
   const authHeader = String(req.headers.authorization || '').trim();
@@ -173,6 +243,113 @@ function normalizeInteger(value, fallback = 1, min = 1, max = 20) {
   return Math.max(min, Math.min(max, parsed));
 }
 
+function normalizeBookingTimeValue(value) {
+  const safeValue = sanitizeText(value, 40);
+  const match = safeValue.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return safeValue;
+  const hours = Math.max(0, Math.min(23, Number.parseInt(match[1], 10) || 0));
+  const minutes = Math.max(0, Math.min(59, Number.parseInt(match[2], 10) || 0));
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function parseBookingRideStartDateTime(booking) {
+  if (!booking || typeof booking !== 'object') return null;
+
+  const outbound = booking.outboundDateTime ? new Date(booking.outboundDateTime) : null;
+  if (outbound && !Number.isNaN(outbound.getTime())) {
+    return outbound;
+  }
+
+  const rideDate = sanitizeText(booking.rideDate, 40);
+  if (!rideDate) return null;
+  const rideTime = normalizeBookingTimeValue(booking.rideTime || '');
+  const normalizedTime = /^\d{2}:\d{2}$/.test(rideTime) ? rideTime : '00:00';
+
+  const isoCandidate = new Date(`${rideDate}T${normalizedTime}:00`);
+  if (!Number.isNaN(isoCandidate.getTime())) {
+    return isoCandidate;
+  }
+
+  const looseCandidate = new Date(`${rideDate} ${normalizedTime}`);
+  if (!Number.isNaN(looseCandidate.getTime())) {
+    return looseCandidate;
+  }
+
+  return null;
+}
+
+function getBookingEditCount(booking) {
+  const directCount = Number(booking && booking.editCount);
+  if (Number.isFinite(directCount)) {
+    return Math.max(0, directCount);
+  }
+  const historyLength = Array.isArray(booking && booking.editHistory) ? booking.editHistory.length : 0;
+  return Math.max(0, historyLength);
+}
+
+function resolveCustomerBookingEditPolicy(booking) {
+  const status = sanitizeText(booking?.status, 40).toLowerCase();
+  const editCount = getBookingEditCount(booking);
+  const rideStart = parseBookingRideStartDateTime(booking);
+  const hoursUntilRide = rideStart ? ((rideStart.getTime() - Date.now()) / (60 * 60 * 1000)) : null;
+
+  if (status === 'completed' || status === 'cancelled') {
+    return {
+      allowed: false,
+      windowTier: 'locked',
+      reason: 'Booking completed/cancelled hone ke baad edit allowed nahi hai.',
+      maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+      usedEdits: editCount,
+      remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - editCount),
+      allowedFields: [],
+      hoursUntilRide
+    };
+  }
+
+  if (editCount >= CUSTOMER_BOOKING_EDIT_MAX_COUNT) {
+    return {
+      allowed: false,
+      windowTier: 'locked',
+      reason: `Edit limit reach ho gayi hai (${CUSTOMER_BOOKING_EDIT_MAX_COUNT}/${CUSTOMER_BOOKING_EDIT_MAX_COUNT}).`,
+      maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+      usedEdits: editCount,
+      remainingEdits: 0,
+      allowedFields: [],
+      hoursUntilRide
+    };
+  }
+
+  if (Number.isFinite(hoursUntilRide) && hoursUntilRide < CUSTOMER_BOOKING_EDIT_LOCK_HOURS) {
+    return {
+      allowed: false,
+      windowTier: 'locked',
+      reason: `${CUSTOMER_BOOKING_EDIT_LOCK_HOURS} hours se kam time me booking edit lock ho jaati hai.`,
+      maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+      usedEdits: editCount,
+      remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - editCount),
+      allowedFields: [],
+      hoursUntilRide
+    };
+  }
+
+  const selectedWindow = Number.isFinite(hoursUntilRide)
+    ? (CUSTOMER_BOOKING_EDIT_WINDOWS.find((windowRule) => hoursUntilRide >= Number(windowRule.minHours || 0))
+      || CUSTOMER_BOOKING_EDIT_WINDOWS[CUSTOMER_BOOKING_EDIT_WINDOWS.length - 1])
+    : CUSTOMER_BOOKING_EDIT_WINDOWS[0];
+
+  return {
+    allowed: true,
+    windowTier: selectedWindow.tier,
+    windowLabel: selectedWindow.label,
+    reason: `${selectedWindow.label} active hai.`,
+    maxEdits: CUSTOMER_BOOKING_EDIT_MAX_COUNT,
+    usedEdits: editCount,
+    remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - editCount),
+    allowedFields: Array.isArray(selectedWindow.allowedFields) ? selectedWindow.allowedFields : [],
+    hoursUntilRide
+  };
+}
+
 function buildBookingContext(body = {}) {
   return {
     pickupLocation: sanitizeText(body.pickup || body.pickupLocation, 180),
@@ -182,14 +359,18 @@ function buildBookingContext(body = {}) {
     returnDate: sanitizeText(body.returnDate, 40),
     returnTime: sanitizeText(body.returnTime, 40),
     tripPlan: sanitizeText(body.tripPlan, 80),
+    tripServiceType: sanitizeText(body.tripServiceType || body.serviceType, 80),
     paymentMethod: sanitizeText(body.paymentMethod, 80),
     vehicleType: sanitizeText(body.vehicleType || body.rideType, 80),
+    vehicleModel: sanitizeText(body.vehicleModel, 80),
     passengers: normalizeInteger(body.passengers, 1, 1, 20),
     luggage: sanitizeText(body.luggage, 80),
     notes: sanitizeText(body.notes, 600),
+    budgetAmount: Math.max(0, normalizeAmount(body.budgetAmount || body.customerBidAmount || 0)),
     stops: sanitizeStringArray(body.stops, 8, 160),
     specialRequests: sanitizeBooleanMap(body.specialRequests, 60),
-    safetyAccessibility: sanitizeBooleanMap(body.safetyAccessibility, 60)
+    safetyAccessibility: sanitizeBooleanMap(body.safetyAccessibility, 60),
+    distanceSource: sanitizeText(body.distanceSource, 40)
   };
 }
 
@@ -268,6 +449,49 @@ function rememberRecentFallbackAdminEmailDispatch(bookingId, payload = {}) {
   });
 }
 
+function pruneRecentBookingEmailDispatchCache() {
+  const cutoffMs = Date.now() - BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS;
+  for (const [bookingId, entry] of recentBookingEmailDispatchCache.entries()) {
+    if (!entry || Number(entry.sentAtMs || 0) < cutoffMs) {
+      recentBookingEmailDispatchCache.delete(bookingId);
+    }
+  }
+}
+
+function getRecentBookingEmailDispatch(bookingId) {
+  const safeBookingId = sanitizeText(bookingId, 80).toUpperCase();
+  if (!safeBookingId) return null;
+  pruneRecentBookingEmailDispatchCache();
+  const entry = recentBookingEmailDispatchCache.get(safeBookingId);
+  if (!entry) return null;
+  if (Number(entry.sentAtMs || 0) < (Date.now() - BOOKING_EMAIL_DISPATCH_DEDUPE_WINDOW_MS)) {
+    recentBookingEmailDispatchCache.delete(safeBookingId);
+    return null;
+  }
+  return entry;
+}
+
+function rememberRecentBookingEmailDispatch(bookingId, payload = {}) {
+  const safeBookingId = sanitizeText(bookingId, 80).toUpperCase();
+  if (!safeBookingId) return;
+  pruneRecentBookingEmailDispatchCache();
+  recentBookingEmailDispatchCache.set(safeBookingId, {
+    sentAtMs: Date.now(),
+    payload: payload && typeof payload === 'object' ? payload : {}
+  });
+}
+
+function buildDuplicateSuppressedEmailResult(result = {}, channel = 'email') {
+  return {
+    ...(result && typeof result === 'object' ? result : {}),
+    sent: true,
+    skipped: false,
+    deduped: true,
+    reason: 'duplicate_suppressed',
+    message: sanitizeText(result?.message || `${channel}_duplicate_suppressed`, 120)
+  };
+}
+
 async function resolveFallbackCustomerSnapshot(body = {}) {
   const snapshot = {
     name: sanitizeText(body.customerName || body.fullname || body.name, 140),
@@ -313,6 +537,14 @@ function uniqueEmails(list = []) {
   return [...new Set(list.map(normalizeEmail).filter(isLikelyEmail))];
 }
 
+function uniquePhones(list = []) {
+  return [...new Set(
+    list
+      .map((value) => normalizePhone(value, BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY))
+      .filter(Boolean)
+  )];
+}
+
 async function resolveAdminAlertRecipients() {
   const envEmails = ADMIN_EMAIL_RECIPIENT_VARS.flatMap((key) => splitCsvValues(process.env[key]));
   const defaultEmails = splitCsvValues(DEFAULT_ADMIN_ALERT_EMAIL);
@@ -333,7 +565,18 @@ async function resolveAdminAlertRecipients() {
     });
   }
 
-  return uniqueEmails([...envEmails, ...defaultEmails, ...smtpFallbackEmails, ...adminUserEmails]);
+  const preferredRecipients = uniqueEmails([...envEmails, ...defaultEmails, ...adminUserEmails]);
+  if (preferredRecipients.length) {
+    return preferredRecipients;
+  }
+
+  return uniqueEmails(smtpFallbackEmails);
+}
+
+function resolveAdminWhatsAppRecipients() {
+  const envPhones = ADMIN_WHATSAPP_RECIPIENT_VARS.flatMap((key) => splitCsvValues(process.env[key]));
+  const defaultPhones = splitCsvValues(DEFAULT_ADMIN_WHATSAPP_NUMBER);
+  return uniquePhones([...envPhones, ...defaultPhones]);
 }
 
 function toOrigin(rawValue) {
@@ -380,6 +623,98 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function formatMoney(value) {
+  return `INR ${Number(value || 0).toFixed(2)}`;
+}
+
+function formatMoneyDelta(value) {
+  const amount = Number(value || 0);
+  const prefix = amount > 0 ? '+' : amount < 0 ? '-' : '';
+  return `${prefix}${formatMoney(Math.abs(amount))}`;
+}
+
+function getBookingFareSummary(booking = {}) {
+  const fare = booking && booking.fareBreakdown && typeof booking.fareBreakdown === 'object'
+    ? booking.fareBreakdown
+    : {};
+  const totalFare = Number(fare.totalFare ?? fare.finalFare ?? booking.amount ?? booking.totalFare ?? 0);
+  const budgetAmount = Number(
+    fare.customerBidAmount ??
+    fare.budgetAmount ??
+    booking.customerBidAmount ??
+    booking.budgetAmount ??
+    0
+  );
+
+  return {
+    fare,
+    totalFare,
+    budgetAmount,
+    distanceKm: Number(fare.distanceKm ?? booking.distanceKm ?? 0),
+    estimatedDurationMin: Number(fare.estimatedDurationMin ?? 0),
+    pickupState: sanitizeText(fare.pickupState || '', 80),
+    dropState: sanitizeText(fare.dropState || '', 80),
+    routeCategory: sanitizeText(fare.routeCategory || '', 80),
+    distanceSource: sanitizeText(fare.distanceSource || booking.distanceSource || '', 80),
+    interState: Boolean(fare.interState),
+    budgetGap: Number.isFinite(Number(fare.budgetGap)) ? Number(fare.budgetGap) : Math.round(budgetAmount - totalFare)
+  };
+}
+
+function buildFareBreakdownRows(booking = {}) {
+  const summary = getBookingFareSummary(booking);
+  const fare = summary.fare || {};
+  const rows = [];
+  const distanceSourceLabel = String(summary.distanceSource || 'manual').replace(/_/g, ' ');
+  const routeCategoryLabel = String(summary.routeCategory || 'local_route').replace(/_/g, ' ');
+  const includedDistanceKm = Number(fare.includedDistanceKm || 0);
+  const extraDistanceKm = Number(fare.extraDistanceKm || 0);
+  const includedDurationMin = Number(fare.includedDurationMin || 0);
+  const extraTimeMin = Number(fare.extraTimeMin || 0);
+
+  if (summary.budgetAmount > 0) {
+    rows.push(['Customer Bid / Budget', formatMoney(summary.budgetAmount)]);
+    rows.push(['Budget Gap vs Estimate', formatMoneyDelta(summary.budgetGap)]);
+  }
+
+  rows.push(['Distance Source', distanceSourceLabel]);
+  rows.push(['Route Category', routeCategoryLabel]);
+  rows.push(['Estimated Duration', summary.estimatedDurationMin ? `${summary.estimatedDurationMin} min` : 'N/A']);
+  rows.push(['Pickup State', summary.pickupState || 'N/A']);
+  rows.push(['Drop State', summary.dropState || 'N/A']);
+  rows.push(['Inter-State', summary.interState ? 'Yes' : 'No']);
+  rows.push(['Included Distance', includedDistanceKm ? `${includedDistanceKm} km` : 'N/A']);
+  rows.push(['Base Fare', formatMoney(fare.baseFare || 0)]);
+  rows.push(['Distance Fare', formatMoney(fare.distanceFare || 0)]);
+  rows.push(['Extra Kilometer Charge', formatMoney(fare.extraDistanceFare || 0)]);
+  rows.push(['Included Duration', includedDurationMin ? `${includedDurationMin} min` : 'N/A']);
+  rows.push(['Time / Traffic Charge', formatMoney(fare.timeFare || 0)]);
+  rows.push(['Extra Time Charge', formatMoney(fare.extraTimeFare || 0)]);
+  rows.push(['Passenger Surcharge', formatMoney(fare.passengerFare || 0)]);
+  rows.push(['Trip Plan Surcharge', formatMoney(fare.tripPlanFare || 0)]);
+  rows.push(['Luggage Charge', formatMoney(fare.luggageFare || 0)]);
+  rows.push(['Special Requests', formatMoney(fare.extrasFare || 0)]);
+  rows.push(['Safety & Accessibility', formatMoney(fare.safetyFare || 0)]);
+  rows.push(['Stopover Charge', formatMoney(fare.stopFare || 0)]);
+  rows.push(['Round Trip Charge', formatMoney(fare.roundTripCharge || fare.returnTripFare || 0)]);
+  rows.push(['Toll Charge', formatMoney(fare.tollCharge || 0)]);
+  rows.push(['Parking Charge', formatMoney(fare.parkingCharge || 0)]);
+  rows.push(['Other State Tax', formatMoney(fare.otherStateTax || fare.stateTax || 0)]);
+  rows.push(['Driver Night Bhatta', formatMoney(fare.driverNightBatta || fare.nightCharge || 0)]);
+  rows.push(['Payment Fee', formatMoney(fare.paymentFee || 0)]);
+  rows.push(['GST / Service Tax', formatMoney(fare.taxesFare || 0)]);
+  rows.push(['Promo Discount', `-${formatMoney(fare.promoDiscount || 0)}`]);
+  rows.push(['Total Fare', formatMoney(summary.totalFare || 0)]);
+
+  return rows;
+}
+
+function buildFareBreakdownText(booking = {}) {
+  return buildFareBreakdownRows(booking)
+    .map(([label, value]) => `${label}: ${value}`)
+    .join('\n');
+}
+
 function buildBookingAdminEmailText({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
   const customerPhone = formatCustomerPhoneForEmail(customer.phone);
@@ -400,12 +735,46 @@ function buildBookingAdminEmailText({ booking, context, customer }) {
     `Payment Method: ${context.paymentMethod || 'N/A'}`,
     `Passengers: ${context.passengers || 1}`,
     `Luggage: ${context.luggage || 'N/A'}`,
+    `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
     `Special Requests: ${listEnabledFlags(context.specialRequests)}`,
     `Safety & Accessibility: ${listEnabledFlags(context.safetyAccessibility)}`,
     `Notes: ${context.notes || 'None'}`,
     `Customer Name: ${customer.name || 'N/A'}`,
     `Customer Email: ${customer.email || 'N/A'}`,
     `Customer Phone: ${customerPhone || 'N/A'}`,
+    `Fare Breakdown:\n${buildFareBreakdownText(booking)}`,
+    `Created At: ${booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()}`
+  ].join('\n');
+}
+
+function buildBookingAdminWhatsAppText({ booking, context, customer }) {
+  const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
+  const customerPhone = formatCustomerPhoneForEmail(customer.phone);
+  return [
+    '[GO India RIDE] New Booking Pending Admin Review',
+    `Booking ID: ${booking.bookingId}`,
+    `Status: ${booking.status}`,
+    `Admin Review: ${booking.adminReviewStatus || 'pending'}`,
+    `Amount: INR ${Number(booking.amount || 0).toFixed(2)}`,
+    `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
+    `Distance: ${Number(booking.distanceKm || 0).toFixed(2)} km`,
+    `Pickup: ${context.pickupLocation || 'N/A'}`,
+    `Drop: ${context.dropLocation || 'N/A'}`,
+    `Stops: ${stopsText}`,
+    `Ride Date/Time: ${(context.rideDate || 'N/A')} ${(context.rideTime || '')}`.trim(),
+    `Return Date/Time: ${(context.returnDate || 'N/A')} ${(context.returnTime || '')}`.trim(),
+    `Trip Plan: ${context.tripPlan || 'N/A'}`,
+    `Vehicle Type: ${context.vehicleType || 'N/A'}`,
+    `Payment Method: ${context.paymentMethod || 'N/A'}`,
+    `Passengers: ${context.passengers || 1}`,
+    `Luggage: ${context.luggage || 'N/A'}`,
+    `Special Requests: ${listEnabledFlags(context.specialRequests)}`,
+    `Safety & Accessibility: ${listEnabledFlags(context.safetyAccessibility)}`,
+    `Notes: ${context.notes || 'None'}`,
+    `Customer Name: ${customer.name || 'N/A'}`,
+    `Customer Email: ${customer.email || 'N/A'}`,
+    `Customer Phone: ${customerPhone || 'N/A'}`,
+    `Fare Breakdown:\n${buildFareBreakdownText(booking)}`,
     `Created At: ${booking.createdAt ? new Date(booking.createdAt).toISOString() : new Date().toISOString()}`
   ].join('\n');
 }
@@ -441,16 +810,27 @@ function buildBookingAdminEmailHtml({ booking, context, customer }) {
   const rows = dataRows
     .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
     .join('');
+  const fareRows = buildFareBreakdownRows(booking)
+    .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
+    .join('');
 
   return `<div style="font-family:Arial,sans-serif;color:#1f2d3d;line-height:1.5;">
 <h2 style="margin:0 0 12px;color:#0b2f5c;">New Booking Pending Admin Review</h2>
 <p style="margin:0 0 14px;">A new customer booking has been created and is waiting for admin approval.</p>
+<h3 style="margin:16px 0 10px;color:#0b2f5c;">Booking Details</h3>
 <table style="border-collapse:collapse;width:100%;max-width:820px;background:#ffffff;">${rows}</table>
+<h3 style="margin:16px 0 10px;color:#0b2f5c;">Fare Breakdown</h3>
+<table style="border-collapse:collapse;width:100%;max-width:820px;background:#ffffff;">${fareRows}</table>
 </div>`;
 }
 
-async function sendBookingAdminAlertEmail({ booking, context, customer }) {
-  const recipients = await resolveAdminAlertRecipients();
+async function sendBookingAdminAlertEmail({ booking, context, customer, recipients: providedRecipients = null }) {
+  const normalizedProvidedRecipients = Array.isArray(providedRecipients)
+    ? uniqueEmails(providedRecipients)
+    : [];
+  const recipients = normalizedProvidedRecipients.length
+    ? normalizedProvidedRecipients
+    : await resolveAdminAlertRecipients();
   if (!recipients.length) {
     logger.warn('booking_admin_email_skipped', {
       bookingId: booking.bookingId,
@@ -468,7 +848,8 @@ async function sendBookingAdminAlertEmail({ booking, context, customer }) {
       to: recipients.join(','),
       subject,
       text,
-      html
+      html,
+      disablePortFallback: BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT
     });
 
     if (mailResult && mailResult.skipped) {
@@ -515,6 +896,8 @@ function buildBookingCustomerEmailText({ booking, context, customer }) {
     `Stops: ${stopsText}`,
     `Passengers: ${context.passengers || 1}`,
     `Estimated Fare: INR ${Number(booking.amount || 0).toFixed(2)}`,
+    `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
+    `Fare Breakdown:\n${buildFareBreakdownText(booking)}`,
     '',
     'Thanks for booking with GO India RIDE.',
     'A driver will be assigned after admin approval.',
@@ -535,10 +918,14 @@ function buildBookingCustomerEmailHtml({ booking, context, customer }) {
     ['Trip Plan', context.tripPlan || 'N/A'],
     ['Payment Method', context.paymentMethod || 'N/A'],
     ['Passengers', String(context.passengers || 1)],
-    ['Estimated Fare', `INR ${Number(booking.amount || 0).toFixed(2)}`]
+    ['Estimated Fare', `INR ${Number(booking.amount || 0).toFixed(2)}`],
+    ['Customer Bid / Budget', Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A']
   ];
 
   const rowHtml = rows
+    .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
+    .join('');
+  const fareRows = buildFareBreakdownRows(booking)
     .map(([label, value]) => `<tr><td style="padding:8px 10px;border:1px solid #e3eaf8;font-weight:600;">${escapeHtml(label)}</td><td style="padding:8px 10px;border:1px solid #e3eaf8;">${escapeHtml(value)}</td></tr>`)
     .join('');
 
@@ -546,6 +933,8 @@ function buildBookingCustomerEmailHtml({ booking, context, customer }) {
 <h2 style="margin:0 0 12px;color:#0b2f5c;">Booking Received</h2>
 <p style="margin:0 0 14px;">Hi ${escapeHtml(customer.name || 'Customer')}, your booking has been received successfully. It is currently pending admin review.</p>
 <table style="border-collapse:collapse;width:100%;max-width:760px;background:#ffffff;">${rowHtml}</table>
+<h3 style="margin:16px 0 10px;color:#0b2f5c;">Fare Breakdown</h3>
+<table style="border-collapse:collapse;width:100%;max-width:760px;background:#ffffff;">${fareRows}</table>
 <p style="margin-top:14px;">Thanks for choosing GO India RIDE.</p>
 </div>`;
 }
@@ -569,7 +958,8 @@ async function sendBookingCustomerConfirmationEmail({ booking, context, customer
       to: customerEmail,
       subject,
       text,
-      html
+      html,
+      disablePortFallback: BOOKING_EMAIL_SINGLE_SMTP_ATTEMPT
     });
 
     if (mailResult && mailResult.skipped) {
@@ -600,6 +990,55 @@ async function sendBookingCustomerConfirmationEmail({ booking, context, customer
   }
 }
 
+async function sendBookingAdminWhatsAppAlert({ booking, context, customer }) {
+  if (!BOOKING_ADMIN_WHATSAPP_ENABLED) {
+    return { sent: false, skipped: true, reason: 'whatsapp_disabled' };
+  }
+
+  const recipients = resolveAdminWhatsAppRecipients();
+  if (!recipients.length) {
+    logger.warn('booking_admin_whatsapp_skipped', {
+      bookingId: booking.bookingId,
+      reason: 'no_admin_whatsapp_recipients'
+    });
+    return { sent: false, skipped: true, reason: 'no_admin_whatsapp_recipients' };
+  }
+
+  const messageText = buildBookingAdminWhatsAppText({ booking, context, customer });
+  const primaryRecipient = recipients[0];
+  try {
+    const result = await sendWhatsAppMessage({
+      to: primaryRecipient,
+      text: messageText,
+      provider: BOOKING_ADMIN_WHATSAPP_PROVIDER,
+      defaultCountryCode: BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY
+    });
+    if (!result || typeof result !== 'object') {
+      return {
+        sent: false,
+        skipped: false,
+        reason: 'whatsapp_unknown_response'
+      };
+    }
+
+    return {
+      ...result,
+      recipientMasked: result.recipientMasked || maskPhone(primaryRecipient)
+    };
+  } catch (error) {
+    logger.error('booking_admin_whatsapp_failed', {
+      bookingId: booking.bookingId,
+      message: error.message
+    });
+    return {
+      sent: false,
+      skipped: false,
+      reason: 'whatsapp_send_failed',
+      message: error.message
+    };
+  }
+}
+
 function normalizeEmailDispatchResult(result, fallbackReason = 'send_failed') {
   if (result && typeof result === 'object') {
     return result;
@@ -612,9 +1051,76 @@ function normalizeEmailDispatchResult(result, fallbackReason = 'send_failed') {
 }
 
 async function dispatchBookingEmails({ booking, context, customer, source = 'booking' }) {
-  const [adminOutcome, customerOutcome] = await Promise.allSettled([
-    sendBookingAdminAlertEmail({ booking, context, customer }),
-    sendBookingCustomerConfirmationEmail({ booking, context, customer })
+  const safeBookingId = sanitizeText(booking?.bookingId, 80).toUpperCase();
+  const cachedDispatch = safeBookingId ? getRecentBookingEmailDispatch(safeBookingId) : null;
+  const cachedPayload = cachedDispatch && cachedDispatch.payload && typeof cachedDispatch.payload === 'object'
+    ? cachedDispatch.payload
+    : {};
+  const cachedAdminSent = Boolean(cachedPayload.adminEmail && cachedPayload.adminEmail.sent === true);
+  const cachedCustomerSent = Boolean(cachedPayload.customerEmail && cachedPayload.customerEmail.sent === true);
+  const cachedAdminWhatsAppSent = Boolean(cachedPayload.adminWhatsApp && cachedPayload.adminWhatsApp.sent === true);
+  const customerEmailAddress = normalizeEmail(customer && customer.email);
+  let adminRecipients = [];
+  try {
+    adminRecipients = await resolveAdminAlertRecipients();
+  } catch (error) {
+    logger.warn('booking_admin_recipient_resolve_failed_before_dispatch', {
+      bookingId: booking?.bookingId,
+      source,
+      message: error.message
+    });
+  }
+  const skipCustomerEmailBecauseAdminRecipient = (
+    isLikelyEmail(customerEmailAddress)
+    && Array.isArray(adminRecipients)
+    && adminRecipients.includes(customerEmailAddress)
+  );
+
+  if (cachedAdminSent && cachedCustomerSent && (!BOOKING_ADMIN_WHATSAPP_ENABLED || cachedAdminWhatsAppSent)) {
+    return {
+      adminEmail: buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'),
+      customerEmail: buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email'),
+      adminWhatsApp: BOOKING_ADMIN_WHATSAPP_ENABLED
+        ? buildDuplicateSuppressedEmailResult(cachedPayload.adminWhatsApp, 'admin_whatsapp')
+        : { sent: false, skipped: true, reason: 'whatsapp_disabled' }
+    };
+  }
+
+  const adminEmailPromise = cachedAdminSent
+    ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'))
+    : sendBookingAdminAlertEmail({ booking, context, customer, recipients: adminRecipients });
+
+  const shouldSendCustomerEmail = source !== 'fallback_admin_alert';
+  const customerEmailPromise = !shouldSendCustomerEmail
+    ? Promise.resolve({
+        sent: false,
+        skipped: true,
+        reason: 'disabled_for_fallback_admin_alert'
+      })
+    : cachedCustomerSent
+    ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email'))
+    : (
+      skipCustomerEmailBecauseAdminRecipient
+        ? Promise.resolve({
+            sent: false,
+            skipped: true,
+            reason: 'same_as_admin_recipient'
+          })
+        : sendBookingCustomerConfirmationEmail({ booking, context, customer })
+    );
+
+  const adminWhatsAppPromise = !BOOKING_ADMIN_WHATSAPP_ENABLED
+    ? Promise.resolve({ sent: false, skipped: true, reason: 'whatsapp_disabled' })
+    : (
+      cachedAdminWhatsAppSent
+        ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.adminWhatsApp, 'admin_whatsapp'))
+        : sendBookingAdminWhatsAppAlert({ booking, context, customer })
+    );
+
+  const [adminOutcome, customerOutcome, adminWhatsAppOutcome] = await Promise.allSettled([
+    adminEmailPromise,
+    customerEmailPromise,
+    adminWhatsAppPromise
   ]);
 
   const adminEmail = adminOutcome.status === 'fulfilled'
@@ -635,6 +1141,15 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
         message: customerOutcome.reason?.message || 'send_failed'
       };
 
+  const adminWhatsApp = adminWhatsAppOutcome.status === 'fulfilled'
+    ? normalizeEmailDispatchResult(adminWhatsAppOutcome.value)
+    : {
+        sent: false,
+        skipped: false,
+        reason: 'send_failed',
+        message: adminWhatsAppOutcome.reason?.message || 'send_failed'
+      };
+
   if (adminOutcome.status !== 'fulfilled') {
     logger.error('booking_admin_email_dispatch_failed', {
       bookingId: booking.bookingId,
@@ -649,8 +1164,40 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
       message: customerOutcome.reason?.message || 'send_failed'
     });
   }
+  if (adminWhatsAppOutcome.status !== 'fulfilled') {
+    logger.error('booking_admin_whatsapp_dispatch_failed', {
+      bookingId: booking.bookingId,
+      source,
+      message: adminWhatsAppOutcome.reason?.message || 'send_failed'
+    });
+  }
 
-  return { adminEmail, customerEmail };
+  const cacheAdminEmail = adminEmail && adminEmail.sent === true
+    ? { ...adminEmail, deduped: false }
+    : (cachedPayload.adminEmail || adminEmail);
+  const cacheCustomerEmail = customerEmail && customerEmail.sent === true
+    ? { ...customerEmail, deduped: false }
+    : (cachedPayload.customerEmail || customerEmail);
+  const cacheAdminWhatsApp = adminWhatsApp && adminWhatsApp.sent === true
+    ? { ...adminWhatsApp, deduped: false }
+    : (cachedPayload.adminWhatsApp || adminWhatsApp);
+  if (
+    safeBookingId
+    && (
+      (cacheAdminEmail && cacheAdminEmail.sent === true)
+      || (cacheCustomerEmail && cacheCustomerEmail.sent === true)
+      || (cacheAdminWhatsApp && cacheAdminWhatsApp.sent === true)
+    )
+  ) {
+    rememberRecentBookingEmailDispatch(safeBookingId, {
+      adminEmail: cacheAdminEmail,
+      customerEmail: cacheCustomerEmail,
+      adminWhatsApp: cacheAdminWhatsApp,
+      source
+    });
+  }
+
+  return { adminEmail, customerEmail, adminWhatsApp };
 }
 
 function sendBookingCustomerConfirmationEmailAsync({ booking, context, customer, source = 'unknown' }) {
@@ -769,6 +1316,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
         reason: 'duplicate_suppressed'
       },
       customerEmail: cachedDispatch.payload.customerEmail || null,
+      adminWhatsApp: cachedDispatch.payload.adminWhatsApp || null,
       notifications: {
         adminReview: cachedDispatch.payload.reviewAlert || null
       }
@@ -780,15 +1328,33 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     return res.status(400).json({ message: 'Pickup and drop locations are required' });
   }
 
-  const amountInput = toAmount(req.body.amount ?? req.body.totalFare);
-  const distanceInput = toAmount(req.body.distanceKm ?? req.body.distance);
+  const fareEstimate = estimateBookingFare({
+    ...req.body,
+    pickup: bookingContext.pickupLocation,
+    drop: bookingContext.dropLocation,
+    tripPlan: bookingContext.tripPlan,
+    tripServiceType: bookingContext.tripServiceType,
+    vehicleType: bookingContext.vehicleType,
+    vehicleModel: bookingContext.vehicleModel,
+    passengers: bookingContext.passengers,
+    luggage: bookingContext.luggage,
+    stops: bookingContext.stops,
+    specialRequests: bookingContext.specialRequests,
+    safetyAccessibility: bookingContext.safetyAccessibility,
+    paymentMethod: bookingContext.paymentMethod,
+    budgetAmount: bookingContext.budgetAmount,
+    distanceSource: bookingContext.distanceSource
+  });
 
   const booking = {
     bookingId,
     status: 'created',
     adminReviewStatus: 'pending',
-    amount: Number.isFinite(amountInput) ? amountInput : 0,
-    distanceKm: Number.isFinite(distanceInput) ? distanceInput : 0,
+    amount: fareEstimate.totalFare,
+    distanceKm: fareEstimate.distanceKm,
+    budgetAmount: fareEstimate.budgetAmount,
+    customerBidAmount: fareEstimate.customerBidAmount,
+    fareBreakdown: fareEstimate,
     createdAt: new Date().toISOString()
   };
 
@@ -829,7 +1395,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     });
   }
 
-  const { adminEmail, customerEmail } = await dispatchBookingEmails({
+  const { adminEmail, customerEmail, adminWhatsApp } = await dispatchBookingEmails({
     booking,
     context: bookingContext,
     customer: customerSnapshot,
@@ -843,6 +1409,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
       message: 'Admin email not sent in fallback flow',
       adminEmail: adminEmail || { sent: false, reason: 'unknown' },
       customerEmail: customerEmail || { sent: false, reason: 'unknown' },
+      adminWhatsApp: adminWhatsApp || { sent: false, reason: 'unknown' },
       notifications: {
         adminReview: reviewAlert
       }
@@ -852,6 +1419,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
   rememberRecentFallbackAdminEmailDispatch(bookingId, {
     adminEmail,
     customerEmail,
+    adminWhatsApp,
     reviewAlert
   });
 
@@ -861,6 +1429,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     message: 'Fallback admin alert email sent',
     adminEmail,
     customerEmail,
+    adminWhatsApp,
     notifications: {
       adminReview: reviewAlert
     }
@@ -868,17 +1437,19 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
 });
 
 router.get('/quote', authenticate, continuousRiskGate, async (req, res) => {
-  const parsedDistance = Number(req.query.distanceKm || req.query.distance || 10);
-  const distanceKm = Number.isFinite(parsedDistance) ? Math.max(parsedDistance, 1) : 10;
-  const normalizedDistance = Number(distanceKm.toFixed(2));
-  const amount = Number((normalizedDistance * 12).toFixed(2));
-  const fareHash = computeFareHash({ distanceKm: normalizedDistance, amount });
+  const estimate = estimateBookingFare({
+    ...req.query,
+    distanceKm: req.query.distanceKm || req.query.distance || 10,
+    currency: req.query.currency || 'INR'
+  });
+  const fareHash = computeFareHash({ distanceKm: estimate.distanceKm, amount: estimate.totalFare });
 
   return res.status(200).json({
-    distanceKm: normalizedDistance,
-    amount,
+    distanceKm: estimate.distanceKm,
+    amount: estimate.totalFare,
     fareHash,
-    currency: 'INR'
+    currency: 'INR',
+    estimate
   });
 });
 
@@ -940,31 +1511,79 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     return res.status(403).json({ message: 'Fraud pattern detected, temporary ban applied', fraud });
   }
 
+  const fareEstimate = req.fareEstimate || estimateBookingFare({
+    ...req.body,
+    ...bookingContext,
+    pickup: bookingContext.pickupLocation,
+    drop: bookingContext.dropLocation,
+    vehicleType: bookingContext.vehicleType,
+    vehicleModel: bookingContext.vehicleModel,
+    tripPlan: bookingContext.tripPlan,
+    tripServiceType: bookingContext.tripServiceType,
+    paymentMethod: bookingContext.paymentMethod,
+    passengers: bookingContext.passengers,
+    luggage: bookingContext.luggage,
+    stops: bookingContext.stops,
+    specialRequests: bookingContext.specialRequests,
+    safetyAccessibility: bookingContext.safetyAccessibility,
+    budgetAmount: bookingContext.budgetAmount,
+    distanceSource: bookingContext.distanceSource,
+    promoCode: referralCode
+  });
+
   const bookingId = `BK${Date.now()}${Math.floor(Math.random() * 1000)}`;
   const booking = await Booking.create({
     userId: req.user.id,
     bookingId,
     cardHash,
     ip,
-    distanceKm,
-    amount: req.recalculatedFare,
+    distanceKm: fareEstimate.distanceKm || distanceKm,
+    amount: fareEstimate.totalFare,
     referralCode: sanitizeText(referralCode, 80),
+    budgetAmount: fareEstimate.budgetAmount,
+    customerBidAmount: fareEstimate.customerBidAmount,
+    fareBreakdown: fareEstimate,
+    fareHash: sanitizeText(req.body.fareHash || '', 240),
+    fareQuote: {
+      amount: fareEstimate.totalFare,
+      distanceKm: fareEstimate.distanceKm,
+      source: fareEstimate.distanceSource,
+      routeCategory: fareEstimate.routeCategory
+    },
     pickupLocation: bookingContext.pickupLocation,
     dropLocation: bookingContext.dropLocation,
     rideDate: bookingContext.rideDate,
     rideTime: bookingContext.rideTime,
+    outboundDateTime: parseBookingRideStartDateTime({
+      rideDate: bookingContext.rideDate,
+      rideTime: bookingContext.rideTime
+    }),
     returnDate: bookingContext.returnDate,
     returnTime: bookingContext.returnTime,
     tripPlan: bookingContext.tripPlan,
+    tripServiceType: bookingContext.tripServiceType,
     paymentMethod: bookingContext.paymentMethod,
     vehicleType: bookingContext.vehicleType,
+    vehicleModel: bookingContext.vehicleModel,
     passengers: bookingContext.passengers,
     luggage: bookingContext.luggage,
     notes: bookingContext.notes,
     stops: bookingContext.stops,
+    distanceSource: fareEstimate.distanceSource,
     specialRequests: bookingContext.specialRequests,
     safetyAccessibility: bookingContext.safetyAccessibility,
     customerSnapshot,
+    payment: req.body.payment && typeof req.body.payment === 'object' ? req.body.payment : {},
+    promo: {
+      code: sanitizeText(referralCode, 80),
+      discount: fareEstimate.promoDiscount
+    },
+    customerFeatures: {
+      specialRequests: bookingContext.specialRequests,
+      safetyAccessibility: bookingContext.safetyAccessibility,
+      hasStops: bookingContext.stops.length > 0,
+      hasReturnTrip: Boolean(bookingContext.returnDate)
+    },
     status: 'created'
   });
   await Booking.updateOne(
@@ -988,7 +1607,7 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     deviceFingerprint: device.fingerprint,
     metadata: {
       distanceKm,
-      amount,
+      amount: fareEstimate.totalFare,
       referralCode,
       pickup: bookingContext.pickupLocation,
       drop: bookingContext.dropLocation,
@@ -1006,10 +1625,11 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   let notificationSummary = null;
   let adminEmail = null;
   let customerEmail = null;
+  let adminWhatsApp = null;
   try {
     const reviewAlert = await createBookingAdminReviewAlert({
       bookingId: booking.bookingId,
-      amount: req.recalculatedFare,
+      amount: booking.amount,
       distanceKm: booking.distanceKm,
       customerId: req.user.id,
       pickup: bookingContext.pickupLocation,
@@ -1047,10 +1667,12 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     });
     adminEmail = emailDispatch.adminEmail;
     customerEmail = emailDispatch.customerEmail;
+    adminWhatsApp = emailDispatch.adminWhatsApp;
     if (adminEmail && adminEmail.sent === true) {
       rememberRecentFallbackAdminEmailDispatch(booking.bookingId, {
         adminEmail,
         customerEmail,
+        adminWhatsApp,
         reviewAlert
       });
     }
@@ -1072,7 +1694,8 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     riskScore: behavior.score,
     notifications: notificationSummary,
     adminEmail,
-    customerEmail
+    customerEmail,
+    adminWhatsApp
   });
 });
 
@@ -1103,6 +1726,7 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     dropLocation: row.dropLocation || '',
     rideDate: row.rideDate || '',
     rideTime: row.rideTime || '',
+    outboundDateTime: row.outboundDateTime || null,
     returnDate: row.returnDate || '',
     returnTime: row.returnTime || '',
     tripPlan: row.tripPlan || '',
@@ -1112,12 +1736,27 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     luggage: row.luggage || '',
     notes: row.notes || '',
     stops: Array.isArray(row.stops) ? row.stops : [],
+    budgetAmount: Number(row.budgetAmount || 0),
+    customerBidAmount: Number(row.customerBidAmount || 0),
+    distanceSource: row.distanceSource || '',
+    vehicleModel: row.vehicleModel || '',
+    tripServiceType: row.tripServiceType || '',
     specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
     safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
     amount: Number(row.amount || 0),
     distanceKm: Number(row.distanceKm || 0),
     driverId: row.driverId || null,
     customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object' ? row.customerSnapshot : {},
+    fareBreakdown: row.fareBreakdown && typeof row.fareBreakdown === 'object' ? row.fareBreakdown : {},
+    fareQuote: row.fareQuote && typeof row.fareQuote === 'object' ? row.fareQuote : {},
+    fareHash: row.fareHash || '',
+    payment: row.payment && typeof row.payment === 'object' ? row.payment : {},
+    promo: row.promo && typeof row.promo === 'object' ? row.promo : {},
+    customerFeatures: row.customerFeatures && typeof row.customerFeatures === 'object' ? row.customerFeatures : {},
+    editCount: getBookingEditCount(row),
+    lastEditedAt: row.lastEditedAt || null,
+    editPolicyVersion: row.editPolicyVersion || '',
+    editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
     createdAt: row.createdAt || null,
     updatedAt: row.updatedAt || null
   }));
@@ -1125,6 +1764,208 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
   return res.status(200).json({
     count: items.length,
     items
+  });
+});
+
+router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
+  const actorType = resolveCompletionActor(req);
+  if (actorType !== 'customer') {
+    return res.status(403).json({ message: 'Only customer can edit booking from this endpoint' });
+  }
+
+  const bookingId = sanitizeText(req.params.id, 120).toUpperCase();
+  if (!bookingId) {
+    return res.status(400).json({ message: 'booking id is required' });
+  }
+
+  const booking = await Booking.findOne({ bookingId });
+  if (!booking) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  if (String(booking.userId) !== String(req.user.id)) {
+    return res.status(404).json({ message: 'Booking not found' });
+  }
+
+  const policy = resolveCustomerBookingEditPolicy(booking);
+  if (!policy.allowed) {
+    return res.status(409).json({
+      message: policy.reason,
+      editPolicy: policy
+    });
+  }
+
+  const allowedSet = new Set(Array.isArray(policy.allowedFields) ? policy.allowedFields : []);
+  const updates = {
+    pickup: sanitizeText(req.body.pickup || req.body.pickupLocation, 180),
+    dropoff: sanitizeText(req.body.drop || req.body.dropoff || req.body.dropLocation, 180),
+    rideDate: sanitizeText(req.body.rideDate, 40),
+    rideTime: normalizeBookingTimeValue(req.body.rideTime),
+    returnDate: sanitizeText(req.body.returnDate, 40),
+    returnTime: normalizeBookingTimeValue(req.body.returnTime),
+    tripPlan: sanitizeText(req.body.tripPlan, 80),
+    paymentMethod: sanitizeText(req.body.paymentMethod, 80),
+    vehicleType: sanitizeText(req.body.vehicleType || req.body.rideType, 80),
+    passengers: normalizeInteger(req.body.passengers, Number(booking.passengers || 1), 1, 20),
+    luggage: sanitizeText(req.body.luggage, 80),
+    notes: sanitizeText(req.body.notes, 600),
+    stops: sanitizeStringArray(req.body.stops, 2, 160),
+    specialRequests: sanitizeBooleanMap(req.body.specialRequests, 60),
+    safetyAccessibility: sanitizeBooleanMap(req.body.safetyAccessibility, 60)
+  };
+
+  const changedFields = [];
+  const previous = {
+    pickupLocation: booking.pickupLocation || '',
+    dropLocation: booking.dropLocation || '',
+    rideDate: booking.rideDate || '',
+    rideTime: booking.rideTime || '',
+    returnDate: booking.returnDate || '',
+    returnTime: booking.returnTime || '',
+    tripPlan: booking.tripPlan || '',
+    paymentMethod: booking.paymentMethod || '',
+    vehicleType: booking.vehicleType || '',
+    passengers: Number(booking.passengers || 1),
+    luggage: booking.luggage || '',
+    notes: booking.notes || '',
+    stops: Array.isArray(booking.stops) ? booking.stops : [],
+    specialRequests: booking.specialRequests && typeof booking.specialRequests === 'object' ? booking.specialRequests : {},
+    safetyAccessibility: booking.safetyAccessibility && typeof booking.safetyAccessibility === 'object' ? booking.safetyAccessibility : {}
+  };
+
+  if (allowedSet.has('pickup') && updates.pickup && updates.pickup !== previous.pickupLocation) {
+    booking.pickupLocation = updates.pickup;
+    changedFields.push('pickup');
+  }
+  if (allowedSet.has('dropoff') && updates.dropoff && updates.dropoff !== previous.dropLocation) {
+    booking.dropLocation = updates.dropoff;
+    changedFields.push('dropoff');
+  }
+  if (allowedSet.has('rideDate') && updates.rideDate && updates.rideDate !== previous.rideDate) {
+    booking.rideDate = updates.rideDate;
+    changedFields.push('rideDate');
+  }
+  if (allowedSet.has('rideTime') && updates.rideTime && updates.rideTime !== previous.rideTime) {
+    booking.rideTime = updates.rideTime;
+    changedFields.push('rideTime');
+  }
+  if (allowedSet.has('returnDate') && updates.returnDate !== previous.returnDate) {
+    booking.returnDate = updates.returnDate;
+    changedFields.push('returnDate');
+  }
+  if (allowedSet.has('returnTime') && updates.returnTime !== previous.returnTime) {
+    booking.returnTime = updates.returnTime;
+    changedFields.push('returnTime');
+  }
+  if (allowedSet.has('tripPlan') && updates.tripPlan && updates.tripPlan !== previous.tripPlan) {
+    booking.tripPlan = updates.tripPlan;
+    changedFields.push('tripPlan');
+  }
+  if (allowedSet.has('paymentMethod') && updates.paymentMethod && updates.paymentMethod !== previous.paymentMethod) {
+    booking.paymentMethod = updates.paymentMethod;
+    changedFields.push('paymentMethod');
+  }
+  if (allowedSet.has('vehicleType') && updates.vehicleType && updates.vehicleType !== previous.vehicleType) {
+    booking.vehicleType = updates.vehicleType;
+    changedFields.push('vehicleType');
+  }
+  if (allowedSet.has('passengers') && updates.passengers !== previous.passengers) {
+    booking.passengers = updates.passengers;
+    changedFields.push('passengers');
+  }
+  if (allowedSet.has('luggage') && updates.luggage !== previous.luggage) {
+    booking.luggage = updates.luggage;
+    changedFields.push('luggage');
+  }
+  if (allowedSet.has('notes') && updates.notes !== previous.notes) {
+    booking.notes = updates.notes;
+    changedFields.push('notes');
+  }
+  if ((allowedSet.has('stop1') || allowedSet.has('stop2'))
+    && JSON.stringify(updates.stops) !== JSON.stringify(previous.stops)) {
+    booking.stops = updates.stops;
+    changedFields.push('stops');
+  }
+  if (allowedSet.has('specialRequests')
+    && JSON.stringify(updates.specialRequests) !== JSON.stringify(previous.specialRequests)) {
+    booking.specialRequests = updates.specialRequests;
+    changedFields.push('specialRequests');
+  }
+  if (allowedSet.has('safetyAccessibility')
+    && JSON.stringify(updates.safetyAccessibility) !== JSON.stringify(previous.safetyAccessibility)) {
+    booking.safetyAccessibility = updates.safetyAccessibility;
+    changedFields.push('safetyAccessibility');
+  }
+
+  if (!changedFields.length) {
+    return res.status(200).json({
+      message: 'No editable changes detected',
+      changedFields,
+      editPolicy: policy
+    });
+  }
+
+  const now = new Date();
+  const nextEditCount = getBookingEditCount(booking) + 1;
+  booking.lastEditedAt = now;
+  booking.editCount = nextEditCount;
+  booking.editPolicyVersion = 'customer_dashboard_v3';
+
+  booking.outboundDateTime = parseBookingRideStartDateTime({
+    outboundDateTime: booking.outboundDateTime,
+    rideDate: booking.rideDate,
+    rideTime: booking.rideTime
+  });
+
+  booking.editHistory = Array.isArray(booking.editHistory) ? booking.editHistory : [];
+  booking.editHistory.push({
+    editedAt: now,
+    by: 'customer',
+    source: 'customer_dashboard',
+    windowTier: policy.windowTier,
+    hoursUntilRide: Number.isFinite(policy.hoursUntilRide) ? Number(policy.hoursUntilRide.toFixed(2)) : null,
+    changedFields
+  });
+
+  booking.statusHistory = Array.isArray(booking.statusHistory) ? booking.statusHistory : [];
+  booking.statusHistory.push({
+    status: 'edited',
+    at: now,
+    source: 'customer_dashboard',
+    note: `customer_edit_${policy.windowTier}`
+  });
+
+  await booking.save();
+
+  return res.status(200).json({
+    message: 'Booking updated successfully',
+    booking: {
+      bookingId: booking.bookingId,
+      pickupLocation: booking.pickupLocation || '',
+      dropLocation: booking.dropLocation || '',
+      rideDate: booking.rideDate || '',
+      rideTime: booking.rideTime || '',
+      returnDate: booking.returnDate || '',
+      returnTime: booking.returnTime || '',
+      tripPlan: booking.tripPlan || '',
+      paymentMethod: booking.paymentMethod || '',
+      vehicleType: booking.vehicleType || '',
+      passengers: Number(booking.passengers || 1),
+      luggage: booking.luggage || '',
+      notes: booking.notes || '',
+      stops: Array.isArray(booking.stops) ? booking.stops : [],
+      specialRequests: booking.specialRequests && typeof booking.specialRequests === 'object' ? booking.specialRequests : {},
+      safetyAccessibility: booking.safetyAccessibility && typeof booking.safetyAccessibility === 'object' ? booking.safetyAccessibility : {},
+      editCount: getBookingEditCount(booking),
+      lastEditedAt: booking.lastEditedAt || null,
+      outboundDateTime: booking.outboundDateTime || null
+    },
+    changedFields,
+    editPolicy: {
+      ...policy,
+      usedEdits: getBookingEditCount(booking),
+      remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - getBookingEditCount(booking))
+    }
   });
 });
 
@@ -1485,6 +2326,7 @@ router.get('/admin/pending', authenticate, async (req, res) => {
       dropLocation: row.dropLocation || '',
       rideDate: row.rideDate || '',
       rideTime: row.rideTime || '',
+      outboundDateTime: row.outboundDateTime || null,
       returnDate: row.returnDate || '',
       returnTime: row.returnTime || '',
       tripPlan: row.tripPlan || '',
@@ -1494,6 +2336,10 @@ router.get('/admin/pending', authenticate, async (req, res) => {
       luggage: row.luggage || '',
       notes: row.notes || '',
       stops: Array.isArray(row.stops) ? row.stops : [],
+      editCount: getBookingEditCount(row),
+      lastEditedAt: row.lastEditedAt || null,
+      editPolicyVersion: row.editPolicyVersion || '',
+      editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
       specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
       safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
       customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
@@ -1964,45 +2810,7 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
   }
 
   function estimateFare(payload) {
-    const distanceKm = Math.max(0, normalizeAmount(payload.distanceKm || payload.distance || 0));
-    const durationMin = Math.max(0, normalizeAmount(payload.durationMin || payload.duration || 0));
-    const vehicleType = normalizeVehicleType(payload.vehicleType || payload.rideType);
-    const basePerKm = vehicleBaseRates[vehicleType] || vehicleBaseRates.sedan;
-    const seasonMultiplier = Math.max(0.5, Math.min(3, normalizeAmount(payload.seasonMultiplier || 1) || 1));
-    const trafficMultiplier = Math.max(0.5, Math.min(2, normalizeAmount(payload.trafficMultiplier || 1) || 1));
-    const waitingCharge = Math.max(0, normalizeAmount(payload.waitingCharge || 0));
-    const tollCharge = Math.max(0, normalizeAmount(payload.tollCharge || 0));
-    const parkingCharge = Math.max(0, normalizeAmount(payload.parkingCharge || 0));
-    const offerPercent = Math.max(0, Math.min(80, normalizeAmount(payload.offerPercent || payload.discountPercent || 0)));
-
-    const distanceFare = normalizeAmount(distanceKm * basePerKm);
-    const timeFare = normalizeAmount(durationMin * 0.5);
-    const grossInr = normalizeAmount((distanceFare + timeFare + waitingCharge + tollCharge + parkingCharge) * seasonMultiplier * trafficMultiplier);
-    const discount = normalizeAmount((grossInr * offerPercent) / 100);
-    const netInr = Math.max(0, normalizeAmount(grossInr - discount));
-    const currency = normalizeCurrency(payload.currency);
-    const converted = normalizeAmount(netInr * (currencyRates[currency] || 1));
-
-    return {
-      vehicleType,
-      currency,
-      basePerKm,
-      distanceKm,
-      durationMin,
-      distanceFare,
-      timeFare,
-      waitingCharge,
-      tollCharge,
-      parkingCharge,
-      seasonMultiplier,
-      trafficMultiplier,
-      offerPercent,
-      grossInr,
-      discountInr: discount,
-      finalInr: netInr,
-      convertedFare: converted,
-      calculatedAt: new Date().toISOString()
-    };
+    return estimateBookingFare(payload);
   }
 
   function pushWithCap(list, item, maxLimit) {
@@ -2248,7 +3056,16 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
   // Route: /fare/estimate
   router.post('/fare/estimate', (req, res) => {
     const estimate = estimateFare(req.body || {});
-    return res.status(200).json({ ok: true, estimate });
+    const fareHash = computeFareHash({ distanceKm: estimate.distanceKm, amount: estimate.totalFare });
+    return res.status(200).json({
+      ok: true,
+      estimate: {
+        ...estimate,
+        fareHash,
+        currency: 'INR'
+      },
+      fareHash
+    });
   });
 
 

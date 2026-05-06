@@ -61,10 +61,53 @@ app.use(hpp());
 
 const allowedOrigins = new Set([
   env.corsOrigin,
+  'https://goindiaride.in',
+  'https://www.goindiaride.in',
+  'https://goindiaride.onrender.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
 ]);
+
+const authGatewayBypassPrefixes = ['/api/auth'];
+function withApiMountVariants(paths = []) {
+  const variants = new Set();
+  for (const value of paths) {
+    const raw = String(value || '').trim();
+    if (!raw) continue;
+    variants.add(raw);
+    if (raw === '/api') {
+      variants.add('/');
+      continue;
+    }
+    if (raw.startsWith('/api/')) {
+      variants.add(raw.slice(4));
+    }
+  }
+  return [...variants];
+}
+
+const sharedGatewayBypassPaths = withApiMountVariants([
+  '/api/bookings/fallback/admin-alert-email',
+  ...authGatewayBypassPrefixes
+]);
+
+function removeAuthPrefix(prefixes = []) {
+  const list = Array.isArray(prefixes) ? prefixes : [];
+  return list.filter((prefix) => String(prefix || '').trim().toLowerCase() !== '/api/auth');
+}
+
+const relaxedAttackPatternProtectedPrefixes = removeAuthPrefix(env.attackPatternShieldProtectedPrefixes);
+const relaxedNetworkIntelProtectedPrefixes = removeAuthPrefix(env.networkIntelPolicyProtectedPrefixes);
+const relaxedDenylistProtectedPrefixes = removeAuthPrefix(env.denylistShieldProtectedPrefixes);
+const relaxedGlobalLockdownBypassPrefixes = Array.from(new Set([
+  ...(Array.isArray(env.globalLockdownBypassPrefixes) ? env.globalLockdownBypassPrefixes : []),
+  ...authGatewayBypassPrefixes
+]));
+const relaxedRouteGuardBypassPrefixes = Array.from(new Set([
+  ...(Array.isArray(env.routeGuardPolicyBypassPrefixes) ? env.routeGuardPolicyBypassPrefixes : []),
+  ...authGatewayBypassPrefixes
+]));
 
 function isDevLocalOrigin(origin) {
   if (process.env.NODE_ENV === 'production') return false;
@@ -90,6 +133,10 @@ app.use(cors({
     'Content-Type',
     'X-CSRF-Token',
     'X-XSRF-Token',
+    'X-Booking-Client',
+    'X-GoindiaRide-Runtime',
+    'X-GoindiaRide-Dashboard-Live',
+    'X-GoindiaRide-Live-Runner',
     'X-Request-Id',
     'X-Timestamp',
     'X-Signature',
@@ -111,6 +158,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api', globalAbuseDefenseMiddleware({
   enabled: env.securityGatewayEnabled,
+  bypassPaths: sharedGatewayBypassPaths,
   maxUrlLength: env.securityGatewayMaxUrlLength,
   maxHeaderCount: env.securityGatewayMaxHeaderCount,
   maxBodyDepth: env.securityGatewayMaxBodyDepth,
@@ -134,7 +182,7 @@ app.use('/api', globalLockdownShieldMiddleware({
   failOpen: env.globalLockdownFailOpen,
   cacheTtlMs: env.globalLockdownCacheTtlMs,
   logThrottleMs: env.globalLockdownLogThrottleMs,
-  bypassPrefixes: env.globalLockdownBypassPrefixes
+  bypassPrefixes: relaxedGlobalLockdownBypassPrefixes
 }));
 app.use('/api', adminAuditChainMiddleware({
   enabled: env.adminAuditChainEnabled,
@@ -150,13 +198,13 @@ app.use('/api', attackPatternQuarantineShieldMiddleware({
   quarantineMaxMs: env.attackPatternShieldQuarantineMaxMs,
   escalationFactor: env.attackPatternShieldEscalationFactor,
   recordTtlMs: env.attackPatternShieldRecordTtlMs,
-  protectedPrefixes: env.attackPatternShieldProtectedPrefixes
+  protectedPrefixes: relaxedAttackPatternProtectedPrefixes
 }));
 app.use('/api', networkIntelPolicyShieldMiddleware({
   enabled: env.networkIntelPolicyShieldEnabled,
   failOpen: env.networkIntelPolicyShieldFailOpen,
   cacheTtlMs: env.networkIntelPolicyCacheTtlMs,
-  protectedPrefixes: env.networkIntelPolicyProtectedPrefixes,
+  protectedPrefixes: relaxedNetworkIntelProtectedPrefixes,
   defaultBlockedIpPrefixes: env.networkIntelDefaultBlockedIpPrefixes,
   defaultBlockedAsnHints: env.networkIntelDefaultBlockedAsnHints,
   enforceHostConsistency: env.networkIntelEnforceHostConsistency,
@@ -166,13 +214,13 @@ app.use('/api', denylistEnforcementMiddleware({
   enabled: env.denylistShieldEnabled,
   failOpen: env.denylistShieldFailOpen,
   cacheTtlMs: env.denylistShieldCacheTtlMs,
-  protectedPrefixes: env.denylistShieldProtectedPrefixes
+  protectedPrefixes: relaxedDenylistProtectedPrefixes
 }));
 app.use('/api', routeGuardPolicyShieldMiddleware({
   enabled: env.routeGuardPolicyShieldEnabled,
   failOpen: env.routeGuardPolicyShieldFailOpen,
   cacheTtlMs: env.routeGuardPolicyCacheTtlMs,
-  bypassPrefixes: env.routeGuardPolicyBypassPrefixes
+  bypassPrefixes: relaxedRouteGuardBypassPrefixes
 }));
 app.use('/api', idempotencyEnforcementMiddleware({
   enabled: env.idempotencyShieldEnabled,
@@ -279,4 +327,3 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 module.exports = app;
-

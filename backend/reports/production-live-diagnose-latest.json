@@ -1,21 +1,17 @@
 {
-  "generatedAt": "2026-04-27T04:51:37.679Z",
+  "generatedAt": "2026-05-01T14:44:26.942Z",
   "inputs": {
     "siteBase": "https://goindiaride.in",
-    "apiBase": "https://api.goindiaride.in",
+    "apiBase": "https://goindiaride.onrender.com",
     "origin": "https://goindiaride.in"
   },
   "dns": {
     "site": {
       "ok": true,
       "addresses": [
-        "64:ff9b::b9c7:6d99",
-        "64:ff9b::b9c7:6e99",
-        "64:ff9b::b9c7:6f99",
-        "64:ff9b::b9c7:6c99",
         "185.199.109.153",
-        "185.199.110.153",
         "185.199.111.153",
+        "185.199.110.153",
         "185.199.108.153"
       ],
       "error": null
@@ -23,8 +19,8 @@
     "api": {
       "ok": true,
       "addresses": [
-        "64:ff9b::9d30:dad0",
-        "157.48.218.208"
+        "216.24.57.251",
+        "216.24.57.7"
       ],
       "error": null
     }
@@ -35,108 +31,138 @@
       "method": "GET",
       "url": "https://goindiaride.in/health",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "fetch failed",
-      "headers": {},
-      "classification": ""
+      "status": 404,
+      "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
+      "error": null,
+      "headers": {
+        "server": "GitHub.com",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210091-BOM",
+        "xCache": "HIT"
+      },
+      "classification": "github_pages_static_response"
     },
     {
       "name": "site-future-runtime",
       "method": "GET",
       "url": "https://goindiaride.in/api/future-runtime/status",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "fetch failed",
-      "headers": {},
-      "classification": ""
+      "status": 404,
+      "bodyPreview": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'\">\n    <title>Page not found &middot; GitHub Pages</title>\n    <style type=\"text",
+      "error": null,
+      "headers": {
+        "server": "GitHub.com",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210091-BOM",
+        "xCache": "HIT"
+      },
+      "classification": "github_pages_static_response"
     },
     {
       "name": "site-auth-login",
       "method": "POST",
       "url": "https://goindiaride.in/api/auth/login",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "fetch failed",
-      "headers": {},
-      "classification": ""
+      "status": 405,
+      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
+      "error": null,
+      "headers": {
+        "server": "Varnish",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210091-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "static_edge_blocking_api"
     },
     {
       "name": "site-backend-auth-login",
       "method": "POST",
       "url": "https://goindiaride.in/backend/api/auth/login",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "fetch failed",
-      "headers": {},
-      "classification": ""
+      "status": 405,
+      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
+      "error": null,
+      "headers": {
+        "server": "Varnish",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210070-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "static_edge_blocking_api"
     },
     {
       "name": "site-booking-fallback-email",
       "method": "POST",
       "url": "https://goindiaride.in/api/bookings/fallback/admin-alert-email",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "fetch failed",
-      "headers": {},
-      "classification": ""
+      "status": 405,
+      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
+      "error": null,
+      "headers": {
+        "server": "Varnish",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210082-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "static_edge_blocking_api"
     },
     {
       "name": "site-backend-booking-fallback-email",
       "method": "POST",
       "url": "https://goindiaride.in/backend/api/bookings/fallback/admin-alert-email",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "fetch failed",
-      "headers": {},
-      "classification": ""
+      "status": 405,
+      "bodyPreview": "<html>\n<head><title>405 Not Allowed</title></head>\n<body bgcolor=\"white\">\n<center><h1>405 Not Allowed</h1></center>\n</body>\n</html>",
+      "error": null,
+      "headers": {
+        "server": "Varnish",
+        "via": "1.1 varnish",
+        "xServedBy": "cache-bom-vanm7210082-BOM",
+        "xCache": "MISS"
+      },
+      "classification": "static_edge_blocking_api"
     },
     {
       "name": "api-health-direct",
       "method": "GET",
-      "url": "https://api.goindiaride.in/health",
+      "url": "https://goindiaride.onrender.com/health",
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed",
+      "error": "This operation was aborted",
       "headers": {},
       "classification": ""
     },
     {
       "name": "api-future-runtime",
       "method": "GET",
-      "url": "https://api.goindiaride.in/api/future-runtime/status",
+      "url": "https://goindiaride.onrender.com/api/future-runtime/status",
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed",
+      "error": "This operation was aborted",
       "headers": {},
       "classification": ""
     },
     {
       "name": "api-auth-login",
       "method": "POST",
-      "url": "https://api.goindiaride.in/api/auth/login",
+      "url": "https://goindiaride.onrender.com/api/auth/login",
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed",
+      "error": "This operation was aborted",
       "headers": {},
       "classification": ""
     },
     {
       "name": "api-booking-fallback-email",
       "method": "POST",
-      "url": "https://api.goindiaride.in/api/bookings/fallback/admin-alert-email",
+      "url": "https://goindiaride.onrender.com/api/bookings/fallback/admin-alert-email",
       "ok": false,
       "status": 0,
       "bodyPreview": "",
-      "error": "fetch failed",
+      "error": "This operation was aborted",
       "headers": {},
       "classification": ""
     }
@@ -152,13 +178,14 @@
     "siteBookingRouteOk": false,
     "siteBackendBookingRouteOk": false,
     "apiBookingRouteOk": false,
-    "siteStaticEdgeDetected": false
+    "siteStaticEdgeDetected": true
   },
   "recommendations": [
     "Configure website reverse proxy for /api/* or /backend/api/* to backend Node app (avoid static host 405).",
     "Login API route is unreachable on site host. Proxy /api/auth/* (and optionally /backend/api/auth/*) to backend Node app.",
     "Ensure api domain proxies POST /api/auth/login to backend and does not block request methods.",
     "Ensure api domain reverse proxy points to backend :5000 and allows POST methods.",
-    "Restart backend service and validate nginx upstream/SSL for api domain."
+    "Restart backend service and validate nginx upstream/SSL for api domain.",
+    "Site domain currently serves static edge responses; route /api/* to backend reverse proxy (Nginx) instead of static host."
   ]
 }
