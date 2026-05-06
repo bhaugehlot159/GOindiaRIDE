@@ -195,8 +195,31 @@ app.use(cors({
 app.use(express.json({ limit: `${env.maxJsonBodyKb}kb` }));
 app.use(express.urlencoded({ extended: false, limit: `${env.maxJsonBodyKb}kb` }));
 
+app.get('/', (req, res) => {
+  return res.status(200).json({
+    service: 'GO India RIDE API',
+    status: 'ok',
+    health: '/health',
+    auth: '/api/auth',
+    webhook: '/webhook'
+  });
+});
+
 app.get('/health', (req, res) => {
   return res.status(200).json({ status: 'ok', security: 'hardened' });
+});
+
+app.get('/api/auth', (req, res) => {
+  return res.status(200).json({
+    service: 'GO India RIDE Auth API',
+    status: 'ok',
+    endpoints: {
+      login: 'POST /api/auth/login',
+      register: 'POST /api/auth/register',
+      refresh: 'POST /api/auth/refresh',
+      requestOtp: 'POST /api/auth/request-otp'
+    }
+  });
 });
 
 app.use('/api', globalAbuseDefenseMiddleware({

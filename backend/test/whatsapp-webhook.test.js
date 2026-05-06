@@ -29,6 +29,29 @@ test('Meta WhatsApp webhook verification returns the challenge for the configure
   assert.match(response.headers['content-type'], /^text\/plain/);
 });
 
+test('root API route returns service status instead of route not found', async () => {
+  const app = loadApp();
+
+  const response = await request(app).get('/');
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.service, 'GO India RIDE API');
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.auth, '/api/auth');
+});
+
+test('auth base route returns available auth endpoints', async () => {
+  const app = loadApp();
+
+  const response = await request(app).get('/api/auth');
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.service, 'GO India RIDE Auth API');
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.endpoints.login, 'POST /api/auth/login');
+  assert.equal(response.body.endpoints.register, 'POST /api/auth/register');
+});
+
 test('Meta WhatsApp webhook verification rejects a wrong token', async () => {
   const app = loadApp();
 
