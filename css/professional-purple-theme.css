@@ -1,0 +1,328 @@
+/*
+  GO India RIDE professional purple theme
+  Additive override layer: keeps existing page CSS intact and applies one consistent palette site-wide.
+*/
+
+:root {
+  --gir-purple-blue: #667eea;
+  --gir-purple-deep: #764ba2;
+  --gir-purple-ink: #241a47;
+  --gir-purple-text: #24213d;
+  --gir-purple-muted: #6b6685;
+  --gir-purple-surface: #ffffff;
+  --gir-purple-page: #f7f5ff;
+  --gir-purple-page-soft: #fbfaff;
+  --gir-purple-border: rgba(102, 126, 234, 0.18);
+  --gir-purple-shadow: 0 18px 44px rgba(72, 56, 140, 0.16);
+  --gir-purple-shadow-soft: 0 10px 26px rgba(72, 56, 140, 0.1);
+  --gir-purple-gradient: linear-gradient(135deg, var(--gir-purple-blue) 0%, var(--gir-purple-deep) 100%);
+  --gir-purple-gradient-soft: linear-gradient(135deg, rgba(102, 126, 234, 0.13) 0%, rgba(118, 75, 162, 0.14) 100%);
+
+  --primary-color: var(--gir-purple-blue) !important;
+  --primary-dark: var(--gir-purple-deep) !important;
+  --secondary-color: var(--gir-purple-deep) !important;
+  --secondary-dark: #5f3f91 !important;
+  --info-color: var(--gir-purple-blue) !important;
+  --bg-color: var(--gir-purple-page) !important;
+  --bg-secondary: var(--gir-purple-page) !important;
+  --bg-card: var(--gir-purple-surface) !important;
+  --brand-bg-deep: var(--gir-purple-blue) !important;
+  --brand-bg-mid: var(--gir-purple-deep) !important;
+  --brand-ocean: var(--gir-purple-blue) !important;
+  --brand-text: var(--gir-purple-text) !important;
+  --brand-subtext: var(--gir-purple-muted) !important;
+  --brand-border: var(--gir-purple-border) !important;
+}
+
+html {
+  accent-color: var(--gir-purple-blue);
+}
+
+body {
+  background:
+    radial-gradient(900px 360px at -8% -12%, rgba(102, 126, 234, 0.13), transparent 62%),
+    radial-gradient(780px 320px at 108% 0%, rgba(118, 75, 162, 0.12), transparent 62%),
+    linear-gradient(180deg, var(--gir-purple-page-soft) 0%, var(--gir-purple-page) 100%) !important;
+  color: var(--gir-purple-text);
+}
+
+body.dark-mode,
+body.night-mode,
+[data-theme="dark"] body {
+  --gir-purple-page: #17132a;
+  --gir-purple-page-soft: #201a39;
+  --gir-purple-surface: #251f3f;
+  --gir-purple-text: #f6f3ff;
+  --gir-purple-muted: #cbc4e8;
+  --gir-purple-border: rgba(184, 169, 255, 0.22);
+}
+
+.navbar,
+.top-nav,
+.topbar,
+.app-header,
+.dashboard-header,
+.admin-header,
+.site-header,
+.main-header,
+.mobile-header,
+.hero,
+.footer,
+footer {
+  background: var(--gir-purple-gradient) !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(72, 56, 140, 0.22) !important;
+}
+
+.navbar *,
+.top-nav *,
+.topbar *,
+.app-header *,
+.dashboard-header *,
+.admin-header *,
+.site-header *,
+.main-header *,
+.mobile-header *,
+.hero *,
+.footer *,
+footer * {
+  color: inherit;
+}
+
+.sidebar,
+.side-nav,
+.admin-sidebar,
+.dashboard-sidebar,
+.bottom-nav,
+.mobile-nav {
+  border-color: var(--gir-purple-border) !important;
+  box-shadow: var(--gir-purple-shadow-soft) !important;
+}
+
+.sidebar,
+.side-nav,
+.admin-sidebar,
+.dashboard-sidebar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 245, 255, 0.98) 100%) !important;
+}
+
+a,
+.nav-link,
+.menu-item,
+.sidebar-item,
+.tab,
+.tab-btn,
+.bottom-nav .nav-btn {
+  color: var(--gir-purple-deep);
+}
+
+.nav-link:hover,
+.menu-item:hover,
+.sidebar-item:hover,
+.tab:hover,
+.tab-btn:hover,
+.bottom-nav .nav-btn:hover,
+.nav-link.active,
+.menu-item.active,
+.sidebar-item.active,
+.tab.active,
+.tab-btn.active,
+.bottom-nav .nav-btn.active {
+  background: var(--gir-purple-gradient-soft) !important;
+  color: var(--gir-purple-ink) !important;
+}
+
+button,
+.btn,
+.btn-primary,
+.btn-signup,
+.primary-btn,
+.cta-btn,
+.submit-btn,
+.book-btn,
+.booking-btn,
+.action-btn,
+.driver-action-btn,
+.donation-action-btn.donate,
+input[type="submit"] {
+  background: var(--gir-purple-gradient) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.26) !important;
+}
+
+button:hover,
+.btn:hover,
+.btn-primary:hover,
+.primary-btn:hover,
+.cta-btn:hover,
+.submit-btn:hover,
+.book-btn:hover,
+.booking-btn:hover,
+.action-btn:hover,
+.driver-action-btn:hover,
+.donation-action-btn.donate:hover {
+  filter: saturate(1.04) brightness(1.03);
+  box-shadow: 0 16px 34px rgba(102, 126, 234, 0.34) !important;
+}
+
+.btn-secondary,
+.btn-login,
+.donation-action-btn.skip,
+button.secondary,
+button.cancel,
+button.close,
+.close-btn {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid var(--gir-purple-border) !important;
+  color: var(--gir-purple-deep) !important;
+  box-shadow: var(--gir-purple-shadow-soft) !important;
+}
+
+.card,
+.feature-card,
+.pricing-card,
+.service-card,
+.contact-card,
+.dashboard-card,
+.stat-card,
+.widget,
+.panel,
+.quick-booking-card,
+.wallet-card,
+.wallet-panel-card,
+.wallet-form-card,
+.wallet-ledger-card,
+.profile-card,
+.tourism-card,
+.travel-card,
+.offer-card,
+.proof-card,
+.support-option,
+.action-card,
+.booking-card,
+.ride-card,
+.transaction-history,
+.modal-content,
+.table-container {
+  border-color: var(--gir-purple-border) !important;
+  box-shadow: var(--gir-purple-shadow-soft) !important;
+}
+
+.feature-card:hover,
+.pricing-card:hover,
+.service-card:hover,
+.contact-card:hover,
+.dashboard-card:hover,
+.stat-card:hover,
+.quick-booking-card:hover,
+.wallet-card:hover,
+.tourism-card:hover,
+.support-option:hover,
+.action-card:hover,
+.booking-card:hover,
+.ride-card:hover {
+  border-color: rgba(102, 126, 234, 0.34) !important;
+  box-shadow: var(--gir-purple-shadow) !important;
+}
+
+.quick-action-btn,
+.booking-type-btn,
+.action-card,
+.support-option,
+.feature-card i,
+.stat-card i,
+.wallet-icon,
+.service-icon,
+.icon-card,
+.dashboard-icon,
+.profile-icon,
+.user-avatar,
+.driver-avatar {
+  background: var(--gir-purple-gradient) !important;
+  color: #ffffff !important;
+}
+
+.quick-action-btn,
+.booking-type-btn {
+  border: 0 !important;
+  border-radius: 18px !important;
+  min-height: 132px;
+}
+
+.quick-action-btn *,
+.booking-type-btn *,
+.action-card *,
+.wallet-icon *,
+.service-icon *,
+.icon-card *,
+.dashboard-icon * {
+  color: inherit !important;
+}
+
+.booking-type-btn:hover,
+.booking-type-btn.active,
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(102, 126, 234, 0.34) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--gir-purple-ink);
+}
+
+.section-title,
+.page-title,
+.dashboard-title,
+.card-title,
+.stat-value,
+.wallet-panel-value,
+.price {
+  color: var(--gir-purple-ink) !important;
+}
+
+.badge,
+.chip,
+.tag,
+.status,
+.pill {
+  background: var(--gir-purple-gradient-soft) !important;
+  border-color: var(--gir-purple-border) !important;
+  color: var(--gir-purple-deep) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--gir-purple-blue) !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.16) !important;
+  outline: none !important;
+}
+
+table th,
+.table-header,
+.card-header,
+.modal-header {
+  background: var(--gir-purple-gradient) !important;
+  color: #ffffff !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--gir-purple-blue), var(--gir-purple-deep));
+}
+
+::selection {
+  background: rgba(102, 126, 234, 0.28);
+}
+
+@media (max-width: 640px) {
+  .quick-action-btn,
+  .booking-type-btn {
+    min-height: 112px;
+  }
+}
