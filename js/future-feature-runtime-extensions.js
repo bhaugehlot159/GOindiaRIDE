@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   'use strict';
 
   if (typeof window === 'undefined' || window.__GOINDIARIDE_FUTURE_RUNTIME_EXTENSIONS_LOADED__) {
@@ -256,7 +256,7 @@
   }
 
   function liveWalletTopupDisabledMessage() {
-    return 'Real wallet top-up requires live login/session and Razorpay Checkout. Demo/local wallet top-up is disabled.';
+    return 'Real wallet top-up requires live login/session and PayPal Checkout. Demo/local wallet top-up is disabled.';
   }
 
   function isLiveWalletTopupReady() {

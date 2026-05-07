@@ -30,7 +30,7 @@ function canUseLiveCustomerTopup() {
 }
 
 function showLivePaymentRequired() {
-    CustomerPortal.showToast('Real payment ke liye live login/session aur Razorpay Checkout required hai. Demo add money disabled hai.', 'error');
+    CustomerPortal.showToast('Real payment ke liye live login/session aur PayPal Checkout required hai. Demo add money disabled hai.', 'error');
 }
 
 async function refreshSecureCustomerWalletSnapshot(forceSync = false) {
@@ -915,11 +915,11 @@ function getEnabledPaymentModes(flow) {
     }
 
     const fallback = [
+        { id: 'paypal', label: 'PayPal Checkout', regionLabel: 'International' },
         { id: 'upi', label: 'UPI', regionLabel: 'India' },
         { id: 'upi_qr', label: 'UPI QR Scan', regionLabel: 'India' },
         { id: 'debit_card', label: 'Debit/Credit Card', regionLabel: 'India' },
         { id: 'netbanking', label: 'Net Banking', regionLabel: 'India' },
-        { id: 'paypal', label: 'PayPal', regionLabel: 'International' },
         { id: 'stripe_cards', label: 'Stripe Cards', regionLabel: 'International' },
         { id: 'swift_wire', label: 'SWIFT Wire', regionLabel: 'International' }
     ];

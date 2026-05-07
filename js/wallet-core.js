@@ -33,7 +33,7 @@
 
         // International
         { id: 'stripe_cards', label: 'Stripe (Cards)', enabled: true, region: 'international', flows: ['add_money', 'ride_payment', 'refund'] },
-        { id: 'paypal', label: 'PayPal', enabled: true, region: 'international', flows: ['add_money', 'withdrawal', 'refund'] },
+        { id: 'paypal', label: 'PayPal Checkout', enabled: true, region: 'international', flows: ['add_money', 'withdrawal', 'refund'] },
         { id: 'wise', label: 'Wise Transfer', enabled: true, region: 'international', flows: ['withdrawal'] },
         { id: 'swift_wire', label: 'SWIFT Wire', enabled: true, region: 'international', flows: ['withdrawal'] },
         { id: 'sepa', label: 'SEPA Transfer', enabled: true, region: 'international', flows: ['withdrawal'] },
@@ -47,8 +47,12 @@
     const allowedTypes = ['customer', 'driver', 'admin', 'donation'];
     const API_BASE_OVERRIDE_KEY = 'goindiaride_api_base';
     const RAZORPAY_CHECKOUT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
+    const PAYPAL_CHECKOUT_SRC = 'https://www.paypal.com/sdk/js';
     let secureCsrfCache = { token: null, fetchedAt: 0 };
+    let secureGatewayStatusCache = { payload: null, fetchedAt: 0 };
     let razorpayCheckoutPromise = null;
+    let paypalCheckoutPromise = null;
+    let paypalCheckoutKey = '';
     let secureRequestCounter = 0;
 
     function nowIso() {
@@ -435,12 +439,22 @@
         const flow = sanitizeText(filters.flow || '', 40).toLowerCase();
         const region = sanitizeText(filters.region || '', 20).toLowerCase();
 
-        return getPaymentModes().filter((mode) => {
+        const modes = getPaymentModes().filter((mode) => {
             if (!mode.enabled) return false;
             if (flow && !(mode.flows || []).includes(flow)) return false;
             if (region && mode.region !== region && mode.region !== 'global') return false;
             return true;
         });
+
+        if (flow === 'add_money') {
+            modes.sort((a, b) => {
+                const aPayPal = a.id === 'paypal' || a.id === 'paypal_wallet' ? 0 : 1;
+                const bPayPal = b.id === 'paypal' || b.id === 'paypal_wallet' ? 0 : 1;
+                return aPayPal - bPayPal;
+            });
+        }
+
+        return modes;
     }
 
     function setPaymentModes(modes, actorRole) {
@@ -851,6 +865,46 @@
         return razorpayCheckoutPromise;
     }
 
+    function loadPayPalCheckout(checkout = {}) {
+        const clientId = sanitizeText(checkout.clientId || '', 300);
+        const currency = sanitizeText(checkout.currency || 'USD', 6).toUpperCase() || 'USD';
+        const key = `${clientId}:${currency}`;
+
+        if (!clientId) {
+            return Promise.reject(new Error('PayPal client id missing from backend checkout response'));
+        }
+        if (window.paypal && paypalCheckoutKey === key) {
+            return Promise.resolve(window.paypal);
+        }
+        if (paypalCheckoutPromise && paypalCheckoutKey === key) {
+            return paypalCheckoutPromise;
+        }
+
+        paypalCheckoutKey = key;
+        paypalCheckoutPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            const params = new URLSearchParams({
+                'client-id': clientId,
+                currency,
+                intent: 'capture',
+                components: 'buttons'
+            });
+            script.src = `${PAYPAL_CHECKOUT_SRC}?${params.toString()}`;
+            script.async = true;
+            script.onload = () => {
+                if (window.paypal) {
+                    resolve(window.paypal);
+                    return;
+                }
+                reject(new Error('PayPal Checkout could not be loaded'));
+            };
+            script.onerror = () => reject(new Error('Unable to load PayPal Checkout'));
+            document.head.appendChild(script);
+        });
+
+        return paypalCheckoutPromise;
+    }
+
     function getCheckoutPrefill() {
         const profile = getActiveProfile();
         return {
@@ -979,13 +1033,71 @@
         });
 
         const rows = Array.isArray(payload.rows) ? payload.rows : [];
-        return rows.map((row) => ({
+        const normalizedRows = rows.map((row) => ({
             id: String(row.modeId || row.id || ''),
             label: String(row.label || row.modeId || 'Payment Mode'),
             enabled: Boolean(row.enabled),
             region: String(row.region || 'global'),
             flows: Array.isArray(row.flows) ? row.flows : []
         }));
+
+        if (normalizedFlow === 'add_money') {
+            normalizedRows.sort((a, b) => {
+                const aPayPal = a.id === 'paypal' || a.id === 'paypal_wallet' ? 0 : 1;
+                const bPayPal = b.id === 'paypal' || b.id === 'paypal_wallet' ? 0 : 1;
+                return aPayPal - bPayPal;
+            });
+        }
+
+        return normalizedRows;
+    }
+
+    async function fetchSecureGatewayStatus(forceRefresh = false) {
+        if (!forceRefresh && secureGatewayStatusCache.payload && Date.now() - secureGatewayStatusCache.fetchedAt < 15000) {
+            return secureGatewayStatusCache.payload;
+        }
+
+        const payload = await secureWalletRequest('/api/wallet/gateway/status', {
+            method: 'GET',
+            withCsrf: false
+        });
+        secureGatewayStatusCache = {
+            payload,
+            fetchedAt: Date.now()
+        };
+        return payload;
+    }
+
+    function getRazorpaySetupMessage(details = {}) {
+        const status = details.gatewayStatus || details.razorpay || details;
+        const missing = Array.isArray(status.missingEnv) && status.missingEnv.length
+            ? status.missingEnv.join(' + ')
+            : 'RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET';
+        const rawReason = sanitizeText(details.reason || status.message || '', 240);
+
+        if (rawReason.toLowerCase().includes('credential') || status.configured === false || status.available === false) {
+            return `Razorpay live keys backend par missing hain (${missing}). Render/backend env me keys set karke service redeploy karein.`;
+        }
+
+        return rawReason || 'Razorpay live checkout is not ready on the backend.';
+    }
+
+    function getPayPalSetupMessage(details = {}) {
+        const status = details.gatewayStatus || details.paypal || details;
+        const missing = Array.isArray(status.missingEnv) && status.missingEnv.length
+            ? status.missingEnv.join(' + ')
+            : 'PAYPAL_CLIENT_ID + PAYPAL_CLIENT_SECRET';
+        const rawReason = sanitizeText(details.reason || status.message || '', 260);
+
+        if (missing === 'PAYPAL_INR_TO_SETTLEMENT_RATE') {
+            return 'PayPal INR direct support nahi karta. Backend env me PAYPAL_INR_TO_SETTLEMENT_RATE set karein, phir service redeploy karein.';
+        }
+
+        if (rawReason.toLowerCase().includes('credential') || status.configured === false || status.available === false) {
+            return `PayPal live keys backend par missing hain (${missing}). Render/backend env me keys set karke service redeploy karein.`;
+        }
+
+        return rawReason || 'PayPal live checkout is not ready on the backend.';
     }
 
     async function createSecureTopupOrder({ amount, paymentMode, currency, clientReference }) {
@@ -1021,6 +1133,17 @@
                 razorpayOrderId,
                 razorpayPaymentId,
                 razorpaySignature
+            }
+        });
+    }
+
+    async function capturePayPalTopupPayment({ orderId, paypalOrderId }) {
+        return secureWalletRequest('/api/wallet/topup/paypal/capture', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                orderId,
+                paypalOrderId
             }
         });
     }
@@ -1070,6 +1193,75 @@
         });
     }
 
+    async function openPayPalCheckout(checkout) {
+        const paypal = await loadPayPalCheckout(checkout);
+        return new Promise((resolve, reject) => {
+            let completed = false;
+            const mountId = `paypal-button-container-${Date.now()}-${randomTokenPart()}`;
+            const overlay = document.createElement('div');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(10,14,28,.62);display:flex;align-items:center;justify-content:center;padding:18px;';
+            overlay.innerHTML = `
+                <div style="width:min(420px,100%);background:#fff;color:#101828;border-radius:8px;box-shadow:0 22px 70px rgba(15,23,42,.28);padding:20px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <div style="font-weight:700;font-size:18px;">PayPal Checkout</div>
+                            <div style="font-size:13px;color:#667085;margin-top:4px;">${sanitizeText(checkout.walletCurrency || 'INR', 8)} ${sanitizeText(checkout.walletAmount || '', 20)} wallet top-up</div>
+                        </div>
+                        <button type="button" aria-label="Close PayPal Checkout" data-paypal-close style="border:0;background:#f2f4f7;border-radius:8px;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;">&times;</button>
+                    </div>
+                    <div id="${mountId}"></div>
+                    <div style="font-size:12px;color:#667085;margin-top:12px;">Payment will be captured securely by PayPal, then verified by GO India RIDE backend.</div>
+                </div>
+            `;
+
+            const cleanup = () => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            };
+            const closeButton = overlay.querySelector('[data-paypal-close]');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    cleanup();
+                    if (!completed) reject(new Error('PayPal payment was cancelled before completion'));
+                });
+            }
+            document.body.appendChild(overlay);
+
+            paypal.Buttons({
+                style: {
+                    layout: 'vertical',
+                    shape: 'rect',
+                    label: 'paypal'
+                },
+                createOrder() {
+                    return checkout.providerOrderId;
+                },
+                onApprove(data) {
+                    completed = true;
+                    cleanup();
+                    resolve({
+                        orderId: checkout.orderId,
+                        paypalOrderId: data.orderID || checkout.providerOrderId
+                    });
+                },
+                onCancel() {
+                    cleanup();
+                    reject(new Error('PayPal payment was cancelled before completion'));
+                },
+                onError(error) {
+                    cleanup();
+                    reject(new Error((error && error.message) || 'PayPal payment failed'));
+                }
+            }).render(`#${mountId}`).catch((error) => {
+                cleanup();
+                reject(new Error((error && error.message) || 'Unable to render PayPal Checkout'));
+            });
+        });
+    }
+
     async function startSecureTopupCheckout({ amount, paymentMode, currency, clientReference }) {
         const orderPayload = await createSecureTopupOrder({
             amount,
@@ -1079,6 +1271,22 @@
         });
         const order = orderPayload.order || orderPayload;
         const checkout = orderPayload.checkout || null;
+
+        if (checkout && checkout.provider === 'paypal' && checkout.available) {
+            const payment = await openPayPalCheckout(checkout);
+            const confirmation = await capturePayPalTopupPayment(payment);
+            return {
+                order,
+                checkout,
+                payment,
+                confirmation,
+                liveGateway: 'paypal'
+            };
+        }
+
+        if (checkout && checkout.provider === 'paypal' && checkout.available === false) {
+            throw new Error(getPayPalSetupMessage(checkout));
+        }
 
         if (checkout && checkout.provider === 'razorpay' && checkout.available) {
             const payment = await openRazorpayCheckout(checkout);
@@ -1093,10 +1301,10 @@
         }
 
         if (checkout && checkout.provider === 'razorpay' && checkout.available === false) {
-            throw new Error(checkout.reason || 'Live Razorpay payment is not configured yet.');
+            throw new Error(getRazorpaySetupMessage(checkout));
         }
 
-        throw new Error('Selected payment mode is not connected to live checkout yet. Please choose Razorpay, UPI, card, or net banking.');
+        throw new Error('Selected payment mode is not connected to live checkout yet. Please choose PayPal Checkout.');
     }
 
     async function createSecureWithdrawalRequest({ amount, method, destination, notes }) {
@@ -1226,12 +1434,16 @@
         secureWalletRequest,
         fetchSecureWalletSnapshot,
         fetchSecurePaymentModes,
+        fetchSecureGatewayStatus,
         fetchSecureWalletTransactions,
         fetchSecureWithdrawalRequests,
         createSecureTopupOrder,
         confirmSecureTopupOrder,
         verifyRazorpayTopupPayment,
+        capturePayPalTopupPayment,
         startSecureTopupCheckout,
+        getRazorpaySetupMessage,
+        getPayPalSetupMessage,
         createIdempotencyKey,
         createSecureWithdrawalRequest,
         fetchSecureAdminWalletOverview,

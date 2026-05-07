@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v26-20260507';
+const CACHE_NAME = 'goindiaride-pwa-v28-20260507-paypal1';
 const ASSETS = [
   './',
   './index.html',

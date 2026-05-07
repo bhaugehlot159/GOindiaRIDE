@@ -11,3 +11,31 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: FIREBASE_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://goindiaride.in
+      - key: SECURITY_ALLOWED_ORIGINS
+        value: https://goindiaride.in,https://www.goindiaride.in,https://goindiaride.onrender.com
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_ENV
+        value: live
+      - key: PAYPAL_SETTLEMENT_CURRENCY
+        value: USD
+      - key: PAYPAL_INR_TO_SETTLEMENT_RATE
+        sync: false
+      - key: PAYMENT_WEBHOOK_SECRET
+        sync: false

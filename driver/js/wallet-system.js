@@ -158,6 +158,7 @@ function getAddMoneyContent() {
                 <label class="form-label">Payment Method</label>
                 <select name="paymentMethod" class="form-select" required>
                     <option value="">Select payment method</option>
+                    <option value="paypal">PayPal Checkout</option>
                     <option value="upi">UPI</option>
                     <option value="card">Credit/Debit Card</option>
                     <option value="netbanking">Net Banking</option>
@@ -198,11 +199,11 @@ async function processAddMoney(event) {
     }
 
     if (!canUseLiveDriverTopup()) {
-        showToast('Real payment ke liye live login/session aur Razorpay Checkout required hai. Demo add money disabled hai.', 'error');
+        showToast('Real payment ke liye live login/session aur PayPal Checkout required hai. Demo add money disabled hai.', 'error');
         return;
     }
     
-    showToast('Opening secure Razorpay Checkout...', 'info');
+    showToast('Opening secure PayPal Checkout...', 'info');
 
     try {
         const clientReference = `DRVPORTAL_${Date.now()}_${Math.floor(Math.random() * 100000)}`;

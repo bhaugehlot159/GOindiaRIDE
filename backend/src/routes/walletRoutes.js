@@ -51,8 +51,56 @@ const RUNTIME_AUTO_DEDUCT_HIGH_VALUE = Math.max(1000, Number(process.env.RUNTIME
 const AUTO_DEDUCT_REF_MIN_LENGTH = Math.max(6, Number(process.env.AUTO_DEDUCT_REF_MIN_LENGTH || 8));
 const WALLET_CONFIRM_LOCK_TTL_MS = Math.max(30 * 1000, Number(process.env.WALLET_CONFIRM_LOCK_TTL_MS || 3 * 60 * 1000));
 const WALLET_REVIEW_LOCK_TTL_MS = Math.max(30 * 1000, Number(process.env.WALLET_REVIEW_LOCK_TTL_MS || 3 * 60 * 1000));
-const RAZORPAY_KEY_ID = String(process.env.RAZORPAY_KEY_ID || '').trim();
-const RAZORPAY_KEY_SECRET = String(process.env.RAZORPAY_KEY_SECRET || '').trim();
+function firstEnvValue(names) {
+  for (const name of names) {
+    const value = String(process.env[name] || '').trim();
+    if (value) return value;
+  }
+  return '';
+}
+
+const RAZORPAY_KEY_ID_ENV_NAMES = [
+  'RAZORPAY_KEY_ID',
+  'RAZORPAY_LIVE_KEY_ID',
+  'RAZORPAY_KEYID',
+  'RAZORPAY_KEY'
+];
+const RAZORPAY_KEY_SECRET_ENV_NAMES = [
+  'RAZORPAY_KEY_SECRET',
+  'RAZORPAY_LIVE_KEY_SECRET',
+  'RAZORPAY_SECRET_KEY',
+  'RAZORPAY_SECRET'
+];
+const RAZORPAY_KEY_ID = firstEnvValue(RAZORPAY_KEY_ID_ENV_NAMES);
+const RAZORPAY_KEY_SECRET = firstEnvValue(RAZORPAY_KEY_SECRET_ENV_NAMES);
+const PAYPAL_CLIENT_ID_ENV_NAMES = [
+  'PAYPAL_CLIENT_ID',
+  'PAYPAL_LIVE_CLIENT_ID',
+  'PAYPAL_APP_CLIENT_ID'
+];
+const PAYPAL_CLIENT_SECRET_ENV_NAMES = [
+  'PAYPAL_CLIENT_SECRET',
+  'PAYPAL_LIVE_CLIENT_SECRET',
+  'PAYPAL_SECRET'
+];
+const PAYPAL_CLIENT_ID = firstEnvValue(PAYPAL_CLIENT_ID_ENV_NAMES);
+const PAYPAL_CLIENT_SECRET = firstEnvValue(PAYPAL_CLIENT_SECRET_ENV_NAMES);
+const PAYPAL_ENVIRONMENT = (() => {
+  const raw = String(process.env.PAYPAL_ENV || process.env.PAYPAL_MODE || '').trim().toLowerCase();
+  if (['live', 'production', 'prod'].includes(raw)) return 'live';
+  if (['sandbox', 'test', 'testing'].includes(raw)) return 'sandbox';
+  return process.env.NODE_ENV === 'production' ? 'live' : 'sandbox';
+})();
+const PAYPAL_API_HOST = PAYPAL_ENVIRONMENT === 'live' ? 'api-m.paypal.com' : 'api-m.sandbox.paypal.com';
+const PAYPAL_SETTLEMENT_CURRENCY = sanitizeText(process.env.PAYPAL_SETTLEMENT_CURRENCY || 'USD', 6).toUpperCase() || 'USD';
+const PAYPAL_INR_TO_SETTLEMENT_RATE = Number(process.env.PAYPAL_INR_TO_SETTLEMENT_RATE || process.env.PAYPAL_EXCHANGE_RATE || 0);
+const PAYPAL_TOPUP_MODES = new Set(['paypal', 'paypal_wallet']);
+const PAYPAL_SUPPORTED_CURRENCIES = new Set([
+  'AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS',
+  'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'SGD',
+  'SEK', 'CHF', 'THB', 'USD'
+]);
+let paypalAccessTokenCache = { token: null, expiresAt: 0 };
 const RAZORPAY_TOPUP_MODES = new Set([
   'razorpay',
   'upi',
@@ -82,7 +130,7 @@ const DEFAULT_PAYMENT_MODES = [
   { modeId: 'razorpay', label: 'Razorpay Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 9 },
   { modeId: 'cashfree', label: 'Cashfree Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 10 },
   { modeId: 'stripe_cards', label: 'Stripe Cards', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 11 },
-  { modeId: 'paypal', label: 'PayPal', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation'], displayOrder: 12 },
+  { modeId: 'paypal', label: 'PayPal Checkout', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation'], displayOrder: 12 },
   { modeId: 'apple_pay', label: 'Apple Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 13 },
   { modeId: 'google_pay_intl', label: 'Google Pay (International)', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 14 },
   { modeId: 'alipay', label: 'Alipay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 15 },
@@ -115,6 +163,87 @@ function generateId(prefix) {
 
 function isRazorpayConfigured() {
   return Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
+}
+
+function isPayPalConfigured() {
+  return Boolean(PAYPAL_CLIENT_ID && PAYPAL_CLIENT_SECRET);
+}
+
+function buildRazorpayGatewayStatus() {
+  const keyIdPresent = Boolean(RAZORPAY_KEY_ID);
+  const keySecretPresent = Boolean(RAZORPAY_KEY_SECRET);
+  const configured = keyIdPresent && keySecretPresent;
+
+  return {
+    provider: 'razorpay',
+    configured,
+    available: configured,
+    mode: configured ? 'live' : 'not_configured',
+    currency: 'INR',
+    requiredEnv: ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET'],
+    acceptedEnvAliases: {
+      keyId: RAZORPAY_KEY_ID_ENV_NAMES,
+      keySecret: RAZORPAY_KEY_SECRET_ENV_NAMES
+    },
+    missingEnv: [
+      ...(!keyIdPresent ? ['RAZORPAY_KEY_ID'] : []),
+      ...(!keySecretPresent ? ['RAZORPAY_KEY_SECRET'] : [])
+    ],
+    message: configured
+      ? 'Razorpay live checkout is configured on the backend'
+      : 'Razorpay live credentials are not configured on the backend'
+  };
+}
+
+function buildPaymentGatewayStatus(walletCurrency = 'INR') {
+  return {
+    preferred: 'paypal',
+    paypal: buildPayPalGatewayStatus(walletCurrency),
+    razorpay: buildRazorpayGatewayStatus()
+  };
+}
+
+function canUsePayPalForTopup(paymentMode) {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  return PAYPAL_TOPUP_MODES.has(normalizedMode);
+}
+
+function buildPayPalGatewayStatus(walletCurrency = 'INR') {
+  const clientIdPresent = Boolean(PAYPAL_CLIENT_ID);
+  const clientSecretPresent = Boolean(PAYPAL_CLIENT_SECRET);
+  const normalizedWalletCurrency = sanitizeText(walletCurrency || 'INR', 6).toUpperCase() || 'INR';
+  const directCurrencySupported = PAYPAL_SUPPORTED_CURRENCIES.has(normalizedWalletCurrency);
+  const settlementCurrencySupported = PAYPAL_SUPPORTED_CURRENCIES.has(PAYPAL_SETTLEMENT_CURRENCY);
+  const conversionRequired = !directCurrencySupported || normalizedWalletCurrency !== PAYPAL_SETTLEMENT_CURRENCY;
+  const conversionConfigured = !conversionRequired || Number.isFinite(PAYPAL_INR_TO_SETTLEMENT_RATE) && PAYPAL_INR_TO_SETTLEMENT_RATE > 0;
+  const configured = clientIdPresent && clientSecretPresent && settlementCurrencySupported && conversionConfigured;
+
+  return {
+    provider: 'paypal',
+    configured,
+    available: configured,
+    mode: configured ? PAYPAL_ENVIRONMENT : 'not_configured',
+    environment: PAYPAL_ENVIRONMENT,
+    walletCurrency: normalizedWalletCurrency,
+    settlementCurrency: PAYPAL_SETTLEMENT_CURRENCY,
+    directCurrencySupported,
+    conversionRequired,
+    conversionConfigured,
+    requiredEnv: ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET'],
+    acceptedEnvAliases: {
+      clientId: PAYPAL_CLIENT_ID_ENV_NAMES,
+      clientSecret: PAYPAL_CLIENT_SECRET_ENV_NAMES
+    },
+    missingEnv: [
+      ...(!clientIdPresent ? ['PAYPAL_CLIENT_ID'] : []),
+      ...(!clientSecretPresent ? ['PAYPAL_CLIENT_SECRET'] : []),
+      ...(!settlementCurrencySupported ? ['PAYPAL_SETTLEMENT_CURRENCY'] : []),
+      ...(!conversionConfigured ? ['PAYPAL_INR_TO_SETTLEMENT_RATE'] : [])
+    ],
+    message: configured
+      ? 'PayPal live checkout is configured on the backend'
+      : 'PayPal live checkout is not configured on the backend'
+  };
 }
 
 function canUseRazorpayForTopup(paymentMode, currency) {
@@ -195,6 +324,236 @@ function postRazorpayJson(path, payload) {
     request.write(body);
     request.end();
   });
+}
+
+function requestPayPalJson(path, { method = 'POST', payload = null, accessToken = '', headers = {}, requestId = '' } = {}) {
+  return new Promise((resolve, reject) => {
+    const body = payload === null
+      ? ''
+      : typeof payload === 'string'
+        ? payload
+        : JSON.stringify(payload || {});
+    const requestHeaders = {
+      Accept: 'application/json',
+      ...headers
+    };
+
+    if (accessToken) {
+      requestHeaders.Authorization = `Bearer ${accessToken}`;
+    }
+    if (payload !== null && !requestHeaders['Content-Type']) {
+      requestHeaders['Content-Type'] = typeof payload === 'string'
+        ? 'application/x-www-form-urlencoded'
+        : 'application/json';
+    }
+    if (body) {
+      requestHeaders['Content-Length'] = Buffer.byteLength(body);
+    }
+    if (requestId) {
+      requestHeaders['PayPal-Request-Id'] = sanitizeText(requestId, 120);
+    }
+
+    const request = https.request({
+      hostname: PAYPAL_API_HOST,
+      path,
+      method,
+      headers: requestHeaders,
+      timeout: 15000
+    }, (response) => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        raw += chunk;
+      });
+      response.on('end', () => {
+        let parsed = {};
+        try {
+          parsed = raw ? JSON.parse(raw) : {};
+        } catch (_error) {
+          parsed = { raw };
+        }
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          resolve(parsed);
+          return;
+        }
+
+        const issue = Array.isArray(parsed?.details) && parsed.details.length
+          ? parsed.details.map((detail) => detail.issue || detail.description).filter(Boolean).join(', ')
+          : '';
+        const message = parsed?.message || parsed?.error_description || issue || `PayPal request failed (${response.statusCode})`;
+        const error = new Error(message);
+        error.statusCode = response.statusCode || 502;
+        error.payload = parsed;
+        reject(error);
+      });
+    });
+
+    request.on('timeout', () => {
+      request.destroy(new Error('PayPal request timed out'));
+    });
+    request.on('error', reject);
+    if (body) request.write(body);
+    request.end();
+  });
+}
+
+async function getPayPalAccessToken() {
+  if (!isPayPalConfigured()) {
+    const error = new Error('PayPal live credentials are not configured on the backend');
+    error.statusCode = 503;
+    throw error;
+  }
+
+  if (paypalAccessTokenCache.token && Date.now() < paypalAccessTokenCache.expiresAt) {
+    return paypalAccessTokenCache.token;
+  }
+
+  const payload = await requestPayPalJson('/v1/oauth2/token', {
+    method: 'POST',
+    payload: 'grant_type=client_credentials',
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64')}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+
+  if (!payload.access_token) {
+    const error = new Error('PayPal access token response invalid');
+    error.statusCode = 502;
+    throw error;
+  }
+
+  const expiresInMs = Math.max(60, Number(payload.expires_in || 3600) - 60) * 1000;
+  paypalAccessTokenCache = {
+    token: payload.access_token,
+    expiresAt: Date.now() + expiresInMs
+  };
+
+  return paypalAccessTokenCache.token;
+}
+
+function resolvePayPalTopupAmount(amount, walletCurrency) {
+  const normalizedWalletCurrency = sanitizeText(walletCurrency || 'INR', 6).toUpperCase() || 'INR';
+  const directCurrencySupported = PAYPAL_SUPPORTED_CURRENCIES.has(normalizedWalletCurrency);
+
+  if (directCurrencySupported && normalizedWalletCurrency === PAYPAL_SETTLEMENT_CURRENCY) {
+    return {
+      value: Number(amount || 0).toFixed(2),
+      currency: normalizedWalletCurrency,
+      conversionRequired: false,
+      exchangeRate: 1
+    };
+  }
+
+  if (!PAYPAL_SUPPORTED_CURRENCIES.has(PAYPAL_SETTLEMENT_CURRENCY)) {
+    const error = new Error('PayPal settlement currency is not supported. Set PAYPAL_SETTLEMENT_CURRENCY to a PayPal-supported currency.');
+    error.statusCode = 503;
+    throw error;
+  }
+
+  if (!Number.isFinite(PAYPAL_INR_TO_SETTLEMENT_RATE) || PAYPAL_INR_TO_SETTLEMENT_RATE <= 0) {
+    const error = new Error('PayPal does not support INR directly. Set PAYPAL_INR_TO_SETTLEMENT_RATE for INR wallet top-ups.');
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const converted = Number(amount || 0) * PAYPAL_INR_TO_SETTLEMENT_RATE;
+  if (!Number.isFinite(converted) || converted <= 0) {
+    const error = new Error('PayPal converted top-up amount is invalid');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return {
+    value: converted.toFixed(2),
+    currency: PAYPAL_SETTLEMENT_CURRENCY,
+    conversionRequired: true,
+    exchangeRate: PAYPAL_INR_TO_SETTLEMENT_RATE,
+    walletCurrency: normalizedWalletCurrency,
+    walletAmount: Number(amount || 0).toFixed(2)
+  };
+}
+
+function findPayPalApprovalUrl(providerOrder) {
+  const links = Array.isArray(providerOrder?.links) ? providerOrder.links : [];
+  const approval = links.find((link) => String(link.rel || '').toLowerCase() === 'approve');
+  return approval ? String(approval.href || '') : '';
+}
+
+async function postPayPalJson(path, payload, requestId) {
+  const accessToken = await getPayPalAccessToken();
+  return requestPayPalJson(path, {
+    method: 'POST',
+    payload,
+    accessToken,
+    requestId
+  });
+}
+
+async function createPayPalTopupOrder(order, mode) {
+  const paypalAmount = resolvePayPalTopupAmount(order.amount, order.currency || 'INR');
+  const providerOrder = await postPayPalJson('/v2/checkout/orders', {
+    intent: 'CAPTURE',
+    purchase_units: [{
+      reference_id: String(order.orderId).slice(0, 127),
+      custom_id: String(order.orderId).slice(0, 127),
+      description: `GO India RIDE wallet top-up (${order.currency || 'INR'} ${Number(order.amount || 0).toFixed(2)})`,
+      amount: {
+        currency_code: paypalAmount.currency,
+        value: paypalAmount.value
+      }
+    }],
+    application_context: {
+      brand_name: 'GO India RIDE',
+      shipping_preference: 'NO_SHIPPING',
+      user_action: 'PAY_NOW'
+    }
+  }, `paypal-${order.orderId}`);
+
+  await WalletTopupOrder.updateOne(
+    { _id: order._id },
+    {
+      $set: {
+        'metadata.gateway': 'paypal',
+        'metadata.paypal.orderId': providerOrder.id,
+        'metadata.paypal.status': providerOrder.status,
+        'metadata.paypal.amount': paypalAmount.value,
+        'metadata.paypal.currency': paypalAmount.currency,
+        'metadata.paypal.walletAmount': Number(order.amount || 0).toFixed(2),
+        'metadata.paypal.walletCurrency': order.currency || 'INR',
+        'metadata.paypal.exchangeRate': paypalAmount.exchangeRate,
+        'metadata.paypal.conversionRequired': Boolean(paypalAmount.conversionRequired),
+        'metadata.paypal.createdAt': new Date()
+      }
+    }
+  );
+
+  return {
+    provider: 'paypal',
+    providerOrderId: providerOrder.id,
+    clientId: PAYPAL_CLIENT_ID,
+    amount: paypalAmount.value,
+    currency: paypalAmount.currency,
+    walletAmount: Number(order.amount || 0).toFixed(2),
+    walletCurrency: order.currency || 'INR',
+    exchangeRate: paypalAmount.exchangeRate,
+    conversionRequired: Boolean(paypalAmount.conversionRequired),
+    environment: PAYPAL_ENVIRONMENT,
+    approvalUrl: findPayPalApprovalUrl(providerOrder),
+    name: 'GO India RIDE',
+    description: `Wallet top-up via ${mode.label}`,
+    orderId: order.orderId
+  };
+}
+
+function getPayPalCapture(providerResponse) {
+  const purchaseUnits = Array.isArray(providerResponse?.purchase_units) ? providerResponse.purchase_units : [];
+  const captures = purchaseUnits.flatMap((unit) => {
+    const unitCaptures = unit?.payments && Array.isArray(unit.payments.captures) ? unit.payments.captures : [];
+    return unitCaptures;
+  });
+  return captures.find((capture) => String(capture.status || '').toUpperCase() === 'COMPLETED') || captures[0] || null;
 }
 
 async function createRazorpayTopupOrder(order, mode) {
@@ -373,10 +732,20 @@ async function getEnabledModesForFlow(flow) {
   await ensurePaymentModesSeeded();
   const normalizedFlow = sanitizeText(flow, 40).toLowerCase();
 
-  return WalletPaymentMode
+  const modes = await WalletPaymentMode
     .find({ enabled: true, flows: normalizedFlow })
     .sort({ displayOrder: 1, label: 1 })
     .lean();
+
+  if (normalizedFlow === 'add_money') {
+    return modes.sort((a, b) => {
+      const aPayPal = PAYPAL_TOPUP_MODES.has(String(a.modeId || '').toLowerCase()) ? 0 : 1;
+      const bPayPal = PAYPAL_TOPUP_MODES.has(String(b.modeId || '').toLowerCase()) ? 0 : 1;
+      return aPayPal - bPayPal;
+    });
+  }
+
+  return modes;
 }
 
 async function findMode(modeId, flow) {
@@ -565,6 +934,13 @@ async function releaseWithdrawalReviewLock(requestMongoId, reason = 'released') 
 
 router.use(authenticate);
 
+router.get('/gateway/status', wrapAsync(async (_req, res) => {
+  return res.status(200).json({
+    mode: 'secure_backend',
+    gateways: buildPaymentGatewayStatus('INR')
+  });
+}));
+
 router.get('/my', wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   const ownerId = String(req.user.id);
@@ -615,6 +991,7 @@ router.get('/my', wrapAsync(async (req, res) => {
     driverCommissionWallet,
     driverCommissionConfig,
     paymentModes: modes,
+    paymentGatewayStatus: buildPaymentGatewayStatus(primaryWallet.currency || 'INR'),
     transactions: txRows,
     driverCommissionTransactions: driverCommissionRows,
     withdrawals: withdrawalRows
@@ -737,12 +1114,28 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   });
 
   let checkout = null;
-  if (canUseRazorpayForTopup(mode.modeId, currency)) {
+  if (canUsePayPalForTopup(mode.modeId)) {
+    const gatewayStatus = buildPayPalGatewayStatus(currency);
+    if (!gatewayStatus.available) {
+      checkout = {
+        provider: 'paypal',
+        available: false,
+        reason: gatewayStatus.message,
+        gatewayStatus
+      };
+    } else {
+      checkout = await createPayPalTopupOrder(order, mode);
+      checkout.available = true;
+      checkout.gatewayStatus = gatewayStatus;
+    }
+  } else if (canUseRazorpayForTopup(mode.modeId, currency)) {
     if (!isRazorpayConfigured()) {
+      const gatewayStatus = buildRazorpayGatewayStatus();
       checkout = {
         provider: 'razorpay',
         available: false,
-        reason: 'Razorpay live credentials are not configured on the backend'
+        reason: gatewayStatus.message,
+        gatewayStatus
       };
     } else {
       checkout = await createRazorpayTopupOrder(order, mode);
@@ -974,6 +1367,190 @@ router.post('/topup/razorpay/verify', walletCriticalLimiter, wrapAsync(async (re
     });
   } catch (error) {
     await releaseTopupOrderConfirmationLock(order._id, 'razorpay_confirmation_failed');
+    throw error;
+  }
+}));
+
+router.post('/topup/paypal/capture', walletCriticalLimiter, wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  if (!TOPUP_ALLOWED_TYPES.has(actorType)) {
+    return res.status(403).json({ message: 'Top-up not allowed for this account' });
+  }
+
+  const ownerId = String(req.user.id);
+  const orderId = sanitizeText(req.body.orderId, 120);
+  const paypalOrderId = sanitizeText(req.body.paypalOrderId || req.body.paypal_order_id, 120);
+
+  if (!isPayPalConfigured()) {
+    return res.status(503).json({ message: 'PayPal live credentials are not configured on the backend' });
+  }
+
+  if (!orderId || !paypalOrderId) {
+    return res.status(400).json({ message: 'PayPal wallet order id and PayPal order id are required' });
+  }
+
+  const existingOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId });
+  if (!existingOrder) {
+    return res.status(404).json({ message: 'Top-up order not found' });
+  }
+
+  const expectedPayPalOrderId = sanitizeText(existingOrder.metadata?.paypal?.orderId, 120);
+  if (!expectedPayPalOrderId || expectedPayPalOrderId !== paypalOrderId) {
+    return res.status(400).json({ message: 'PayPal order does not match this wallet top-up order' });
+  }
+
+  if (existingOrder.status !== 'pending') {
+    return res.status(400).json({ message: `Top-up order is ${existingOrder.status}` });
+  }
+
+  if (existingOrder.expiresAt && existingOrder.expiresAt.getTime() < Date.now()) {
+    await WalletTopupOrder.updateOne(
+      { _id: existingOrder._id, status: 'pending' },
+      { $set: { status: 'expired', 'metadata.expiredAt': new Date() } }
+    );
+    return res.status(400).json({ message: 'Top-up order has expired. Please create a new order.' });
+  }
+
+  const lockedOrder = await claimTopupOrderConfirmationLock({
+    orderId,
+    walletType: actorType,
+    ownerId,
+    actorId: String(req.user.id),
+    providerReference: paypalOrderId
+  });
+
+  if (!lockedOrder) {
+    const latestOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId }).lean();
+    return res.status(409).json({
+      message: latestOrder && latestOrder.status === 'confirmed'
+        ? 'Top-up order already confirmed'
+        : 'Top-up order is already being confirmed. Please retry shortly.'
+    });
+  }
+
+  try {
+    const captureResponse = await postPayPalJson(
+      `/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`,
+      {},
+      `paypal-capture-${orderId}`
+    );
+    const capture = getPayPalCapture(captureResponse);
+    const captureId = sanitizeText(capture?.id, 120);
+    const captureStatus = sanitizeText(capture?.status, 60).toUpperCase();
+
+    if (!captureId || captureStatus !== 'COMPLETED') {
+      await releaseTopupOrderConfirmationLock(lockedOrder._id, 'paypal_capture_not_completed');
+      return res.status(400).json({ message: 'PayPal payment capture was not completed' });
+    }
+
+    const providerReferenceConflict = await WalletTopupOrder.findOne({
+      providerReference: captureId,
+      status: 'confirmed',
+      orderId: { $ne: orderId }
+    }).lean();
+    if (providerReferenceConflict) {
+      await releaseTopupOrderConfirmationLock(lockedOrder._id, 'paypal_provider_reference_conflict');
+      return res.status(409).json({ message: 'PayPal capture has already been used for another top-up' });
+    }
+
+    const order = await WalletTopupOrder.findOneAndUpdate(
+      { _id: lockedOrder._id, status: 'pending' },
+      {
+        $set: {
+          status: 'confirmed',
+          providerReference: captureId,
+          'metadata.confirmationLock': false,
+          'metadata.confirmedAt': new Date(),
+          'metadata.confirmedBy': String(req.user.id),
+          'metadata.gateway': 'paypal',
+          'metadata.paypal.captureId': captureId,
+          'metadata.paypal.captureStatus': captureStatus,
+          'metadata.paypal.capturedAt': new Date(),
+          'metadata.paypal.captureAmount': capture?.amount?.value || null,
+          'metadata.paypal.captureCurrency': capture?.amount?.currency_code || null
+        }
+      },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(409).json({ message: 'Top-up confirmation was already processed' });
+    }
+
+    const customerWallet = await adjustWallet({
+      walletType: actorType,
+      ownerId,
+      amount: order.amount,
+      direction: 'credit'
+    });
+
+    await createWalletTransaction({
+      walletType: actorType,
+      ownerId,
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'topup_confirmed',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      clientReference: order.clientReference,
+      providerReference: captureId,
+      description: `PayPal live top-up confirmed via ${order.paymentModeLabel}`,
+      actorRole: actorType,
+      actorId: String(req.user.id),
+      metadata: {
+        orderId: order.orderId,
+        gateway: 'paypal',
+        paypalOrderId,
+        paypalCaptureId: captureId,
+        paypalCurrency: capture?.amount?.currency_code || null,
+        paypalAmount: capture?.amount?.value || null
+      }
+    });
+
+    const adminWallet = await adjustWallet({
+      walletType: 'admin',
+      ownerId: 'platform',
+      amount: order.amount,
+      direction: 'credit'
+    });
+
+    await createWalletTransaction({
+      walletType: 'admin',
+      ownerId: 'platform',
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'payment_settlement',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      providerReference: captureId,
+      description: `PayPal settlement from ${actorType} wallet top-up (${ownerId})`,
+      actorRole: 'system',
+      actorId: String(req.user.id),
+      metadata: {
+        orderId: order.orderId,
+        gateway: 'paypal',
+        paypalOrderId,
+        paypalCaptureId: captureId,
+        sourceWalletType: actorType,
+        sourceOwnerId: ownerId
+      }
+    });
+
+    return res.status(200).json({
+      message: 'PayPal live top-up confirmed',
+      order,
+      capture: {
+        id: captureId,
+        status: captureStatus,
+        amount: capture?.amount || null
+      },
+      wallet: customerWallet,
+      adminWallet
+    });
+  } catch (error) {
+    await releaseTopupOrderConfirmationLock(lockedOrder._id, 'paypal_capture_failed');
     throw error;
   }
 }));
@@ -4316,7 +4893,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     return res.status(409).json({
       ok: false,
       livePaymentRequired: true,
-      message: 'Legacy/demo wallet top-up is disabled. Use /api/wallet/topup/order with Razorpay Checkout and /api/wallet/topup/razorpay/verify.'
+      message: 'Legacy/demo wallet top-up is disabled. Use /api/wallet/topup/order with PayPal Checkout and /api/wallet/topup/paypal/capture.'
     });
 
     const store = getStore();

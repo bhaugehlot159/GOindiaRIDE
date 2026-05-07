@@ -76,10 +76,34 @@ This release adds a production-ready wallet backend (/api/wallet) with Mongo per
 - PUT /api/wallet/admin/payment-modes - admin payment mode control
 
 ### Go live checklist
-1. Set all live gateway secrets in .env (Razorpay/Stripe/PayPal/Cashfree).
+1. Set all live gateway secrets in .env (PayPal primary; Razorpay/Stripe/Cashfree optional fallback).
 2. Run backend on HTTPS domain and set CORS_ORIGIN + SECURITY_ALLOWED_ORIGINS.
 3. Ensure frontend stores valid ccessToken after login.
 4. Configure webhook verification using PAYMENT_WEBHOOK_SECRET.
 5. Use PM2 (
 pm run pm2:start) behind reverse proxy (Nginx/Cloudflare).
+
+### PayPal live checkout readiness
+Real wallet top-up opens PayPal Checkout first. It will not open until the backend process has server-side live PayPal credentials:
+
+```bash
+PAYPAL_ENV=live
+PAYPAL_CLIENT_ID=your_live_client_id
+PAYPAL_CLIENT_SECRET=your_live_client_secret
+PAYPAL_SETTLEMENT_CURRENCY=USD
+PAYPAL_INR_TO_SETTLEMENT_RATE=current_inr_to_usd_rate
+PAYMENT_WEBHOOK_SECRET=your_webhook_secret
+```
+
+On Render, set these as Environment variables for the `GOindiaRIDE` service, then redeploy/restart the service. The backend also accepts common existing PayPal aliases (`PAYPAL_LIVE_CLIENT_ID`, `PAYPAL_APP_CLIENT_ID`, `PAYPAL_LIVE_CLIENT_SECRET`, `PAYPAL_SECRET`) so older production dashboards do not need to be renamed immediately.
+
+PayPal does not support INR as a payment currency. The wallet remains INR, but PayPal charges in `PAYPAL_SETTLEMENT_CURRENCY`; set `PAYPAL_INR_TO_SETTLEMENT_RATE` so the backend can convert the INR top-up amount before creating the PayPal order.
+
+After login, verify readiness from any wallet page or directly:
+
+```bash
+GET /api/wallet/gateway/status
+```
+
+The response must show `gateways.paypal.configured: true` before real payment can happen.
 
