@@ -60,6 +60,17 @@ function firstEnvValue(names) {
   return '';
 }
 
+function firstEnvValueMatching(pattern) {
+  const regex = pattern instanceof RegExp ? pattern : null;
+  if (!regex) return '';
+  for (const key of Object.keys(process.env)) {
+    if (!regex.test(key)) continue;
+    const value = String(process.env[key] || '').trim();
+    if (value) return value;
+  }
+  return '';
+}
+
 const RAZORPAY_KEY_ID_ENV_NAMES = [
   'RAZORPAY_KEY_ID',
   'RAZORPAY_LIVE_KEY_ID',
@@ -96,6 +107,20 @@ const PAYPAL_API_HOST = PAYPAL_ENVIRONMENT === 'live' ? 'api-m.paypal.com' : 'ap
 const PAYPAL_SETTLEMENT_CURRENCY = sanitizeText(process.env.PAYPAL_SETTLEMENT_CURRENCY || 'USD', 6).toUpperCase() || 'USD';
 const PAYPAL_INR_TO_SETTLEMENT_RATE = Number(process.env.PAYPAL_INR_TO_SETTLEMENT_RATE || process.env.PAYPAL_EXCHANGE_RATE || 0);
 const PAYPAL_TOPUP_MODES = new Set(['paypal', 'paypal_wallet']);
+const PAYPAL_FALLBACK_TOPUP_MODES = new Set([
+  'visa_master_amex',
+  'rupay_card',
+  'debit_card',
+  'credit_card',
+  'netbanking',
+  'net_banking',
+  'stripe_cards',
+  'apple_pay',
+  'google_pay_intl',
+  'alipay',
+  'wechat_pay',
+  'cashfree'
+]);
 const PAYPAL_SUPPORTED_CURRENCIES = new Set([
   'AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'ILS',
   'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'SGD',
@@ -120,19 +145,44 @@ const RAZORPAY_TOPUP_MODES = new Set([
 ]);
 const REFERENCE_QR_TOPUP_MODES = new Set(['upi_qr', 'bharat_qr', 'international_qr']);
 const UPI_REFERENCE_MODES = new Set(['upi', 'upi_intent', 'upi_qr', 'bharat_qr']);
+const UPI_APP_TOPUP_MODES = new Set([
+  ...UPI_REFERENCE_MODES,
+  'paytm_wallet',
+  'phonepe_wallet',
+  'googlepay_wallet'
+]);
 const UPI_MERCHANT_VPA = firstEnvValue([
   'UPI_MERCHANT_VPA',
   'UPI_MERCHANT_UPI_ID',
   'PAYMENT_UPI_ID',
+  'PAYMENT_UPI_VPA',
+  'PAYMENT_UPI',
+  'PAYMENT_VPA',
+  'PAYMENT_MERCHANT_UPI',
+  'PAYMENT_MERCHANT_UPI_ID',
+  'UPI_ID',
+  'UPI_VPA',
+  'BUSINESS_UPI_ID',
+  'BUSINESS_UPI_VPA',
+  'PAYEE_UPI_ID',
+  'PAYEE_UPI_VPA',
   'MERCHANT_UPI_ID',
+  'MERCHANT_VPA',
   'GOINDIARIDE_UPI_ID'
-]);
+]) || firstEnvValueMatching(/(PAYMENT|MERCHANT|BUSINESS|GOINDIA).*UPI.*(ID|VPA)?/i);
 const UPI_MERCHANT_NAME = firstEnvValue([
   'UPI_MERCHANT_NAME',
   'PAYMENT_MERCHANT_NAME',
+  'MERCHANT_NAME',
+  'BUSINESS_NAME',
   'GOINDIARIDE_PAYMENT_NAME'
 ]) || 'GO India RIDE';
 const UPI_MERCHANT_CODE = firstEnvValue(['UPI_MERCHANT_CODE', 'UPI_MC']);
+const UPI_PAY_LINK_TEMPLATE = firstEnvValue([
+  'UPI_PAY_LINK_TEMPLATE',
+  'PAYMENT_UPI_LINK_TEMPLATE',
+  'UPI_DEEP_LINK_TEMPLATE'
+]);
 const UPI_QR_IMAGE_URL = firstEnvValue(['UPI_QR_IMAGE_URL', 'PAYMENT_QR_IMAGE_URL', 'GOINDIARIDE_QR_IMAGE_URL']);
 const INTERNATIONAL_PAYMENT_QR_URL = firstEnvValue([
   'INTERNATIONAL_PAYMENT_QR_URL',
@@ -140,6 +190,24 @@ const INTERNATIONAL_PAYMENT_QR_URL = firstEnvValue([
   'PAYMENT_LINK_URL',
   'GOINDIARIDE_PAYMENT_LINK_URL'
 ]);
+const MODE_PAYMENT_LINK_TEMPLATES = {
+  razorpay: firstEnvValue(['RAZORPAY_PAYMENT_LINK_URL', 'PAYMENT_LINK_RAZORPAY']),
+  cashfree: firstEnvValue(['CASHFREE_PAYMENT_LINK_URL', 'PAYMENT_LINK_CASHFREE']),
+  paytm_wallet: firstEnvValue(['PAYTM_PAYMENT_LINK_URL', 'PAYMENT_LINK_PAYTM']),
+  phonepe_wallet: firstEnvValue(['PHONEPE_PAYMENT_LINK_URL', 'PAYMENT_LINK_PHONEPE']),
+  googlepay_wallet: firstEnvValue(['GOOGLEPAY_PAYMENT_LINK_URL', 'PAYMENT_LINK_GOOGLEPAY']),
+  stripe_cards: firstEnvValue(['STRIPE_PAYMENT_LINK_URL', 'PAYMENT_LINK_STRIPE']),
+  paypal: firstEnvValue(['PAYPAL_PAYMENT_LINK_URL', 'PAYMENT_LINK_PAYPAL']),
+  apple_pay: firstEnvValue(['APPLE_PAY_LINK_URL', 'PAYMENT_LINK_APPLE_PAY']),
+  google_pay_intl: firstEnvValue(['GOOGLE_PAY_INTL_LINK_URL', 'PAYMENT_LINK_GOOGLE_PAY_INTL']),
+  alipay: firstEnvValue(['ALIPAY_LINK_URL', 'PAYMENT_LINK_ALIPAY']),
+  wechat_pay: firstEnvValue(['WECHAT_PAY_LINK_URL', 'PAYMENT_LINK_WECHAT_PAY']),
+  visa_master_amex: firstEnvValue(['CARD_PAYMENT_LINK_URL', 'PAYMENT_LINK_CARD']),
+  rupay_card: firstEnvValue(['RUPAY_PAYMENT_LINK_URL', 'PAYMENT_LINK_RUPAY']),
+  net_banking: firstEnvValue(['NET_BANKING_LINK_URL', 'PAYMENT_LINK_NET_BANKING', 'NETBANKING_LINK_URL']),
+  netbanking: firstEnvValue(['NET_BANKING_LINK_URL', 'PAYMENT_LINK_NET_BANKING', 'NETBANKING_LINK_URL']),
+  swift_wire: firstEnvValue(['SWIFT_PAYMENT_LINK_URL', 'PAYMENT_LINK_SWIFT'])
+};
 
 const DEFAULT_PAYMENT_MODES = [
   { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 1 },
@@ -152,17 +220,20 @@ const DEFAULT_PAYMENT_MODES = [
   { modeId: 'neft_rtgs', label: 'NEFT/RTGS', region: 'india', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 8 },
   { modeId: 'razorpay', label: 'Razorpay Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 9 },
   { modeId: 'cashfree', label: 'Cashfree Gateway', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 10 },
-  { modeId: 'stripe_cards', label: 'Stripe Cards', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 11 },
-  { modeId: 'paypal', label: 'PayPal Checkout', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation'], displayOrder: 12 },
-  { modeId: 'apple_pay', label: 'Apple Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 13 },
-  { modeId: 'google_pay_intl', label: 'Google Pay (International)', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 14 },
-  { modeId: 'alipay', label: 'Alipay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 15 },
-  { modeId: 'wechat_pay', label: 'WeChat Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 16 },
-  { modeId: 'international_qr', label: 'International QR', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 17 },
-  { modeId: 'swift_wire', label: 'SWIFT Wire Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 18 },
-  { modeId: 'sepa', label: 'SEPA Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 19 },
-  { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 20 },
-  { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 21 }
+  { modeId: 'paytm_wallet', label: 'Paytm Wallet', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 11 },
+  { modeId: 'phonepe_wallet', label: 'PhonePe Wallet', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 12 },
+  { modeId: 'googlepay_wallet', label: 'Google Pay Wallet', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 13 },
+  { modeId: 'stripe_cards', label: 'Stripe Cards', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 14 },
+  { modeId: 'paypal', label: 'PayPal Checkout', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'withdrawal', 'refund', 'donation'], displayOrder: 15 },
+  { modeId: 'apple_pay', label: 'Apple Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 16 },
+  { modeId: 'google_pay_intl', label: 'Google Pay (International)', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 17 },
+  { modeId: 'alipay', label: 'Alipay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 18 },
+  { modeId: 'wechat_pay', label: 'WeChat Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 19 },
+  { modeId: 'international_qr', label: 'International QR', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 20 },
+  { modeId: 'swift_wire', label: 'SWIFT Wire Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 21 },
+  { modeId: 'sepa', label: 'SEPA Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 22 },
+  { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 23 },
+  { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 24 }
 ];
 
 let modesSeeded = false;
@@ -243,7 +314,7 @@ function buildPaymentGatewayStatus(walletCurrency = 'INR') {
 
 function canUsePayPalForTopup(paymentMode) {
   const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
-  return PAYPAL_TOPUP_MODES.has(normalizedMode);
+  return PAYPAL_TOPUP_MODES.has(normalizedMode) || PAYPAL_FALLBACK_TOPUP_MODES.has(normalizedMode);
 }
 
 function buildPayPalGatewayStatus(walletCurrency = 'INR') {
@@ -320,10 +391,21 @@ function appendQrUrlParams(rawUrl, values) {
 }
 
 function buildUpiQrPayload(order) {
-  if (!UPI_MERCHANT_VPA) return null;
-
   const amount = toAmount(order.amount);
   if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  if (!UPI_MERCHANT_VPA) {
+    if (!UPI_PAY_LINK_TEMPLATE) return null;
+    const templatePayload = appendQrUrlParams(UPI_PAY_LINK_TEMPLATE, {
+      orderId: sanitizeText(order.orderId, 80),
+      amount: amount.toFixed(2),
+      currency: 'INR',
+      merchantUpiId: sanitizeText(UPI_MERCHANT_VPA || '', 120),
+      merchantName: sanitizeText(UPI_MERCHANT_NAME || 'GO India RIDE', 80),
+      note: `GO India RIDE ${sanitizeText(order.orderId, 60)}`
+    });
+    return /^upi:\/\//i.test(String(templatePayload || '').trim()) ? String(templatePayload || '').trim() : null;
+  }
 
   const params = new URLSearchParams({
     pa: UPI_MERCHANT_VPA,
@@ -353,13 +435,13 @@ async function buildReferenceTopupQr(order, mode) {
   let qrType = 'payment_link';
   let payee = '';
 
-  if (UPI_REFERENCE_MODES.has(normalizedMode)) {
+  if (UPI_APP_TOPUP_MODES.has(normalizedMode)) {
     qrType = 'upi';
     payload = buildUpiQrPayload(order);
     imageUrl = UPI_QR_IMAGE_URL;
     payee = UPI_MERCHANT_VPA || UPI_MERCHANT_NAME;
     if (!payload && !imageUrl) {
-      setupMessage = 'UPI QR ke liye backend env me UPI_MERCHANT_VPA ya PAYMENT_UPI_ID set karein.';
+      setupMessage = 'UPI/App redirect ke liye backend env me UPI_MERCHANT_VPA, PAYMENT_UPI_ID, ya UPI_PAY_LINK_TEMPLATE set karein.';
     }
   } else if (normalizedMode === 'international_qr') {
     qrType = 'international';
@@ -394,9 +476,96 @@ async function buildReferenceTopupQr(order, mode) {
     amount: order.amount,
     currency: order.currency,
     instructions: qrType === 'upi'
-      ? 'Dusre phone se QR scan karke UPI payment karein. Payment ke baad UTR/reference submit karein.'
+      ? 'Dusre phone se QR scan karke UPI/app payment karein. Payment ke baad UTR/reference submit karein.'
       : 'Dusre device se QR scan karke international payment complete karein. Payment ke baad gateway reference submit karein.'
   };
+}
+
+function parseUpiPayload(payload) {
+  const raw = String(payload || '').trim();
+  if (!/^upi:\/\//i.test(raw)) return null;
+  const queryIndex = raw.indexOf('?');
+  const query = queryIndex >= 0 ? raw.slice(queryIndex + 1) : '';
+  if (!query) return null;
+  return query;
+}
+
+function buildReferenceTopupActions(order, mode, qr) {
+  const modeId = sanitizeText(mode?.modeId, 80).toLowerCase();
+  const modeLabel = sanitizeText(mode?.label, 120);
+  const amount = toAmount(order?.amount);
+  const values = {
+    orderId: sanitizeText(order?.orderId, 80),
+    amount: Number.isFinite(amount) ? amount.toFixed(2) : sanitizeText(order?.amount, 30),
+    currency: sanitizeText(order?.currency || 'INR', 8),
+    mode: modeId
+  };
+
+  const result = {
+    available: false,
+    modeId,
+    modeLabel,
+    links: [],
+    setupMessage: ''
+  };
+
+  const upiPayloadQuery = parseUpiPayload(qr?.payload);
+  if (upiPayloadQuery) {
+    const appLinks = [
+      { id: 'upi_any', label: 'Any UPI App', kind: 'deep_link', url: qr.payload },
+      { id: 'phonepe', label: 'PhonePe', kind: 'deep_link', url: `phonepe://pay?${upiPayloadQuery}` },
+      { id: 'gpay', label: 'Google Pay', kind: 'deep_link', url: `tez://upi/pay?${upiPayloadQuery}` },
+      { id: 'paytm', label: 'Paytm', kind: 'deep_link', url: `paytmmp://pay?${upiPayloadQuery}` }
+    ];
+    const preferredId = modeId === 'phonepe_wallet'
+      ? 'phonepe'
+      : modeId === 'googlepay_wallet'
+        ? 'gpay'
+        : modeId === 'paytm_wallet'
+          ? 'paytm'
+          : 'upi_any';
+    appLinks.sort((a, b) => {
+      if (a.id === preferredId) return -1;
+      if (b.id === preferredId) return 1;
+      return 0;
+    });
+    result.available = true;
+    result.links.push(...appLinks);
+  }
+
+  const templateUrl = MODE_PAYMENT_LINK_TEMPLATES[modeId];
+  if (templateUrl) {
+    const templatedUrl = appendQrUrlParams(templateUrl, values);
+    if (templatedUrl) {
+      result.available = true;
+      result.links.push({
+        id: `mode_${modeId}`,
+        label: `${modeLabel || modeId} App`,
+        kind: 'app_or_web',
+        url: templatedUrl
+      });
+    }
+  }
+
+  if (!result.available && typeof qr?.payload === 'string' && /^https?:\/\//i.test(qr.payload)) {
+    result.available = true;
+    result.links.push({
+      id: 'payment_link',
+      label: 'Open Payment Link',
+      kind: 'web_link',
+      url: qr.payload
+    });
+  }
+
+  if (!result.available) {
+    if (UPI_APP_TOPUP_MODES.has(modeId)) {
+      result.setupMessage = 'UPI redirect ke liye UPI_MERCHANT_VPA / PAYMENT_UPI_ID / UPI_PAY_LINK_TEMPLATE configure hona chahiye.';
+    } else {
+      result.setupMessage = `${modeLabel || modeId} redirect ke liye payment link template configure hona chahiye.`;
+    }
+  }
+
+  return result;
 }
 
 function toRazorpaySubunits(amount) {
@@ -875,16 +1044,64 @@ async function ensurePaymentModesSeeded() {
   modesSeeded = true;
 }
 
+function mergeWithDefaultPaymentModes(rows, flow = '') {
+  const normalizedFlow = sanitizeText(flow, 40).toLowerCase();
+  const mergedMap = new Map();
+
+  DEFAULT_PAYMENT_MODES.forEach((mode) => {
+    const normalizedMode = sanitizeText(mode.modeId, 80).toLowerCase();
+    if (!normalizedMode) return;
+    const flows = Array.isArray(mode.flows)
+      ? mode.flows.map((row) => sanitizeText(row, 40).toLowerCase()).filter(Boolean)
+      : [];
+    if (normalizedFlow && !flows.includes(normalizedFlow)) return;
+    mergedMap.set(normalizedMode, {
+      modeId: normalizedMode,
+      label: sanitizeText(mode.label, 160),
+      region: sanitizeText(mode.region || 'global', 20).toLowerCase() || 'global',
+      enabled: mode.enabled !== false,
+      displayOrder: Number(mode.displayOrder) || 999,
+      flows
+    });
+  });
+
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const modeId = sanitizeText(row?.modeId || row?.id, 80).toLowerCase();
+    if (!modeId) return;
+    const flows = Array.isArray(row?.flows)
+      ? row.flows.map((item) => sanitizeText(item, 40).toLowerCase()).filter(Boolean)
+      : [];
+    const existing = mergedMap.get(modeId);
+    mergedMap.set(modeId, {
+      ...(existing || {}),
+      ...row,
+      modeId,
+      label: sanitizeText(row?.label || existing?.label || modeId, 160),
+      region: sanitizeText(row?.region || existing?.region || 'global', 20).toLowerCase() || 'global',
+      enabled: row?.enabled !== false,
+      displayOrder: Number(row?.displayOrder || existing?.displayOrder || 999),
+      flows: flows.length ? flows : existing?.flows || []
+    });
+  });
+
+  let list = Array.from(mergedMap.values()).filter((row) => row.enabled !== false);
+  if (normalizedFlow) {
+    list = list.filter((row) => Array.isArray(row.flows) && row.flows.includes(normalizedFlow));
+  }
+  list.sort((a, b) => Number(a.displayOrder || 999) - Number(b.displayOrder || 999));
+  return list;
+}
+
 async function getEnabledModesForFlow(flow) {
   await ensurePaymentModesSeeded();
   const normalizedFlow = sanitizeText(flow, 40).toLowerCase();
 
-  const modes = await WalletPaymentMode
+  const rows = await WalletPaymentMode
     .find({ enabled: true, flows: normalizedFlow })
     .sort({ displayOrder: 1, label: 1 })
     .lean();
 
-  return modes;
+  return mergeWithDefaultPaymentModes(rows, normalizedFlow);
 }
 
 async function findMode(modeId, flow) {
@@ -1319,6 +1536,7 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     checkout.available = true;
   } else {
     const qr = await buildReferenceTopupQr(order, mode);
+    const actions = buildReferenceTopupActions(order, mode, qr);
     await WalletTopupOrder.updateOne(
       { _id: order._id },
       {
@@ -1342,10 +1560,11 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
       paymentMode: mode.modeId,
       paymentModeLabel: mode.label,
       description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
-      referenceLabel: UPI_REFERENCE_MODES.has(mode.modeId)
+      referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
         ? 'UPI UTR / transaction reference'
         : 'Gateway / bank transaction reference',
-      qr
+      qr,
+      actions
     };
   }
 
@@ -3253,7 +3472,8 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
   }
 
   await ensurePaymentModesSeeded();
-  const rows = await WalletPaymentMode.find(query).sort({ displayOrder: 1, label: 1 }).lean();
+  const dbRows = await WalletPaymentMode.find(query).sort({ displayOrder: 1, label: 1 }).lean();
+  const rows = mergeWithDefaultPaymentModes(dbRows, flow);
   return res.status(200).json({ rows });
 }));
 

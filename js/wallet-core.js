@@ -1259,6 +1259,8 @@
         const modeLabel = sanitizeText(checkout.paymentModeLabel || checkout.paymentMode || 'selected payment mode', 120);
         const amountText = `${sanitizeText(checkout.currency || 'INR', 8)} ${sanitizeText(String(checkout.amount || ''), 24)}`;
         const qr = checkout.qr || {};
+        const actions = checkout.actions || {};
+        const actionLinks = Array.isArray(actions.links) ? actions.links : [];
         const qrImage = String(qr.imageDataUrl || qr.imageUrl || '').trim();
         const qrPayload = String(qr.payload || '').trim();
         const hasQr = Boolean(qr.available && (qrImage || qrPayload));
@@ -1288,6 +1290,11 @@
                         </div>
                     </div>
                     <div data-setup-note style="display:none;border:1px solid #fedf89;background:#fffaeb;color:#93370d;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:14px;"></div>
+                    <div data-mode-actions style="display:none;border:1px solid #d0d5dd;border-radius:8px;padding:12px;margin-bottom:14px;background:#f8f9fc;">
+                        <div style="font-size:13px;font-weight:700;color:#344054;margin-bottom:8px;">Pay Using Mobile App</div>
+                        <div data-mode-action-buttons style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                        <div style="font-size:12px;color:#667085;line-height:1.4;margin-top:8px;">App me payment complete karke is screen par wapas aakar UTR/reference submit karein.</div>
+                    </div>
                     <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">${label}</label>
                     <input data-provider-reference type="text" autocomplete="off" placeholder="UTR / gateway reference" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:12px;font-size:15px;margin-bottom:10px;">
                     <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">Payment Screenshot (optional but recommended)</label>
@@ -1324,6 +1331,21 @@
                 if (!completed) {
                     reject(new Error('Payment reference confirmation was cancelled'));
                 }
+            };
+            const launchUrl = (rawUrl) => {
+                const url = String(rawUrl || '').trim();
+                if (!/^(https?:\/\/|upi:\/\/|tez:\/\/|phonepe:\/\/|paytmmp:\/\/|intent:\/\/)/i.test(url)) {
+                    showError('Invalid payment app URL.');
+                    return;
+                }
+                if (/^https?:\/\//i.test(url)) {
+                    const popup = window.open(url, '_blank', 'noopener,noreferrer');
+                    if (!popup) {
+                        window.location.href = url;
+                    }
+                    return;
+                }
+                window.location.href = url;
             };
             const compressProofImage = (file) => new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1364,6 +1386,14 @@
             if (hasQr && imageNode && qrImage) {
                 imageNode.setAttribute('src', qrImage);
                 imageNode.style.display = 'block';
+                imageNode.style.cursor = 'zoom-in';
+                imageNode.title = 'Open QR in new tab';
+                imageNode.addEventListener('click', () => {
+                    const w = window.open();
+                    if (w) {
+                        w.document.write(`<img src="${qrImage}" alt="Payment QR" style="max-width:100%;height:auto;">`);
+                    }
+                });
             }
             const instructionsNode = overlay.querySelector('[data-qr-instructions]');
             if (instructionsNode && hasQr) {
@@ -1379,11 +1409,44 @@
                 setupNode.textContent = sanitizeText(qr.setupMessage, 240);
                 setupNode.style.display = 'block';
             }
+            const modeActionsWrap = overlay.querySelector('[data-mode-actions]');
+            const modeActionButtons = overlay.querySelector('[data-mode-action-buttons]');
+            if (modeActionsWrap && modeActionButtons && actionLinks.length) {
+                const buttonsHtml = actionLinks.map((row) => {
+                    const safeId = sanitizeText(row.id || 'action', 40).replace(/[^a-z0-9_-]/gi, '');
+                    const safeLabel = sanitizeText(row.label || 'Pay', 60);
+                    const safeUrl = encodeURIComponent(String(row.url || '').trim());
+                    if (!safeUrl) return '';
+                    return `<button type="button" data-action-id="${safeId}" data-action-url="${safeUrl}" style="border:1px solid #c7d7fe;background:#fff;color:#1f3c88;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;">${safeLabel}</button>`;
+                }).filter(Boolean).join('');
+                if (buttonsHtml) {
+                    modeActionsWrap.style.display = 'block';
+                    modeActionButtons.innerHTML = buttonsHtml;
+                    modeActionButtons.addEventListener('click', (event) => {
+                        const target = event.target.closest('[data-action-url]');
+                        if (!target) return;
+                        const encodedUrl = target.getAttribute('data-action-url') || '';
+                        let actionUrl = '';
+                        try {
+                            actionUrl = decodeURIComponent(encodedUrl);
+                        } catch (_error) {
+                            actionUrl = encodedUrl;
+                        }
+                        launchUrl(actionUrl);
+                    });
+                } else if (setupNode && !setupNode.textContent.trim() && actions && actions.setupMessage) {
+                    setupNode.textContent = sanitizeText(actions.setupMessage, 240);
+                    setupNode.style.display = 'block';
+                }
+            } else if (setupNode && !setupNode.textContent.trim() && actions && actions.setupMessage) {
+                setupNode.textContent = sanitizeText(actions.setupMessage, 240);
+                setupNode.style.display = 'block';
+            }
             const openQrButton = overlay.querySelector('[data-open-qr]');
             if (openQrButton && qrPayload && /^upi:\/\//i.test(qrPayload)) {
                 openQrButton.style.display = 'inline-flex';
                 openQrButton.addEventListener('click', () => {
-                    window.location.href = qrPayload;
+                    launchUrl(qrPayload);
                 });
             }
             const copyQrButton = overlay.querySelector('[data-copy-qr]');
