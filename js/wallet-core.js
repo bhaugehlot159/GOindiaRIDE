@@ -1864,6 +1864,10 @@
             };
         }
 
+        if (checkout && checkout.provider === 'razorpay_link' && checkout.available === false) {
+            throw new Error(getRazorpaySetupMessage(checkout));
+        }
+
         if (checkout && checkout.provider === 'paypal_redirect' && checkout.available) {
             const payment = await openPayPalRedirectCheckout(checkout);
             return {
@@ -1918,7 +1922,7 @@
             throw new Error(getRazorpaySetupMessage(checkout));
         }
 
-        throw new Error('Selected payment mode is not connected to a live checkout yet. Please choose another enabled mode or submit a valid gateway reference / UTR.');
+        throw new Error('Selected payment mode is not connected to a live gateway checkout yet. Please choose another enabled online mode.');
     }
 
     async function createSecureWithdrawalRequest({ amount, method, destination, notes }) {

@@ -1662,13 +1662,19 @@
                 const paypalStatus = secureDriverWalletSnapshot && secureDriverWalletSnapshot.paymentGatewayStatus
                     ? secureDriverWalletSnapshot.paymentGatewayStatus.paypal
                     : null;
+                const razorpayStatus = secureDriverWalletSnapshot && secureDriverWalletSnapshot.paymentGatewayStatus
+                    ? secureDriverWalletSnapshot.paymentGatewayStatus.razorpay
+                    : null;
                 const paypalMissing = liveMode && paypalStatus && paypalStatus.configured === false;
+                const razorpayMissing = liveMode && razorpayStatus && razorpayStatus.configured === false;
                 modeNode.textContent = !liveMode
                     ? 'Secure backend session not found. Please login again to use live wallet actions.'
+                    : razorpayMissing && window.WalletCore && typeof WalletCore.getRazorpaySetupMessage === 'function'
+                        ? WalletCore.getRazorpaySetupMessage(razorpayStatus)
                     : paypalMissing && window.WalletCore && typeof WalletCore.getPayPalSetupMessage === 'function'
                         ? WalletCore.getPayPalSetupMessage(paypalStatus)
-                        : 'LIVE secure backend + all online payment modes active. Payment methods and withdrawal approvals are controlled by admin.';
-                modeNode.style.color = liveMode && !paypalMissing ? '#0b8f5d' : '#b54708';
+                        : 'LIVE secure backend + gateway QR checkout active. Payment methods and withdrawal approvals are controlled by admin.';
+                modeNode.style.color = liveMode && !paypalMissing && !razorpayMissing ? '#0b8f5d' : '#b54708';
             }
 
             const ownerId = getDriverWalletOwnerId();
@@ -2300,7 +2306,7 @@
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
-    <script src="../js/wallet-core.js?v=20260507-allpay8"></script>
+    <script src="../js/wallet-core.js?v=20260507-allpay9"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
@@ -26235,7 +26241,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
 }
 </script>
 <script src="/js/future-feature-runtime.js?v=20260317-ratingfare1"></script>
-<script src="/js/future-feature-runtime-extensions.js?v=20260507-allpay8"></script>
+<script src="/js/future-feature-runtime-extensions.js?v=20260507-allpay9"></script>
 <script src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1"></script>
 <script src="/js/ultimate/features-driver.js?v=20260316-ultimate1"></script>
 <script src="/js/future-feature-runtime-dock.js?v=20260317-adminonly1"></script>
@@ -26932,7 +26938,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
       var amountNumber = Number(amount || 0);
       if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
       if (!window.WalletCore || typeof window.WalletCore.isSecureBackendReady !== 'function' || !window.WalletCore.isSecureBackendReady() || typeof window.WalletCore.startSecureTopupCheckout !== 'function') {
-        console.warn('Real wallet top-up requires live login/session and PayPal Checkout. Demo/local wallet top-up is disabled.');
+        console.warn('Real wallet top-up requires live login/session and secure gateway checkout. Demo/local wallet top-up is disabled.');
         return;
       }
       window.WalletCore.startSecureTopupCheckout({

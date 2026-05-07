@@ -141,7 +141,10 @@ const RAZORPAY_TOPUP_MODES = new Set([
   'net_banking',
   'paytm_wallet',
   'phonepe_wallet',
-  'googlepay_wallet'
+  'googlepay_wallet',
+  'runtime-ui',
+  'wallet_add',
+  'wallet_topup'
 ]);
 const UNIFIED_QR_CHECKOUT_ENABLED = String(process.env.UNIFIED_QR_CHECKOUT_ENABLED || 'true').trim().toLowerCase() !== 'false';
 const UNIFIED_QR_TOPUP_MODES = new Set([
@@ -165,7 +168,10 @@ const UNIFIED_QR_TOPUP_MODES = new Set([
   'alipay',
   'wechat_pay',
   'international_qr',
-  'razorpay'
+  'razorpay',
+  'runtime-ui',
+  'wallet_add',
+  'wallet_topup'
 ]);
 const REFERENCE_QR_TOPUP_MODES = new Set(['upi_qr', 'bharat_qr', 'international_qr']);
 const UPI_REFERENCE_MODES = new Set(['upi', 'upi_intent', 'upi_qr', 'bharat_qr']);
@@ -259,6 +265,11 @@ const DEFAULT_PAYMENT_MODES = [
   { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 23 },
   { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 24 }
 ];
+const TOPUP_FALLBACK_MODE_LABELS = {
+  'runtime-ui': 'Secure Gateway Checkout',
+  wallet_add: 'Wallet Add Money',
+  wallet_topup: 'Wallet Top-up'
+};
 
 let modesSeeded = false;
 
@@ -330,7 +341,7 @@ function buildRazorpayGatewayStatus() {
 
 function buildPaymentGatewayStatus(walletCurrency = 'INR') {
   return {
-    preferred: 'paypal',
+    preferred: 'razorpay_link',
     paypal: buildPayPalGatewayStatus(walletCurrency),
     razorpay: buildRazorpayGatewayStatus()
   };
@@ -1097,6 +1108,34 @@ async function createRazorpayUnifiedLinkTopupCheckout(order, mode) {
   };
 }
 
+async function buildRazorpayUnifiedCheckoutUnavailable(order, mode, gatewayStatus) {
+  await WalletTopupOrder.updateOne(
+    { _id: order._id },
+    {
+      $set: {
+        'metadata.gateway': 'razorpay_link',
+        'metadata.referenceRequired': false,
+        'metadata.setupRequired': true,
+        'metadata.setupReason': gatewayStatus?.message || 'Razorpay live keys are not configured on the backend'
+      }
+    }
+  );
+
+  return {
+    provider: 'razorpay_link',
+    available: false,
+    reason: gatewayStatus?.message || 'Razorpay live keys are not configured on the backend',
+    gatewayStatus,
+    requiredGateway: 'razorpay',
+    orderId: order.orderId,
+    amount: order.amount,
+    currency: order.currency,
+    paymentMode: sanitizeText(mode.modeId, 80).toLowerCase(),
+    paymentModeLabel: sanitizeText(mode.label, 120),
+    description: 'All-payment QR checkout requires Razorpay live keys on the backend.'
+  };
+}
+
 function verifyRazorpayPaymentSignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature }) {
   if (!isRazorpayConfigured()) return false;
   const generated = crypto
@@ -1646,7 +1685,7 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
 
   const mode = await findMode(paymentMode, 'add_money') || {
     modeId: paymentMode || 'legacy_add_money',
-    label: paymentMode || 'Legacy add-money selection'
+    label: TOPUP_FALLBACK_MODE_LABELS[paymentMode] || paymentMode || 'Legacy add-money selection'
   };
 
   if (clientReference) {
@@ -1701,9 +1740,15 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   });
 
   let checkout = null;
-  if (shouldUseUnifiedRazorpayLinkForTopup(mode.modeId) && isRazorpayConfigured()) {
-    checkout = await createRazorpayUnifiedLinkTopupCheckout(order, mode);
-    checkout.available = true;
+  if (shouldUseUnifiedRazorpayLinkForTopup(mode.modeId)) {
+    const gatewayStatus = buildRazorpayGatewayStatus();
+    if (!gatewayStatus.available) {
+      checkout = await buildRazorpayUnifiedCheckoutUnavailable(order, mode, gatewayStatus);
+    } else {
+      checkout = await createRazorpayUnifiedLinkTopupCheckout(order, mode);
+      checkout.available = true;
+      checkout.gatewayStatus = gatewayStatus;
+    }
   } else if (canUsePayPalForTopup(mode.modeId)) {
     const gatewayStatus = buildPayPalGatewayStatus(currency);
     if (!gatewayStatus.available) {

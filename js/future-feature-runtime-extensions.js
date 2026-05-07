@@ -256,7 +256,7 @@
   }
 
   function liveWalletTopupDisabledMessage() {
-    return 'Real wallet top-up requires live login/session and PayPal Checkout. Demo/local wallet top-up is disabled.';
+    return 'Real wallet top-up requires live login/session and secure gateway checkout. Demo/local wallet top-up is disabled.';
   }
 
   function isLiveWalletTopupReady() {
