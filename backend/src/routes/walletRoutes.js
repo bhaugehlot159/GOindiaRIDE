@@ -863,6 +863,55 @@ async function createPayPalTopupOrder(order, mode) {
   };
 }
 
+async function createPayPalRedirectTopupCheckout(order, mode) {
+  const paypalCheckout = await createPayPalTopupOrder(order, mode);
+  const approvalUrl = sanitizeText(paypalCheckout.approvalUrl, 2000);
+  if (!/^https?:\/\//i.test(approvalUrl)) {
+    return null;
+  }
+
+  const imageDataUrl = await QRCode.toDataURL(approvalUrl, {
+    errorCorrectionLevel: 'M',
+    margin: 2,
+    width: 320
+  });
+
+  return {
+    ...paypalCheckout,
+    provider: 'paypal_redirect',
+    available: true,
+    requiresProviderCapture: true,
+    paymentMode: sanitizeText(mode.modeId, 80).toLowerCase(),
+    paymentModeLabel: sanitizeText(mode.label, 120),
+    qr: {
+      available: true,
+      type: 'paypal_redirect',
+      payload: approvalUrl,
+      imageDataUrl,
+      imageUrl: '',
+      payee: 'PayPal Checkout',
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency,
+      instructions: 'QR scan karke ya button se PayPal checkout open karein. Payment complete hone ke baad confirm karein.'
+    },
+    actions: {
+      available: true,
+      modeId: sanitizeText(mode.modeId, 80).toLowerCase(),
+      modeLabel: sanitizeText(mode.label, 120),
+      links: [
+        {
+          id: 'paypal_checkout',
+          label: 'Open PayPal / Card Checkout',
+          kind: 'web_link',
+          url: approvalUrl
+        }
+      ],
+      setupMessage: ''
+    }
+  };
+}
+
 function getPayPalCapture(providerResponse) {
   const purchaseUnits = Array.isArray(providerResponse?.purchase_units) ? providerResponse.purchase_units : [];
   const captures = purchaseUnits.flatMap((unit) => {
@@ -1537,35 +1586,49 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   } else {
     const qr = await buildReferenceTopupQr(order, mode);
     const actions = buildReferenceTopupActions(order, mode, qr);
-    await WalletTopupOrder.updateOne(
-      { _id: order._id },
-      {
-        $set: {
-          'metadata.gateway': 'customer_reference',
-          'metadata.referenceMode': mode.modeId,
-          'metadata.referenceModeLabel': mode.label,
-          'metadata.referenceRequired': true,
-          'metadata.qrAvailable': Boolean(qr && qr.available),
-          'metadata.qrType': sanitizeText(qr?.type, 40)
-        }
+    const payPalStatus = buildPayPalGatewayStatus(currency);
+    const needsRedirectFallback = (!qr?.available || !actions?.available) && payPalStatus.available;
+    if (needsRedirectFallback) {
+      const redirectCheckout = await createPayPalRedirectTopupCheckout(order, mode);
+      if (redirectCheckout) {
+        checkout = {
+          ...redirectCheckout,
+          gatewayStatus: payPalStatus
+        };
       }
-    );
-    checkout = {
-      provider: 'customer_reference',
-      available: true,
-      requiresReference: true,
-      orderId: order.orderId,
-      amount: order.amount,
-      currency: order.currency,
-      paymentMode: mode.modeId,
-      paymentModeLabel: mode.label,
-      description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
-      referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
-        ? 'UPI UTR / transaction reference'
-        : 'Gateway / bank transaction reference',
-      qr,
-      actions
-    };
+    }
+
+    if (!checkout) {
+      await WalletTopupOrder.updateOne(
+        { _id: order._id },
+        {
+          $set: {
+            'metadata.gateway': 'customer_reference',
+            'metadata.referenceMode': mode.modeId,
+            'metadata.referenceModeLabel': mode.label,
+            'metadata.referenceRequired': true,
+            'metadata.qrAvailable': Boolean(qr && qr.available),
+            'metadata.qrType': sanitizeText(qr?.type, 40)
+          }
+        }
+      );
+      checkout = {
+        provider: 'customer_reference',
+        available: true,
+        requiresReference: true,
+        orderId: order.orderId,
+        amount: order.amount,
+        currency: order.currency,
+        paymentMode: mode.modeId,
+        paymentModeLabel: mode.label,
+        description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
+        referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
+          ? 'UPI UTR / transaction reference'
+          : 'Gateway / bank transaction reference',
+        qr,
+        actions
+      };
+    }
   }
 
   return res.status(201).json({
