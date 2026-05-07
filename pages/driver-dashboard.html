@@ -1635,7 +1635,7 @@
             const liveMode = isSecureDriverWalletMode();
             if (modeNode) {
                 modeNode.textContent = liveMode
-                    ? 'LIVE secure backend mode active. Payment methods and withdrawal approvals are controlled by admin.'
+                    ? 'LIVE secure backend + Razorpay Checkout active. Payment methods and withdrawal approvals are controlled by admin.'
                     : 'Secure backend session not found. Please login again to use live wallet actions.';
                 modeNode.style.color = liveMode ? '#0b8f5d' : '#b54708';
             }
@@ -1715,30 +1715,40 @@
                 showError('Please select payment method.');
                 return;
             }
-            if (providerReference.length < 5) {
-                showError('Gateway reference / UTR is required for secure confirmation.');
-                return;
-            }
 
             try {
                 const clientReference = `DRVTOPUP_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
-                const orderPayload = await WalletCore.createSecureTopupOrder({
-                    amount,
-                    paymentMode: method,
-                    currency: 'INR',
-                    clientReference
-                });
+                if (window.WalletCore && typeof WalletCore.startSecureTopupCheckout === 'function') {
+                    await WalletCore.startSecureTopupCheckout({
+                        amount,
+                        paymentMode: method,
+                        currency: 'INR',
+                        clientReference
+                    });
+                } else {
+                    if (providerReference.length < 5) {
+                        showError('Gateway reference / UTR is required for secure confirmation.');
+                        return;
+                    }
 
-                const order = orderPayload.order || orderPayload;
-                const orderId = order.orderId || order.id;
-                if (!orderId) {
-                    throw new Error('Top-up order response invalid.');
+                    const orderPayload = await WalletCore.createSecureTopupOrder({
+                        amount,
+                        paymentMode: method,
+                        currency: 'INR',
+                        clientReference
+                    });
+
+                    const order = orderPayload.order || orderPayload;
+                    const orderId = order.orderId || order.id;
+                    if (!orderId) {
+                        throw new Error('Top-up order response invalid.');
+                    }
+
+                    await WalletCore.confirmSecureTopupOrder({
+                        orderId,
+                        providerReference
+                    });
                 }
-
-                await WalletCore.confirmSecureTopupOrder({
-                    orderId,
-                    providerReference
-                });
 
                 document.getElementById('driverWalletAddAmount').value = '';
                 document.getElementById('driverWalletGatewayRef').value = '';
@@ -2245,7 +2255,7 @@
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
-    <script src="../js/wallet-core.js"></script>
+    <script src="../js/wallet-core.js?v=20260507-livepay1"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>

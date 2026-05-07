@@ -1,4 +1,6 @@
 ﻿const express = require('express');
+const crypto = require('crypto');
+const https = require('https');
 const WalletAccount = require('../models/WalletAccount');
 const WalletPaymentMode = require('../models/WalletPaymentMode');
 const WalletTopupOrder = require('../models/WalletTopupOrder');
@@ -49,6 +51,24 @@ const RUNTIME_AUTO_DEDUCT_HIGH_VALUE = Math.max(1000, Number(process.env.RUNTIME
 const AUTO_DEDUCT_REF_MIN_LENGTH = Math.max(6, Number(process.env.AUTO_DEDUCT_REF_MIN_LENGTH || 8));
 const WALLET_CONFIRM_LOCK_TTL_MS = Math.max(30 * 1000, Number(process.env.WALLET_CONFIRM_LOCK_TTL_MS || 3 * 60 * 1000));
 const WALLET_REVIEW_LOCK_TTL_MS = Math.max(30 * 1000, Number(process.env.WALLET_REVIEW_LOCK_TTL_MS || 3 * 60 * 1000));
+const RAZORPAY_KEY_ID = String(process.env.RAZORPAY_KEY_ID || '').trim();
+const RAZORPAY_KEY_SECRET = String(process.env.RAZORPAY_KEY_SECRET || '').trim();
+const RAZORPAY_TOPUP_MODES = new Set([
+  'razorpay',
+  'upi',
+  'upi_intent',
+  'upi_qr',
+  'bharat_qr',
+  'rupay_card',
+  'visa_master_amex',
+  'debit_card',
+  'credit_card',
+  'netbanking',
+  'net_banking',
+  'paytm_wallet',
+  'phonepe_wallet',
+  'googlepay_wallet'
+]);
 
 const DEFAULT_PAYMENT_MODES = [
   { modeId: 'upi_intent', label: 'UPI Intent (PhonePe, Google Pay, Paytm)', region: 'india', enabled: true, flows: ['add_money', 'ride_payment', 'refund', 'donation'], displayOrder: 1 },
@@ -91,6 +111,142 @@ function sanitizeText(value, maxLen = 180) {
 
 function generateId(prefix) {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+}
+
+function isRazorpayConfigured() {
+  return Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
+}
+
+function canUseRazorpayForTopup(paymentMode, currency) {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  const normalizedCurrency = sanitizeText(currency || 'INR', 6).toUpperCase();
+  return normalizedCurrency === 'INR' && RAZORPAY_TOPUP_MODES.has(normalizedMode);
+}
+
+function toRazorpaySubunits(amount) {
+  return Math.round(Number(amount || 0) * 100);
+}
+
+function razorpayMethodOptions(paymentMode) {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  if (['upi', 'upi_intent', 'upi_qr', 'bharat_qr', 'paytm_wallet', 'phonepe_wallet', 'googlepay_wallet'].includes(normalizedMode)) {
+    return { upi: true, card: false, netbanking: false, wallet: false };
+  }
+  if (['netbanking', 'net_banking'].includes(normalizedMode)) {
+    return { upi: false, card: false, netbanking: true, wallet: false };
+  }
+  if (['rupay_card', 'visa_master_amex', 'debit_card', 'credit_card'].includes(normalizedMode)) {
+    return { upi: false, card: true, netbanking: false, wallet: false };
+  }
+  return null;
+}
+
+function postRazorpayJson(path, payload) {
+  return new Promise((resolve, reject) => {
+    if (!isRazorpayConfigured()) {
+      const error = new Error('Razorpay live credentials are not configured');
+      error.statusCode = 503;
+      reject(error);
+      return;
+    }
+
+    const body = JSON.stringify(payload || {});
+    const request = https.request({
+      hostname: 'api.razorpay.com',
+      path,
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64')}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      },
+      timeout: 15000
+    }, (response) => {
+      let raw = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        raw += chunk;
+      });
+      response.on('end', () => {
+        let parsed = {};
+        try {
+          parsed = raw ? JSON.parse(raw) : {};
+        } catch (_error) {
+          parsed = { raw };
+        }
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          resolve(parsed);
+          return;
+        }
+
+        const message = parsed?.error?.description || parsed?.message || `Razorpay request failed (${response.statusCode})`;
+        const error = new Error(message);
+        error.statusCode = response.statusCode || 502;
+        error.payload = parsed;
+        reject(error);
+      });
+    });
+
+    request.on('timeout', () => {
+      request.destroy(new Error('Razorpay request timed out'));
+    });
+    request.on('error', reject);
+    request.write(body);
+    request.end();
+  });
+}
+
+async function createRazorpayTopupOrder(order, mode) {
+  const providerOrder = await postRazorpayJson('/v1/orders', {
+    amount: toRazorpaySubunits(order.amount),
+    currency: order.currency || 'INR',
+    receipt: String(order.orderId).slice(0, 40),
+    notes: {
+      walletOrderId: String(order.orderId),
+      walletType: String(order.walletType),
+      ownerId: String(order.ownerId),
+      paymentMode: String(order.paymentMode),
+      clientReference: String(order.clientReference || '')
+    }
+  });
+
+  await WalletTopupOrder.updateOne(
+    { _id: order._id },
+    {
+      $set: {
+        'metadata.gateway': 'razorpay',
+        'metadata.razorpay.orderId': providerOrder.id,
+        'metadata.razorpay.status': providerOrder.status,
+        'metadata.razorpay.amount': providerOrder.amount,
+        'metadata.razorpay.currency': providerOrder.currency,
+        'metadata.razorpay.createdAt': new Date()
+      }
+    }
+  );
+
+  return {
+    provider: 'razorpay',
+    providerOrderId: providerOrder.id,
+    keyId: RAZORPAY_KEY_ID,
+    amount: providerOrder.amount,
+    currency: providerOrder.currency,
+    method: razorpayMethodOptions(mode.modeId),
+    name: 'GO India RIDE',
+    description: `Wallet top-up via ${mode.label}`,
+    orderId: order.orderId
+  };
+}
+
+function verifyRazorpayPaymentSignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature }) {
+  if (!isRazorpayConfigured()) return false;
+  const generated = crypto
+    .createHmac('sha256', RAZORPAY_KEY_SECRET)
+    .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+    .digest('hex');
+  const expected = Buffer.from(generated);
+  const provided = Buffer.from(String(razorpaySignature || ''));
+  return expected.length === provided.length && crypto.timingSafeEqual(expected, provided);
 }
 
 function resolveActorWalletType(user) {
@@ -580,10 +736,246 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     metadata: { orderId: order.orderId }
   });
 
+  let checkout = null;
+  if (canUseRazorpayForTopup(mode.modeId, currency)) {
+    if (!isRazorpayConfigured()) {
+      checkout = {
+        provider: 'razorpay',
+        available: false,
+        reason: 'Razorpay live credentials are not configured on the backend'
+      };
+    } else {
+      checkout = await createRazorpayTopupOrder(order, mode);
+      checkout.available = true;
+    }
+  }
+
   return res.status(201).json({
     message: 'Top-up order created',
-    order
+    order,
+    checkout
   });
+}));
+
+router.post('/topup/razorpay/verify', walletCriticalLimiter, wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  if (!TOPUP_ALLOWED_TYPES.has(actorType)) {
+    return res.status(403).json({ message: 'Top-up not allowed for this account' });
+  }
+
+  const ownerId = String(req.user.id);
+  const orderId = sanitizeText(req.body.orderId, 120);
+  const razorpayOrderId = sanitizeText(req.body.razorpayOrderId || req.body.razorpay_order_id, 120);
+  const razorpayPaymentId = sanitizeText(req.body.razorpayPaymentId || req.body.razorpay_payment_id, 120);
+  const razorpaySignature = sanitizeText(req.body.razorpaySignature || req.body.razorpay_signature, 180);
+
+  if (!isRazorpayConfigured()) {
+    return res.status(503).json({ message: 'Razorpay live credentials are not configured on the backend' });
+  }
+
+  if (!orderId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+    return res.status(400).json({ message: 'Razorpay order id, payment id, and signature are required' });
+  }
+
+  const existingOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId });
+  if (!existingOrder) {
+    return res.status(404).json({ message: 'Top-up order not found' });
+  }
+
+  const expectedRazorpayOrderId = sanitizeText(existingOrder.metadata?.razorpay?.orderId, 120);
+  if (!expectedRazorpayOrderId || expectedRazorpayOrderId !== razorpayOrderId) {
+    return res.status(400).json({ message: 'Razorpay order does not match this wallet top-up order' });
+  }
+
+  if (!verifyRazorpayPaymentSignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature })) {
+    await logSecurityEvent({
+      userId: req.user.id,
+      action: 'wallet_razorpay_signature_invalid',
+      ip: getClientIp(req),
+      riskScore: 82,
+      result: 'blocked',
+      metadata: {
+        orderId,
+        razorpayOrderId,
+        razorpayPaymentId
+      }
+    });
+    return res.status(400).json({ message: 'Razorpay payment signature verification failed' });
+  }
+
+  if (existingOrder.status === 'confirmed') {
+    const wallet = await ensureWallet(actorType, ownerId);
+    return res.status(200).json({
+      message: 'Top-up already confirmed',
+      order: existingOrder,
+      wallet
+    });
+  }
+
+  if (existingOrder.status !== 'pending') {
+    return res.status(400).json({ message: `Top-up order is ${existingOrder.status}` });
+  }
+
+  const providerReferenceConflict = await WalletTopupOrder.findOne({
+    providerReference: razorpayPaymentId,
+    status: 'confirmed',
+    orderId: { $ne: orderId }
+  }).lean();
+  if (providerReferenceConflict) {
+    return res.status(409).json({ message: 'Razorpay payment is already used by another confirmed top-up order' });
+  }
+
+  const order = await claimTopupOrderConfirmationLock({
+    orderId,
+    walletType: actorType,
+    ownerId,
+    actorId: String(req.user.id),
+    providerReference: razorpayPaymentId
+  });
+
+  if (!order) {
+    const latestOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId }).lean();
+    if (!latestOrder) {
+      return res.status(404).json({ message: 'Top-up order not found' });
+    }
+    if (latestOrder.status === 'confirmed') {
+      const wallet = await ensureWallet(actorType, ownerId);
+      return res.status(200).json({
+        message: 'Top-up already confirmed',
+        order: latestOrder,
+        wallet
+      });
+    }
+    if (latestOrder.status !== 'pending') {
+      return res.status(400).json({ message: `Top-up order is ${latestOrder.status}` });
+    }
+    return res.status(409).json({ message: 'Top-up confirmation is already in progress' });
+  }
+
+  if (new Date(order.expiresAt).getTime() <= Date.now()) {
+    await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending' },
+      {
+        $set: {
+          status: 'expired',
+          'metadata.confirmationLock': false,
+          'metadata.expiredAt': new Date()
+        }
+      }
+    );
+    return res.status(410).json({ message: 'Top-up order expired. Create a new order.' });
+  }
+
+  try {
+    const customerWallet = await adjustWallet({
+      walletType: actorType,
+      ownerId,
+      amount: order.amount,
+      direction: 'credit'
+    });
+
+    const adminWallet = await adjustWallet({
+      walletType: 'admin',
+      ownerId: 'platform',
+      amount: order.amount,
+      direction: 'credit'
+    });
+
+    const finalized = await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending' },
+      {
+        $set: {
+          status: 'confirmed',
+          providerReference: razorpayPaymentId,
+          'metadata.confirmationLock': false,
+          'metadata.confirmedAt': new Date(),
+          'metadata.confirmedBy': String(req.user.id),
+          'metadata.gateway': 'razorpay',
+          'metadata.razorpay.paymentId': razorpayPaymentId,
+          'metadata.razorpay.signatureVerifiedAt': new Date()
+        }
+      }
+    );
+
+    if (!Number(finalized.matchedCount || 0)) {
+      const error = new Error('Top-up confirmation state changed. Retry safely.');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    await createWalletTransaction({
+      walletType: actorType,
+      ownerId,
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'topup_confirmed',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      clientReference: order.clientReference,
+      providerReference: razorpayPaymentId,
+      description: `Razorpay live top-up confirmed via ${order.paymentModeLabel}`,
+      actorRole: actorType,
+      actorId: String(req.user.id),
+      metadata: {
+        orderId: order.orderId,
+        gateway: 'razorpay',
+        razorpayOrderId,
+        razorpayPaymentId
+      }
+    });
+
+    await createWalletTransaction({
+      walletType: 'admin',
+      ownerId: 'platform',
+      direction: 'credit',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'payment_settlement',
+      status: 'settled',
+      paymentMode: order.paymentMode,
+      providerReference: razorpayPaymentId,
+      description: `Razorpay settlement from ${actorType} wallet top-up (${ownerId})`,
+      actorRole: 'system',
+      actorId: String(req.user.id),
+      metadata: {
+        orderId: order.orderId,
+        gateway: 'razorpay',
+        razorpayOrderId,
+        sourceWalletType: actorType,
+        sourceOwnerId: ownerId
+      }
+    });
+
+    if (order.amount >= 100000) {
+      await logSecurityEvent({
+        userId: req.user.id,
+        action: 'wallet_high_value_razorpay_topup_confirmed',
+        ip: getClientIp(req),
+        riskScore: 35,
+        result: 'flagged',
+        metadata: {
+          orderId: order.orderId,
+          amount: order.amount,
+          paymentMode: order.paymentMode,
+          razorpayOrderId,
+          razorpayPaymentId
+        }
+      });
+    }
+
+    const confirmedOrder = await WalletTopupOrder.findById(order._id).lean();
+
+    return res.status(200).json({
+      message: 'Razorpay live payment verified and wallet top-up confirmed',
+      order: confirmedOrder || order,
+      wallet: customerWallet,
+      adminWallet
+    });
+  } catch (error) {
+    await releaseTopupOrderConfirmationLock(order._id, 'razorpay_confirmation_failed');
+    throw error;
+  }
 }));
 
 router.post('/topup/confirm', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {

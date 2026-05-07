@@ -46,7 +46,9 @@
 
     const allowedTypes = ['customer', 'driver', 'admin', 'donation'];
     const API_BASE_OVERRIDE_KEY = 'goindiaride_api_base';
+    const RAZORPAY_CHECKOUT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
     let secureCsrfCache = { token: null, fetchedAt: 0 };
+    let razorpayCheckoutPromise = null;
 
     function nowIso() {
         return new Date().toISOString();
@@ -784,6 +786,60 @@
         return Boolean(getAccessToken()) && Boolean(getApiBaseUrl());
     }
 
+    function isMutatingMethod(method) {
+        return !['GET', 'HEAD', 'OPTIONS'].includes(String(method || '').toUpperCase());
+    }
+
+    function randomTokenPart() {
+        const cryptoApi = window.crypto || window.msCrypto;
+        if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+            const values = new Uint32Array(2);
+            cryptoApi.getRandomValues(values);
+            return Array.from(values).map((value) => value.toString(36)).join('');
+        }
+        return Math.random().toString(36).slice(2, 14);
+    }
+
+    function createIdempotencyKey(prefix = 'gir-wallet') {
+        const safePrefix = sanitizeText(prefix, 32).replace(/[^A-Za-z0-9:_-]/g, '-') || 'gir-wallet';
+        return `${safePrefix}:${Date.now()}:${randomTokenPart()}`.slice(0, 120);
+    }
+
+    function loadRazorpayCheckout() {
+        if (window.Razorpay) {
+            return Promise.resolve(window.Razorpay);
+        }
+        if (razorpayCheckoutPromise) {
+            return razorpayCheckoutPromise;
+        }
+
+        razorpayCheckoutPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = RAZORPAY_CHECKOUT_SRC;
+            script.async = true;
+            script.onload = () => {
+                if (window.Razorpay) {
+                    resolve(window.Razorpay);
+                    return;
+                }
+                reject(new Error('Razorpay Checkout could not be loaded'));
+            };
+            script.onerror = () => reject(new Error('Unable to load Razorpay Checkout'));
+            document.head.appendChild(script);
+        });
+
+        return razorpayCheckoutPromise;
+    }
+
+    function getCheckoutPrefill() {
+        const profile = getActiveProfile();
+        return {
+            name: sanitizeText(profile.name || profile.fullName || profile.displayName || '', 120),
+            email: sanitizeText(profile.email || '', 160),
+            contact: sanitizeText(profile.phone || profile.mobile || profile.phoneNumber || '', 30)
+        };
+    }
+
     async function fetchCsrfToken(forceRefresh = false) {
         if (!forceRefresh && secureCsrfCache.token && Date.now() - secureCsrfCache.fetchedAt < 10 * 60 * 1000) {
             return secureCsrfCache.token;
@@ -832,6 +888,10 @@
 
         if (withCsrf) {
             headers['x-csrf-token'] = await fetchCsrfToken(false);
+        }
+
+        if (isMutatingMethod(method) && !headers['X-Idempotency-Key'] && !headers['x-idempotency-key']) {
+            headers['X-Idempotency-Key'] = options.idempotencyKey || createIdempotencyKey('gir-wallet-live');
         }
 
         const doRequest = async () => {
@@ -912,6 +972,93 @@
                 providerReference
             }
         });
+    }
+
+    async function verifyRazorpayTopupPayment({ orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature }) {
+        return secureWalletRequest('/api/wallet/topup/razorpay/verify', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                orderId,
+                razorpayOrderId,
+                razorpayPaymentId,
+                razorpaySignature
+            }
+        });
+    }
+
+    async function openRazorpayCheckout(checkout) {
+        const Razorpay = await loadRazorpayCheckout();
+        return new Promise((resolve, reject) => {
+            const options = {
+                key: checkout.keyId,
+                amount: checkout.amount,
+                currency: checkout.currency || 'INR',
+                name: checkout.name || 'GO India RIDE',
+                description: checkout.description || 'Wallet top-up',
+                order_id: checkout.providerOrderId,
+                prefill: getCheckoutPrefill(),
+                notes: {
+                    walletOrderId: checkout.orderId || ''
+                },
+                theme: {
+                    color: '#667eea'
+                },
+                handler(response) {
+                    resolve({
+                        orderId: checkout.orderId,
+                        razorpayOrderId: response.razorpay_order_id,
+                        razorpayPaymentId: response.razorpay_payment_id,
+                        razorpaySignature: response.razorpay_signature
+                    });
+                },
+                modal: {
+                    ondismiss() {
+                        reject(new Error('Payment was cancelled before completion'));
+                    }
+                }
+            };
+
+            if (checkout.method && typeof checkout.method === 'object') {
+                options.method = checkout.method;
+            }
+
+            const instance = new Razorpay(options);
+            instance.on('payment.failed', (response) => {
+                const description = response?.error?.description || 'Razorpay payment failed';
+                reject(new Error(description));
+            });
+            instance.open();
+        });
+    }
+
+    async function startSecureTopupCheckout({ amount, paymentMode, currency, clientReference }) {
+        const orderPayload = await createSecureTopupOrder({
+            amount,
+            paymentMode,
+            currency: currency || 'INR',
+            clientReference
+        });
+        const order = orderPayload.order || orderPayload;
+        const checkout = orderPayload.checkout || null;
+
+        if (checkout && checkout.provider === 'razorpay' && checkout.available) {
+            const payment = await openRazorpayCheckout(checkout);
+            const confirmation = await verifyRazorpayTopupPayment(payment);
+            return {
+                order,
+                checkout,
+                payment,
+                confirmation,
+                liveGateway: 'razorpay'
+            };
+        }
+
+        if (checkout && checkout.provider === 'razorpay' && checkout.available === false) {
+            throw new Error(checkout.reason || 'Live Razorpay payment is not configured yet.');
+        }
+
+        throw new Error('Selected payment mode is not connected to live checkout yet. Please choose Razorpay, UPI, card, or net banking.');
     }
 
     async function createSecureWithdrawalRequest({ amount, method, destination, notes }) {
@@ -1045,6 +1192,9 @@
         fetchSecureWithdrawalRequests,
         createSecureTopupOrder,
         confirmSecureTopupOrder,
+        verifyRazorpayTopupPayment,
+        startSecureTopupCheckout,
+        createIdempotencyKey,
         createSecureWithdrawalRequest,
         fetchSecureAdminWalletOverview,
         fetchSecureAdminWithdrawalQueue,
