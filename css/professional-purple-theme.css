@@ -597,3 +597,64 @@ html body.goi-global-theme nav.navbar.navbar .btn-admin:hover {
   background: rgba(255, 255, 255, 0.96) !important;
   color: var(--gir-purple-deep) !important;
 }
+
+/* Portal page-name readability: keeps every app surface clearly named. */
+body .portal-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-left: 0.4rem;
+  padding: 0.22rem 0.65rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff !important;
+  font-size: clamp(0.78rem, 1.6vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+body .portal-page-header,
+body .app-loading-shell {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--gir-purple-border);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.14), rgba(118, 75, 162, 0.12));
+  color: var(--gir-purple-ink) !important;
+  box-shadow: 0 10px 24px rgba(36, 26, 71, 0.08);
+}
+
+body .portal-page-header h1,
+body .app-loading-shell h1 {
+  margin: 0;
+  color: var(--gir-purple-ink) !important;
+  font-size: clamp(1.45rem, 4.2vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+body .portal-page-header p,
+body .app-loading-shell p {
+  margin: 0.35rem 0 0;
+  color: var(--gir-purple-muted) !important;
+  font-size: clamp(0.94rem, 2.2vw, 1.05rem);
+}
+
+body .app-loading-shell {
+  max-width: 720px;
+  margin: 2rem auto;
+}
+
+@media (max-width: 560px) {
+  body .portal-name {
+    margin-left: 0;
+    padding: 0.18rem 0.5rem;
+  }
+
+  body .top-nav .logo,
+  body .navbar .logo {
+    flex-wrap: wrap;
+  }
+}
