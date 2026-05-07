@@ -340,10 +340,12 @@ function buildRazorpayGatewayStatus() {
 }
 
 function buildPaymentGatewayStatus(walletCurrency = 'INR') {
+  const razorpay = buildRazorpayGatewayStatus();
+  const paypal = buildPayPalGatewayStatus(walletCurrency);
   return {
-    preferred: 'razorpay_link',
-    paypal: buildPayPalGatewayStatus(walletCurrency),
-    razorpay: buildRazorpayGatewayStatus()
+    preferred: razorpay.available ? 'razorpay_link' : paypal.available ? 'paypal' : 'setup_required',
+    paypal,
+    razorpay
   };
 }
 
@@ -1741,13 +1743,60 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
 
   let checkout = null;
   if (shouldUseUnifiedRazorpayLinkForTopup(mode.modeId)) {
-    const gatewayStatus = buildRazorpayGatewayStatus();
-    if (!gatewayStatus.available) {
-      checkout = await buildRazorpayUnifiedCheckoutUnavailable(order, mode, gatewayStatus);
-    } else {
+    const razorpayStatus = buildRazorpayGatewayStatus();
+    if (razorpayStatus.available) {
       checkout = await createRazorpayUnifiedLinkTopupCheckout(order, mode);
       checkout.available = true;
-      checkout.gatewayStatus = gatewayStatus;
+      checkout.gatewayStatus = razorpayStatus;
+    } else {
+      const qr = await buildReferenceTopupQr(order, mode);
+      const actions = buildReferenceTopupActions(order, mode, qr);
+      const payPalStatus = buildPayPalGatewayStatus(currency);
+      if ((!qr?.available || !actions?.available) && payPalStatus.available) {
+        const redirectCheckout = await createPayPalRedirectTopupCheckout(order, mode);
+        if (redirectCheckout) {
+          checkout = {
+            ...redirectCheckout,
+            gatewayStatus: payPalStatus
+          };
+        }
+      }
+
+      if (!checkout && qr?.available && actions?.available) {
+        await WalletTopupOrder.updateOne(
+          { _id: order._id },
+          {
+            $set: {
+              'metadata.gateway': 'customer_reference',
+              'metadata.referenceMode': mode.modeId,
+              'metadata.referenceModeLabel': mode.label,
+              'metadata.referenceRequired': true,
+              'metadata.qrAvailable': true,
+              'metadata.qrType': sanitizeText(qr?.type, 40)
+            }
+          }
+        );
+        checkout = {
+          provider: 'customer_reference',
+          available: true,
+          requiresReference: true,
+          orderId: order.orderId,
+          amount: order.amount,
+          currency: order.currency,
+          paymentMode: mode.modeId,
+          paymentModeLabel: mode.label,
+          description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
+          referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
+            ? 'UPI UTR / transaction reference'
+            : 'Gateway / bank transaction reference',
+          qr,
+          actions
+        };
+      }
+
+      if (!checkout) {
+        checkout = await buildRazorpayUnifiedCheckoutUnavailable(order, mode, razorpayStatus);
+      }
     }
   } else if (canUsePayPalForTopup(mode.modeId)) {
     const gatewayStatus = buildPayPalGatewayStatus(currency);
