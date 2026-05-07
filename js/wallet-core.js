@@ -49,6 +49,7 @@
     const RAZORPAY_CHECKOUT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
     let secureCsrfCache = { token: null, fetchedAt: 0 };
     let razorpayCheckoutPromise = null;
+    let secureRequestCounter = 0;
 
     function nowIso() {
         return new Date().toISOString();
@@ -805,6 +806,25 @@
         return `${safePrefix}:${Date.now()}:${randomTokenPart()}`.slice(0, 120);
     }
 
+    function createFreshRequestId(prefix = 'gir-wallet-request') {
+        const safePrefix = sanitizeText(prefix, 48).replace(/[^A-Za-z0-9:_-]/g, '-') || 'gir-wallet-request';
+        secureRequestCounter = (secureRequestCounter + 1) % 1000000;
+        return `${safePrefix}:${Date.now()}:${secureRequestCounter}:${randomTokenPart()}`.slice(0, 160);
+    }
+
+    function applyRequestFreshnessHeaders(headers, { forceNew = false } = {}) {
+        const requestIdPresent = Boolean(headers['x-request-id'] || headers['X-Request-Id']);
+        const timestampPresent = Boolean(headers['x-timestamp'] || headers['X-Timestamp']);
+
+        if (forceNew || !requestIdPresent) {
+            headers['x-request-id'] = createFreshRequestId('gir-wallet-live');
+        }
+
+        if (forceNew || !timestampPresent) {
+            headers['x-timestamp'] = String(Date.now());
+        }
+    }
+
     function loadRazorpayCheckout() {
         if (window.Razorpay) {
             return Promise.resolve(window.Razorpay);
@@ -895,6 +915,10 @@
         }
 
         const doRequest = async () => {
+            if (isMutatingMethod(method)) {
+                applyRequestFreshnessHeaders(headers, { forceNew: true });
+            }
+
             const response = await fetch(`${getApiBaseUrl()}${path}`, {
                 method,
                 credentials: 'include',
@@ -906,6 +930,7 @@
             if (!response.ok) {
                 const error = new Error(payload.message || `Secure wallet request failed (${response.status})`);
                 error.status = response.status;
+                error.details = payload;
                 throw error;
             }
 
@@ -916,9 +941,22 @@
             return await doRequest();
         } catch (error) {
             const csrfLikely = Number(error.status) === 403 && String(error.message || '').toLowerCase().includes('csrf');
+            const freshnessLikely = Number(error.status) === 403 && String(error.message || '').toLowerCase().includes('freshness');
+            const freshnessReason = String(error?.details?.reason || '').toLowerCase();
+
             if (csrfLikely && withCsrf) {
                 headers['x-csrf-token'] = await fetchCsrfToken(true);
                 return doRequest();
+            }
+
+            if (freshnessLikely && isMutatingMethod(method) && freshnessReason !== 'user_quarantined') {
+                applyRequestFreshnessHeaders(headers, { forceNew: true });
+                return doRequest();
+            }
+
+            if (freshnessLikely && freshnessReason === 'user_quarantined') {
+                const quarantineUntil = error?.details?.quarantineUntil ? ` until ${error.details.quarantineUntil}` : '';
+                throw new Error(`Request freshness shield ne session temporarily lock kiya hai${quarantineUntil}. Please login again and retry.`);
             }
 
             throw error;

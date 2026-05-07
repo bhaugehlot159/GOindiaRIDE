@@ -1772,7 +1772,7 @@ router.get('/admin/driver-commissions/summary', requireAdmin, wrapAsync(async (r
   const summary = await buildDriverCommissionAdminSummary(Number(req.query.limit || 100));
   return res.status(200).json(summary);
 }));
-router.post('/withdrawals', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
+router.post('/withdrawals', walletCriticalLimiter, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!['customer', 'driver'].includes(actorType)) {
     return res.status(403).json({ message: 'Withdrawal not allowed for this account' });
