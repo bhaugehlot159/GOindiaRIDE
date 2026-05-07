@@ -1058,17 +1058,24 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     return res.status(400).json({ message: `Top-up amount must be between ${TOPUP_MIN} and ${TOPUP_MAX}` });
   }
 
-  const mode = await findMode(paymentMode, 'add_money');
-  if (!mode) {
-    return res.status(400).json({ message: 'Selected add-money payment mode is not enabled by admin' });
-  }
+  const selectedMode = await findMode(paymentMode, 'add_money') || {
+    modeId: paymentMode || 'legacy_add_money',
+    label: paymentMode || 'Legacy add-money selection'
+  };
+
+  const paypalMode = await findMode('paypal', 'add_money') || {
+    modeId: 'paypal',
+    label: 'PayPal Checkout'
+  };
+  const mode = paypalMode;
 
   if (clientReference) {
     const duplicate = await WalletTopupOrder.findOne({
       walletType: actorType,
       ownerId,
       clientReference,
-      status: { $in: ['pending', 'confirmed'] }
+      status: { $in: ['pending', 'confirmed'] },
+      'metadata.gateway': 'paypal'
     }).lean();
 
     if (duplicate) {
@@ -1092,6 +1099,8 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     initiatedBy: String(req.user.id),
     expiresAt: new Date(Date.now() + TOPUP_EXPIRY_MS),
     metadata: {
+      selectedPaymentMode: selectedMode.modeId,
+      selectedPaymentModeLabel: selectedMode.label,
       ip: getClientIp(req),
       userAgent: sanitizeText(req.headers['user-agent'], 240)
     }
@@ -1114,33 +1123,18 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   });
 
   let checkout = null;
-  if (canUsePayPalForTopup(mode.modeId)) {
-    const gatewayStatus = buildPayPalGatewayStatus(currency);
-    if (!gatewayStatus.available) {
-      checkout = {
-        provider: 'paypal',
-        available: false,
-        reason: gatewayStatus.message,
-        gatewayStatus
-      };
-    } else {
-      checkout = await createPayPalTopupOrder(order, mode);
-      checkout.available = true;
-      checkout.gatewayStatus = gatewayStatus;
-    }
-  } else if (canUseRazorpayForTopup(mode.modeId, currency)) {
-    if (!isRazorpayConfigured()) {
-      const gatewayStatus = buildRazorpayGatewayStatus();
-      checkout = {
-        provider: 'razorpay',
-        available: false,
-        reason: gatewayStatus.message,
-        gatewayStatus
-      };
-    } else {
-      checkout = await createRazorpayTopupOrder(order, mode);
-      checkout.available = true;
-    }
+  const gatewayStatus = buildPayPalGatewayStatus(currency);
+  if (!gatewayStatus.available) {
+    checkout = {
+      provider: 'paypal',
+      available: false,
+      reason: gatewayStatus.message,
+      gatewayStatus
+    };
+  } else {
+    checkout = await createPayPalTopupOrder(order, mode);
+    checkout.available = true;
+    checkout.gatewayStatus = gatewayStatus;
   }
 
   return res.status(201).json({
