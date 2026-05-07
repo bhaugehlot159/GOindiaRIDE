@@ -1103,13 +1103,15 @@
         });
     }
 
-    async function confirmSecureTopupOrder({ orderId, providerReference }) {
+    async function confirmSecureTopupOrder({ orderId, providerReference, proofScreenshotDataUrl, proofScreenshotName }) {
         return secureWalletRequest('/api/wallet/topup/confirm', {
             method: 'POST',
             withCsrf: true,
             body: {
                 orderId,
-                providerReference
+                providerReference,
+                proofScreenshotDataUrl: proofScreenshotDataUrl || '',
+                proofScreenshotName: proofScreenshotName || ''
             }
         });
     }
@@ -1288,6 +1290,9 @@
                     <div data-setup-note style="display:none;border:1px solid #fedf89;background:#fffaeb;color:#93370d;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:14px;"></div>
                     <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">${label}</label>
                     <input data-provider-reference type="text" autocomplete="off" placeholder="UTR / gateway reference" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:12px;font-size:15px;margin-bottom:10px;">
+                    <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">Payment Screenshot (optional but recommended)</label>
+                    <input data-proof-file type="file" accept="image/png,image/jpeg,image/webp" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:10px;font-size:13px;margin-bottom:8px;background:#fff;">
+                    <div data-proof-status style="font-size:12px;color:#667085;line-height:1.4;margin-bottom:10px;">Screenshot attach karne se admin approval fast ho jata hai.</div>
                     <div data-reference-error style="display:none;color:#b42318;font-size:13px;margin-bottom:10px;"></div>
                     <div style="font-size:12px;color:#667085;line-height:1.45;margin-bottom:14px;">Payment complete hone ke baad UTR/reference submit karein. QR ko dusre phone se scan karwa sakte hain.</div>
                     <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -1308,12 +1313,52 @@
                 node.textContent = message;
                 node.style.display = 'block';
             };
+            const clearError = () => {
+                const node = overlay.querySelector('[data-reference-error]');
+                if (!node) return;
+                node.textContent = '';
+                node.style.display = 'none';
+            };
             const closeWithCancel = () => {
                 cleanup();
                 if (!completed) {
                     reject(new Error('Payment reference confirmation was cancelled'));
                 }
             };
+            const compressProofImage = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Screenshot read nahi ho paya.'));
+                reader.onload = () => {
+                    const image = new Image();
+                    image.onerror = () => reject(new Error('Screenshot parse nahi ho paya.'));
+                    image.onload = () => {
+                        const maxWidth = 1200;
+                        const scale = Math.min(1, maxWidth / Math.max(1, image.width));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round(image.width * scale));
+                        canvas.height = Math.max(1, Math.round(image.height * scale));
+                        const context = canvas.getContext('2d');
+                        if (!context) {
+                            reject(new Error('Screenshot process nahi ho paya.'));
+                            return;
+                        }
+                        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        let quality = 0.82;
+                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        while (dataUrl.length > 110000 && quality > 0.38) {
+                            quality -= 0.1;
+                            dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        }
+                        if (dataUrl.length > 120000) {
+                            reject(new Error('Screenshot size bahut badi hai. Chhoti image upload karein.'));
+                            return;
+                        }
+                        resolve(dataUrl);
+                    };
+                    image.src = String(reader.result || '');
+                };
+                reader.readAsDataURL(file);
+            });
 
             const imageNode = overlay.querySelector('[data-qr-image]');
             if (hasQr && imageNode && qrImage) {
@@ -1356,24 +1401,59 @@
             }
 
             const input = overlay.querySelector('[data-provider-reference]');
+            const proofFileInput = overlay.querySelector('[data-proof-file]');
+            const proofStatus = overlay.querySelector('[data-proof-status]');
             const confirmButton = overlay.querySelector('[data-reference-confirm]');
             const cancelButton = overlay.querySelector('[data-reference-cancel]');
             const closeButton = overlay.querySelector('[data-reference-close]');
+            let proofScreenshotDataUrl = '';
+            let proofScreenshotName = '';
+
+            if (proofFileInput) {
+                proofFileInput.addEventListener('change', async () => {
+                    clearError();
+                    const file = proofFileInput.files && proofFileInput.files[0] ? proofFileInput.files[0] : null;
+                    if (!file) {
+                        proofScreenshotDataUrl = '';
+                        proofScreenshotName = '';
+                        if (proofStatus) proofStatus.textContent = 'Screenshot attach karne se admin approval fast ho jata hai.';
+                        return;
+                    }
+                    if (proofStatus) proofStatus.textContent = 'Screenshot optimize ho raha hai...';
+                    try {
+                        proofScreenshotDataUrl = await compressProofImage(file);
+                        proofScreenshotName = sanitizeText(file.name || 'payment-proof.jpg', 160);
+                        if (proofStatus) {
+                            const kb = Math.round((proofScreenshotDataUrl.length * 0.75) / 1024);
+                            proofStatus.textContent = `Attached: ${proofScreenshotName} (${kb} KB approx)`;
+                        }
+                    } catch (error) {
+                        proofScreenshotDataUrl = '';
+                        proofScreenshotName = '';
+                        if (proofStatus) proofStatus.textContent = error.message || 'Screenshot attach nahi ho paya.';
+                        showError(error.message || 'Screenshot attach nahi ho paya.');
+                    }
+                });
+            }
+
             if (cancelButton) cancelButton.addEventListener('click', closeWithCancel);
             if (closeButton) closeButton.addEventListener('click', closeWithCancel);
             if (confirmButton) {
                 confirmButton.addEventListener('click', async () => {
+                    clearError();
                     const providerReference = String(input?.value || '').trim();
                     if (providerReference.length < 5) {
                         showError('Gateway reference / UTR required hai. Payment complete karke valid reference enter karein.');
                         return;
                     }
                     confirmButton.disabled = true;
-                    confirmButton.textContent = 'Verifying...';
+                    confirmButton.textContent = 'Submitting...';
                     try {
                         const confirmation = await confirmSecureTopupOrder({
                             orderId: checkout.orderId,
-                            providerReference
+                            providerReference,
+                            proofScreenshotDataUrl,
+                            proofScreenshotName
                         });
                         completed = true;
                         cleanup();
@@ -1508,8 +1588,27 @@
         });
     }
 
+    async function fetchSecureAdminTopupQueue(status) {
+        const suffix = status ? `?status=${encodeURIComponent(status)}` : '';
+        return secureWalletRequest(`/api/wallet/admin/topups${suffix}`, {
+            method: 'GET',
+            withCsrf: false
+        });
+    }
+
     async function reviewSecureWithdrawalRequest({ requestId, decision, remarks }) {
         return secureWalletRequest(`/api/wallet/admin/withdrawals/${encodeURIComponent(requestId)}/review`, {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                decision,
+                remarks: remarks || ''
+            }
+        });
+    }
+
+    async function reviewSecureTopupOrder({ orderId, decision, remarks }) {
+        return secureWalletRequest(`/api/wallet/admin/topups/${encodeURIComponent(orderId)}/review`, {
             method: 'POST',
             withCsrf: true,
             body: {
@@ -1592,7 +1691,9 @@
         createSecureWithdrawalRequest,
         fetchSecureAdminWalletOverview,
         fetchSecureAdminWithdrawalQueue,
+        fetchSecureAdminTopupQueue,
         reviewSecureWithdrawalRequest,
+        reviewSecureTopupOrder,
         updateSecurePaymentModes,
         adjustSecureWallet
     };

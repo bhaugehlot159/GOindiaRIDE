@@ -181,6 +181,20 @@ function sanitizeText(value, maxLen = 180) {
     .slice(0, maxLen);
 }
 
+function sanitizeProofScreenshotDataUrl(value, maxLen = 120000) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const normalized = raw.slice(0, maxLen);
+  const validDataUrl = /^data:image\/(png|jpe?g|webp);base64,[a-z0-9+/=]+$/i.test(normalized);
+  return validDataUrl ? normalized : '';
+}
+
+function shouldRequireTopupAdminApproval(order) {
+  const gateway = sanitizeText(order?.metadata?.gateway, 80).toLowerCase();
+  if (['paypal', 'razorpay'].includes(gateway)) return false;
+  return true;
+}
+
 function generateId(prefix) {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
 }
@@ -1024,6 +1038,39 @@ async function releaseTopupOrderConfirmationLock(orderId, reason = 'released') {
   );
 }
 
+async function claimTopupReviewLock({ orderId, actorId, decision }) {
+  return WalletTopupOrder.findOneAndUpdate(
+    {
+      orderId,
+      status: 'pending_admin_approval',
+      ...buildLockQuery('metadata.reviewLock', 'metadata.reviewLockAt', WALLET_REVIEW_LOCK_TTL_MS)
+    },
+    {
+      $set: {
+        'metadata.reviewLock': true,
+        'metadata.reviewLockAt': new Date(),
+        'metadata.reviewLockActorId': sanitizeText(actorId, 120),
+        'metadata.reviewDecision': sanitizeText(decision, 40)
+      }
+    },
+    { new: true }
+  );
+}
+
+async function releaseTopupReviewLock(orderMongoId, reason = 'released') {
+  if (!orderMongoId) return;
+  await WalletTopupOrder.updateOne(
+    { _id: orderMongoId },
+    {
+      $set: {
+        'metadata.reviewLock': false,
+        'metadata.reviewLockReleasedAt': new Date(),
+        'metadata.reviewLockReason': sanitizeText(reason, 120)
+      }
+    }
+  );
+}
+
 async function claimWithdrawalReviewLock({ requestId, actorId, decision }) {
   return WalletWithdrawalRequest.findOneAndUpdate(
     {
@@ -1107,6 +1154,18 @@ router.get('/my', wrapAsync(async (req, res) => {
       .limit(30)
       .lean();
 
+  const topupRows = actorType === 'admin'
+    ? await WalletTopupOrder
+      .find({ walletType: { $in: ['customer', 'driver'] }, status: 'pending_admin_approval' })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean()
+    : await WalletTopupOrder
+      .find({ walletType: actorType, ownerId })
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .lean();
+
   return res.status(200).json({
     mode: 'secure_backend',
     wallet: primaryWallet,
@@ -1119,7 +1178,8 @@ router.get('/my', wrapAsync(async (req, res) => {
     paymentGatewayStatus: buildPaymentGatewayStatus(primaryWallet.currency || 'INR'),
     transactions: txRows,
     driverCommissionTransactions: driverCommissionRows,
-    withdrawals: withdrawalRows
+    withdrawals: withdrawalRows,
+    topups: topupRows
   });
 }));
 router.get('/transactions', wrapAsync(async (req, res) => {
@@ -1710,6 +1770,8 @@ router.post('/topup/confirm', walletCriticalLimiter, wrapAsync(async (req, res) 
   const ownerId = String(req.user.id);
   const orderId = sanitizeText(req.body.orderId, 120);
   const providerReference = sanitizeText(req.body.providerReference, 180);
+  const proofScreenshotDataUrl = sanitizeProofScreenshotDataUrl(req.body.proofScreenshotDataUrl, 120000);
+  const proofScreenshotName = sanitizeText(req.body.proofScreenshotName, 160);
 
   if (!orderId) {
     return res.status(400).json({ message: 'orderId is required' });
@@ -1746,6 +1808,14 @@ router.post('/topup/confirm', walletCriticalLimiter, wrapAsync(async (req, res) 
       message: 'Top-up already confirmed',
       order: existingOrder,
       wallet
+    });
+  }
+
+  if (existingOrder.status === 'pending_admin_approval') {
+    return res.status(202).json({
+      message: 'Payment reference already submitted. Admin approval is pending.',
+      order: existingOrder,
+      approvalRequired: true
     });
   }
 
@@ -1795,6 +1865,81 @@ router.post('/topup/confirm', walletCriticalLimiter, wrapAsync(async (req, res) 
   }
 
   try {
+    const now = new Date();
+    if (shouldRequireTopupAdminApproval(order)) {
+      const updateSet = {
+        status: 'pending_admin_approval',
+        providerReference,
+        'metadata.gateway': existingGateway || 'customer_reference',
+        'metadata.referenceSubmittedAt': now,
+        'metadata.referenceSubmittedBy': String(req.user.id),
+        'metadata.confirmationLock': false,
+        'metadata.adminApprovalRequired': true,
+        'metadata.adminApprovalStatus': 'pending',
+        'metadata.adminApprovalRequestedAt': now,
+        'metadata.adminApprovalRequestedBy': String(req.user.id)
+      };
+      if (proofScreenshotDataUrl) {
+        updateSet['metadata.proofScreenshotDataUrl'] = proofScreenshotDataUrl;
+      }
+      if (proofScreenshotName) {
+        updateSet['metadata.proofScreenshotName'] = proofScreenshotName;
+      }
+
+      const queued = await WalletTopupOrder.updateOne(
+        { _id: order._id, status: 'pending' },
+        { $set: updateSet }
+      );
+      if (!Number(queued.matchedCount || 0)) {
+        const error = new Error('Top-up confirmation state changed. Retry safely.');
+        error.statusCode = 409;
+        throw error;
+      }
+
+      await createWalletTransaction({
+        walletType: actorType,
+        ownerId,
+        direction: 'hold',
+        amount: order.amount,
+        currency: order.currency,
+        source: 'topup_pending_admin_approval',
+        status: 'pending',
+        paymentMode: order.paymentMode,
+        clientReference: order.clientReference,
+        providerReference,
+        description: `Top-up payment submitted for admin review (${order.paymentModeLabel})`,
+        actorRole: actorType,
+        actorId: String(req.user.id),
+        metadata: {
+          orderId: order.orderId,
+          proofScreenshotProvided: Boolean(proofScreenshotDataUrl),
+          proofScreenshotName: proofScreenshotName || null
+        }
+      });
+
+      if (order.amount >= 100000) {
+        await logSecurityEvent({
+          userId: req.user.id,
+          action: 'wallet_high_value_topup_submitted_for_review',
+          ip: getClientIp(req),
+          riskScore: 25,
+          result: 'flagged',
+          metadata: {
+            orderId: order.orderId,
+            amount: order.amount,
+            paymentMode: order.paymentMode
+          }
+        });
+      }
+
+      const pendingOrder = await WalletTopupOrder.findById(order._id).lean();
+      return res.status(202).json({
+        message: 'Payment reference submitted. Admin approval pending.',
+        order: pendingOrder || order,
+        approvalRequired: true
+      });
+    }
+
     const customerWallet = await adjustWallet({
       walletType: actorType,
       ownerId,
@@ -1816,10 +1961,10 @@ router.post('/topup/confirm', walletCriticalLimiter, wrapAsync(async (req, res) 
           status: 'confirmed',
           providerReference,
           'metadata.gateway': existingGateway || 'customer_reference',
-          'metadata.referenceSubmittedAt': new Date(),
+          'metadata.referenceSubmittedAt': now,
           'metadata.referenceSubmittedBy': String(req.user.id),
           'metadata.confirmationLock': false,
-          'metadata.confirmedAt': new Date(),
+          'metadata.confirmedAt': now,
           'metadata.confirmedBy': String(req.user.id)
         }
       }
@@ -2620,6 +2765,7 @@ router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
   const wallets = await WalletAccount.find({}).sort({ walletType: 1, ownerId: 1 }).limit(2000).lean();
   const modes = await WalletPaymentMode.find({}).sort({ displayOrder: 1, label: 1 }).lean();
   const pendingRequests = await WalletWithdrawalRequest.countDocuments({ status: 'pending_admin_approval' });
+  const pendingTopupApprovals = await WalletTopupOrder.countDocuments({ status: 'pending_admin_approval', walletType: { $in: ['customer', 'driver'] } });
   const commissionConfig = await ensureCommissionConfig();
   const commissionWallets = {
     india: await ensureCommissionWalletForRegion('india', 'INR', commissionConfig),
@@ -2638,6 +2784,7 @@ router.get('/admin/overview', requireAdmin, wrapAsync(async (req, res) => {
   return res.status(200).json({
     totals,
     pendingRequests,
+    pendingTopupApprovals,
     wallets,
     commissionWallets,
     commissionConfig,
@@ -2807,6 +2954,202 @@ router.post('/admin/withdrawals/:requestId/review', requireAdmin, walletCritical
     });
   } catch (error) {
     await releaseWithdrawalReviewLock(request._id, 'review_failed');
+    throw error;
+  }
+}));
+
+router.get('/admin/topups', requireAdmin, wrapAsync(async (req, res) => {
+  const status = sanitizeText(req.query.status, 60).toLowerCase();
+  const walletType = sanitizeText(req.query.walletType, 60).toLowerCase();
+  const query = { walletType: { $in: ['customer', 'driver'] } };
+  if (status) {
+    query.status = status;
+  }
+  if (walletType && ['customer', 'driver'].includes(walletType)) {
+    query.walletType = walletType;
+  }
+
+  const rows = await WalletTopupOrder
+    .find(query)
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .lean();
+
+  return res.status(200).json({ rows });
+}));
+
+router.post('/admin/topups/:orderId/review', requireAdmin, walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
+  const orderId = sanitizeText(req.params.orderId, 140);
+  const decision = sanitizeText(req.body.decision, 40).toLowerCase();
+  const remarks = sanitizeText(req.body.remarks, 240);
+
+  if (!['approved', 'rejected'].includes(decision)) {
+    return res.status(400).json({ message: 'decision must be approved or rejected' });
+  }
+
+  const existingOrder = await WalletTopupOrder.findOne({ orderId });
+  if (!existingOrder) {
+    return res.status(404).json({ message: 'Top-up order not found' });
+  }
+
+  if (existingOrder.status !== 'pending_admin_approval') {
+    return res.status(400).json({ message: `Top-up order is ${existingOrder.status}` });
+  }
+
+  const order = await claimTopupReviewLock({
+    orderId,
+    actorId: String(req.user.id),
+    decision
+  });
+
+  if (!order) {
+    const latestOrder = await WalletTopupOrder.findOne({ orderId }).lean();
+    if (!latestOrder) {
+      return res.status(404).json({ message: 'Top-up order not found' });
+    }
+    if (latestOrder.status !== 'pending_admin_approval') {
+      return res.status(400).json({ message: `Top-up order is ${latestOrder.status}` });
+    }
+    return res.status(409).json({ message: 'Top-up review is already in progress' });
+  }
+
+  try {
+    if (decision === 'approved') {
+      const providerReferenceConflict = await WalletTopupOrder.findOne({
+        providerReference: order.providerReference,
+        status: 'confirmed',
+        orderId: { $ne: order.orderId }
+      }).lean();
+      if (providerReferenceConflict) {
+        const error = new Error('providerReference already used by another confirmed top-up order');
+        error.statusCode = 409;
+        throw error;
+      }
+
+      const customerWallet = await adjustWallet({
+        walletType: order.walletType,
+        ownerId: order.ownerId,
+        amount: order.amount,
+        direction: 'credit'
+      });
+
+      const adminWallet = await adjustWallet({
+        walletType: 'admin',
+        ownerId: 'platform',
+        amount: order.amount,
+        direction: 'credit'
+      });
+
+      const reviewedAt = new Date();
+      const finalized = await WalletTopupOrder.updateOne(
+        { _id: order._id, status: 'pending_admin_approval' },
+        {
+          $set: {
+            status: 'confirmed',
+            'metadata.confirmationLock': false,
+            'metadata.confirmedAt': reviewedAt,
+            'metadata.confirmedBy': String(req.user.id),
+            'metadata.adminApprovalStatus': 'approved',
+            'metadata.adminApprovalReviewedAt': reviewedAt,
+            'metadata.adminApprovalReviewedBy': String(req.user.id),
+            'metadata.adminApprovalRemarks': remarks,
+            'metadata.reviewLock': false
+          }
+        }
+      );
+      if (!Number(finalized.matchedCount || 0)) {
+        const error = new Error('Top-up review state changed. Retry safely.');
+        error.statusCode = 409;
+        throw error;
+      }
+
+      await createWalletTransaction({
+        walletType: order.walletType,
+        ownerId: order.ownerId,
+        direction: 'credit',
+        amount: order.amount,
+        currency: order.currency,
+        source: 'topup_confirmed',
+        status: 'settled',
+        paymentMode: order.paymentMode,
+        clientReference: order.clientReference,
+        providerReference: order.providerReference,
+        description: `Top-up approved by admin via ${order.paymentModeLabel}`,
+        actorRole: 'admin',
+        actorId: String(req.user.id),
+        metadata: { orderId: order.orderId, remarks }
+      });
+
+      await createWalletTransaction({
+        walletType: 'admin',
+        ownerId: 'platform',
+        direction: 'credit',
+        amount: order.amount,
+        currency: order.currency,
+        source: 'payment_settlement',
+        status: 'settled',
+        paymentMode: order.paymentMode,
+        providerReference: order.providerReference,
+        description: `Admin-approved settlement from ${order.walletType} wallet top-up (${order.ownerId})`,
+        actorRole: 'admin',
+        actorId: String(req.user.id),
+        metadata: { orderId: order.orderId, sourceWalletType: order.walletType, sourceOwnerId: order.ownerId, remarks }
+      });
+
+      const finalOrder = await WalletTopupOrder.findById(order._id).lean();
+      return res.status(200).json({
+        message: 'Top-up approved and settled',
+        order: finalOrder || order,
+        wallet: customerWallet,
+        adminWallet
+      });
+    }
+
+    const reviewedAt = new Date();
+    const finalized = await WalletTopupOrder.updateOne(
+      { _id: order._id, status: 'pending_admin_approval' },
+      {
+        $set: {
+          status: 'rejected',
+          'metadata.confirmationLock': false,
+          'metadata.adminApprovalStatus': 'rejected',
+          'metadata.adminApprovalReviewedAt': reviewedAt,
+          'metadata.adminApprovalReviewedBy': String(req.user.id),
+          'metadata.adminApprovalRemarks': remarks,
+          'metadata.reviewLock': false
+        }
+      }
+    );
+    if (!Number(finalized.matchedCount || 0)) {
+      const error = new Error('Top-up review state changed. Retry safely.');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    await createWalletTransaction({
+      walletType: order.walletType,
+      ownerId: order.ownerId,
+      direction: 'release',
+      amount: order.amount,
+      currency: order.currency,
+      source: 'topup_rejected',
+      status: 'cancelled',
+      paymentMode: order.paymentMode,
+      clientReference: order.clientReference,
+      providerReference: order.providerReference,
+      description: `Top-up rejected by admin (${order.paymentModeLabel})`,
+      actorRole: 'admin',
+      actorId: String(req.user.id),
+      metadata: { orderId: order.orderId, remarks }
+    });
+
+    const finalOrder = await WalletTopupOrder.findById(order._id).lean();
+    return res.status(200).json({
+      message: 'Top-up rejected',
+      order: finalOrder || order
+    });
+  } catch (error) {
+    await releaseTopupReviewLock(order._id, 'review_failed');
     throw error;
   }
 }));

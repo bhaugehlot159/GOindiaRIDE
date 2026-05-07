@@ -218,14 +218,27 @@ async function processAddMoney(event) {
 
     try {
         const clientReference = `DRVPORTAL_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
-        await WalletCore.startSecureTopupCheckout({
+        const checkoutResult = await WalletCore.startSecureTopupCheckout({
             amount,
             paymentMode: paymentMethod,
             currency: 'INR',
             clientReference
         });
 
-        showToast('Payment reference accepted. Wallet top-up successful.', 'success');
+        const approvalPending = Boolean(
+            checkoutResult &&
+            checkoutResult.confirmation &&
+            (
+                checkoutResult.confirmation.approvalRequired === true ||
+                String(checkoutResult.confirmation.order?.status || '').toLowerCase() === 'pending_admin_approval'
+            )
+        );
+        showToast(
+            approvalPending
+                ? 'Payment proof submit ho gaya. Wallet top-up admin approval queue me hai.'
+                : 'Payment reference accepted. Wallet top-up successful.',
+            'success'
+        );
         closeAllModals();
         updateWalletBalance();
         setTimeout(() => openWallet(), 300);

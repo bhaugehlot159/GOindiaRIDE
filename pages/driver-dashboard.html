@@ -1750,12 +1750,20 @@
             try {
                 const clientReference = `DRVTOPUP_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
                 if (window.WalletCore && typeof WalletCore.startSecureTopupCheckout === 'function') {
-                    await WalletCore.startSecureTopupCheckout({
+                    const checkoutResult = await WalletCore.startSecureTopupCheckout({
                         amount,
                         paymentMode: method,
                         currency: 'INR',
                         clientReference
                     });
+                    window.__goindiarideDriverTopupApprovalPending = Boolean(
+                        checkoutResult &&
+                        checkoutResult.confirmation &&
+                        (
+                            checkoutResult.confirmation.approvalRequired === true ||
+                            String(checkoutResult.confirmation.order?.status || '').toLowerCase() === 'pending_admin_approval'
+                        )
+                    );
                 } else {
                     if (providerReference.length < 5) {
                         showError('Gateway reference / UTR is required for secure confirmation.');
@@ -1786,9 +1794,15 @@
                 await refreshSecureDriverWalletSnapshot(true);
                 await renderDriverWalletPanel({ forceSync: false });
                 await loadDashboard();
-                showSuccess('Wallet top-up confirmed. Settlement is controlled by admin wallet flow.');
+                if (window.__goindiarideDriverTopupApprovalPending) {
+                    showSuccess('Payment proof submitted. Wallet top-up admin approval queue me chala gaya hai.');
+                } else {
+                    showSuccess('Wallet top-up confirmed. Settlement is controlled by admin wallet flow.');
+                }
+                window.__goindiarideDriverTopupApprovalPending = false;
             } catch (error) {
                 showError(error.message || 'Wallet top-up failed.');
+                window.__goindiarideDriverTopupApprovalPending = false;
             }
         }
 
@@ -2286,7 +2300,7 @@
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
-    <script src="../js/wallet-core.js?v=20260507-allpay4"></script>
+    <script src="../js/wallet-core.js?v=20260507-allpay5"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
@@ -26221,7 +26235,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
 }
 </script>
 <script src="/js/future-feature-runtime.js?v=20260317-ratingfare1"></script>
-<script src="/js/future-feature-runtime-extensions.js?v=20260507-allpay4"></script>
+<script src="/js/future-feature-runtime-extensions.js?v=20260507-allpay5"></script>
 <script src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1"></script>
 <script src="/js/ultimate/features-driver.js?v=20260316-ultimate1"></script>
 <script src="/js/future-feature-runtime-dock.js?v=20260317-adminonly1"></script>

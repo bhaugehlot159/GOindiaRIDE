@@ -143,7 +143,7 @@ async function handleAddMoney() {
 
     try {
         const clientReference = 'CUSTPORTAL_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-        await WalletCore.startSecureTopupCheckout({
+        const checkoutResult = await WalletCore.startSecureTopupCheckout({
             amount,
             paymentMode: paymentMethod,
             currency: 'INR',
@@ -154,7 +154,20 @@ async function handleAddMoney() {
         updateWalletUI();
         CustomerPortal.hideLoading();
         CustomerPortal.closeModal('addMoneyModal');
-        CustomerPortal.showToast('Payment reference accepted. Wallet top-up successful.', 'success');
+        const approvalPending = Boolean(
+            checkoutResult &&
+            checkoutResult.confirmation &&
+            (
+                checkoutResult.confirmation.approvalRequired === true ||
+                String(checkoutResult.confirmation.order?.status || '').toLowerCase() === 'pending_admin_approval'
+            )
+        );
+        CustomerPortal.showToast(
+            approvalPending
+                ? 'Payment proof submit ho gaya. Wallet top-up admin approval queue me hai.'
+                : 'Payment reference accepted. Wallet top-up successful.',
+            'success'
+        );
 
         document.getElementById('customAmount').value = '';
         document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));

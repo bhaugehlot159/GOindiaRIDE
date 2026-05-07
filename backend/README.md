@@ -68,10 +68,12 @@ This release adds a production-ready wallet backend (/api/wallet) with Mongo per
 ### Key routes
 - GET /api/wallet/my - current account wallet snapshot
 - POST /api/wallet/topup/order - create secure top-up order
-- POST /api/wallet/topup/confirm - confirm top-up by provider reference
+- POST /api/wallet/topup/confirm - submit provider reference (+ optional screenshot proof) for secure review
 - POST /api/wallet/withdrawals - submit withdrawal request
 - GET /api/wallet/withdrawals - list user withdrawal requests
 - GET /api/wallet/admin/overview - admin wallet control overview
+- GET /api/wallet/admin/topups - admin top-up review queue
+- POST /api/wallet/admin/topups/:orderId/review - approve/reject top-up proof
 - POST /api/wallet/admin/withdrawals/:requestId/review - approve/reject withdrawals
 - PUT /api/wallet/admin/payment-modes - admin payment mode control
 
