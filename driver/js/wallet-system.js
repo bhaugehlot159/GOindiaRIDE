@@ -158,10 +158,21 @@ function getAddMoneyContent() {
                 <label class="form-label">Payment Method</label>
                 <select name="paymentMethod" class="form-select" required>
                     <option value="">Select payment method</option>
-                    <option value="upi">UPI</option>
-                    <option value="card">Credit/Debit Card</option>
-                    <option value="netbanking">Net Banking</option>
-                    <option value="paypal">PayPal Checkout</option>
+                    <option value="upi_intent">UPI Intent (India)</option>
+                    <option value="upi_qr">UPI QR Scan (India)</option>
+                    <option value="bharat_qr">Bharat QR (India)</option>
+                    <option value="rupay_card">RuPay Card (India)</option>
+                    <option value="net_banking">Net Banking (India)</option>
+                    <option value="razorpay">Razorpay Gateway (India)</option>
+                    <option value="cashfree">Cashfree Gateway (India)</option>
+                    <option value="visa_master_amex">Visa / MasterCard / Amex (Global)</option>
+                    <option value="stripe_cards">Stripe Cards (International)</option>
+                    <option value="paypal">PayPal Checkout (International)</option>
+                    <option value="apple_pay">Apple Pay (International)</option>
+                    <option value="google_pay_intl">Google Pay International</option>
+                    <option value="alipay">Alipay (International)</option>
+                    <option value="wechat_pay">WeChat Pay (International)</option>
+                    <option value="international_qr">International QR</option>
                 </select>
             </div>
             

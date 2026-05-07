@@ -921,6 +921,7 @@ function getEnabledPaymentModes(flow) {
         { id: 'rupay_card', label: 'RuPay Card', regionLabel: 'India' },
         { id: 'visa_master_amex', label: 'Visa / MasterCard / Amex', regionLabel: 'Global' },
         { id: 'net_banking', label: 'Net Banking', regionLabel: 'India' },
+        { id: 'razorpay', label: 'Razorpay Gateway', regionLabel: 'India' },
         { id: 'cashfree', label: 'Cashfree Gateway', regionLabel: 'India' },
         { id: 'stripe_cards', label: 'Stripe Cards', regionLabel: 'International' },
         { id: 'paypal', label: 'PayPal Checkout', regionLabel: 'International' },
