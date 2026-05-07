@@ -1,6 +1,7 @@
 ﻿const express = require('express');
 const crypto = require('crypto');
 const https = require('https');
+const QRCode = require('qrcode');
 const WalletAccount = require('../models/WalletAccount');
 const WalletPaymentMode = require('../models/WalletPaymentMode');
 const WalletTopupOrder = require('../models/WalletTopupOrder');
@@ -116,6 +117,28 @@ const RAZORPAY_TOPUP_MODES = new Set([
   'paytm_wallet',
   'phonepe_wallet',
   'googlepay_wallet'
+]);
+const REFERENCE_QR_TOPUP_MODES = new Set(['upi_qr', 'bharat_qr', 'international_qr']);
+const UPI_REFERENCE_MODES = new Set(['upi', 'upi_intent', 'upi_qr', 'bharat_qr']);
+const UPI_MERCHANT_VPA = firstEnvValue([
+  'UPI_MERCHANT_VPA',
+  'UPI_MERCHANT_UPI_ID',
+  'PAYMENT_UPI_ID',
+  'MERCHANT_UPI_ID',
+  'GOINDIARIDE_UPI_ID'
+]);
+const UPI_MERCHANT_NAME = firstEnvValue([
+  'UPI_MERCHANT_NAME',
+  'PAYMENT_MERCHANT_NAME',
+  'GOINDIARIDE_PAYMENT_NAME'
+]) || 'GO India RIDE';
+const UPI_MERCHANT_CODE = firstEnvValue(['UPI_MERCHANT_CODE', 'UPI_MC']);
+const UPI_QR_IMAGE_URL = firstEnvValue(['UPI_QR_IMAGE_URL', 'PAYMENT_QR_IMAGE_URL', 'GOINDIARIDE_QR_IMAGE_URL']);
+const INTERNATIONAL_PAYMENT_QR_URL = firstEnvValue([
+  'INTERNATIONAL_PAYMENT_QR_URL',
+  'PAYMENT_QR_URL',
+  'PAYMENT_LINK_URL',
+  'GOINDIARIDE_PAYMENT_LINK_URL'
 ]);
 
 const DEFAULT_PAYMENT_MODES = [
@@ -251,6 +274,115 @@ function canUseRazorpayForTopup(paymentMode, currency) {
   const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
   const normalizedCurrency = sanitizeText(currency || 'INR', 6).toUpperCase();
   return normalizedCurrency === 'INR' && RAZORPAY_TOPUP_MODES.has(normalizedMode);
+}
+
+function shouldUseReferenceQrForTopup(paymentMode) {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  return REFERENCE_QR_TOPUP_MODES.has(normalizedMode);
+}
+
+function replaceQrTemplate(raw, values) {
+  let output = String(raw || '').trim();
+  Object.entries(values).forEach(([key, value]) => {
+    output = output.replaceAll(`{${key}}`, encodeURIComponent(String(value || '')));
+    output = output.replaceAll(`:${key}`, encodeURIComponent(String(value || '')));
+  });
+  return output;
+}
+
+function appendQrUrlParams(rawUrl, values) {
+  const templated = replaceQrTemplate(rawUrl, values);
+  try {
+    const url = new URL(templated);
+    Object.entries(values).forEach(([key, value]) => {
+      if (!url.searchParams.has(key)) {
+        url.searchParams.set(key, String(value || ''));
+      }
+    });
+    return url.toString();
+  } catch (_error) {
+    return templated;
+  }
+}
+
+function buildUpiQrPayload(order) {
+  if (!UPI_MERCHANT_VPA) return null;
+
+  const amount = toAmount(order.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  const params = new URLSearchParams({
+    pa: UPI_MERCHANT_VPA,
+    pn: UPI_MERCHANT_NAME,
+    am: amount.toFixed(2),
+    cu: 'INR',
+    tr: sanitizeText(order.orderId, 80),
+    tn: `GO India RIDE ${sanitizeText(order.orderId, 60)}`
+  });
+  if (UPI_MERCHANT_CODE) params.set('mc', UPI_MERCHANT_CODE);
+  return `upi://pay?${params.toString()}`;
+}
+
+async function buildReferenceTopupQr(order, mode) {
+  const normalizedMode = sanitizeText(mode.modeId, 80).toLowerCase();
+  const amount = toAmount(order.amount);
+  const values = {
+    orderId: order.orderId,
+    amount: Number.isFinite(amount) ? amount.toFixed(2) : order.amount,
+    currency: order.currency || 'INR',
+    mode: normalizedMode
+  };
+
+  let payload = '';
+  let imageUrl = '';
+  let setupMessage = '';
+  let qrType = 'payment_link';
+  let payee = '';
+
+  if (UPI_REFERENCE_MODES.has(normalizedMode)) {
+    qrType = 'upi';
+    payload = buildUpiQrPayload(order);
+    imageUrl = UPI_QR_IMAGE_URL;
+    payee = UPI_MERCHANT_VPA || UPI_MERCHANT_NAME;
+    if (!payload && !imageUrl) {
+      setupMessage = 'UPI QR ke liye backend env me UPI_MERCHANT_VPA ya PAYMENT_UPI_ID set karein.';
+    }
+  } else if (normalizedMode === 'international_qr') {
+    qrType = 'international';
+    payload = appendQrUrlParams(INTERNATIONAL_PAYMENT_QR_URL, values);
+    imageUrl = !payload ? UPI_QR_IMAGE_URL : '';
+    payee = INTERNATIONAL_PAYMENT_QR_URL ? 'International payment link' : '';
+    if (!payload && !imageUrl) {
+      setupMessage = 'International QR ke liye backend env me INTERNATIONAL_PAYMENT_QR_URL ya PAYMENT_QR_URL set karein.';
+    }
+  }
+
+  if (!payload && !imageUrl) {
+    return {
+      available: false,
+      type: qrType,
+      setupMessage
+    };
+  }
+
+  const imageDataUrl = payload
+    ? await QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', margin: 2, width: 320 })
+    : '';
+
+  return {
+    available: true,
+    type: qrType,
+    imageDataUrl,
+    imageUrl,
+    payload,
+    payee,
+    orderId: order.orderId,
+    amount: order.amount,
+    currency: order.currency,
+    instructions: qrType === 'upi'
+      ? 'Dusre phone se QR scan karke UPI payment karein. Payment ke baad UTR/reference submit karein.'
+      : 'Dusre device se QR scan karke international payment complete karein. Payment ke baad gateway reference submit karein.'
+  };
 }
 
 function toRazorpaySubunits(amount) {
@@ -1122,10 +1254,11 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
       checkout.available = true;
       checkout.gatewayStatus = gatewayStatus;
     }
-  } else if (canUseRazorpayForTopup(mode.modeId, currency) && isRazorpayConfigured()) {
+  } else if (!shouldUseReferenceQrForTopup(mode.modeId) && canUseRazorpayForTopup(mode.modeId, currency) && isRazorpayConfigured()) {
     checkout = await createRazorpayTopupOrder(order, mode);
     checkout.available = true;
   } else {
+    const qr = await buildReferenceTopupQr(order, mode);
     await WalletTopupOrder.updateOne(
       { _id: order._id },
       {
@@ -1133,7 +1266,9 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
           'metadata.gateway': 'customer_reference',
           'metadata.referenceMode': mode.modeId,
           'metadata.referenceModeLabel': mode.label,
-          'metadata.referenceRequired': true
+          'metadata.referenceRequired': true,
+          'metadata.qrAvailable': Boolean(qr && qr.available),
+          'metadata.qrType': sanitizeText(qr?.type, 40)
         }
       }
     );
@@ -1147,9 +1282,10 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
       paymentMode: mode.modeId,
       paymentModeLabel: mode.label,
       description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
-      referenceLabel: ['upi', 'upi_intent', 'upi_qr', 'bharat_qr'].includes(mode.modeId)
+      referenceLabel: UPI_REFERENCE_MODES.has(mode.modeId)
         ? 'UPI UTR / transaction reference'
-        : 'Gateway / bank transaction reference'
+        : 'Gateway / bank transaction reference',
+      qr
     };
   }
 

@@ -76,15 +76,15 @@ This release adds a production-ready wallet backend (/api/wallet) with Mongo per
 - PUT /api/wallet/admin/payment-modes - admin payment mode control
 
 ### Go live checklist
-1. Set all live gateway secrets in .env (PayPal primary; Razorpay/Stripe/Cashfree optional fallback).
+1. Set all live gateway secrets in .env (PayPal/Razorpay plus UPI QR/payment link fallbacks as needed).
 2. Run backend on HTTPS domain and set CORS_ORIGIN + SECURITY_ALLOWED_ORIGINS.
 3. Ensure frontend stores valid ccessToken after login.
 4. Configure webhook verification using PAYMENT_WEBHOOK_SECRET.
 5. Use PM2 (
 pm run pm2:start) behind reverse proxy (Nginx/Cloudflare).
 
-### PayPal live checkout readiness
-Real wallet top-up opens PayPal Checkout first. It will not open until the backend process has server-side live PayPal credentials:
+### Live checkout and QR readiness
+Wallet top-up uses the selected enabled payment mode. PayPal and Razorpay use secure server verification; UPI QR/Bharat QR/International QR show a scanable QR and then require UTR/gateway reference confirmation.
 
 ```bash
 PAYPAL_ENV=live
@@ -92,12 +92,17 @@ PAYPAL_CLIENT_ID=your_live_client_id
 PAYPAL_CLIENT_SECRET=your_live_client_secret
 PAYPAL_SETTLEMENT_CURRENCY=USD
 PAYPAL_INR_TO_SETTLEMENT_RATE=current_inr_to_usd_rate
+RAZORPAY_KEY_ID=your_live_key_id
+RAZORPAY_KEY_SECRET=your_live_key_secret
+UPI_MERCHANT_VPA=your-business-upi@bank
+UPI_MERCHANT_NAME=GO India RIDE
+INTERNATIONAL_PAYMENT_QR_URL=https://your-payment-link.example/checkout
 PAYMENT_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 On Render, set these as Environment variables for the `GOindiaRIDE` service, then redeploy/restart the service. The backend also accepts common existing PayPal aliases (`PAYPAL_LIVE_CLIENT_ID`, `PAYPAL_APP_CLIENT_ID`, `PAYPAL_LIVE_CLIENT_SECRET`, `PAYPAL_SECRET`) so older production dashboards do not need to be renamed immediately.
 
-PayPal does not support INR as a payment currency. The wallet remains INR, but PayPal charges in `PAYPAL_SETTLEMENT_CURRENCY`; set `PAYPAL_INR_TO_SETTLEMENT_RATE` so the backend can convert the INR top-up amount before creating the PayPal order.
+PayPal does not support INR as a payment currency. The wallet remains INR, but PayPal charges in `PAYPAL_SETTLEMENT_CURRENCY`; set `PAYPAL_INR_TO_SETTLEMENT_RATE` so the backend can convert the INR top-up amount before creating the PayPal order. For UPI QR, `UPI_MERCHANT_VPA` is what customer or another payer scans. For international QR, `INTERNATIONAL_PAYMENT_QR_URL` can be a PayPal/Stripe/Wise/payment-link URL.
 
 After login, verify readiness from any wallet page or directly:
 

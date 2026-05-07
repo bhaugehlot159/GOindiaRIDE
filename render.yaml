@@ -39,3 +39,9 @@ services:
         sync: false
       - key: PAYMENT_WEBHOOK_SECRET
         sync: false
+      - key: UPI_MERCHANT_VPA
+        sync: false
+      - key: UPI_MERCHANT_NAME
+        value: GO India RIDE
+      - key: INTERNATIONAL_PAYMENT_QR_URL
+        sync: false

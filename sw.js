@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v31-20260507-allpay3';
+const CACHE_NAME = 'goindiaride-pwa-v31-20260507-allpay4';
 const ASSETS = [
   './',
   './index.html',

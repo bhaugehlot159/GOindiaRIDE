@@ -1256,25 +1256,143 @@
         const label = sanitizeText(checkout.referenceLabel || 'Gateway / bank transaction reference', 120);
         const modeLabel = sanitizeText(checkout.paymentModeLabel || checkout.paymentMode || 'selected payment mode', 120);
         const amountText = `${sanitizeText(checkout.currency || 'INR', 8)} ${sanitizeText(String(checkout.amount || ''), 24)}`;
-        const providerReference = window.prompt(
-            `Payment complete karne ke baad ${label} enter karein.\n\nMode: ${modeLabel}\nAmount: ${amountText}`,
-            ''
-        );
+        const qr = checkout.qr || {};
+        const qrImage = String(qr.imageDataUrl || qr.imageUrl || '').trim();
+        const qrPayload = String(qr.payload || '').trim();
+        const hasQr = Boolean(qr.available && (qrImage || qrPayload));
 
-        if (!providerReference || providerReference.trim().length < 5) {
-            throw new Error('Gateway reference / UTR required hai. Payment complete karke valid reference enter karein.');
-        }
+        return new Promise((resolve, reject) => {
+            let completed = false;
+            const overlay = document.createElement('div');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(10,14,28,.62);display:flex;align-items:center;justify-content:center;padding:18px;';
+            overlay.innerHTML = `
+                <div style="width:min(460px,100%);max-height:92vh;overflow:auto;background:#fff;color:#101828;border-radius:8px;box-shadow:0 22px 70px rgba(15,23,42,.28);padding:20px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <div style="font-weight:700;font-size:18px;">Secure Payment Reference</div>
+                            <div style="font-size:13px;color:#667085;margin-top:4px;">${modeLabel} - ${amountText}</div>
+                        </div>
+                        <button type="button" aria-label="Close payment reference" data-reference-close style="border:0;background:#f2f4f7;border-radius:8px;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;">&times;</button>
+                    </div>
+                    <div data-qr-wrap style="display:${hasQr ? 'block' : 'none'};border:1px solid #e4e7ec;border-radius:8px;padding:14px;margin-bottom:14px;text-align:center;background:#fcfcfd;">
+                        <img data-qr-image alt="Payment QR code" style="display:none;width:min(260px,100%);height:auto;margin:0 auto 12px;border:1px solid #eaecf0;border-radius:8px;background:#fff;padding:8px;">
+                        <div data-qr-instructions style="font-size:13px;color:#344054;line-height:1.45;"></div>
+                        <div data-qr-payee style="font-size:12px;color:#667085;line-height:1.45;margin-top:8px;word-break:break-word;"></div>
+                        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+                            <button type="button" data-open-qr style="display:none;border:0;background:#101828;color:#fff;border-radius:8px;padding:10px 12px;font-weight:700;cursor:pointer;">Open Payment App</button>
+                            <button type="button" data-copy-qr style="display:none;border:1px solid #d0d5dd;background:#fff;color:#101828;border-radius:8px;padding:10px 12px;font-weight:700;cursor:pointer;">Copy Payment Details</button>
+                        </div>
+                    </div>
+                    <div data-setup-note style="display:none;border:1px solid #fedf89;background:#fffaeb;color:#93370d;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:14px;"></div>
+                    <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">${label}</label>
+                    <input data-provider-reference type="text" autocomplete="off" placeholder="UTR / gateway reference" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:12px;font-size:15px;margin-bottom:10px;">
+                    <div data-reference-error style="display:none;color:#b42318;font-size:13px;margin-bottom:10px;"></div>
+                    <div style="font-size:12px;color:#667085;line-height:1.45;margin-bottom:14px;">Payment complete hone ke baad UTR/reference submit karein. QR ko dusre phone se scan karwa sakte hain.</div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button type="button" data-reference-cancel style="border:1px solid #d0d5dd;background:#fff;color:#101828;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Cancel</button>
+                        <button type="button" data-reference-confirm style="border:0;background:#2b145f;color:#fff;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Confirm Payment</button>
+                    </div>
+                </div>
+            `;
 
-        const confirmation = await confirmSecureTopupOrder({
-            orderId: checkout.orderId,
-            providerReference: providerReference.trim()
+            const cleanup = () => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            };
+            const showError = (message) => {
+                const node = overlay.querySelector('[data-reference-error]');
+                if (!node) return;
+                node.textContent = message;
+                node.style.display = 'block';
+            };
+            const closeWithCancel = () => {
+                cleanup();
+                if (!completed) {
+                    reject(new Error('Payment reference confirmation was cancelled'));
+                }
+            };
+
+            const imageNode = overlay.querySelector('[data-qr-image]');
+            if (hasQr && imageNode && qrImage) {
+                imageNode.setAttribute('src', qrImage);
+                imageNode.style.display = 'block';
+            }
+            const instructionsNode = overlay.querySelector('[data-qr-instructions]');
+            if (instructionsNode && hasQr) {
+                instructionsNode.textContent = sanitizeText(qr.instructions || 'Dusre phone se QR scan karke payment karein. Payment ke baad reference submit karein.', 240);
+            }
+            const payeeNode = overlay.querySelector('[data-qr-payee]');
+            if (payeeNode && hasQr) {
+                const payee = sanitizeText(qr.payee || '', 120);
+                payeeNode.textContent = payee ? `Payee: ${payee} | Order: ${sanitizeText(checkout.orderId, 80)}` : `Order: ${sanitizeText(checkout.orderId, 80)}`;
+            }
+            const setupNode = overlay.querySelector('[data-setup-note]');
+            if (!hasQr && setupNode && qr && qr.available === false && qr.setupMessage) {
+                setupNode.textContent = sanitizeText(qr.setupMessage, 240);
+                setupNode.style.display = 'block';
+            }
+            const openQrButton = overlay.querySelector('[data-open-qr]');
+            if (openQrButton && qrPayload && /^upi:\/\//i.test(qrPayload)) {
+                openQrButton.style.display = 'inline-flex';
+                openQrButton.addEventListener('click', () => {
+                    window.location.href = qrPayload;
+                });
+            }
+            const copyQrButton = overlay.querySelector('[data-copy-qr]');
+            if (copyQrButton && (qrPayload || qr.payee)) {
+                copyQrButton.style.display = 'inline-flex';
+                copyQrButton.addEventListener('click', async () => {
+                    const text = qrPayload || String(qr.payee || '');
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        copyQrButton.textContent = 'Copied';
+                    } catch (_error) {
+                        showError('Copy nahi ho paya. QR scan karein ya payment details manually use karein.');
+                    }
+                });
+            }
+
+            const input = overlay.querySelector('[data-provider-reference]');
+            const confirmButton = overlay.querySelector('[data-reference-confirm]');
+            const cancelButton = overlay.querySelector('[data-reference-cancel]');
+            const closeButton = overlay.querySelector('[data-reference-close]');
+            if (cancelButton) cancelButton.addEventListener('click', closeWithCancel);
+            if (closeButton) closeButton.addEventListener('click', closeWithCancel);
+            if (confirmButton) {
+                confirmButton.addEventListener('click', async () => {
+                    const providerReference = String(input?.value || '').trim();
+                    if (providerReference.length < 5) {
+                        showError('Gateway reference / UTR required hai. Payment complete karke valid reference enter karein.');
+                        return;
+                    }
+                    confirmButton.disabled = true;
+                    confirmButton.textContent = 'Verifying...';
+                    try {
+                        const confirmation = await confirmSecureTopupOrder({
+                            orderId: checkout.orderId,
+                            providerReference
+                        });
+                        completed = true;
+                        cleanup();
+                        resolve({
+                            orderId: checkout.orderId,
+                            providerReference,
+                            confirmation
+                        });
+                    } catch (error) {
+                        confirmButton.disabled = false;
+                        confirmButton.textContent = 'Confirm Payment';
+                        showError(error.message || 'Payment reference verify nahi ho paya.');
+                    }
+                });
+            }
+
+            document.body.appendChild(overlay);
+            if (input) input.focus();
         });
-
-        return {
-            orderId: checkout.orderId,
-            providerReference: providerReference.trim(),
-            confirmation
-        };
     }
 
     async function startSecureTopupCheckout({ amount, paymentMode, currency, clientReference }) {
