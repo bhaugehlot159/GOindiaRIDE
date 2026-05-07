@@ -255,6 +255,19 @@
     return requestBusiness('GET', path, null);
   }
 
+  function liveWalletTopupDisabledMessage() {
+    return 'Real wallet top-up requires live login/session and Razorpay Checkout. Demo/local wallet top-up is disabled.';
+  }
+
+  function isLiveWalletTopupReady() {
+    return Boolean(
+      window.WalletCore &&
+      typeof window.WalletCore.isSecureBackendReady === 'function' &&
+      window.WalletCore.isSecureBackendReady() &&
+      typeof window.WalletCore.startSecureTopupCheckout === 'function'
+    );
+  }
+
   function readRuntimeDashboardUser() {
     try {
       if (window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ && typeof window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ === 'object') {
@@ -841,6 +854,12 @@
     }
 
     if (method === 'POST' && pathname === '/wallet/topup') {
+      return Promise.resolve({
+        ok: false,
+        livePaymentRequired: true,
+        message: liveWalletTopupDisabledMessage()
+      });
+
       var wallet = walletForUser(store, userKeyFromPayload);
       var amount = toNumber(payload && payload.amount, 0);
       wallet.balance = Number((wallet.balance + amount).toFixed(2));
@@ -2006,17 +2025,25 @@
     body.querySelector('#ffx-payment-wallet-add').addEventListener('click', function () {
       var amount = (body.querySelector('#ffx-payment-wallet') || {}).value || '';
       executeFeature(feature, 'wallet-add', { amount: amount });
-      postBusiness('/wallet/topup', {
-        userKey: currentUserKey(),
-        amount: Number(amount || 0),
-        method: 'runtime-ui',
-        note: 'Top-up from runtime extension'
-      }).then(function (data) {
-        var wallet = data && data.wallet ? data.wallet : null;
-        var balance = wallet && Number.isFinite(Number(wallet.balance)) ? Number(wallet.balance).toFixed(2) : null;
-        if (balance !== null) setOutput('Wallet topped up. Balance: INR ' + balance);
-        else setOutput('Wallet top-up completed.');
+      var amountNumber = Number(amount || 0);
+      if (!Number.isFinite(amountNumber) || amountNumber <= 0) {
+        setOutput('Please enter a valid top-up amount.');
+        return;
+      }
+      if (!isLiveWalletTopupReady()) {
+        setOutput(liveWalletTopupDisabledMessage());
+        return;
+      }
+      window.WalletCore.startSecureTopupCheckout({
+        amount: amountNumber,
+        paymentMode: 'runtime-ui',
+        currency: 'INR',
+        clientReference: 'FFXTOPUP_' + Date.now() + '_' + Math.floor(Math.random() * 100000)
+      }).then(function () {
+        setOutput('Live payment verified. Wallet top-up successful.');
         refreshWallet();
+      }).catch(function (error) {
+        setOutput((error && error.message) || 'Live wallet top-up failed.');
       });
     });
 

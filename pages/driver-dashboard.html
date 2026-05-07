@@ -1543,13 +1543,25 @@
         }
 
         function getDriverWalletSnapshot() {
-            if (secureDriverWalletSnapshot && secureDriverWalletSnapshot.wallet) {
+            const liveMode = isSecureDriverWalletMode();
+
+            if (liveMode && secureDriverWalletSnapshot && secureDriverWalletSnapshot.wallet) {
                 const driverBalance = Number(secureDriverWalletSnapshot.wallet.balance || 0);
                 syncDriverLegacyWalletStore(driverBalance, secureDriverWalletSnapshot.transactions || []);
                 return {
                     driverBalance
                 };
             }
+
+            if (!liveMode) {
+                return {
+                    driverBalance: 0
+                };
+            }
+
+            return {
+                driverBalance: 0
+            };
 
             const ownerId = getDriverWalletOwnerId();
             if (window.WalletCore && typeof WalletCore.getWallet === 'function') {
@@ -1567,6 +1579,13 @@
         }
 
         async function getDriverWalletMethodOptions(flow) {
+            if (!isSecureDriverWalletMode()) {
+                return [{
+                    id: flow === 'add_money' ? 'live_payment_required' : '',
+                    label: flow === 'add_money' ? 'Live payment login required' : 'Live wallet login required'
+                }];
+            }
+
             if (isSecureDriverWalletMode() && window.WalletCore && typeof WalletCore.fetchSecurePaymentModes === 'function') {
                 try {
                     const secureModes = await WalletCore.fetchSecurePaymentModes(flow);
@@ -1648,14 +1667,14 @@
             const snapshot = getDriverWalletSnapshot();
             balanceNode.textContent = formatWalletCurrency(snapshot.driverBalance || 0);
 
+            const allowLegacyWalletFallback = false;
             let txRows = [];
             if (liveMode && secureDriverWalletSnapshot && Array.isArray(secureDriverWalletSnapshot.transactions)) {
                 txRows = secureDriverWalletSnapshot.transactions.slice(0, 15);
-            } else if (window.WalletCore && typeof WalletCore.getTransactions === 'function') {
+            } else if (allowLegacyWalletFallback && window.WalletCore && typeof WalletCore.getTransactions === 'function') {
                 txRows = WalletCore.getTransactions({ walletType: 'driver', ownerId }).slice(0, 15);
             } else {
-                const fallback = JSON.parse(localStorage.getItem('wallet_data') || '{}');
-                txRows = Array.isArray(fallback.transactions) ? fallback.transactions : [];
+                txRows = [];
             }
 
             if (!txRows.length) {
@@ -1675,7 +1694,7 @@
             let withdrawalRows = [];
             if (liveMode && secureDriverWalletSnapshot && Array.isArray(secureDriverWalletSnapshot.withdrawals)) {
                 withdrawalRows = secureDriverWalletSnapshot.withdrawals.slice(0, 15);
-            } else if (window.WalletCore && typeof WalletCore.getWithdrawalRequests === 'function') {
+            } else if (allowLegacyWalletFallback && window.WalletCore && typeof WalletCore.getWithdrawalRequests === 'function') {
                 withdrawalRows = WalletCore.getWithdrawalRequests({ walletType: 'driver', ownerId }).slice(0, 15);
             }
 
@@ -1705,6 +1724,10 @@
 
             if (!isSecureDriverWalletMode()) {
                 showError('Secure backend session required. Please login again.');
+                return;
+            }
+            if (!window.WalletCore || typeof WalletCore.startSecureTopupCheckout !== 'function') {
+                showError('Real payment ke liye Razorpay Checkout required hai. Demo/manual wallet top-up disabled hai. Please hard refresh and login again.');
                 return;
             }
             if (!Number.isFinite(amount) || amount < 10) {
@@ -2255,7 +2278,7 @@
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
-    <script src="../js/wallet-core.js?v=20260507-livepay1"></script>
+    <script src="../js/wallet-core.js?v=20260507-livepay2"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
@@ -26190,7 +26213,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
 }
 </script>
 <script src="/js/future-feature-runtime.js?v=20260317-ratingfare1"></script>
-<script src="/js/future-feature-runtime-extensions.js?v=20260504-runtime-syncfix1"></script>
+<script src="/js/future-feature-runtime-extensions.js?v=20260507-livepay2"></script>
 <script src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1"></script>
 <script src="/js/ultimate/features-driver.js?v=20260316-ultimate1"></script>
 <script src="/js/future-feature-runtime-dock.js?v=20260317-adminonly1"></script>
@@ -26884,11 +26907,19 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
     body.querySelector('#ffx-payment-wallet-add').addEventListener('click', function () {
       var amount = (body.querySelector('#ffx-payment-wallet') || {}).value || '';
       executeFeature(feature, 'wallet-add', { amount: amount });
-      postBusiness('/wallet/topup', {
-        userKey: currentUserKey(),
-        amount: Number(amount || 0),
-        method: 'runtime-ui',
-        note: 'Top-up from runtime extension'
+      var amountNumber = Number(amount || 0);
+      if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
+      if (!window.WalletCore || typeof window.WalletCore.isSecureBackendReady !== 'function' || !window.WalletCore.isSecureBackendReady() || typeof window.WalletCore.startSecureTopupCheckout !== 'function') {
+        console.warn('Real wallet top-up requires live login/session and Razorpay Checkout. Demo/local wallet top-up is disabled.');
+        return;
+      }
+      window.WalletCore.startSecureTopupCheckout({
+        amount: amountNumber,
+        paymentMode: 'runtime-ui',
+        currency: 'INR',
+        clientReference: 'FFXTOPUP_' + Date.now() + '_' + Math.floor(Math.random() * 100000)
+      }).catch(function (error) {
+        console.warn((error && error.message) || 'Live wallet top-up failed.');
       });
     });
   }

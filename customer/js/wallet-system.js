@@ -10,6 +10,47 @@ const CUSTOMER_WITHDRAW_MIN = 100;
 const CUSTOMER_WITHDRAW_MAX = 100000;
 const CUSTOMER_WITHDRAW_COOLDOWN_MS = 5 * 60 * 1000;
 let lastWithdrawRequestAt = 0;
+let customerSecureWalletSnapshot = null;
+let customerSecureWalletSyncedAt = 0;
+
+function isSecureCustomerWalletMode() {
+    return Boolean(
+        window.WalletCore &&
+        typeof WalletCore.isSecureBackendReady === 'function' &&
+        WalletCore.isSecureBackendReady()
+    );
+}
+
+function canUseLiveCustomerTopup() {
+    return Boolean(
+        isSecureCustomerWalletMode() &&
+        window.WalletCore &&
+        typeof WalletCore.startSecureTopupCheckout === 'function'
+    );
+}
+
+function showLivePaymentRequired() {
+    CustomerPortal.showToast('Real payment ke liye live login/session aur Razorpay Checkout required hai. Demo add money disabled hai.', 'error');
+}
+
+async function refreshSecureCustomerWalletSnapshot(forceSync = false) {
+    if (!isSecureCustomerWalletMode() || !window.WalletCore || typeof WalletCore.fetchSecureWalletSnapshot !== 'function') {
+        return null;
+    }
+
+    if (!forceSync && customerSecureWalletSnapshot && Date.now() - customerSecureWalletSyncedAt < 15000) {
+        return customerSecureWalletSnapshot;
+    }
+
+    try {
+        customerSecureWalletSnapshot = await WalletCore.fetchSecureWalletSnapshot();
+        customerSecureWalletSyncedAt = Date.now();
+        return customerSecureWalletSnapshot;
+    } catch (error) {
+        console.warn('Secure customer wallet snapshot failed:', error);
+        return customerSecureWalletSnapshot;
+    }
+}
 
 // Initialize wallet system
 document.addEventListener('DOMContentLoaded', function() {
@@ -33,12 +74,13 @@ function initializeWalletSystem() {
 
     const ownerId = getCustomerWalletOwnerId();
 
-    if (window.WalletCore) {
+    if (isSecureCustomerWalletMode() && window.WalletCore) {
         WalletCore.getWallet('customer', ownerId);
         WalletCore.getWallet('donation', 'pool');
     }
 
     syncLegacyWalletSnapshot();
+    refreshSecureCustomerWalletSnapshot(true).then(updateWalletUI).catch(() => {});
 
     // Update UI
     updateWalletUI();
@@ -71,7 +113,7 @@ function setupPaymentHandlers() {
 /**
  * Handle add money
  */
-function handleAddMoney() {
+async function handleAddMoney() {
     const customAmount = document.getElementById('customAmount').value;
     const amount = parseInt(customAmount, 10);
 
@@ -87,7 +129,41 @@ function handleAddMoney() {
     }
     const walletType = document.getElementById('addMoneyModal').getAttribute('data-wallet-type');
 
+    if (walletType !== 'payment') {
+        CustomerPortal.showToast('Live donation wallet funding is not enabled yet. Demo donation top-up disabled hai.', 'error');
+        return;
+    }
+
+    if (!canUseLiveCustomerTopup()) {
+        showLivePaymentRequired();
+        return;
+    }
+
     CustomerPortal.showLoading();
+
+    try {
+        const clientReference = 'CUSTPORTAL_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        await WalletCore.startSecureTopupCheckout({
+            amount,
+            paymentMode: paymentMethod,
+            currency: 'INR',
+            clientReference
+        });
+
+        await refreshSecureCustomerWalletSnapshot(true);
+        updateWalletUI();
+        CustomerPortal.hideLoading();
+        CustomerPortal.closeModal('addMoneyModal');
+        CustomerPortal.showToast('Live payment verified. Wallet top-up successful.', 'success');
+
+        document.getElementById('customAmount').value = '';
+        document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
+    } catch (error) {
+        CustomerPortal.hideLoading();
+        CustomerPortal.showToast(error.message || 'Live wallet top-up failed', 'error');
+    }
+
+    return;
 
     // Simulate gateway processing
     setTimeout(() => {
@@ -832,6 +908,12 @@ function renderWithdrawalMethodOptions() {
 }
 
 function getEnabledPaymentModes(flow) {
+    if (!isSecureCustomerWalletMode()) {
+        return flow === 'add_money'
+            ? [{ id: 'live_payment_required', label: 'Live payment login required', regionLabel: 'Secure' }]
+            : [{ id: '', label: 'Live wallet login required', regionLabel: 'Secure' }];
+    }
+
     const fallback = [
         { id: 'upi', label: 'UPI', regionLabel: 'India' },
         { id: 'upi_qr', label: 'UPI QR Scan', regionLabel: 'India' },
@@ -885,6 +967,25 @@ function getCustomerWalletOwnerId() {
 }
 
 function getWalletSnapshot() {
+    if (isSecureCustomerWalletMode() && customerSecureWalletSnapshot && customerSecureWalletSnapshot.wallet) {
+        return {
+            payment: Number(customerSecureWalletSnapshot.wallet.balance || 0),
+            donation: Number((customerSecureWalletSnapshot.donationWallet && customerSecureWalletSnapshot.donationWallet.balance) || 0)
+        };
+    }
+
+    if (!isSecureCustomerWalletMode()) {
+        return {
+            payment: 0,
+            donation: 0
+        };
+    }
+
+    return {
+        payment: 0,
+        donation: 0
+    };
+
     if (window.WalletCore) {
         const ownerId = getCustomerWalletOwnerId();
         const customerWallet = WalletCore.getWallet('customer', ownerId);
@@ -904,6 +1005,10 @@ function getWalletSnapshot() {
 }
 
 function syncLegacyWalletSnapshot() {
+    if (!isSecureCustomerWalletMode()) {
+        return;
+    }
+
     const wallet = getWalletSnapshot();
     localStorage.setItem(CUSTOMER_WALLET_KEY, JSON.stringify(wallet));
 }

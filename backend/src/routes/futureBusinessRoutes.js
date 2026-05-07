@@ -487,6 +487,12 @@ router.get('/status', (req, res) => {
 });
 
 router.post('/wallet/topup', (req, res) => {
+  return res.status(409).json({
+    ok: false,
+    livePaymentRequired: true,
+    message: 'Legacy/demo wallet top-up is disabled. Use live Razorpay order + server verification.'
+  });
+
   const store = getStore();
   const userKey = normalizeString(req.body?.userKey, 80);
   const amount = normalizeAmount(req.body?.amount);

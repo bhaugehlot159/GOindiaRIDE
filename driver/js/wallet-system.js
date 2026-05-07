@@ -10,6 +10,22 @@ const TRANSACTION_TYPES = {
     DEDUCTION: 'deduction'
 };
 
+function isSecureDriverPortalWalletMode() {
+    return Boolean(
+        window.WalletCore &&
+        typeof WalletCore.isSecureBackendReady === 'function' &&
+        WalletCore.isSecureBackendReady()
+    );
+}
+
+function canUseLiveDriverTopup() {
+    return Boolean(
+        isSecureDriverPortalWalletMode() &&
+        window.WalletCore &&
+        typeof WalletCore.startSecureTopupCheckout === 'function'
+    );
+}
+
 // Open Wallet Modal
 function openWallet() {
     const modal = createModal('Digital Wallet', getWalletContent());
@@ -164,15 +180,48 @@ function setAmount(amount) {
 }
 
 // Process Add Money
-function processAddMoney(event) {
+async function processAddMoney(event) {
     event.preventDefault();
     
     const formData = new FormData(event.target);
     const amount = parseFloat(formData.get('amount'));
     const paymentMethod = formData.get('paymentMethod');
+
+    if (!Number.isFinite(amount) || amount < 100) {
+        showToast('Please enter valid amount (minimum Rs 100)', 'error');
+        return;
+    }
+
+    if (!paymentMethod) {
+        showToast('Please select payment method', 'error');
+        return;
+    }
+
+    if (!canUseLiveDriverTopup()) {
+        showToast('Real payment ke liye live login/session aur Razorpay Checkout required hai. Demo add money disabled hai.', 'error');
+        return;
+    }
     
-    // Simulate payment processing
-    showToast('Processing payment...', 'info');
+    showToast('Opening secure Razorpay Checkout...', 'info');
+
+    try {
+        const clientReference = `DRVPORTAL_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        await WalletCore.startSecureTopupCheckout({
+            amount,
+            paymentMode: paymentMethod,
+            currency: 'INR',
+            clientReference
+        });
+
+        showToast('Live payment verified. Wallet top-up successful.', 'success');
+        closeAllModals();
+        updateWalletBalance();
+        setTimeout(() => openWallet(), 300);
+    } catch (error) {
+        showToast(error.message || 'Live wallet top-up failed', 'error');
+    }
+
+    return;
     
     setTimeout(() => {
         // Add money to wallet

@@ -26839,7 +26839,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
 }
 </script>
 <script src="/js/future-feature-runtime.js?v=20260317-ratingfare1"></script>
-<script src="/js/future-feature-runtime-extensions.js?v=20260504-runtime-syncfix1"></script>
+<script src="/js/future-feature-runtime-extensions.js?v=20260507-livepay2"></script>
 <script src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1"></script>
 <script src="/js/ultimate/features-admin.js?v=20260316-ultimate1"></script>
 <script src="/js/ultimate/features-security.js?v=20260316-ultimate1"></script>
@@ -27534,11 +27534,19 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
     body.querySelector('#ffx-payment-wallet-add').addEventListener('click', function () {
       var amount = (body.querySelector('#ffx-payment-wallet') || {}).value || '';
       executeFeature(feature, 'wallet-add', { amount: amount });
-      postBusiness('/wallet/topup', {
-        userKey: currentUserKey(),
-        amount: Number(amount || 0),
-        method: 'runtime-ui',
-        note: 'Top-up from runtime extension'
+      var amountNumber = Number(amount || 0);
+      if (!Number.isFinite(amountNumber) || amountNumber <= 0) return;
+      if (!window.WalletCore || typeof window.WalletCore.isSecureBackendReady !== 'function' || !window.WalletCore.isSecureBackendReady() || typeof window.WalletCore.startSecureTopupCheckout !== 'function') {
+        console.warn('Real wallet top-up requires live login/session and Razorpay Checkout. Demo/local wallet top-up is disabled.');
+        return;
+      }
+      window.WalletCore.startSecureTopupCheckout({
+        amount: amountNumber,
+        paymentMode: 'runtime-ui',
+        currency: 'INR',
+        clientReference: 'FFXTOPUP_' + Date.now() + '_' + Math.floor(Math.random() * 100000)
+      }).catch(function (error) {
+        console.warn((error && error.message) || 'Live wallet top-up failed.');
       });
     });
   }

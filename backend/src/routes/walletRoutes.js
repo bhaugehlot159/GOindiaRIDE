@@ -4313,6 +4313,12 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 
   // Route: /wallet/topup
   router.post('/wallet/topup', walletCriticalLimiter, strictWalletSignature, (req, res) => {
+    return res.status(409).json({
+      ok: false,
+      livePaymentRequired: true,
+      message: 'Legacy/demo wallet top-up is disabled. Use /api/wallet/topup/order with Razorpay Checkout and /api/wallet/topup/razorpay/verify.'
+    });
+
     const store = getStore();
     const requestedUserKey = normalizeString(req.body?.userKey, 80);
     if (requestedUserKey && !canAccessRuntimeWallet(req, requestedUserKey)) {
