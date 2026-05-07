@@ -125,16 +125,142 @@
     return null;
   }
 
+  function getBookingRef(row) {
+    return String((row && (row.bookingId || row.id)) || '').trim();
+  }
+
+  function sortBookingRows(rows) {
+    return safeArray(rows).slice().sort(function (left, right) {
+      return new Date((right && (right.updatedAt || right.createdAt)) || 0).getTime()
+        - new Date((left && (left.updatedAt || left.createdAt)) || 0).getTime();
+    });
+  }
+
+  function mergeBookingCollections(existing, incoming) {
+    var mergedMap = {};
+    var looseRows = [];
+    safeArray(existing).concat(safeArray(incoming)).forEach(function (row) {
+      if (!row || typeof row !== 'object') return;
+      var ref = getBookingRef(row);
+      if (!ref) {
+        looseRows.push(row);
+        return;
+      }
+      mergedMap[ref] = Object.assign({}, mergedMap[ref] || {}, row);
+    });
+    return looseRows.concat(sortBookingRows(Object.keys(mergedMap).map(function (key) { return mergedMap[key]; })));
+  }
+
   function readLocalBookings() {
-    return safeArray(parseJson(localStorage.getItem('bookings') || '[]', []));
+    var localRows = safeArray(parseJson(localStorage.getItem('bookings') || '[]', []));
+    var sharedRows = safeArray(parseJson(localStorage.getItem('goride_bookings') || '[]', []));
+    return mergeBookingCollections(sharedRows, localRows);
   }
 
   function writeLocalBookings(rows) {
-    try { localStorage.setItem('bookings', JSON.stringify(safeArray(rows))); } catch (_error) {}
+    try {
+      var mergedLocal = mergeBookingCollections(readLocalBookings(), safeArray(rows));
+      var mergedShared = mergeBookingCollections(
+        safeArray(parseJson(localStorage.getItem('goride_bookings') || '[]', [])),
+        mergedLocal
+      );
+      localStorage.setItem('bookings', JSON.stringify(mergedLocal));
+      localStorage.setItem('goride_bookings', JSON.stringify(mergedShared));
+    } catch (_error) {}
   }
 
-  function getBookingRef(row) {
-    return String((row && (row.bookingId || row.id)) || '').trim();
+  function normalizePhoneToken(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return '';
+    var compact = raw.replace(/\s+/g, '');
+    if (compact.indexOf('00') === 0) compact = '+' + compact.slice(2);
+    if (compact.charAt(0) === '+') {
+      var withCountry = compact.slice(1).replace(/\D/g, '');
+      return withCountry.length >= 8 && withCountry.length <= 15 ? ('+' + withCountry) : '';
+    }
+    var digits = compact.replace(/\D/g, '');
+    if (digits.length === 10 && /^[6-9]\d{9}$/.test(digits)) return '+91' + digits;
+    return digits.length >= 8 && digits.length <= 15 ? ('+' + digits) : '';
+  }
+
+  function normalizeEmailToken(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function uniqueTokens(values) {
+    return Array.from(new Set(safeArray(values).map(function (item) { return String(item || '').trim(); }).filter(Boolean)));
+  }
+
+  function identityTokensForUser(user) {
+    var source = user && typeof user === 'object' ? user : {};
+    if (window.GoIndiaSessionContinuity && typeof window.GoIndiaSessionContinuity.getIdentityAliases === 'function') {
+      try {
+        var aliases = window.GoIndiaSessionContinuity.getIdentityAliases(source, 'customer');
+        if (aliases && typeof aliases === 'object') {
+          return {
+            primaryId: String(aliases.primaryId || source.id || source.userId || '').trim(),
+            ids: uniqueTokens([aliases.primaryId].concat(safeArray(aliases.ids))),
+            emails: uniqueTokens(safeArray(aliases.emails).map(normalizeEmailToken)),
+            phones: uniqueTokens(safeArray(aliases.phones).map(normalizePhoneToken))
+          };
+        }
+      } catch (_error) {}
+    }
+
+    var primaryId = String(source.id || source.userId || source.customerId || source.backendUserId || source._id || '').trim();
+    return {
+      primaryId: primaryId,
+      ids: uniqueTokens([primaryId, source.id, source.userId, source.customerId, source.backendUserId, source._id, source.uid]),
+      emails: uniqueTokens([source.email, source.userEmail, source.customerEmail].map(normalizeEmailToken)),
+      phones: uniqueTokens([source.phone, source.mobile, source.contact, source.customerPhone].map(normalizePhoneToken))
+    };
+  }
+
+  function getPrimaryUserId(user) {
+    var identity = identityTokensForUser(user);
+    return String(identity.primaryId || (identity.ids && identity.ids[0]) || '').trim();
+  }
+
+  function bookingBelongsToUser(row, user) {
+    if (!row || typeof row !== 'object') return false;
+    var identity = identityTokensForUser(user);
+    var recordIds = uniqueTokens([
+      row.customerId,
+      row.userId,
+      row.ownerId,
+      row.backendUserId,
+      row.customerUserId,
+      row.customer && row.customer.id,
+      row.customer && row.customer.userId
+    ]);
+    for (var i = 0; i < recordIds.length; i += 1) {
+      if (identity.ids.indexOf(recordIds[i]) >= 0) return true;
+    }
+
+    var recordEmails = uniqueTokens([
+      row.customerEmail,
+      row.email,
+      row.userEmail,
+      row.customer && row.customer.email,
+      row.customerSnapshot && row.customerSnapshot.email
+    ].map(normalizeEmailToken));
+    for (var j = 0; j < recordEmails.length; j += 1) {
+      if (identity.emails.indexOf(recordEmails[j]) >= 0) return true;
+    }
+
+    var recordPhones = uniqueTokens([
+      row.customerPhone,
+      row.phone,
+      row.mobile,
+      row.contact,
+      row.customer && row.customer.phone,
+      row.customerSnapshot && row.customerSnapshot.phone
+    ].map(normalizePhoneToken));
+    for (var k = 0; k < recordPhones.length; k += 1) {
+      if (identity.phones.indexOf(recordPhones[k]) >= 0) return true;
+    }
+
+    return false;
   }
 
   function mapBackendBookingToLocal(item, user) {
@@ -149,7 +275,8 @@
     return {
       id: bookingId,
       bookingId: bookingId,
-      customerId: String((user && (user.id || user.userId)) || '').trim(),
+      customerId: getPrimaryUserId(user),
+      backendUserId: String((user && (user.backendUserId || user._id || user.id || user.userId)) || '').trim(),
       customerName: String((user && (user.fullname || user.name)) || '').trim(),
       customerEmail: String((user && user.email) || '').trim(),
       customerPhone: String((user && (user.phone || user.mobile)) || '').trim(),
@@ -191,7 +318,9 @@
       editPolicyVersion: normalizeTextValue(item && item.editPolicyVersion, 80),
       createdAt: item && item.createdAt ? item.createdAt : new Date().toISOString(),
       updatedAt: item && item.updatedAt ? item.updatedAt : new Date().toISOString(),
-      adminReviewStatus: normalizeTextValue(item && item.adminReviewStatus, 40) || 'pending'
+      adminReviewStatus: normalizeTextValue(item && item.adminReviewStatus, 40) || 'pending',
+      backendSyncStatus: 'synced',
+      backendSyncedAt: new Date().toISOString()
     };
   }
 
@@ -213,9 +342,8 @@
 
   function mergeBackendBookingsIntoLocal(items, user) {
     var localRows = readLocalBookings();
-    var currentUserId = String((user && (user.id || user.userId)) || '').trim();
-    var localCurrentUserRows = localRows.filter(function (row) { return String((row && row.customerId) || '').trim() === currentUserId; });
-    var localOtherRows = localRows.filter(function (row) { return String((row && row.customerId) || '').trim() !== currentUserId; });
+    var localCurrentUserRows = localRows.filter(function (row) { return bookingBelongsToUser(row, user); });
+    var localOtherRows = localRows.filter(function (row) { return !bookingBelongsToUser(row, user); });
     var mergedMap = {};
     localCurrentUserRows.forEach(function (row) { var ref = getBookingRef(row); if (ref) mergedMap[ref] = Object.assign({}, row); });
     safeArray(items).forEach(function (item) {
@@ -229,6 +357,91 @@
     });
     writeLocalBookings(localOtherRows.concat(mergedCurrentUserRows));
     return mergedCurrentUserRows;
+  }
+
+  function getDashboardAccessTokenSafe() {
+    if (typeof getDashboardAccessToken === 'function') return getDashboardAccessToken();
+    return String(
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('authToken') ||
+      localStorage.getItem('token') ||
+      ''
+    ).trim();
+  }
+
+  function shouldSyncLocalBooking(row) {
+    if (!getBookingRef(row)) return false;
+    var status = String((row && (row.backendSyncStatus || row.liveBackendStatus)) || '').trim().toLowerCase();
+    if (status === 'synced') return false;
+    return true;
+  }
+
+  function markLocalBookingSyncResults(items, user) {
+    var resultMap = {};
+    safeArray(items).forEach(function (item) {
+      var ref = getBookingRef(item);
+      if (ref) resultMap[ref] = String(item.state || '').trim().toLowerCase();
+    });
+    if (!Object.keys(resultMap).length) return;
+
+    var rows = readLocalBookings().map(function (row) {
+      var ref = getBookingRef(row);
+      var state = ref ? resultMap[ref] : '';
+      if (!state || !bookingBelongsToUser(row, user)) return row;
+      if (state === 'synced' || state === 'existing') {
+        return Object.assign({}, row, {
+          backendSyncStatus: 'synced',
+          backendSyncedAt: new Date().toISOString()
+        });
+      }
+      return Object.assign({}, row, {
+        backendSyncStatus: 'retry',
+        backendSyncLastError: state || 'failed'
+      });
+    });
+    writeLocalBookings(rows);
+  }
+
+  async function syncLocalBookingsToBackend(user) {
+    if (bridge.localBookingSyncInFlight) return bridge.localBookingSyncInFlight;
+    var token = getDashboardAccessTokenSafe();
+    if (!token) return { ok: false, reason: 'missing_access_token', synced: 0 };
+
+    var candidates = readLocalBookings()
+      .filter(function (row) { return bookingBelongsToUser(row, user); })
+      .filter(shouldSyncLocalBooking)
+      .slice(0, 150);
+    if (!candidates.length) return { ok: true, synced: 0, existing: 0 };
+
+    bridge.localBookingSyncInFlight = (async function () {
+      var apiBases = getDashboardApiBasesSafe();
+      for (var i = 0; i < apiBases.length; i += 1) {
+        try {
+          var response = await fetchWithTimeoutSafe(apiBases[i] + '/api/bookings/sync-local', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + token,
+              'x-booking-client': 'goindiaride-web'
+            },
+            body: JSON.stringify({ bookings: candidates })
+          }, 18000);
+          var data = await response.json().catch(function () { return null; });
+          if (response.ok && data && data.ok !== false) {
+            markLocalBookingSyncResults(data.items || [], user);
+            return data;
+          }
+        } catch (_error) {}
+      }
+      return { ok: false, reason: 'backend_sync_failed', synced: 0 };
+    })();
+
+    try {
+      return await bridge.localBookingSyncInFlight;
+    } finally {
+      bridge.localBookingSyncInFlight = null;
+    }
   }
 
   async function fetchBackendBookings(user, forceSync) {
@@ -306,9 +519,9 @@
     }
     var user = getStoredUser();
     var identity = bootstrapIdentityFromUser(user);
-    var localRows = readLocalBookings().filter(function (row) {
-      return String((row && row.customerId) || '').trim() === String((user && (user.id || user.userId)) || '').trim();
-    });
+    await syncLocalBookingsToBackend(user);
+    writeLocalBookings(readLocalBookings());
+    var localRows = readLocalBookings().filter(function (row) { return bookingBelongsToUser(row, user); });
     var remote = await fetchBackendBookings(user, Boolean(settings.forceSync));
     var mergedRows = remote.ok && remote.items.length ? mergeBackendBookingsIntoLocal(remote.items, user) : localRows;
     window.__GOINDIARIDE_CUSTOMER_DASHBOARD_BOOKINGS__ = mergedRows.slice();

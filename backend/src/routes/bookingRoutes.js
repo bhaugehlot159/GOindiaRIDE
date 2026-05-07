@@ -374,6 +374,105 @@ function buildBookingContext(body = {}) {
   };
 }
 
+function normalizePersistedAmount(value, fallback = 0) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return Number(fallback || 0) || 0;
+  return Math.max(0, Number(parsed.toFixed(2)));
+}
+
+function safeMixedObject(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return value;
+}
+
+function normalizeLocalSyncBooking(raw = {}, user = {}, reqUser = {}) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const bookingId = sanitizeText(raw.bookingId || raw.id, 120)
+    .replace(/[^A-Za-z0-9:_-]/g, '')
+    .toUpperCase()
+    .slice(0, 120);
+  if (!bookingId) return null;
+
+  const context = buildBookingContext({
+    ...raw,
+    pickup: raw.pickup || raw.pickupLocation,
+    drop: raw.dropoff || raw.drop || raw.dropLocation,
+    vehicleType: raw.vehicleType || raw.rideType,
+    specialRequests: raw.specialRequests || raw.customerFeatures?.specialRequests,
+    safetyAccessibility: raw.safetyAccessibility || raw.customerFeatures?.safetyAccessibility,
+    budgetAmount: raw.budgetAmount || raw.fareBreakdown?.budgetAmount,
+    customerBidAmount: raw.customerBidAmount || raw.fareBreakdown?.customerBidAmount,
+    distanceSource: raw.distanceSource || raw.fareBreakdown?.distanceSource
+  });
+
+  const amount = normalizePersistedAmount(raw.amount || raw.totalFare || raw.fareQuote?.amount || raw.fareBreakdown?.totalFare);
+  const distanceKm = normalizePersistedAmount(raw.distanceKm || raw.distance || raw.fareQuote?.distanceKm || raw.fareBreakdown?.distanceKm);
+  const rawStatus = sanitizeText(raw.status, 40).toLowerCase();
+  const status = rawStatus === 'completed' ? 'completed' : (rawStatus === 'cancelled' ? 'cancelled' : 'created');
+  const rawAdminReviewStatus = sanitizeText(raw.adminReviewStatus, 40).toLowerCase();
+  const adminReviewStatus = ['approved', 'rejected'].includes(rawAdminReviewStatus) ? rawAdminReviewStatus : 'pending';
+  const fareBreakdown = safeMixedObject(raw.fareBreakdown);
+  const fareQuote = safeMixedObject(raw.fareQuote);
+  const payment = safeMixedObject(raw.payment);
+  const promo = safeMixedObject(raw.promo);
+  const customerFeatures = safeMixedObject(raw.customerFeatures);
+  const userId = sanitizeText(reqUser.id || reqUser._id || reqUser.sub || user._id || user.id, 80);
+
+  return {
+    bookingId,
+    userId,
+    cardHash: crypto
+      .createHash('sha256')
+      .update(`local-sync:${bookingId}:${userId}`)
+      .digest('hex'),
+    distanceKm,
+    amount,
+    budgetAmount: normalizePersistedAmount(raw.budgetAmount || fareBreakdown.budgetAmount),
+    customerBidAmount: normalizePersistedAmount(raw.customerBidAmount || fareBreakdown.customerBidAmount),
+    pickupLocation: context.pickupLocation,
+    dropLocation: context.dropLocation,
+    rideDate: context.rideDate,
+    rideTime: context.rideTime,
+    outboundDateTime: parseBookingRideStartDateTime({
+      outboundDateTime: raw.outboundDateTime,
+      rideDate: context.rideDate,
+      rideTime: context.rideTime
+    }),
+    returnDate: context.returnDate || sanitizeText(raw.returnTrip?.returnDate, 40),
+    returnTime: context.returnTime || sanitizeText(raw.returnTrip?.returnTime, 40),
+    tripPlan: context.tripPlan,
+    tripServiceType: context.tripServiceType,
+    paymentMethod: context.paymentMethod,
+    vehicleType: context.vehicleType,
+    vehicleModel: context.vehicleModel,
+    passengers: context.passengers,
+    luggage: context.luggage,
+    notes: context.notes,
+    stops: context.stops,
+    distanceSource: context.distanceSource,
+    specialRequests: context.specialRequests,
+    safetyAccessibility: context.safetyAccessibility,
+    customerSnapshot: {
+      name: sanitizeText(raw.customerName || raw.name || user.name, 140),
+      email: sanitizeText(raw.customerEmail || raw.email || user.email || reqUser.email, 180),
+      phone: formatCustomerPhoneForEmail(raw.customerPhone || raw.phone || user.phone)
+    },
+    fareBreakdown,
+    fareQuote: {
+      ...fareQuote,
+      amount: normalizePersistedAmount(fareQuote.amount, amount),
+      distanceKm: normalizePersistedAmount(fareQuote.distanceKm, distanceKm),
+      source: sanitizeText(fareQuote.source || context.distanceSource, 80)
+    },
+    fareHash: sanitizeText(raw.fareHash || fareBreakdown.fareHash, 240),
+    payment,
+    promo,
+    customerFeatures,
+    adminReviewStatus,
+    status
+  };
+}
+
 function splitCsvValues(value) {
   return String(value || '')
     .split(',')
@@ -1768,6 +1867,90 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     count: items.length,
     items
   });
+});
+
+router.post('/sync-local', authenticate, continuousRiskGate, async (req, res) => {
+  const rows = Array.isArray(req.body?.bookings) ? req.body.bookings.slice(0, 150) : [];
+  if (!rows.length) {
+    return res.status(200).json({
+      ok: true,
+      synced: 0,
+      existing: 0,
+      skipped: 0,
+      invalid: 0,
+      items: []
+    });
+  }
+
+  let customer = {};
+  try {
+    const foundCustomer = await User.findById(req.user.id).select('name fullname email phone mobile').lean();
+    customer = foundCustomer || {};
+  } catch (error) {
+    logger.warn('booking_local_sync_customer_lookup_failed', {
+      userId: req.user.id,
+      message: error.message
+    });
+  }
+
+  const result = {
+    ok: true,
+    synced: 0,
+    existing: 0,
+    skipped: 0,
+    invalid: 0,
+    items: []
+  };
+  const ip = getClientIp(req);
+
+  for (const row of rows) {
+    const normalized = normalizeLocalSyncBooking(row, customer, req.user);
+    if (!normalized || !normalized.bookingId || !normalized.userId) {
+      result.invalid += 1;
+      continue;
+    }
+
+    const itemResult = { bookingId: normalized.bookingId };
+    try {
+      const existing = await Booking.findOne({ bookingId: normalized.bookingId }).lean();
+      if (existing) {
+        if (String(existing.userId || '') !== String(req.user.id || '')) {
+          result.skipped += 1;
+          result.items.push({ ...itemResult, state: 'skipped_owner_mismatch' });
+          continue;
+        }
+        result.existing += 1;
+        result.items.push({ ...itemResult, state: 'existing' });
+        continue;
+      }
+
+      await Booking.create({
+        ...normalized,
+        ip,
+        statusHistory: [{
+          status: normalized.status || 'created',
+          source: 'customer_dashboard_local_sync',
+          note: 'Recovered from customer browser storage after login'
+        }]
+      });
+      result.synced += 1;
+      result.items.push({ ...itemResult, state: 'synced' });
+    } catch (error) {
+      if (error && error.code === 11000) {
+        result.existing += 1;
+        result.items.push({ ...itemResult, state: 'existing' });
+        continue;
+      }
+      result.skipped += 1;
+      result.items.push({
+        ...itemResult,
+        state: 'failed',
+        message: sanitizeText(error.message, 180)
+      });
+    }
+  }
+
+  return res.status(200).json(result);
 });
 
 router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
