@@ -1428,6 +1428,18 @@
         const qrImage = String(qr.imageDataUrl || qr.imageUrl || '').trim();
         const qrPayload = String(qr.payload || '').trim();
         const hasQr = Boolean(qr.available && (qrImage || qrPayload));
+        const isAppRedirect = checkout.provider === 'upi_app_redirect';
+        const isPaymentLinkRedirect = checkout.provider === 'payment_link_redirect';
+        const modalTitle = isAppRedirect
+            ? 'UPI App Payment'
+            : isPaymentLinkRedirect
+                ? 'Secure Gateway Redirect'
+                : 'Secure Payment Reference';
+        const footerHelp = hasQr
+            ? 'Payment complete hone ke baad UTR/reference submit karein. QR ko dusre phone se scan karwa sakte hain.'
+            : isPaymentLinkRedirect
+                ? 'Gateway checkout me payment complete karke wapas aayen, phir transaction reference submit karein.'
+                : 'Payment app me payment complete karke wapas aayen, phir UTR/reference submit karein.';
 
         return new Promise((resolve, reject) => {
             let completed = false;
