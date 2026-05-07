@@ -148,30 +148,9 @@ const RAZORPAY_TOPUP_MODES = new Set([
 ]);
 const UNIFIED_QR_CHECKOUT_ENABLED = String(process.env.UNIFIED_QR_CHECKOUT_ENABLED || 'true').trim().toLowerCase() !== 'false';
 const UNIFIED_QR_TOPUP_MODES = new Set([
-  'upi',
-  'upi_intent',
   'upi_qr',
   'bharat_qr',
-  'rupay_card',
-  'visa_master_amex',
-  'debit_card',
-  'credit_card',
-  'netbanking',
-  'net_banking',
-  'paytm_wallet',
-  'phonepe_wallet',
-  'googlepay_wallet',
-  'cashfree',
-  'stripe_cards',
-  'apple_pay',
-  'google_pay_intl',
-  'alipay',
-  'wechat_pay',
-  'international_qr',
-  'razorpay',
-  'runtime-ui',
-  'wallet_add',
-  'wallet_topup'
+  'international_qr'
 ]);
 const REFERENCE_QR_TOPUP_MODES = new Set(['upi_qr', 'bharat_qr', 'international_qr']);
 const UPI_REFERENCE_MODES = new Set(['upi', 'upi_intent', 'upi_qr', 'bharat_qr']);
@@ -180,6 +159,21 @@ const UPI_APP_TOPUP_MODES = new Set([
   'paytm_wallet',
   'phonepe_wallet',
   'googlepay_wallet'
+]);
+const UPI_APP_REDIRECT_TOPUP_MODES = new Set([
+  'upi',
+  'upi_intent',
+  'paytm_wallet',
+  'phonepe_wallet',
+  'googlepay_wallet'
+]);
+const PAYMENT_LINK_REDIRECT_TOPUP_MODES = new Set([
+  'cashfree',
+  'stripe_cards',
+  'apple_pay',
+  'google_pay_intl',
+  'alipay',
+  'wechat_pay'
 ]);
 const UPI_MERCHANT_VPA = firstEnvValue([
   'UPI_MERCHANT_VPA',
@@ -409,6 +403,26 @@ function shouldUseReferenceQrForTopup(paymentMode) {
   return REFERENCE_QR_TOPUP_MODES.has(normalizedMode);
 }
 
+function shouldUseUpiAppRedirectForTopup(paymentMode) {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  return UPI_APP_REDIRECT_TOPUP_MODES.has(normalizedMode);
+}
+
+function shouldUsePaymentLinkRedirectForTopup(paymentMode) {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  return PAYMENT_LINK_REDIRECT_TOPUP_MODES.has(normalizedMode);
+}
+
+function resolveTopupCheckoutMode(paymentMode, currency = 'INR') {
+  const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
+  if (shouldUseUnifiedRazorpayLinkForTopup(normalizedMode)) return 'qr_checkout';
+  if (canUsePayPalForTopup(normalizedMode)) return 'paypal_checkout';
+  if (canUseRazorpayForTopup(normalizedMode, currency)) return 'razorpay_checkout';
+  if (shouldUseUpiAppRedirectForTopup(normalizedMode)) return 'upi_app_redirect';
+  if (shouldUsePaymentLinkRedirectForTopup(normalizedMode)) return 'payment_link_redirect';
+  return 'customer_reference';
+}
+
 function replaceQrTemplate(raw, values) {
   let output = String(raw || '').trim();
   Object.entries(values).forEach(([key, value]) => {
@@ -613,6 +627,172 @@ function buildReferenceTopupActions(order, mode, qr) {
 
 function toRazorpaySubunits(amount) {
   return Math.round(Number(amount || 0) * 100);
+}
+
+function pickPreferredUpiAppLink(modeId, links) {
+  const rows = Array.isArray(links) ? links : [];
+  const preferredId = modeId === 'phonepe_wallet'
+    ? 'phonepe'
+    : modeId === 'googlepay_wallet'
+      ? 'gpay'
+      : modeId === 'paytm_wallet'
+        ? 'paytm'
+        : 'upi_any';
+  return rows.find((row) => row.id === preferredId) || rows[0] || null;
+}
+
+async function buildUpiAppRedirectTopupCheckout(order, mode) {
+  const qr = await buildReferenceTopupQr(order, mode);
+  const actions = buildReferenceTopupActions(order, mode, qr);
+  const links = Array.isArray(actions.links) ? actions.links : [];
+  const modeId = sanitizeText(mode.modeId, 80).toLowerCase();
+  const preferred = pickPreferredUpiAppLink(modeId, links);
+
+  if (!qr?.payload || !preferred?.url) {
+    return {
+      provider: 'upi_app_redirect',
+      available: false,
+      reason: qr?.setupMessage || actions?.setupMessage || 'UPI app payment is not configured on the backend',
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency,
+      paymentMode: modeId,
+      paymentModeLabel: sanitizeText(mode.label, 120),
+      gatewayStatus: {
+        provider: 'upi',
+        configured: false,
+        available: false,
+        missingEnv: ['UPI_MERCHANT_VPA'],
+        message: qr?.setupMessage || actions?.setupMessage || 'UPI app payment is not configured on the backend'
+      }
+    };
+  }
+
+  await WalletTopupOrder.updateOne(
+    { _id: order._id },
+    {
+      $set: {
+        'metadata.gateway': 'upi_app_redirect',
+        'metadata.referenceMode': mode.modeId,
+        'metadata.referenceModeLabel': mode.label,
+        'metadata.referenceRequired': true,
+        'metadata.qrAvailable': false,
+        'metadata.upiApp.preferred': preferred.id,
+        'metadata.upiApp.createdAt': new Date()
+      }
+    }
+  );
+
+  return {
+    provider: 'upi_app_redirect',
+    available: true,
+    requiresReference: true,
+    orderId: order.orderId,
+    amount: order.amount,
+    currency: order.currency,
+    paymentMode: modeId,
+    paymentModeLabel: sanitizeText(mode.label, 120),
+    description: `Open ${sanitizeText(mode.label, 120)} and submit UTR after payment`,
+    referenceLabel: 'UPI UTR / transaction reference',
+    autoOpenUrl: preferred.url,
+    qr: {
+      available: false,
+      type: 'hidden_upi_payload',
+      payload: qr.payload,
+      payee: qr.payee,
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency
+    },
+    actions: {
+      available: true,
+      modeId,
+      modeLabel: sanitizeText(mode.label, 120),
+      links,
+      setupMessage: ''
+    }
+  };
+}
+
+async function buildPaymentLinkRedirectTopupCheckout(order, mode) {
+  const modeId = sanitizeText(mode.modeId, 80).toLowerCase();
+  const templateUrl = MODE_PAYMENT_LINK_TEMPLATES[modeId];
+  const amount = toAmount(order.amount);
+  const values = {
+    orderId: order.orderId,
+    amount: Number.isFinite(amount) ? amount.toFixed(2) : order.amount,
+    currency: order.currency || 'INR',
+    mode: modeId
+  };
+  const paymentUrl = appendQrUrlParams(templateUrl, values);
+
+  if (!/^https?:\/\//i.test(String(paymentUrl || '').trim())) {
+    return {
+      provider: 'payment_link_redirect',
+      available: false,
+      reason: `${sanitizeText(mode.label, 120)} payment link is not configured on the backend`,
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency,
+      paymentMode: modeId,
+      paymentModeLabel: sanitizeText(mode.label, 120),
+      gatewayStatus: {
+        provider: modeId,
+        configured: false,
+        available: false,
+        missingEnv: [`${modeId.toUpperCase()}_PAYMENT_LINK_URL`],
+        message: `${sanitizeText(mode.label, 120)} payment link is not configured on the backend`
+      }
+    };
+  }
+
+  await WalletTopupOrder.updateOne(
+    { _id: order._id },
+    {
+      $set: {
+        'metadata.gateway': 'payment_link_redirect',
+        'metadata.referenceMode': mode.modeId,
+        'metadata.referenceModeLabel': mode.label,
+        'metadata.referenceRequired': true,
+        'metadata.qrAvailable': false,
+        'metadata.paymentLink.createdAt': new Date()
+      }
+    }
+  );
+
+  return {
+    provider: 'payment_link_redirect',
+    available: true,
+    requiresReference: true,
+    orderId: order.orderId,
+    amount: order.amount,
+    currency: order.currency,
+    paymentMode: modeId,
+    paymentModeLabel: sanitizeText(mode.label, 120),
+    description: `Open ${sanitizeText(mode.label, 120)} checkout and submit reference after payment`,
+    referenceLabel: 'Gateway / bank transaction reference',
+    autoOpenUrl: paymentUrl,
+    qr: {
+      available: false,
+      type: 'payment_link_redirect',
+      payload: '',
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency
+    },
+    actions: {
+      available: true,
+      modeId,
+      modeLabel: sanitizeText(mode.label, 120),
+      links: [{
+        id: `open_${modeId}`,
+        label: `Open ${sanitizeText(mode.label, 80)}`,
+        kind: 'web_link',
+        url: paymentUrl
+      }],
+      setupMessage: ''
+    }
+  };
 }
 
 function razorpayMethodOptions(paymentMode) {
@@ -927,12 +1107,6 @@ async function createPayPalRedirectTopupCheckout(order, mode) {
     return null;
   }
 
-  const imageDataUrl = await QRCode.toDataURL(approvalUrl, {
-    errorCorrectionLevel: 'M',
-    margin: 2,
-    width: 320
-  });
-
   return {
     ...paypalCheckout,
     provider: 'paypal_redirect',
@@ -941,16 +1115,16 @@ async function createPayPalRedirectTopupCheckout(order, mode) {
     paymentMode: sanitizeText(mode.modeId, 80).toLowerCase(),
     paymentModeLabel: sanitizeText(mode.label, 120),
     qr: {
-      available: true,
+      available: false,
       type: 'paypal_redirect',
       payload: approvalUrl,
-      imageDataUrl,
+      imageDataUrl: '',
       imageUrl: '',
       payee: 'PayPal Checkout',
       orderId: order.orderId,
       amount: order.amount,
       currency: order.currency,
-      instructions: 'QR scan karke ya button se PayPal checkout open karein. Payment complete hone ke baad confirm karein.'
+      instructions: 'Button se PayPal checkout open karein. Payment complete hone ke baad confirm karein.'
     },
     actions: {
       available: true,
@@ -1742,97 +1916,17 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   });
 
   let checkout = null;
-  if (shouldUseUnifiedRazorpayLinkForTopup(mode.modeId)) {
+  const modeId = sanitizeText(mode?.modeId, 80).toLowerCase();
+  const checkoutMode = resolveTopupCheckoutMode(modeId, currency);
+  if (checkoutMode === 'qr_checkout') {
     const razorpayStatus = buildRazorpayGatewayStatus();
-    if (razorpayStatus.available) {
+    if (razorpayStatus.available && modeId !== 'international_qr') {
       checkout = await createRazorpayUnifiedLinkTopupCheckout(order, mode);
       checkout.available = true;
       checkout.gatewayStatus = razorpayStatus;
     } else {
       const qr = await buildReferenceTopupQr(order, mode);
       const actions = buildReferenceTopupActions(order, mode, qr);
-      const payPalStatus = buildPayPalGatewayStatus(currency);
-      if ((!qr?.available || !actions?.available) && payPalStatus.available) {
-        const redirectCheckout = await createPayPalRedirectTopupCheckout(order, mode);
-        if (redirectCheckout) {
-          checkout = {
-            ...redirectCheckout,
-            gatewayStatus: payPalStatus
-          };
-        }
-      }
-
-      if (!checkout && qr?.available && actions?.available) {
-        await WalletTopupOrder.updateOne(
-          { _id: order._id },
-          {
-            $set: {
-              'metadata.gateway': 'customer_reference',
-              'metadata.referenceMode': mode.modeId,
-              'metadata.referenceModeLabel': mode.label,
-              'metadata.referenceRequired': true,
-              'metadata.qrAvailable': true,
-              'metadata.qrType': sanitizeText(qr?.type, 40)
-            }
-          }
-        );
-        checkout = {
-          provider: 'customer_reference',
-          available: true,
-          requiresReference: true,
-          orderId: order.orderId,
-          amount: order.amount,
-          currency: order.currency,
-          paymentMode: mode.modeId,
-          paymentModeLabel: mode.label,
-          description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
-          referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
-            ? 'UPI UTR / transaction reference'
-            : 'Gateway / bank transaction reference',
-          qr,
-          actions
-        };
-      }
-
-      if (!checkout) {
-        checkout = await buildRazorpayUnifiedCheckoutUnavailable(order, mode, razorpayStatus);
-      }
-    }
-  } else if (canUsePayPalForTopup(mode.modeId)) {
-    const gatewayStatus = buildPayPalGatewayStatus(currency);
-    if (!gatewayStatus.available) {
-      checkout = {
-        provider: 'paypal',
-        available: false,
-        reason: gatewayStatus.message,
-        gatewayStatus
-      };
-    } else {
-      checkout = await createPayPalTopupOrder(order, mode);
-      checkout.available = true;
-      checkout.gatewayStatus = gatewayStatus;
-    }
-  } else if (!shouldUseReferenceQrForTopup(mode.modeId) && canUseRazorpayForTopup(mode.modeId, currency) && isRazorpayConfigured()) {
-    checkout = await createRazorpayTopupOrder(order, mode);
-    checkout.available = true;
-  } else {
-    const qr = await buildReferenceTopupQr(order, mode);
-    const actions = buildReferenceTopupActions(order, mode, qr);
-    const payPalStatus = buildPayPalGatewayStatus(currency);
-    const modeId = sanitizeText(mode?.modeId, 80).toLowerCase();
-    const canUsePayPalFallback = PAYPAL_FALLBACK_TOPUP_MODES.has(modeId);
-    const needsRedirectFallback = (!qr?.available || !actions?.available) && payPalStatus.available && canUsePayPalFallback;
-    if (needsRedirectFallback) {
-      const redirectCheckout = await createPayPalRedirectTopupCheckout(order, mode);
-      if (redirectCheckout) {
-        checkout = {
-          ...redirectCheckout,
-          gatewayStatus: payPalStatus
-        };
-      }
-    }
-
-    if (!checkout) {
       await WalletTopupOrder.updateOne(
         { _id: order._id },
         {
@@ -1855,14 +1949,81 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
         currency: order.currency,
         paymentMode: mode.modeId,
         paymentModeLabel: mode.label,
-        description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
-        referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
-          ? 'UPI UTR / transaction reference'
-          : 'Gateway / bank transaction reference',
+        description: `Scan QR for ${mode.label} and submit gateway reference / UTR`,
+        referenceLabel: 'UPI UTR / transaction reference',
         qr,
         actions
       };
     }
+  } else if (checkoutMode === 'upi_app_redirect') {
+    checkout = await buildUpiAppRedirectTopupCheckout(order, mode);
+  } else if (checkoutMode === 'paypal_checkout') {
+    const gatewayStatus = buildPayPalGatewayStatus(currency);
+    if (!gatewayStatus.available) {
+      checkout = {
+        provider: 'paypal',
+        available: false,
+        reason: gatewayStatus.message,
+        gatewayStatus
+      };
+    } else {
+      checkout = await createPayPalTopupOrder(order, mode);
+      checkout.available = true;
+      checkout.gatewayStatus = gatewayStatus;
+    }
+  } else if (checkoutMode === 'razorpay_checkout') {
+    if (isRazorpayConfigured()) {
+      checkout = await createRazorpayTopupOrder(order, mode);
+      checkout.available = true;
+    } else if (modeId !== 'razorpay' && MODE_PAYMENT_LINK_TEMPLATES[modeId]) {
+      checkout = await buildPaymentLinkRedirectTopupCheckout(order, mode);
+    } else {
+      checkout = {
+        provider: 'razorpay',
+        available: false,
+        reason: 'Selected payment mode needs Razorpay live checkout on the backend',
+        gatewayStatus: buildRazorpayGatewayStatus(),
+        orderId: order.orderId,
+        amount: order.amount,
+        currency: order.currency,
+        paymentMode: mode.modeId,
+        paymentModeLabel: mode.label
+      };
+    }
+  } else if (checkoutMode === 'payment_link_redirect') {
+    checkout = await buildPaymentLinkRedirectTopupCheckout(order, mode);
+  } else {
+    const qr = await buildReferenceTopupQr(order, mode);
+    const actions = buildReferenceTopupActions(order, mode, qr);
+    await WalletTopupOrder.updateOne(
+      { _id: order._id },
+      {
+        $set: {
+          'metadata.gateway': 'customer_reference',
+          'metadata.referenceMode': mode.modeId,
+          'metadata.referenceModeLabel': mode.label,
+          'metadata.referenceRequired': true,
+          'metadata.qrAvailable': Boolean(qr && qr.available),
+          'metadata.qrType': sanitizeText(qr?.type, 40)
+        }
+      }
+    );
+    checkout = {
+      provider: 'customer_reference',
+      available: true,
+      requiresReference: true,
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency,
+      paymentMode: mode.modeId,
+      paymentModeLabel: mode.label,
+      description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
+      referenceLabel: UPI_APP_TOPUP_MODES.has(mode.modeId)
+        ? 'UPI UTR / transaction reference'
+        : 'Gateway / bank transaction reference',
+      qr,
+      actions
+    };
   }
 
   return res.status(201).json({
@@ -7971,3 +8132,12 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
 // === FUTURE_ROUTES_BUSINESS_WALLETROUTES_END ===
 
 module.exports = router;
+module.exports.__test = {
+  DEFAULT_PAYMENT_MODES,
+  resolveTopupCheckoutMode,
+  shouldUseReferenceQrForTopup,
+  shouldUseUpiAppRedirectForTopup,
+  shouldUsePaymentLinkRedirectForTopup,
+  canUsePayPalForTopup,
+  canUseRazorpayForTopup
+};

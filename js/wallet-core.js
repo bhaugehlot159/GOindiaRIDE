@@ -1274,6 +1274,18 @@
         const qrImage = String(qr.imageDataUrl || qr.imageUrl || '').trim();
         const qrPayload = String(qr.payload || '').trim();
         const hasQr = Boolean(qr.available && (qrImage || qrPayload));
+        const isAppRedirect = checkout.provider === 'upi_app_redirect';
+        const isPaymentLinkRedirect = checkout.provider === 'payment_link_redirect';
+        const modalTitle = isAppRedirect
+            ? 'UPI App Payment'
+            : isPaymentLinkRedirect
+                ? 'Secure Gateway Redirect'
+                : 'Secure Payment Reference';
+        const footerHelp = hasQr
+            ? 'Payment complete hone ke baad UTR/reference submit karein. QR ko dusre phone se scan karwa sakte hain.'
+            : isPaymentLinkRedirect
+                ? 'Gateway checkout me payment complete karke wapas aayen, phir transaction reference submit karein.'
+                : 'Payment app me payment complete karke wapas aayen, phir UTR/reference submit karein.';
 
         return new Promise((resolve, reject) => {
             let completed = false;
@@ -1580,7 +1592,7 @@
                 <div style="width:min(460px,100%);max-height:92vh;overflow:auto;background:#fff;color:#101828;border-radius:8px;box-shadow:0 22px 70px rgba(15,23,42,.28);padding:20px;">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
                         <div>
-                            <div style="font-weight:700;font-size:18px;">Secure Payment Reference</div>
+                            <div style="font-weight:700;font-size:18px;">${modalTitle}</div>
                             <div style="font-size:13px;color:#667085;margin-top:4px;">${modeLabel} - ${amountText}</div>
                         </div>
                         <button type="button" aria-label="Close payment reference" data-reference-close style="border:0;background:#f2f4f7;border-radius:8px;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;">&times;</button>
@@ -1606,7 +1618,7 @@
                     <input data-proof-file type="file" accept="image/png,image/jpeg,image/webp" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:10px;font-size:13px;margin-bottom:8px;background:#fff;">
                     <div data-proof-status style="font-size:12px;color:#667085;line-height:1.4;margin-bottom:10px;">Screenshot attach karne se admin approval fast ho jata hai.</div>
                     <div data-reference-error style="display:none;color:#b42318;font-size:13px;margin-bottom:10px;"></div>
-                    <div style="font-size:12px;color:#667085;line-height:1.45;margin-bottom:14px;">Payment complete hone ke baad UTR/reference submit karein. QR ko dusre phone se scan karwa sakte hain.</div>
+                    <div style="font-size:12px;color:#667085;line-height:1.45;margin-bottom:14px;">${footerHelp}</div>
                     <div style="display:flex;gap:10px;justify-content:flex-end;">
                         <button type="button" data-reference-cancel style="border:1px solid #d0d5dd;background:#fff;color:#101828;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Cancel</button>
                         <button type="button" data-reference-confirm style="border:0;background:#2b145f;color:#fff;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Confirm Payment</button>
@@ -1840,6 +1852,10 @@
 
             document.body.appendChild(overlay);
             if (input) input.focus();
+            const autoOpenUrl = String(checkout.autoOpenUrl || '').trim();
+            if ((isAppRedirect || isPaymentLinkRedirect) && autoOpenUrl) {
+                setTimeout(() => launchUrl(autoOpenUrl), 120);
+            }
         });
     }
 
@@ -1877,6 +1893,36 @@
                 confirmation: payment.confirmation,
                 liveGateway: 'paypal'
             };
+        }
+
+        if (checkout && checkout.provider === 'upi_app_redirect' && checkout.available) {
+            const payment = await openReferenceTopupConfirmation(checkout);
+            return {
+                order,
+                checkout,
+                payment,
+                confirmation: payment.confirmation,
+                liveGateway: 'upi_app_redirect'
+            };
+        }
+
+        if (checkout && checkout.provider === 'upi_app_redirect' && checkout.available === false) {
+            throw new Error(checkout.reason || 'UPI app payment is not configured on the backend.');
+        }
+
+        if (checkout && checkout.provider === 'payment_link_redirect' && checkout.available) {
+            const payment = await openReferenceTopupConfirmation(checkout);
+            return {
+                order,
+                checkout,
+                payment,
+                confirmation: payment.confirmation,
+                liveGateway: 'payment_link_redirect'
+            };
+        }
+
+        if (checkout && checkout.provider === 'payment_link_redirect' && checkout.available === false) {
+            throw new Error(checkout.reason || 'Selected payment mode is not configured on the backend.');
         }
 
         if (checkout && checkout.provider === 'customer_reference' && checkout.available) {
