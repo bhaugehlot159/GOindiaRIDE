@@ -135,10 +135,11 @@ const DEFAULT_PAYMENT_MODES = [
   { modeId: 'google_pay_intl', label: 'Google Pay (International)', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 14 },
   { modeId: 'alipay', label: 'Alipay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 15 },
   { modeId: 'wechat_pay', label: 'WeChat Pay', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 16 },
-  { modeId: 'swift_wire', label: 'SWIFT Wire Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 17 },
-  { modeId: 'sepa', label: 'SEPA Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 18 },
-  { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 19 },
-  { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 20 }
+  { modeId: 'international_qr', label: 'International QR', region: 'international', enabled: true, flows: ['add_money', 'ride_payment', 'donation'], displayOrder: 17 },
+  { modeId: 'swift_wire', label: 'SWIFT Wire Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 18 },
+  { modeId: 'sepa', label: 'SEPA Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 19 },
+  { modeId: 'ach', label: 'ACH Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 20 },
+  { modeId: 'wise', label: 'Wise Transfer', region: 'international', enabled: true, flows: ['withdrawal', 'donation'], displayOrder: 21 }
 ];
 
 let modesSeeded = false;
@@ -737,14 +738,6 @@ async function getEnabledModesForFlow(flow) {
     .sort({ displayOrder: 1, label: 1 })
     .lean();
 
-  if (normalizedFlow === 'add_money') {
-    return modes.sort((a, b) => {
-      const aPayPal = PAYPAL_TOPUP_MODES.has(String(a.modeId || '').toLowerCase()) ? 0 : 1;
-      const bPayPal = PAYPAL_TOPUP_MODES.has(String(b.modeId || '').toLowerCase()) ? 0 : 1;
-      return aPayPal - bPayPal;
-    });
-  }
-
   return modes;
 }
 
@@ -1058,16 +1051,10 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     return res.status(400).json({ message: `Top-up amount must be between ${TOPUP_MIN} and ${TOPUP_MAX}` });
   }
 
-  const selectedMode = await findMode(paymentMode, 'add_money') || {
+  const mode = await findMode(paymentMode, 'add_money') || {
     modeId: paymentMode || 'legacy_add_money',
     label: paymentMode || 'Legacy add-money selection'
   };
-
-  const paypalMode = await findMode('paypal', 'add_money') || {
-    modeId: 'paypal',
-    label: 'PayPal Checkout'
-  };
-  const mode = paypalMode;
 
   if (clientReference) {
     const duplicate = await WalletTopupOrder.findOne({
@@ -1099,8 +1086,6 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     initiatedBy: String(req.user.id),
     expiresAt: new Date(Date.now() + TOPUP_EXPIRY_MS),
     metadata: {
-      selectedPaymentMode: selectedMode.modeId,
-      selectedPaymentModeLabel: selectedMode.label,
       ip: getClientIp(req),
       userAgent: sanitizeText(req.headers['user-agent'], 240)
     }
@@ -1123,18 +1108,49 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
   });
 
   let checkout = null;
-  const gatewayStatus = buildPayPalGatewayStatus(currency);
-  if (!gatewayStatus.available) {
-    checkout = {
-      provider: 'paypal',
-      available: false,
-      reason: gatewayStatus.message,
-      gatewayStatus
-    };
-  } else {
-    checkout = await createPayPalTopupOrder(order, mode);
+  if (canUsePayPalForTopup(mode.modeId)) {
+    const gatewayStatus = buildPayPalGatewayStatus(currency);
+    if (!gatewayStatus.available) {
+      checkout = {
+        provider: 'paypal',
+        available: false,
+        reason: gatewayStatus.message,
+        gatewayStatus
+      };
+    } else {
+      checkout = await createPayPalTopupOrder(order, mode);
+      checkout.available = true;
+      checkout.gatewayStatus = gatewayStatus;
+    }
+  } else if (canUseRazorpayForTopup(mode.modeId, currency) && isRazorpayConfigured()) {
+    checkout = await createRazorpayTopupOrder(order, mode);
     checkout.available = true;
-    checkout.gatewayStatus = gatewayStatus;
+  } else {
+    await WalletTopupOrder.updateOne(
+      { _id: order._id },
+      {
+        $set: {
+          'metadata.gateway': 'customer_reference',
+          'metadata.referenceMode': mode.modeId,
+          'metadata.referenceModeLabel': mode.label,
+          'metadata.referenceRequired': true
+        }
+      }
+    );
+    checkout = {
+      provider: 'customer_reference',
+      available: true,
+      requiresReference: true,
+      orderId: order.orderId,
+      amount: order.amount,
+      currency: order.currency,
+      paymentMode: mode.modeId,
+      paymentModeLabel: mode.label,
+      description: `Complete payment via ${mode.label} and submit gateway reference / UTR`,
+      referenceLabel: ['upi', 'upi_intent', 'upi_qr', 'bharat_qr'].includes(mode.modeId)
+        ? 'UPI UTR / transaction reference'
+        : 'Gateway / bank transaction reference'
+    };
   }
 
   return res.status(201).json({
@@ -1549,7 +1565,7 @@ router.post('/topup/paypal/capture', walletCriticalLimiter, wrapAsync(async (req
   }
 }));
 
-router.post('/topup/confirm', walletCriticalLimiter, strictWalletSignature, wrapAsync(async (req, res) => {
+router.post('/topup/confirm', walletCriticalLimiter, wrapAsync(async (req, res) => {
   const actorType = resolveActorWalletType(req.user);
   if (!TOPUP_ALLOWED_TYPES.has(actorType)) {
     return res.status(403).json({ message: 'Top-up not allowed for this account' });
@@ -1579,6 +1595,13 @@ router.post('/topup/confirm', walletCriticalLimiter, strictWalletSignature, wrap
   const existingOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId });
   if (!existingOrder) {
     return res.status(404).json({ message: 'Top-up order not found' });
+  }
+
+  const existingGateway = sanitizeText(existingOrder.metadata?.gateway, 80).toLowerCase();
+  if (['paypal', 'razorpay'].includes(existingGateway)) {
+    return res.status(409).json({
+      message: `${existingGateway} top-up must be verified by its secure checkout callback. Please use the checkout button again.`
+    });
   }
 
   if (existingOrder.status === 'confirmed') {
@@ -1656,6 +1679,9 @@ router.post('/topup/confirm', walletCriticalLimiter, strictWalletSignature, wrap
         $set: {
           status: 'confirmed',
           providerReference,
+          'metadata.gateway': existingGateway || 'customer_reference',
+          'metadata.referenceSubmittedAt': new Date(),
+          'metadata.referenceSubmittedBy': String(req.user.id),
           'metadata.confirmationLock': false,
           'metadata.confirmedAt': new Date(),
           'metadata.confirmedBy': String(req.user.id)
@@ -4887,7 +4913,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     return res.status(409).json({
       ok: false,
       livePaymentRequired: true,
-      message: 'Legacy/demo wallet top-up is disabled. Use /api/wallet/topup/order with PayPal Checkout and /api/wallet/topup/paypal/capture.'
+      message: 'Legacy/demo wallet top-up is disabled. Use /api/wallet/topup/order with an enabled online payment mode and the matching secure verification flow.'
     });
 
     const store = getStore();

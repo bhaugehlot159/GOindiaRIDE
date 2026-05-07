@@ -446,14 +446,6 @@
             return true;
         });
 
-        if (flow === 'add_money') {
-            modes.sort((a, b) => {
-                const aPayPal = a.id === 'paypal' || a.id === 'paypal_wallet' ? 0 : 1;
-                const bPayPal = b.id === 'paypal' || b.id === 'paypal_wallet' ? 0 : 1;
-                return aPayPal - bPayPal;
-            });
-        }
-
         return modes;
     }
 
@@ -1041,14 +1033,6 @@
             flows: Array.isArray(row.flows) ? row.flows : []
         }));
 
-        if (normalizedFlow === 'add_money') {
-            normalizedRows.sort((a, b) => {
-                const aPayPal = a.id === 'paypal' || a.id === 'paypal_wallet' ? 0 : 1;
-                const bPayPal = b.id === 'paypal' || b.id === 'paypal_wallet' ? 0 : 1;
-                return aPayPal - bPayPal;
-            });
-        }
-
         return normalizedRows;
     }
 
@@ -1262,6 +1246,31 @@
         });
     }
 
+    async function openReferenceTopupConfirmation(checkout) {
+        const label = sanitizeText(checkout.referenceLabel || 'Gateway / bank transaction reference', 120);
+        const modeLabel = sanitizeText(checkout.paymentModeLabel || checkout.paymentMode || 'selected payment mode', 120);
+        const amountText = `${sanitizeText(checkout.currency || 'INR', 8)} ${sanitizeText(String(checkout.amount || ''), 24)}`;
+        const providerReference = window.prompt(
+            `Payment complete karne ke baad ${label} enter karein.\n\nMode: ${modeLabel}\nAmount: ${amountText}`,
+            ''
+        );
+
+        if (!providerReference || providerReference.trim().length < 5) {
+            throw new Error('Gateway reference / UTR required hai. Payment complete karke valid reference enter karein.');
+        }
+
+        const confirmation = await confirmSecureTopupOrder({
+            orderId: checkout.orderId,
+            providerReference: providerReference.trim()
+        });
+
+        return {
+            orderId: checkout.orderId,
+            providerReference: providerReference.trim(),
+            confirmation
+        };
+    }
+
     async function startSecureTopupCheckout({ amount, paymentMode, currency, clientReference }) {
         const orderPayload = await createSecureTopupOrder({
             amount,
@@ -1271,6 +1280,17 @@
         });
         const order = orderPayload.order || orderPayload;
         const checkout = orderPayload.checkout || null;
+
+        if (checkout && checkout.provider === 'customer_reference' && checkout.available) {
+            const payment = await openReferenceTopupConfirmation(checkout);
+            return {
+                order,
+                checkout,
+                payment,
+                confirmation: payment.confirmation,
+                liveGateway: 'customer_reference'
+            };
+        }
 
         if (checkout && checkout.provider === 'paypal' && checkout.available) {
             const payment = await openPayPalCheckout(checkout);
@@ -1304,7 +1324,7 @@
             throw new Error(getRazorpaySetupMessage(checkout));
         }
 
-        throw new Error('Selected payment mode is not connected to live checkout yet. Please choose PayPal Checkout.');
+        throw new Error('Selected payment mode is not connected to a live checkout yet. Please choose another enabled mode or submit a valid gateway reference / UTR.');
     }
 
     async function createSecureWithdrawalRequest({ amount, method, destination, notes }) {

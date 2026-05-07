@@ -1613,7 +1613,6 @@
             }
 
             return [
-                { id: 'paypal', label: 'PayPal Checkout (International)' },
                 { id: 'upi_intent', label: 'UPI Intent (India)' },
                 { id: 'upi_qr', label: 'UPI QR Scan (India)' },
                 { id: 'bharat_qr', label: 'Bharat QR (India)' },
@@ -1622,6 +1621,7 @@
                 { id: 'cashfree', label: 'Cashfree Gateway (India)' },
                 { id: 'visa_master_amex', label: 'Visa / MasterCard / Amex (Global)' },
                 { id: 'stripe_cards', label: 'Stripe Cards (International)' },
+                { id: 'paypal', label: 'PayPal Checkout (International)' },
                 { id: 'apple_pay', label: 'Apple Pay (International)' },
                 { id: 'google_pay_intl', label: 'Google Pay International' },
                 { id: 'alipay', label: 'Alipay (International)' },
@@ -1665,7 +1665,7 @@
                     ? 'Secure backend session not found. Please login again to use live wallet actions.'
                     : paypalMissing && window.WalletCore && typeof WalletCore.getPayPalSetupMessage === 'function'
                         ? WalletCore.getPayPalSetupMessage(paypalStatus)
-                        : 'LIVE secure backend + PayPal Checkout active. Payment methods and withdrawal approvals are controlled by admin.';
+                        : 'LIVE secure backend + all online payment modes active. Payment methods and withdrawal approvals are controlled by admin.';
                 modeNode.style.color = liveMode && !paypalMissing ? '#0b8f5d' : '#b54708';
             }
 
@@ -1733,7 +1733,7 @@
                 return;
             }
             if (!window.WalletCore || typeof WalletCore.startSecureTopupCheckout !== 'function') {
-                showError('Real payment ke liye PayPal Checkout required hai. Demo/manual wallet top-up disabled hai. Please hard refresh and login again.');
+                showError('Real payment ke liye enabled online payment mode required hai. Demo/manual wallet top-up disabled hai. Please hard refresh and login again.');
                 return;
             }
             if (!Number.isFinite(amount) || amount < 10) {
@@ -2284,7 +2284,7 @@
 
     <!-- Core System Scripts -->
     <script src="../js/database.js"></script>
-    <script src="../js/wallet-core.js?v=20260507-paypal2"></script>
+    <script src="../js/wallet-core.js?v=20260507-allpay2"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
     <script src="../js/route-suggestions.js"></script>
@@ -26219,7 +26219,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
 }
 </script>
 <script src="/js/future-feature-runtime.js?v=20260317-ratingfare1"></script>
-<script src="/js/future-feature-runtime-extensions.js?v=20260507-paypal2"></script>
+<script src="/js/future-feature-runtime-extensions.js?v=20260507-allpay2"></script>
 <script src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1"></script>
 <script src="/js/ultimate/features-driver.js?v=20260316-ultimate1"></script>
 <script src="/js/future-feature-runtime-dock.js?v=20260317-adminonly1"></script>

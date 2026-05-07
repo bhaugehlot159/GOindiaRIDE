@@ -158,10 +158,10 @@ function getAddMoneyContent() {
                 <label class="form-label">Payment Method</label>
                 <select name="paymentMethod" class="form-select" required>
                     <option value="">Select payment method</option>
-                    <option value="paypal">PayPal Checkout</option>
                     <option value="upi">UPI</option>
                     <option value="card">Credit/Debit Card</option>
                     <option value="netbanking">Net Banking</option>
+                    <option value="paypal">PayPal Checkout</option>
                 </select>
             </div>
             
@@ -199,11 +199,11 @@ async function processAddMoney(event) {
     }
 
     if (!canUseLiveDriverTopup()) {
-        showToast('Real payment ke liye live login/session aur PayPal Checkout required hai. Demo add money disabled hai.', 'error');
+        showToast('Real payment ke liye live login/session aur enabled online payment mode required hai. Demo add money disabled hai.', 'error');
         return;
     }
     
-    showToast('Opening secure PayPal Checkout...', 'info');
+    showToast('Opening secure payment checkout...', 'info');
 
     try {
         const clientReference = `DRVPORTAL_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
@@ -214,7 +214,7 @@ async function processAddMoney(event) {
             clientReference
         });
 
-        showToast('Live payment verified. Wallet top-up successful.', 'success');
+        showToast('Payment reference accepted. Wallet top-up successful.', 'success');
         closeAllModals();
         updateWalletBalance();
         setTimeout(() => openWallet(), 300);

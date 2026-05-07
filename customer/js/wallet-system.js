@@ -30,7 +30,7 @@ function canUseLiveCustomerTopup() {
 }
 
 function showLivePaymentRequired() {
-    CustomerPortal.showToast('Real payment ke liye live login/session aur PayPal Checkout required hai. Demo add money disabled hai.', 'error');
+    CustomerPortal.showToast('Real payment ke liye live login/session aur enabled online payment mode required hai. Demo add money disabled hai.', 'error');
 }
 
 async function refreshSecureCustomerWalletSnapshot(forceSync = false) {
@@ -154,7 +154,7 @@ async function handleAddMoney() {
         updateWalletUI();
         CustomerPortal.hideLoading();
         CustomerPortal.closeModal('addMoneyModal');
-        CustomerPortal.showToast('Live payment verified. Wallet top-up successful.', 'success');
+        CustomerPortal.showToast('Payment reference accepted. Wallet top-up successful.', 'success');
 
         document.getElementById('customAmount').value = '';
         document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
@@ -915,12 +915,20 @@ function getEnabledPaymentModes(flow) {
     }
 
     const fallback = [
-        { id: 'paypal', label: 'PayPal Checkout', regionLabel: 'International' },
-        { id: 'upi', label: 'UPI', regionLabel: 'India' },
+        { id: 'upi_intent', label: 'UPI Intent', regionLabel: 'India' },
         { id: 'upi_qr', label: 'UPI QR Scan', regionLabel: 'India' },
-        { id: 'debit_card', label: 'Debit/Credit Card', regionLabel: 'India' },
-        { id: 'netbanking', label: 'Net Banking', regionLabel: 'India' },
+        { id: 'bharat_qr', label: 'Bharat QR', regionLabel: 'India' },
+        { id: 'rupay_card', label: 'RuPay Card', regionLabel: 'India' },
+        { id: 'visa_master_amex', label: 'Visa / MasterCard / Amex', regionLabel: 'Global' },
+        { id: 'net_banking', label: 'Net Banking', regionLabel: 'India' },
+        { id: 'cashfree', label: 'Cashfree Gateway', regionLabel: 'India' },
         { id: 'stripe_cards', label: 'Stripe Cards', regionLabel: 'International' },
+        { id: 'paypal', label: 'PayPal Checkout', regionLabel: 'International' },
+        { id: 'apple_pay', label: 'Apple Pay', regionLabel: 'International' },
+        { id: 'google_pay_intl', label: 'Google Pay International', regionLabel: 'International' },
+        { id: 'alipay', label: 'Alipay', regionLabel: 'International' },
+        { id: 'wechat_pay', label: 'WeChat Pay', regionLabel: 'International' },
+        { id: 'international_qr', label: 'International QR', regionLabel: 'International' },
         { id: 'swift_wire', label: 'SWIFT Wire', regionLabel: 'International' }
     ];
 
