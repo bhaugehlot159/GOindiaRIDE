@@ -1140,6 +1140,17 @@
         });
     }
 
+    async function verifyRazorpayLinkTopupPayment({ orderId, providerReference }) {
+        return secureWalletRequest('/api/wallet/topup/razorpay-link/verify', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                orderId,
+                providerReference: providerReference || ''
+            }
+        });
+    }
+
     async function openRazorpayCheckout(checkout) {
         const Razorpay = await loadRazorpayCheckout();
         return new Promise((resolve, reject) => {
@@ -1388,6 +1399,158 @@
                         confirmButton.disabled = false;
                         confirmButton.textContent = 'I Have Completed Payment';
                         showError(error.message || 'Payment abhi complete nahi mila. Pehle payment approve karke phir try karein.');
+                    }
+                });
+            }
+
+            document.body.appendChild(overlay);
+        });
+    }
+
+    async function openRazorpayLinkCheckout(checkout) {
+        const modeLabel = sanitizeText(checkout.paymentModeLabel || checkout.paymentMode || 'Online Payment Mode', 120);
+        const amountText = `${sanitizeText(checkout.currency || 'INR', 8)} ${sanitizeText(String(checkout.amount || ''), 24)}`;
+        const qr = checkout.qr || {};
+        const actions = checkout.actions || {};
+        const actionLinks = Array.isArray(actions.links) ? actions.links : [];
+        const qrImage = String(qr.imageDataUrl || qr.imageUrl || '').trim();
+        const qrPayload = String(qr.payload || '').trim();
+        const hasQr = Boolean(qr.available && (qrImage || qrPayload));
+
+        return new Promise((resolve, reject) => {
+            let completed = false;
+            const overlay = document.createElement('div');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(10,14,28,.62);display:flex;align-items:center;justify-content:center;padding:18px;';
+            overlay.innerHTML = `
+                <div style="width:min(460px,100%);max-height:92vh;overflow:auto;background:#fff;color:#101828;border-radius:8px;box-shadow:0 22px 70px rgba(15,23,42,.28);padding:20px;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <div style="font-weight:700;font-size:18px;">All Payment Modes QR</div>
+                            <div style="font-size:13px;color:#667085;margin-top:4px;">${modeLabel} - ${amountText}</div>
+                        </div>
+                        <button type="button" aria-label="Close payment checkout" data-close style="border:0;background:#f2f4f7;border-radius:8px;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;">&times;</button>
+                    </div>
+                    <div data-qr-wrap style="display:${hasQr ? 'block' : 'none'};border:1px solid #e4e7ec;border-radius:8px;padding:14px;margin-bottom:14px;text-align:center;background:#fcfcfd;">
+                        <img data-qr-image alt="Payment QR code" style="display:none;width:min(260px,100%);height:auto;margin:0 auto 12px;border:1px solid #eaecf0;border-radius:8px;background:#fff;padding:8px;">
+                        <div style="font-size:13px;color:#344054;line-height:1.45;">Is QR ko scan karke customer UPI, card, net banking, wallet se payment kar sakta hai.</div>
+                    </div>
+                    <div data-actions style="display:none;border:1px solid #d0d5dd;border-radius:8px;padding:12px;margin-bottom:14px;background:#f8f9fc;">
+                        <div style="font-size:13px;font-weight:700;color:#344054;margin-bottom:8px;">Open Secure Checkout</div>
+                        <div data-action-buttons style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                    </div>
+                    <div data-error style="display:none;color:#b42318;font-size:13px;margin-bottom:10px;"></div>
+                    <div style="font-size:12px;color:#667085;line-height:1.45;margin-bottom:14px;">Payment complete hone ke baad "I Have Completed Payment" dabayein. System backend par live verify karega.</div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button type="button" data-cancel style="border:1px solid #d0d5dd;background:#fff;color:#101828;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Cancel</button>
+                        <button type="button" data-confirm style="border:0;background:#2b145f;color:#fff;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">I Have Completed Payment</button>
+                    </div>
+                </div>
+            `;
+
+            const cleanup = () => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            };
+            const showError = (message) => {
+                const node = overlay.querySelector('[data-error]');
+                if (!node) return;
+                node.textContent = message;
+                node.style.display = 'block';
+            };
+            const clearError = () => {
+                const node = overlay.querySelector('[data-error]');
+                if (!node) return;
+                node.textContent = '';
+                node.style.display = 'none';
+            };
+            const closeWithCancel = () => {
+                cleanup();
+                if (!completed) reject(new Error('Payment checkout was cancelled'));
+            };
+            const launchUrl = (rawUrl) => {
+                const url = String(rawUrl || '').trim();
+                if (!/^(https?:\/\/|upi:\/\/|tez:\/\/|phonepe:\/\/|paytmmp:\/\/|intent:\/\/)/i.test(url)) {
+                    showError('Invalid payment app URL.');
+                    return;
+                }
+                const popup = window.open(url, '_blank', 'noopener,noreferrer');
+                if (!popup) window.location.href = url;
+            };
+
+            const qrImageNode = overlay.querySelector('[data-qr-image]');
+            if (hasQr && qrImageNode && qrImage) {
+                qrImageNode.setAttribute('src', qrImage);
+                qrImageNode.style.display = 'block';
+                qrImageNode.style.cursor = 'zoom-in';
+                qrImageNode.title = 'Open QR in new tab';
+                qrImageNode.addEventListener('click', () => {
+                    const w = window.open();
+                    if (w) w.document.write(`<img src="${qrImage}" alt="Payment QR" style="max-width:100%;height:auto;">`);
+                });
+            }
+
+            const actionsWrap = overlay.querySelector('[data-actions]');
+            const actionButtons = overlay.querySelector('[data-action-buttons]');
+            if (actionsWrap && actionButtons && actionLinks.length) {
+                const buttonsHtml = actionLinks.map((row) => {
+                    const safeLabel = sanitizeText(row.label || 'Open', 60);
+                    const safeUrl = encodeURIComponent(String(row.url || '').trim());
+                    if (!safeUrl) return '';
+                    return `<button type="button" data-action-url="${safeUrl}" style="border:1px solid #c7d7fe;background:#fff;color:#1f3c88;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;">${safeLabel}</button>`;
+                }).filter(Boolean).join('');
+                if (buttonsHtml) {
+                    actionsWrap.style.display = 'block';
+                    actionButtons.innerHTML = buttonsHtml;
+                    actionButtons.addEventListener('click', (event) => {
+                        const target = event.target.closest('[data-action-url]');
+                        if (!target) return;
+                        let actionUrl = target.getAttribute('data-action-url') || '';
+                        try {
+                            actionUrl = decodeURIComponent(actionUrl);
+                        } catch (_error) {}
+                        launchUrl(actionUrl);
+                    });
+                }
+            }
+
+            if ((!actionLinks.length || !hasQr) && qrPayload) {
+                const autoOpenButton = document.createElement('button');
+                autoOpenButton.type = 'button';
+                autoOpenButton.textContent = 'Open Payment Link';
+                autoOpenButton.style.cssText = 'border:1px solid #c7d7fe;background:#fff;color:#1f3c88;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;';
+                autoOpenButton.addEventListener('click', () => launchUrl(qrPayload));
+                const qrWrap = overlay.querySelector('[data-qr-wrap]');
+                if (qrWrap) qrWrap.appendChild(autoOpenButton);
+            }
+
+            const cancelButton = overlay.querySelector('[data-cancel]');
+            const closeButton = overlay.querySelector('[data-close]');
+            const confirmButton = overlay.querySelector('[data-confirm]');
+
+            if (cancelButton) cancelButton.addEventListener('click', closeWithCancel);
+            if (closeButton) closeButton.addEventListener('click', closeWithCancel);
+            if (confirmButton) {
+                confirmButton.addEventListener('click', async () => {
+                    clearError();
+                    confirmButton.disabled = true;
+                    confirmButton.textContent = 'Verifying...';
+                    try {
+                        const confirmation = await verifyRazorpayLinkTopupPayment({
+                            orderId: checkout.orderId,
+                            providerReference: checkout.providerLinkId || ''
+                        });
+                        completed = true;
+                        cleanup();
+                        resolve({
+                            orderId: checkout.orderId,
+                            providerLinkId: checkout.providerLinkId || '',
+                            confirmation
+                        });
+                    } catch (error) {
+                        confirmButton.disabled = false;
+                        confirmButton.textContent = 'I Have Completed Payment';
+                        showError(error.message || 'Payment abhi complete nahi mila. Pehle payment complete करके फिर try karein.');
                     }
                 });
             }
@@ -1690,6 +1853,17 @@
         const order = orderPayload.order || orderPayload;
         const checkout = orderPayload.checkout || null;
 
+        if (checkout && checkout.provider === 'razorpay_link' && checkout.available) {
+            const payment = await openRazorpayLinkCheckout(checkout);
+            return {
+                order,
+                checkout,
+                payment,
+                confirmation: payment.confirmation,
+                liveGateway: 'razorpay_link'
+            };
+        }
+
         if (checkout && checkout.provider === 'paypal_redirect' && checkout.available) {
             const payment = await openPayPalRedirectCheckout(checkout);
             return {
@@ -1899,6 +2073,7 @@
         createSecureTopupOrder,
         confirmSecureTopupOrder,
         verifyRazorpayTopupPayment,
+        verifyRazorpayLinkTopupPayment,
         capturePayPalTopupPayment,
         startSecureTopupCheckout,
         getRazorpaySetupMessage,
