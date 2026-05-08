@@ -417,8 +417,8 @@ function resolveTopupCheckoutMode(paymentMode, currency = 'INR') {
   const normalizedMode = sanitizeText(paymentMode, 80).toLowerCase();
   if (shouldUseUnifiedRazorpayLinkForTopup(normalizedMode)) return 'qr_checkout';
   if (canUsePayPalForTopup(normalizedMode)) return 'paypal_checkout';
-  if (canUseRazorpayForTopup(normalizedMode, currency)) return 'razorpay_checkout';
   if (shouldUseUpiAppRedirectForTopup(normalizedMode)) return 'upi_app_redirect';
+  if (canUseRazorpayForTopup(normalizedMode, currency)) return 'razorpay_checkout';
   if (shouldUsePaymentLinkRedirectForTopup(normalizedMode)) return 'payment_link_redirect';
   return 'customer_reference';
 }

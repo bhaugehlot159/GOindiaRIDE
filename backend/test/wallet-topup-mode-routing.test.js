@@ -19,11 +19,11 @@ const {
 } = walletRoutes.__test;
 
 const lockedTopupModeContracts = [
-  { modeId: 'upi', provider: 'razorpay_checkout', family: 'upi-gateway', qrVisible: false },
-  { modeId: 'upi_intent', provider: 'razorpay_checkout', family: 'upi-gateway', qrVisible: false },
-  { modeId: 'phonepe_wallet', provider: 'razorpay_checkout', family: 'upi-gateway', qrVisible: false },
-  { modeId: 'googlepay_wallet', provider: 'razorpay_checkout', family: 'upi-gateway', qrVisible: false },
-  { modeId: 'paytm_wallet', provider: 'razorpay_checkout', family: 'upi-gateway', qrVisible: false },
+  { modeId: 'upi', provider: 'upi_app_redirect', family: 'upi-app', qrVisible: false },
+  { modeId: 'upi_intent', provider: 'upi_app_redirect', family: 'upi-app', qrVisible: false },
+  { modeId: 'phonepe_wallet', provider: 'upi_app_redirect', family: 'upi-app', qrVisible: false },
+  { modeId: 'googlepay_wallet', provider: 'upi_app_redirect', family: 'upi-app', qrVisible: false },
+  { modeId: 'paytm_wallet', provider: 'upi_app_redirect', family: 'upi-app', qrVisible: false },
   { modeId: 'upi_qr', provider: 'qr_checkout', family: 'qr-only', qrVisible: true },
   { modeId: 'bharat_qr', provider: 'qr_checkout', family: 'qr-only', qrVisible: true },
   { modeId: 'international_qr', provider: 'qr_checkout', family: 'qr-only', qrVisible: true },
@@ -56,7 +56,7 @@ for (const contract of lockedTopupModeContracts) {
     assert.equal(shouldUseReferenceQrForTopup(contract.modeId), contract.qrVisible);
     assert.equal(
       shouldUseUpiAppRedirectForTopup(contract.modeId),
-      contract.family === 'upi-gateway' || contract.provider === 'upi_app_redirect'
+      contract.provider === 'upi_app_redirect'
     );
     assert.equal(
       shouldUsePaymentLinkRedirectForTopup(contract.modeId),
@@ -88,9 +88,17 @@ test('QR checkout is locked only to QR-specific wallet modes', () => {
   assert.deepEqual(qrModes, ['bharat_qr', 'international_qr', 'upi_qr'].sort());
 });
 
+test('UPI app wallet modes do not require Razorpay checkout', () => {
+  const upiAppModes = ['upi', 'upi_intent', 'phonepe_wallet', 'googlepay_wallet', 'paytm_wallet'];
+  for (const modeId of upiAppModes) {
+    assert.equal(resolveTopupCheckoutMode(modeId, 'INR'), 'upi_app_redirect');
+    assert.equal(shouldUseReferenceQrForTopup(modeId), false);
+  }
+});
+
 test('cab-style wallet benchmark families are all covered', () => {
   const families = new Set(lockedTopupModeContracts.map((contract) => contract.family));
-  assert.equal(families.has('upi-gateway'), true);
+  assert.equal(families.has('upi-app'), true);
   assert.equal(families.has('qr-only'), true);
   assert.equal(families.has('gateway'), true);
   assert.equal(families.has('paypal'), true);
