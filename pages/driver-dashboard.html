@@ -1776,6 +1776,7 @@
                             String(checkoutResult.confirmation.order?.status || '').toLowerCase() === 'pending_admin_approval'
                         )
                     );
+                    window.__goindiarideDriverTopupApprovalGateway = checkoutResult.liveGateway || checkoutResult.checkout?.provider || '';
                 } else {
                     if (providerReference.length < 5) {
                         showError('Gateway reference / UTR is required for secure confirmation.');
@@ -1807,14 +1808,19 @@
                 await renderDriverWalletPanel({ forceSync: false });
                 await loadDashboard();
                 if (window.__goindiarideDriverTopupApprovalPending) {
-                    showSuccess('Payment proof submitted. Wallet top-up admin approval queue me chala gaya hai.');
+                    const approvalGateway = String(window.__goindiarideDriverTopupApprovalGateway || '').toLowerCase();
+                    showSuccess(approvalGateway === 'upi_app_redirect'
+                        ? 'Payment request submitted. Wallet top-up admin approval queue me chala gaya hai.'
+                        : 'Payment proof submitted. Wallet top-up admin approval queue me chala gaya hai.');
                 } else {
                     showSuccess('Wallet top-up confirmed. Settlement is controlled by admin wallet flow.');
                 }
                 window.__goindiarideDriverTopupApprovalPending = false;
+                window.__goindiarideDriverTopupApprovalGateway = '';
             } catch (error) {
                 showError(error.message || 'Wallet top-up failed.');
                 window.__goindiarideDriverTopupApprovalPending = false;
+                window.__goindiarideDriverTopupApprovalGateway = '';
             }
         }
 

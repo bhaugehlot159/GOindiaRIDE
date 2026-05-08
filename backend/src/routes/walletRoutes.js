@@ -675,7 +675,8 @@ async function buildUpiAppRedirectTopupCheckout(order, mode) {
         'metadata.gateway': 'upi_app_redirect',
         'metadata.referenceMode': mode.modeId,
         'metadata.referenceModeLabel': mode.label,
-        'metadata.referenceRequired': true,
+        'metadata.referenceRequired': false,
+        'metadata.customerReferenceHidden': true,
         'metadata.qrAvailable': false,
         'metadata.upiApp.preferred': preferred.id,
         'metadata.upiApp.createdAt': new Date()
@@ -686,14 +687,14 @@ async function buildUpiAppRedirectTopupCheckout(order, mode) {
   return {
     provider: 'upi_app_redirect',
     available: true,
-    requiresReference: true,
+    requiresReference: false,
     orderId: order.orderId,
     amount: order.amount,
     currency: order.currency,
     paymentMode: modeId,
     paymentModeLabel: sanitizeText(mode.label, 120),
-    description: `Open ${sanitizeText(mode.label, 120)} and submit UTR after payment`,
-    referenceLabel: 'UPI UTR / transaction reference',
+    description: `Open ${sanitizeText(mode.label, 120)} to approve payment`,
+    referenceLabel: 'UPI app payment',
     autoOpenUrl: preferred.url,
     qr: {
       available: false,

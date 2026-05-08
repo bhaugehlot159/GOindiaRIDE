@@ -1616,12 +1616,17 @@
                     ? 'Secure Payment QR'
                     : 'Secure Payment Reference';
         const footerHelp = isAppRedirect
-            ? 'UPI app me payment complete karke yahan UTR/reference submit karein. QR sirf QR mode me dikhega.'
+            ? 'UPI app me payment approve karke is screen par wapas aayein. QR sirf QR mode me dikhega.'
             : hasQr
                 ? 'Payment complete hone ke baad UTR/reference submit karein. QR ko dusre phone se scan karwa sakte hain.'
                 : isPaymentLinkRedirect
                     ? 'Gateway checkout me payment complete karke wapas aayen, phir transaction reference submit karein.'
                     : 'Payment complete karke UTR/reference submit karein.';
+        const showReferenceFields = !isAppRedirect;
+        const confirmButtonLabel = isAppRedirect ? 'Done' : 'Confirm Payment';
+        const actionHelpText = isAppRedirect
+            ? 'App me payment approve karke is screen par wapas aayein.'
+            : 'App me payment complete karke is screen par wapas aakar UTR/reference submit karein.';
 
         return new Promise((resolve, reject) => {
             let completed = false;
@@ -1651,18 +1656,20 @@
                     <div data-mode-actions style="display:none;border:1px solid #d0d5dd;border-radius:8px;padding:12px;margin-bottom:14px;background:#f8f9fc;">
                         <div style="font-size:13px;font-weight:700;color:#344054;margin-bottom:8px;">Pay Using Mobile App</div>
                         <div data-mode-action-buttons style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-                        <div style="font-size:12px;color:#667085;line-height:1.4;margin-top:8px;">App me payment complete karke is screen par wapas aakar UTR/reference submit karein.</div>
+                        <div style="font-size:12px;color:#667085;line-height:1.4;margin-top:8px;">${actionHelpText}</div>
                     </div>
-                    <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">${label}</label>
-                    <input data-provider-reference type="text" autocomplete="off" placeholder="UTR / gateway reference" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:12px;font-size:15px;margin-bottom:10px;">
-                    <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">Payment Screenshot (optional but recommended)</label>
-                    <input data-proof-file type="file" accept="image/png,image/jpeg,image/webp" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:10px;font-size:13px;margin-bottom:8px;background:#fff;">
-                    <div data-proof-status style="font-size:12px;color:#667085;line-height:1.4;margin-bottom:10px;">Screenshot attach karne se admin approval fast ho jata hai.</div>
+                    <div data-reference-fields style="display:${showReferenceFields ? 'block' : 'none'};">
+                        <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">${label}</label>
+                        <input data-provider-reference type="text" autocomplete="off" placeholder="UTR / gateway reference" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:12px;font-size:15px;margin-bottom:10px;">
+                        <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">Payment Screenshot (optional but recommended)</label>
+                        <input data-proof-file type="file" accept="image/png,image/jpeg,image/webp" style="width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:10px;font-size:13px;margin-bottom:8px;background:#fff;">
+                        <div data-proof-status style="font-size:12px;color:#667085;line-height:1.4;margin-bottom:10px;">Screenshot attach karne se admin approval fast ho jata hai.</div>
+                    </div>
                     <div data-reference-error style="display:none;color:#b42318;font-size:13px;margin-bottom:10px;"></div>
                     <div style="font-size:12px;color:#667085;line-height:1.45;margin-bottom:14px;">${footerHelp}</div>
                     <div style="display:flex;gap:10px;justify-content:flex-end;">
                         <button type="button" data-reference-cancel style="border:1px solid #d0d5dd;background:#fff;color:#101828;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Cancel</button>
-                        <button type="button" data-reference-confirm style="border:0;background:#2b145f;color:#fff;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">Confirm Payment</button>
+                        <button type="button" data-reference-confirm style="border:0;background:#2b145f;color:#fff;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;">${confirmButtonLabel}</button>
                     </div>
                 </div>
             `;
@@ -1862,8 +1869,9 @@
             if (confirmButton) {
                 confirmButton.addEventListener('click', async () => {
                     clearError();
-                    const providerReference = String(input?.value || '').trim();
-                    if (providerReference.length < 5) {
+                    const implicitReference = `upi-app-${sanitizeText(checkout.orderId || Date.now(), 120)}`;
+                    const providerReference = isAppRedirect ? implicitReference : String(input?.value || '').trim();
+                    if (!isAppRedirect && providerReference.length < 5) {
                         showError('Gateway reference / UTR required hai. Payment complete karke valid reference enter karein.');
                         return;
                     }
@@ -1885,14 +1893,14 @@
                         });
                     } catch (error) {
                         confirmButton.disabled = false;
-                        confirmButton.textContent = 'Confirm Payment';
+                        confirmButton.textContent = confirmButtonLabel;
                         showError(error.message || 'Payment reference verify nahi ho paya.');
                     }
                 });
             }
 
             document.body.appendChild(overlay);
-            if (input) input.focus();
+            if (input && showReferenceFields) input.focus();
             const autoOpenUrl = String(checkout.autoOpenUrl || '').trim();
             if ((isAppRedirect || isPaymentLinkRedirect) && autoOpenUrl) {
                 setTimeout(() => launchUrl(autoOpenUrl), 120);
