@@ -11,3 +11,10 @@ test('UPI app top-up modal hides reference and screenshot fields', () => {
   assert.match(walletCoreSource, /const providerReference = isAppRedirect \? implicitReference : String\(input\?\.value \|\| ''\)\.trim\(\);/);
   assert.match(walletCoreSource, /const confirmButtonLabel = isAppRedirect \? 'Done' : 'Confirm Payment';/);
 });
+
+test('UPI app top-up modal offers live UPI ID collect checkout', () => {
+  assert.match(walletCoreSource, /data-customer-upi-id/);
+  assert.match(walletCoreSource, /Pay by UPI ID/);
+  assert.match(walletCoreSource, /createUpiIdCollectCheckout/);
+  assert.match(walletCoreSource, /verifyRazorpayTopupPayment\(payment\)/);
+});

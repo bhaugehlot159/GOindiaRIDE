@@ -201,6 +201,11 @@ const UPI_MERCHANT_NAME = firstEnvValue([
   'BUSINESS_NAME',
   'GOINDIARIDE_PAYMENT_NAME'
 ]) || 'GO India RIDE';
+const PAYMENT_DISPLAY_NAME = sanitizeText(firstEnvValue([
+  'GOINDIARIDE_PAYMENT_DISPLAY_NAME',
+  'PAYMENT_DISPLAY_NAME',
+  'CHECKOUT_DISPLAY_NAME'
+]) || 'GO India RIDE', 80) || 'GO India RIDE';
 const UPI_MERCHANT_CODE = firstEnvValue(['UPI_MERCHANT_CODE', 'UPI_MC']);
 const UPI_PAY_LINK_TEMPLATE = firstEnvValue([
   'UPI_PAY_LINK_TEMPLATE',
@@ -287,6 +292,11 @@ function sanitizeProofScreenshotDataUrl(value, maxLen = 120000) {
   const normalized = raw.slice(0, maxLen);
   const validDataUrl = /^data:image\/(png|jpe?g|webp);base64,[a-z0-9+/=]+$/i.test(normalized);
   return validDataUrl ? normalized : '';
+}
+
+function sanitizeUpiId(value) {
+  const raw = sanitizeText(value, 120).toLowerCase();
+  return /^[a-z0-9._-]{2,80}@[a-z0-9._-]{2,64}$/.test(raw) ? raw : '';
 }
 
 function shouldRequireTopupAdminApproval(order) {
@@ -458,19 +468,19 @@ function buildUpiQrPayload(order) {
       amount: amount.toFixed(2),
       currency: 'INR',
       merchantUpiId: sanitizeText(UPI_MERCHANT_VPA || '', 120),
-      merchantName: sanitizeText(UPI_MERCHANT_NAME || 'GO India RIDE', 80),
-      note: `GO India RIDE ${sanitizeText(order.orderId, 60)}`
+      merchantName: PAYMENT_DISPLAY_NAME,
+      note: `${PAYMENT_DISPLAY_NAME} ${sanitizeText(order.orderId, 60)}`
     });
     return /^upi:\/\//i.test(String(templatePayload || '').trim()) ? String(templatePayload || '').trim() : null;
   }
 
   const params = new URLSearchParams({
     pa: UPI_MERCHANT_VPA,
-    pn: UPI_MERCHANT_NAME,
+    pn: PAYMENT_DISPLAY_NAME,
     am: amount.toFixed(2),
     cu: 'INR',
     tr: sanitizeText(order.orderId, 80),
-    tn: `GO India RIDE ${sanitizeText(order.orderId, 60)}`
+    tn: `${PAYMENT_DISPLAY_NAME} ${sanitizeText(order.orderId, 60)}`
   });
   if (UPI_MERCHANT_CODE) params.set('mc', UPI_MERCHANT_CODE);
   return `upi://pay?${params.toString()}`;
@@ -696,6 +706,20 @@ async function buildUpiAppRedirectTopupCheckout(order, mode) {
     description: `Open ${sanitizeText(mode.label, 120)} to approve payment`,
     referenceLabel: 'UPI app payment',
     autoOpenUrl: preferred.url,
+    merchant: {
+      name: PAYMENT_DISPLAY_NAME,
+      upiId: UPI_MERCHANT_VPA || ''
+    },
+    upiIdCollect: {
+      available: isRazorpayConfigured(),
+      provider: 'razorpay',
+      label: 'Pay by UPI ID',
+      merchantName: PAYMENT_DISPLAY_NAME,
+      requestPath: '/api/wallet/topup/upi-id/checkout',
+      setupMessage: isRazorpayConfigured()
+        ? ''
+        : 'UPI ID live collect ke liye backend me Razorpay live keys required hain.'
+    },
     qr: {
       available: false,
       type: 'hidden_upi_payload',
@@ -1188,9 +1212,69 @@ async function createRazorpayTopupOrder(order, mode) {
     amount: providerOrder.amount,
     currency: providerOrder.currency,
     method: razorpayMethodOptions(mode.modeId),
-    name: 'GO India RIDE',
+    name: PAYMENT_DISPLAY_NAME,
     description: `Wallet top-up via ${mode.label}`,
     orderId: order.orderId
+  };
+}
+
+async function createRazorpayUpiIdCollectTopupCheckout(order, mode, payerUpiId) {
+  const sanitizedPayerUpiId = sanitizeUpiId(payerUpiId);
+  if (!sanitizedPayerUpiId) {
+    const error = new Error('Valid customer UPI ID is required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const providerOrder = await postRazorpayJson('/v1/orders', {
+    amount: toRazorpaySubunits(order.amount),
+    currency: order.currency || 'INR',
+    receipt: String(order.orderId).slice(0, 40),
+    notes: {
+      walletOrderId: String(order.orderId),
+      walletType: String(order.walletType),
+      ownerId: String(order.ownerId),
+      paymentMode: String(order.paymentMode),
+      clientReference: String(order.clientReference || ''),
+      payerUpiId: sanitizedPayerUpiId,
+      source: 'upi_id_collect'
+    }
+  });
+
+  await WalletTopupOrder.updateOne(
+    { _id: order._id },
+    {
+      $set: {
+        'metadata.gateway': 'upi_id_collect',
+        'metadata.referenceRequired': false,
+        'metadata.razorpay.orderId': providerOrder.id,
+        'metadata.razorpay.status': providerOrder.status,
+        'metadata.razorpay.amount': providerOrder.amount,
+        'metadata.razorpay.currency': providerOrder.currency,
+        'metadata.razorpay.createdAt': new Date(),
+        'metadata.upiIdCollect.payerUpiId': sanitizedPayerUpiId,
+        'metadata.upiIdCollect.provider': 'razorpay',
+        'metadata.upiIdCollect.createdAt': new Date()
+      }
+    }
+  );
+
+  return {
+    provider: 'razorpay',
+    providerOrderId: providerOrder.id,
+    keyId: RAZORPAY_KEY_ID,
+    amount: providerOrder.amount,
+    currency: providerOrder.currency,
+    method: { upi: true, card: false, netbanking: false, wallet: false },
+    name: PAYMENT_DISPLAY_NAME,
+    description: `${PAYMENT_DISPLAY_NAME} wallet top-up via UPI ID`,
+    orderId: order.orderId,
+    paymentMode: sanitizeText(mode.modeId || order.paymentMode, 80).toLowerCase(),
+    paymentModeLabel: sanitizeText(mode.label || order.paymentModeLabel, 120),
+    prefill: {
+      method: 'upi',
+      vpa: sanitizedPayerUpiId
+    }
   };
 }
 
@@ -2031,6 +2115,73 @@ router.post('/topup/order', wrapAsync(async (req, res) => {
     message: 'Top-up order created',
     order,
     checkout
+  });
+}));
+
+router.post('/topup/upi-id/checkout', walletCriticalLimiter, wrapAsync(async (req, res) => {
+  const actorType = resolveActorWalletType(req.user);
+  if (!TOPUP_ALLOWED_TYPES.has(actorType)) {
+    return res.status(403).json({ message: 'Top-up not allowed for this account' });
+  }
+
+  const ownerId = String(req.user.id);
+  const orderId = sanitizeText(req.body.orderId, 120);
+  const payerUpiId = sanitizeUpiId(req.body.payerUpiId || req.body.upiId || req.body.vpa);
+
+  if (!orderId) {
+    return res.status(400).json({ message: 'orderId is required' });
+  }
+
+  if (!payerUpiId) {
+    return res.status(400).json({ message: 'Valid customer UPI ID is required' });
+  }
+
+  if (!isRazorpayConfigured()) {
+    return res.status(503).json({
+      message: 'UPI ID live collect ke liye Razorpay live keys backend par required hain',
+      gatewayStatus: buildRazorpayGatewayStatus()
+    });
+  }
+
+  const existingOrder = await WalletTopupOrder.findOne({ orderId, walletType: actorType, ownerId });
+  if (!existingOrder) {
+    return res.status(404).json({ message: 'Top-up order not found' });
+  }
+
+  if (existingOrder.status !== 'pending') {
+    return res.status(400).json({ message: `Top-up order is ${existingOrder.status}` });
+  }
+
+  if (new Date(existingOrder.expiresAt).getTime() <= Date.now()) {
+    await WalletTopupOrder.updateOne(
+      { _id: existingOrder._id, status: 'pending' },
+      {
+        $set: {
+          status: 'expired',
+          'metadata.expiredAt': new Date()
+        }
+      }
+    );
+    return res.status(410).json({ message: 'Top-up order expired. Create a new order.' });
+  }
+
+  if (!shouldUseUpiAppRedirectForTopup(existingOrder.paymentMode)) {
+    return res.status(400).json({ message: 'UPI ID collect is available only for UPI app top-up modes' });
+  }
+
+  const mode = {
+    modeId: existingOrder.paymentMode,
+    label: existingOrder.paymentModeLabel || 'UPI ID'
+  };
+  const checkout = await createRazorpayUpiIdCollectTopupCheckout(existingOrder, mode, payerUpiId);
+
+  return res.status(201).json({
+    message: 'UPI ID live checkout created',
+    checkout,
+    merchant: {
+      name: PAYMENT_DISPLAY_NAME,
+      upiId: UPI_MERCHANT_VPA || ''
+    }
   });
 }));
 

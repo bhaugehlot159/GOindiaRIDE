@@ -1142,6 +1142,17 @@
         });
     }
 
+    async function createUpiIdCollectCheckout({ orderId, payerUpiId }) {
+        return secureWalletRequest('/api/wallet/topup/upi-id/checkout', {
+            method: 'POST',
+            withCsrf: true,
+            body: {
+                orderId,
+                payerUpiId
+            }
+        });
+    }
+
     async function capturePayPalTopupPayment({ orderId, paypalOrderId }) {
         return secureWalletRequest('/api/wallet/topup/paypal/capture', {
             method: 'POST',
@@ -1167,6 +1178,7 @@
     async function openRazorpayCheckout(checkout) {
         const Razorpay = await loadRazorpayCheckout();
         return new Promise((resolve, reject) => {
+            const checkoutPrefill = checkout.prefill && typeof checkout.prefill === 'object' ? checkout.prefill : {};
             const options = {
                 key: checkout.keyId,
                 amount: checkout.amount,
@@ -1174,7 +1186,10 @@
                 name: checkout.name || 'GO India RIDE',
                 description: checkout.description || 'Wallet top-up',
                 order_id: checkout.providerOrderId,
-                prefill: getCheckoutPrefill(),
+                prefill: {
+                    ...getCheckoutPrefill(),
+                    ...checkoutPrefill
+                },
                 notes: {
                     walletOrderId: checkout.orderId || ''
                 },
@@ -1627,6 +1642,11 @@
         const actionHelpText = isAppRedirect
             ? 'App me payment approve karke is screen par wapas aayein.'
             : 'App me payment complete karke is screen par wapas aakar UTR/reference submit karein.';
+        const upiIdCollect = checkout.upiIdCollect && typeof checkout.upiIdCollect === 'object' ? checkout.upiIdCollect : {};
+        const showUpiIdCollect = isAppRedirect;
+        const upiIdCollectAvailable = Boolean(upiIdCollect.available);
+        const upiIdCollectSetup = sanitizeText(upiIdCollect.setupMessage || '', 240);
+        const merchantName = sanitizeText(upiIdCollect.merchantName || checkout.merchant?.name || 'GO India RIDE', 80);
 
         return new Promise((resolve, reject) => {
             let completed = false;
@@ -1657,6 +1677,16 @@
                         <div style="font-size:13px;font-weight:700;color:#344054;margin-bottom:8px;">Pay Using Mobile App</div>
                         <div data-mode-action-buttons style="display:flex;gap:8px;flex-wrap:wrap;"></div>
                         <div style="font-size:12px;color:#667085;line-height:1.4;margin-top:8px;">${actionHelpText}</div>
+                    </div>
+                    <div data-upi-id-collect style="display:${showUpiIdCollect ? 'block' : 'none'};border:1px solid #d0d5dd;border-radius:8px;padding:12px;margin-bottom:14px;background:#fff;">
+                        <div style="font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">Pay by UPI ID</div>
+                        <div style="font-size:12px;color:#667085;line-height:1.4;margin-bottom:8px;">UPI app open nahi ho raha ho to apni UPI ID enter karke live checkout se payment approve karein.</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <input data-customer-upi-id type="text" inputmode="email" autocomplete="off" placeholder="yourname@bank" style="flex:1 1 180px;min-width:0;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:10px;font-size:14px;">
+                            <button type="button" data-pay-upi-id ${upiIdCollectAvailable ? '' : 'disabled'} style="border:0;background:#2b145f;color:#fff;border-radius:8px;padding:10px 12px;font-weight:700;cursor:pointer;opacity:${upiIdCollectAvailable ? '1' : '.55'};">Pay by UPI ID</button>
+                        </div>
+                        <div data-upi-id-help style="font-size:12px;color:#667085;line-height:1.4;margin-top:8px;">Payment screen par merchant name: ${merchantName}</div>
+                        <div data-upi-id-setup style="display:${upiIdCollectAvailable ? 'none' : 'block'};font-size:12px;color:#93370d;line-height:1.4;margin-top:8px;">${upiIdCollectSetup || 'UPI ID live collect backend par configure nahi hai.'}</div>
                     </div>
                     <div data-reference-fields style="display:${showReferenceFields ? 'block' : 'none'};">
                         <label style="display:block;font-size:13px;font-weight:700;color:#344054;margin-bottom:6px;">${label}</label>
@@ -1806,6 +1836,47 @@
             } else if (setupNode && !setupNode.textContent.trim() && actions && actions.setupMessage) {
                 setupNode.textContent = sanitizeText(actions.setupMessage, 240);
                 setupNode.style.display = 'block';
+            }
+            const upiIdInput = overlay.querySelector('[data-customer-upi-id]');
+            const payUpiIdButton = overlay.querySelector('[data-pay-upi-id]');
+            const validUpiId = (value) => /^[a-z0-9._-]{2,80}@[a-z0-9._-]{2,64}$/i.test(String(value || '').trim());
+            if (payUpiIdButton && upiIdInput) {
+                payUpiIdButton.addEventListener('click', async () => {
+                    clearError();
+                    if (!upiIdCollectAvailable) {
+                        showError(upiIdCollectSetup || 'UPI ID live collect backend par configure nahi hai.');
+                        return;
+                    }
+                    const payerUpiId = String(upiIdInput.value || '').trim().toLowerCase();
+                    if (!validUpiId(payerUpiId)) {
+                        showError('Valid UPI ID enter karein, jaise name@bank.');
+                        upiIdInput.focus();
+                        return;
+                    }
+                    payUpiIdButton.disabled = true;
+                    payUpiIdButton.textContent = 'Opening...';
+                    try {
+                        const collectPayload = await createUpiIdCollectCheckout({
+                            orderId: checkout.orderId,
+                            payerUpiId
+                        });
+                        const collectCheckout = collectPayload.checkout || collectPayload;
+                        const payment = await openRazorpayCheckout(collectCheckout);
+                        const confirmation = await verifyRazorpayTopupPayment(payment);
+                        completed = true;
+                        cleanup();
+                        resolve({
+                            orderId: checkout.orderId,
+                            providerReference: payment.razorpayPaymentId,
+                            payment,
+                            confirmation
+                        });
+                    } catch (error) {
+                        payUpiIdButton.disabled = false;
+                        payUpiIdButton.textContent = 'Pay by UPI ID';
+                        showError(error.message || 'UPI ID payment start nahi ho paya.');
+                    }
+                });
             }
             const openQrButton = overlay.querySelector('[data-open-qr]');
             if (openQrButton && qrPayload && /^upi:\/\//i.test(qrPayload)) {
@@ -2171,6 +2242,7 @@
         fetchSecureWithdrawalRequests,
         createSecureTopupOrder,
         confirmSecureTopupOrder,
+        createUpiIdCollectCheckout,
         verifyRazorpayTopupPayment,
         verifyRazorpayLinkTopupPayment,
         capturePayPalTopupPayment,
