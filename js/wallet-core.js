@@ -54,6 +54,8 @@
     const API_BASE_OVERRIDE_KEY = 'goindiaride_api_base';
     const RAZORPAY_CHECKOUT_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
     const PAYPAL_CHECKOUT_SRC = 'https://www.paypal.com/sdk/js';
+    const SECURE_WALLET_GET_TIMEOUT_MS = 8000;
+    const SECURE_WALLET_MUTATION_TIMEOUT_MS = 30000;
     let secureCsrfCache = { token: null, fetchedAt: 0 };
     let secureGatewayStatusCache = { payload: null, fetchedAt: 0 };
     let razorpayCheckoutPromise = null;
@@ -971,11 +973,22 @@
                 applyRequestFreshnessHeaders(headers, { forceNew: true });
             }
 
+            const controller = typeof AbortController === 'function' ? new AbortController() : null;
+            const timeoutMs = isMutatingMethod(method) ? SECURE_WALLET_MUTATION_TIMEOUT_MS : SECURE_WALLET_GET_TIMEOUT_MS;
+            const timer = controller
+                ? setTimeout(() => {
+                    try { controller.abort(); } catch (_error) {}
+                }, timeoutMs)
+                : null;
+
             const response = await fetch(`${getApiBaseUrl()}${path}`, {
                 method,
                 credentials: 'include',
                 headers,
-                body: body ? JSON.stringify(body) : undefined
+                body: body ? JSON.stringify(body) : undefined,
+                signal: controller ? controller.signal : undefined
+            }).finally(() => {
+                if (timer) clearTimeout(timer);
             });
 
             const payload = await response.json().catch(() => ({}));

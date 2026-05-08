@@ -12,7 +12,7 @@
   var PRIMARY_DOMAIN_REGEX = /(^|\.)goindiaride\.in$/i;
   var GITHUB_PAGES_HOST_REGEX = /\.github\.io$/i;
   var DEFAULT_PRODUCTION_API_ORIGIN = 'https://goindiaride.onrender.com';
-  var REQUEST_TIMEOUT_MS = 12000;
+  var REQUEST_TIMEOUT_MS = 7000;
 
   function normalizeText(value) {
     return String(value || '').trim();
@@ -579,6 +579,34 @@
     var refreshToken = normalizeText(settings.refreshToken || getRefreshToken());
     var apiBases = getApiBases(settings.apiBase);
     var lastKnownUser = localSession || readState().user || null;
+
+    if (settings.preferFastLocal && lastKnownUser) {
+      var fastUser = normalizeProfileToSession(lastKnownUser, role);
+      storeAuthArtifacts({
+        accountType: role,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        apiBase: apiBases[0] || inferApiBase(),
+        user: fastUser
+      });
+
+      if (!settings.backgroundRefresh && (accessToken || refreshToken)) {
+        global.setTimeout(function () {
+          restorePortalSession(Object.assign({}, settings, {
+            preferFastLocal: false,
+            backgroundRefresh: true
+          })).catch(function () {});
+        }, 50);
+      }
+
+      return {
+        ok: true,
+        role: role,
+        user: fastUser,
+        source: 'local_session_fast',
+        refreshing: Boolean(accessToken || refreshToken)
+      };
+    }
 
     if (accessToken) {
       for (var i = 0; i < apiBases.length; i += 1) {

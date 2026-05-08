@@ -103,6 +103,19 @@
     return fetch(url, Object.assign({}, options || {}, { signal: controller.signal })).finally(function () { clearTimeout(timer); });
   }
 
+  function softDelay(ms, value) {
+    return new Promise(function (resolve) {
+      setTimeout(function () { resolve(value); }, ms);
+    });
+  }
+
+  async function waitForSoftSync(promise, timeoutMs) {
+    return Promise.race([
+      Promise.resolve(promise).then(function () { return true; }).catch(function () { return false; }),
+      softDelay(timeoutMs || 1200, false)
+    ]);
+  }
+
   async function requestDashboardBusiness(method, path, payload) {
     var route = String(path || '/').trim() || '/';
     if (route.charAt(0) !== '/') route = '/' + route;
@@ -808,23 +821,41 @@
   if (typeof loadDashboard === 'function') {
     var originalLoadDashboard = loadDashboard;
     window.loadDashboard = async function () {
-      await getBookings({ forceSync: true });
-      return originalLoadDashboard.apply(this, arguments);
+      var context = this;
+      var args = arguments;
+      var syncPromise = getBookings({ forceSync: false }).catch(function () { return []; });
+      var completedQuickly = await waitForSoftSync(syncPromise, 1200);
+      var result = await originalLoadDashboard.apply(context, args);
+      if (!completedQuickly) {
+        syncPromise.then(function () {
+          return originalLoadDashboard.apply(context, args);
+        }).catch(function () {});
+      }
+      return result;
     };
   }
 
   if (typeof loadRides === 'function') {
     var originalLoadRides = loadRides;
     window.loadRides = async function () {
-      await getBookings({ forceSync: false });
-      return originalLoadRides.apply(this, arguments);
+      var context = this;
+      var args = arguments;
+      var syncPromise = getBookings({ forceSync: false }).catch(function () { return []; });
+      var completedQuickly = await waitForSoftSync(syncPromise, 900);
+      var result = await originalLoadRides.apply(context, args);
+      if (!completedQuickly) {
+        syncPromise.then(function () {
+          return originalLoadRides.apply(context, args);
+        }).catch(function () {});
+      }
+      return result;
     };
   }
 
   if (typeof showPaymentModal === 'function') {
     var originalShowPaymentModal = showPaymentModal;
     window.showPaymentModal = async function () {
-      await getBookings({ forceSync: false });
+      await waitForSoftSync(getBookings({ forceSync: false }).catch(function () { return []; }), 900);
       return originalShowPaymentModal.apply(this, arguments);
     };
   }
@@ -832,7 +863,7 @@
   if (typeof checkForCompletedRides === 'function') {
     var originalCheckForCompletedRides = checkForCompletedRides;
     window.checkForCompletedRides = async function () {
-      await getBookings({ forceSync: false });
+      await waitForSoftSync(getBookings({ forceSync: false }).catch(function () { return []; }), 700);
       return originalCheckForCompletedRides.apply(this, arguments);
     };
   }
@@ -840,7 +871,7 @@
   if (typeof viewReceipt === 'function') {
     var originalViewReceipt = viewReceipt;
     window.viewReceipt = async function () {
-      await getBookings({ forceSync: false });
+      await waitForSoftSync(getBookings({ forceSync: false }).catch(function () { return []; }), 900);
       return originalViewReceipt.apply(this, arguments);
     };
   }
@@ -848,7 +879,7 @@
   if (typeof selectPaymentMethod === 'function') {
     var originalSelectPaymentMethod = selectPaymentMethod;
     window.selectPaymentMethod = async function (method) {
-      await getBookings({ forceSync: false });
+      await waitForSoftSync(getBookings({ forceSync: false }).catch(function () { return []; }), 900);
       var result = originalSelectPaymentMethod.apply(this, arguments);
       var ride = findRideById(typeof currentRideForPayment !== 'undefined' ? currentRideForPayment : '');
       if (ride) {
