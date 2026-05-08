@@ -1,1 +1,70 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>GOindiaRIDE - Pricing</title>\n    <style>\n        body { font-family: Arial, sans-serif; }\n        table { width: 50%; margin: 20px auto; border-collapse: collapse; }\n        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }\n        th { background-color: #f2f2f2; }\n    </style>\n    <link rel="stylesheet" href="../css/professional-purple-theme.css">\n</head>\n<body>\n    <h1 style="text-align:center;">GOindiaRIDE Pricing</h1>\n    <h2 style="text-align:center;">Transparent Fare Chart</h2>\n    <table>\n        <tr>\n            <th>Vehicle Type</th>\n            <th>Price per Kilometer</th>\n        </tr>\n        <tr>\n            <td>Sedan</td>\n            <td>₹12</td>\n        </tr>\n        <tr>\n            <td>SUV</td>\n            <td>₹16</td>\n        </tr>\n    </table>\n    <h3>Pricing Breakdown</h3>\n    <p>Our pricing structure is transparent, ensuring that customers know exactly what they are being charged.\n    For any distance travelled, the charges will be calculated based on the vehicle type, as shown above.</p>\n</body>\n</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOindiaRIDE - Pricing</title>
+    <link rel="stylesheet" href="../fit-screen.css?v=20260508-mobile1">
+    <link rel="stylesheet" href="../css/professional-purple-theme.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .pricing-shell {
+            overflow-x: hidden;
+        }
+
+        .pricing-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            min-width: 320px;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body class="mobile-fit-public mobile-fit-pricing">
+    <main class="pricing-shell">
+        <h1 style="text-align:center;">GOindiaRIDE Pricing</h1>
+        <h2 style="text-align:center;">Transparent Fare Chart</h2>
+        <div class="pricing-table-wrap">
+            <table>
+                <tr>
+                    <th>Vehicle Type</th>
+                    <th>Price per Kilometer</th>
+                </tr>
+                <tr>
+                    <td>Sedan</td>
+                    <td>₹12</td>
+                </tr>
+                <tr>
+                    <td>SUV</td>
+                    <td>₹16</td>
+                </tr>
+            </table>
+        </div>
+        <h3>Pricing Breakdown</h3>
+        <p>
+            Our pricing structure is transparent, ensuring that customers know exactly what they are being charged.
+            For any distance travelled, the charges will be calculated based on the vehicle type, as shown above.
+        </p>
+    </main>
+</body>
+</html>

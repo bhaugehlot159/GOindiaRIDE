@@ -102,3 +102,456 @@ body.fit-screen-page.fit-density-ultra .fit-scale-layer textarea {
     font-size: 0.8em;
   }
 }
+
+/* Mobile fit and polish layer: additive only, keeps existing page code intact. */
+html,
+body {
+  max-width: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+body.fit-screen-page {
+  height: auto;
+  min-width: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.fit-scroll-host {
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.fit-scale-layer {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  height: auto;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+table {
+  max-width: 100%;
+}
+
+body.mobile-fit-public {
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(16px, 3vw, 32px);
+  color: #1f2140;
+  background: linear-gradient(180deg, #fbfaff 0%, #f7f6fc 100%);
+}
+
+body.mobile-fit-public > header,
+body.mobile-fit-public > main,
+body.mobile-fit-public > section,
+body.mobile-fit-public > article,
+body.mobile-fit-public > footer,
+body.mobile-fit-public > .contact-container,
+body.mobile-fit-public > .panel {
+  width: min(100%, 1080px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.mobile-fit-public > h1,
+body.mobile-fit-public > h2,
+body.mobile-fit-public > h3,
+body.mobile-fit-public > p,
+body.mobile-fit-public > ul {
+  width: min(100%, 1080px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.mobile-fit-public > header,
+body.mobile-fit-public > main,
+body.mobile-fit-public > section,
+body.mobile-fit-public > article,
+body.mobile-fit-public > .contact-container,
+body.mobile-fit-public > .panel {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(102, 126, 234, 0.16);
+  border-radius: 8px;
+  box-shadow: 0 16px 38px rgba(72, 56, 140, 0.12);
+  padding: clamp(18px, 4vw, 34px);
+}
+
+body.mobile-fit-public h1 {
+  margin: 0 0 12px;
+  font-size: 2.4rem;
+  line-height: 1.12;
+  color: #1f1b3d;
+}
+
+body.mobile-fit-public h2 {
+  margin-top: clamp(18px, 4vw, 30px);
+  font-size: 1.6rem;
+  line-height: 1.2;
+  color: #26204a;
+}
+
+body.mobile-fit-public p,
+body.mobile-fit-public li {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #5c5878;
+}
+
+body.mobile-fit-public ul {
+  padding-left: 1.2rem;
+}
+
+body.mobile-fit-public a {
+  overflow-wrap: anywhere;
+}
+
+body.mobile-fit-public table {
+  width: 100% !important;
+  margin: 18px auto !important;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(72, 56, 140, 0.08);
+}
+
+body.mobile-fit-public th,
+body.mobile-fit-public td {
+  padding: 12px;
+}
+
+body.mobile-fit-public .contact-form {
+  width: 100%;
+}
+
+body.mobile-fit-public iframe {
+  display: block;
+  width: 100% !important;
+  min-height: min(450px, 72vw);
+  border-radius: 8px;
+}
+
+body.mobile-fit-public.mobile-fit-center {
+  display: grid;
+  place-items: center;
+}
+
+body.mobile-fit-home > h1,
+body.mobile-fit-services > h1 {
+  margin-top: clamp(10px, 3vw, 24px);
+}
+
+body.mobile-fit-home > h1,
+body.mobile-fit-home > p,
+body.mobile-fit-services > h1,
+body.mobile-fit-services > h2,
+body.mobile-fit-services > h3,
+body.mobile-fit-services > p,
+body.mobile-fit-services > ul {
+  background: rgba(255, 255, 255, 0.7);
+  border-left: 3px solid rgba(102, 126, 234, 0.22);
+  padding-left: clamp(12px, 3vw, 18px);
+  padding-right: clamp(12px, 3vw, 18px);
+}
+
+@media (max-width: 640px) {
+  body.mobile-fit-public h1 {
+    font-size: 1.85rem;
+  }
+
+  body.mobile-fit-public h2 {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .navbar-container,
+  .navbar .container,
+  .topbar,
+  .topbar-right,
+  .navbar-right,
+  .header-top,
+  .booking-top-actions,
+  .dashboard-utility-nav,
+  .form-buttons,
+  .modal-actions {
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+  }
+
+  .sidebar,
+  .admin-sidebar,
+  .dashboard-sidebar,
+  .side-nav {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .sidebar-menu,
+  .admin-sidebar .sidebar-menu,
+  .dashboard-sidebar .sidebar-menu,
+  .side-nav {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px;
+    overflow-x: visible !important;
+    padding: 8px 10px 12px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar-menu .menu-item,
+  .admin-sidebar .menu-item,
+  .dashboard-sidebar .menu-item,
+  .side-nav .menu-item {
+    flex: 0 0 auto;
+    min-width: max-content;
+    padding: 10px 12px !important;
+    border-radius: 8px;
+  }
+
+  .main-content,
+  .dashboard-main,
+  .dashboard-content {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    padding: 16px !important;
+  }
+
+  .topbar,
+  .admin-header,
+  .dashboard-header {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 14px !important;
+    z-index: 50 !important;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    width: 100%;
+  }
+
+  .topbar-right > div,
+  .topbar .dashboard-utility-nav {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .container,
+  .main-content,
+  .dashboard-container,
+  .dashboard-content,
+  .content,
+  .content-section,
+  .card,
+  .panel,
+  .stat-card,
+  .dashboard-card,
+  .wallet-panel-card,
+  .wallet-form-card,
+  .wallet-ledger-card,
+  .booking-form-section,
+  .summary-section,
+  .fare-card,
+  .map-container,
+  .contact-container,
+  main,
+  section,
+  article {
+    max-width: 100% !important;
+  }
+
+  .stats-grid,
+  .wallet-grid,
+  .wallet-actions-grid,
+  .booking-grid,
+  .quick-actions,
+  .ride-types,
+  .form-row,
+  .route-inputs,
+  .dashboard-grid,
+  .cards-grid,
+  .features-grid,
+  .services-grid,
+  .pricing-grid,
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tab-buttons,
+  .tabs-nav,
+  .dashboard-tabs,
+  .nav-tabs,
+  nav ul,
+  .nav-links {
+    display: flex !important;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  nav ul,
+  .nav-links {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    overflow-x: visible !important;
+    white-space: normal !important;
+  }
+
+  .tab-button,
+  .tab,
+  .tab-btn,
+  .nav-tabs button,
+  .dashboard-tabs button {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    padding: 0.9rem 1rem !important;
+  }
+
+  .navbar-container,
+  .navbar .container,
+  .topbar {
+    width: 100% !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .header-section,
+  .tabs,
+  .modal-content,
+  .ride-edit-modal-content {
+    border-radius: 8px !important;
+  }
+
+  .modal,
+  #rideEditModal {
+    padding: 10px !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-content,
+  .ride-edit-modal-content {
+    width: min(100%, calc(100vw - 20px)) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 20px) !important;
+    overflow-y: auto !important;
+    padding: 18px !important;
+  }
+
+  table {
+    display: block;
+    width: 100% !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  h1 {
+    font-size: 2rem !important;
+    line-height: 1.14 !important;
+  }
+
+  h2 {
+    font-size: 1.55rem !important;
+    line-height: 1.18 !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.2 !important;
+  }
+
+  input,
+  select,
+  textarea,
+  button,
+  .btn {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  body.mobile-fit-public {
+    padding: 12px;
+  }
+
+  body.mobile-fit-public > header,
+  body.mobile-fit-public > main,
+  body.mobile-fit-public > section,
+  body.mobile-fit-public > article,
+  body.mobile-fit-public > .contact-container,
+  body.mobile-fit-public > .panel {
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .modal-actions,
+  .form-buttons,
+  .hero-buttons,
+  .actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100%;
+  }
+
+  .btn,
+  button,
+  input[type="submit"] {
+    width: 100%;
+    justify-content: center;
+  }
+}
