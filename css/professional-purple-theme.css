@@ -658,3 +658,23 @@ body .app-loading-shell {
     flex-wrap: wrap;
   }
 }
+
+/* Customer dashboard mobile fit overrides loaded after the global button theme. */
+@media (max-width: 768px) {
+  body.customer-dashboard-page .tab-buttons .tab-button {
+    border-radius: 8px !important;
+    color: #ffffff !important;
+  }
+
+  body.customer-dashboard-page .tab-buttons .tab-button.active {
+    background: #ffffff !important;
+    color: #11194a !important;
+    border-color: rgba(102, 126, 234, 0.45) !important;
+    box-shadow: inset 0 0 0 1px rgba(102, 126, 234, 0.18), 0 8px 18px rgba(17, 25, 74, 0.08) !important;
+  }
+
+  body.customer-dashboard-page .tab-buttons .tab-button.active i,
+  body.customer-dashboard-page .tab-buttons .tab-button.active span {
+    color: inherit !important;
+  }
+}

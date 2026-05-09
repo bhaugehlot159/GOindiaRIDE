@@ -6,6 +6,12 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const args = process.argv.slice(2);
+const jsEnabled = args.includes('--js-enabled') || args.includes('--js');
+const onlyArg = args.find((arg) => arg.startsWith('--only='));
+const onlyPages = onlyArg
+  ? new Set(onlyArg.slice('--only='.length).split(',').map((item) => item.trim()).filter(Boolean))
+  : null;
 const chromeCandidates = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
   'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -171,7 +177,7 @@ class CdpSession {
     this.events.push(payload);
   }
 
-  send(method, params = {}) {
+  send(method, params = {}, timeoutMs = 30000) {
     const id = this.id;
     this.id += 1;
     this.ws.send(JSON.stringify({ id, method, params }));
@@ -182,7 +188,7 @@ class CdpSession {
           this.pending.delete(id);
           reject(new Error(`Timed out: ${method}`));
         }
-      }, 12000);
+      }, timeoutMs);
     });
   }
 
@@ -211,9 +217,23 @@ function seedScript(pagePath) {
   let role = 'customer';
   if (pagePath.includes('driver')) role = 'driver';
   if (pagePath.includes('admin')) role = 'admin';
+  const user = {
+    id: `audit_${role}`,
+    userId: `audit_${role}`,
+    fullname: `Mobile Audit ${role.charAt(0).toUpperCase()}${role.slice(1)}`,
+    name: `Mobile Audit ${role.charAt(0).toUpperCase()}${role.slice(1)}`,
+    email: `audit.${role}@example.com`,
+    phone: '+919999999999'
+  };
+  const userJson = JSON.stringify(user);
   return `
     try {
       localStorage.setItem('userRole', '${role}');
+      sessionStorage.setItem('userRole', '${role}');
+      localStorage.setItem('currentUser', ${JSON.stringify(userJson)});
+      sessionStorage.setItem('currentUser', ${JSON.stringify(userJson)});
+      localStorage.setItem('accessToken', 'mobile-audit-token');
+      localStorage.setItem('authToken', 'mobile-audit-token');
       localStorage.setItem('currentCustomer', JSON.stringify({ id: 'audit_customer', name: 'Mobile Audit Customer', email: 'audit.customer@example.com', phone: '+919999999999' }));
       localStorage.setItem('currentDriver', JSON.stringify({ id: 'audit_driver', name: 'Mobile Audit Driver', email: 'audit.driver@example.com', phone: '+919888888888' }));
       localStorage.setItem('currentAdmin', JSON.stringify({ id: 'audit_admin', name: 'Mobile Audit Admin', email: 'audit.admin@example.com' }));
@@ -259,6 +279,63 @@ const layoutExpression = `(() => {
   };
 })()`;
 
+const customerDashboardFeatureExpression = `(() => {
+  if (!document.body || !document.body.classList.contains('customer-dashboard-page')) return null;
+  const visible = (selector) => {
+    const el = document.querySelector(selector);
+    if (!el) return { present: false, visible: false, inViewport: false, top: null, height: null };
+    const style = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+    return {
+      present: true,
+      visible: isVisible,
+      inViewport: isVisible && rect.bottom > 0 && rect.top < window.innerHeight,
+      top: Math.round(rect.top),
+      height: Math.round(rect.height)
+    };
+  };
+  const walletButton = document.querySelector('.tab-button[data-tab="wallet"]');
+  if (walletButton) walletButton.click();
+  const methodSelect = document.querySelector('#walletAddMethod');
+  return {
+    navbar: visible('.navbar'),
+    header: visible('.header-section'),
+    stats: visible('.stats-grid'),
+    tabs: visible('.tab-buttons'),
+    walletButton: visible('.tab-button[data-tab="wallet"]'),
+    walletTab: visible('#walletTab'),
+    walletAmount: visible('#walletAddAmount'),
+    walletMethod: visible('#walletAddMethod'),
+    walletTabActive: !!document.querySelector('#walletTab.active'),
+    tabLabels: Array.from(document.querySelectorAll('.tab-button')).map((button) => String(button.textContent || '').replace(/\\s+/g, ' ').trim()),
+    walletMethodOptions: Array.from(methodSelect ? methodSelect.options : []).map((option) => String(option.textContent || '').trim()).filter(Boolean).slice(0, 20),
+    duplicateRuntimeEmergencyHidden: (() => {
+      const bar = document.querySelector('body.customer-dashboard-page > #ff-emergency-bar');
+      if (!bar) return true;
+      return window.getComputedStyle(bar).display === 'none';
+    })()
+  };
+})()`;
+
+function getSessionErrors(session) {
+  return session.events
+    .map((event) => {
+      if (event.method === 'Runtime.exceptionThrown') {
+        const details = event.params?.exceptionDetails || {};
+        return String(details.exception?.description || details.text || '').trim();
+      }
+      if (event.method === 'Log.entryAdded') {
+        const entry = event.params?.entry || {};
+        if (!['error', 'warning'].includes(String(entry.level || '').toLowerCase())) return '';
+        return String(entry.text || '').trim();
+      }
+      return '';
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
 async function auditPage({ pagePath, appPort, devtoolsPort, screenshotDir }) {
   const target = await createTarget(devtoolsPort);
   const session = new CdpSession(target.webSocketDebuggerUrl);
@@ -288,23 +365,35 @@ async function auditPage({ pagePath, appPort, devtoolsPort, screenshotDir }) {
       mobile: true
     });
     await session.send('Emulation.setTouchEmulationEnabled', { enabled: true });
-    await session.send('Emulation.setScriptExecutionDisabled', { value: true });
+    await session.send('Emulation.setScriptExecutionDisabled', { value: !jsEnabled });
     await session.send('Page.addScriptToEvaluateOnNewDocument', { source: seedScript(pagePath) });
     await session.send('Page.navigate', { url });
-    await session.waitFor('Page.loadEventFired', 3200);
+    await session.waitFor('Page.loadEventFired', jsEnabled ? 8000 : 3200);
     await session.send('Page.stopLoading').catch(() => {});
-    await delay(120);
+    await delay(jsEnabled ? 900 : 120);
     const evaluation = await session.send('Runtime.evaluate', {
       expression: layoutExpression,
       returnByValue: true,
       awaitPromise: true
     });
     result = evaluation.result?.value || { overflowX: true, offenders: [] };
+    if (jsEnabled && pagePath === 'pages/customer-dashboard.html') {
+      const featureEvaluation = await session.send('Runtime.evaluate', {
+        expression: customerDashboardFeatureExpression,
+        returnByValue: true,
+        awaitPromise: true
+      });
+      result.featureChecks = featureEvaluation.result?.value || null;
+    }
     if (screenshotPages.has(pagePath)) {
-      const shot = await session.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
-      const safeName = pagePath.replace(/[\\/]/g, '__').replace(/\.html$/i, '.png');
-      screenshotPath = path.join(screenshotDir, safeName);
-      await fsp.writeFile(screenshotPath, Buffer.from(shot.data, 'base64'));
+      try {
+        const shot = await session.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+        const safeName = pagePath.replace(/[\\/]/g, '__').replace(/\.html$/i, '.png');
+        screenshotPath = path.join(screenshotDir, safeName);
+        await fsp.writeFile(screenshotPath, Buffer.from(shot.data, 'base64'));
+      } catch (error) {
+        result.screenshotError = error.message || 'Screenshot capture failed';
+      }
     }
   } finally {
     session.close();
@@ -317,6 +406,7 @@ async function auditPage({ pagePath, appPort, devtoolsPort, screenshotDir }) {
     url,
     screenshotPath,
     dialogs: session.dialogs,
+    errors: getSessionErrors(session),
     ...result
   };
 }
@@ -349,6 +439,7 @@ async function main() {
     const pages = walkHtml(rootDir)
       .filter((file) => !file.includes('/node_modules/'))
       .filter((file) => !file.includes('/.mobile-audit/'))
+      .filter((file) => !onlyPages || onlyPages.has(file))
       .sort();
     const results = [];
     for (const pagePath of pages) {
@@ -356,7 +447,9 @@ async function main() {
     }
     const failed = results.filter((item) => item.overflowX);
     const dialogs = results.filter((item) => item.dialogs && item.dialogs.length);
+    const errors = results.filter((item) => item.errors && item.errors.length);
     console.log(JSON.stringify({
+      jsEnabled,
       checked: results.length,
       failed: failed.length,
       failedPages: failed.map((item) => ({
@@ -366,6 +459,11 @@ async function main() {
         offenders: item.offenders
       })),
       dialogs: dialogs.map((item) => ({ pagePath: item.pagePath, dialogs: item.dialogs })),
+      errors: errors.map((item) => ({ pagePath: item.pagePath, errors: item.errors })),
+      featureChecks: results.filter((item) => item.featureChecks).map((item) => ({
+        pagePath: item.pagePath,
+        featureChecks: item.featureChecks
+      })),
       screenshots: results.filter((item) => item.screenshotPath).map((item) => item.screenshotPath)
     }, null, 2));
     process.exitCode = failed.length ? 1 : 0;
