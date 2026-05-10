@@ -779,6 +779,15 @@ button {
     flex-direction: column;
 }
 
+.connection-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.connection-row .secondary-action {
+    white-space: nowrap;
+}
+
 .setting-row strong,
 .setting-row small {
     display: block;
@@ -897,5 +906,14 @@ button {
 
     .queue-actions button {
         flex: 1;
+    }
+
+    .connection-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .connection-row .secondary-action {
+        width: 100%;
     }
 }

@@ -103,11 +103,15 @@
     function listen(portalType, callback) {
         const safePortal = String(portalType || "").toLowerCase();
         if (!safePortal || typeof callback !== "function") return () => {};
+        const deliveredThisSession = new Set();
 
         const processNotifications = (items) => {
             const list = Array.isArray(items) ? items : [];
             list.forEach((item) => {
                 if (!shouldDeliver(item, safePortal)) return;
+                const deliveryKey = item.id || [item.createdAt, item.type, item.title, item.message].join("|");
+                if (deliveryKey && deliveredThisSession.has(deliveryKey)) return;
+                if (deliveryKey) deliveredThisSession.add(deliveryKey);
 
                 const result = callback(item);
                 if (result !== false) {

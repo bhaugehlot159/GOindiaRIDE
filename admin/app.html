@@ -287,6 +287,13 @@
                             </span>
                             <input id="compactRowsToggle" type="checkbox">
                         </label>
+                        <label class="setting-row">
+                            <span>
+                                <strong>Portal popup alerts</strong>
+                                <small>Keep off to retain alerts in Activity without repeated screen popups.</small>
+                            </span>
+                            <input id="portalPopupToggle" type="checkbox">
+                        </label>
                         <label class="setting-row wide">
                             <span>
                                 <strong>API base</strong>
@@ -294,6 +301,13 @@
                             </span>
                             <input id="apiBaseInput" type="url" placeholder="https://api.example.com">
                         </label>
+                        <div class="setting-row wide connection-row">
+                            <span>
+                                <strong>Portal connection</strong>
+                                <small id="portalConnectionText">Customer, driver, booking, finance and safety controls are ready to sync.</small>
+                            </span>
+                            <button class="secondary-action" id="connectPortalsBtn" type="button"><i class="fas fa-link"></i> Reconnect all controls</button>
+                        </div>
                         <button class="primary-action" id="saveSettingsBtn" type="button"><i class="fas fa-floppy-disk"></i> Save settings</button>
                     </div>
                 </div>

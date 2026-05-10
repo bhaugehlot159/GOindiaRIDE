@@ -8,12 +8,18 @@
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
+    const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
+    const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
+    const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
+    const PORTAL_FEATURES = ["customer", "driver", "bookings", "finance", "safety"];
+    const QUIET_NOTIFICATION_TEXT = ["admin step-1 login failed", "405 not allowed"];
 
     const state = {
         bookings: [],
         drivers: [],
         users: [],
         notifications: [],
+        connection: loadConnectionState(),
         controls: null,
         query: "",
         view: "overview",
@@ -21,6 +27,8 @@
         queueFilter: "all",
         hideOldActivity: false,
         settings: loadSettings(),
+        seenToasts: loadSeenToasts(),
+        startupAt: Date.now(),
         refreshTimer: null
     };
 
@@ -100,7 +108,8 @@
         return {
             autoRefresh: parsed.autoRefresh !== false,
             compactRows: parsed.compactRows === true,
-            apiBase: cleanText(parsed.apiBase || localStorage.getItem("goindiaride_api_base") || "")
+            portalPopupAlerts: parsed.portalPopupAlerts === true,
+            apiBase: cleanText(parsed.apiBase || localStorage.getItem("goindiaride_api_base") || DEFAULT_API_BASE)
         };
     }
 
@@ -109,6 +118,24 @@
         if (state.settings.apiBase) {
             localStorage.setItem("goindiaride_api_base", state.settings.apiBase.replace(/\/$/, ""));
         }
+    }
+
+    function loadConnectionState() {
+        const parsed = parseJson(localStorage.getItem(ADMIN_CONNECTION_KEY), {});
+        return parsed && typeof parsed === "object" ? parsed : {};
+    }
+
+    function loadSeenToasts() {
+        const parsed = parseJson(localStorage.getItem(TOAST_SEEN_KEY), []);
+        return new Set(Array.isArray(parsed) ? parsed.filter(Boolean).slice(-500) : []);
+    }
+
+    function saveSeenToasts() {
+        localStorage.setItem(TOAST_SEEN_KEY, JSON.stringify(Array.from(state.seenToasts).slice(-500)));
+    }
+
+    function normalizeApiBase(value) {
+        return cleanText(value || DEFAULT_API_BASE).replace(/\/$/, "");
     }
 
     function normalizeBooking(row, sourceKey) {
@@ -230,6 +257,82 @@
         };
     }
 
+    function writeAdminControls(controls) {
+        if (window.AdminControlBridge && typeof window.AdminControlBridge.writeControls === "function") {
+            return window.AdminControlBridge.writeControls(controls);
+        }
+        const key = window.AdminControlBridge && window.AdminControlBridge.keys
+            ? window.AdminControlBridge.keys.CONTROL_KEY
+            : "goindiaride_admin_portal_controls_v1";
+        localStorage.setItem(key, JSON.stringify(controls));
+        return controls;
+    }
+
+    function connectAllPortalFeatures(options = {}) {
+        const now = new Date().toISOString();
+        const apiBase = normalizeApiBase(state.settings.apiBase || localStorage.getItem("goindiaride_api_base"));
+        const controls = loadAdminControls();
+        const nextControls = {
+            ...controls,
+            connectedByAdminApp: true,
+            adminAppLastSyncAt: now,
+            appConnections: {
+                ...(controls.appConnections || {}),
+                admin: {
+                    connected: true,
+                    apiBase,
+                    features: PORTAL_FEATURES,
+                    updatedAt: now
+                }
+            },
+            featureControls: {
+                ...(controls.featureControls || {}),
+                bookings: { enabled: true, sourceKeys: BOOKING_KEYS, updatedAt: now },
+                customers: { enabled: true, sourceKeys: USER_KEYS, updatedAt: now },
+                drivers: { enabled: true, sourceKeys: DRIVER_KEYS, updatedAt: now },
+                finance: { enabled: true, sourceKeys: BOOKING_KEYS, updatedAt: now },
+                safety: { enabled: true, sourceKeys: [NOTIFICATION_KEY], updatedAt: now }
+            },
+            portals: {
+                ...(controls.portals || {}),
+                customer: {
+                    ...((controls.portals || {}).customer || {}),
+                    connected: true,
+                    controlledByAdminApp: true,
+                    controlledFeatures: ["bookings", "profile", "payments", "alerts", "safety"],
+                    lastAdminSyncAt: now
+                },
+                driver: {
+                    ...((controls.portals || {}).driver || {}),
+                    connected: true,
+                    controlledByAdminApp: true,
+                    controlledFeatures: ["availability", "bookings", "kyc", "payments", "alerts"],
+                    lastAdminSyncAt: now
+                }
+            }
+        };
+
+        state.settings.apiBase = apiBase;
+        localStorage.setItem("goindiaride_api_base", apiBase);
+        localStorage.setItem("goindiaride_admin_api_base", apiBase);
+        state.controls = writeAdminControls(nextControls);
+        state.connection = {
+            connected: true,
+            apiBase,
+            features: PORTAL_FEATURES,
+            bookingKeys: BOOKING_KEYS,
+            driverKeys: DRIVER_KEYS,
+            customerKeys: USER_KEYS,
+            updatedAt: now
+        };
+        localStorage.setItem(ADMIN_CONNECTION_KEY, JSON.stringify(state.connection));
+
+        if (options.audit) {
+            addAudit("ADMIN_PORTALS_CONNECTED", "Admin app connected customer, driver, booking, finance and safety controls.");
+        }
+        return state.connection;
+    }
+
     function isPending(booking) {
         return [
             "pending",
@@ -269,6 +372,7 @@
         state.users = loadUsers();
         state.notifications = loadNotifications();
         state.controls = loadAdminControls();
+        state.connection = loadConnectionState();
         renderAll();
     }
 
@@ -394,10 +498,14 @@
             ? window.PortalConnector.getUnreadCount("admin")
             : 0;
         const apiBase = state.settings.apiBase || "Local only";
+        const connection = state.connection && state.connection.connected
+            ? `${PORTAL_FEATURES.join(", ")} connected`
+            : "Waiting for admin sync";
         const rows = [
             ["fa-database", "Booking sources", `${localStores} active local stores`],
             ["fa-bell", "Admin notifications", `${unreadAdmin} unread portal alerts`],
             ["fa-cloud", "API base", apiBase],
+            ["fa-link", "Portal bridge", connection],
             ["fa-clock", "Auto refresh", state.settings.autoRefresh ? "Every 20 seconds" : "Manual"]
         ];
         host.innerHTML = rows.map((row) => `
@@ -641,10 +749,18 @@
     function renderSettings() {
         const auto = $("#autoRefreshToggle");
         const compact = $("#compactRowsToggle");
+        const popup = $("#portalPopupToggle");
         const apiBase = $("#apiBaseInput");
+        const connectionText = $("#portalConnectionText");
         if (auto) auto.checked = state.settings.autoRefresh;
         if (compact) compact.checked = state.settings.compactRows;
+        if (popup) popup.checked = state.settings.portalPopupAlerts;
         if (apiBase) apiBase.value = state.settings.apiBase;
+        if (connectionText) {
+            const status = state.connection && state.connection.connected ? "Connected" : "Not connected";
+            const updated = state.connection && state.connection.updatedAt ? formatDate(state.connection.updatedAt) : "Not synced yet";
+            connectionText.textContent = `${status}: customer, driver, booking, finance and safety controls. Last sync: ${updated}.`;
+        }
         document.body.classList.toggle("compact-rows", state.settings.compactRows);
     }
 
@@ -706,6 +822,71 @@
                 booking
             });
         }
+    }
+
+    function getNotificationToastKey(notification) {
+        if (!notification || typeof notification !== "object") return "";
+        return cleanText(notification.id || [
+            notification.createdAt,
+            notification.type,
+            notification.title,
+            notification.message,
+            notification.sourcePortal
+        ].join("|"));
+    }
+
+    function isQuietPortalNotification(notification) {
+        const text = [
+            notification?.type,
+            notification?.title,
+            notification?.message,
+            notification?.metadata?.action
+        ].join(" ").toLowerCase();
+        return QUIET_NOTIFICATION_TEXT.some((pattern) => text.includes(pattern));
+    }
+
+    function isHistoricalPortalNotification(notification) {
+        const createdAt = Date.parse(notification?.createdAt || "");
+        return Number.isFinite(createdAt) && createdAt + 1500 < state.startupAt;
+    }
+
+    function shouldShowPortalToast(notification) {
+        if (!notification) return false;
+        if (!state.settings.portalPopupAlerts) return false;
+        if (isQuietPortalNotification(notification)) return false;
+        const key = getNotificationToastKey(notification);
+        if (key && state.seenToasts.has(key)) return false;
+        if (isHistoricalPortalNotification(notification)) return false;
+        return true;
+    }
+
+    function rememberPortalToast(notification) {
+        const key = getNotificationToastKey(notification);
+        if (!key) return;
+        state.seenToasts.add(key);
+        saveSeenToasts();
+    }
+
+    function handleIncomingPortalNotification(notification) {
+        state.notifications = loadNotifications();
+        const isHistorical = isHistoricalPortalNotification(notification);
+        if (isHistorical) {
+            rememberPortalToast(notification);
+            return;
+        }
+
+        if (notification && notification.booking) {
+            refreshData();
+        } else {
+            renderPulse();
+            renderActivity();
+            renderSafety();
+        }
+
+        if (shouldShowPortalToast(notification)) {
+            showToast(cleanText(notification?.message || notification?.title || "New admin notification"));
+        }
+        rememberPortalToast(notification);
     }
 
     function controlReason(defaultReason) {
@@ -915,16 +1096,26 @@
         $("#saveSettingsBtn")?.addEventListener("click", () => {
             state.settings.autoRefresh = Boolean($("#autoRefreshToggle")?.checked);
             state.settings.compactRows = Boolean($("#compactRowsToggle")?.checked);
+            state.settings.portalPopupAlerts = Boolean($("#portalPopupToggle")?.checked);
             state.settings.apiBase = cleanText($("#apiBaseInput")?.value || "");
             saveSettings();
+            connectAllPortalFeatures({ audit: true });
             applySettings();
             renderAll();
             showToast("Settings saved locally.");
         });
 
+        $("#connectPortalsBtn")?.addEventListener("click", () => {
+            state.settings.apiBase = cleanText($("#apiBaseInput")?.value || state.settings.apiBase || DEFAULT_API_BASE);
+            saveSettings();
+            connectAllPortalFeatures({ audit: true });
+            renderAll();
+            showToast("All admin portal controls connected.");
+        });
+
         window.addEventListener("storage", (event) => {
             const controlKey = window.AdminControlBridge && window.AdminControlBridge.keys ? window.AdminControlBridge.keys.CONTROL_KEY : "";
-            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, controlKey].includes(event.key)) {
+            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, controlKey].includes(event.key)) {
                 refreshData();
             }
         });
@@ -954,10 +1145,8 @@
         }
         if (window.PortalConnector && typeof window.PortalConnector.listen === "function") {
             window.PortalConnector.listen("admin", (notification) => {
-                state.notifications = loadNotifications();
-                if (notification && notification.booking) refreshData();
-                showToast(cleanText(notification?.message || notification?.title || "New admin notification"));
-                return false;
+                handleIncomingPortalNotification(notification);
+                return true;
             });
         }
     }
@@ -974,6 +1163,7 @@
         if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
         hydrateOperator();
         setupEvents();
+        connectAllPortalFeatures();
         setupPortalListener();
         applySettings();
         refreshData();
