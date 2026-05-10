@@ -99,7 +99,8 @@
         </p>
         <div class="actions">
             <a class="btn btn-primary" href="../pages/login.html?admin=1&next=%2Fadmin%2Findex.html">Continue to Admin Login</a>
-            <a class="btn btn-secondary" href="../pages/login.html?admin=1&next=%2Fadmin%2Fapp.html">Open Admin App</a>
+            <a class="btn btn-secondary" href="../pages/login.html?admin=1&next=%2Fadmin%2Fapp.html">Login to Admin App</a>
+            <a class="btn btn-secondary" href="./app.html">Open App if Logged In</a>
             <a class="btn btn-secondary" href="../index.html">Go Home</a>
         </div>
     </section>
@@ -107,11 +108,17 @@
     <script>
         (function redirectIfAlreadyAdmin() {
             try {
+                const query = new URLSearchParams(window.location.search || '');
+                const next = String(query.get('next') || '').trim();
                 const role = String(localStorage.getItem('userRole') || localStorage.getItem('role') || '').toLowerCase();
                 const accountType = String(localStorage.getItem('accountType') || '').toLowerCase();
                 const currentAdmin = localStorage.getItem('currentAdmin');
                 const isAdmin = role === 'admin' || accountType === 'admin' || Boolean(currentAdmin);
                 if (isAdmin) {
+                    if (next === '/admin/app.html' || next === './app.html' || next === 'app.html') {
+                        window.location.replace('./app.html');
+                        return;
+                    }
                     window.location.replace('./index.html');
                 }
             } catch (_error) {

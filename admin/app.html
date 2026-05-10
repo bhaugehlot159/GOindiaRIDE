@@ -6,6 +6,21 @@
     <title>GOindiaRIDE Admin App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/admin-app.css">
+    <script>
+        (function requireAdminSessionForApp() {
+            try {
+                const role = String(localStorage.getItem("userRole") || localStorage.getItem("role") || "").toLowerCase();
+                const accountType = String(localStorage.getItem("accountType") || "").toLowerCase();
+                const currentAdmin = localStorage.getItem("currentAdmin");
+                const isAdmin = role === "admin" || accountType === "admin" || Boolean(currentAdmin);
+                if (!isAdmin) {
+                    window.location.replace("./login.html?next=%2Fadmin%2Fapp.html");
+                }
+            } catch (_error) {
+                window.location.replace("./login.html?next=%2Fadmin%2Fapp.html");
+            }
+        })();
+    </script>
 </head>
 <body class="admin-app-shell">
     <div class="app-layout">
