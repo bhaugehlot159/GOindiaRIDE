@@ -3,7 +3,9 @@
 
     const DEFER_SELECTOR = "script[data-goi-defer-src]";
     const LOADED_ATTR = "data-goi-loaded";
-    const LOAD_DELAY_MS = 900;
+    const LOAD_DELAY_MS = 60;
+    const IDLE_TIMEOUT_MS = 700;
+    let deferredRuntimeStarted = false;
 
     function loadScriptTag(placeholder) {
         return new Promise((resolve) => {
@@ -31,6 +33,22 @@
         });
     }
 
+    function warmDeferredRuntimeCache() {
+        const seen = new Set();
+        Array.from(document.querySelectorAll(DEFER_SELECTOR)).forEach((placeholder) => {
+            const src = placeholder.getAttribute("data-goi-defer-src");
+            if (!src || seen.has(src)) return;
+            seen.add(src);
+
+            const link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "script";
+            link.href = src;
+            link.fetchPriority = "low";
+            document.head.appendChild(link);
+        });
+    }
+
     async function loadDeferredRuntimeScripts() {
         const placeholders = Array.from(document.querySelectorAll(DEFER_SELECTOR));
         for (const placeholder of placeholders) {
@@ -41,24 +59,38 @@
         }));
     }
 
-    function scheduleDeferredRuntime() {
-        const run = () => {
-            setTimeout(loadDeferredRuntimeScripts, LOAD_DELAY_MS);
-        };
+    function startDeferredRuntime() {
+        if (deferredRuntimeStarted) return;
+        deferredRuntimeStarted = true;
+        setTimeout(loadDeferredRuntimeScripts, LOAD_DELAY_MS);
+    }
 
+    function scheduleDeferredRuntime() {
+        warmDeferredRuntimeCache();
         if (typeof global.requestIdleCallback === "function") {
-            global.requestIdleCallback(run, { timeout: 2500 });
+            global.requestIdleCallback(startDeferredRuntime, { timeout: IDLE_TIMEOUT_MS });
             return;
         }
 
-        run();
+        startDeferredRuntime();
+    }
+
+    function bindEarlyInteractionLoad() {
+        const events = ["pointerdown", "keydown", "touchstart", "scroll"];
+        const loadNow = () => {
+            events.forEach((eventName) => global.removeEventListener(eventName, loadNow));
+            startDeferredRuntime();
+        };
+        events.forEach((eventName) => global.addEventListener(eventName, loadNow, { once: true, passive: true }));
     }
 
     global.__GOINDIARIDE_FAST_BOOT__ = true;
+    global.GoIndiaRideLoadDeferredFeatures = startDeferredRuntime;
+    bindEarlyInteractionLoad();
 
-    if (document.readyState === "complete") {
-        scheduleDeferredRuntime();
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", scheduleDeferredRuntime, { once: true });
     } else {
-        global.addEventListener("load", scheduleDeferredRuntime, { once: true });
+        scheduleDeferredRuntime();
     }
 })(window);
