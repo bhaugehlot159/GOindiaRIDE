@@ -1519,20 +1519,17 @@ async function sendAdmin2FAOTP(){
       return;
     }catch(e){
       adminMobileConfirmation=null;
-      localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
-      showError(e.message||'Mobile SMS OTP send failed. Email OTP use karein ya Firebase Phone Auth settings check karein.');
-      return;
+      context.firebasePhoneError=e.message||'firebase_phone_failed';
+      localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
     }
   }
 
   const result=await callBackendAuth('/api/auth/request-otp',payload);
   if(!result.ok){
     const status=Number(result.status||0);
-    const canTryReceivedCode=channel==='email'||status===0||status===405||status===429||status>=500;
+    const canTryReceivedCode=channel==='sms'&&(status===0||status===429||status>=500);
     if(canTryReceivedCode){
-      showSuccess(channel==='email'
-        ? 'Agar OTP email par aa gaya hai to code enter karein.'
-        : 'Agar OTP mobile par aa gaya hai to code enter karein.');
+      showSuccess('Agar OTP mobile par aa gaya hai to code enter karein.');
       openAdminOtpEntryStep();
       return;
     }

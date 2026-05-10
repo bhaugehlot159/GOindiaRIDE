@@ -857,11 +857,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="../js/portal-connector.js"></script>
     <script src="../js/session-continuity.js?v=20260504-session1"></script>
-    <script src="../js/login-controller.js?v=20260510-admin-otp4"></script>
+    <script>
+        window.GOINDIARIDE_API_BASE = 'https://goindiaride.onrender.com';
+        try {
+            localStorage.setItem('goindiaride_api_base', 'https://goindiaride.onrender.com');
+        } catch (error) {}
+    </script>
+    <script src="../js/login-controller.js?v=20260510-admin-otp5"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                const swVersion = '20260510-admin-otp4';
+                const swVersion = '20260510-admin-otp5';
                 navigator.serviceWorker
                     .register('../sw.js?v=' + swVersion)
                     .then(function (registration) {
