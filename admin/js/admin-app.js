@@ -12,6 +12,26 @@
     const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
     const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
     const PORTAL_FEATURES = ["customer", "driver", "bookings", "finance", "safety"];
+    const CUSTOMER_FEATURES = [
+        ["booking", "Book ride", "Booking entry, route and fare handoff"],
+        ["active_rides", "Active rides", "Live ride cards and edit controls"],
+        ["ride_history", "Ride history", "Past trips and receipts"],
+        ["wallet", "Wallet", "Add money, withdrawal and ledger"],
+        ["messages", "Messages", "Customer-driver chat"],
+        ["donations", "Donations", "Donation flow and receipts"],
+        ["profile", "Profile", "Customer account details"],
+        ["emergency", "Emergency", "SOS, police and ambulance controls"]
+    ];
+    const DRIVER_FEATURES = [
+        ["availability", "Availability", "Online/offline driver state"],
+        ["booking_requests", "Booking requests", "Incoming trip requests"],
+        ["active_trips", "Active trips", "Trip progress controls"],
+        ["earnings", "Earnings", "Payout and earning views"],
+        ["kyc", "KYC", "Document review status"],
+        ["wallet", "Wallet", "Driver wallet and withdrawals"],
+        ["messages", "Messages", "Driver-customer chat"],
+        ["safety", "Safety", "SOS and monitoring controls"]
+    ];
     const QUIET_NOTIFICATION_TEXT = ["admin step-1 login failed", "405 not allowed"];
 
     const state = {
@@ -293,20 +313,37 @@
                 finance: { enabled: true, sourceKeys: BOOKING_KEYS, updatedAt: now },
                 safety: { enabled: true, sourceKeys: [NOTIFICATION_KEY], updatedAt: now }
             },
+            portalFeatures: {
+                ...(controls.portalFeatures || {}),
+                customer: {
+                    ...CUSTOMER_FEATURES.reduce((acc, feature) => {
+                        acc[feature[0]] = { enabled: true, status: "active", reason: "", label: feature[1], updatedAt: now };
+                        return acc;
+                    }, {}),
+                    ...(((controls.portalFeatures || {}).customer) || {})
+                },
+                driver: {
+                    ...DRIVER_FEATURES.reduce((acc, feature) => {
+                        acc[feature[0]] = { enabled: true, status: "active", reason: "", label: feature[1], updatedAt: now };
+                        return acc;
+                    }, {}),
+                    ...(((controls.portalFeatures || {}).driver) || {})
+                }
+            },
             portals: {
                 ...(controls.portals || {}),
                 customer: {
                     ...((controls.portals || {}).customer || {}),
                     connected: true,
                     controlledByAdminApp: true,
-                    controlledFeatures: ["bookings", "profile", "payments", "alerts", "safety"],
+                    controlledFeatures: CUSTOMER_FEATURES.map((feature) => feature[0]),
                     lastAdminSyncAt: now
                 },
                 driver: {
                     ...((controls.portals || {}).driver || {}),
                     connected: true,
                     controlledByAdminApp: true,
-                    controlledFeatures: ["availability", "bookings", "kyc", "payments", "alerts"],
+                    controlledFeatures: DRIVER_FEATURES.map((feature) => feature[0]),
                     lastAdminSyncAt: now
                 }
             }
@@ -320,6 +357,8 @@
             connected: true,
             apiBase,
             features: PORTAL_FEATURES,
+            customerFeatures: CUSTOMER_FEATURES.map((feature) => feature[0]),
+            driverFeatures: DRIVER_FEATURES.map((feature) => feature[0]),
             bookingKeys: BOOKING_KEYS,
             driverKeys: DRIVER_KEYS,
             customerKeys: USER_KEYS,
@@ -499,7 +538,7 @@
             : 0;
         const apiBase = state.settings.apiBase || "Local only";
         const connection = state.connection && state.connection.connected
-            ? `${PORTAL_FEATURES.join(", ")} connected`
+            ? `${PORTAL_FEATURES.length} feature groups connected`
             : "Waiting for admin sync";
         const rows = [
             ["fa-database", "Booking sources", `${localStores} active local stores`],
@@ -664,15 +703,17 @@
                 ["customer", "Customer Portal", "Bookings, ride history, wallet, profile and customer alerts."],
                 ["driver", "Driver Portal", "Online status, booking requests, KYC, wallet and ride operations."]
             ];
-            portalHost.innerHTML = portals.map((item) => {
+            const portalCards = portals.map((item) => {
                 const portal = controls.portals[item[0]] || {};
                 const enabled = portal.enabled !== false;
+                const featureCount = item[0] === "driver" ? DRIVER_FEATURES.length : CUSTOMER_FEATURES.length;
                 return `
                     <article class="portal-control-card">
                         <header>
                             <div>
                                 <strong>${escapeHtml(item[1])}</strong>
                                 <p>${escapeHtml(item[2])}</p>
+                                <small>${featureCount} feature controls connected</small>
                             </div>
                             <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Active" : "Paused"}</span>
                         </header>
@@ -683,6 +724,46 @@
                     </article>
                 `;
             }).join("");
+
+            const featurePanels = [
+                ["customer", "Customer Feature Control", CUSTOMER_FEATURES],
+                ["driver", "Driver Feature Control", DRIVER_FEATURES]
+            ].map((group) => {
+                const portal = group[0];
+                const portalFeatures = ((controls.portalFeatures || {})[portal]) || {};
+                return `
+                    <article class="portal-control-card feature-control-panel">
+                        <header>
+                            <div>
+                                <strong>${escapeHtml(group[1])}</strong>
+                                <p>Feature-level control is shared with the live ${escapeHtml(portal)} portal.</p>
+                            </div>
+                            <span class="status-pill good">${group[2].length} linked</span>
+                        </header>
+                        <div class="portal-feature-list">
+                            ${group[2].map((feature) => {
+                                const control = portalFeatures[feature[0]] || {};
+                                const enabled = control.enabled !== false && !["disabled", "paused", "blocked"].includes(cleanText(control.status || "active").toLowerCase());
+                                return `
+                                    <div class="feature-control-row">
+                                        <div>
+                                            <strong>${escapeHtml(feature[1])}</strong>
+                                            <small>${escapeHtml(feature[2])}</small>
+                                        </div>
+                                        <div class="control-actions">
+                                            <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Connected" : "Paused"}</span>
+                                            <button class="row-action" data-control-action="enable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-link"></i></button>
+                                            <button class="danger-action" data-control-action="disable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-pause"></i></button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join("")}
+                        </div>
+                    </article>
+                `;
+            }).join("");
+
+            portalHost.innerHTML = portalCards + featurePanels;
         }
 
         if (customerHost) {
@@ -903,6 +984,12 @@
         return state.drivers.find((driver) => getControlEntityKey(driver) === target) || null;
     }
 
+    function getFeatureLabel(portal, featureId) {
+        const features = portal === "driver" ? DRIVER_FEATURES : CUSTOMER_FEATURES;
+        const match = features.find((feature) => feature[0] === featureId);
+        return match ? match[1] : cleanText(featureId, "Feature").replace(/_/g, " ");
+    }
+
     function handlePortalControlAction(button) {
         if (!window.AdminControlBridge) {
             showToast("Admin control bridge is not loaded.");
@@ -911,6 +998,7 @@
 
         const action = button.dataset.controlAction || "";
         const portal = button.dataset.portal || "";
+        const feature = button.dataset.feature || "";
         const key = button.dataset.subjectKey || "";
         let result = { ok: true };
 
@@ -918,6 +1006,19 @@
             const enabled = action === "enable-portal";
             window.AdminControlBridge.setPortalEnabled(portal, enabled, controlReason(enabled ? "Portal enabled by admin." : "Portal paused by admin."));
             showToast(`${portal} portal ${enabled ? "enabled" : "paused"}.`);
+        } else if (action === "enable-feature" || action === "disable-feature") {
+            const enabled = action === "enable-feature";
+            if (typeof window.AdminControlBridge.setFeatureEnabled !== "function") {
+                showToast("Feature bridge is not loaded.");
+                return;
+            }
+            result = window.AdminControlBridge.setFeatureEnabled(
+                portal,
+                feature,
+                enabled,
+                controlReason(`${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"} by admin.`)
+            );
+            showToast(result.ok ? `${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"}.` : "Feature action failed.");
         } else if (action === "activate-customer" || action === "suspend-customer") {
             const customer = findCustomerByKey(key);
             if (!customer) {

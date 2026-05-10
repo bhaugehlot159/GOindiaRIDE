@@ -566,13 +566,19 @@ button {
 
 .pulse-item {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) auto;
+    grid-template-columns: 28px minmax(96px, 0.75fr) minmax(0, 1.25fr);
     align-items: center;
     gap: 10px;
 }
 
 .pulse-item i {
     color: var(--green);
+}
+
+.pulse-item strong,
+.pulse-item span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .fare-audit-grid,
@@ -615,6 +621,36 @@ button {
 .control-list {
     display: grid;
     gap: 10px;
+}
+
+.portal-feature-list {
+    display: grid;
+    gap: 8px;
+}
+
+.feature-control-panel {
+    grid-column: 1 / -1;
+}
+
+.feature-control-row {
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-soft);
+}
+
+.feature-control-row strong,
+.feature-control-row small {
+    display: block;
+}
+
+.feature-control-row small {
+    color: var(--muted);
 }
 
 .portal-control-card,
@@ -906,6 +942,23 @@ button {
 
     .queue-actions button {
         flex: 1;
+    }
+
+    .pulse-item {
+        grid-template-columns: 28px minmax(0, 1fr);
+    }
+
+    .pulse-item span {
+        grid-column: 2;
+    }
+
+    .feature-control-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .feature-control-row .control-actions {
+        justify-content: flex-start;
     }
 
     .connection-row {

@@ -348,6 +348,7 @@ function hasLocalAdminSession() {
 async function enforceAdminPortalAccess() {
     const token = String(getBackendAccessToken() || '').trim();
     if (!token) {
+        if (hasLocalAdminSession()) return true;
         window.location.replace(getAdminLoginPath());
         return false;
     }
@@ -362,6 +363,7 @@ async function enforceAdminPortalAccess() {
         });
 
         if (!response.ok) {
+            if (hasLocalAdminSession()) return true;
             window.location.replace(getAdminLoginPath());
             return false;
         }
@@ -380,6 +382,7 @@ async function enforceAdminPortalAccess() {
         localStorage.setItem('userRole', 'admin');
         return true;
     } catch (error) {
+        if (hasLocalAdminSession()) return true;
         window.location.replace(getAdminLoginPath());
         return false;
     }
@@ -824,6 +827,10 @@ function initializeSectionFeatures(sectionId) {
 
 // Initialize charts on dashboard
 function initializeDashboardCharts() {
+    if (typeof Chart === 'undefined') {
+        return;
+    }
+
     // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {

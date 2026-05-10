@@ -8,6 +8,9 @@
       path.endsWith("/pages/customer-dashboard.html") ||
       path.endsWith("/pages/driver-dashboard.html") ||
       path.endsWith("/pages/admin-dashboard.html") ||
+      path.endsWith("/admin/index.html") ||
+      path.endsWith("/admin/app.html") ||
+      path.endsWith("/admin/login.html") ||
       path.endsWith("/booking.html") ||
       path.endsWith("/customer-dashboard.html") ||
       path.endsWith("/driver-dashboard.html") ||

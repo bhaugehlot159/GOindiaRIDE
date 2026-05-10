@@ -5517,15 +5517,17 @@ Thank you for riding with us! 🚗
 
     <script>
         (function connectCustomerPortalNotifications() {
+            function getCustomerSubject() {
+                try {
+                    return window.currentUser || JSON.parse(localStorage.getItem('currentUser') || '{}') || {};
+                } catch (_error) {
+                    return window.currentUser || {};
+                }
+            }
+
             if (window.AdminControlBridge && typeof AdminControlBridge.initPortalRuntime === 'function') {
                 AdminControlBridge.initPortalRuntime('customer', {
-                    getSubject: function () {
-                        try {
-                            return window.currentUser || JSON.parse(localStorage.getItem('currentUser') || '{}') || {};
-                        } catch (_error) {
-                            return window.currentUser || {};
-                        }
-                    },
+                    getSubject: getCustomerSubject,
                     onBlocked: function () {
                         document.querySelectorAll('a[href*="booking"], button[onclick*="Booking"], button[onclick*="booking"], form button[type="submit"]').forEach(function (node) {
                             if (!node.closest('#goindiarideAdminControlBanner')) node.classList.add('admin-lock-sensitive');
@@ -5536,6 +5538,21 @@ Thank you for riding with us! 🚗
                             node.classList.remove('admin-lock-sensitive');
                         });
                     }
+                });
+            }
+
+            if (window.AdminControlBridge && typeof AdminControlBridge.initFeatureRuntime === 'function') {
+                AdminControlBridge.initFeatureRuntime('customer', {
+                    booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]'],
+                    active_rides: ['.tab-button[data-tab="active"]', '#activeTab'],
+                    ride_history: ['.tab-button[data-tab="history"]', '#historyTab'],
+                    wallet: ['.tab-button[data-tab="wallet"]', '#walletTab', '#walletBalance', '#customerWalletTabBalance'],
+                    messages: ['.tab-button[data-tab="messages"]', '#messagesTab'],
+                    donations: ['.tab-button[data-tab="donations"]', '#donationsTab', 'button[onclick*="openDonations"]', 'a[href*="openDonations"]'],
+                    profile: ['.tab-button[data-tab="profile"]', '#profileTab', 'button[onclick*="profile"]'],
+                    emergency: ['.emergency-panel', '.emergency-btn']
+                }, {
+                    getSubject: getCustomerSubject
                 });
             }
 

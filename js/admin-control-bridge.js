@@ -8,6 +8,10 @@
     const BOOKING_KEYS = ["bookings", "goride_bookings", "goindiaride_admin_review_inbox_v1", "adminDemoBookings", "goindiaride_active_bookings"];
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
+    const FEATURE_DEFINITIONS = {
+        customer: ["booking", "active_rides", "ride_history", "wallet", "messages", "donations", "profile", "emergency"],
+        driver: ["availability", "booking_requests", "active_trips", "earnings", "kyc", "wallet", "messages", "safety"]
+    };
 
     function nowIso() {
         return new Date().toISOString();
@@ -100,6 +104,14 @@
             || left.phones.some((phone) => right.phones.includes(phone));
     }
 
+    function featureDefaults(portalType) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        return (FEATURE_DEFINITIONS[safePortal] || []).reduce((acc, featureId) => {
+            acc[featureId] = { enabled: true, status: "active", reason: "", updatedAt: "" };
+            return acc;
+        }, {});
+    }
+
     function defaultControls() {
         return {
             version: 1,
@@ -107,6 +119,10 @@
             portals: {
                 customer: { enabled: true, status: "active", reason: "", updatedAt: "" },
                 driver: { enabled: true, status: "active", reason: "", updatedAt: "" }
+            },
+            portalFeatures: {
+                customer: featureDefaults("customer"),
+                driver: featureDefaults("driver")
             },
             customers: {},
             drivers: {},
@@ -125,6 +141,16 @@
                 ...(stored.portals || {}),
                 customer: { ...defaults.portals.customer, ...((stored.portals || {}).customer || {}) },
                 driver: { ...defaults.portals.driver, ...((stored.portals || {}).driver || {}) }
+            },
+            portalFeatures: {
+                customer: {
+                    ...defaults.portalFeatures.customer,
+                    ...(((stored.portalFeatures || {}).customer) || {})
+                },
+                driver: {
+                    ...defaults.portalFeatures.driver,
+                    ...(((stored.portalFeatures || {}).driver) || {})
+                }
             },
             customers: { ...(stored.customers || {}) },
             drivers: { ...(stored.drivers || {}) },
@@ -216,6 +242,25 @@
         };
     }
 
+    function getFeaturePolicy(portalType, featureId, subject) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const safeFeature = cleanText(featureId).toLowerCase();
+        const portalPolicy = getPortalPolicy(safePortal, subject);
+        const controls = readControls();
+        const feature = (((controls.portalFeatures || {})[safePortal]) || {})[safeFeature] || {};
+        const status = cleanText(feature.status || "active").toLowerCase();
+        const featureAllowed = feature.enabled !== false && !["disabled", "paused", "blocked"].includes(status);
+        return {
+            portal: safePortal,
+            feature: safeFeature,
+            allowed: portalPolicy.allowed && featureAllowed,
+            portalAllowed: portalPolicy.allowed,
+            status,
+            reason: cleanText(feature.reason || portalPolicy.reason || ""),
+            updatedAt: feature.updatedAt || portalPolicy.updatedAt
+        };
+    }
+
     function setPortalEnabled(portalType, enabled, reason) {
         const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
         const controls = readControls();
@@ -238,6 +283,41 @@
             metadata: { portal: safePortal, enabled: Boolean(enabled), reason: cleanText(reason) }
         });
         return next;
+    }
+
+    function setFeatureEnabled(portalType, featureId, enabled, reason) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const safeFeature = cleanText(featureId).toLowerCase();
+        if (!safeFeature) return { ok: false, reason: "missing_feature" };
+        const controls = readControls();
+        controls.portalFeatures = controls.portalFeatures || {};
+        controls.portalFeatures[safePortal] = {
+            ...featureDefaults(safePortal),
+            ...(controls.portalFeatures[safePortal] || {})
+        };
+        controls.portalFeatures[safePortal][safeFeature] = {
+            ...(controls.portalFeatures[safePortal][safeFeature] || {}),
+            enabled: Boolean(enabled),
+            status: enabled ? "active" : "disabled",
+            reason: cleanText(reason),
+            updatedAt: nowIso()
+        };
+        const next = writeControls(controls);
+        addAudit("PORTAL_FEATURE_CHANGED", `${safePortal} feature ${safeFeature} ${enabled ? "enabled" : "disabled"}`, {
+            portal: safePortal,
+            feature: safeFeature,
+            enabled: Boolean(enabled),
+            reason: cleanText(reason)
+        });
+        notify({
+            type: "portal_feature_control_update",
+            title: "Admin Feature Control",
+            message: reason || `${safeFeature.replace(/_/g, " ")} ${enabled ? "enabled" : "paused"} by admin.`,
+            sourcePortal: "admin",
+            targetPortals: [safePortal, "admin"],
+            metadata: { portal: safePortal, feature: safeFeature, enabled: Boolean(enabled), reason: cleanText(reason) }
+        });
+        return { ok: true, controls: next };
     }
 
     function setSubjectStatus(portalType, subject, status, reason) {
@@ -396,7 +476,9 @@
             ".admin-control-banner{position:sticky;top:0;z-index:20000;display:none;align-items:center;gap:10px;padding:10px 14px;background:#7c2d12;color:#fff;font:700 14px/1.35 Inter,Segoe UI,sans-serif;box-shadow:0 8px 20px rgba(0,0,0,.16)}",
             ".admin-control-banner.active{display:flex}",
             ".admin-control-banner i{font-style:normal}",
-            "html[data-admin-portal-locked='true'] .admin-lock-sensitive{pointer-events:none;opacity:.55}"
+            "html[data-admin-portal-locked='true'] .admin-lock-sensitive{pointer-events:none;opacity:.55}",
+            ".admin-feature-disabled{pointer-events:none!important;opacity:.55!important;filter:grayscale(.2)}",
+            ".admin-feature-disabled input,.admin-feature-disabled button,.admin-feature-disabled select,.admin-feature-disabled textarea{pointer-events:none!important}"
         ].join("");
         global.document.head.appendChild(style);
     }
@@ -447,6 +529,46 @@
         return apply;
     }
 
+    function applyFeatureRuntime(portalType, featureMap, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const settings = options || {};
+        const subject = typeof settings.getSubject === "function" ? settings.getSubject() : currentSubject(safePortal);
+        injectRuntimeStyles();
+        Object.keys(featureMap || {}).forEach((featureId) => {
+            const policy = getFeaturePolicy(safePortal, featureId, subject);
+            const selectors = Array.isArray(featureMap[featureId]) ? featureMap[featureId] : [featureMap[featureId]];
+            selectors.filter(Boolean).forEach((selector) => {
+                global.document.querySelectorAll(selector).forEach((node) => {
+                    node.dataset.adminFeatureConnected = "true";
+                    node.dataset.adminFeature = featureId;
+                    if (!Object.prototype.hasOwnProperty.call(node.dataset, "adminOriginalTitle")) {
+                        node.dataset.adminOriginalTitle = node.title || "";
+                    }
+                    node.classList.toggle("admin-feature-disabled", !policy.allowed);
+                    if ("disabled" in node && node.dataset.adminOriginalDisabled === undefined) {
+                        node.dataset.adminOriginalDisabled = node.disabled ? "true" : "false";
+                    }
+                    if ("disabled" in node) {
+                        node.disabled = !policy.allowed || node.dataset.adminOriginalDisabled === "true";
+                    }
+                    node.title = policy.allowed ? node.dataset.adminOriginalTitle : (policy.reason || "This feature is paused by admin.");
+                });
+            });
+        });
+        return readControls();
+    }
+
+    function initFeatureRuntime(portalType, featureMap, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const apply = () => applyFeatureRuntime(safePortal, featureMap || {}, options || {});
+        apply();
+        global.addEventListener("storage", (event) => {
+            if (event.key === CONTROL_KEY) apply();
+        });
+        global.addEventListener(LOCAL_EVENT, apply);
+        return apply;
+    }
+
     function canUsePortal(portalType, subject) {
         return getPortalPolicy(portalType, subject).allowed;
     }
@@ -456,14 +578,18 @@
         readControls,
         writeControls,
         getPortalPolicy,
+        getFeaturePolicy,
         setPortalEnabled,
+        setFeatureEnabled,
         setSubjectStatus,
         approveDriver,
         forceDriverOffline,
         setBookingStatus,
         assignBookingToDriver,
         initPortalRuntime,
+        initFeatureRuntime,
         applyPortalRuntime,
+        applyFeatureRuntime,
         canUsePortal,
         entityKey,
         sameEntity
