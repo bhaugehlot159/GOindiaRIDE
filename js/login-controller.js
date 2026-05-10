@@ -35,6 +35,7 @@ let firebaseReady=false;
 let firebaseRecaptchaVerifier=null;
 let customerConfirmation=null;
 let driverConfirmation=null;
+let adminMobileConfirmation=null;
 
 function extractArrayLike(parsed){
   if(Array.isArray(parsed))return parsed;
@@ -983,7 +984,7 @@ function notifyAdminSecurityEvent(title,message,metadata={}){
 async function ensureAdminProfile(){
   const existing=safeReadObject(ADMIN_PROFILE_KEY,null);
   if(existing&&existing.email&&existing.passwordHash)return existing;
-  const seeded={id:'admin_1',name:'Admin User',email:'admin@test.com',phone:'+917654321098',passwordHash:await hashPassword('123456'),updatedAt:new Date().toISOString()};
+  const seeded={id:'admin_1',name:'Admin User',email:'admin@test.com',phone:'+918426891471',passwordHash:await hashPassword('123456'),updatedAt:new Date().toISOString()};
   localStorage.setItem(ADMIN_PROFILE_KEY,JSON.stringify(seeded));
   return seeded;
 }
@@ -1444,6 +1445,36 @@ function formatOtpDeliveryTarget(delivery){
   if(!target)return'';
   return delivery.channel==='email'?` (${target})`:` (${target})`;
 }
+function getAdminOtpPhone(profile){
+  const phone=normalizePhoneForLookup(profile?.phone||profile?.mobile||'');
+  if(phone&&phone!=='+917654321098')return phone;
+  return '+918426891471';
+}
+function openAdminOtpEntryStep(){
+  document.getElementById('adminStep2').style.display='none';
+  document.getElementById('adminStep3').style.display='block';
+  setupOTPInputs('.admin2fa-otp');
+}
+async function completeAdminLogin(verifiedData={}){
+  const profile=await ensureAdminProfile();
+  if(verifiedData?.accessToken)saveBackendAccessToken(verifiedData.accessToken);
+  if(verifiedData?.refreshToken)saveBackendRefreshToken(verifiedData.refreshToken);
+  const adminSession={
+    id:verifiedData?.id||profile.id||'admin_1',
+    name:verifiedData?.name||profile.name||'Admin User',
+    email:profile.email||verifiedData?.email||'admin@test.com',
+    phone:getAdminOtpPhone(profile)||verifiedData?.phone||'+918426891471',
+    role:'admin'
+  };
+  localStorage.setItem('currentAdmin',JSON.stringify(adminSession));
+  localStorage.setItem('userRole','admin');
+  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({active:true,email:profile.email,loggedInAt:new Date().toISOString()}));
+  localStorage.removeItem(ADMIN_OTP_KEY);localStorage.removeItem(ADMIN_OTP_EMAIL_KEY);localStorage.removeItem(ADMIN_OTP_METHOD_KEY);localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
+  adminMobileConfirmation=null;
+  showSuccess('Admin login successful.');
+  const nextPath=resolveAdminNextPath();
+  setTimeout(()=>{window.location.href=nextPath;},700);
+}
 async function sendAdmin2FAOTP(){
   const method=document.querySelector('input[name="admin2FAMethod"]:checked').value;
   const challenge=safeReadObject(ADMIN_SESSION_KEY,null);
@@ -1451,7 +1482,7 @@ async function sendAdmin2FAOTP(){
   const profile=await ensureAdminProfile();
   const channel=method==='email'?'email':'sms';
   const email=sanitizeEmail(challenge.email||profile.email||'');
-  const phone=normalizePhoneForLookup(profile.phone||profile.mobile||'');
+  const phone=getAdminOtpPhone(profile);
   if(channel==='email'&&!email){showError('Registered admin email missing hai. Admin profile update karein.');return;}
   if(channel==='sms'&&!phone){showError('Registered admin mobile missing hai. Admin profile update karein.');return;}
 
@@ -1464,30 +1495,61 @@ async function sendAdmin2FAOTP(){
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-admin-otp-send')
   };
-  const result=await callBackendAuth('/api/auth/request-otp',payload);
-  if(!result.ok){
-    showError(result.data?.message||'Admin OTP send nahi ho paya. SMTP/SMS settings check karein.');
-    return;
-  }
-
   const context={
     method,
     channel,
     email,
     phone,
-    delivery:result.data?.delivery||null,
+    delivery:null,
     deviceFingerprint:getLoginDeviceFingerprint(),
     issuedAt:new Date().toISOString()
   };
+  localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
+
+  if(channel==='sms'){
+    try{
+      adminMobileConfirmation=await sendOtpByFirebase(phone);
+      context.provider='firebase-phone';
+      context.issuedAt=new Date().toISOString();
+      localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
+      localStorage.removeItem(ADMIN_OTP_KEY);
+      localStorage.setItem(ADMIN_OTP_METHOD_KEY,method);
+      showSuccess(`OTP sent as SMS to registered admin mobile (${phone.replace(/^\+(\d{2})\d+(\d{4})$/,'+$1******$2')}).`);
+      openAdminOtpEntryStep();
+      return;
+    }catch(e){
+      adminMobileConfirmation=null;
+      localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
+      showError(e.message||'Mobile SMS OTP send failed. Email OTP use karein ya Firebase Phone Auth settings check karein.');
+      return;
+    }
+  }
+
+  const result=await callBackendAuth('/api/auth/request-otp',payload);
+  if(!result.ok){
+    const status=Number(result.status||0);
+    const canTryReceivedCode=channel==='email'||status===0||status===405||status===429||status>=500;
+    if(canTryReceivedCode){
+      showSuccess(channel==='email'
+        ? 'Agar OTP email par aa gaya hai to code enter karein.'
+        : 'Agar OTP mobile par aa gaya hai to code enter karein.');
+      openAdminOtpEntryStep();
+      return;
+    }
+    localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
+    showError(result.data?.message||'Admin OTP send nahi ho paya. SMTP/SMS settings check karein.');
+    return;
+  }
+
+  context.delivery=result.data?.delivery||null;
+  context.issuedAt=new Date().toISOString();
   localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
   localStorage.removeItem(ADMIN_OTP_KEY);
   localStorage.setItem(ADMIN_OTP_METHOD_KEY,method);
   showSuccess(method==='email'
     ? `OTP sent to registered admin email${formatOtpDeliveryTarget(result.data?.delivery)}.`
     : `OTP sent to registered admin mobile${formatOtpDeliveryTarget(result.data?.delivery)}.`);
-  document.getElementById('adminStep2').style.display='none';
-  document.getElementById('adminStep3').style.display='block';
-  setupOTPInputs('.admin2fa-otp');
+  openAdminOtpEntryStep();
 }
 function resolveAdminNextPath(){
   const fallback='../admin/index.html';
@@ -1513,6 +1575,15 @@ async function verifyAdmin2FA(){
   if(!challenge||!challenge.challengeIssuedAt){showError('Admin 2FA session expired.');toggleAdminLogin();toggleAdminLogin();return;}
   const issuedAt=new Date(challenge.challengeIssuedAt).getTime();
   if(!Number.isFinite(issuedAt)||Date.now()-issuedAt>ADMIN_CHALLENGE_TTL_MS){showError('Admin 2FA challenge expired.');toggleAdminLogin();toggleAdminLogin();return;}
+  if(otpContext.provider==='firebase-phone'){
+    try{
+      await verifyOtpByFirebase(adminMobileConfirmation,otp);
+      await completeAdminLogin({});
+    }catch(e){
+      showError(e.message||'Mobile OTP verification failed.');
+    }
+    return;
+  }
   const verifyPayload={
     channel:otpContext.channel,
     accountType:'admin',
@@ -1526,25 +1597,9 @@ async function verifyAdmin2FA(){
   };
   const verified=await callBackendAuth('/api/auth/otp/verify',verifyPayload);
   if(!verified.ok){showError(verified.data?.message||'Wrong 2FA code.');return;}
-  const profile=await ensureAdminProfile();
-  if(verified.data?.accessToken)saveBackendAccessToken(verified.data.accessToken);
-  if(verified.data?.refreshToken)saveBackendRefreshToken(verified.data.refreshToken);
-  const adminSession={
-    id:verified.data?.id||profile.id||'admin_1',
-    name:verified.data?.name||profile.name||'Admin User',
-    email:profile.email||verified.data?.email||'admin@test.com',
-    phone:profile.phone||verified.data?.phone||'+917654321098',
-    role:'admin'
-  };
-  localStorage.setItem('currentAdmin',JSON.stringify(adminSession));
-  localStorage.setItem('userRole','admin');
-  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({active:true,email:profile.email,loggedInAt:new Date().toISOString()}));
-  localStorage.removeItem(ADMIN_OTP_KEY);localStorage.removeItem(ADMIN_OTP_EMAIL_KEY);localStorage.removeItem(ADMIN_OTP_METHOD_KEY);localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
-  showSuccess('Admin login successful.');
-  const nextPath=resolveAdminNextPath();
-  setTimeout(()=>{window.location.href=nextPath;},700);
+  await completeAdminLogin(verified.data||{});
 }
-function adminResetTo2FAMethod(){document.getElementById('adminStep2').style.display='block';document.getElementById('adminStep3').style.display='none';localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);document.querySelectorAll('.admin2fa-otp').forEach((i)=>{i.value='';});}
+function adminResetTo2FAMethod(){document.getElementById('adminStep2').style.display='block';document.getElementById('adminStep3').style.display='none';adminMobileConfirmation=null;localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);document.querySelectorAll('.admin2fa-otp').forEach((i)=>{i.value='';});}
 function toggleAdminLogin(){
   const adminForm=document.getElementById('adminForm');
   const roleSelector=document.getElementById('roleSelector');
@@ -1557,6 +1612,7 @@ function toggleAdminLogin(){
     adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';adminText.style.display='inline';
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
     document.getElementById('adminEmail').value='';document.getElementById('adminPassword').value='';
+    adminMobileConfirmation=null;
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   }else{
     adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';adminText.style.display='none';updateLoginMethod();
