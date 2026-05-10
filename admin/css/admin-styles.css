@@ -256,6 +256,27 @@ body {
     gap: 15px;
 }
 
+.btn-admin-app-link {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    border: 1px solid rgba(102, 126, 234, 0.28);
+    border-radius: 8px;
+    color: var(--primary-color);
+    background: rgba(102, 126, 234, 0.1);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.btn-admin-app-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
 .icon-btn {
     position: relative;
     width: 40px;
@@ -770,6 +791,10 @@ body {
     }
     
     .btn-logout span {
+        display: none;
+    }
+
+    .btn-admin-app-link span {
         display: none;
     }
     

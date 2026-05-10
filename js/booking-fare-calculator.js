@@ -96,6 +96,168 @@
     'tourist'
   ];
 
+  const TOLL_RATE_DATA_VERSION = 'NHTIS/TollBetween source table, reviewed 2026-05-09';
+
+  const TOLL_PLAZA_RATES = {
+    mandawadaGomati: {
+      name: 'Mandawada (Gomati)',
+      state: 'Rajasthan',
+      nh: 'NH-8',
+      source: 'NHTIS / route toll table',
+      singleCar: 65,
+      returnCar: 100
+    },
+    motisarKhanori: {
+      name: 'Motisar Khanori',
+      state: 'Rajasthan',
+      nh: 'RJ route toll',
+      source: 'Route toll table',
+      singleCar: 70,
+      returnCar: 105
+    },
+    sitarampura: {
+      name: 'Sitarampura',
+      state: 'Rajasthan',
+      nh: 'NH-148C',
+      source: 'NHTIS TollPlazaID 5675',
+      singleCar: 65,
+      returnCar: 95
+    },
+    hingonia: {
+      name: 'Hingonia',
+      state: 'Rajasthan',
+      nh: 'NH-148C',
+      source: 'NHTIS TollPlazaID 5674',
+      singleCar: 60,
+      returnCar: 90
+    },
+    barkhedaChandlai: {
+      name: 'Barkheda (Chandlai)',
+      state: 'Rajasthan',
+      nh: 'NH-52',
+      source: 'NHTIS TollPlazaID 183',
+      singleCar: 125,
+      returnCar: 190
+    },
+    banthadi: {
+      name: 'Banthadi',
+      state: 'Rajasthan',
+      nh: 'NH-458',
+      source: 'NHTIS TollPlazaID 1476',
+      singleCar: 60,
+      returnCar: 90
+    },
+    lambiyaKalan: {
+      name: 'Lambiya Kalan',
+      state: 'Rajasthan',
+      nh: 'NH-79',
+      source: 'NHTIS TollPlazaID 185',
+      singleCar: 100,
+      returnCar: 155
+    },
+    pallai: {
+      name: 'Pallai',
+      state: 'Rajasthan',
+      nh: 'NH-148D',
+      source: 'NHTIS TollPlazaID 5651',
+      singleCar: 70,
+      returnCar: 110
+    },
+    narayanpura: {
+      name: 'Narayanpura',
+      state: 'Rajasthan',
+      nh: 'NH-76',
+      source: 'NHTIS TollPlazaID 137',
+      singleCar: 145,
+      returnCar: 220
+    },
+    birami: {
+      name: 'Birami',
+      state: 'Rajasthan',
+      nh: 'NH-14',
+      source: 'NHTIS TollPlazaID 438',
+      singleCar: 110,
+      returnCar: 165
+    },
+    uthamam: {
+      name: 'Uthamam',
+      state: 'Rajasthan',
+      nh: 'NH-14',
+      source: 'NHTIS TollPlazaID 439',
+      singleCar: 150,
+      returnCar: 220
+    },
+    biratiyaKalan: {
+      name: 'Biratiya Kalan',
+      state: 'Rajasthan',
+      nh: 'NH-25',
+      source: 'NHTIS TollPlazaID 5907',
+      singleCar: 85,
+      returnCar: 125
+    },
+    binawas: {
+      name: 'Binawas',
+      state: 'Rajasthan',
+      nh: 'NH-25',
+      source: 'NHTIS TollPlazaID 5906',
+      singleCar: 100,
+      returnCar: 150
+    },
+    lathi: {
+      name: 'Lathi',
+      state: 'Rajasthan',
+      nh: 'NH-15/NH-11',
+      source: 'NHTIS TollPlazaID 4569',
+      singleCar: 75,
+      returnCar: 115
+    },
+    doli: {
+      name: 'Doli',
+      state: 'Rajasthan',
+      nh: 'NH-112',
+      source: 'NHTIS TollPlazaID 4510',
+      singleCar: 85,
+      returnCar: 130
+    },
+    kairFakirKiDhani: {
+      name: 'Kair Fakir Ki Dhani',
+      state: 'Rajasthan',
+      nh: 'Jaisalmer corridor',
+      source: 'Route toll table',
+      singleCar: 60,
+      returnCar: 90
+    },
+    nimbasar: {
+      name: 'Nimbasar',
+      state: 'Rajasthan',
+      nh: 'Jaisalmer corridor',
+      source: 'Route toll table',
+      singleCar: 65,
+      returnCar: 100
+    }
+  };
+
+  const ROUTE_TOLL_CORRIDORS = {
+    'udaipur-jaisalmer': ['mandawadaGomati', 'motisarKhanori'],
+    'jaisalmer-udaipur': ['kairFakirKiDhani', 'nimbasar'],
+    'udaipur-jodhpur': ['mandawadaGomati', 'birami', 'uthamam'],
+    'jodhpur-udaipur': ['uthamam', 'birami', 'mandawadaGomati'],
+    'jodhpur-jaisalmer': ['kairFakirKiDhani', 'nimbasar'],
+    'jaisalmer-jodhpur': ['nimbasar', 'kairFakirKiDhani'],
+    'jaipur-ajmer': ['sitarampura'],
+    'ajmer-jaipur': ['sitarampura'],
+    'jaipur-jodhpur': ['sitarampura', 'banthadi', 'biratiyaKalan', 'binawas'],
+    'jodhpur-jaipur': ['binawas', 'biratiyaKalan', 'banthadi', 'sitarampura'],
+    'jaipur-udaipur': ['barkhedaChandlai', 'pallai', 'lambiyaKalan', 'narayanpura'],
+    'udaipur-jaipur': ['narayanpura', 'lambiyaKalan', 'pallai', 'barkhedaChandlai'],
+    'jaipur-agra': ['hingonia', 'barkhedaChandlai'],
+    'agra-jaipur': ['barkhedaChandlai', 'hingonia'],
+    'jodhpur-ajmer': ['banthadi'],
+    'ajmer-jodhpur': ['banthadi'],
+    'udaipur-ajmer': ['mandawadaGomati', 'birami', 'lambiyaKalan'],
+    'ajmer-udaipur': ['lambiyaKalan', 'birami', 'mandawadaGomati']
+  };
+
   const STATIC_LOCATION_COORDINATES = {
     jaipur: { lat: 26.9124, lon: 75.7873 },
     jodhpur: { lat: 26.2389, lon: 73.0243 },
@@ -588,7 +750,84 @@
     return Math.max(0, Math.min(discount, grossTotal));
   }
 
-  function estimateTollCharge({
+  function resolveTollEndpointKey(value) {
+    const normalized = normalizeLookupKey(value);
+    if (!normalized) return '';
+
+    const knownKeys = Object.keys(STATIC_LOCATION_COORDINATES).sort((a, b) => b.length - a.length);
+    for (const key of knownKeys) {
+      if (normalized.includes(key)) return key;
+    }
+
+    return normalized;
+  }
+
+  function buildTollRouteKey(pickup, dropoff) {
+    const pickupKey = resolveTollEndpointKey(pickup);
+    const dropKey = resolveTollEndpointKey(dropoff);
+    if (!pickupKey || !dropKey || pickupKey === dropKey) return '';
+    return `${pickupKey}-${dropKey}`;
+  }
+
+  function resolveCorridorPlazaIds(pickup, dropoff) {
+    const directKey = buildTollRouteKey(pickup, dropoff);
+    if (directKey && ROUTE_TOLL_CORRIDORS[directKey]) {
+      return {
+        routeKey: directKey,
+        plazaIds: ROUTE_TOLL_CORRIDORS[directKey],
+        matched: true
+      };
+    }
+
+    return {
+      routeKey: directKey,
+      plazaIds: [],
+      matched: false
+    };
+  }
+
+  function shouldUseReturnToll(isReturnTrip, rideDate, returnDate) {
+    if (!isReturnTrip) return false;
+    if (!rideDate || !returnDate) return true;
+
+    const startTime = Date.parse(`${rideDate}T00:00:00`);
+    const returnTime = Date.parse(`${returnDate}T23:59:59`);
+    if (!Number.isFinite(startTime) || !Number.isFinite(returnTime)) return true;
+
+    const hours = Math.max(0, (returnTime - startTime) / (60 * 60 * 1000));
+    return hours <= 48;
+  }
+
+  function buildMappedTollDetails(plazaIds, useReturnRate, routeKey) {
+    const plazas = plazaIds
+      .map((id) => {
+        const plaza = TOLL_PLAZA_RATES[id];
+        if (!plaza) return null;
+        const amount = roundMoney(useReturnRate ? (plaza.returnCar || plaza.singleCar) : plaza.singleCar);
+        return {
+          id,
+          name: plaza.name,
+          state: plaza.state,
+          nh: plaza.nh,
+          amount,
+          source: plaza.source
+        };
+      })
+      .filter(Boolean);
+
+    const amount = roundMoney(plazas.reduce((sum, plaza) => sum + plaza.amount, 0));
+    return {
+      amount,
+      source: 'mapped_route_toll_table',
+      dataVersion: TOLL_RATE_DATA_VERSION,
+      routeKey,
+      plazaCount: plazas.length,
+      plazas,
+      usedReturnRate: Boolean(useReturnRate)
+    };
+  }
+
+  function estimateDistanceBandTollCharge({
     distanceKm,
     pickup,
     dropoff,
@@ -628,6 +867,50 @@
     }
 
     return roundMoney(toll);
+  }
+
+  function estimateTollChargeDetails({
+    distanceKm,
+    pickup,
+    dropoff,
+    routeData,
+    pickupState,
+    dropState,
+    tripPlan,
+    serviceType,
+    isReturnTrip,
+    rideDate,
+    returnDate
+  }) {
+    const corridor = resolveCorridorPlazaIds(pickup, dropoff);
+    if (corridor.matched && corridor.plazaIds.length) {
+      return buildMappedTollDetails(
+        corridor.plazaIds,
+        shouldUseReturnToll(isReturnTrip, rideDate, returnDate),
+        corridor.routeKey
+      );
+    }
+
+    const fallbackAmount = estimateDistanceBandTollCharge({
+      distanceKm,
+      pickup,
+      dropoff,
+      routeData,
+      pickupState,
+      dropState,
+      tripPlan,
+      serviceType
+    });
+
+    return {
+      amount: fallbackAmount,
+      source: 'distance_band_fallback',
+      dataVersion: TOLL_RATE_DATA_VERSION,
+      routeKey: corridor.routeKey,
+      plazaCount: 0,
+      plazas: [],
+      usedReturnRate: false
+    };
   }
 
   function estimateParkingCharge({
@@ -729,6 +1012,8 @@
       : [];
     const specialRequests = normalizeBooleanMap(rawInput.specialRequests);
     const safetyAccessibility = normalizeBooleanMap(rawInput.safetyAccessibility);
+    const rideDate = sanitizeText(rawInput.rideDate, 40);
+    const returnDate = sanitizeText(rawInput.returnDate, 40);
     const rideTime = sanitizeText(rawInput.rideTime, 40);
     const returnTime = sanitizeText(rawInput.returnTime, 40);
     const isReturnTrip = Boolean(rawInput.isReturnTrip || rawInput.returnTrip?.enabled || rawInput.returnDate || rawInput.returnTime);
@@ -791,7 +1076,7 @@
       returnTripFare
     );
 
-    const tollCharge = estimateTollCharge({
+    const tollDetails = estimateTollChargeDetails({
       distanceKm,
       pickup,
       dropoff,
@@ -799,8 +1084,12 @@
       pickupState,
       dropState,
       tripPlan,
-      serviceType: tripServiceType
+      serviceType: tripServiceType,
+      isReturnTrip,
+      rideDate,
+      returnDate
     });
+    const tollCharge = roundMoney(tollDetails.amount || 0);
 
     const parkingCharge = estimateParkingCharge({
       pickup,
@@ -873,6 +1162,12 @@
       stopFare,
       returnTripFare,
       tollCharge,
+      tollSource: tollDetails.source,
+      tollDataVersion: tollDetails.dataVersion,
+      tollRouteKey: tollDetails.routeKey,
+      tollPlazaCount: tollDetails.plazaCount,
+      tollPlazas: tollDetails.plazas,
+      tollUsedReturnRate: tollDetails.usedReturnRate,
       parkingCharge,
       stateTax,
       nightCharge,
@@ -905,6 +1200,8 @@
       specialRequests,
       safetyAccessibility,
       isReturnTrip,
+      rideDate,
+      returnDate,
       rideTime,
       returnTime,
       pickup,

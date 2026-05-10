@@ -36,10 +36,66 @@ let driverBackendBookingAlertTimer = null;
 let driverBackendAlarmContext = null;
 let driverBackendAlarmLastAt = 0;
 const driverSeenNotificationIds = new Set();
+let adminDriverBlockedNoticeAt = 0;
+
+function getCurrentDriverForAdminControl() {
+    try {
+        const currentDriver = JSON.parse(localStorage.getItem('currentDriver') || 'null');
+        const driverData = JSON.parse(localStorage.getItem(STORAGE_KEYS.DRIVER_DATA) || '{}');
+        return currentDriver && typeof currentDriver === 'object'
+            ? { ...driverData, ...currentDriver }
+            : driverData;
+    } catch (error) {
+        return {};
+    }
+}
+
+function isDriverPortalAllowedByAdmin() {
+    if (!window.AdminControlBridge || typeof AdminControlBridge.canUsePortal !== 'function') return true;
+    return AdminControlBridge.canUsePortal('driver', getCurrentDriverForAdminControl());
+}
+
+function applyAdminDriverBlockedState(policy) {
+    driverState.isOnline = false;
+    driverState.adminForceOffline = true;
+
+    const onlineToggle = document.getElementById('onlineToggle');
+    if (onlineToggle) {
+        onlineToggle.checked = false;
+        onlineToggle.disabled = true;
+    }
+
+    stopGPSTracking();
+    updateOnlineStatus();
+    saveDriverData();
+
+    const now = Date.now();
+    if (now - adminDriverBlockedNoticeAt > 5000) {
+        adminDriverBlockedNoticeAt = now;
+        showToast((policy && policy.reason) || 'Admin has paused your driver portal access.', 'error');
+    }
+}
+
+function applyAdminDriverAllowedState() {
+    const onlineToggle = document.getElementById('onlineToggle');
+    if (onlineToggle) onlineToggle.disabled = false;
+    driverState.adminForceOffline = false;
+    saveDriverData();
+}
+
+function setupAdminControlRuntime() {
+    if (!window.AdminControlBridge || typeof AdminControlBridge.initPortalRuntime !== 'function') return;
+    AdminControlBridge.initPortalRuntime('driver', {
+        getSubject: getCurrentDriverForAdminControl,
+        onBlocked: applyAdminDriverBlockedState,
+        onAllowed: applyAdminDriverAllowedState
+    });
+}
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initializeDriver();
+    setupAdminControlRuntime();
     setupEventListeners();
     checkSystemStatus();
     loadDemoData();
@@ -85,6 +141,14 @@ function setupEventListeners() {
 // Handle Online Status Toggle
 function handleOnlineToggle(event) {
     const isChecked = event.target.checked;
+
+    if (isChecked && !isDriverPortalAllowedByAdmin()) {
+        showToast('Admin has paused your driver access. Please contact support.', 'error');
+        event.target.checked = false;
+        driverState.isOnline = false;
+        saveDriverData();
+        return;
+    }
     
     // Check if rest is required
     if (driverState.restRequired && isChecked) {
@@ -361,7 +425,7 @@ function updateSharedBookingStatus(bookingId, updates) {
             const bookings = JSON.parse(localStorage.getItem(key) || '[]');
             if (!Array.isArray(bookings) || bookings.length === 0) return;
 
-            const index = bookings.findIndex((item) => String(item.id) === String(bookingId));
+            const index = bookings.findIndex((item) => String(item.id || item.bookingId || item._id) === String(bookingId));
             if (index === -1) return;
 
             bookings[index] = { ...bookings[index], ...updates };
@@ -390,7 +454,7 @@ function setupPortalNotifications() {
         if (notification.type === 'new_booking' && notification.booking) {
             showToast(`New booking: ${notification.booking.pickup} → ${notification.booking.drop}`, 'info');
 
-            if (driverState.isOnline && !driverState.currentRide) {
+            if (driverState.isOnline && !driverState.currentRide && isDriverPortalAllowedByAdmin()) {
                 showRideRequest(notification.booking);
             }
             return;
@@ -659,7 +723,7 @@ async function pollDriverBackendBookingAlerts({ seedOnly = false } = {}) {
         showToast(formatDriverBookingAlert(latest), 'info');
         playDriverBookingAlarm();
 
-        if (driverState.isOnline && !driverState.currentRide) {
+        if (driverState.isOnline && !driverState.currentRide && isDriverPortalAllowedByAdmin()) {
             showRideRequest(booking);
         }
     } catch (error) {
@@ -689,6 +753,7 @@ function startDriverBackendBookingAlerts() {
 // Check for Ride Requests (Demo)
 function checkForRideRequests() {
     if (!driverState.isOnline) return;
+    if (!isDriverPortalAllowedByAdmin()) return;
 
     // If secure backend session exists, live ride requests come from backend notifications.
     if (String(getBackendAccessToken() || '').trim()) {
@@ -703,7 +768,7 @@ function checkForRideRequests() {
     // Simulate ride request after random delay (demo)
     const delay = Math.random() * 30000 + 10000; // 10-40 seconds
     setTimeout(() => {
-        if (driverState.isOnline && !driverState.currentRide) {
+        if (driverState.isOnline && !driverState.currentRide && isDriverPortalAllowedByAdmin()) {
             showRideRequest();
         }
     }, delay);
@@ -711,6 +776,10 @@ function checkForRideRequests() {
 
 // Show Ride Request
 function showRideRequest(bookingData = null) {
+    if (!isDriverPortalAllowedByAdmin()) {
+        return;
+    }
+
     if (!bookingData && !DRIVER_DEMO_REQUESTS_ENABLED) {
         return;
     }
@@ -752,6 +821,17 @@ function showRideRequest(bookingData = null) {
 
 // Accept Ride Request
 function acceptRequest() {
+    if (!isDriverPortalAllowedByAdmin()) {
+        showToast('Admin has paused your driver access. Ride cannot be accepted right now.', 'error');
+        if (driverState.requestTimer) {
+            clearInterval(driverState.requestTimer);
+        }
+        const modal = document.getElementById('rideRequestModal');
+        if (modal) modal.style.display = 'none';
+        driverState.pendingRequest = null;
+        return;
+    }
+
     const acceptedBooking = driverState.pendingRequest ? { ...driverState.pendingRequest } : null;
 
     // Clear timer

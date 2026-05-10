@@ -2324,6 +2324,7 @@
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
     <script src="../js/portal-connector.js"></script>
+    <script src="../js/admin-control-bridge.js"></script>
 
     <script>
         (function applyIndiaBranding() {
@@ -2358,6 +2359,32 @@
 
     <script>
         (function connectDriverPortalNotifications() {
+            if (window.AdminControlBridge && typeof AdminControlBridge.initPortalRuntime === 'function') {
+                AdminControlBridge.initPortalRuntime('driver', {
+                    getSubject: function () {
+                        try {
+                            return JSON.parse(localStorage.getItem('currentDriver') || localStorage.getItem('driver_data') || '{}') || {};
+                        } catch (_error) {
+                            return {};
+                        }
+                    },
+                    onBlocked: function () {
+                        document.querySelectorAll('button, a').forEach(function (node) {
+                            var text = String(node.textContent || node.getAttribute('aria-label') || '').toLowerCase();
+                            if (node.closest('#goindiarideAdminControlBanner')) return;
+                            if (text.includes('online') || text.includes('accept') || text.includes('ride') || text.includes('booking')) {
+                                node.classList.add('admin-lock-sensitive');
+                            }
+                        });
+                    },
+                    onAllowed: function () {
+                        document.querySelectorAll('.admin-lock-sensitive').forEach(function (node) {
+                            node.classList.remove('admin-lock-sensitive');
+                        });
+                    }
+                });
+            }
+
             if (!window.PortalConnector) return;
 
             PortalConnector.setActivePortal('driver');
