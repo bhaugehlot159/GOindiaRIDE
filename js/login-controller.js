@@ -386,6 +386,9 @@ function persistBackendApiBase(base){
   const host=String(window.location.hostname||'').toLowerCase();
   const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
   const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
+  const sameOriginBase=String(window.location.origin||'').replace(/\/$/, '');
+  const sameOriginBackendBase=sameOriginBase?`${sameOriginBase}/backend`:'';
+  if((isPrimaryWebsiteHost||isGitHubPagesHost)&&(normalized===sameOriginBase||normalized===sameOriginBackendBase))return;
   if((isPrimaryWebsiteHost||isGitHubPagesHost)&&!isTrustedPublicApiBase(normalized))return;
   try{
     localStorage.setItem('goindiaride_api_base',normalized);
@@ -397,6 +400,8 @@ function getBackendApiBase(){
   const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
   const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
   const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
+  const sameOriginBase=String(window.location.origin||'').replace(/\/$/, '');
+  const sameOriginBackendBase=sameOriginBase?`${sameOriginBase}/backend`:'';
   const localBackendBase='http://localhost:5000';
   const fromRuntimeOrigin=sanitizeInput(window.__GOINDIARIDE_RUNTIME_API_ORIGIN__||window.__GOINDIARIDE_API_ORIGIN__||'');
   const fromWindow=sanitizeInput(window.GOINDIARIDE_API_BASE||'');
@@ -411,6 +416,7 @@ function getBackendApiBase(){
   const resolveCandidate=(candidate)=>{
     const normalized=normalizeCandidate(candidate);
     if(!normalized)return'';
+    if((isPrimaryWebsiteHost||isGitHubPagesHost)&&(normalized===sameOriginBase||normalized===sameOriginBackendBase))return'';
     if((isPrimaryWebsiteHost||isGitHubPagesHost)&&normalizeCandidate(candidate)===fromStorage&&!isTrustedPublicApiBase(normalized))return'';
     if(!isLocalHost)return normalized;
     try{
@@ -479,12 +485,12 @@ async function callBackendAuth(path,payload){
     const normalized=String(value||'').trim().replace(/\/$/, '');
     if(!normalized)return;
     if(!/^https?:\/\//i.test(normalized))return;
+    if(isAuthPath&&isPrimaryWebsiteHost&&(normalized===sameOriginBase||normalized===sameOriginBackendBase))return;
     if(!candidateBases.includes(normalized))candidateBases.push(normalized);
   };
   if(isPrimaryWebsiteHost){
+    pushBase('https://goindiaride.onrender.com');
     pushBase(primaryBase);
-    pushBase('https://goindiaride.onrender.com');
-    pushBase('https://goindiaride.onrender.com');
     if(sameOriginBackendBase)pushBase(sameOriginBackendBase);
     if(!isGitHubPagesHost&&sameOriginBase)pushBase(sameOriginBase);
   }else{
