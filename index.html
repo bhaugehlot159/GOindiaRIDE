@@ -168,7 +168,7 @@
             background: #ff9933;
             color: #0B1F3A;
             border-color: #ff9933;
-            display: none;
+            display: inline-flex;
             align-items: center;
             gap: 0.4rem;
         }
@@ -927,7 +927,7 @@
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login">Login</a>
                     <a href="./pages/signup.html" class="btn-signup" data-lang="nav.signup">Sign Up</a>
-                    <a href="./pages/login.html?admin=1&next=%2Fadmin%2Findex.html" id="adminPortalBtn" class="btn-admin" title="Open admin portal login"><i class="fas fa-user-shield"></i> Admin</a>
+                    <a href="./pages/login.html?admin=1&next=%2Fadmin%2Fapp.html" id="adminPortalBtn" class="btn-admin" title="Login to Admin App"><i class="fas fa-user-shield"></i> Admin App</a>
                 </div>
             </div>
         </div>
@@ -1417,8 +1417,8 @@
             });
         }
 
-        // Admin entry stays hidden for public users; only visible for active admin session.
-        (function revealAdminEntryForAdminOnly() {
+        // Admin entry is visible but always protected by admin login/2FA.
+        (function wireAdminEntry() {
             const adminBtn = document.getElementById('adminPortalBtn');
             if (!adminBtn) return;
 
@@ -1429,10 +1429,11 @@
                 const isAdmin = role === 'admin' || accountType === 'admin' || Boolean(currentAdmin);
 
                 if (isAdmin) {
-                    adminBtn.style.display = 'inline-flex';
+                    adminBtn.href = './admin/app.html';
+                    adminBtn.title = 'Open Admin App';
                 }
             } catch (error) {
-                // Keep hidden if storage cannot be read.
+                // Keep login gate if storage cannot be read.
             }
         })();
 
