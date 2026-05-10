@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const Otp = require("../models/Otp");
 const { sendEmail } = require("../utils/mailer");
+const { sendSms, maskPhone } = require("../utils/sms");
 const validator = require('validator');
 const User = require('../models/User');
 const auth = require('../middleware/authMiddleware');
@@ -161,6 +162,111 @@ function buildPhoneLookupCandidates(rawValue) {
   }
 
   return [...candidates];
+}
+
+function splitCsvValues(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeEmailValue(value) {
+  const email = String(value || '').trim().toLowerCase();
+  return validator.isEmail(email) ? email : '';
+}
+
+function normalizePhoneForDelivery(value) {
+  const normalized = normalizePhoneValue(value, { allowLocalIndian: true });
+  if (!normalized) return '';
+  if (normalized.startsWith('+')) return normalized;
+  if (/^[6-9]\d{9}$/.test(normalized)) return `+91${normalized}`;
+  return normalized;
+}
+
+function maskEmail(value) {
+  const email = normalizeEmailValue(value);
+  if (!email) return '';
+  const [name, domain] = email.split('@');
+  const visible = name.length <= 2 ? name.slice(0, 1) : `${name.slice(0, 2)}${'*'.repeat(Math.min(6, Math.max(2, name.length - 2)))}`;
+  return `${visible}@${domain}`;
+}
+
+function uniqueNormalizedEmails(values) {
+  const output = [];
+  values.flatMap((item) => splitCsvValues(item)).forEach((item) => {
+    const email = normalizeEmailValue(item);
+    if (email && !output.includes(email)) output.push(email);
+  });
+  return output;
+}
+
+function uniqueNormalizedPhones(values) {
+  const output = [];
+  values.flatMap((item) => splitCsvValues(item)).forEach((item) => {
+    const phone = normalizePhoneForDelivery(item);
+    if (phone && !output.includes(phone)) output.push(phone);
+  });
+  return output;
+}
+
+function getAdminEmailAliases() {
+  return uniqueNormalizedEmails([
+    process.env.ADMIN_LOGIN_EMAILS,
+    process.env.ADMIN_LOGIN_EMAIL,
+    process.env.ADMIN_EMAIL,
+    process.env.ADMIN_EMAILS,
+    process.env.ADMIN_OTP_EMAILS,
+    process.env.ADMIN_ALERT_EMAILS,
+    process.env.BOOKING_ADMIN_ALERT_EMAILS,
+    process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com',
+    'admin@test.com'
+  ]);
+}
+
+function getAdminPhoneAliases() {
+  return uniqueNormalizedPhones([
+    process.env.ADMIN_LOGIN_PHONES,
+    process.env.ADMIN_LOGIN_PHONE,
+    process.env.ADMIN_PHONE,
+    process.env.ADMIN_MOBILE,
+    process.env.ADMIN_OTP_PHONES,
+    process.env.ADMIN_ALERT_PHONES,
+    process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471',
+    '+917654321098'
+  ]);
+}
+
+function getAdminDeliveryEmail(requestedEmail) {
+  const emails = uniqueNormalizedEmails([
+    process.env.ADMIN_OTP_EMAILS,
+    process.env.ADMIN_OTP_EMAIL,
+    process.env.ADMIN_ALERT_EMAILS,
+    process.env.BOOKING_ADMIN_ALERT_EMAILS,
+    process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com',
+    requestedEmail
+  ]);
+  return emails[0] || normalizeEmailValue(requestedEmail);
+}
+
+function getAdminDeliveryPhone(requestedPhone) {
+  const phones = uniqueNormalizedPhones([
+    process.env.ADMIN_OTP_PHONES,
+    process.env.ADMIN_OTP_PHONE,
+    process.env.ADMIN_ALERT_PHONES,
+    process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471',
+    requestedPhone
+  ]);
+  return phones[0] || normalizePhoneForDelivery(requestedPhone);
+}
+
+function isAllowedLegacyAdminOtpIdentifier({ channel, email, phone }) {
+  if (channel === 'email') {
+    const cleanEmail = normalizeEmailValue(email);
+    return Boolean(cleanEmail && getAdminEmailAliases().includes(cleanEmail));
+  }
+  const cleanPhone = normalizePhoneForDelivery(phone);
+  return Boolean(cleanPhone && getAdminPhoneAliases().includes(cleanPhone));
 }
 
 function getFirebaseClientConfig() {
@@ -928,13 +1034,38 @@ router.post("/refresh-token-v2", async (req, res) => {
 
     if (channel === "email") {
       if (!email) return res.status(400).json({ message: "Email required" });
-      cleanEmail = String(email).trim().toLowerCase();
+      cleanEmail = normalizeEmailValue(email);
+      if (!cleanEmail) return res.status(400).json({ message: "Valid email required" });
       identifier = cleanEmail;
     } else {
       if (!phone) return res.status(400).json({ message: "Phone required" });
       cleanPhone = normalizePhoneValue(phone, { allowLocalIndian: true });
       if (!cleanPhone) return res.status(400).json({ message: "Valid phone required" });
       identifier = cleanPhone;
+    }
+
+    let adminUser = null;
+    let deliveryEmail = cleanEmail;
+    let deliveryPhone = cleanPhone;
+    if (accountType === 'admin') {
+      if (channel === 'email') {
+        adminUser = await User.findOne({ email: cleanEmail, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
+        const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, email: cleanEmail });
+        if (!adminUser && !legacyAllowed) {
+          return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin email.' });
+        }
+        deliveryEmail = adminUser && cleanEmail !== 'admin@test.com' ? cleanEmail : getAdminDeliveryEmail(cleanEmail);
+      } else {
+        const phoneCandidates = buildPhoneLookupCandidates(cleanPhone);
+        adminUser = await User.findOne({ phone: { $in: phoneCandidates }, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
+        const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, phone: cleanPhone });
+        if (!adminUser && !legacyAllowed) {
+          return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin mobile.' });
+        }
+        deliveryPhone = adminUser && cleanPhone !== '+917654321098' && cleanPhone !== '7654321098'
+          ? normalizePhoneForDelivery(cleanPhone)
+          : getAdminDeliveryPhone(cleanPhone);
+      }
     }
 
     // ✅ OTP doc find
@@ -1004,7 +1135,26 @@ router.post("/refresh-token-v2", async (req, res) => {
     // ✅ if not found: admin नहीं बनेगा; customer/driver auto-create
     if (!user) {
       if (accountType === "admin") {
-        return res.status(403).json({ message: "Admin not found. Contact support." });
+        const legacyAdminAllowed = isAllowedLegacyAdminOtpIdentifier({
+          channel,
+          email: cleanEmail,
+          phone: cleanPhone
+        });
+        if (!legacyAdminAllowed) {
+          return res.status(403).json({ message: "Admin not found. Contact support." });
+        }
+
+        return res.status(200).json({
+          message: "OTP verified successfully",
+          id: "admin_legacy_1",
+          name: "Admin User",
+          email: cleanEmail || getAdminDeliveryEmail('admin@test.com'),
+          phone: cleanPhone || getAdminDeliveryPhone('+917654321098'),
+          isPhoneVerified: channel === 'sms',
+          role: "admin",
+          accountType: "admin",
+          legacyAdmin: true
+        });
       }
 
       const safeName =
@@ -1588,13 +1738,37 @@ router.post("/request-otp", async (req, res) => {
 
     if (channel === "email") {
       if (!email) return res.status(400).json({ message: "Email required" });
-      cleanEmail = String(email).trim().toLowerCase();
+      cleanEmail = normalizeEmailValue(email);
+      if (!cleanEmail) return res.status(400).json({ message: "Valid email required" });
       identifier = cleanEmail;
     } else {
       if (!phone) return res.status(400).json({ message: "Phone required" });
       cleanPhone = normalizePhoneValue(phone, { allowLocalIndian: true });
       if (!cleanPhone) return res.status(400).json({ message: "Valid phone required" });
       identifier = cleanPhone;
+    }
+
+    let deliveryEmail = cleanEmail;
+    let deliveryPhone = cleanPhone;
+    if (accountType === 'admin') {
+      if (channel === 'email') {
+        const adminUser = await User.findOne({ email: cleanEmail, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
+        const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, email: cleanEmail });
+        if (!adminUser && !legacyAllowed) {
+          return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin email.' });
+        }
+        deliveryEmail = adminUser && cleanEmail !== 'admin@test.com' ? cleanEmail : getAdminDeliveryEmail(cleanEmail);
+      } else {
+        const phoneCandidates = buildPhoneLookupCandidates(cleanPhone);
+        const adminUser = await User.findOne({ phone: { $in: phoneCandidates }, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
+        const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, phone: cleanPhone });
+        if (!adminUser && !legacyAllowed) {
+          return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin mobile.' });
+        }
+        deliveryPhone = adminUser && cleanPhone !== '+917654321098' && cleanPhone !== '7654321098'
+          ? normalizePhoneForDelivery(cleanPhone)
+          : getAdminDeliveryPhone(cleanPhone);
+      }
     }
 
     // 3) Load existing OTP doc (for cooldown + sendCount)
@@ -1666,29 +1840,73 @@ router.post("/request-otp", async (req, res) => {
     );
 
     // 7) Send OTP
-    if (channel === "email") {
-      await sendEmail({
-        to: cleanEmail,
-        subject: "Your GOIndiaRIDE Login OTP",
-        text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
-        html: `
-          <div style="font-family: Arial, sans-serif; line-height:1.6">
-            <h2>GOIndiaRIDE OTP</h2>
-            <p>Your login OTP is:</p>
-            <div style="font-size:22px; font-weight:bold; letter-spacing:2px">${otp}</div>
-            <p>This OTP will expire in <b>5 minutes</b>.</p>
-            <p>If you did not request this, ignore this email.</p>
-          </div>
-        `,
-      });
-    } else {
-      // SMS sending not implemented yet
+    let deliveryResult = null;
+    try {
+      if (channel === "email") {
+        deliveryResult = await sendEmail({
+          to: deliveryEmail,
+          subject: "Your GOIndiaRIDE Login OTP",
+          text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height:1.6">
+              <h2>GOIndiaRIDE OTP</h2>
+              <p>Your login OTP is:</p>
+              <div style="font-size:22px; font-weight:bold; letter-spacing:2px">${otp}</div>
+              <p>This OTP will expire in <b>5 minutes</b>.</p>
+              <p>If you did not request this, ignore this email.</p>
+            </div>
+          `,
+        });
+      } else {
+        deliveryResult = await sendSms({
+          to: deliveryPhone,
+          otp,
+          text: `Your GOIndiaRIDE login OTP is ${otp}. It will expire in 5 minutes. Do not share this code.`
+        });
+      }
+    } catch (deliveryError) {
+      deliveryResult = {
+        sent: false,
+        skipped: false,
+        reason: channel === 'email' ? 'email_send_failed' : 'sms_send_failed',
+        message: deliveryError.message || 'otp_delivery_failed'
+      };
     }
 
     // 8) Response (devOtp only in non-production)
     const isProd = String(process.env.NODE_ENV || "").toLowerCase().trim() === "production";
+    const deliveryOk = channel === 'email'
+      ? Boolean(deliveryResult && !deliveryResult.skipped && !deliveryResult.reason)
+      : Boolean(deliveryResult && deliveryResult.sent);
+    const deliverySummary = channel === 'email'
+      ? {
+          channel: 'email',
+          target: maskEmail(deliveryEmail),
+          sent: deliveryOk,
+          skipped: Boolean(deliveryResult && deliveryResult.skipped),
+          reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined
+        }
+      : {
+          channel: 'sms',
+          target: maskPhone(deliveryPhone),
+          sent: deliveryOk,
+          skipped: Boolean(deliveryResult && deliveryResult.skipped),
+          provider: deliveryResult && deliveryResult.provider ? deliveryResult.provider : undefined,
+          reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined
+        };
+
+    if (!deliveryOk && isProd) {
+      return res.status(503).json({
+        message: channel === 'email'
+          ? 'Email OTP provider is not configured or failed. Please check SMTP settings.'
+          : 'Mobile OTP provider is not configured or failed. Please check SMS/WhatsApp settings.',
+        delivery: deliverySummary
+      });
+    }
+
     return res.status(200).json({
-      message: "OTP sent successfully",
+      message: deliveryOk ? "OTP sent successfully" : "OTP generated. Delivery provider is not configured.",
+      delivery: deliverySummary,
       ...(isProd ? {} : { devOtp: otp }),
     });
   } catch (err) {

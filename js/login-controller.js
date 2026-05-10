@@ -23,6 +23,7 @@ const SECURITY_EVENT_KEY='goindiaride_security_events';
 const ADMIN_OTP_KEY='admin2FAOTP';
 const ADMIN_OTP_EMAIL_KEY='admin2FAEmail';
 const ADMIN_OTP_METHOD_KEY='admin2FAMethod';
+const ADMIN_OTP_CONTEXT_KEY='goindiaride_admin_otp_context';
 const LOGIN_RISK_THRESHOLD=35;
 const LIVE_BACKEND_REQUIRED_FOR_LOGIN=true;
 const AUTH_REQUEST_TIMEOUT_MS=9000;
@@ -93,6 +94,25 @@ function createPseudoRecaptchaToken(prefix='gir'){
   const partA=Math.random().toString(36).slice(2,16);
   const partB=Math.random().toString(36).slice(2,16);
   return `${prefix}_${Date.now()}_${partA}_${partB}`;
+}
+function getLoginDeviceFingerprint(){
+  if(window.GoIndiaSessionContinuity&&typeof window.GoIndiaSessionContinuity.buildClientDeviceFingerprint==='function'){
+    return window.GoIndiaSessionContinuity.buildClientDeviceFingerprint();
+  }
+  const key='goindiaride_device_fingerprint_v1';
+  const existing=sanitizeInput(localStorage.getItem(key)||'');
+  if(existing)return existing;
+  const parts=[
+    navigator.userAgent||'',
+    navigator.language||'',
+    navigator.platform||'',
+    window.screen?`${screen.width||0}x${screen.height||0}`:'',
+    window.devicePixelRatio||'',
+    typeof Intl!=='undefined'&&Intl.DateTimeFormat?Intl.DateTimeFormat().resolvedOptions().timeZone:''
+  ];
+  const fingerprint='web_'+fnv1aHash(parts.join('|'));
+  localStorage.setItem(key,fingerprint);
+  return fingerprint;
 }
 function isCustomerRecord(record){
   if(!record||typeof record!=='object')return false;
@@ -1412,13 +1432,53 @@ async function adminStep1Login(){
   document.getElementById('adminStep2').style.display='block';
 }
 function updateAdmin2FAMethod(){}
-function sendAdmin2FAOTP(){
+function formatOtpDeliveryTarget(delivery){
+  if(!delivery||typeof delivery!=='object')return'';
+  const target=sanitizeInput(delivery.target||'');
+  if(!target)return'';
+  return delivery.channel==='email'?` (${target})`:` (${target})`;
+}
+async function sendAdmin2FAOTP(){
   const method=document.querySelector('input[name="admin2FAMethod"]:checked').value;
   const challenge=safeReadObject(ADMIN_SESSION_KEY,null);
   if(!challenge||!challenge.challengeIssuedAt){showError('Admin session expired. Please login again.');toggleAdminLogin();toggleAdminLogin();return;}
-  localStorage.setItem(ADMIN_OTP_KEY,'123456');
+  const profile=await ensureAdminProfile();
+  const channel=method==='email'?'email':'sms';
+  const email=sanitizeEmail(challenge.email||profile.email||'');
+  const phone=normalizePhoneForLookup(profile.phone||profile.mobile||'');
+  if(channel==='email'&&!email){showError('Registered admin email missing hai. Admin profile update karein.');return;}
+  if(channel==='sms'&&!phone){showError('Registered admin mobile missing hai. Admin profile update karein.');return;}
+
+  const payload={
+    channel,
+    accountType:'admin',
+    email:channel==='email'?email:undefined,
+    phone:channel==='sms'?phone:undefined,
+    website:'',
+    submittedAt:Date.now()-1500,
+    recaptchaToken:createPseudoRecaptchaToken('gir-admin-otp-send')
+  };
+  const result=await callBackendAuth('/api/auth/request-otp',payload);
+  if(!result.ok){
+    showError(result.data?.message||'Admin OTP send nahi ho paya. SMTP/SMS settings check karein.');
+    return;
+  }
+
+  const context={
+    method,
+    channel,
+    email,
+    phone,
+    delivery:result.data?.delivery||null,
+    deviceFingerprint:getLoginDeviceFingerprint(),
+    issuedAt:new Date().toISOString()
+  };
+  localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
+  localStorage.removeItem(ADMIN_OTP_KEY);
   localStorage.setItem(ADMIN_OTP_METHOD_KEY,method);
-  showSuccess(method==='email'?'OTP sent to registered admin email.':'OTP sent to registered admin mobile.');
+  showSuccess(method==='email'
+    ? `OTP sent to registered admin email${formatOtpDeliveryTarget(result.data?.delivery)}.`
+    : `OTP sent to registered admin mobile${formatOtpDeliveryTarget(result.data?.delivery)}.`);
   document.getElementById('adminStep2').style.display='none';
   document.getElementById('adminStep3').style.display='block';
   setupOTPInputs('.admin2fa-otp');
@@ -1439,22 +1499,46 @@ function resolveAdminNextPath(){
   }
 }
 async function verifyAdmin2FA(){
-  const otp=readOtpDigits('.admin2fa-otp');const expected=localStorage.getItem(ADMIN_OTP_KEY)||'';
-  if(!expected||otp!==expected){showError('Wrong 2FA code.');return;}
+  const otp=readOtpDigits('.admin2fa-otp');
+  if(!/^\d{6}$/.test(otp)){showError('Please enter valid 6-digit OTP.');return;}
+  const otpContext=safeReadObject(ADMIN_OTP_CONTEXT_KEY,null);
+  if(!otpContext||!otpContext.channel){showError('Pehle admin OTP send karein.');adminResetTo2FAMethod();return;}
   const challenge=safeReadObject(ADMIN_SESSION_KEY,null);
   if(!challenge||!challenge.challengeIssuedAt){showError('Admin 2FA session expired.');toggleAdminLogin();toggleAdminLogin();return;}
   const issuedAt=new Date(challenge.challengeIssuedAt).getTime();
   if(!Number.isFinite(issuedAt)||Date.now()-issuedAt>ADMIN_CHALLENGE_TTL_MS){showError('Admin 2FA challenge expired.');toggleAdminLogin();toggleAdminLogin();return;}
+  const verifyPayload={
+    channel:otpContext.channel,
+    accountType:'admin',
+    email:otpContext.channel==='email'?otpContext.email:undefined,
+    phone:otpContext.channel==='sms'?otpContext.phone:undefined,
+    otp,
+    deviceFingerprint:otpContext.deviceFingerprint||getLoginDeviceFingerprint(),
+    website:'',
+    submittedAt:Date.now()-1500,
+    recaptchaToken:createPseudoRecaptchaToken('gir-admin-otp-verify')
+  };
+  const verified=await callBackendAuth('/api/auth/otp/verify',verifyPayload);
+  if(!verified.ok){showError(verified.data?.message||'Wrong 2FA code.');return;}
   const profile=await ensureAdminProfile();
-  localStorage.setItem('currentAdmin',JSON.stringify({id:profile.id||'admin_1',name:profile.name||'Admin User',email:profile.email,phone:profile.phone||'+917654321098',role:'admin'}));
+  if(verified.data?.accessToken)saveBackendAccessToken(verified.data.accessToken);
+  if(verified.data?.refreshToken)saveBackendRefreshToken(verified.data.refreshToken);
+  const adminSession={
+    id:verified.data?.id||profile.id||'admin_1',
+    name:verified.data?.name||profile.name||'Admin User',
+    email:profile.email||verified.data?.email||'admin@test.com',
+    phone:profile.phone||verified.data?.phone||'+917654321098',
+    role:'admin'
+  };
+  localStorage.setItem('currentAdmin',JSON.stringify(adminSession));
   localStorage.setItem('userRole','admin');
   localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({active:true,email:profile.email,loggedInAt:new Date().toISOString()}));
-  localStorage.removeItem(ADMIN_OTP_KEY);localStorage.removeItem(ADMIN_OTP_EMAIL_KEY);localStorage.removeItem(ADMIN_OTP_METHOD_KEY);
+  localStorage.removeItem(ADMIN_OTP_KEY);localStorage.removeItem(ADMIN_OTP_EMAIL_KEY);localStorage.removeItem(ADMIN_OTP_METHOD_KEY);localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   showSuccess('Admin login successful.');
   const nextPath=resolveAdminNextPath();
   setTimeout(()=>{window.location.href=nextPath;},700);
 }
-function adminResetTo2FAMethod(){document.getElementById('adminStep2').style.display='block';document.getElementById('adminStep3').style.display='none';document.querySelectorAll('.admin2fa-otp').forEach((i)=>{i.value='';});}
+function adminResetTo2FAMethod(){document.getElementById('adminStep2').style.display='block';document.getElementById('adminStep3').style.display='none';localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);document.querySelectorAll('.admin2fa-otp').forEach((i)=>{i.value='';});}
 function toggleAdminLogin(){
   const adminForm=document.getElementById('adminForm');
   const roleSelector=document.getElementById('roleSelector');
@@ -1467,6 +1551,7 @@ function toggleAdminLogin(){
     adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';adminText.style.display='inline';
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
     document.getElementById('adminEmail').value='';document.getElementById('adminPassword').value='';
+    localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   }else{
     adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';adminText.style.display='none';updateLoginMethod();
   }
