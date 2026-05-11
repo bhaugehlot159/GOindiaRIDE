@@ -25,9 +25,25 @@ function initializeBookingSystem() {
     // Load active bookings
     loadActiveBookings();
     loadScheduledBookings();
+    setupBookingLiveRefresh();
     
     // Setup ride preferences
     loadRidePreferences();
+}
+
+function setupBookingLiveRefresh() {
+    if (window.__goindiarideBookingLiveRefreshReady) return;
+    window.__goindiarideBookingLiveRefreshReady = true;
+
+    window.addEventListener('goindiaride:customer-bookings-updated', () => {
+        loadActiveBookings({ skipBackendSync: true });
+    });
+
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'goindiaride_active_bookings') {
+            loadActiveBookings({ skipBackendSync: true });
+        }
+    });
 }
 
 /**
@@ -557,11 +573,13 @@ async function syncActiveBookingsFromBackend() {
 /**
  * Load active bookings
  */
-async function loadActiveBookings() {
-    try {
-        await syncActiveBookingsFromBackend();
-    } catch (error) {
-        // Keep local snapshot if backend sync is temporarily unavailable.
+async function loadActiveBookings(options = {}) {
+    if (!options.skipBackendSync) {
+        try {
+            await syncActiveBookingsFromBackend();
+        } catch (error) {
+            // Keep local snapshot if backend sync is temporarily unavailable.
+        }
     }
 
     const bookings = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');

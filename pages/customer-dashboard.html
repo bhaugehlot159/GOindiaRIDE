@@ -5529,7 +5529,7 @@ Thank you for riding with us! 🚗
                 AdminControlBridge.initPortalRuntime('customer', {
                     getSubject: getCustomerSubject,
                     onBlocked: function () {
-                        document.querySelectorAll('a[href*="booking"], button[onclick*="Booking"], button[onclick*="booking"], form button[type="submit"]').forEach(function (node) {
+                        document.querySelectorAll('.container, a[href*="booking"], button[onclick*="Booking"], button[onclick*="booking"], form button[type="submit"]').forEach(function (node) {
                             if (!node.closest('#goindiarideAdminControlBanner')) node.classList.add('admin-lock-sensitive');
                         });
                     },
@@ -5543,13 +5543,25 @@ Thank you for riding with us! 🚗
 
             if (window.AdminControlBridge && typeof AdminControlBridge.initFeatureRuntime === 'function') {
                 AdminControlBridge.initFeatureRuntime('customer', {
-                    booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]'],
+                    home_dashboard: ['.header-section', '.quick-actions', '.stats-grid'],
+                    booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]', '.quick-action-btn[onclick*="goToBooking"]', '#rideEditModal', '.ride-edit-form'],
+                    quick_booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]'],
+                    fare_estimator: ['#rideEditFarePreview', '.ride-edit-fare-summary'],
                     active_rides: ['.tab-button[data-tab="active"]', '#activeTab'],
+                    scheduled_rides: ['#customerRuntimeActiveMount', 'button[onclick*="openRideEditModal"]'],
                     ride_history: ['.tab-button[data-tab="history"]', '#historyTab'],
-                    wallet: ['.tab-button[data-tab="wallet"]', '#walletTab', '#walletBalance', '#customerWalletTabBalance'],
+                    wallet: ['.tab-button[data-tab="wallet"]', '#walletTab', '#walletBalance', '#customerWalletTabBalance', '.wallet-grid', '.wallet-ledger-card'],
+                    wallet_topup: ['#walletAddAmount', '#walletAddMethod', 'button[onclick*="handleWalletTopup"]', '.wallet-form-card:first-child'],
+                    wallet_withdrawal: ['#walletWithdrawAmount', '#walletWithdrawMethod', '#walletWithdrawDestination', '#walletWithdrawNote', 'button[onclick*="handleWalletWithdrawal"]', '#walletWithdrawalList'],
+                    rewards: ['#totalDonations', '#donationAmount'],
                     messages: ['.tab-button[data-tab="messages"]', '#messagesTab'],
                     donations: ['.tab-button[data-tab="donations"]', '#donationsTab', 'button[onclick*="openDonations"]', 'a[href*="openDonations"]'],
-                    profile: ['.tab-button[data-tab="profile"]', '#profileTab', 'button[onclick*="profile"]'],
+                    split_fare: ['#rideEditPaymentMethod option[value="wallet"]'],
+                    profile: ['.tab-button[data-tab="profile"]', '#profileTab', 'button[onclick*="profile"]', '#profileNameInput', '#profileEmailInput', '#profilePhoneInput', 'button[onclick*="saveProfileDetails"]'],
+                    ride_preferences: ['#rideEditSpecialRequests', '.ride-edit-checkbox-card'],
+                    emergency_contacts: ['#profilePhoneInput', '#profilePhoneVerificationBadge'],
+                    notifications: ['#customerAlertsPanel', '.portal-alerts-panel'],
+                    customer_support: ['.tab-button[data-tab="messages"]', '#messagesTab', '#messageInput', '#sendMessageBtn'],
                     emergency: ['.emergency-panel', '.emergency-btn']
                 }, {
                     getSubject: getCustomerSubject
@@ -5558,16 +5570,82 @@ Thank you for riding with us! 🚗
 
             if (!window.PortalConnector) return;
 
+            function upsertDashboardBookingFromAdminNotification(notification) {
+                const booking = notification && notification.booking && typeof notification.booking === 'object'
+                    ? notification.booking
+                    : {};
+                const bookingId = String(booking.id || booking.bookingId || notification?.metadata?.bookingId || '').trim();
+                if (!bookingId) return;
+
+                ['bookings', 'goride_bookings'].forEach(function (key) {
+                    let rows = [];
+                    try {
+                        const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+                        rows = Array.isArray(parsed) ? parsed : [];
+                    } catch (_error) {
+                        rows = [];
+                    }
+
+                    const idx = rows.findIndex(function (item) {
+                        return String(item.id || item.bookingId || '').trim() === bookingId;
+                    });
+                    const existing = idx >= 0 ? rows[idx] : {};
+                    const updated = {
+                        ...existing,
+                        ...booking,
+                        id: bookingId,
+                        bookingId: bookingId,
+                        pickup: booking.pickup || booking.pickupLocation || existing.pickup || existing.pickupLocation || '',
+                        pickupLocation: booking.pickupLocation || booking.pickup || existing.pickupLocation || existing.pickup || '',
+                        dropoff: booking.dropoff || booking.drop || booking.dropLocation || existing.dropoff || existing.dropLocation || '',
+                        drop: booking.drop || booking.dropoff || booking.dropLocation || existing.drop || existing.dropoff || '',
+                        dropLocation: booking.dropLocation || booking.dropoff || booking.drop || existing.dropLocation || existing.dropoff || '',
+                        totalFare: Number(booking.totalFare || booking.fare || booking.amount || booking.finalFare || existing.totalFare || existing.fare || 0),
+                        amount: Number(booking.amount || booking.fare || booking.totalFare || booking.finalFare || existing.amount || existing.fare || 0),
+                        updatedAt: booking.updatedAt || new Date().toISOString()
+                    };
+
+                    if (idx >= 0) {
+                        rows[idx] = updated;
+                    } else {
+                        rows.unshift(updated);
+                    }
+                    localStorage.setItem(key, JSON.stringify(rows.slice(0, 300)));
+                });
+            }
+
             PortalConnector.setActivePortal('customer');
             PortalConnector.listen('customer', (notification) => {
                 if (!notification) return;
+                const booking = notification.booking || {};
+                const bookingId = String(booking.id || booking.bookingId || notification.metadata?.bookingId || '').trim();
+                const status = String(notification.metadata?.status || booking.adminReviewStatus || booking.status || '').toLowerCase();
+                const isAdminApproval = notification.type === 'booking_approved'
+                    || (notification.type === 'booking_admin_status_update' && status === 'approved');
+                const isAdminRejection = notification.type === 'booking_rejected'
+                    || (notification.type === 'booking_admin_status_update' && status === 'rejected');
+                const isAdminEdit = notification.type === 'booking_admin_edited';
+
+                if (typeof showToast === 'function' && isAdminApproval) {
+                    showToast(notification.message || `Booking ${bookingId} approved by admin. Driver assignment will start shortly.`, 'success');
+                } else if (typeof showToast === 'function' && isAdminRejection) {
+                    showToast(notification.message || `Booking ${bookingId} was not approved by admin.`, 'warning');
+                } else if (typeof showToast === 'function' && isAdminEdit) {
+                    showToast(notification.message || `Booking ${bookingId} details updated by admin.`, 'info');
+                }
+
+                if (isAdminApproval || isAdminRejection || isAdminEdit) {
+                    upsertDashboardBookingFromAdminNotification(notification);
+                    if (typeof loadRides === 'function') loadRides();
+                    if (typeof loadDashboard === 'function') loadDashboard();
+                }
 
                 if (window.PortalAlerts && typeof PortalAlerts.pushAlert === 'function') {
                     PortalAlerts.pushAlert({
                         title: notification.title || 'Customer Update',
                         message: notification.message || 'New update available',
                         type: notification.type === 'error' ? 'danger' : (notification.type || 'info'),
-                        rideId: notification.booking && notification.booking.id ? notification.booking.id : null,
+                        rideId: bookingId || null,
                         roles: ['customer']
                     });
                 }

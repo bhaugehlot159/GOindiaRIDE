@@ -4,22 +4,64 @@
     const ADMIN_REVIEW_INBOX_KEY = "goindiaride_admin_review_inbox_v1";
     const SETTINGS_KEY = "goindiaride_admin_app_settings_v1";
     const AUDIT_KEY = "adminAuditLogs";
-    const BOOKING_KEYS = ["bookings", "goride_bookings", ADMIN_REVIEW_INBOX_KEY, "adminDemoBookings"];
+    const BOOKING_KEYS = ["bookings", "goride_bookings", ADMIN_REVIEW_INBOX_KEY, "goindiaride_active_bookings", "adminDemoBookings"];
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
     const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
     const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
+    const ADMIN_LOGOUT_KEYS = [
+        "currentAdmin",
+        "userRole",
+        "role",
+        "accountType",
+        "accessToken",
+        "authToken",
+        "token",
+        "goindiaride_refresh_token",
+        "goindiaride_refresh_token_v1",
+        "goindiaride_session_continuity_v1",
+        "goindiaride_auth_mode",
+        "goindiaride_auth_reason",
+        "goindiaride_admin_session",
+        "goindiaride_admin_otp_context",
+        "admin2FAEmail",
+        "admin2FAOTP",
+        "admin2FAMethod"
+    ];
     const PORTAL_FEATURES = ["customer", "driver", "bookings", "finance", "safety"];
     const CUSTOMER_FEATURES = [
+        ["home_dashboard", "Home dashboard", "Customer home screen, quick actions and summary tiles"],
         ["booking", "Book ride", "Booking entry, route and fare handoff"],
+        ["quick_booking", "Quick booking", "Where-to search, ride type buttons and instant booking entry"],
+        ["saved_places", "Saved places", "Recent places and favorite locations"],
+        ["fare_estimator", "Fare estimator", "Fare calculator, preview and route estimate widgets"],
         ["active_rides", "Active rides", "Live ride cards and edit controls"],
+        ["scheduled_rides", "Scheduled rides", "Scheduled ride list and recurring ride controls"],
         ["ride_history", "Ride history", "Past trips and receipts"],
         ["wallet", "Wallet", "Add money, withdrawal and ledger"],
+        ["wallet_topup", "Wallet top-up", "Customer add-money and online payment initiation"],
+        ["wallet_withdrawal", "Wallet withdrawal", "Withdrawal request form and destination details"],
+        ["wallet_transfer", "Wallet transfer", "Customer wallet transfer action"],
+        ["rewards", "Rewards", "Cashback, reward points and coupon actions"],
         ["messages", "Messages", "Customer-driver chat"],
         ["donations", "Donations", "Donation flow and receipts"],
+        ["split_fare", "Split fare", "Split fare action and shared payment modal"],
+        ["tourism", "Tourism", "Tourism guide section and travel discovery"],
+        ["travel_card", "Travel card", "Digital tourist travel card and QR details"],
+        ["temple_timings", "Temple timings", "Temple aarti timings module"],
+        ["cultural_guide", "Cultural guide", "Culture, customs and local guidance"],
+        ["local_events", "Local events", "Festival, fair and event alerts"],
+        ["tour_packages", "Tour packages", "Package browsing and tour booking actions"],
+        ["heritage_walks", "Heritage walks", "Heritage walk routes and details"],
+        ["food_guide", "Food guide", "Local food and restaurant guide"],
+        ["shopping_guide", "Shopping guide", "Markets, handicrafts and shopping guide"],
         ["profile", "Profile", "Customer account details"],
+        ["ride_preferences", "Ride preferences", "Customer ride preferences modal"],
+        ["emergency_contacts", "Emergency contacts", "Emergency contact setup and quick contact"],
+        ["notifications", "Notifications", "Customer notification settings"],
+        ["customer_support", "Customer support", "Support chat and help requests"],
         ["emergency", "Emergency", "SOS, police and ambulance controls"]
     ];
     const DRIVER_FEATURES = [
@@ -33,6 +75,20 @@
         ["safety", "Safety", "SOS and monitoring controls"]
     ];
     const QUIET_NOTIFICATION_TEXT = ["admin step-1 login failed", "405 not allowed"];
+    const BOOKING_STATUS_OPTIONS = [
+        ["pending_admin_review", "Pending Admin Review"],
+        ["approved", "Approved"],
+        ["rejected", "Rejected"],
+        ["driver_assigned", "Driver Assigned"],
+        ["pending_reassignment", "Pending Reassignment"],
+        ["completed", "Completed"],
+        ["cancelled", "Cancelled"]
+    ];
+    const ADMIN_REVIEW_OPTIONS = [
+        ["pending", "Pending"],
+        ["approved", "Approved"],
+        ["rejected", "Rejected"]
+    ];
 
     const state = {
         bookings: [],
@@ -49,6 +105,7 @@
         settings: loadSettings(),
         seenToasts: loadSeenToasts(),
         startupAt: Date.now(),
+        editingBookingId: "",
         refreshTimer: null
     };
 
@@ -104,7 +161,9 @@
     }
 
     function toAmount(value) {
-        const number = Number(value);
+        const number = typeof value === "number"
+            ? value
+            : Number(String(value ?? "").replace(/,/g, "").replace(/[^\d.-]/g, ""));
         return Number.isFinite(number) ? Math.max(0, number) : 0;
     }
 
@@ -121,6 +180,543 @@
             hour: "2-digit",
             minute: "2-digit"
         });
+    }
+
+    function isPlainObject(value) {
+        return Boolean(value && typeof value === "object" && !Array.isArray(value));
+    }
+
+    function firstText(...values) {
+        for (const value of values) {
+            if (value === null || value === undefined) continue;
+            if (isPlainObject(value) || Array.isArray(value)) continue;
+            const text = cleanText(value);
+            if (text) return text;
+        }
+        return "";
+    }
+
+    function humanizeKey(key) {
+        return cleanText(key)
+            .replace(/[_-]+/g, " ")
+            .replace(/([a-z])([A-Z])/g, "$1 $2")
+            .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+
+    function formatPlainValue(value, fallback = "Not set") {
+        if (value === true) return "Yes";
+        if (value === false) return "No";
+        if (Array.isArray(value)) {
+            const list = value.map((item) => cleanText(item)).filter(Boolean);
+            return list.length ? list.join(", ") : fallback;
+        }
+        if (isPlainObject(value)) {
+            return formatObjectSummary(value, fallback);
+        }
+        return cleanText(value, fallback);
+    }
+
+    function formatObjectSummary(value, fallback = "Not set") {
+        if (!isPlainObject(value)) return fallback;
+        const entries = Object.entries(value)
+            .filter(([, item]) => {
+                if (item === null || item === undefined || item === "") return false;
+                if (Array.isArray(item)) return item.length > 0;
+                if (isPlainObject(item)) return Object.keys(item).length > 0;
+                return true;
+            })
+            .slice(0, 12);
+        if (!entries.length) return fallback;
+        return entries.map(([key, item]) => `${humanizeKey(key)}: ${formatPlainValue(item)}`).join(" | ");
+    }
+
+    function formatEnabledFlags(value, fallback = "None") {
+        if (!isPlainObject(value)) return fallback;
+        const enabled = Object.entries(value)
+            .filter(([, item]) => item === true || item === "true" || item === "yes" || item === 1 || cleanText(item))
+            .map(([key, item]) => item === true || item === "true" || item === "yes" || item === 1
+                ? humanizeKey(key)
+                : `${humanizeKey(key)}: ${formatPlainValue(item)}`);
+        return enabled.length ? enabled.join(", ") : fallback;
+    }
+
+    function renderDetailPairs(pairs) {
+        return pairs
+            .map(([label, value]) => [label, formatPlainValue(value)])
+            .filter(([, value]) => value && value !== "Not set")
+            .map(([label, value]) => `
+                <div class="booking-detail-pair">
+                    <span>${escapeHtml(label)}</span>
+                    <strong>${escapeHtml(value)}</strong>
+                </div>
+            `).join("");
+    }
+
+    function renderDetailSection(title, pairs) {
+        const rows = renderDetailPairs(pairs);
+        if (!rows) return "";
+        return `
+            <section class="booking-detail-section">
+                <h3>${escapeHtml(title)}</h3>
+                <div class="booking-detail-grid">${rows}</div>
+            </section>
+        `;
+    }
+
+    function renderBookingHighlights(booking) {
+        const items = [
+            ["fa-calendar-days", "Ride", [booking.rideDate, booking.rideTime].filter(Boolean).join(" ") || booking.outboundDateTime],
+            ["fa-car-side", "Vehicle", booking.vehicleType || booking.rideType || booking.vehicleModel],
+            ["fa-users", "Passengers", booking.passengers ? `${booking.passengers} passenger${Number(booking.passengers) === 1 ? "" : "s"}` : ""],
+            ["fa-credit-card", "Payment", booking.paymentMethod || booking.payment?.method || booking.paymentMode],
+            ["fa-phone", "Contact", booking.customerPhone || booking.customerEmail]
+        ].filter(([, , value]) => cleanText(value));
+
+        if (!items.length) return "";
+        return `
+            <div class="booking-mini-grid">
+                ${items.map(([icon, label, value]) => `
+                    <span><i class="fas ${icon}"></i><strong>${escapeHtml(label)}</strong>${escapeHtml(formatPlainValue(value))}</span>
+                `).join("")}
+            </div>
+        `;
+    }
+
+    function renderBookingFullDetails(booking, options = {}) {
+        const openAttr = options.open ? " open" : "";
+        const safePayload = escapeHtml(JSON.stringify(booking, null, 2));
+        const returnDate = booking.returnDate || booking.returnTrip?.returnDate;
+        const returnTime = booking.returnTime || booking.returnTrip?.returnTime;
+        const specialRequests = isPlainObject(booking.specialRequests)
+            ? booking.specialRequests
+            : booking.customerFeatures?.specialRequests;
+        const safetyAccessibility = isPlainObject(booking.safetyAccessibility)
+            ? booking.safetyAccessibility
+            : booking.customerFeatures?.safetyAccessibility;
+
+        const sections = [
+            renderDetailSection("Customer", [
+                ["Name", booking.customerName],
+                ["Phone", booking.customerPhone],
+                ["Email", booking.customerEmail],
+                ["Customer ID", booking.customerId || booking.userId || booking.backendUserId]
+            ]),
+            renderDetailSection("Trip", [
+                ["Pickup", booking.pickup || booking.pickupLocation || booking.from],
+                ["Drop", booking.dropoff || booking.dropLocation || booking.drop || booking.to],
+                ["Ride date", booking.rideDate],
+                ["Ride time", booking.rideTime],
+                ["Outbound time", booking.outboundDateTime],
+                ["Return date", returnDate],
+                ["Return time", returnTime],
+                ["Trip plan", booking.tripPlan || booking.bookingMode || booking.mode],
+                ["Vehicle type", booking.vehicleType || booking.rideType],
+                ["Vehicle model", booking.vehicleModel],
+                ["Passengers", booking.passengers],
+                ["Luggage", booking.luggage],
+                ["Stops", booking.stops],
+                ["Notes", booking.notes]
+            ]),
+            renderDetailSection("Fare And Payment", [
+                ["Total fare", formatMoney(booking.fare || booking.totalFare || booking.amount || booking.finalFare)],
+                ["Distance", booking.distanceKm ? `${Math.round(toAmount(booking.distanceKm) * 10) / 10} km` : ""],
+                ["Distance source", booking.distanceSource],
+                ["Payment method", booking.paymentMethod || booking.payment?.method || booking.paymentMode],
+                ["Budget amount", booking.budgetAmount ? formatMoney(booking.budgetAmount) : ""],
+                ["Customer bid", booking.customerBidAmount ? formatMoney(booking.customerBidAmount) : ""],
+                ["Fare breakdown", booking.fareBreakdown],
+                ["Fare quote", booking.fareQuote],
+                ["Payment data", booking.payment],
+                ["Promo", booking.promo || booking.referralCode]
+            ]),
+            renderDetailSection("Admin And Driver", [
+                ["Booking ID", booking.bookingId],
+                ["Source", booking.sourceKey],
+                ["Booking status", getStatusLabel(booking)],
+                ["Admin review", booking.adminReviewStatus || booking.reviewStatus],
+                ["Admin note", booking.adminReviewNote],
+                ["Driver ID", booking.driverId],
+                ["Driver name", booking.driverName],
+                ["Created", formatDate(booking.createdAt || booking.timestamp || booking.date)],
+                ["Updated", formatDate(booking.updatedAt)],
+                ["Last edited", formatDate(booking.lastEditedAt)],
+                ["Edit count", booking.editCount],
+                ["Admin email", formatObjectSummary(booking.adminEmailDispatch)],
+                ["Customer email", formatObjectSummary(booking.customerEmailDispatch)]
+            ]),
+            renderDetailSection("Requests", [
+                ["Special requests", formatEnabledFlags(specialRequests)],
+                ["Safety and accessibility", formatEnabledFlags(safetyAccessibility)],
+                ["AC preference", booking.acPreference],
+                ["Luggage space", booking.luggageSpace]
+            ])
+        ].filter(Boolean).join("");
+
+        return `
+            <details class="booking-full-details"${openAttr}>
+                <summary><i class="fas fa-circle-info"></i><span>Full booking details</span></summary>
+                <div class="booking-detail-content">
+                    ${sections || `<div class="empty-state">No extra booking details stored for this row.</div>`}
+                    <details class="booking-payload-details">
+                        <summary>Stored payload</summary>
+                        <pre>${safePayload}</pre>
+                    </details>
+                </div>
+            </details>
+        `;
+    }
+
+    function formValue(value) {
+        return escapeHtml(formatPlainValue(value, ""));
+    }
+
+    function serializeList(value) {
+        if (!Array.isArray(value)) return "";
+        return value.map((item) => cleanText(item)).filter(Boolean).join("\n");
+    }
+
+    function serializeMap(value) {
+        if (!isPlainObject(value) || !Object.keys(value).length) return "";
+        return JSON.stringify(value, null, 2);
+    }
+
+    function parseTextList(value) {
+        return String(value || "")
+            .split(/[\n,]+/)
+            .map((item) => cleanText(item))
+            .filter(Boolean)
+            .slice(0, 12);
+    }
+
+    function parseFlexibleMap(value) {
+        const text = String(value || "").trim();
+        if (!text) return {};
+        try {
+            const parsed = JSON.parse(text);
+            if (isPlainObject(parsed)) return parsed;
+        } catch (_error) {
+            // Admin may enter comma-separated flags instead of JSON.
+        }
+
+        return text.split(/[\n,]+/).reduce((acc, item) => {
+            const token = cleanText(item);
+            if (!token) return acc;
+            const separatorIndex = Math.max(token.indexOf("="), token.indexOf(":"));
+            if (separatorIndex > 0) {
+                const key = cleanText(token.slice(0, separatorIndex));
+                const rawValue = cleanText(token.slice(separatorIndex + 1));
+                if (key) acc[key] = rawValue || true;
+            } else {
+                acc[token] = true;
+            }
+            return acc;
+        }, {});
+    }
+
+    function renderSelectOptions(options, currentValue) {
+        const selected = cleanText(currentValue).toLowerCase();
+        return options.map(([value, label]) => `
+            <option value="${escapeHtml(value)}"${selected === value ? " selected" : ""}>${escapeHtml(label)}</option>
+        `).join("");
+    }
+
+    function renderEditInput(name, label, value, attrs = "") {
+        return `
+            <label class="booking-edit-field">
+                <span>${escapeHtml(label)}</span>
+                <input name="${escapeHtml(name)}" value="${formValue(value)}" ${attrs}>
+            </label>
+        `;
+    }
+
+    function renderEditTextarea(name, label, value, attrs = "") {
+        return `
+            <label class="booking-edit-field wide">
+                <span>${escapeHtml(label)}</span>
+                <textarea name="${escapeHtml(name)}" ${attrs}>${formValue(value)}</textarea>
+            </label>
+        `;
+    }
+
+    function ensureBookingEditorModal() {
+        let modal = $("#bookingEditModal");
+        if (modal) return modal;
+
+        modal = document.createElement("div");
+        modal.id = "bookingEditModal";
+        modal.className = "booking-edit-modal";
+        modal.setAttribute("aria-hidden", "true");
+        modal.innerHTML = `
+            <div class="booking-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="bookingEditTitle">
+                <header>
+                    <div>
+                        <span class="section-kicker">Full control</span>
+                        <h2 id="bookingEditTitle">Edit Booking</h2>
+                    </div>
+                    <button class="icon-button" data-close-booking-editor type="button" title="Close editor"><i class="fas fa-xmark"></i></button>
+                </header>
+                <form id="bookingEditForm"></form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    function buildBookingEditForm(booking) {
+        const specialRequests = isPlainObject(booking.specialRequests)
+            ? booking.specialRequests
+            : booking.customerFeatures?.specialRequests;
+        const safetyAccessibility = isPlainObject(booking.safetyAccessibility)
+            ? booking.safetyAccessibility
+            : booking.customerFeatures?.safetyAccessibility;
+        return `
+            <input type="hidden" name="bookingId" value="${escapeHtml(booking.bookingId)}">
+            <div class="booking-edit-grid">
+                ${renderEditInput("customerName", "Customer name", booking.customerName)}
+                ${renderEditInput("customerPhone", "Customer phone", booking.customerPhone)}
+                ${renderEditInput("customerEmail", "Customer email", booking.customerEmail, 'type="email"')}
+                ${renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation)}
+                ${renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation)}
+                ${renderEditInput("rideDate", "Ride date", booking.rideDate, 'type="date"')}
+                ${renderEditInput("rideTime", "Ride time", booking.rideTime, 'type="time"')}
+                ${renderEditInput("returnDate", "Return date", booking.returnDate || booking.returnTrip?.returnDate, 'type="date"')}
+                ${renderEditInput("returnTime", "Return time", booking.returnTime || booking.returnTrip?.returnTime, 'type="time"')}
+                ${renderEditInput("tripPlan", "Trip plan", booking.tripPlan || booking.bookingMode || booking.mode)}
+                ${renderEditInput("vehicleType", "Vehicle type", booking.vehicleType || booking.rideType)}
+                ${renderEditInput("vehicleModel", "Vehicle model", booking.vehicleModel)}
+                ${renderEditInput("passengers", "Passengers", booking.passengers || 1, 'type="number" min="1" max="20"')}
+                ${renderEditInput("luggage", "Luggage", booking.luggage)}
+                ${renderEditInput("paymentMethod", "Payment method", booking.paymentMethod || booking.payment?.method || booking.paymentMode)}
+                ${renderEditInput("fare", "Fare / amount", booking.fare || booking.totalFare || booking.amount || booking.finalFare, 'type="number" min="0" step="1"')}
+                ${renderEditInput("distanceKm", "Distance KM", booking.distanceKm || booking.distance, 'type="number" min="0" step="0.1"')}
+                ${renderEditInput("driverId", "Driver ID", booking.driverId)}
+                ${renderEditInput("driverName", "Driver name", booking.driverName)}
+                <label class="booking-edit-field">
+                    <span>Booking status</span>
+                    <select name="status">${renderSelectOptions(BOOKING_STATUS_OPTIONS, booking.status)}</select>
+                </label>
+                <label class="booking-edit-field">
+                    <span>Admin review</span>
+                    <select name="adminReviewStatus">${renderSelectOptions(ADMIN_REVIEW_OPTIONS, booking.adminReviewStatus || "pending")}</select>
+                </label>
+                ${renderEditTextarea("stops", "Stops", serializeList(booking.stops), 'placeholder="One stop per line"')}
+                ${renderEditTextarea("notes", "Notes", booking.notes)}
+                ${renderEditTextarea("specialRequests", "Special requests", serializeMap(specialRequests), 'placeholder=\'JSON or comma list: pet=true, extra_waiting=true\'')}
+                ${renderEditTextarea("safetyAccessibility", "Safety and accessibility", serializeMap(safetyAccessibility), 'placeholder=\'JSON or comma list: wheelchair=true, child_seat=true\'')}
+                ${renderEditTextarea("adminEditReason", "Admin edit note", "", 'placeholder="Reason shown in audit/customer notification"')}
+            </div>
+            <div class="booking-edit-actions">
+                <button class="text-button" data-close-booking-editor type="button">Cancel</button>
+                <button class="primary-action" type="submit"><i class="fas fa-floppy-disk"></i> Save booking</button>
+            </div>
+        `;
+    }
+
+    function openBookingEditor(bookingId) {
+        const booking = state.bookings.find((item) => item.bookingId === bookingId);
+        if (!booking) {
+            showToast("Booking not found.");
+            return;
+        }
+
+        state.editingBookingId = bookingId;
+        const modal = ensureBookingEditorModal();
+        const title = $("#bookingEditTitle", modal);
+        const form = $("#bookingEditForm", modal);
+        if (title) title.textContent = `Edit Booking ${bookingId}`;
+        if (form) form.innerHTML = buildBookingEditForm(booking);
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+        modal.querySelector("input[name='pickup']")?.focus();
+    }
+
+    function closeBookingEditor() {
+        const modal = $("#bookingEditModal");
+        state.editingBookingId = "";
+        if (!modal) return;
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+    }
+
+    function collectBookingEditForm(form) {
+        const data = new FormData(form);
+        const text = (name) => cleanText(data.get(name));
+        return {
+            bookingId: text("bookingId"),
+            customerName: text("customerName"),
+            customerPhone: text("customerPhone"),
+            customerEmail: text("customerEmail"),
+            pickup: text("pickup"),
+            dropoff: text("dropoff"),
+            rideDate: text("rideDate"),
+            rideTime: text("rideTime"),
+            returnDate: text("returnDate"),
+            returnTime: text("returnTime"),
+            tripPlan: text("tripPlan"),
+            vehicleType: text("vehicleType"),
+            vehicleModel: text("vehicleModel"),
+            passengers: Math.min(Math.max(Number(text("passengers")) || 1, 1), 20),
+            luggage: text("luggage"),
+            paymentMethod: text("paymentMethod"),
+            fare: toAmount(text("fare")),
+            distanceKm: toAmount(text("distanceKm")),
+            driverId: text("driverId"),
+            driverName: text("driverName"),
+            status: text("status") || "pending_admin_review",
+            adminReviewStatus: text("adminReviewStatus") || "pending",
+            stops: parseTextList(data.get("stops")),
+            notes: text("notes"),
+            specialRequests: parseFlexibleMap(data.get("specialRequests")),
+            safetyAccessibility: parseFlexibleMap(data.get("safetyAccessibility")),
+            adminEditReason: text("adminEditReason")
+        };
+    }
+
+    function sameValue(left, right) {
+        return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+    }
+
+    function buildBookingEditPatch(booking, data) {
+        const current = {
+            customerName: booking.customerName || "",
+            customerPhone: booking.customerPhone || "",
+            customerEmail: booking.customerEmail || "",
+            pickup: booking.pickup || booking.pickupLocation || "",
+            dropoff: booking.dropoff || booking.dropLocation || "",
+            rideDate: booking.rideDate || "",
+            rideTime: booking.rideTime || "",
+            returnDate: booking.returnDate || booking.returnTrip?.returnDate || "",
+            returnTime: booking.returnTime || booking.returnTrip?.returnTime || "",
+            tripPlan: booking.tripPlan || booking.bookingMode || booking.mode || "",
+            vehicleType: booking.vehicleType || booking.rideType || "",
+            vehicleModel: booking.vehicleModel || "",
+            passengers: Number(booking.passengers || 1),
+            luggage: booking.luggage || "",
+            paymentMethod: booking.paymentMethod || booking.payment?.method || booking.paymentMode || "",
+            fare: toAmount(booking.fare || booking.totalFare || booking.amount || booking.finalFare),
+            distanceKm: toAmount(booking.distanceKm || booking.distance),
+            driverId: booking.driverId || "",
+            driverName: booking.driverName || "",
+            status: booking.status || "pending_admin_review",
+            adminReviewStatus: booking.adminReviewStatus || "pending",
+            stops: Array.isArray(booking.stops) ? booking.stops : [],
+            notes: booking.notes || "",
+            specialRequests: isPlainObject(booking.specialRequests)
+                ? booking.specialRequests
+                : (isPlainObject(booking.customerFeatures?.specialRequests) ? booking.customerFeatures.specialRequests : {}),
+            safetyAccessibility: isPlainObject(booking.safetyAccessibility)
+                ? booking.safetyAccessibility
+                : (isPlainObject(booking.customerFeatures?.safetyAccessibility) ? booking.customerFeatures.safetyAccessibility : {})
+        };
+
+        const changedFields = [];
+        const previousValues = {};
+        const nextValues = {};
+        Object.keys(current).forEach((field) => {
+            if (sameValue(current[field], data[field])) return;
+            changedFields.push(field);
+            previousValues[field] = current[field];
+            nextValues[field] = data[field];
+        });
+
+        if (!changedFields.length) return { changedFields: [], updates: {} };
+
+        const now = new Date().toISOString();
+        const reason = data.adminEditReason || "Updated by admin portal.";
+        const nextEditCount = Number(booking.editCount || (Array.isArray(booking.editHistory) ? booking.editHistory.length : 0) || 0) + 1;
+        const editHistory = Array.isArray(booking.editHistory) ? booking.editHistory.slice(-49) : [];
+        const statusHistory = Array.isArray(booking.statusHistory) ? booking.statusHistory.slice(-49) : [];
+        const existingFareBreakdown = isPlainObject(booking.fareBreakdown) ? booking.fareBreakdown : {};
+        const existingFareQuote = isPlainObject(booking.fareQuote) ? booking.fareQuote : {};
+        const existingCustomerSnapshot = isPlainObject(booking.customerSnapshot) ? booking.customerSnapshot : {};
+        const existingCustomerFeatures = isPlainObject(booking.customerFeatures) ? booking.customerFeatures : {};
+
+        editHistory.push({
+            editedAt: now,
+            by: "admin",
+            source: "standalone_admin_app",
+            reason,
+            changedFields,
+            previousValues,
+            nextValues
+        });
+        statusHistory.push({
+            status: "admin_edited",
+            at: now,
+            source: "standalone_admin_app",
+            note: reason
+        });
+
+        const updates = {
+            customerName: data.customerName,
+            customerPhone: data.customerPhone,
+            customerEmail: data.customerEmail,
+            customerSnapshot: {
+                ...existingCustomerSnapshot,
+                name: data.customerName,
+                phone: data.customerPhone,
+                email: data.customerEmail
+            },
+            pickup: data.pickup,
+            pickupLocation: data.pickup,
+            from: data.pickup,
+            dropoff: data.dropoff,
+            drop: data.dropoff,
+            dropLocation: data.dropoff,
+            to: data.dropoff,
+            rideDate: data.rideDate,
+            rideTime: data.rideTime,
+            returnDate: data.returnDate,
+            returnTime: data.returnTime,
+            returnTrip: { returnDate: data.returnDate, returnTime: data.returnTime },
+            tripPlan: data.tripPlan,
+            vehicleType: data.vehicleType,
+            rideType: data.vehicleType,
+            vehicleModel: data.vehicleModel,
+            passengers: data.passengers,
+            luggage: data.luggage,
+            paymentMethod: data.paymentMethod,
+            fare: data.fare,
+            totalFare: data.fare,
+            amount: data.fare,
+            finalFare: data.fare,
+            distanceKm: data.distanceKm,
+            distance: data.distanceKm,
+            driverId: data.driverId,
+            driverName: data.driverName,
+            status: data.status,
+            adminReviewStatus: data.adminReviewStatus,
+            notes: data.notes,
+            stops: data.stops,
+            specialRequests: data.specialRequests,
+            safetyAccessibility: data.safetyAccessibility,
+            customerFeatures: {
+                ...existingCustomerFeatures,
+                specialRequests: data.specialRequests,
+                safetyAccessibility: data.safetyAccessibility
+            },
+            fareBreakdown: {
+                ...existingFareBreakdown,
+                totalFare: data.fare,
+                distanceKm: data.distanceKm,
+                adminEditedAt: now
+            },
+            fareQuote: {
+                ...existingFareQuote,
+                amount: data.fare,
+                distanceKm: data.distanceKm,
+                source: existingFareQuote.source || existingFareBreakdown.distanceSource || "admin_edit"
+            },
+            editCount: nextEditCount,
+            lastEditedAt: now,
+            adminLastEditedAt: now,
+            adminEditReason: reason,
+            editPolicyVersion: "admin_portal_full_control_v1",
+            editHistory,
+            statusHistory
+        };
+
+        return { changedFields, previousValues, nextValues, updates, reason };
     }
 
     function loadSettings() {
@@ -159,14 +755,17 @@
     }
 
     function normalizeBooking(row, sourceKey) {
+        const customer = isPlainObject(row.customer) ? row.customer : {};
+        const customerSnapshot = isPlainObject(row.customerSnapshot) ? row.customerSnapshot : {};
         const id = cleanText(row.bookingId || row.id || row._id || `RID${Date.now()}`);
-        const pickup = cleanText(row.pickup || row.pickupLocation || row.from || row.origin, "Pickup pending");
-        const dropoff = cleanText(row.dropoff || row.drop || row.dropLocation || row.to || row.destination, "Drop pending");
+        const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin) || "Pickup pending";
+        const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination) || "Drop pending";
         const fare = toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare);
         const status = cleanText(row.status || "pending_admin_review").toLowerCase();
         const adminReviewStatus = cleanText(row.adminReviewStatus || row.reviewStatus || "").toLowerCase();
         const createdAt = cleanText(row.createdAt || row.timestamp || row.date || "");
-        const customerName = cleanText(row.customerName || row.customerSnapshot?.name || row.name || row.customer || "Customer");
+        const customerName = firstText(row.customerName, customerSnapshot.name, customer.name, row.fullname, row.name) || "Customer";
+        const returnTrip = isPlainObject(row.returnTrip) ? row.returnTrip : {};
 
         return {
             ...row,
@@ -176,17 +775,23 @@
             dropoff,
             fare,
             customerName,
-            customerPhone: cleanText(row.customerPhone || row.customerSnapshot?.phone || row.phone || ""),
-            customerEmail: cleanText(row.customerEmail || row.customerSnapshot?.email || row.email || ""),
+            customerPhone: firstText(row.customerPhone, customerSnapshot.phone, customer.phone, row.phone, row.mobile, row.contact),
+            customerEmail: firstText(row.customerEmail, customerSnapshot.email, customer.email, row.email, row.userEmail),
             status,
             adminReviewStatus,
             sourceKey,
             createdAt,
             rideDate: cleanText(row.rideDate || ""),
             rideTime: cleanText(row.rideTime || ""),
+            returnDate: cleanText(row.returnDate || returnTrip.returnDate || ""),
+            returnTime: cleanText(row.returnTime || returnTrip.returnTime || ""),
             vehicleType: cleanText(row.vehicleType || row.rideType || row.vehicleModel || ""),
-            paymentMethod: cleanText(row.paymentMethod || ""),
-            distanceKm: toAmount(row.distanceKm || row.distance || row.fareBreakdown?.distanceKm)
+            paymentMethod: cleanText(row.paymentMethod || row.payment?.method || row.paymentMode || ""),
+            distanceKm: toAmount(row.distanceKm || row.distance || row.fareQuote?.distanceKm || row.fareBreakdown?.distanceKm),
+            pickupLocation: firstText(row.pickupLocation, row.pickup, row.from, row.origin),
+            dropLocation: firstText(row.dropLocation, row.dropoff, row.drop, row.to, row.destination),
+            totalFare: toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare),
+            customerId: firstText(row.customerId, row.userId, row.backendUserId, customer.id, customer._id, customer.email, customer.phone)
         };
     }
 
@@ -422,9 +1027,14 @@
                 booking.bookingId,
                 booking.customerName,
                 booking.customerPhone,
+                booking.customerEmail,
                 booking.pickup,
                 booking.dropoff,
                 booking.vehicleType,
+                booking.rideDate,
+                booking.rideTime,
+                booking.notes,
+                booking.stops,
                 booking.paymentMethod,
                 booking.status,
                 booking.adminReviewStatus
@@ -520,8 +1130,11 @@
                     </div>
                     <div class="queue-route">${escapeHtml(booking.pickup)} -> ${escapeHtml(booking.dropoff)}</div>
                     <div class="queue-meta">${escapeHtml(booking.customerName)} | ${formatMoney(booking.fare)} | ${formatDate(booking.createdAt)}</div>
+                    ${renderBookingHighlights(booking)}
+                    ${renderBookingFullDetails(booking)}
                 </div>
                 <div class="queue-actions">
+                    <button class="secondary-action" data-booking-edit="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-pen-to-square"></i><span>Edit</span></button>
                     <button class="row-action" data-action="approve" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-check"></i></button>
                     <button class="danger-action" data-action="reject" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-xmark"></i></button>
                 </div>
@@ -608,15 +1221,22 @@
         }
 
         host.innerHTML = rows.map((booking) => `
-            <tr>
+            <tr class="booking-summary-row">
                 <td><strong>${escapeHtml(booking.bookingId)}</strong><br><small>${escapeHtml(formatDate(booking.createdAt))}</small></td>
                 <td>${escapeHtml(booking.customerName)}<br><small>${escapeHtml(booking.customerPhone || booking.customerEmail || "No contact")}</small></td>
                 <td><strong>${escapeHtml(booking.pickup)}</strong><br><small>${escapeHtml(booking.dropoff)}</small></td>
                 <td>${formatMoney(booking.fare)}<br><small>${escapeHtml(booking.distanceKm ? `${Math.round(booking.distanceKm)} km` : "Distance pending")}</small></td>
                 <td><span class="status-pill ${getStatusClass(booking)}">${escapeHtml(getStatusLabel(booking))}</span></td>
                 <td>
+                    <button class="secondary-action" data-booking-edit="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-pen-to-square"></i> Edit</button>
                     <button class="row-action" data-action="approve" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-check"></i></button>
                     <button class="danger-action" data-action="reject" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-xmark"></i></button>
+                </td>
+            </tr>
+            <tr class="booking-detail-row">
+                <td colspan="6">
+                    ${renderBookingHighlights(booking)}
+                    ${renderBookingFullDetails(booking, { open: true })}
                 </td>
             </tr>
         `).join("");
@@ -744,14 +1364,18 @@
                             ${group[2].map((feature) => {
                                 const control = portalFeatures[feature[0]] || {};
                                 const enabled = control.enabled !== false && !["disabled", "paused", "blocked"].includes(cleanText(control.status || "active").toLowerCase());
+                                const featureLabel = cleanText(control.labelOverride || feature[1]);
+                                const correction = cleanText(control.correction || "");
                                 return `
                                     <div class="feature-control-row">
-                                        <div>
-                                            <strong>${escapeHtml(feature[1])}</strong>
+                                        <div class="feature-control-copy">
+                                            <strong>${escapeHtml(featureLabel)}</strong>
                                             <small>${escapeHtml(feature[2])}</small>
+                                            ${correction ? `<small class="feature-correction-note">Admin correction: ${escapeHtml(correction)}</small>` : ""}
                                         </div>
                                         <div class="control-actions">
                                             <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Connected" : "Paused"}</span>
+                                            <button class="row-action" data-control-action="edit-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button" title="Edit correction"><i class="fas fa-pen-to-square"></i></button>
                                             <button class="row-action" data-control-action="enable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-link"></i></button>
                                             <button class="danger-action" data-control-action="disable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-pause"></i></button>
                                         </div>
@@ -892,15 +1516,16 @@
         writeArray(AUDIT_KEY, rows);
     }
 
-    function notifyPortal(type, booking, message) {
+    function notifyPortal(type, booking, message, targetPortals = ["customer", "driver", "admin"], metadata = {}) {
         if (window.PortalConnector && typeof window.PortalConnector.createNotification === "function") {
             window.PortalConnector.createNotification({
                 type,
                 title: "Admin booking update",
                 message,
                 sourcePortal: "admin",
-                targetPortals: ["customer", "driver", "admin"],
-                booking
+                targetPortals,
+                booking,
+                metadata
             });
         }
     }
@@ -1019,6 +1644,21 @@
                 controlReason(`${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"} by admin.`)
             );
             showToast(result.ok ? `${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"}.` : "Feature action failed.");
+        } else if (action === "edit-feature") {
+            if (typeof window.AdminControlBridge.setFeatureCorrection !== "function") {
+                showToast("Feature correction bridge is not loaded.");
+                return;
+            }
+            const controls = state.controls || loadAdminControls();
+            const current = ((((controls.portalFeatures || {})[portal]) || {})[feature]) || {};
+            const featureLabel = getFeatureLabel(portal, feature);
+            const note = window.prompt(`${featureLabel} correction / admin note`, cleanText(current.correction || ""));
+            if (note === null) return;
+            const correction = cleanText(note);
+            result = window.AdminControlBridge.setFeatureCorrection(portal, feature, correction, {
+                reason: correction || cleanText(current.reason || `${featureLabel} correction cleared by admin.`)
+            });
+            showToast(result.ok ? `${featureLabel} correction ${correction ? "saved" : "cleared"}.` : "Feature correction failed.");
         } else if (action === "activate-customer" || action === "suspend-customer") {
             const customer = findCustomerByKey(key);
             if (!customer) {
@@ -1052,6 +1692,38 @@
         refreshData();
     }
 
+    function handleBookingEditSubmit(form) {
+        const data = collectBookingEditForm(form);
+        const booking = state.bookings.find((item) => item.bookingId === data.bookingId);
+        if (!booking) {
+            showToast("Booking not found.");
+            return;
+        }
+
+        const patch = buildBookingEditPatch(booking, data);
+        if (!patch.changedFields.length) {
+            showToast("No booking changes detected.");
+            return;
+        }
+
+        const touched = updateBookingAcrossStores(data.bookingId, patch.updates);
+        const updatedBooking = { ...booking, ...patch.updates, bookingId: data.bookingId, id: data.bookingId };
+        const changedLabel = patch.changedFields.map(humanizeKey).join(", ");
+        const customerMessage = `Booking ${data.bookingId} details updated by admin: ${changedLabel}.`;
+
+        addAudit("BOOKING_EDITED_BY_ADMIN", `Booking ${data.bookingId} edited by admin. Fields: ${changedLabel}.`);
+        notifyPortal("booking_admin_edited", updatedBooking, customerMessage, ["customer", "admin"], {
+            bookingId: data.bookingId,
+            status: updatedBooking.status,
+            adminReviewStatus: updatedBooking.adminReviewStatus,
+            changedFields: patch.changedFields,
+            reason: patch.reason
+        });
+        closeBookingEditor();
+        refreshData();
+        showToast(touched ? "Booking details updated." : "Edit saved in notification/audit only.");
+    }
+
     function handleBookingDecision(bookingId, decision) {
         const booking = state.bookings.find((item) => item.bookingId === bookingId);
         if (!booking) {
@@ -1067,15 +1739,22 @@
         };
 
         const touched = updateBookingAcrossStores(bookingId, updates);
+        const customerMessage = approved
+            ? `Booking ${bookingId} approved by admin. Driver assignment will start shortly.`
+            : `Booking ${bookingId} was not approved by admin. Please check booking details or contact support.`;
+        let bridgeNotified = false;
         if (window.AdminControlBridge && typeof window.AdminControlBridge.setBookingStatus === "function") {
-            window.AdminControlBridge.setBookingStatus(bookingId, approved ? "approved" : "rejected", {
-                reason: approved ? "Approved from admin app." : "Rejected from admin app.",
+            const bridgeResult = window.AdminControlBridge.setBookingStatus(bookingId, approved ? "approved" : "rejected", {
+                reason: customerMessage,
                 decision: updates.adminDecision
             });
+            bridgeNotified = Boolean(bridgeResult && bridgeResult.ok);
         }
         const message = `${bookingId} ${approved ? "approved" : "rejected"} from standalone admin app.`;
         addAudit(approved ? "BOOKING_APPROVED" : "BOOKING_REJECTED", message);
-        notifyPortal(approved ? "booking_approved" : "booking_rejected", { ...booking, ...updates }, message);
+        if (!bridgeNotified) {
+            notifyPortal(approved ? "booking_approved" : "booking_rejected", { ...booking, ...updates }, customerMessage, ["customer", "driver", "admin"]);
+        }
         refreshData();
         showToast(touched ? message : "Decision recorded in audit only.");
     }
@@ -1118,6 +1797,26 @@
         showToast("Booking export generated.");
     }
 
+    function clearStorageKeys(storage, keys) {
+        if (!storage || !Array.isArray(keys)) return;
+        keys.forEach((key) => {
+            try {
+                storage.removeItem(key);
+            } catch (_error) {
+                // Storage can be unavailable in restricted browser modes.
+            }
+        });
+    }
+
+    function logoutAdminSession() {
+        if (!window.confirm("Logout admin session?")) return;
+        addAudit("ADMIN_LOGOUT", "Admin logged out from standalone admin app.");
+        clearStorageKeys(localStorage, ADMIN_LOGOUT_KEYS);
+        clearStorageKeys(sessionStorage, ADMIN_LOGOUT_KEYS);
+        showToast("Admin logout successful.");
+        window.location.replace("./login.html?next=%2Fadmin%2Fapp.html");
+    }
+
     function showToast(message) {
         const host = $("#toastRegion");
         if (!host) return;
@@ -1139,6 +1838,10 @@
     function setupEvents() {
         $all(".nav-item").forEach((item) => {
             item.addEventListener("click", () => switchView(item.dataset.view || "overview"));
+        });
+
+        $all("[data-admin-logout]").forEach((button) => {
+            button.addEventListener("click", logoutAdminSession);
         });
 
         $("#mobileMenuBtn")?.addEventListener("click", () => $("#appSidebar")?.classList.toggle("open"));
@@ -1175,15 +1878,45 @@
         });
 
         document.addEventListener("click", (event) => {
+            const closeEditorButton = event.target.closest("[data-close-booking-editor]");
+            if (closeEditorButton) {
+                closeBookingEditor();
+                return;
+            }
+
+            if (event.target && event.target.id === "bookingEditModal") {
+                closeBookingEditor();
+                return;
+            }
+
             const controlButton = event.target.closest("[data-control-action]");
             if (controlButton) {
                 handlePortalControlAction(controlButton);
                 return;
             }
 
+            const editButton = event.target.closest("[data-booking-edit]");
+            if (editButton) {
+                openBookingEditor(editButton.dataset.bookingEdit || "");
+                return;
+            }
+
             const actionButton = event.target.closest("[data-action][data-booking-id]");
             if (!actionButton) return;
             handleBookingDecision(actionButton.dataset.bookingId, actionButton.dataset.action);
+        });
+
+        document.addEventListener("submit", (event) => {
+            const form = event.target.closest("#bookingEditForm");
+            if (!form) return;
+            event.preventDefault();
+            handleBookingEditSubmit(form);
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && $("#bookingEditModal")?.classList.contains("open")) {
+                closeBookingEditor();
+            }
         });
 
         $("#exportBookingsBtn")?.addEventListener("click", exportBookings);

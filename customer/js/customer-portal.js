@@ -7,6 +7,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializePortal();
     setupNavigation();
+    setupAdminCustomerControls();
     setupThemeToggle();
     setupModals();
     setupSOSButton();
@@ -38,34 +39,193 @@ function initializePortal() {
     showSection(activeSection);
 }
 
+function getCurrentCustomerSubject() {
+    const keys = ['currentUser', 'goindiaride_user', 'goindiaride.profile.runtime'];
+    for (const key of keys) {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+            if (parsed && typeof parsed === 'object' && Object.keys(parsed).length) {
+                return parsed;
+            }
+        } catch (_error) {
+            // Try the next local profile source.
+        }
+    }
+    return {};
+}
+
+function setupAdminCustomerControls() {
+    if (!window.AdminControlBridge) return;
+
+    if (typeof AdminControlBridge.initPortalRuntime === 'function') {
+        AdminControlBridge.initPortalRuntime('customer', {
+            getSubject: getCurrentCustomerSubject,
+            onBlocked: function () {
+                document.querySelectorAll('.main-container, .bottom-nav, #sosButton').forEach(function (node) {
+                    node.classList.add('admin-lock-sensitive');
+                });
+            },
+            onAllowed: function () {
+                document.querySelectorAll('.admin-lock-sensitive').forEach(function (node) {
+                    node.classList.remove('admin-lock-sensitive');
+                });
+            }
+        });
+    }
+
+    if (typeof AdminControlBridge.initFeatureRuntime !== 'function') return;
+
+    AdminControlBridge.initFeatureRuntime('customer', {
+        home_dashboard: ['#homeSection', '.bottom-nav .nav-btn[data-section="homeSection"]', '.offers-banner'],
+        booking: ['#bookingModal', '#bookingForm', '#scheduleModal', '#scheduleForm', '.booking-types', '.booking-type-btn', '#scheduleBookingBtn'],
+        quick_booking: ['.quick-booking-card', '#searchLocation', '.booking-types', '.booking-type-btn'],
+        saved_places: ['#recentPlaces', '#recentPlacesList', '#favoriteLocations', '#favoritesList'],
+        fare_estimator: ['.fare-calculator', '#openFareCalc', '#farePreview'],
+        active_rides: ['#activeBookings', '#activeBookingsList'],
+        scheduled_rides: ['#scheduledBookings', '#scheduledBookingsList', '#scheduleBookingBtn', '#scheduleModal'],
+        ride_history: ['#rideHistory', '#rideHistoryList'],
+        wallet: ['#walletSection', '.bottom-nav .nav-btn[data-section="walletSection"]', '.dual-wallet', '.wallet-actions', '.transaction-history'],
+        wallet_topup: ['.btn-add-money', '#addMoneyModal', '.payment-wallet', '.donation-wallet'],
+        wallet_withdrawal: ['#withdrawWalletBtn', '#withdrawalRequestList'],
+        wallet_transfer: ['#transferWalletBtn'],
+        rewards: ['#rewardsBtn', '.rewards-section'],
+        messages: ['#supportChatModal'],
+        donations: ['#donateBtn', '#donationModal', '.donation-wallet'],
+        split_fare: ['#splitFareBtn', '#splitFareModal'],
+        tourism: ['#tourismSection', '.bottom-nav .nav-btn[data-section="tourismSection"]', '.tourism-grid'],
+        travel_card: ['#digitalTravelCard'],
+        temple_timings: ['#templeTimings'],
+        cultural_guide: ['#culturalGuide'],
+        local_events: ['#eventsAlerts'],
+        tour_packages: ['#tourPackages'],
+        heritage_walks: ['#heritageWalks'],
+        food_guide: ['#foodGuide'],
+        shopping_guide: ['#shoppingGuide'],
+        profile: ['#profileSection', '.bottom-nav .nav-btn[data-section="profileSection"]', '.profile-card'],
+        ride_preferences: ['#ridePreferences', '#preferencesModal'],
+        emergency_contacts: ['#emergencyContacts', '#emergencyContactBtn'],
+        notifications: ['#notificationSettings'],
+        customer_support: ['#customerSupport', '#supportChatModal'],
+        emergency: ['#sosButton', '#sosModal', '.sos-buttons', '#shareLocationBtn']
+    }, {
+        getSubject: getCurrentCustomerSubject
+    });
+}
+
 
 /**
  * Setup cross-portal notifications (customer/driver/admin)
  */
+function getNotificationBookingId(notification) {
+    const booking = notification && notification.booking ? notification.booking : {};
+    const metadata = notification && notification.metadata ? notification.metadata : {};
+    return String(booking.id || booking.bookingId || metadata.bookingId || '').trim();
+}
+
+function updateCustomerBookingFromAdminNotification(notification, nextStatus, adminReviewStatus) {
+    const bookingId = getNotificationBookingId(notification);
+    if (!bookingId) return;
+
+    const incoming = notification && notification.booking && typeof notification.booking === 'object'
+        ? notification.booking
+        : {};
+    let bookings = [];
+
+    try {
+        bookings = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');
+        if (!Array.isArray(bookings)) bookings = [];
+    } catch (_error) {
+        bookings = [];
+    }
+
+    const idx = bookings.findIndex((item) => String(item.id || item.bookingId || '') === bookingId);
+    const existing = idx >= 0 ? bookings[idx] : {};
+    const updated = {
+        ...existing,
+        ...incoming,
+        id: bookingId,
+        bookingId,
+        pickup: incoming.pickup || incoming.pickupLocation || existing.pickup || existing.pickupLocation || '',
+        drop: incoming.drop || incoming.dropoff || incoming.dropLocation || existing.drop || existing.dropoff || existing.dropLocation || '',
+        status: nextStatus || incoming.status || existing.status || 'pending_admin_review',
+        adminReviewStatus: adminReviewStatus || incoming.adminReviewStatus || existing.adminReviewStatus || 'pending',
+        adminDecisionAt: incoming.adminDecisionAt || new Date().toISOString(),
+        timestamp: existing.timestamp || incoming.timestamp || incoming.createdAt || new Date().toISOString(),
+        fare: Number(incoming.fare || incoming.totalFare || incoming.amount || incoming.finalFare || existing.fare || 0),
+        totalFare: Number(incoming.totalFare || incoming.fare || incoming.amount || incoming.finalFare || existing.totalFare || existing.fare || 0),
+        amount: Number(incoming.amount || incoming.fare || incoming.totalFare || incoming.finalFare || existing.amount || existing.fare || 0),
+        finalFare: Number(incoming.finalFare || incoming.fare || incoming.totalFare || incoming.amount || existing.finalFare || 0),
+        distanceKm: Number(incoming.distanceKm || incoming.distance || existing.distanceKm || existing.distance || 0)
+    };
+
+    if (idx >= 0) {
+        bookings[idx] = updated;
+    } else {
+        bookings.unshift(updated);
+    }
+
+    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings.slice(0, 200)));
+    window.dispatchEvent(new CustomEvent('goindiaride:customer-bookings-updated', {
+        detail: { booking: updated, source: 'admin_notification' }
+    }));
+
+    if (typeof loadActiveBookings === 'function') {
+        loadActiveBookings({ skipBackendSync: true });
+    }
+}
+
 function setupPortalNotifications() {
     if (!window.PortalConnector) return;
 
     PortalConnector.setActivePortal('customer');
     PortalConnector.listen('customer', (notification) => {
         if (!notification) return;
+        const bookingId = getNotificationBookingId(notification);
+        const metadataStatus = String(notification.metadata?.status || notification.booking?.adminReviewStatus || notification.booking?.status || '').toLowerCase();
 
         if (notification.type === 'booking_confirmed' && notification.booking) {
-            showToast(`Booking ${notification.booking.id} submitted. Admin review is pending.`, 'success');
+            showToast(`Booking ${bookingId || notification.booking.id} submitted. Admin review is pending.`, 'success');
+            return;
+        }
+
+        if (notification.type === 'booking_approved' || (notification.type === 'booking_admin_status_update' && metadataStatus === 'approved')) {
+            updateCustomerBookingFromAdminNotification(notification, 'approved_waiting_driver', 'approved');
+            showToast(notification.message || `Booking ${bookingId} approved by admin. Driver assignment will start shortly.`, 'success');
+            return;
+        }
+
+        if (notification.type === 'booking_admin_edited' && notification.booking) {
+            const incomingStatus = String(notification.booking.status || '').toLowerCase();
+            const nextStatus = incomingStatus === 'approved'
+                ? 'approved_waiting_driver'
+                : incomingStatus === 'rejected'
+                    ? 'rejected_by_admin'
+                    : incomingStatus;
+            updateCustomerBookingFromAdminNotification(notification, nextStatus, notification.booking.adminReviewStatus || metadataStatus);
+            showToast(notification.message || `Booking ${bookingId} details updated by admin.`, 'info');
             return;
         }
 
         if (notification.type === 'driver_assigned' && notification.booking) {
-            showToast(`Driver assigned for booking ${notification.booking.id} after admin approval.`, 'success');
+            updateCustomerBookingFromAdminNotification(notification, 'driver_assigned', 'approved');
+            showToast(`Driver assigned for booking ${bookingId || notification.booking.id} after admin approval.`, 'success');
             return;
         }
 
         if (notification.type === 'booking_rejected' && notification.booking) {
-            showToast(`Booking ${notification.booking.id} is being reassigned to another driver.`, 'warning');
+            updateCustomerBookingFromAdminNotification(notification, 'rejected_by_admin', 'rejected');
+            showToast(notification.message || `Booking ${bookingId || notification.booking.id} was not approved by admin.`, 'warning');
+            return;
+        }
+
+        if (notification.type === 'booking_admin_status_update' && metadataStatus === 'rejected') {
+            updateCustomerBookingFromAdminNotification(notification, 'rejected_by_admin', 'rejected');
+            showToast(notification.message || `Booking ${bookingId} was not approved by admin.`, 'warning');
             return;
         }
 
         if (notification.type === 'ride_completed' && notification.booking) {
-            showToast(`Ride ${notification.booking.id} completed. Please rate your trip.`, 'success');
+            showToast(`Ride ${bookingId || notification.booking.id} completed. Please rate your trip.`, 'success');
             return;
         }
 

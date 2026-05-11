@@ -114,11 +114,42 @@ sidebarSearch.addEventListener('input', (e) => {
     });
 });
 
+const ADMIN_LOGOUT_KEYS = [
+    'currentAdmin',
+    'userRole',
+    'role',
+    'accountType',
+    'accessToken',
+    'authToken',
+    'token',
+    'goindiaride_refresh_token',
+    'goindiaride_refresh_token_v1',
+    'goindiaride_session_continuity_v1',
+    'goindiaride_auth_mode',
+    'goindiaride_auth_reason',
+    'goindiaride_admin_session',
+    'goindiaride_admin_otp_context',
+    'admin2FAEmail',
+    'admin2FAOTP',
+    'admin2FAMethod'
+];
+
+function clearAdminLogoutKeys(storage) {
+    if (!storage) return;
+    ADMIN_LOGOUT_KEYS.forEach((key) => {
+        try {
+            storage.removeItem(key);
+        } catch (_error) {
+            // Storage can be blocked in restricted browser modes.
+        }
+    });
+}
+
 // Logout Functionality
-document.getElementById('logoutBtn').addEventListener('click', () => {
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
     if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('currentAdmin');
-        localStorage.removeItem('userRole');
+        clearAdminLogoutKeys(localStorage);
+        clearAdminLogoutKeys(sessionStorage);
         window.location.href = './login.html';
     }
 });
@@ -145,21 +176,43 @@ function hideLoading() {
 
 
 function upsertAdminBookingFromNotification(booking, fallbackStatus) {
-    if (!booking || !booking.id) return null;
+    const incomingBookingId = String((booking && (booking.id || booking.bookingId)) || '').trim();
+    if (!booking || !incomingBookingId) return null;
 
     const adminBookings = getDemoData('Bookings');
-    const bookingId = String(booking.id);
+    const bookingId = incomingBookingId;
     const idx = adminBookings.findIndex((item) => String(item.id) === bookingId);
+    const existing = idx === -1 ? {} : (adminBookings[idx] || {});
+    const customerSnapshot = booking.customerSnapshot && typeof booking.customerSnapshot === 'object'
+        ? booking.customerSnapshot
+        : {};
+    const customer = booking.customer && typeof booking.customer === 'object'
+        ? booking.customer
+        : {};
+    const fare = Number(booking.finalFare || booking.totalFare || booking.amount || booking.fare || booking.fareQuote?.amount || booking.fareBreakdown?.totalFare || 0);
 
     const normalized = {
-        id: booking.id,
+        ...existing,
+        ...booking,
+        id: bookingId,
+        bookingId,
         customerId: booking.customerId || 0,
         driverId: booking.driverId || 0,
-        from: booking.pickup || booking.from || 'N/A',
-        to: booking.drop || booking.to || 'N/A',
-        fare: Number(booking.finalFare || booking.fare || 0),
+        customerName: booking.customerName || customerSnapshot.name || customer.name || existing.customerName || '',
+        customerPhone: booking.customerPhone || customerSnapshot.phone || customer.phone || existing.customerPhone || '',
+        customerEmail: booking.customerEmail || customerSnapshot.email || customer.email || existing.customerEmail || '',
+        from: booking.pickup || booking.pickupLocation || booking.from || 'N/A',
+        to: booking.dropoff || booking.drop || booking.dropLocation || booking.to || 'N/A',
+        pickup: booking.pickup || booking.pickupLocation || booking.from || '',
+        pickupLocation: booking.pickupLocation || booking.pickup || booking.from || '',
+        dropoff: booking.dropoff || booking.drop || booking.dropLocation || booking.to || '',
+        dropLocation: booking.dropLocation || booking.dropoff || booking.drop || booking.to || '',
+        fare,
+        amount: Number(booking.amount || fare || 0),
+        totalFare: Number(booking.totalFare || fare || 0),
         status: booking.status || fallbackStatus || 'new',
         date: (booking.timestamp || booking.createdAt || new Date().toISOString()).slice(0, 10),
+        createdAt: booking.createdAt || booking.timestamp || existing.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
 
@@ -285,13 +338,30 @@ function getBackendAccessToken() {
 
 function normalizePendingBookingForAdminPortal(row) {
     const customer = row && typeof row.customer === 'object' ? row.customer : {};
+    const customerSnapshot = row && typeof row.customerSnapshot === 'object' ? row.customerSnapshot : {};
+    const bookingId = String(row.bookingId || row.id || `BK${Date.now()}`);
+    const pickup = row.pickup || row.pickupLocation || row.from || '';
+    const drop = row.dropoff || row.drop || row.dropLocation || row.to || '';
+    const fare = Number(row.amount || row.totalFare || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare || 0);
     return {
-        id: String(row.bookingId || `BK${Date.now()}`),
+        ...row,
+        id: bookingId,
+        bookingId,
         customerId: String(customer.id || customer.email || customer.phone || 'customer'),
+        customerName: row.customerName || customerSnapshot.name || customer.name || '',
+        customerPhone: row.customerPhone || customerSnapshot.phone || customer.phone || '',
+        customerEmail: row.customerEmail || customerSnapshot.email || customer.email || '',
         driverId: String(row.driverId || ''),
-        from: row.pickup || '',
-        to: row.drop || '',
-        fare: Number(row.amount || 0),
+        from: pickup,
+        to: drop,
+        pickup,
+        pickupLocation: row.pickupLocation || pickup,
+        dropoff: drop,
+        drop: row.drop || drop,
+        dropLocation: row.dropLocation || drop,
+        fare,
+        amount: Number(row.amount || fare || 0),
+        totalFare: Number(row.totalFare || fare || 0),
         status: String(row.adminReviewStatus || 'pending').toLowerCase() === 'approved'
             ? (row.driverId ? 'driver_assigned' : 'approved')
             : String(row.adminReviewStatus || 'pending').toLowerCase() === 'rejected'
