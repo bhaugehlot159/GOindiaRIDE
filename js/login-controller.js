@@ -1744,7 +1744,9 @@ async function sendForgotPasswordOtp(){
     showError(result.data?.message||'Password reset OTP email deliver nahi hua. SMTP settings check karein.');
     return;
   }
-  showSuccess(result.data?.message||'Password reset OTP sent. Email check karein.');
+  showSuccess(delivery&&delivery.target
+    ? `Password reset OTP ${delivery.target} par sent hai. Inbox/spam check karein.`
+    : (result.data?.message||'Password reset OTP sent. Email check karein.'));
 }
 async function handleForgotPasswordReset(){
   const role=document.getElementById('forgotRole').value;

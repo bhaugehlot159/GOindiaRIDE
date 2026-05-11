@@ -192,6 +192,13 @@ function maskEmail(value) {
   return `${visible}@${domain}`;
 }
 
+function emailDeliverySucceeded(result) {
+  if (!result || result.skipped || result.reason) return false;
+  if (Array.isArray(result.rejected) && result.rejected.length) return false;
+  if (Array.isArray(result.accepted)) return result.accepted.length > 0;
+  return true;
+}
+
 function uniqueNormalizedEmails(values) {
   const output = [];
   values.flatMap((item) => splitCsvValues(item)).forEach((item) => {
@@ -227,6 +234,11 @@ function getAdminEmailAliases() {
   ];
   if (isLegacyAdminOtpEnabled()) aliases.push('admin@test.com');
   return uniqueNormalizedEmails(aliases);
+}
+
+function isConfiguredAdminEmail(value) {
+  const email = normalizeEmailValue(value);
+  return Boolean(email && getAdminEmailAliases().includes(email));
 }
 
 function getAdminPhoneAliases() {
@@ -633,7 +645,7 @@ router.post('/admin/login', loginLimiter, honeypotCheck, submissionTimingCheck, 
   return res.status(200).json({ accessToken, role: user.role });
 });
 
-router.post('/admin/password-check', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, restrictAdminIp, async (req, res) => {
+router.post('/admin/password-check', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, async (req, res) => {
   try {
     const email = normalizeEmailValue(req.body?.email);
     const password = String(req.body?.password || '');
@@ -1641,16 +1653,32 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
       return res.status(400).json({ message: 'Valid email required' });
     }
 
-    const user = await User.findOne({ email }).select('email role accountType');
+    const user = accountType === 'admin'
+      ? await User.findOne(buildAdminEmailQuery(email)).select('email role accountType')
+      : await User.findOne({ email }).select('email role accountType');
+    const canBootstrapAdmin = accountType === 'admin' && !user && isConfiguredAdminEmail(email);
 
     const accountMatches = user
       ? (accountType === 'admin'
-        ? user.role === 'admin' || user.accountType === 'admin'
+        ? isRegisteredAdminAccount(user)
         : user.accountType === accountType)
-      : false;
+      : canBootstrapAdmin;
 
-    // Account enumeration avoid karne ke liye generic success return.
-    if (!user || !accountMatches) {
+    if (!accountMatches) {
+      if (accountType === 'admin' && !canBootstrapAdmin) {
+        return res.status(422).json({
+          message: 'Registered admin account backend me nahi mila. Pehle admin user ko backend DB me create/verify karein.',
+          delivery: {
+            channel: 'email',
+            target: maskEmail(email),
+            sent: false,
+            skipped: true,
+            reason: 'admin_account_not_found',
+          },
+        });
+      }
+
+      // Account enumeration avoid karne ke liye public customer/driver reset generic success rakha hai.
       return res.status(200).json({ message: 'If account exists, reset OTP has been sent.' });
     }
 
@@ -1729,13 +1757,14 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
     }
 
     const isProd = String(process.env.NODE_ENV || '').toLowerCase().trim() === 'production';
-    const deliveryOk = Boolean(deliveryResult && !deliveryResult.skipped && !deliveryResult.reason);
+    const deliveryOk = emailDeliverySucceeded(deliveryResult);
     const deliverySummary = {
       channel: 'email',
       target: maskEmail(email),
       sent: deliveryOk,
       skipped: Boolean(deliveryResult && deliveryResult.skipped),
-      reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined,
+      reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : (deliveryOk ? undefined : 'email_not_accepted'),
+      bootstrapAdmin: Boolean(canBootstrapAdmin),
     };
     if (!deliveryOk && isProd) {
       return res.status(503).json({
@@ -1803,8 +1832,25 @@ router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, re
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
-    const user = await User.findOne({ email });
+    let user = accountType === 'admin'
+      ? await User.findOne(buildAdminEmailQuery(email))
+      : await User.findOne({ email });
     if (!user) {
+      if (accountType === 'admin' && isConfiguredAdminEmail(email)) {
+        user = await User.create({
+          name: 'Admin User',
+          email,
+          phone: getAdminDeliveryPhone(''),
+          passwordHash: await hashPassword(newPassword),
+          role: 'admin',
+          accountType: 'admin',
+          isPhoneVerified: false,
+        });
+
+        await Otp.deleteOne({ _id: otpDoc._id });
+        return res.status(200).json({ message: 'Admin password set successfully. Please login again.' });
+      }
+
       await Otp.deleteOne({ _id: otpDoc._id });
       return res.status(400).json({ message: 'Account not found' });
     }
@@ -1985,7 +2031,7 @@ router.post("/request-otp", async (req, res) => {
     // 8) Response (devOtp only in non-production)
     const isProd = String(process.env.NODE_ENV || "").toLowerCase().trim() === "production";
     const deliveryOk = channel === 'email'
-      ? Boolean(deliveryResult && !deliveryResult.skipped && !deliveryResult.reason)
+      ? emailDeliverySucceeded(deliveryResult)
       : Boolean(deliveryResult && deliveryResult.sent);
     const deliverySummary = channel === 'email'
       ? {
@@ -1993,7 +2039,7 @@ router.post("/request-otp", async (req, res) => {
           target: maskEmail(deliveryEmail),
           sent: deliveryOk,
           skipped: Boolean(deliveryResult && deliveryResult.skipped),
-          reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined
+          reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : (deliveryOk ? undefined : 'email_not_accepted')
         }
       : {
           channel: 'sms',
