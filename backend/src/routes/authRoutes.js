@@ -266,6 +266,22 @@ function getAdminDeliveryPhone(requestedPhone) {
   return phones[0] || normalizePhoneForDelivery(requestedPhone);
 }
 
+function buildAdminEmailQuery(email) {
+  const cleanEmail = normalizeEmailValue(email);
+  if (!cleanEmail) return null;
+  return { email: cleanEmail, $or: [{ role: 'admin' }, { accountType: 'admin' }] };
+}
+
+function buildAdminPhoneQuery(phone) {
+  const phoneCandidates = buildPhoneLookupCandidates(phone);
+  if (!phoneCandidates.length) return null;
+  return { phone: { $in: phoneCandidates }, $or: [{ role: 'admin' }, { accountType: 'admin' }] };
+}
+
+function isRegisteredAdminAccount(user) {
+  return Boolean(user && (user.role === 'admin' || user.accountType === 'admin'));
+}
+
 function isAllowedLegacyAdminOtpIdentifier({ channel, email, phone }) {
   if (!isLegacyAdminOtpEnabled()) return false;
   if (channel === 'email') {
@@ -283,8 +299,12 @@ async function verifyAdminPasswordForOtp({ channel, email, phone, password }) {
   }
 
   const query = channel === 'email'
-    ? { email: normalizeEmailValue(email), role: 'admin', accountType: 'admin' }
-    : { phone: { $in: buildPhoneLookupCandidates(phone) }, role: 'admin', accountType: 'admin' };
+    ? buildAdminEmailQuery(email)
+    : buildAdminPhoneQuery(phone);
+
+  if (!query) {
+    return { ok: false, status: 400, message: 'Valid registered admin identifier required' };
+  }
 
   const adminUser = await User.findOne(query).select('name email phone passwordHash role accountType');
   if (!adminUser) {
@@ -527,7 +547,7 @@ if (user.isTwoFactorEnabled) {
 
  // 🔐 Extra Admin Protection
 
-if (user.role === "admin") {
+if (isRegisteredAdminAccount(user)) {
 
     // --------------------------
     // 1) IP restriction check
@@ -622,7 +642,12 @@ router.post('/admin/password-check', loginLimiter, honeypotCheck, submissionTimi
       return res.status(400).json({ message: 'Admin email and password are required' });
     }
 
-    const adminUser = await User.findOne({ email, role: 'admin', accountType: 'admin' })
+    const adminQuery = buildAdminEmailQuery(email);
+    if (!adminQuery) {
+      return res.status(400).json({ message: 'Valid admin email required' });
+    }
+
+    const adminUser = await User.findOne(adminQuery)
       .select('name email phone passwordHash role accountType');
 
     if (!adminUser || !(await comparePassword(password, adminUser.passwordHash))) {
@@ -1112,15 +1137,16 @@ router.post("/refresh-token-v2", async (req, res) => {
     let deliveryPhone = cleanPhone;
     if (accountType === 'admin') {
       if (channel === 'email') {
-        adminUser = await User.findOne({ email: cleanEmail, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
+        const adminQuery = buildAdminEmailQuery(cleanEmail);
+        adminUser = adminQuery ? await User.findOne(adminQuery).select('email phone role accountType').lean() : null;
         const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, email: cleanEmail });
         if (!adminUser && !legacyAllowed) {
           return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin email.' });
         }
         deliveryEmail = adminUser ? cleanEmail : getAdminDeliveryEmail(cleanEmail);
       } else {
-        const phoneCandidates = buildPhoneLookupCandidates(cleanPhone);
-        adminUser = await User.findOne({ phone: { $in: phoneCandidates }, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
+        const adminQuery = buildAdminPhoneQuery(cleanPhone);
+        adminUser = adminQuery ? await User.findOne(adminQuery).select('email phone role accountType').lean() : null;
         const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, phone: cleanPhone });
         if (!adminUser && !legacyAllowed) {
           return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin mobile.' });
@@ -1245,7 +1271,7 @@ router.post("/refresh-token-v2", async (req, res) => {
       await user.save();
     }
 
-    if (accountType === 'admin' && !(user.role === 'admin' && user.accountType === 'admin')) {
+    if (accountType === 'admin' && !isRegisteredAdminAccount(user)) {
       return res.status(403).json({ message: 'Admin login is allowed only for registered admin accounts.' });
     }
 
@@ -1678,23 +1704,49 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
       { upsert: true, new: true }
     );
 
-    await sendEmail({
-      to: email,
-      subject: 'GOIndiaRIDE Password Reset OTP',
-      text: `Your password reset OTP is ${otp}. It expires in 5 minutes.`,
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6">
-          <h2>GOIndiaRIDE Password Reset</h2>
-          <p>Your OTP is:</p>
-          <div style="font-size:24px;font-weight:bold;letter-spacing:2px">${otp}</div>
-          <p>This OTP will expire in <b>5 minutes</b>.</p>
-        </div>
-      `,
-    });
+    let deliveryResult = null;
+    try {
+      deliveryResult = await sendEmail({
+        to: email,
+        subject: 'GOIndiaRIDE Password Reset OTP',
+        text: `Your password reset OTP is ${otp}. It expires in 5 minutes.`,
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6">
+            <h2>GOIndiaRIDE Password Reset</h2>
+            <p>Your OTP is:</p>
+            <div style="font-size:24px;font-weight:bold;letter-spacing:2px">${otp}</div>
+            <p>This OTP will expire in <b>5 minutes</b>.</p>
+          </div>
+        `,
+      });
+    } catch (deliveryError) {
+      deliveryResult = {
+        sent: false,
+        skipped: false,
+        reason: 'email_send_failed',
+        message: deliveryError.message || 'password_reset_otp_delivery_failed',
+      };
+    }
 
     const isProd = String(process.env.NODE_ENV || '').toLowerCase().trim() === 'production';
+    const deliveryOk = Boolean(deliveryResult && !deliveryResult.skipped && !deliveryResult.reason);
+    const deliverySummary = {
+      channel: 'email',
+      target: maskEmail(email),
+      sent: deliveryOk,
+      skipped: Boolean(deliveryResult && deliveryResult.skipped),
+      reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined,
+    };
+    if (!deliveryOk && isProd) {
+      return res.status(503).json({
+        message: 'Password reset email provider is not configured or failed. Please check SMTP settings.',
+        delivery: deliverySummary,
+      });
+    }
+
     return res.status(200).json({
-      message: 'Password reset OTP sent successfully',
+      message: deliveryOk ? 'Password reset OTP sent successfully' : 'Password reset OTP generated. Email provider is not configured.',
+      delivery: deliverySummary,
       ...(isProd ? {} : { devOtp: otp }),
     });
   } catch (error) {

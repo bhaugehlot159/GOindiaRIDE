@@ -1035,6 +1035,35 @@ function registerAdminFailure(){
 }
 function clearAdminFailures(){localStorage.removeItem(ADMIN_FAILURE_KEY);}
 
+function getAdminCredentialFields(){
+  return[
+    document.getElementById('adminEmail'),
+    document.getElementById('adminPassword')
+  ].filter(Boolean);
+}
+function markAdminCredentialManualEdit(event){
+  if(event&&event.currentTarget)event.currentTarget.dataset.userEdited='true';
+}
+function clearAdminCredentialAutofill(force=false){
+  getAdminCredentialFields().forEach((field)=>{
+    if(!force&&field.dataset.userEdited==='true')return;
+    field.value='';
+    field.defaultValue='';
+  });
+}
+function scheduleAdminCredentialAutofillClear(){
+  [0,80,250,650,1400].forEach((delay)=>{
+    setTimeout(()=>clearAdminCredentialAutofill(false),delay);
+  });
+}
+function bindAdminAutofillGuards(){
+  getAdminCredentialFields().forEach((field)=>{
+    field.setAttribute('autocomplete',field.id==='adminPassword'?'new-password':'off');
+    field.addEventListener('keydown',markAdminCredentialManualEdit);
+    field.addEventListener('paste',markAdminCredentialManualEdit);
+  });
+}
+
 function isInvalidFirebaseApiKeyError(error){
   const code=String(error&&error.code||'').trim().toLowerCase();
   const message=String(error&&error.message||'').trim().toLowerCase();
@@ -1665,7 +1694,9 @@ function toggleAdminLogin(){
   if(adminForm.style.display==='none'){
     adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';adminText.style.display='inline';
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
-    document.getElementById('adminEmail').value='';document.getElementById('adminPassword').value='';
+    getAdminCredentialFields().forEach((field)=>{delete field.dataset.userEdited;});
+    clearAdminCredentialAutofill(true);
+    scheduleAdminCredentialAutofillClear();
     adminMobileConfirmation=null;
     adminStep1Context=null;
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
@@ -1707,7 +1738,12 @@ async function sendForgotPasswordOtp(){
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-forgot-password-request')
   });
-  if(!result.ok){showError(result.data?.message||'Password reset OTP send nahi ho paya.');return;}
+  if(!result.ok){showError(result.data?.message||'Password reset OTP send nahi ho paya. SMTP settings check karein.');return;}
+  const delivery=result.data?.delivery||null;
+  if(delivery&&delivery.sent===false){
+    showError(result.data?.message||'Password reset OTP email deliver nahi hua. SMTP settings check karein.');
+    return;
+  }
   showSuccess(result.data?.message||'Password reset OTP sent. Email check karein.');
 }
 async function handleForgotPasswordReset(){
@@ -1794,9 +1830,12 @@ window.addEventListener('load',async()=>{
   ensureStableAccountIds();
   persistAccountBackup();
   await ensureAdminProfile();
+  bindAdminAutofillGuards();
+  clearAdminCredentialAutofill(true);
   updateLoginMethod();
 initFirebasePhoneAuth().catch(()=>{});
   initializeAdminAccessGate();
+  scheduleAdminCredentialAutofillClear();
   console.log('Login page ready');
 });
 
