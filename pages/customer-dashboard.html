@@ -2648,7 +2648,53 @@
         }
 
         function getCustomerBookingsFromStore() {
-            return readDashboardBookingsStore().filter((booking) => customerOwnsStoredRecord(booking));
+            const customerRows = readDashboardBookingsStore().filter((booking) => customerOwnsStoredRecord(booking));
+            mirrorDashboardBookingsForAdminPortal(customerRows);
+            return customerRows;
+        }
+
+        function mirrorDashboardBookingsForAdminPortal(bookings) {
+            if (!Array.isArray(bookings) || !bookings.length) return;
+            const keys = ['bookings', 'goride_bookings', 'goindiaride_active_bookings', 'goindiaride_admin_review_inbox_v1'];
+            keys.forEach((key) => {
+                let rows = [];
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+                    rows = Array.isArray(parsed) ? parsed : [];
+                } catch (_error) {
+                    rows = [];
+                }
+
+                const byId = new Map();
+                rows.forEach((row) => {
+                    const id = String(row && (row.bookingId || row.id) || '').trim();
+                    if (id) byId.set(id, row);
+                });
+
+                bookings.forEach((booking) => {
+                    if (!booking || typeof booking !== 'object') return;
+                    const id = String(booking.bookingId || booking.id || '').trim();
+                    if (!id) return;
+                    const existing = byId.get(id) || {};
+                    byId.set(id, {
+                        ...existing,
+                        ...booking,
+                        id,
+                        bookingId: id,
+                        pickup: booking.pickup || booking.pickupLocation || existing.pickup || '',
+                        pickupLocation: booking.pickupLocation || booking.pickup || existing.pickupLocation || '',
+                        dropoff: booking.dropoff || booking.dropLocation || booking.drop || existing.dropoff || '',
+                        dropLocation: booking.dropLocation || booking.dropoff || booking.drop || existing.dropLocation || '',
+                        totalFare: Number(booking.totalFare || booking.amount || booking.fare || existing.totalFare || existing.fare || 0),
+                        amount: Number(booking.amount || booking.totalFare || booking.fare || existing.amount || existing.fare || 0),
+                        status: booking.status || existing.status || 'pending_admin_review',
+                        adminReviewStatus: booking.adminReviewStatus || existing.adminReviewStatus || 'pending',
+                        updatedAt: booking.updatedAt || new Date().toISOString()
+                    });
+                });
+
+                localStorage.setItem(key, JSON.stringify(Array.from(byId.values())));
+            });
         }
 
         function migrateLegacyCustomerDashboardStores() {
@@ -5469,7 +5515,7 @@ Thank you for riding with us! 🚗
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
     <script src="../js/portal-connector.js"></script>
-    <script src="../js/admin-control-bridge.js"></script>
+    <script src="../js/admin-control-bridge.js?v=20260511-admin-customer-control2"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -5546,6 +5592,7 @@ Thank you for riding with us! 🚗
                     home_dashboard: ['.header-section', '.quick-actions', '.stats-grid'],
                     booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]', '.quick-action-btn[onclick*="goToBooking"]', '#rideEditModal', '.ride-edit-form'],
                     quick_booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]'],
+                    saved_places: ['#profileTab', '#profileNameInput', '#profilePhoneInput'],
                     fare_estimator: ['#rideEditFarePreview', '.ride-edit-fare-summary'],
                     active_rides: ['.tab-button[data-tab="active"]', '#activeTab'],
                     scheduled_rides: ['#customerRuntimeActiveMount', 'button[onclick*="openRideEditModal"]'],
@@ -5553,10 +5600,20 @@ Thank you for riding with us! 🚗
                     wallet: ['.tab-button[data-tab="wallet"]', '#walletTab', '#walletBalance', '#customerWalletTabBalance', '.wallet-grid', '.wallet-ledger-card'],
                     wallet_topup: ['#walletAddAmount', '#walletAddMethod', 'button[onclick*="handleWalletTopup"]', '.wallet-form-card:first-child'],
                     wallet_withdrawal: ['#walletWithdrawAmount', '#walletWithdrawMethod', '#walletWithdrawDestination', '#walletWithdrawNote', 'button[onclick*="handleWalletWithdrawal"]', '#walletWithdrawalList'],
+                    wallet_transfer: ['#walletTransferAmount', '#walletTransferTarget', 'button[onclick*="handleWalletTransfer"]'],
                     rewards: ['#totalDonations', '#donationAmount'],
                     messages: ['.tab-button[data-tab="messages"]', '#messagesTab'],
                     donations: ['.tab-button[data-tab="donations"]', '#donationsTab', 'button[onclick*="openDonations"]', 'a[href*="openDonations"]'],
                     split_fare: ['#rideEditPaymentMethod option[value="wallet"]'],
+                    tourism: ['a[href*="tourism"]', '#customerRuntimeActiveMount'],
+                    travel_card: ['#customerRuntimeActiveMount', '.profile-card'],
+                    temple_timings: ['a[href*="temple"]', '#customerRuntimeActiveMount'],
+                    cultural_guide: ['a[href*="culture"]', '#customerRuntimeActiveMount'],
+                    local_events: ['a[href*="event"]', '#customerRuntimeActiveMount'],
+                    tour_packages: ['a[href*="tour"]', '#customerRuntimeActiveMount'],
+                    heritage_walks: ['a[href*="heritage"]', '#customerRuntimeActiveMount'],
+                    food_guide: ['a[href*="food"]', '#customerRuntimeActiveMount'],
+                    shopping_guide: ['a[href*="shopping"]', '#customerRuntimeActiveMount'],
                     profile: ['.tab-button[data-tab="profile"]', '#profileTab', 'button[onclick*="profile"]', '#profileNameInput', '#profileEmailInput', '#profilePhoneInput', 'button[onclick*="saveProfileDetails"]'],
                     ride_preferences: ['#rideEditSpecialRequests', '.ride-edit-checkbox-card'],
                     emergency_contacts: ['#profilePhoneInput', '#profilePhoneVerificationBadge'],
@@ -5610,7 +5667,7 @@ Thank you for riding with us! 🚗
                     } else {
                         rows.unshift(updated);
                     }
-                    localStorage.setItem(key, JSON.stringify(rows.slice(0, 300)));
+                    localStorage.setItem(key, JSON.stringify(rows));
                 });
             }
 

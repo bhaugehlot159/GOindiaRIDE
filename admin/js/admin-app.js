@@ -4,7 +4,17 @@
     const ADMIN_REVIEW_INBOX_KEY = "goindiaride_admin_review_inbox_v1";
     const SETTINGS_KEY = "goindiaride_admin_app_settings_v1";
     const AUDIT_KEY = "adminAuditLogs";
-    const BOOKING_KEYS = ["bookings", "goride_bookings", ADMIN_REVIEW_INBOX_KEY, "goindiaride_active_bookings", "adminDemoBookings"];
+    const BOOKING_KEYS = [
+        "bookings",
+        "goride_bookings",
+        ADMIN_REVIEW_INBOX_KEY,
+        "goindiaride_active_bookings",
+        "goindiaride_scheduled_rides",
+        "goindiaride_ride_history",
+        "customerBookings",
+        "customer_bookings",
+        "adminDemoBookings"
+    ];
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
@@ -106,7 +116,8 @@
         seenToasts: loadSeenToasts(),
         startupAt: Date.now(),
         editingBookingId: "",
-        refreshTimer: null
+        refreshTimer: null,
+        backendBookingSyncing: false
     };
 
     const viewTitles = {
@@ -138,7 +149,18 @@
 
     function readArray(key) {
         const parsed = parseJson(localStorage.getItem(key), []);
-        return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === "object") : [];
+        if (Array.isArray(parsed)) return parsed.filter((item) => item && typeof item === "object");
+        if (parsed && typeof parsed === "object") {
+            const preferred = ["items", "data", "records", "bookings", "rows", "results", "list"];
+            for (const field of preferred) {
+                if (Array.isArray(parsed[field])) return parsed[field].filter((item) => item && typeof item === "object");
+            }
+            const values = Object.values(parsed);
+            if (values.length && values.every((item) => item && typeof item === "object" && !Array.isArray(item))) {
+                return values;
+            }
+        }
+        return [];
     }
 
     function writeArray(key, rows) {
@@ -845,6 +867,88 @@
         });
     }
 
+    function getBackendAccessToken() {
+        return cleanText(
+            localStorage.getItem("accessToken")
+            || localStorage.getItem("authToken")
+            || localStorage.getItem("token")
+            || ""
+        );
+    }
+
+    function mergeBookingsIntoStore(key, incomingRows) {
+        if (!Array.isArray(incomingRows) || !incomingRows.length) return false;
+        const existing = readArray(key);
+        const byId = new Map();
+        existing.forEach((row) => {
+            const id = cleanText(row.bookingId || row.id || row._id);
+            if (id) byId.set(id, row);
+        });
+
+        let changed = false;
+        incomingRows.forEach((row) => {
+            if (!row || typeof row !== "object") return;
+            const id = cleanText(row.bookingId || row.id || row._id);
+            if (!id) return;
+            const current = byId.get(id) || {};
+            byId.set(id, {
+                ...current,
+                ...row,
+                id,
+                bookingId: id,
+                syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString()
+            });
+            changed = true;
+        });
+
+        if (!changed) return false;
+        writeArray(key, Array.from(byId.values()));
+        return true;
+    }
+
+    async function syncBackendBookings() {
+        const token = getBackendAccessToken();
+        if (!token || state.backendBookingSyncing) return false;
+        state.backendBookingSyncing = true;
+        try {
+            const apiBase = normalizeApiBase(state.settings.apiBase || localStorage.getItem("goindiaride_api_base") || DEFAULT_API_BASE);
+            const response = await fetch(`${apiBase}/api/bookings/admin/pending?limit=500`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                credentials: "include"
+            });
+            if (!response.ok) return false;
+            const payload = await response.json().catch(() => ({}));
+            const rows = Array.isArray(payload.items) ? payload.items : [];
+            if (!rows.length) return false;
+            const mapped = rows.map((row) => ({
+                ...row,
+                id: row.id || row.bookingId,
+                bookingId: row.bookingId || row.id,
+                status: row.status || "pending_admin_review",
+                adminReviewStatus: row.adminReviewStatus || "pending",
+                fare: row.fare || row.amount || row.totalFare || 0,
+                totalFare: row.totalFare || row.amount || row.fare || 0,
+                pickup: row.pickup || row.pickupLocation || "",
+                dropoff: row.dropoff || row.dropLocation || row.drop || "",
+                customerName: row.customerName || row.customerSnapshot?.name || row.customer?.name || "",
+                customerEmail: row.customerEmail || row.customerSnapshot?.email || row.customer?.email || "",
+                customerPhone: row.customerPhone || row.customerSnapshot?.phone || row.customer?.phone || "",
+                sourceKey: "backend_admin_pending"
+            }));
+            const inboxChanged = mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, mapped);
+            const activeChanged = mergeBookingsIntoStore("goindiaride_active_bookings", mapped);
+            return inboxChanged || activeChanged;
+        } catch (_error) {
+            return false;
+        } finally {
+            state.backendBookingSyncing = false;
+        }
+    }
+
     function loadDrivers() {
         const rows = [];
         DRIVER_KEYS.forEach((key) => {
@@ -1010,7 +1114,7 @@
         return "pending";
     }
 
-    function refreshData() {
+    function refreshData(options = {}) {
         state.bookings = loadBookings();
         state.drivers = loadDrivers();
         state.users = loadUsers();
@@ -1018,6 +1122,11 @@
         state.controls = loadAdminControls();
         state.connection = loadConnectionState();
         renderAll();
+        if (!options.skipBackendSync) {
+            syncBackendBookings().then((changed) => {
+                if (changed) refreshData({ skipBackendSync: true });
+            });
+        }
     }
 
     function getFilteredBookings(filter = state.bookingFilter) {

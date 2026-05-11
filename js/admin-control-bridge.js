@@ -5,7 +5,17 @@
     const AUDIT_KEY = "adminAuditLogs";
     const LOCAL_EVENT = "goindiaride:admin-control-update";
     const POLICY_EVENT = "goindiaride:admin-control-policy";
-    const BOOKING_KEYS = ["bookings", "goride_bookings", "goindiaride_admin_review_inbox_v1", "adminDemoBookings", "goindiaride_active_bookings"];
+    const BOOKING_KEYS = [
+        "bookings",
+        "goride_bookings",
+        "goindiaride_admin_review_inbox_v1",
+        "adminDemoBookings",
+        "goindiaride_active_bookings",
+        "goindiaride_scheduled_rides",
+        "goindiaride_ride_history",
+        "customerBookings",
+        "customer_bookings"
+    ];
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const FEATURE_DEFINITIONS = {
@@ -657,6 +667,14 @@
             if (event.key === CONTROL_KEY) apply();
         });
         global.addEventListener(LOCAL_EVENT, apply);
+        if (global.MutationObserver && global.document && global.document.body) {
+            let applyTimer = null;
+            const observer = new global.MutationObserver(() => {
+                global.clearTimeout(applyTimer);
+                applyTimer = global.setTimeout(apply, 80);
+            });
+            observer.observe(global.document.body, { childList: true, subtree: true });
+        }
         return apply;
     }
 

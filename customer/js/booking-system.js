@@ -529,6 +529,41 @@ function calculateFare(pickup, drop, vehicleType, distanceKm = lastEstimatedDist
 /**
  * Save booking
  */
+function mergeBookingRowsForAdmin(keys, booking) {
+    const bookingId = String(booking && (booking.bookingId || booking.id) || '').trim();
+    if (!bookingId) return;
+
+    keys.forEach((key) => {
+        let rows = [];
+        try {
+            const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+            rows = Array.isArray(parsed) ? parsed : [];
+        } catch (_error) {
+            rows = [];
+        }
+
+        const idx = rows.findIndex((item) => String(item && (item.bookingId || item.id) || '').trim() === bookingId);
+        const existing = idx >= 0 ? rows[idx] : {};
+        const updated = {
+            ...existing,
+            ...booking,
+            id: bookingId,
+            bookingId,
+            status: booking.status || existing.status || 'pending_admin_review',
+            adminReviewStatus: booking.adminReviewStatus || existing.adminReviewStatus || 'pending',
+            pickupLocation: booking.pickupLocation || booking.pickup || existing.pickupLocation || existing.pickup || '',
+            dropLocation: booking.dropLocation || booking.drop || booking.dropoff || existing.dropLocation || existing.drop || existing.dropoff || '',
+            totalFare: Number(booking.totalFare || booking.finalFare || booking.fare || booking.amount || existing.totalFare || existing.fare || 0),
+            amount: Number(booking.amount || booking.finalFare || booking.fare || booking.totalFare || existing.amount || existing.fare || 0),
+            updatedAt: new Date().toISOString()
+        };
+
+        if (idx >= 0) rows[idx] = updated;
+        else rows.unshift(updated);
+        localStorage.setItem(key, JSON.stringify(rows));
+    });
+}
+
 function saveBooking(booking) {
     const bookings = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');
     const key = String(booking.id || booking.bookingId || '');
@@ -540,7 +575,16 @@ function saveBooking(booking) {
         bookings[idx] = { ...bookings[idx], ...booking };
     }
 
-    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings.slice(0, 200)));
+    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings));
+    mergeBookingRowsForAdmin([
+        'bookings',
+        'goride_bookings',
+        'goindiaride_admin_review_inbox_v1',
+        'goindiaride_active_bookings'
+    ], booking);
+    window.dispatchEvent(new CustomEvent('goindiaride:customer-bookings-updated', {
+        detail: { bookingId: key, booking }
+    }));
     
     loadActiveBookings();
 }
@@ -566,8 +610,33 @@ async function syncActiveBookingsFromBackend() {
     const rows = Array.isArray(payload.items) ? payload.items : [];
     const mapped = rows.map((row) => mapBackendBookingToLocal(row));
 
-    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(mapped.slice(0, 200)));
-    return mapped;
+    let existing = [];
+    try {
+        const parsed = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');
+        existing = Array.isArray(parsed) ? parsed : [];
+    } catch (_error) {
+        existing = [];
+    }
+    const byId = new Map();
+    existing.forEach((booking) => {
+        const id = String(booking && (booking.bookingId || booking.id) || '').trim();
+        if (id) byId.set(id, booking);
+    });
+    mapped.forEach((booking) => {
+        const id = String(booking && (booking.bookingId || booking.id) || '').trim();
+        if (!id) return;
+        byId.set(id, { ...(byId.get(id) || {}), ...booking, id, bookingId: id });
+        mergeBookingRowsForAdmin([
+            'bookings',
+            'goride_bookings',
+            'goindiaride_admin_review_inbox_v1',
+            'goindiaride_active_bookings'
+        ], booking);
+    });
+
+    const merged = Array.from(byId.values());
+    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(merged));
+    return merged;
 }
 
 /**
