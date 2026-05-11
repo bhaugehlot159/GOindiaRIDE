@@ -26,7 +26,7 @@ const ADMIN_OTP_METHOD_KEY='admin2FAMethod';
 const ADMIN_OTP_CONTEXT_KEY='goindiaride_admin_otp_context';
 const LOGIN_RISK_THRESHOLD=35;
 const LIVE_BACKEND_REQUIRED_FOR_LOGIN=true;
-const AUTH_REQUEST_TIMEOUT_MS=9000;
+const AUTH_REQUEST_TIMEOUT_MS=45000;
 const ADMIN_MAX_ATTEMPTS=5;
 const ADMIN_LOCK_MS=15*60*1000;
 const ADMIN_CHALLENGE_TTL_MS=10*60*1000;
@@ -1730,14 +1730,16 @@ function updateLocalPasswordRecordAfterReset(role,identifier,newPassword){
 async function sendForgotPasswordOtp(){
   const role=document.getElementById('forgotRole').value;
   const identifier=normalizeIdentifier(document.getElementById('forgotIdentifier').value);
-  if(identifier.kind!=='email'){showError('Password reset OTP ke liye registered email required hai.');return;}
-  const result=await callBackendAuth('/api/auth/forgot-password/request',{
-    email:identifier.value,
+  if(identifier.kind==='unknown'){showError('Password reset OTP ke liye registered email ya mobile required hai.');return;}
+  const payload={
     accountType:role,
     website:'',
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-forgot-password-request')
-  });
+  };
+  if(identifier.kind==='email')payload.email=identifier.value;
+  if(identifier.kind==='phone')payload.phone=identifier.value;
+  const result=await callBackendAuth('/api/auth/forgot-password/request',payload);
   if(!result.ok){showError(result.data?.message||'Password reset OTP send nahi ho paya. SMTP settings check karein.');return;}
   const delivery=result.data?.delivery||null;
   if(delivery&&delivery.sent===false){
@@ -1757,17 +1759,19 @@ async function handleForgotPasswordReset(){
   if(identifier.kind==='unknown'){showError('Please enter registered email or mobile number.');return;}
   const passValidation=validatePassword(newPassword);if(!passValidation.isValid){showError(passValidation.message);return;}
   if(newPassword!==confirm){showError('New password and confirm password do not match.');return;}
-  if(identifier.kind==='email'){
+  if(identifier.kind==='email'||identifier.kind==='phone'){
     if(!/^\d{4,8}$/.test(otp)){showError('Please enter valid reset OTP from email.');return;}
-    const result=await callBackendAuth('/api/auth/forgot-password/confirm',{
-      email:identifier.value,
+    const payload={
       accountType:role,
       otp,
       newPassword,
       website:'',
       submittedAt:Date.now()-1500,
       recaptchaToken:createPseudoRecaptchaToken('gir-forgot-password-confirm')
-    });
+    };
+    if(identifier.kind==='email')payload.email=identifier.value;
+    if(identifier.kind==='phone')payload.phone=identifier.value;
+    const result=await callBackendAuth('/api/auth/forgot-password/confirm',payload);
     if(!result.ok){showError(result.data?.message||'Password reset failed.');return;}
     await updateLocalPasswordRecordAfterReset(role,identifier,newPassword);
     notifyAdminSecurityEvent('Password reset',role+' account password reset completed.',{role,identifierKind:identifier.kind,source:'backend_otp'});

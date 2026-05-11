@@ -255,6 +255,11 @@ function getAdminPhoneAliases() {
   return uniqueNormalizedPhones(aliases);
 }
 
+function isConfiguredAdminPhone(value) {
+  const phone = normalizePhoneForDelivery(value);
+  return Boolean(phone && getAdminPhoneAliases().includes(phone));
+}
+
 function getAdminDeliveryEmail(requestedEmail) {
   const emails = uniqueNormalizedEmails([
     process.env.ADMIN_OTP_EMAILS,
@@ -1646,17 +1651,26 @@ router.post('/change-password', authenticate, async (req, res) => {
 
 router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   try {
-    const email = String(req.body?.email || '').trim().toLowerCase();
+    const email = normalizeEmailValue(req.body?.email);
+    const phone = normalizePhoneValue(req.body?.phone, { allowLocalIndian: true });
     const accountType = normalizeAccountType(req.body?.accountType);
 
-    if (!email || !validator.isEmail(email)) {
-      return res.status(400).json({ message: 'Valid email required' });
+    if (!email && !phone) {
+      return res.status(400).json({ message: 'Valid registered email or mobile required' });
     }
 
-    const user = accountType === 'admin'
-      ? await User.findOne(buildAdminEmailQuery(email)).select('email role accountType')
-      : await User.findOne({ email }).select('email role accountType');
-    const canBootstrapAdmin = accountType === 'admin' && !user && isConfiguredAdminEmail(email);
+    let user = null;
+    if (accountType === 'admin') {
+      user = email
+        ? await User.findOne(buildAdminEmailQuery(email)).select('email phone role accountType')
+        : await User.findOne(buildAdminPhoneQuery(phone)).select('email phone role accountType');
+    } else {
+      user = email
+        ? await User.findOne({ email }).select('email phone role accountType')
+        : await User.findOne({ phone: { $in: buildPhoneLookupCandidates(phone) } }).select('email phone role accountType');
+    }
+
+    const canBootstrapAdmin = accountType === 'admin' && !user && (email ? isConfiguredAdminEmail(email) : isConfiguredAdminPhone(phone));
 
     const accountMatches = user
       ? (accountType === 'admin'
@@ -1682,8 +1696,22 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
       return res.status(200).json({ message: 'If account exists, reset OTP has been sent.' });
     }
 
+    const resetEmail = normalizeEmailValue(user?.email || (canBootstrapAdmin ? getAdminDeliveryEmail(email) : email));
+    if (!resetEmail) {
+      return res.status(422).json({
+        message: 'Is account par registered email missing hai. Password reset OTP email par hi send hota hai.',
+        delivery: {
+          channel: 'email',
+          target: '',
+          sent: false,
+          skipped: true,
+          reason: 'registered_email_missing',
+        },
+      });
+    }
+
     const existing = await Otp.findOne({
-      identifier: email,
+      identifier: resetEmail,
       channel: 'email',
       accountType,
       purpose: PASSWORD_RESET_PURPOSE,
@@ -1711,14 +1739,14 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
 
     await Otp.findOneAndUpdate(
       {
-        identifier: email,
+        identifier: resetEmail,
         channel: 'email',
         accountType,
         purpose: PASSWORD_RESET_PURPOSE,
       },
       {
         $set: {
-          email,
+          email: resetEmail,
           phone: null,
           otpHash,
           expiresAt,
@@ -1735,7 +1763,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
     let deliveryResult = null;
     try {
       deliveryResult = await sendEmail({
-        to: email,
+        to: resetEmail,
         subject: 'GOIndiaRIDE Password Reset OTP',
         text: `Your password reset OTP is ${otp}. It expires in 5 minutes.`,
         html: `
@@ -1760,7 +1788,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
     const deliveryOk = emailDeliverySucceeded(deliveryResult);
     const deliverySummary = {
       channel: 'email',
-      target: maskEmail(email),
+      target: maskEmail(resetEmail),
       sent: deliveryOk,
       skipped: Boolean(deliveryResult && deliveryResult.skipped),
       reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : (deliveryOk ? undefined : 'email_not_accepted'),
@@ -1786,13 +1814,14 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
 
 router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
   try {
-    const email = String(req.body?.email || '').trim().toLowerCase();
+    const email = normalizeEmailValue(req.body?.email);
+    const phone = normalizePhoneValue(req.body?.phone, { allowLocalIndian: true });
     const accountType = normalizeAccountType(req.body?.accountType);
     const otp = String(req.body?.otp || '').trim();
     const newPassword = String(req.body?.newPassword || '');
 
-    if (!email || !validator.isEmail(email)) {
-      return res.status(400).json({ message: 'Valid email required' });
+    if (!email && !phone) {
+      return res.status(400).json({ message: 'Valid registered email or mobile required' });
     }
 
     if (!otp || otp.length < 4) {
@@ -1805,8 +1834,25 @@ router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, re
       });
     }
 
+    let user = null;
+    if (accountType === 'admin') {
+      user = email
+        ? await User.findOne(buildAdminEmailQuery(email))
+        : await User.findOne(buildAdminPhoneQuery(phone));
+    } else {
+      user = email
+        ? await User.findOne({ email })
+        : await User.findOne({ phone: { $in: buildPhoneLookupCandidates(phone) } });
+    }
+
+    const canBootstrapAdmin = accountType === 'admin' && !user && (email ? isConfiguredAdminEmail(email) : isConfiguredAdminPhone(phone));
+    const resetEmail = normalizeEmailValue(user?.email || (canBootstrapAdmin ? getAdminDeliveryEmail(email) : email));
+    if (!resetEmail) {
+      return res.status(422).json({ message: 'Is account par registered email missing hai. Request OTP again with registered email.' });
+    }
+
     const otpDoc = await Otp.findOne({
-      identifier: email,
+      identifier: resetEmail,
       channel: 'email',
       accountType,
       purpose: PASSWORD_RESET_PURPOSE,
@@ -1832,27 +1878,29 @@ router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, re
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
-    let user = accountType === 'admin'
-      ? await User.findOne(buildAdminEmailQuery(email))
-      : await User.findOne({ email });
     if (!user) {
-      if (accountType === 'admin' && isConfiguredAdminEmail(email)) {
-        user = await User.create({
-          name: 'Admin User',
-          email,
-          phone: getAdminDeliveryPhone(''),
-          passwordHash: await hashPassword(newPassword),
-          role: 'admin',
-          accountType: 'admin',
-          isPhoneVerified: false,
-        });
+      if (canBootstrapAdmin) {
+        user = await User.findOne(buildAdminEmailQuery(resetEmail));
+        if (!user) {
+          user = await User.create({
+            name: 'Admin User',
+            email: resetEmail,
+            phone: phone || getAdminDeliveryPhone(''),
+            passwordHash: await hashPassword(newPassword),
+            role: 'admin',
+            accountType: 'admin',
+            isPhoneVerified: false,
+          });
 
-        await Otp.deleteOne({ _id: otpDoc._id });
-        return res.status(200).json({ message: 'Admin password set successfully. Please login again.' });
+          await Otp.deleteOne({ _id: otpDoc._id });
+          return res.status(200).json({ message: 'Admin password set successfully. Please login again.' });
+        }
       }
 
-      await Otp.deleteOne({ _id: otpDoc._id });
-      return res.status(400).json({ message: 'Account not found' });
+      if (!user) {
+        await Otp.deleteOne({ _id: otpDoc._id });
+        return res.status(400).json({ message: 'Account not found' });
+      }
     }
 
     const userType = user.role === 'admin' ? 'admin' : normalizeAccountType(user.accountType);
