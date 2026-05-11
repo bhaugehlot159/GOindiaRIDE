@@ -925,7 +925,12 @@
             autoRefresh: parsed.autoRefresh !== false,
             compactRows: parsed.compactRows === true,
             portalPopupAlerts: parsed.portalPopupAlerts === true,
-            apiBase: cleanText(parsed.apiBase || localStorage.getItem("goindiaride_api_base") || DEFAULT_API_BASE)
+            apiBase: cleanText(
+                parsed.apiBase
+                || localStorage.getItem("goindiaride_admin_api_base")
+                || localStorage.getItem("goindiaride_api_base")
+                || DEFAULT_API_BASE
+            )
         };
     }
 
@@ -952,6 +957,97 @@
 
     function normalizeApiBase(value) {
         return cleanText(value || DEFAULT_API_BASE).replace(/\/$/, "");
+    }
+
+    function buildBackendApiCandidates() {
+        const host = cleanText(window.location?.hostname || "").toLowerCase();
+        const sameOriginBase = cleanText(window.location?.origin || "").replace(/\/$/, "");
+        const preferredConfigured = cleanText(
+            state.settings.apiBase
+            || localStorage.getItem("goindiaride_admin_api_base")
+            || localStorage.getItem("goindiaride_api_base")
+            || ""
+        ).replace(/\/$/, "");
+        const explicitWindowBase = cleanText(
+            window.GOINDIARIDE_API_BASE
+            || window.__GOINDIARIDE_RUNTIME_API_ORIGIN__
+            || window.__GOINDIARIDE_API_ORIGIN__
+            || ""
+        ).replace(/\/$/, "");
+        const primaryCloudBase = normalizeApiBase(DEFAULT_API_BASE);
+        const primaryWebsiteHost = host === "goindiaride.in" || host === "www.goindiaride.in";
+        const ordered = primaryWebsiteHost
+            ? [sameOriginBase, preferredConfigured, explicitWindowBase, primaryCloudBase]
+            : [preferredConfigured, explicitWindowBase, sameOriginBase, primaryCloudBase];
+        const seen = new Set();
+        return ordered.filter((base) => {
+            if (!base || seen.has(base)) return false;
+            seen.add(base);
+            return true;
+        });
+    }
+
+    function extractBackendPayloadRows(payload) {
+        if (Array.isArray(payload)) return payload;
+        if (!payload || typeof payload !== "object") return [];
+        const fields = ["items", "data", "records", "bookings", "rows", "results", "list"];
+        for (const field of fields) {
+            if (Array.isArray(payload[field])) return payload[field];
+        }
+        return [];
+    }
+
+    function mapBackendBookingRow(row, sourceKey) {
+        const reviewStatus = cleanText(row.adminReviewStatus || "").toLowerCase();
+        const rawStatus = cleanText(row.status || "").toLowerCase();
+        let status = rawStatus;
+        if (!status || status === "created") {
+            if (reviewStatus === "approved") {
+                status = cleanText(row.driverId || row.driverName || row.driver?.id || "") ? "driver_assigned" : "approved";
+            } else if (reviewStatus === "rejected") {
+                status = "rejected";
+            } else {
+                status = "pending_admin_review";
+            }
+        }
+        const bookingId = cleanText(row.bookingId || row.id || row._id || "");
+        return {
+            ...row,
+            id: bookingId || getBookingIdentity(row) || makeSyntheticBookingId(row, sourceKey),
+            bookingId: bookingId || getBookingIdentity(row) || makeSyntheticBookingId(row, sourceKey),
+            status,
+            adminReviewStatus: reviewStatus || (status === "rejected" ? "rejected" : status === "approved" || status === "driver_assigned" ? "approved" : "pending"),
+            fare: row.fare || row.amount || row.totalFare || 0,
+            totalFare: row.totalFare || row.amount || row.fare || 0,
+            pickup: row.pickup || row.pickupLocation || row.from || "",
+            dropoff: row.dropoff || row.dropLocation || row.drop || row.to || "",
+            customerName: row.customerName || row.customerSnapshot?.name || row.customer?.name || "",
+            customerEmail: row.customerEmail || row.customerSnapshot?.email || row.customer?.email || "",
+            customerPhone: row.customerPhone || row.customerSnapshot?.phone || row.customer?.phone || "",
+            sourceKey,
+            syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString()
+        };
+    }
+
+    async function fetchBackendBookingRows({ apiBase, token, endpoint, sourceKey }) {
+        try {
+            const response = await fetch(`${apiBase}${endpoint}`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                credentials: "include"
+            });
+            if (!response.ok) return { ok: false, rows: [] };
+            const payload = await response.json().catch(() => ({}));
+            const rows = extractBackendPayloadRows(payload)
+                .map((row) => mapBackendBookingRow(row, sourceKey))
+                .filter((row) => cleanText(row.bookingId || row.id));
+            return { ok: true, rows };
+        } catch (_error) {
+            return { ok: false, rows: [] };
+        }
     }
 
     function normalizeBooking(row, sourceKey) {
@@ -1081,7 +1177,7 @@
                 ...row,
                 id,
                 bookingId: id,
-                ...(row.sourceKey === "backend_admin_pending" ? { syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString() } : {})
+                ...(/^backend_/i.test(cleanText(row.sourceKey || "")) ? { syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString() } : {})
             };
             byId.set(id, merged);
             if (JSON.stringify(current) !== JSON.stringify(merged)) changed = true;
@@ -1097,37 +1193,39 @@
         if (!token || state.backendBookingSyncing) return false;
         state.backendBookingSyncing = true;
         try {
-            const apiBase = normalizeApiBase(state.settings.apiBase || localStorage.getItem("goindiaride_api_base") || DEFAULT_API_BASE);
-            const response = await fetch(`${apiBase}/api/bookings/admin/pending?limit=500`, {
-                method: "GET",
-                headers: {
-                    Accept: "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                credentials: "include"
-            });
-            if (!response.ok) return false;
-            const payload = await response.json().catch(() => ({}));
-            const rows = Array.isArray(payload.items) ? payload.items : [];
-            if (!rows.length) return false;
-            const mapped = rows.map((row) => ({
-                ...row,
-                id: row.id || row.bookingId,
-                bookingId: row.bookingId || row.id,
-                status: row.status || "pending_admin_review",
-                adminReviewStatus: row.adminReviewStatus || "pending",
-                fare: row.fare || row.amount || row.totalFare || 0,
-                totalFare: row.totalFare || row.amount || row.fare || 0,
-                pickup: row.pickup || row.pickupLocation || "",
-                dropoff: row.dropoff || row.dropLocation || row.drop || "",
-                customerName: row.customerName || row.customerSnapshot?.name || row.customer?.name || "",
-                customerEmail: row.customerEmail || row.customerSnapshot?.email || row.customer?.email || "",
-                customerPhone: row.customerPhone || row.customerSnapshot?.phone || row.customer?.phone || "",
-                sourceKey: "backend_admin_pending"
-            }));
-            const inboxChanged = mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, mapped);
-            const activeChanged = mergeBookingsIntoStore("goindiaride_active_bookings", mapped);
-            return inboxChanged || activeChanged;
+            const apiBases = buildBackendApiCandidates();
+            for (const apiBase of apiBases) {
+                const pendingResult = await fetchBackendBookingRows({
+                    apiBase,
+                    token,
+                    endpoint: "/api/bookings/admin/pending?limit=500",
+                    sourceKey: "backend_admin_pending"
+                });
+                const allBookingsResult = await fetchBackendBookingRows({
+                    apiBase,
+                    token,
+                    endpoint: "/api/bookings/my?limit=500",
+                    sourceKey: "backend_admin_all"
+                });
+
+                if (!pendingResult.ok && !allBookingsResult.ok) continue;
+                const mapped = mergeById([...(pendingResult.rows || []), ...(allBookingsResult.rows || [])]);
+
+                if (mapped.length) {
+                    const inboxChanged = mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, mapped);
+                    const activeChanged = mergeBookingsIntoStore("goindiaride_active_bookings", mapped);
+                    if (inboxChanged || activeChanged) {
+                        state.connection = {
+                            ...state.connection,
+                            apiBase,
+                            updatedAt: new Date().toISOString()
+                        };
+                        localStorage.setItem(ADMIN_CONNECTION_KEY, JSON.stringify(state.connection));
+                    }
+                    return inboxChanged || activeChanged;
+                }
+            }
+            return false;
         } catch (_error) {
             return false;
         } finally {
