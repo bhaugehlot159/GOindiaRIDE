@@ -545,6 +545,10 @@
     var refreshToken = normalizeText(payload.refreshToken);
     var apiBase = normalizeApiBase(payload.apiBase || inferApiBase());
 
+    if (global.GoIndiaDataPreservation && typeof global.GoIndiaDataPreservation.restoreAll === 'function') {
+      global.GoIndiaDataPreservation.restoreAll();
+    }
+
     if (accessToken) saveAccessToken(accessToken);
     if (refreshToken) saveRefreshToken(refreshToken);
     if (apiBase) persistApiBase(apiBase);
@@ -560,9 +564,15 @@
       persistPortalSession(role, user);
     }
     updateState(statePatch);
+    if (global.GoIndiaDataPreservation && typeof global.GoIndiaDataPreservation.snapshotAll === 'function') {
+      global.GoIndiaDataPreservation.snapshotAll();
+    }
   }
 
   function clearAuthArtifacts() {
+    if (global.GoIndiaDataPreservation && typeof global.GoIndiaDataPreservation.snapshotAll === 'function') {
+      global.GoIndiaDataPreservation.snapshotAll();
+    }
     clearAccessToken();
     clearRefreshToken();
     if (global.localStorage) {

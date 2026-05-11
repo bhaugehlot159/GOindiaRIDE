@@ -1831,10 +1831,12 @@ function showSuccess(msg){
 }
 
 window.addEventListener('load',async()=>{
+  if(window.GoIndiaDataPreservation&&typeof window.GoIndiaDataPreservation.restoreAll==='function')window.GoIndiaDataPreservation.restoreAll();
   restoreAccountBackupIfNeeded();
   restoreAccountsFromSessionArtifacts();
   ensureStableAccountIds();
   persistAccountBackup();
+  if(window.GoIndiaDataPreservation&&typeof window.GoIndiaDataPreservation.snapshotAll==='function')window.GoIndiaDataPreservation.snapshotAll();
   await ensureAdminProfile();
   bindAdminAutofillGuards();
   clearAdminCredentialAutofill(true);

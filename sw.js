@@ -1,10 +1,11 @@
-const CACHE_NAME = 'goindiaride-pwa-v35-20260511-admin-booking-scan3';
+const CACHE_NAME = 'goindiaride-pwa-v36-20260512-data-preserve1';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './css/professional-purple-theme.css',
   './js/global-ui.js',
+  './js/data-preservation-guard.js',
   './js/wallet-core.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
