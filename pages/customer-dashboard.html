@@ -2604,20 +2604,29 @@
         }
 
         function readDashboardBookingsStore() {
-            let primary = [];
-            let shared = [];
-            try {
-                primary = JSON.parse(localStorage.getItem('bookings') || '[]');
-            } catch (_error) {
-                primary = [];
-            }
-            try {
-                shared = JSON.parse(localStorage.getItem('goride_bookings') || '[]');
-            } catch (_error) {
-                shared = [];
-            }
-            const rows = Array.isArray(shared) ? shared.slice() : [];
-            if (Array.isArray(primary)) rows.push(...primary);
+            const storageKeys = [
+                'goride_bookings',
+                'bookings',
+                'goindiaride_active_bookings',
+                'goindiaride_scheduled_rides',
+                'goindiaride_ride_history',
+                'goindiaride_admin_review_inbox_v1',
+                'customerBookings',
+                'customer_bookings'
+            ];
+            const rows = [];
+            storageKeys.forEach((key) => {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach((item) => {
+                            if (item && typeof item === 'object') rows.push(item);
+                        });
+                    }
+                } catch (_error) {
+                    // Ignore broken legacy entries and keep the remaining booking stores alive.
+                }
+            });
             const mergedByRef = new Map();
             const looseRows = [];
             rows.forEach((booking) => {
@@ -5515,7 +5524,7 @@ Thank you for riding with us! 🚗
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
     <script src="../js/portal-connector.js"></script>
-    <script src="../js/admin-control-bridge.js?v=20260511-admin-customer-control2"></script>
+    <script src="../js/admin-control-bridge.js?v=20260511-admin-booking-scan3"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

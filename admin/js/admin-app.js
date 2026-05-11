@@ -218,6 +218,184 @@
         return "";
     }
 
+    function hashText(value) {
+        const text = cleanText(value);
+        let hash = 0;
+        for (let index = 0; index < text.length; index += 1) {
+            hash = ((hash << 5) - hash) + text.charCodeAt(index);
+            hash |= 0;
+        }
+        return Math.abs(hash).toString(36);
+    }
+
+    function sourceLooksBookingRelated(sourceKey) {
+        return /booking|bookings|ride|rides|trip|trips|reservation|admin_review|portal_notifications/i.test(cleanText(sourceKey));
+    }
+
+    function getBookingIdentity(row) {
+        return firstText(
+            row.bookingId,
+            row.id,
+            row._id,
+            row.rideId,
+            row.tripId,
+            row.referenceId,
+            row.orderId,
+            row.bookingReference,
+            row.reference
+        );
+    }
+
+    function makeSyntheticBookingId(row, sourceKey = "local") {
+        const basis = [
+            sourceKey,
+            row.pickup || row.pickupLocation || row.from || row.origin || "",
+            row.dropoff || row.drop || row.dropLocation || row.to || row.destination || "",
+            row.rideDate || row.date || row.createdAt || row.timestamp || "",
+            row.rideTime || row.time || "",
+            row.customerEmail || row.email || row.customerPhone || row.phone || "",
+            row.totalFare || row.amount || row.finalFare || row.fare || ""
+        ].join("|");
+        return `LOCAL-${hashText(basis || sourceKey).toUpperCase()}`;
+    }
+
+    function isBookingLikeRecord(row, sourceKey = "") {
+        if (!isPlainObject(row)) return false;
+        const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin, row.source);
+        const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination);
+        const identity = getBookingIdentity(row);
+        const tripMeta = firstText(
+            row.rideDate,
+            row.rideTime,
+            row.outboundDateTime,
+            row.returnDate,
+            row.returnTime,
+            row.vehicleType,
+            row.rideType,
+            row.tripPlan,
+            row.bookingMode,
+            row.paymentMethod
+        );
+        const status = firstText(row.status, row.adminReviewStatus, row.backendStatus, row.bookingStatus, row.lifecycleStatus);
+        const hasFare = toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare) > 0;
+        const hasRoute = Boolean(pickup && dropoff);
+        const hintedSource = sourceLooksBookingRelated(sourceKey);
+        return (hasRoute && (identity || tripMeta || status || hasFare))
+            || (hintedSource && Boolean(identity) && (hasRoute || tripMeta || status || hasFare));
+    }
+
+    function pushBookingCandidate(row, sourceKey, target) {
+        if (!isBookingLikeRecord(row, sourceKey)) return;
+        const bookingId = getBookingIdentity(row) || makeSyntheticBookingId(row, sourceKey);
+        target.push({
+            ...row,
+            id: bookingId,
+            bookingId,
+            sourceKey: row.sourceKey || sourceKey,
+            discoveredByAdminScanner: true
+        });
+    }
+
+    function extractBookingCandidates(value, sourceKey, target, depth = 0) {
+        if (depth > 5 || value === null || value === undefined) return;
+        if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+                if (isPlainObject(item)) {
+                    pushBookingCandidate(item, `${sourceKey}[${index}]`, target);
+                }
+                extractBookingCandidates(item, `${sourceKey}[${index}]`, target, depth + 1);
+            });
+            return;
+        }
+        if (!isPlainObject(value)) return;
+
+        pushBookingCandidate(value, sourceKey, target);
+
+        [
+            "booking",
+            "ride",
+            "trip",
+            "payload",
+            "record",
+            "item",
+            "data",
+            "notification"
+        ].forEach((field) => {
+            if (value[field] !== undefined) extractBookingCandidates(value[field], `${sourceKey}.${field}`, target, depth + 1);
+        });
+
+        [
+            "items",
+            "records",
+            "bookings",
+            "rides",
+            "activeRides",
+            "scheduledRides",
+            "rideHistory",
+            "history",
+            "rows",
+            "results",
+            "list",
+            "queue",
+            "notifications"
+        ].forEach((field) => {
+            if (value[field] !== undefined) extractBookingCandidates(value[field], `${sourceKey}.${field}`, target, depth + 1);
+        });
+
+        if (sourceLooksBookingRelated(sourceKey)) {
+            Object.entries(value).forEach(([key, item]) => {
+                if ([
+                    "booking",
+                    "ride",
+                    "trip",
+                    "payload",
+                    "record",
+                    "item",
+                    "data",
+                    "items",
+                    "records",
+                    "bookings",
+                    "rides",
+                    "activeRides",
+                    "scheduledRides",
+                    "rideHistory",
+                    "history",
+                    "rows",
+                    "results",
+                    "list",
+                    "queue",
+                    "notifications"
+                ].includes(key)) return;
+                if (isPlainObject(item) || Array.isArray(item)) {
+                    extractBookingCandidates(item, `${sourceKey}.${key}`, target, depth + 1);
+                }
+            });
+        }
+    }
+
+    function scanStorageForBookingRows(storage, label) {
+        const rows = [];
+        try {
+            if (!storage || typeof storage.length !== "number") return rows;
+            for (let index = 0; index < storage.length; index += 1) {
+                const key = storage.key(index);
+                if (!key) continue;
+                const parsed = parseJson(storage.getItem(key), null);
+                extractBookingCandidates(parsed, `${label}:${key}`, rows);
+            }
+        } catch (_error) {
+            return rows;
+        }
+        return rows;
+    }
+
+    function scanAllStorageForBookingRows() {
+        return [
+            ...scanStorageForBookingRows(localStorage, "localStorage"),
+            ...scanStorageForBookingRows(sessionStorage, "sessionStorage")
+        ];
+    }
+
     function humanizeKey(key) {
         return cleanText(key)
             .replace(/[_-]+/g, " ")
@@ -779,7 +957,7 @@
     function normalizeBooking(row, sourceKey) {
         const customer = isPlainObject(row.customer) ? row.customer : {};
         const customerSnapshot = isPlainObject(row.customerSnapshot) ? row.customerSnapshot : {};
-        const id = cleanText(row.bookingId || row.id || row._id || `RID${Date.now()}`);
+        const id = getBookingIdentity(row) || makeSyntheticBookingId(row, sourceKey);
         const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin) || "Pickup pending";
         const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination) || "Drop pending";
         const fare = toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare);
@@ -859,6 +1037,13 @@
         BOOKING_KEYS.forEach((key) => {
             readArray(key).forEach((item) => rows.push(normalizeBooking(item, key)));
         });
+        const discovered = scanAllStorageForBookingRows()
+            .map((item) => normalizeBooking(item, item.sourceKey || "storage_scan"));
+        discovered.forEach((item) => rows.push(item));
+        if (discovered.length) {
+            mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, discovered);
+            mergeBookingsIntoStore("goindiaride_active_bookings", discovered);
+        }
 
         return mergeById(rows).sort((a, b) => {
             const at = Date.parse(b.createdAt || "") || 0;
@@ -891,14 +1076,15 @@
             const id = cleanText(row.bookingId || row.id || row._id);
             if (!id) return;
             const current = byId.get(id) || {};
-            byId.set(id, {
+            const merged = {
                 ...current,
                 ...row,
                 id,
                 bookingId: id,
-                syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString()
-            });
-            changed = true;
+                ...(row.sourceKey === "backend_admin_pending" ? { syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString() } : {})
+            };
+            byId.set(id, merged);
+            if (JSON.stringify(current) !== JSON.stringify(merged)) changed = true;
         });
 
         if (!changed) return false;
@@ -2058,7 +2244,8 @@
 
         window.addEventListener("storage", (event) => {
             const controlKey = window.AdminControlBridge && window.AdminControlBridge.keys ? window.AdminControlBridge.keys.CONTROL_KEY : "";
-            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, controlKey].includes(event.key)) {
+            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, controlKey].includes(event.key)
+                || sourceLooksBookingRelated(event.key || "")) {
                 refreshData();
             }
         });

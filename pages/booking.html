@@ -4225,7 +4225,7 @@
 
         function saveAdminReviewInboxStore(items) {
             const normalized = Array.isArray(items)
-                ? items.filter((item) => item && typeof item === 'object').slice(0, ADMIN_EMAIL_RETRY_MAX_ITEMS)
+                ? items.filter((item) => item && typeof item === 'object')
                 : [];
             localStorage.setItem(ADMIN_REVIEW_INBOX_KEY, JSON.stringify(normalized));
         }

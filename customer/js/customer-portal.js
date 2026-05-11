@@ -164,7 +164,7 @@ function updateCustomerBookingFromAdminNotification(notification, nextStatus, ad
         bookings.unshift(updated);
     }
 
-    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings.slice(0, 200)));
+    localStorage.setItem('goindiaride_active_bookings', JSON.stringify(bookings));
     window.dispatchEvent(new CustomEvent('goindiaride:customer-bookings-updated', {
         detail: { booking: updated, source: 'admin_notification' }
     }));
