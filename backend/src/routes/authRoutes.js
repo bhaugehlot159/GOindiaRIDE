@@ -210,8 +210,12 @@ function uniqueNormalizedPhones(values) {
   return output;
 }
 
+function isLegacyAdminOtpEnabled() {
+  return String(process.env.ALLOW_LEGACY_ADMIN_OTP || process.env.ALLOW_DEMO_ADMIN_LOGIN || '').toLowerCase() === 'true';
+}
+
 function getAdminEmailAliases() {
-  return uniqueNormalizedEmails([
+  const aliases = [
     process.env.ADMIN_LOGIN_EMAILS,
     process.env.ADMIN_LOGIN_EMAIL,
     process.env.ADMIN_EMAIL,
@@ -219,22 +223,24 @@ function getAdminEmailAliases() {
     process.env.ADMIN_OTP_EMAILS,
     process.env.ADMIN_ALERT_EMAILS,
     process.env.BOOKING_ADMIN_ALERT_EMAILS,
-    process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com',
-    'admin@test.com'
-  ]);
+    process.env.DEFAULT_ADMIN_ALERT_EMAIL || 'bhaugehlot159@gmail.com'
+  ];
+  if (isLegacyAdminOtpEnabled()) aliases.push('admin@test.com');
+  return uniqueNormalizedEmails(aliases);
 }
 
 function getAdminPhoneAliases() {
-  return uniqueNormalizedPhones([
+  const aliases = [
     process.env.ADMIN_LOGIN_PHONES,
     process.env.ADMIN_LOGIN_PHONE,
     process.env.ADMIN_PHONE,
     process.env.ADMIN_MOBILE,
     process.env.ADMIN_OTP_PHONES,
     process.env.ADMIN_ALERT_PHONES,
-    process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471',
-    '+917654321098'
-  ]);
+    process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471'
+  ];
+  if (isLegacyAdminOtpEnabled()) aliases.push('+917654321098');
+  return uniqueNormalizedPhones(aliases);
 }
 
 function getAdminDeliveryEmail(requestedEmail) {
@@ -261,12 +267,36 @@ function getAdminDeliveryPhone(requestedPhone) {
 }
 
 function isAllowedLegacyAdminOtpIdentifier({ channel, email, phone }) {
+  if (!isLegacyAdminOtpEnabled()) return false;
   if (channel === 'email') {
     const cleanEmail = normalizeEmailValue(email);
     return Boolean(cleanEmail && getAdminEmailAliases().includes(cleanEmail));
   }
   const cleanPhone = normalizePhoneForDelivery(phone);
   return Boolean(cleanPhone && getAdminPhoneAliases().includes(cleanPhone));
+}
+
+async function verifyAdminPasswordForOtp({ channel, email, phone, password }) {
+  const cleanPassword = String(password || '');
+  if (!cleanPassword) {
+    return { ok: false, status: 400, message: 'Admin password required before OTP.' };
+  }
+
+  const query = channel === 'email'
+    ? { email: normalizeEmailValue(email), role: 'admin', accountType: 'admin' }
+    : { phone: { $in: buildPhoneLookupCandidates(phone) }, role: 'admin', accountType: 'admin' };
+
+  const adminUser = await User.findOne(query).select('name email phone passwordHash role accountType');
+  if (!adminUser) {
+    return { ok: false, status: 401, message: 'Invalid admin credentials' };
+  }
+
+  const passwordOk = await comparePassword(cleanPassword, adminUser.passwordHash);
+  if (!passwordOk) {
+    return { ok: false, status: 401, message: 'Invalid admin credentials' };
+  }
+
+  return { ok: true, adminUser };
 }
 
 function getFirebaseClientConfig() {
@@ -581,6 +611,39 @@ router.post('/admin/login', loginLimiter, honeypotCheck, submissionTimingCheck, 
   }
   const accessToken = signAccessToken(user);
   return res.status(200).json({ accessToken, role: user.role });
+});
+
+router.post('/admin/password-check', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, proxyVpnRiskCheck, restrictAdminIp, async (req, res) => {
+  try {
+    const email = normalizeEmailValue(req.body?.email);
+    const password = String(req.body?.password || '');
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Admin email and password are required' });
+    }
+
+    const adminUser = await User.findOne({ email, role: 'admin', accountType: 'admin' })
+      .select('name email phone passwordHash role accountType');
+
+    if (!adminUser || !(await comparePassword(password, adminUser.passwordHash))) {
+      return res.status(401).json({ message: 'Invalid admin credentials' });
+    }
+
+    return res.status(200).json({
+      message: 'Admin password verified',
+      admin: {
+        id: String(adminUser._id),
+        name: adminUser.name || 'Admin',
+        email: adminUser.email,
+        phone: adminUser.phone || '',
+        role: 'admin',
+        accountType: 'admin'
+      }
+    });
+  } catch (error) {
+    console.error('admin/password-check error:', error);
+    return res.status(500).json({ message: 'Server error in admin password check' });
+  }
 });
 
 router.post('/2fa/setup', async (req, res) => {
@@ -1054,7 +1117,7 @@ router.post("/refresh-token-v2", async (req, res) => {
         if (!adminUser && !legacyAllowed) {
           return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin email.' });
         }
-        deliveryEmail = adminUser && cleanEmail !== 'admin@test.com' ? cleanEmail : getAdminDeliveryEmail(cleanEmail);
+        deliveryEmail = adminUser ? cleanEmail : getAdminDeliveryEmail(cleanEmail);
       } else {
         const phoneCandidates = buildPhoneLookupCandidates(cleanPhone);
         adminUser = await User.findOne({ phone: { $in: phoneCandidates }, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
@@ -1062,9 +1125,7 @@ router.post("/refresh-token-v2", async (req, res) => {
         if (!adminUser && !legacyAllowed) {
           return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin mobile.' });
         }
-        deliveryPhone = adminUser && cleanPhone !== '+917654321098' && cleanPhone !== '7654321098'
-          ? normalizePhoneForDelivery(cleanPhone)
-          : getAdminDeliveryPhone(cleanPhone);
+        deliveryPhone = adminUser ? normalizePhoneForDelivery(cleanPhone) : getAdminDeliveryPhone(cleanPhone);
       }
     }
 
@@ -1148,8 +1209,8 @@ router.post("/refresh-token-v2", async (req, res) => {
           message: "OTP verified successfully",
           id: "admin_legacy_1",
           name: "Admin User",
-          email: cleanEmail || getAdminDeliveryEmail('admin@test.com'),
-          phone: cleanPhone || getAdminDeliveryPhone('+917654321098'),
+          email: cleanEmail || getAdminDeliveryEmail(''),
+          phone: cleanPhone || getAdminDeliveryPhone(''),
           isPhoneVerified: channel === 'sms',
           role: "admin",
           accountType: "admin",
@@ -1182,6 +1243,10 @@ router.post("/refresh-token-v2", async (req, res) => {
       });
 
       await user.save();
+    }
+
+    if (accountType === 'admin' && !(user.role === 'admin' && user.accountType === 'admin')) {
+      return res.status(403).json({ message: 'Admin login is allowed only for registered admin accounts.' });
     }
 
     // ✅ accountType guard (portal separation)
@@ -1721,7 +1786,7 @@ router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, re
 // ✅ REQUEST OTP (EMAIL/SMS) — अभी email भेज रहे हैं (Google Workspace SMTP)
 router.post("/request-otp", async (req, res) => {
   try {
-    const { channel, accountType, email, phone } = req.body;
+    const { channel, accountType, email, phone, password } = req.body;
 
     // 1) Basic validation
     if (!channel || !["email", "sms"].includes(channel)) {
@@ -1751,23 +1816,15 @@ router.post("/request-otp", async (req, res) => {
     let deliveryEmail = cleanEmail;
     let deliveryPhone = cleanPhone;
     if (accountType === 'admin') {
+      const passwordCheck = await verifyAdminPasswordForOtp({ channel, email: cleanEmail, phone: cleanPhone, password });
+      if (!passwordCheck.ok) {
+        return res.status(passwordCheck.status || 401).json({ message: passwordCheck.message || 'Invalid admin credentials' });
+      }
+
       if (channel === 'email') {
-        const adminUser = await User.findOne({ email: cleanEmail, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
-        const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, email: cleanEmail });
-        if (!adminUser && !legacyAllowed) {
-          return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin email.' });
-        }
-        deliveryEmail = adminUser && cleanEmail !== 'admin@test.com' ? cleanEmail : getAdminDeliveryEmail(cleanEmail);
+        deliveryEmail = passwordCheck.adminUser.email;
       } else {
-        const phoneCandidates = buildPhoneLookupCandidates(cleanPhone);
-        const adminUser = await User.findOne({ phone: { $in: phoneCandidates }, role: 'admin', accountType: 'admin' }).select('email phone role accountType').lean();
-        const legacyAllowed = isAllowedLegacyAdminOtpIdentifier({ channel, phone: cleanPhone });
-        if (!adminUser && !legacyAllowed) {
-          return res.status(403).json({ message: 'Admin OTP is allowed only for registered admin mobile.' });
-        }
-        deliveryPhone = adminUser && cleanPhone !== '+917654321098' && cleanPhone !== '7654321098'
-          ? normalizePhoneForDelivery(cleanPhone)
-          : getAdminDeliveryPhone(cleanPhone);
+        deliveryPhone = normalizePhoneForDelivery(passwordCheck.adminUser.phone || cleanPhone);
       }
     }
 

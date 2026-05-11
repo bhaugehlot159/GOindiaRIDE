@@ -9,7 +9,39 @@
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const FEATURE_DEFINITIONS = {
-        customer: ["booking", "active_rides", "ride_history", "wallet", "messages", "donations", "profile", "emergency"],
+        customer: [
+            "home_dashboard",
+            "booking",
+            "quick_booking",
+            "saved_places",
+            "fare_estimator",
+            "active_rides",
+            "scheduled_rides",
+            "ride_history",
+            "wallet",
+            "wallet_topup",
+            "wallet_withdrawal",
+            "wallet_transfer",
+            "rewards",
+            "messages",
+            "donations",
+            "split_fare",
+            "tourism",
+            "travel_card",
+            "temple_timings",
+            "cultural_guide",
+            "local_events",
+            "tour_packages",
+            "heritage_walks",
+            "food_guide",
+            "shopping_guide",
+            "profile",
+            "ride_preferences",
+            "emergency_contacts",
+            "notifications",
+            "customer_support",
+            "emergency"
+        ],
         driver: ["availability", "booking_requests", "active_trips", "earnings", "kyc", "wallet", "messages", "safety"]
     };
 
@@ -257,6 +289,8 @@
             portalAllowed: portalPolicy.allowed,
             status,
             reason: cleanText(feature.reason || portalPolicy.reason || ""),
+            correction: cleanText(feature.correction || ""),
+            labelOverride: cleanText(feature.labelOverride || ""),
             updatedAt: feature.updatedAt || portalPolicy.updatedAt
         };
     }
@@ -316,6 +350,59 @@
             sourcePortal: "admin",
             targetPortals: [safePortal, "admin"],
             metadata: { portal: safePortal, feature: safeFeature, enabled: Boolean(enabled), reason: cleanText(reason) }
+        });
+        return { ok: true, controls: next };
+    }
+
+    function setFeatureCorrection(portalType, featureId, correction, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const safeFeature = cleanText(featureId).toLowerCase();
+        const safeCorrection = cleanText(correction);
+        const settings = options && typeof options === "object" ? options : {};
+        if (!safeFeature) return { ok: false, reason: "missing_feature" };
+
+        const controls = readControls();
+        controls.portalFeatures = controls.portalFeatures || {};
+        controls.portalFeatures[safePortal] = {
+            ...featureDefaults(safePortal),
+            ...(controls.portalFeatures[safePortal] || {})
+        };
+
+        const current = controls.portalFeatures[safePortal][safeFeature] || {};
+        const currentReason = cleanText(current.reason || "");
+        const currentCorrection = cleanText(current.correction || "");
+        const nextReason = safeCorrection
+            ? cleanText(settings.reason || safeCorrection)
+            : (currentReason === currentCorrection ? "" : currentReason);
+        controls.portalFeatures[safePortal][safeFeature] = {
+            ...current,
+            correction: safeCorrection,
+            reason: nextReason,
+            labelOverride: cleanText(settings.labelOverride || current.labelOverride || ""),
+            correctedAt: nowIso(),
+            updatedAt: nowIso()
+        };
+
+        const next = writeControls(controls);
+        const message = safeCorrection || `${safeFeature.replace(/_/g, " ")} correction cleared by admin.`;
+        addAudit("PORTAL_FEATURE_CORRECTION", `${safePortal} feature ${safeFeature} correction updated by admin`, {
+            portal: safePortal,
+            feature: safeFeature,
+            correction: safeCorrection,
+            labelOverride: cleanText(settings.labelOverride || "")
+        });
+        notify({
+            type: "portal_feature_correction_update",
+            title: "Admin Feature Correction",
+            message,
+            sourcePortal: "admin",
+            targetPortals: [safePortal, "admin"],
+            metadata: {
+                portal: safePortal,
+                feature: safeFeature,
+                correction: safeCorrection,
+                labelOverride: cleanText(settings.labelOverride || "")
+            }
         });
         return { ok: true, controls: next };
     }
@@ -551,7 +638,11 @@
                     if ("disabled" in node) {
                         node.disabled = !policy.allowed || node.dataset.adminOriginalDisabled === "true";
                     }
-                    node.title = policy.allowed ? node.dataset.adminOriginalTitle : (policy.reason || "This feature is paused by admin.");
+                    node.dataset.adminFeatureCorrection = policy.correction || "";
+                    node.dataset.adminFeatureLabelOverride = policy.labelOverride || "";
+                    node.title = policy.allowed
+                        ? (policy.correction ? `Admin note: ${policy.correction}` : node.dataset.adminOriginalTitle)
+                        : (policy.reason || policy.correction || "This feature is paused by admin.");
                 });
             });
         });
@@ -581,6 +672,7 @@
         getFeaturePolicy,
         setPortalEnabled,
         setFeatureEnabled,
+        setFeatureCorrection,
         setSubjectStatus,
         approveDriver,
         forceDriverOffline,

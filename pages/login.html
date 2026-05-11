@@ -737,6 +737,7 @@
                     <select id="forgotRole" style="width: 100%; padding: 0.85rem; border: 2px solid #ddd; border-radius: 10px;">
                         <option value="customer">Customer</option>
                         <option value="driver">Driver</option>
+                        <option value="admin">Admin</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -744,6 +745,13 @@
                     <div class="input-with-icon">
                         <i class="fas fa-user-shield"></i>
                         <input type="text" id="forgotIdentifier" placeholder="email@example.com or +919876543210">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="forgotOtp">Reset OTP</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-key"></i>
+                        <input type="text" id="forgotOtp" placeholder="Enter email OTP" maxlength="6" inputmode="numeric">
                     </div>
                 </div>
                 <div class="form-group">
@@ -761,6 +769,7 @@
                     </div>
                 </div>
                 <div class="form-buttons" style="margin-bottom: 0.4rem;">
+                    <button type="button" class="btn-send-otp" onclick="sendForgotPasswordOtp()">Send OTP</button>
                     <button type="button" class="btn-login" onclick="handleForgotPasswordReset()">Reset Password</button>
                     <button type="button" class="btn-signup" onclick="closeForgotPassword()">Cancel</button>
                 </div>
@@ -774,7 +783,7 @@
                         <label for="adminEmail">Admin Email</label>
                         <div class="input-with-icon">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="adminEmail" placeholder="admin@test.com">
+                            <input type="email" id="adminEmail" placeholder="Enter registered admin email">
                         </div>
                     </div>
 
@@ -789,6 +798,9 @@
                         </div>
                     </div>
 
+                    <div class="action-links">
+                        <button type="button" class="link-btn" onclick="openForgotPassword('admin')">Forgot Password?</button>
+                    </div>
                     <div class="form-buttons">
                         <button type="button" class="btn-login" onclick="adminStep1Login()">Next (2FA)</button>
                         <button type="button" class="btn-signup" onclick="toggleAdminLogin()">Back</button>
@@ -863,11 +875,11 @@
             localStorage.setItem('goindiaride_api_base', 'https://goindiaride.onrender.com');
         } catch (error) {}
     </script>
-    <script src="../js/login-controller.js?v=20260510-admin-otp5"></script>
+    <script src="../js/login-controller.js?v=20260511-admin-real1"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                const swVersion = '20260510-admin-otp5';
+                const swVersion = '20260511-admin-real1';
                 navigator.serviceWorker
                     .register('../sw.js?v=' + swVersion)
                     .then(function (registration) {

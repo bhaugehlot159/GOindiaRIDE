@@ -36,6 +36,7 @@ let firebaseRecaptchaVerifier=null;
 let customerConfirmation=null;
 let driverConfirmation=null;
 let adminMobileConfirmation=null;
+let adminStep1Context=null;
 
 function extractArrayLike(parsed){
   if(Array.isArray(parsed))return parsed;
@@ -981,12 +982,40 @@ function notifyAdminSecurityEvent(title,message,metadata={}){
     PortalConnector.createNotification({type:'warning',title,message,sourcePortal:'login',targetPortals:['admin'],metadata});
   }
 }
+function isDemoAdminProfile(profile){
+  if(!profile||typeof profile!=='object')return false;
+  const email=sanitizeEmail(profile.email||'');
+  const phone=normalizePhoneForLookup(profile.phone||profile.mobile||'');
+  const id=sanitizeInput(profile.id||'');
+  return email==='admin@test.com'||phone==='+918426891471'||id==='admin_1';
+}
 async function ensureAdminProfile(){
   const existing=safeReadObject(ADMIN_PROFILE_KEY,null);
-  if(existing&&existing.email&&existing.passwordHash)return existing;
-  const seeded={id:'admin_1',name:'Admin User',email:'admin@test.com',phone:'+918426891471',passwordHash:await hashPassword('123456'),updatedAt:new Date().toISOString()};
-  localStorage.setItem(ADMIN_PROFILE_KEY,JSON.stringify(seeded));
-  return seeded;
+  if(existing&&existing.email&&existing.passwordHash&&!isDemoAdminProfile(existing))return existing;
+  return null;
+}
+async function verifyStoredAdminProfile(email,password){
+  const profile=await ensureAdminProfile();
+  if(!profile)return{ok:false,profile:null,reason:'missing_profile'};
+  const profileEmail=sanitizeEmail(profile.email||'');
+  if(email!==profileEmail)return{ok:false,profile,reason:'email_mismatch'};
+  const passwordCheck=await verifyPasswordForLogin(password,profile.passwordHash);
+  if(!passwordCheck.isValid)return{ok:false,profile,reason:'password_mismatch'};
+  return{ok:true,profile,source:'stored_admin_profile'};
+}
+async function verifyBackendAdminPassword(email,password){
+  const result=await callBackendAuth('/api/auth/admin/password-check',{
+    email,
+    password,
+    accountType:'admin',
+    website:'',
+    submittedAt:Date.now()-1500,
+    recaptchaToken:createPseudoRecaptchaToken('gir-admin-password-check')
+  });
+  if(!result.ok){
+    return{ok:false,status:Number(result.status||0),message:String(result.data?.message||'Admin password verification failed')};
+  }
+  return{ok:true,profile:result.data?.admin||{email,role:'admin',accountType:'admin'},source:'backend_admin'};
 }
 function isAdminLocked(){
   const state=safeReadObject(ADMIN_FAILURE_KEY,{count:0,lockUntil:null});
@@ -1422,19 +1451,43 @@ async function adminStep1Login(){
   const email=sanitizeEmail(document.getElementById('adminEmail').value);
   const password=document.getElementById('adminPassword').value;
   const lockedUntil=isAdminLocked();
+  adminStep1Context=null;
   if(lockedUntil){const mins=Math.max(1,Math.ceil((lockedUntil-Date.now())/60000));showError('Admin login locked. Retry after '+mins+' minutes.');return;}
   if(!email||!password){showError('Admin email and password required.');return;}
-  const profile=await ensureAdminProfile();
-  const hash=await hashPassword(password);
-  if(email!==String(profile.email||'').toLowerCase()||hash!==profile.passwordHash){
+
+  const backendCheck=await verifyBackendAdminPassword(email,password);
+  let profile=backendCheck.ok?backendCheck.profile:null;
+  let source=backendCheck.ok?backendCheck.source:'';
+
+  if(!backendCheck.ok){
+    const storedCheck=await verifyStoredAdminProfile(email,password);
+    if(storedCheck.ok){
+      profile=storedCheck.profile;
+      source=storedCheck.source;
+    }
+  }
+
+  if(!profile){
     const fail=registerAdminFailure();
-    notifyAdminSecurityEvent('Admin login failed','Admin step-1 login failed.',{email,failureCount:fail.count,locked:fail.locked});
-    showError(fail.locked?'Too many failed attempts. Admin login locked for 15 minutes.':'Wrong credentials.');
+    notifyAdminSecurityEvent('Admin login failed','Admin step-1 login failed.',{email,failureCount:fail.count,locked:fail.locked,status:backendCheck.status||0});
+    const backendUnavailable=[0,404,405,500,502,503,504].includes(Number(backendCheck.status||0));
+    showError(fail.locked
+      ? 'Too many failed attempts. Admin login locked for 15 minutes.'
+      : (backendUnavailable?'Live admin auth unavailable hai. Registered admin backend/profile check karein.':'Wrong admin credentials.'));
     return;
   }
+
   clearAdminFailures();
+  adminStep1Context={email,password,profile,source};
   localStorage.setItem(ADMIN_OTP_EMAIL_KEY,email);
-  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({challengeIssuedAt:new Date().toISOString(),email}));
+  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({
+    challengeIssuedAt:new Date().toISOString(),
+    email,
+    phone:normalizePhoneForLookup(profile.phone||profile.mobile||''),
+    name:sanitizeInput(profile.name||profile.fullname||'Admin'),
+    adminId:sanitizeInput(profile.id||profile._id||''),
+    source
+  }));
   document.getElementById('adminStep1').style.display='none';
   document.getElementById('adminStep2').style.display='block';
 }
@@ -1447,8 +1500,7 @@ function formatOtpDeliveryTarget(delivery){
 }
 function getAdminOtpPhone(profile){
   const phone=normalizePhoneForLookup(profile?.phone||profile?.mobile||'');
-  if(phone&&phone!=='+917654321098')return phone;
-  return '+918426891471';
+  return phone;
 }
 function openAdminOtpEntryStep(){
   document.getElementById('adminStep2').style.display='none';
@@ -1456,21 +1508,23 @@ function openAdminOtpEntryStep(){
   setupOTPInputs('.admin2fa-otp');
 }
 async function completeAdminLogin(verifiedData={}){
-  const profile=await ensureAdminProfile();
+  const challenge=safeReadObject(ADMIN_SESSION_KEY,{});
+  const profile=(adminStep1Context&&adminStep1Context.profile)||await ensureAdminProfile()||{};
   if(verifiedData?.accessToken)saveBackendAccessToken(verifiedData.accessToken);
   if(verifiedData?.refreshToken)saveBackendRefreshToken(verifiedData.refreshToken);
   const adminSession={
-    id:verifiedData?.id||profile.id||'admin_1',
-    name:verifiedData?.name||profile.name||'Admin User',
-    email:profile.email||verifiedData?.email||'admin@test.com',
-    phone:getAdminOtpPhone(profile)||verifiedData?.phone||'+918426891471',
+    id:verifiedData?.id||challenge.adminId||profile.id||'admin',
+    name:verifiedData?.name||challenge.name||profile.name||'Admin',
+    email:sanitizeEmail(verifiedData?.email||challenge.email||profile.email||''),
+    phone:getAdminOtpPhone(verifiedData)||getAdminOtpPhone(challenge)||getAdminOtpPhone(profile)||'',
     role:'admin'
   };
   localStorage.setItem('currentAdmin',JSON.stringify(adminSession));
   localStorage.setItem('userRole','admin');
-  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({active:true,email:profile.email,loggedInAt:new Date().toISOString()}));
+  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({active:true,email:adminSession.email,loggedInAt:new Date().toISOString()}));
   localStorage.removeItem(ADMIN_OTP_KEY);localStorage.removeItem(ADMIN_OTP_EMAIL_KEY);localStorage.removeItem(ADMIN_OTP_METHOD_KEY);localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   adminMobileConfirmation=null;
+  adminStep1Context=null;
   showSuccess('Admin login successful.');
   const nextPath=resolveAdminNextPath();
   setTimeout(()=>{window.location.href=nextPath;},700);
@@ -1479,18 +1533,21 @@ async function sendAdmin2FAOTP(){
   const method=document.querySelector('input[name="admin2FAMethod"]:checked').value;
   const challenge=safeReadObject(ADMIN_SESSION_KEY,null);
   if(!challenge||!challenge.challengeIssuedAt){showError('Admin session expired. Please login again.');toggleAdminLogin();toggleAdminLogin();return;}
-  const profile=await ensureAdminProfile();
+  const profile=(adminStep1Context&&adminStep1Context.profile)||await ensureAdminProfile()||challenge||{};
   const channel=method==='email'?'email':'sms';
   const email=sanitizeEmail(challenge.email||profile.email||'');
   const phone=getAdminOtpPhone(profile);
+  const password=String(adminStep1Context?.password||'');
   if(channel==='email'&&!email){showError('Registered admin email missing hai. Admin profile update karein.');return;}
   if(channel==='sms'&&!phone){showError('Registered admin mobile missing hai. Admin profile update karein.');return;}
+  if(!password){showError('Admin password session expired. Please start admin login again.');toggleAdminLogin();toggleAdminLogin();return;}
 
   const payload={
     channel,
     accountType:'admin',
     email:channel==='email'?email:undefined,
     phone:channel==='sms'?phone:undefined,
+    password,
     website:'',
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-admin-otp-send')
@@ -1610,24 +1667,77 @@ function toggleAdminLogin(){
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
     document.getElementById('adminEmail').value='';document.getElementById('adminPassword').value='';
     adminMobileConfirmation=null;
+    adminStep1Context=null;
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   }else{
-    adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';adminText.style.display='none';updateLoginMethod();
+    adminStep1Context=null;adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';adminText.style.display='none';updateLoginMethod();
   }
 }
 function openForgotPassword(role='customer'){
   const section=document.getElementById('forgotPasswordSection');const forgotRole=document.getElementById('forgotRole');if(!section||!forgotRole)return;
-  forgotRole.value=role==='driver'?'driver':'customer';document.getElementById('forgotIdentifier').value='';document.getElementById('forgotNewPassword').value='';document.getElementById('forgotConfirmPassword').value='';section.classList.add('show');
+  forgotRole.value=role==='admin'?'admin':(role==='driver'?'driver':'customer');document.getElementById('forgotIdentifier').value='';document.getElementById('forgotOtp').value='';document.getElementById('forgotNewPassword').value='';document.getElementById('forgotConfirmPassword').value='';section.classList.add('show');
 }
 function closeForgotPassword(){const section=document.getElementById('forgotPasswordSection');if(section)section.classList.remove('show');}
+function updateLocalPasswordRecordAfterReset(role,identifier,newPassword){
+  return hashPassword(newPassword).then((hashedPassword)=>{
+    if(role==='admin'){
+      const profile=safeReadObject(ADMIN_PROFILE_KEY,null);
+      if(profile&&sanitizeEmail(profile.email||'')===identifier.value&&!isDemoAdminProfile(profile)){
+        localStorage.setItem(ADMIN_PROFILE_KEY,JSON.stringify({...profile,passwordHash:hashedPassword,passwordUpdatedAt:new Date().toISOString()}));
+      }
+      return;
+    }
+
+    const account=findAccountByIdentifier(role,identifier);
+    if(!account.record)return;
+    const updatedRecord={...account.record,password:hashedPassword,passwordUpdatedAt:new Date().toISOString()};
+    if(account.index>=0)account.records[account.index]=updatedRecord;
+    else account.records.push(updatedRecord);
+    writeRecords(account.storeKeys,account.records);
+  });
+}
+async function sendForgotPasswordOtp(){
+  const role=document.getElementById('forgotRole').value;
+  const identifier=normalizeIdentifier(document.getElementById('forgotIdentifier').value);
+  if(identifier.kind!=='email'){showError('Password reset OTP ke liye registered email required hai.');return;}
+  const result=await callBackendAuth('/api/auth/forgot-password/request',{
+    email:identifier.value,
+    accountType:role,
+    website:'',
+    submittedAt:Date.now()-1500,
+    recaptchaToken:createPseudoRecaptchaToken('gir-forgot-password-request')
+  });
+  if(!result.ok){showError(result.data?.message||'Password reset OTP send nahi ho paya.');return;}
+  showSuccess(result.data?.message||'Password reset OTP sent. Email check karein.');
+}
 async function handleForgotPasswordReset(){
   const role=document.getElementById('forgotRole').value;
   const identifier=normalizeIdentifier(document.getElementById('forgotIdentifier').value);
+  const otp=sanitizeInput(document.getElementById('forgotOtp').value||'');
   const newPassword=document.getElementById('forgotNewPassword').value;
   const confirm=document.getElementById('forgotConfirmPassword').value;
   if(identifier.kind==='unknown'){showError('Please enter registered email or mobile number.');return;}
   const passValidation=validatePassword(newPassword);if(!passValidation.isValid){showError(passValidation.message);return;}
   if(newPassword!==confirm){showError('New password and confirm password do not match.');return;}
+  if(identifier.kind==='email'){
+    if(!/^\d{4,8}$/.test(otp)){showError('Please enter valid reset OTP from email.');return;}
+    const result=await callBackendAuth('/api/auth/forgot-password/confirm',{
+      email:identifier.value,
+      accountType:role,
+      otp,
+      newPassword,
+      website:'',
+      submittedAt:Date.now()-1500,
+      recaptchaToken:createPseudoRecaptchaToken('gir-forgot-password-confirm')
+    });
+    if(!result.ok){showError(result.data?.message||'Password reset failed.');return;}
+    await updateLocalPasswordRecordAfterReset(role,identifier,newPassword);
+    notifyAdminSecurityEvent('Password reset',role+' account password reset completed.',{role,identifierKind:identifier.kind,source:'backend_otp'});
+    showSuccess(result.data?.message||'Password reset successful. Ab aap login kar sakte hain.');
+    closeForgotPassword();
+    return;
+  }
+  if(role==='admin'){showError('Admin password reset ke liye registered admin email aur OTP required hai.');return;}
   const account=findAccountByIdentifier(role,identifier);
   if(!account.record){showError('Account not found. New account create nahi hoga, sirf registered account reset hota hai.');return;}
   const updatedRecord={...account.record,password:await hashPassword(newPassword),passwordUpdatedAt:new Date().toISOString()};
