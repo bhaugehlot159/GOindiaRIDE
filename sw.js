@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v34-20260511-admin-booking-sync1';
+const CACHE_NAME = 'goindiaride-pwa-v35-20260511-admin-booking-scan3';
 const ASSETS = [
   './',
   './index.html',
