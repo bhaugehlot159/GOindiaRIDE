@@ -3967,6 +3967,12 @@
             return `gir-booking-fallback-email:${safeBookingId}:admin-alert`;
         }
 
+        function createAdminReviewQueueIdempotencyKey(bookingId) {
+            const safeBookingId = sanitizeInput(bookingId || '', 120).replace(/[^A-Za-z0-9:_-]/g, '_');
+            const prefix = safeBookingId ? `gir-booking-admin-review-queue:${safeBookingId}` : 'gir-booking-admin-review-queue';
+            return createIdempotencyKey(prefix);
+        }
+
         function isDuplicateIdempotencyConflictResponse(statusCode, payload = {}) {
             if (Number(statusCode || 0) !== 409) return false;
             const reasonText = String(payload?.reason || payload?.message || '').toLowerCase();
@@ -4674,6 +4680,96 @@
             }
         }
 
+        function buildAdminReviewQueuePayload(bookingRecord, reason = 'customer_booking_submit') {
+            const bookingId = sanitizeInput(bookingRecord.id || bookingRecord.bookingId || '', 120);
+            if (!bookingId) return null;
+
+            const customerPhoneMeta = resolveCurrentCustomerPhoneMeta();
+            const resolvedCustomerPhone = sanitizeInput(
+                bookingRecord.customerPhone || customerPhoneMeta.displayPhone || customerPhoneMeta.localPhone || '',
+                40
+            );
+            const pickupValue = sanitizeInput(bookingRecord.pickup || bookingRecord.pickupLocation || '', 180);
+            const dropValue = sanitizeInput(bookingRecord.dropoff || bookingRecord.drop || bookingRecord.dropLocation || '', 180);
+
+            return {
+                ...bookingRecord,
+                id: bookingId,
+                bookingId,
+                customerId: sanitizeInput(bookingRecord.customerId || (currentUser && currentUser.id) || '', 120),
+                customerName: sanitizeInput(bookingRecord.customerName || (currentUser && (currentUser.fullname || currentUser.name)) || 'Customer', 140),
+                customerEmail: sanitizeInput(bookingRecord.customerEmail || resolveCurrentCustomerEmail() || '', 180),
+                customerPhone: resolvedCustomerPhone,
+                pickup: pickupValue,
+                pickupLocation: pickupValue,
+                dropoff: dropValue,
+                drop: dropValue,
+                dropLocation: dropValue,
+                amount: Number(bookingRecord.amount || bookingRecord.totalFare || bookingRecord.fare || 0),
+                totalFare: Number(bookingRecord.totalFare || bookingRecord.amount || bookingRecord.fare || 0),
+                sourceKey: 'customer_booking_submit',
+                mode: sanitizeInput(bookingRecord.mode || reason || 'customer_booking_submit', 80),
+                backendStatus: sanitizeInput(reason || bookingRecord.backendStatus || 'customer_booking_submit', 120),
+                adminReviewStatus: sanitizeInput(bookingRecord.adminReviewStatus || 'pending', 40) || 'pending',
+                status: sanitizeInput(bookingRecord.status || 'pending_admin_review', 40) || 'pending_admin_review'
+            };
+        }
+
+        async function queueBookingRecordForBackendAdminReview(bookingRecord, reason = 'customer_booking_submit') {
+            const payloadBooking = buildAdminReviewQueuePayload(bookingRecord, reason);
+            if (!payloadBooking) {
+                return { ok: false, reason: 'missing_booking_record' };
+            }
+
+            const bookingId = payloadBooking.bookingId;
+            updateBookingDeliveryState(bookingId, {
+                adminQueueSyncStatus: 'sending',
+                adminQueueSyncReason: sanitizeInput(reason || 'customer_booking_submit', 120),
+                adminQueueSyncUpdatedAt: new Date().toISOString()
+            });
+
+            const result = await fetchJsonAcrossApiBases('/api/bookings/fallback/admin-review-queue', {
+                method: 'POST',
+                token: '',
+                includeJson: true,
+                includeIdempotency: true,
+                idPrefix: 'gir-booking-admin-review-queue',
+                idempotencyKey: createAdminReviewQueueIdempotencyKey(bookingId),
+                extraHeaders: {
+                    'x-booking-client': 'goindiaride-web'
+                },
+                body: {
+                    source: 'customer_booking_submit',
+                    reason: sanitizeInput(reason || 'customer_booking_submit', 120),
+                    bookings: [payloadBooking]
+                },
+                timeoutMs: 12000
+            });
+
+            const data = result.data || {};
+            const queuedItem = Array.isArray(data.items)
+                ? data.items.find((item) => sanitizeInput(item.bookingId || item.id || '', 120) === bookingId)
+                : null;
+
+            if (result.ok && data.ok !== false) {
+                const queueState = sanitizeInput(queuedItem?.state || (data.queued ? 'queued' : data.existing ? 'existing' : 'queued'), 80);
+                updateBookingDeliveryState(bookingId, {
+                    adminQueueSyncStatus: queueState,
+                    adminQueueSyncedAt: new Date().toISOString(),
+                    backendStatus: `admin_review_queue_${queueState}`
+                });
+                return { ok: true, bookingId, apiBase: result.apiBase, data };
+            }
+
+            const reasonText = sanitizeInput(result.reason || data.message || 'admin_review_queue_failed', 160);
+            updateBookingDeliveryState(bookingId, {
+                adminQueueSyncStatus: 'pending',
+                adminQueueSyncReason: reasonText,
+                adminQueueSyncUpdatedAt: new Date().toISOString()
+            });
+            return { ok: false, bookingId, reason: reasonText, attempts: result.attempts || [] };
+        }
+
         async function sendAdminEmailForQueuedBooking(bookingRecord, reason = 'local_fallback') {
             if (!bookingRecord || typeof bookingRecord !== 'object') {
                 return { ok: false, reason: 'missing_booking_record' };
@@ -5148,6 +5244,10 @@
                     `Booking ${bookingId} submitted for admin review. Live email dispatch is running (token_missing_local_queue).`
                 );
                 if (queuedBooking) {
+                    const queueResult = await queueBookingRecordForBackendAdminReview(queuedBooking, 'token_missing_local_queue');
+                    if (!queueResult.ok) {
+                        console.warn('Admin review queue sync pending:', queueResult.reason || 'queue_failed');
+                    }
                     const emailResult = await sendAdminEmailForQueuedBooking(queuedBooking, 'token_missing_local_queue');
                     if (emailResult.ok) {
                         removeAdminEmailRetry(emailResult.bookingId || queuedBooking.id);
@@ -5301,6 +5401,11 @@
                 if (!queued) {
                     showError(error.message || 'Booking failed. Please try again.');
                     return;
+                }
+
+                const queueResult = await queueBookingRecordForBackendAdminReview(queued, `live_error:${fallbackMessage}`);
+                if (!queueResult.ok) {
+                    console.warn('Admin review queue sync pending:', queueResult.reason || 'queue_failed');
                 }
 
                 const emailResult = await sendAdminEmailForQueuedBooking(queued, `live_error:${fallbackMessage}`);

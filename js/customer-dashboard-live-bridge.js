@@ -104,6 +104,13 @@
     return fetch(url, Object.assign({}, options || {}, { signal: controller.signal })).finally(function () { clearTimeout(timer); });
   }
 
+  function createDashboardIdempotencyKey(prefix) {
+    var safePrefix = String(prefix || 'gir-dashboard')
+      .replace(/[^A-Za-z0-9:_-]/g, '_')
+      .slice(0, 80) || 'gir-dashboard';
+    return safePrefix + ':' + Date.now() + ':' + Math.random().toString(36).slice(2, 14);
+  }
+
   function softDelay(ms, value) {
     return new Promise(function (resolve) {
       setTimeout(function () { resolve(value); }, ms);
@@ -521,7 +528,8 @@
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json',
-              'x-booking-client': 'goindiaride-web'
+              'x-booking-client': 'goindiaride-web',
+              'x-idempotency-key': createDashboardIdempotencyKey('gir-dashboard-admin-review-queue')
             },
             body: JSON.stringify({
               source: 'customer_dashboard_public_sync',
@@ -567,7 +575,8 @@
               Accept: 'application/json',
               'Content-Type': 'application/json',
               Authorization: 'Bearer ' + token,
-              'x-booking-client': 'goindiaride-web'
+              'x-booking-client': 'goindiaride-web',
+              'x-idempotency-key': createDashboardIdempotencyKey('gir-dashboard-local-booking-sync')
             },
             body: JSON.stringify({ bookings: candidates })
           }, 18000);

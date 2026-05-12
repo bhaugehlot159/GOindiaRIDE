@@ -132,6 +132,7 @@ function withApiMountVariants(paths = []) {
 
 const sharedGatewayBypassPaths = withApiMountVariants([
   '/api/bookings/fallback/admin-alert-email',
+  '/api/bookings/fallback/admin-review-queue',
   ...authGatewayBypassPrefixes
 ]);
 
@@ -302,7 +303,10 @@ app.use('/api', idempotencyEnforcementMiddleware({
 
 const strictCsrfShield = csrfShieldMiddleware({
   strict: env.strictSecurityMode,
-  ignorePaths: ['/api/bookings/fallback/admin-alert-email'],
+  ignorePaths: [
+    '/api/bookings/fallback/admin-alert-email',
+    '/api/bookings/fallback/admin-review-queue'
+  ],
   cookieName: env.csrfCookieName,
   tokenTtlMs: env.csrfTokenTtlMinutes * 60 * 1000
 });
