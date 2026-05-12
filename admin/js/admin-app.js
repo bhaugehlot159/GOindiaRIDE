@@ -1050,6 +1050,27 @@
         }
     }
 
+    async function fetchPublicFallbackBookingRows({ apiBase }) {
+        try {
+            const response = await fetch(`${apiBase}/api/bookings/fallback/admin-review-queue?limit=500`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    "x-booking-client": "goindiaride-web"
+                },
+                credentials: "include"
+            });
+            if (!response.ok) return { ok: false, rows: [] };
+            const payload = await response.json().catch(() => ({}));
+            const rows = extractBackendPayloadRows(payload)
+                .map((row) => mapBackendBookingRow(row, "backend_fallback_admin_review_queue"))
+                .filter((row) => cleanText(row.bookingId || row.id));
+            return { ok: true, rows };
+        } catch (_error) {
+            return { ok: false, rows: [] };
+        }
+    }
+
     function normalizeBooking(row, sourceKey) {
         const customer = isPlainObject(row.customer) ? row.customer : {};
         const customerSnapshot = isPlainObject(row.customerSnapshot) ? row.customerSnapshot : {};
@@ -1190,26 +1211,36 @@
 
     async function syncBackendBookings() {
         const token = getBackendAccessToken();
-        if (!token || state.backendBookingSyncing) return false;
+        if (state.backendBookingSyncing) return false;
         state.backendBookingSyncing = true;
         try {
             const apiBases = buildBackendApiCandidates();
             for (const apiBase of apiBases) {
-                const pendingResult = await fetchBackendBookingRows({
-                    apiBase,
-                    token,
-                    endpoint: "/api/bookings/admin/pending?limit=500",
-                    sourceKey: "backend_admin_pending"
-                });
-                const allBookingsResult = await fetchBackendBookingRows({
-                    apiBase,
-                    token,
-                    endpoint: "/api/bookings/my?limit=500",
-                    sourceKey: "backend_admin_all"
-                });
+                const publicFallbackResult = await fetchPublicFallbackBookingRows({ apiBase });
+                let pendingResult = { ok: false, rows: [] };
+                let allBookingsResult = { ok: false, rows: [] };
 
-                if (!pendingResult.ok && !allBookingsResult.ok) continue;
-                const mapped = mergeById([...(pendingResult.rows || []), ...(allBookingsResult.rows || [])]);
+                if (token) {
+                    pendingResult = await fetchBackendBookingRows({
+                        apiBase,
+                        token,
+                        endpoint: "/api/bookings/admin/pending?limit=500",
+                        sourceKey: "backend_admin_pending"
+                    });
+                    allBookingsResult = await fetchBackendBookingRows({
+                        apiBase,
+                        token,
+                        endpoint: "/api/bookings/my?limit=500",
+                        sourceKey: "backend_admin_all"
+                    });
+                }
+
+                if (!publicFallbackResult.ok && !pendingResult.ok && !allBookingsResult.ok) continue;
+                const mapped = mergeById([
+                    ...(publicFallbackResult.rows || []),
+                    ...(pendingResult.rows || []),
+                    ...(allBookingsResult.rows || [])
+                ]);
 
                 if (mapped.length) {
                     const inboxChanged = mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, mapped);

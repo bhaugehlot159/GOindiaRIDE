@@ -953,6 +953,78 @@ function updateFallbackBookingReviewDecision(bookingId, { decision, note, review
   return updated;
 }
 
+function isFallbackQueueRowVisibleForStatus(row = {}, status = 'pending') {
+  const reviewStatus = sanitizeText(row.adminReviewStatus, 40).toLowerCase() || 'pending';
+  const requestedStatus = sanitizeText(status, 20).toLowerCase();
+  if (requestedStatus === 'approved' || requestedStatus === 'rejected') {
+    return reviewStatus === requestedStatus;
+  }
+
+  const rowStatus = sanitizeText(row.status, 40).toLowerCase() || 'created';
+  return reviewStatus === 'pending' && ['created', 'pending', 'pending_admin_review'].includes(rowStatus);
+}
+
+function mapFallbackQueueRowForAdmin(row = {}) {
+  return {
+    bookingId: row.bookingId,
+    status: row.status || 'created',
+    adminReviewStatus: row.adminReviewStatus || 'pending',
+    distanceKm: Number(row.distanceKm || 0),
+    amount: Number(row.amount || row.totalFare || row.fare || 0),
+    referralCode: row.referralCode || row.promo?.code || '',
+    pickupLocation: row.pickupLocation || row.pickup || '',
+    dropLocation: row.dropLocation || row.dropoff || row.drop || '',
+    rideDate: row.rideDate || '',
+    rideTime: row.rideTime || '',
+    outboundDateTime: row.outboundDateTime || null,
+    returnDate: row.returnDate || row.returnTrip?.returnDate || '',
+    returnTime: row.returnTime || row.returnTrip?.returnTime || '',
+    tripPlan: row.tripPlan || '',
+    paymentMethod: row.paymentMethod || row.payment?.method || '',
+    vehicleType: row.vehicleType || row.rideType || '',
+    vehicleModel: row.vehicleModel || '',
+    tripServiceType: row.tripServiceType || '',
+    passengers: Number(row.passengers || 1),
+    luggage: row.luggage || '',
+    notes: row.notes || '',
+    stops: Array.isArray(row.stops) ? row.stops : [],
+    editCount: getBookingEditCount(row),
+    lastEditedAt: row.lastEditedAt || null,
+    editPolicyVersion: row.editPolicyVersion || '',
+    editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
+    specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
+    safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
+    customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
+      ? {
+          name: row.customerSnapshot.name || row.customerName || '',
+          email: row.customerSnapshot.email || row.customerEmail || '',
+          phone: row.customerSnapshot.phone || row.customerPhone || ''
+        }
+      : {
+          name: row.customerName || '',
+          email: row.customerEmail || '',
+          phone: row.customerPhone || ''
+        },
+    customerName: row.customerName || row.customerSnapshot?.name || '',
+    customerEmail: row.customerEmail || row.customerSnapshot?.email || '',
+    customerPhone: row.customerPhone || row.customerSnapshot?.phone || '',
+    fareBreakdown: row.fareBreakdown && typeof row.fareBreakdown === 'object' ? row.fareBreakdown : {},
+    fareQuote: row.fareQuote && typeof row.fareQuote === 'object' ? row.fareQuote : {},
+    payment: row.payment && typeof row.payment === 'object' ? row.payment : {},
+    promo: row.promo && typeof row.promo === 'object' ? row.promo : {},
+    customerFeatures: row.customerFeatures && typeof row.customerFeatures === 'object' ? row.customerFeatures : {},
+    driverId: row.driverId || null,
+    adminReviewedBy: row.adminReviewedBy || null,
+    adminReviewedAt: row.adminReviewedAt || null,
+    adminReviewNote: row.adminReviewNote || null,
+    sourceKey: row.sourceKey || 'fallback_admin_review_queue',
+    fallbackQueuedAt: row.fallbackQueuedAt || null,
+    customer: null,
+    createdAt: row.createdAt || row.fallbackQueuedAt || null,
+    updatedAt: row.updatedAt || null
+  };
+}
+
 function humanizeKey(key) {
   return String(key || '')
     .replace(/_/g, ' ')
@@ -1636,6 +1708,37 @@ async function buildDonationSuggestion() {
     suggestedAmounts: DONATION_SUGGESTIONS
   };
 }
+
+router.get('/fallback/admin-review-queue', bookingFallbackEmailLimiter, async (req, res) => {
+  if (!BOOKING_FALLBACK_ALERT_ENABLED) {
+    return res.status(403).json({ message: 'Fallback admin review queue is disabled' });
+  }
+
+  if (!isAllowedBrowserBookingBridge(req)) {
+    return res.status(403).json({ message: 'Booking client or origin not allowed for fallback admin review queue' });
+  }
+
+  const limit = Math.min(Math.max(Number(req.query.limit || 100), 1), 500);
+  const status = sanitizeText(req.query.status, 20).toLowerCase();
+  const queue = readFallbackBookingReviewQueue();
+  const rows = queue
+    .filter((row) => isFallbackQueueRowVisibleForStatus(row, status))
+    .slice(0, limit)
+    .map(mapFallbackQueueRowForAdmin)
+    .sort((left, right) => {
+      return (Date.parse(right.updatedAt || right.createdAt || '') || 0)
+        - (Date.parse(left.updatedAt || left.createdAt || '') || 0);
+    });
+  const pendingCount = queue.filter((row) => isFallbackQueueRowVisibleForStatus(row, 'pending')).length;
+
+  return res.status(200).json({
+    ok: true,
+    count: rows.length,
+    pendingCount,
+    fallbackCount: queue.length,
+    items: rows
+  });
+});
 
 router.post('/fallback/admin-review-queue', bookingFallbackEmailLimiter, async (req, res) => {
   if (!BOOKING_FALLBACK_ALERT_ENABLED) {

@@ -280,6 +280,18 @@ test('fallback admin review queue bridges tokenless customer bookings into admin
   assert.equal(queueResponse.body.queued, 1);
   assert.equal(BookingMock.rows.length, 0);
 
+  const publicQueueResponse = await request(app)
+    .get('/api/bookings/fallback/admin-review-queue?limit=50')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web');
+
+  assert.equal(publicQueueResponse.status, 200);
+  assert.equal(publicQueueResponse.body.ok, true);
+  const publicQueued = publicQueueResponse.body.items.find((item) => item.bookingId === 'RIDPUBLIC123');
+  assert.ok(publicQueued);
+  assert.equal(publicQueued.pickupLocation, 'Jaipur');
+  assert.equal(publicQueued.adminReviewStatus, 'pending');
+
   const pendingResponse = await request(app)
     .get('/api/bookings/admin/pending?limit=50')
     .set('Authorization', 'Bearer admin-token');
