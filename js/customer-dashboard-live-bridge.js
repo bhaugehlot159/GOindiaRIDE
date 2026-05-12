@@ -2,6 +2,7 @@
   'use strict';
 
   var RUNTIME_HISTORY_SYNC_KEY = 'goindiaride.customer.dashboard.runtime-history-sync.v1';
+  var PUBLIC_ADMIN_QUEUE_SYNC_KEY = 'goindiaride.customer.dashboard.public-admin-queue-sync.v1';
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
   window.__GOINDIARIDE_DISABLE_DEMO_CHAT__ = true;
 
@@ -415,10 +416,140 @@
     writeLocalBookings(rows);
   }
 
+  function getPublicAdminQueueSyncState() {
+    return parseJson(localStorage.getItem(PUBLIC_ADMIN_QUEUE_SYNC_KEY) || '{}', {});
+  }
+
+  function savePublicAdminQueueSyncState(state) {
+    try {
+      localStorage.setItem(PUBLIC_ADMIN_QUEUE_SYNC_KEY, JSON.stringify(state && typeof state === 'object' ? state : {}));
+    } catch (_error) {}
+  }
+
+  function getPublicAdminQueueFingerprint(row) {
+    return [
+      getBookingRef(row),
+      normalizeTextValue(row && (row.updatedAt || row.lastEditedAt || row.createdAt), 80),
+      normalizeTextValue(row && row.status, 40),
+      normalizeTextValue(row && row.adminReviewStatus, 40),
+      Number(row && (row.totalFare || row.amount || row.fare || 0))
+    ].join('|');
+  }
+
+  function shouldQueueLocalBookingForPublicAdmin(row, syncState) {
+    var ref = getBookingRef(row);
+    if (!ref) return false;
+    var status = String((row && row.status) || '').trim().toLowerCase();
+    if (status === 'completed' || status === 'cancelled') return false;
+    var backendStatus = String((row && row.backendSyncStatus) || '').trim().toLowerCase();
+    if (backendStatus === 'synced') return false;
+    return syncState[ref] !== getPublicAdminQueueFingerprint(row);
+  }
+
+  function buildPublicAdminQueueBooking(row, user, reason) {
+    var source = row && typeof row === 'object' ? row : {};
+    return Object.assign({}, source, {
+      id: getBookingRef(source),
+      bookingId: getBookingRef(source),
+      customerId: normalizeTextValue(source.customerId || source.userId || getPrimaryUserId(user), 120),
+      customerName: normalizeTextValue(source.customerName || (user && (user.fullname || user.name)) || 'Customer', 140),
+      customerEmail: normalizeTextValue(source.customerEmail || (user && user.email) || '', 180),
+      customerPhone: normalizeTextValue(source.customerPhone || source.phone || (user && (user.phone || user.mobile)) || '', 40),
+      pickup: normalizeTextValue(source.pickup || source.pickupLocation, 180),
+      pickupLocation: normalizeTextValue(source.pickupLocation || source.pickup, 180),
+      dropoff: normalizeTextValue(source.dropoff || source.drop || source.dropLocation, 180),
+      drop: normalizeTextValue(source.drop || source.dropoff || source.dropLocation, 180),
+      dropLocation: normalizeTextValue(source.dropLocation || source.dropoff || source.drop, 180),
+      amount: Number(source.amount || source.totalFare || source.fare || 0),
+      totalFare: Number(source.totalFare || source.amount || source.fare || 0),
+      sourceKey: 'customer_dashboard_public_sync',
+      mode: 'customer_dashboard_public_sync',
+      backendStatus: normalizeTextValue(reason || 'queued_without_backend_token', 80),
+      adminReviewStatus: normalizeTextValue(source.adminReviewStatus || 'pending', 40) || 'pending',
+      status: normalizeTextValue(source.status || 'pending_admin_review', 40) || 'pending_admin_review'
+    });
+  }
+
+  function markPublicAdminQueueResults(items, candidates) {
+    var state = getPublicAdminQueueSyncState();
+    var candidateMap = {};
+    safeArray(candidates).forEach(function (row) {
+      var ref = getBookingRef(row);
+      if (ref) candidateMap[ref] = row;
+    });
+    var successful = {};
+    safeArray(items).forEach(function (item) {
+      var ref = getBookingRef(item);
+      var status = String((item && item.state) || '').trim().toLowerCase();
+      if (!ref || (status !== 'queued' && status !== 'existing')) return;
+      if (candidateMap[ref]) {
+        state[ref] = getPublicAdminQueueFingerprint(candidateMap[ref]);
+        successful[ref] = true;
+      }
+    });
+    savePublicAdminQueueSyncState(state);
+
+    if (!Object.keys(successful).length) return;
+    writeLocalBookings(readLocalBookings().map(function (row) {
+      var ref = getBookingRef(row);
+      if (!ref || !successful[ref]) return row;
+      return Object.assign({}, row, {
+        adminQueueSyncStatus: 'queued',
+        adminQueueSyncedAt: new Date().toISOString()
+      });
+    }));
+  }
+
+  async function syncLocalBookingsToPublicAdminQueue(user, reason) {
+    if (bridge.publicAdminQueueSyncInFlight) return bridge.publicAdminQueueSyncInFlight;
+    var syncState = getPublicAdminQueueSyncState();
+    var candidates = readLocalBookings()
+      .filter(function (row) { return bookingBelongsToUser(row, user); })
+      .filter(function (row) { return shouldQueueLocalBookingForPublicAdmin(row, syncState); })
+      .slice(0, 80);
+    if (!candidates.length) return { ok: true, queued: 0, existing: 0, invalid: 0 };
+
+    bridge.publicAdminQueueSyncInFlight = (async function () {
+      var apiBases = getDashboardApiBasesSafe();
+      var payloadRows = candidates.map(function (row) {
+        return buildPublicAdminQueueBooking(row, user, reason || 'dashboard_public_queue');
+      });
+      for (var i = 0; i < apiBases.length; i += 1) {
+        try {
+          var response = await fetchWithTimeoutSafe(apiBases[i] + '/api/bookings/fallback/admin-review-queue', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'x-booking-client': 'goindiaride-web'
+            },
+            body: JSON.stringify({
+              source: 'customer_dashboard_public_sync',
+              reason: reason || 'dashboard_public_queue',
+              bookings: payloadRows
+            })
+          }, 16000);
+          var data = await response.json().catch(function () { return null; });
+          if (response.ok && data && data.ok !== false) {
+            markPublicAdminQueueResults(data.items || [], candidates);
+            return data;
+          }
+        } catch (_error) {}
+      }
+      return { ok: false, reason: 'public_admin_queue_failed', queued: 0 };
+    })();
+
+    try {
+      return await bridge.publicAdminQueueSyncInFlight;
+    } finally {
+      bridge.publicAdminQueueSyncInFlight = null;
+    }
+  }
+
   async function syncLocalBookingsToBackend(user) {
     if (bridge.localBookingSyncInFlight) return bridge.localBookingSyncInFlight;
     var token = getDashboardAccessTokenSafe();
-    if (!token) return { ok: false, reason: 'missing_access_token', synced: 0 };
+    if (!token) return syncLocalBookingsToPublicAdminQueue(user, 'missing_access_token');
 
     var candidates = readLocalBookings()
       .filter(function (row) { return bookingBelongsToUser(row, user); })
@@ -447,6 +578,7 @@
           }
         } catch (_error) {}
       }
+      await syncLocalBookingsToPublicAdminQueue(user, 'backend_sync_failed');
       return { ok: false, reason: 'backend_sync_failed', synced: 0 };
     })();
 

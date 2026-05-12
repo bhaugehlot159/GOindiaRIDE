@@ -17,6 +17,7 @@ PropertySetu/
 data/mongodb/
 data/mongodb-27018/
 data/mongodb-job/
+data/runtime/fallback-booking-review-queue.json
 
 # Local Codex workspaces and temporary tooling artifacts
 .codex-main-push/

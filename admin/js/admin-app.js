@@ -1233,6 +1233,48 @@
         }
     }
 
+    async function reviewBackendBooking(bookingId, decision, reason) {
+        const token = getBackendAccessToken();
+        const safeBookingId = cleanText(bookingId);
+        if (!token || !safeBookingId) return { ok: false, reason: "missing_backend_token_or_booking" };
+        const backendDecision = decision === "approve" ? "approved" : "rejected";
+        const apiBases = buildBackendApiCandidates();
+        for (const apiBase of apiBases) {
+            try {
+                const response = await fetch(`${apiBase}/api/bookings/${encodeURIComponent(safeBookingId)}/admin/review`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                        "x-booking-client": "goindiaride-web"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        decision: backendDecision,
+                        reason: cleanText(reason || `Admin marked booking ${backendDecision}.`)
+                    })
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) continue;
+                if (payload && payload.bookingId) {
+                    mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, [mapBackendBookingRow(payload, "backend_admin_review")]);
+                    mergeBookingsIntoStore("goindiaride_active_bookings", [mapBackendBookingRow(payload, "backend_admin_review")]);
+                }
+                state.connection = {
+                    ...state.connection,
+                    apiBase,
+                    updatedAt: new Date().toISOString()
+                };
+                localStorage.setItem(ADMIN_CONNECTION_KEY, JSON.stringify(state.connection));
+                return { ok: true, apiBase, payload };
+            } catch (_error) {
+                // Try the next configured API base.
+            }
+        }
+        return { ok: false, reason: "backend_review_failed" };
+    }
+
     function loadDrivers() {
         const rows = [];
         DRIVER_KEYS.forEach((key) => {
@@ -2117,7 +2159,7 @@
         showToast(touched ? "Booking details updated." : "Edit saved in notification/audit only.");
     }
 
-    function handleBookingDecision(bookingId, decision) {
+    async function handleBookingDecision(bookingId, decision) {
         const booking = state.bookings.find((item) => item.bookingId === bookingId);
         if (!booking) {
             showToast("Booking not found.");
@@ -2144,12 +2186,13 @@
             bridgeNotified = Boolean(bridgeResult && bridgeResult.ok);
         }
         const message = `${bookingId} ${approved ? "approved" : "rejected"} from standalone admin app.`;
+        const backendReview = await reviewBackendBooking(bookingId, decision, customerMessage);
         addAudit(approved ? "BOOKING_APPROVED" : "BOOKING_REJECTED", message);
         if (!bridgeNotified) {
             notifyPortal(approved ? "booking_approved" : "booking_rejected", { ...booking, ...updates }, customerMessage, ["customer", "driver", "admin"]);
         }
         refreshData();
-        showToast(touched ? message : "Decision recorded in audit only.");
+        showToast(backendReview.ok || touched ? message : "Decision recorded locally; backend review sync is still pending.");
     }
 
     function seedDriver() {

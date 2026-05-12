@@ -1,5 +1,7 @@
 ﻿const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { authenticate } = require('../middleware/authMiddleware');
 const { getClientIp, getDeviceMeta } = require('../utils/device');
 const Booking = require('../models/Booking');
@@ -125,6 +127,12 @@ const CUSTOMER_BOOKING_EDIT_WINDOWS = [
   }
 ];
 const CUSTOMER_BOOKING_EDIT_LOCK_HOURS = 6;
+const FALLBACK_BOOKING_REVIEW_QUEUE_FILE = process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE
+  || path.join(__dirname, '../../../data/runtime/fallback-booking-review-queue.json');
+const FALLBACK_BOOKING_REVIEW_QUEUE_MAX = Math.max(
+  100,
+  Math.min(Number(process.env.FALLBACK_BOOKING_REVIEW_QUEUE_MAX || 1000), 5000)
+);
 const recentFallbackAdminEmailDispatchCache = new Map();
 const recentBookingEmailDispatchCache = new Map();
 
@@ -695,6 +703,254 @@ function resolveRequestOrigin(req) {
 function isAllowedFallbackAlertOrigin(origin) {
   if (!origin) return false;
   return BOOKING_FALLBACK_ALERT_ALLOWED_ORIGINS.includes(origin);
+}
+
+function isAllowedBrowserBookingBridge(req) {
+  const bookingClient = String(req.headers['x-booking-client'] || '').trim().toLowerCase();
+  if (bookingClient !== BOOKING_BROWSER_CLIENT_HEADER) return false;
+  return isAllowedFallbackAlertOrigin(resolveRequestOrigin(req));
+}
+
+function readFallbackBookingReviewQueue() {
+  try {
+    if (!fs.existsSync(FALLBACK_BOOKING_REVIEW_QUEUE_FILE)) return [];
+    const parsed = JSON.parse(fs.readFileSync(FALLBACK_BOOKING_REVIEW_QUEUE_FILE, 'utf8'));
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => item && typeof item === 'object')
+      : [];
+  } catch (error) {
+    logger.warn('fallback_booking_review_queue_read_failed', {
+      message: error.message
+    });
+    return [];
+  }
+}
+
+function writeFallbackBookingReviewQueue(items = []) {
+  try {
+    fs.mkdirSync(path.dirname(FALLBACK_BOOKING_REVIEW_QUEUE_FILE), { recursive: true });
+    const safeItems = Array.isArray(items)
+      ? items.filter((item) => item && typeof item === 'object').slice(0, FALLBACK_BOOKING_REVIEW_QUEUE_MAX)
+      : [];
+    fs.writeFileSync(FALLBACK_BOOKING_REVIEW_QUEUE_FILE, JSON.stringify(safeItems, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    logger.warn('fallback_booking_review_queue_write_failed', {
+      message: error.message
+    });
+    return false;
+  }
+}
+
+function normalizeFallbackQueueBooking(raw = {}, options = {}) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const bookingId = sanitizeText(options.bookingId || raw.bookingId || raw.id, 120)
+    .replace(/[^A-Za-z0-9:_-]/g, '')
+    .toUpperCase()
+    .slice(0, 120);
+  if (!bookingId || !/^(RID|BK|LOCAL)[A-Z0-9:_-]{6,}$/.test(bookingId)) return null;
+
+  const context = options.bookingContext || buildBookingContext({
+    ...raw,
+    pickup: raw.pickup || raw.pickupLocation,
+    drop: raw.dropoff || raw.drop || raw.dropLocation,
+    vehicleType: raw.vehicleType || raw.rideType,
+    specialRequests: raw.specialRequests || raw.customerFeatures?.specialRequests,
+    safetyAccessibility: raw.safetyAccessibility || raw.customerFeatures?.safetyAccessibility,
+    budgetAmount: raw.budgetAmount || raw.fareBreakdown?.budgetAmount,
+    customerBidAmount: raw.customerBidAmount || raw.fareBreakdown?.customerBidAmount,
+    distanceSource: raw.distanceSource || raw.fareBreakdown?.distanceSource
+  });
+  if (!context.pickupLocation || !context.dropLocation) return null;
+
+  const providedFare = raw.fareBreakdown && typeof raw.fareBreakdown === 'object' ? raw.fareBreakdown : {};
+  const estimate = options.fareEstimate || estimateBookingFare({
+    ...raw,
+    pickup: context.pickupLocation,
+    drop: context.dropLocation,
+    tripPlan: context.tripPlan,
+    tripServiceType: context.tripServiceType,
+    vehicleType: context.vehicleType,
+    vehicleModel: context.vehicleModel,
+    passengers: context.passengers,
+    luggage: context.luggage,
+    stops: context.stops,
+    specialRequests: context.specialRequests,
+    safetyAccessibility: context.safetyAccessibility,
+    paymentMethod: context.paymentMethod,
+    budgetAmount: context.budgetAmount,
+    distanceSource: context.distanceSource
+  });
+  const amount = normalizePersistedAmount(
+    raw.amount || raw.totalFare || raw.fare || raw.finalFare || raw.fareQuote?.amount || estimate.totalFare
+  );
+  const distanceKm = normalizePersistedAmount(
+    raw.distanceKm || raw.distance || raw.fareQuote?.distanceKm || providedFare.distanceKm || estimate.distanceKm
+  );
+  const customerSnapshot = options.customerSnapshot && typeof options.customerSnapshot === 'object'
+    ? options.customerSnapshot
+    : {
+        name: sanitizeText(raw.customerName || raw.name, 140),
+        email: normalizeEmail(raw.customerEmail || raw.email || raw.userEmail),
+        phone: formatCustomerPhoneForEmail(raw.customerPhone || raw.phone || raw.mobile || raw.contact)
+      };
+  const rawReviewStatus = sanitizeText(raw.adminReviewStatus, 40).toLowerCase();
+  const adminReviewStatus = ['approved', 'rejected'].includes(rawReviewStatus) ? rawReviewStatus : 'pending';
+  const rawStatus = sanitizeText(raw.status || raw.backendStatus, 40).toLowerCase();
+  const status = adminReviewStatus === 'approved'
+    ? (rawStatus && rawStatus !== 'pending' ? rawStatus : 'approved')
+    : (adminReviewStatus === 'rejected' ? 'rejected' : 'created');
+
+  return {
+    id: bookingId,
+    bookingId,
+    status,
+    adminReviewStatus,
+    backendStatus: sanitizeText(raw.backendStatus || 'fallback_admin_review_queue', 80),
+    sourceKey: sanitizeText(options.sourceKey || raw.sourceKey || 'fallback_admin_review_queue', 120),
+    mode: sanitizeText(raw.mode || options.mode || 'fallback_admin_review_queue', 80),
+    customerId: sanitizeText(raw.customerId || raw.userId || raw.backendUserId, 120),
+    customerName: sanitizeText(raw.customerName || customerSnapshot.name || 'Customer', 140),
+    customerEmail: normalizeEmail(raw.customerEmail || customerSnapshot.email || ''),
+    customerPhone: formatCustomerPhoneForEmail(raw.customerPhone || customerSnapshot.phone || ''),
+    customerSnapshot: {
+      name: sanitizeText(customerSnapshot.name || raw.customerName || 'Customer', 140),
+      email: normalizeEmail(customerSnapshot.email || raw.customerEmail || ''),
+      phone: formatCustomerPhoneForEmail(customerSnapshot.phone || raw.customerPhone || '')
+    },
+    pickup: context.pickupLocation,
+    pickupLocation: context.pickupLocation,
+    dropoff: context.dropLocation,
+    drop: context.dropLocation,
+    dropLocation: context.dropLocation,
+    rideDate: context.rideDate,
+    rideTime: context.rideTime,
+    outboundDateTime: parseBookingRideStartDateTime({
+      outboundDateTime: raw.outboundDateTime,
+      rideDate: context.rideDate,
+      rideTime: context.rideTime
+    }),
+    returnDate: context.returnDate || sanitizeText(raw.returnTrip?.returnDate, 40),
+    returnTime: context.returnTime || sanitizeText(raw.returnTrip?.returnTime, 40),
+    returnTrip: raw.returnTrip && typeof raw.returnTrip === 'object' ? raw.returnTrip : {
+      enabled: Boolean(context.returnDate),
+      returnDate: context.returnDate,
+      returnTime: context.returnTime
+    },
+    tripPlan: context.tripPlan,
+    tripServiceType: context.tripServiceType,
+    paymentMethod: context.paymentMethod,
+    vehicleType: context.vehicleType,
+    vehicleModel: context.vehicleModel,
+    passengers: context.passengers,
+    luggage: context.luggage,
+    notes: context.notes,
+    stops: context.stops,
+    distanceSource: context.distanceSource || sanitizeText(estimate.distanceSource || providedFare.distanceSource, 80),
+    distanceKm,
+    amount,
+    totalFare: amount,
+    fare: amount,
+    budgetAmount: normalizePersistedAmount(raw.budgetAmount || providedFare.budgetAmount || estimate.budgetAmount),
+    customerBidAmount: normalizePersistedAmount(raw.customerBidAmount || providedFare.customerBidAmount || estimate.customerBidAmount),
+    fareBreakdown: {
+      ...providedFare,
+      ...estimate,
+      totalFare: amount,
+      amount,
+      distanceKm
+    },
+    fareQuote: raw.fareQuote && typeof raw.fareQuote === 'object'
+      ? {
+          ...raw.fareQuote,
+          amount: normalizePersistedAmount(raw.fareQuote.amount, amount),
+          distanceKm: normalizePersistedAmount(raw.fareQuote.distanceKm, distanceKm)
+        }
+      : {
+          amount,
+          distanceKm,
+          source: context.distanceSource || sanitizeText(estimate.distanceSource || '', 80)
+        },
+    payment: raw.payment && typeof raw.payment === 'object' ? raw.payment : {},
+    promo: raw.promo && typeof raw.promo === 'object' ? raw.promo : {},
+    specialRequests: context.specialRequests,
+    safetyAccessibility: context.safetyAccessibility,
+    customerFeatures: raw.customerFeatures && typeof raw.customerFeatures === 'object'
+      ? raw.customerFeatures
+      : {
+          specialRequests: context.specialRequests,
+          safetyAccessibility: context.safetyAccessibility,
+          hasStops: context.stops.length > 0,
+          hasReturnTrip: Boolean(context.returnDate)
+        },
+    adminEmailDispatch: raw.adminEmailDispatch && typeof raw.adminEmailDispatch === 'object' ? raw.adminEmailDispatch : {},
+    customerEmailDispatch: raw.customerEmailDispatch && typeof raw.customerEmailDispatch === 'object' ? raw.customerEmailDispatch : {},
+    createdAt: raw.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    fallbackQueuedAt: raw.fallbackQueuedAt || new Date().toISOString()
+  };
+}
+
+function upsertFallbackBookingReviewQueue(record) {
+  if (!record || typeof record !== 'object' || !record.bookingId) return { queued: false, state: 'invalid' };
+  const existingQueue = readFallbackBookingReviewQueue();
+  const bookingId = sanitizeText(record.bookingId || record.id, 120).toUpperCase();
+  const byId = new Map();
+  existingQueue.forEach((item) => {
+    const id = sanitizeText(item.bookingId || item.id, 120).toUpperCase();
+    if (id) byId.set(id, item);
+  });
+  const existing = byId.get(bookingId) || {};
+  const merged = {
+    ...existing,
+    ...record,
+    id: bookingId,
+    bookingId,
+    createdAt: existing.createdAt || record.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  byId.delete(bookingId);
+  const nextQueue = [merged, ...Array.from(byId.values())]
+    .sort((left, right) => {
+      return (Date.parse(right.updatedAt || right.createdAt || '') || 0)
+        - (Date.parse(left.updatedAt || left.createdAt || '') || 0);
+    })
+    .slice(0, FALLBACK_BOOKING_REVIEW_QUEUE_MAX);
+  const written = writeFallbackBookingReviewQueue(nextQueue);
+  return {
+    queued: written,
+    state: existing.bookingId ? 'existing' : 'queued',
+    item: merged
+  };
+}
+
+function queueFallbackBookingForAdminReview(raw = {}, options = {}) {
+  const normalized = normalizeFallbackQueueBooking(raw, options);
+  if (!normalized) return { queued: false, state: 'invalid', item: null };
+  return upsertFallbackBookingReviewQueue(normalized);
+}
+
+function updateFallbackBookingReviewDecision(bookingId, { decision, note, reviewedBy } = {}) {
+  const safeBookingId = sanitizeText(bookingId, 120).toUpperCase();
+  if (!safeBookingId) return null;
+  const queue = readFallbackBookingReviewQueue();
+  const index = queue.findIndex((item) => sanitizeText(item.bookingId || item.id, 120).toUpperCase() === safeBookingId);
+  if (index < 0) return null;
+  const reviewedAt = new Date().toISOString();
+  const updated = {
+    ...queue[index],
+    id: safeBookingId,
+    bookingId: safeBookingId,
+    adminReviewStatus: decision,
+    status: decision === 'approved' ? 'approved' : 'rejected',
+    adminReviewedBy: sanitizeText(reviewedBy, 120) || null,
+    adminReviewedAt: reviewedAt,
+    adminReviewNote: sanitizeText(note, 280) || null,
+    updatedAt: reviewedAt
+  };
+  queue[index] = updated;
+  writeFallbackBookingReviewQueue(queue);
+  return updated;
 }
 
 function humanizeKey(key) {
@@ -1381,6 +1637,49 @@ async function buildDonationSuggestion() {
   };
 }
 
+router.post('/fallback/admin-review-queue', bookingFallbackEmailLimiter, async (req, res) => {
+  if (!BOOKING_FALLBACK_ALERT_ENABLED) {
+    return res.status(403).json({ message: 'Fallback admin review queue is disabled' });
+  }
+
+  if (!isAllowedBrowserBookingBridge(req)) {
+    return res.status(403).json({ message: 'Booking client or origin not allowed for fallback admin review queue' });
+  }
+
+  const rows = Array.isArray(req.body?.bookings)
+    ? req.body.bookings.slice(0, 150)
+    : [req.body || {}];
+  const result = {
+    ok: true,
+    queued: 0,
+    existing: 0,
+    invalid: 0,
+    items: []
+  };
+
+  rows.forEach((row) => {
+    const sourceKey = sanitizeText(req.body?.source || row?.sourceKey || 'customer_dashboard_public_sync', 120);
+    const mode = sanitizeText(row?.mode || req.body?.mode || sourceKey, 80);
+    const queued = queueFallbackBookingForAdminReview(row, { sourceKey, mode });
+    const bookingId = sanitizeText(row?.bookingId || row?.id || '', 120).toUpperCase();
+    if (!queued.queued) {
+      result.invalid += 1;
+      result.items.push({ bookingId, state: queued.state || 'invalid' });
+      return;
+    }
+    if (queued.state === 'existing') result.existing += 1;
+    else result.queued += 1;
+    result.items.push({
+      bookingId: queued.item.bookingId,
+      state: queued.state,
+      adminReviewStatus: queued.item.adminReviewStatus,
+      status: queued.item.status
+    });
+  });
+
+  return res.status(result.queued || result.existing ? 200 : 202).json(result);
+});
+
 router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (req, res) => {
   if (!BOOKING_FALLBACK_ALERT_ENABLED) {
     return res.status(403).json({ message: 'Fallback admin email alert is disabled' });
@@ -1462,6 +1761,15 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     return res.status(400).json({ message: 'Customer mobile number is required for booking emails' });
   }
 
+  const queueResult = queueFallbackBookingForAdminReview(req.body || {}, {
+    bookingId,
+    bookingContext,
+    fareEstimate,
+    customerSnapshot,
+    sourceKey: 'fallback_admin_alert_email',
+    mode: 'fallback_admin_alert_email'
+  });
+
   let reviewAlert = null;
   try {
     reviewAlert = await createBookingAdminReviewAlert({
@@ -1509,6 +1817,12 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
       adminEmail: adminEmail || { sent: false, reason: 'unknown' },
       customerEmail: customerEmail || { sent: false, reason: 'unknown' },
       adminWhatsApp: adminWhatsApp || { sent: false, reason: 'unknown' },
+      adminReviewQueue: queueResult.queued ? {
+        state: queueResult.state,
+        sourceKey: queueResult.item?.sourceKey || 'fallback_admin_alert_email'
+      } : {
+        state: queueResult.state || 'not_queued'
+      },
       notifications: {
         adminReview: reviewAlert
       }
@@ -1529,6 +1843,12 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     adminEmail,
     customerEmail,
     adminWhatsApp,
+    adminReviewQueue: queueResult.queued ? {
+      state: queueResult.state,
+      sourceKey: queueResult.item?.sourceKey || 'fallback_admin_alert_email'
+    } : {
+      state: queueResult.state || 'not_queued'
+    },
     notifications: {
       adminReview: reviewAlert
     }
@@ -2567,60 +2887,141 @@ router.get('/admin/pending', authenticate, async (req, res) => {
     .lean();
 
   const pendingCount = await Booking.countDocuments({ adminReviewStatus: 'pending', status: 'created' });
+  const fallbackQueue = readFallbackBookingReviewQueue();
+  const fallbackRows = fallbackQueue
+    .filter((row) => {
+      const reviewStatus = sanitizeText(row.adminReviewStatus, 40).toLowerCase() || 'pending';
+      if (query.adminReviewStatus !== reviewStatus) return false;
+      if (query.adminReviewStatus === 'pending') {
+        const rowStatus = sanitizeText(row.status, 40).toLowerCase() || 'created';
+        return rowStatus === 'created' || rowStatus === 'pending' || rowStatus === 'pending_admin_review';
+      }
+      return true;
+    })
+    .slice(0, Math.max(limit - rows.length, 0));
+  const pendingFallbackCount = fallbackQueue.filter((row) => {
+    const reviewStatus = sanitizeText(row.adminReviewStatus, 40).toLowerCase() || 'pending';
+    const rowStatus = sanitizeText(row.status, 40).toLowerCase() || 'created';
+    return reviewStatus === 'pending' && (rowStatus === 'created' || rowStatus === 'pending' || rowStatus === 'pending_admin_review');
+  }).length;
+
+  const items = rows.map((row) => ({
+    bookingId: row.bookingId,
+    status: row.status,
+    adminReviewStatus: row.adminReviewStatus || 'pending',
+    distanceKm: Number(row.distanceKm || 0),
+    amount: Number(row.amount || 0),
+    referralCode: row.referralCode || '',
+    pickupLocation: row.pickupLocation || '',
+    dropLocation: row.dropLocation || '',
+    rideDate: row.rideDate || '',
+    rideTime: row.rideTime || '',
+    outboundDateTime: row.outboundDateTime || null,
+    returnDate: row.returnDate || '',
+    returnTime: row.returnTime || '',
+    tripPlan: row.tripPlan || '',
+    paymentMethod: row.paymentMethod || '',
+    vehicleType: row.vehicleType || '',
+    passengers: Number(row.passengers || 1),
+    luggage: row.luggage || '',
+    notes: row.notes || '',
+    stops: Array.isArray(row.stops) ? row.stops : [],
+    editCount: getBookingEditCount(row),
+    lastEditedAt: row.lastEditedAt || null,
+    editPolicyVersion: row.editPolicyVersion || '',
+    editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
+    specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
+    safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
+    customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
+      ? {
+          name: row.customerSnapshot.name || '',
+          email: row.customerSnapshot.email || '',
+          phone: row.customerSnapshot.phone || ''
+        }
+      : null,
+    driverId: row.driverId || null,
+    adminReviewedBy: row.adminReviewedBy || null,
+    adminReviewedAt: row.adminReviewedAt || null,
+    adminReviewNote: row.adminReviewNote || null,
+    sourceKey: 'backend_booking_collection',
+    customer: row.userId && typeof row.userId === 'object'
+      ? {
+          id: String(row.userId._id || ''),
+          name: row.userId.name || '',
+          email: row.userId.email || '',
+          phone: row.userId.phone || '',
+          accountType: row.userId.accountType || ''
+        }
+      : null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
+  })).concat(fallbackRows.map((row) => ({
+    bookingId: row.bookingId,
+    status: row.status || 'created',
+    adminReviewStatus: row.adminReviewStatus || 'pending',
+    distanceKm: Number(row.distanceKm || 0),
+    amount: Number(row.amount || row.totalFare || row.fare || 0),
+    referralCode: row.referralCode || row.promo?.code || '',
+    pickupLocation: row.pickupLocation || row.pickup || '',
+    dropLocation: row.dropLocation || row.dropoff || row.drop || '',
+    rideDate: row.rideDate || '',
+    rideTime: row.rideTime || '',
+    outboundDateTime: row.outboundDateTime || null,
+    returnDate: row.returnDate || row.returnTrip?.returnDate || '',
+    returnTime: row.returnTime || row.returnTrip?.returnTime || '',
+    tripPlan: row.tripPlan || '',
+    paymentMethod: row.paymentMethod || row.payment?.method || '',
+    vehicleType: row.vehicleType || row.rideType || '',
+    vehicleModel: row.vehicleModel || '',
+    tripServiceType: row.tripServiceType || '',
+    passengers: Number(row.passengers || 1),
+    luggage: row.luggage || '',
+    notes: row.notes || '',
+    stops: Array.isArray(row.stops) ? row.stops : [],
+    editCount: getBookingEditCount(row),
+    lastEditedAt: row.lastEditedAt || null,
+    editPolicyVersion: row.editPolicyVersion || '',
+    editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
+    specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
+    safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
+    customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
+      ? {
+          name: row.customerSnapshot.name || row.customerName || '',
+          email: row.customerSnapshot.email || row.customerEmail || '',
+          phone: row.customerSnapshot.phone || row.customerPhone || ''
+        }
+      : {
+          name: row.customerName || '',
+          email: row.customerEmail || '',
+          phone: row.customerPhone || ''
+        },
+    customerName: row.customerName || row.customerSnapshot?.name || '',
+    customerEmail: row.customerEmail || row.customerSnapshot?.email || '',
+    customerPhone: row.customerPhone || row.customerSnapshot?.phone || '',
+    fareBreakdown: row.fareBreakdown && typeof row.fareBreakdown === 'object' ? row.fareBreakdown : {},
+    fareQuote: row.fareQuote && typeof row.fareQuote === 'object' ? row.fareQuote : {},
+    payment: row.payment && typeof row.payment === 'object' ? row.payment : {},
+    promo: row.promo && typeof row.promo === 'object' ? row.promo : {},
+    customerFeatures: row.customerFeatures && typeof row.customerFeatures === 'object' ? row.customerFeatures : {},
+    driverId: row.driverId || null,
+    adminReviewedBy: row.adminReviewedBy || null,
+    adminReviewedAt: row.adminReviewedAt || null,
+    adminReviewNote: row.adminReviewNote || null,
+    sourceKey: row.sourceKey || 'fallback_admin_review_queue',
+    fallbackQueuedAt: row.fallbackQueuedAt || null,
+    customer: null,
+    createdAt: row.createdAt || row.fallbackQueuedAt || null,
+    updatedAt: row.updatedAt || null
+  }))).sort((left, right) => {
+    return (Date.parse(right.updatedAt || right.createdAt || '') || 0)
+      - (Date.parse(left.updatedAt || left.createdAt || '') || 0);
+  });
 
   return res.status(200).json({
-    count: rows.length,
-    pendingCount,
-    items: rows.map((row) => ({
-      bookingId: row.bookingId,
-      status: row.status,
-      adminReviewStatus: row.adminReviewStatus || 'pending',
-      distanceKm: Number(row.distanceKm || 0),
-      amount: Number(row.amount || 0),
-      referralCode: row.referralCode || '',
-      pickupLocation: row.pickupLocation || '',
-      dropLocation: row.dropLocation || '',
-      rideDate: row.rideDate || '',
-      rideTime: row.rideTime || '',
-      outboundDateTime: row.outboundDateTime || null,
-      returnDate: row.returnDate || '',
-      returnTime: row.returnTime || '',
-      tripPlan: row.tripPlan || '',
-      paymentMethod: row.paymentMethod || '',
-      vehicleType: row.vehicleType || '',
-      passengers: Number(row.passengers || 1),
-      luggage: row.luggage || '',
-      notes: row.notes || '',
-      stops: Array.isArray(row.stops) ? row.stops : [],
-      editCount: getBookingEditCount(row),
-      lastEditedAt: row.lastEditedAt || null,
-      editPolicyVersion: row.editPolicyVersion || '',
-      editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
-      specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
-      safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
-      customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
-        ? {
-            name: row.customerSnapshot.name || '',
-            email: row.customerSnapshot.email || '',
-            phone: row.customerSnapshot.phone || ''
-          }
-        : null,
-      driverId: row.driverId || null,
-      adminReviewedBy: row.adminReviewedBy || null,
-      adminReviewedAt: row.adminReviewedAt || null,
-      adminReviewNote: row.adminReviewNote || null,
-      customer: row.userId && typeof row.userId === 'object'
-        ? {
-            id: String(row.userId._id || ''),
-            name: row.userId.name || '',
-            email: row.userId.email || '',
-            phone: row.userId.phone || '',
-            accountType: row.userId.accountType || ''
-          }
-        : null,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt
-    }))
+    count: items.length,
+    pendingCount: pendingCount + pendingFallbackCount,
+    fallbackCount: fallbackRows.length,
+    items
   });
 });
 
@@ -2639,7 +3040,24 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
 
   const booking = await Booking.findOne({ bookingId: req.params.id });
   if (!booking) {
-    return res.status(404).json({ message: 'Booking not found' });
+    const fallbackBooking = updateFallbackBookingReviewDecision(req.params.id, {
+      decision,
+      note,
+      reviewedBy: String(req.user.id)
+    });
+    if (!fallbackBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    return res.status(200).json({
+      bookingId: fallbackBooking.bookingId,
+      status: fallbackBooking.status,
+      adminReviewStatus: fallbackBooking.adminReviewStatus,
+      adminReviewedBy: fallbackBooking.adminReviewedBy,
+      adminReviewedAt: fallbackBooking.adminReviewedAt,
+      adminReviewNote: fallbackBooking.adminReviewNote,
+      driverId: fallbackBooking.driverId || null,
+      sourceKey: fallbackBooking.sourceKey || 'fallback_admin_review_queue'
+    });
   }
 
   if (booking.status === 'completed') {

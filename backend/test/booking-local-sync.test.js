@@ -9,6 +9,9 @@ process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/goin
 
 const express = require('express');
 const request = require('supertest');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 
 const TEST_USER_ID = '65f0b7d6f3a9a1b2c3d4e5f6';
 
@@ -69,6 +72,15 @@ function createUserModelMock() {
 
 function createBookingModelMock() {
   const rows = [];
+  function matchesQuery(row, query = {}) {
+    return Object.entries(query || {}).every(([key, expected]) => {
+      if (expected && typeof expected === 'object' && Array.isArray(expected.$in)) {
+        return expected.$in.includes(row[key]);
+      }
+      return String(row[key] ?? '') === String(expected ?? '');
+    });
+  }
+
   return {
     rows,
     findOne(query = {}) {
@@ -78,6 +90,31 @@ function createBookingModelMock() {
         return Promise.resolve(row);
       };
       return promise;
+    },
+    find(query = {}) {
+      let result = rows.filter((item) => matchesQuery(item, query));
+      const chain = {
+        sort() {
+          result = result.slice().sort((left, right) => {
+            return new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime();
+          });
+          return chain;
+        },
+        limit(limit) {
+          result = result.slice(0, Number(limit || result.length));
+          return chain;
+        },
+        populate() {
+          return chain;
+        },
+        lean() {
+          return Promise.resolve(result);
+        }
+      };
+      return chain;
+    },
+    async countDocuments(query = {}) {
+      return rows.filter((item) => matchesQuery(item, query)).length;
     },
     async create(doc) {
       const row = {
@@ -92,14 +129,15 @@ function createBookingModelMock() {
   };
 }
 
-function loadBookingRouter(BookingMock) {
+function loadBookingRouter(BookingMock, reqUser = {}) {
   setMock('../src/middleware/authMiddleware', {
     authenticate(req, _res, next) {
       req.user = {
         id: TEST_USER_ID,
         email: 'rider@example.com',
         accountType: 'customer',
-        role: 'customer'
+        role: 'customer',
+        ...reqUser
       };
       next();
     }
@@ -208,4 +246,67 @@ test('customer local booking sync is idempotent and does not overwrite existing 
   assert.equal(secondResponse.body.existing, 1);
   assert.equal(BookingMock.rows.length, 1);
   assert.equal(BookingMock.rows[0].amount, 4500);
+});
+
+test('fallback admin review queue bridges tokenless customer bookings into admin pending view', async (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gir-fallback-queue-'));
+  process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE = path.join(tempDir, 'queue.json');
+  t.after(() => {
+    delete process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  const BookingMock = createBookingModelMock();
+  const app = createApp(loadBookingRouter(BookingMock, {
+    id: '65f0b7d6f3a9a1b2c3d4e5a1',
+    email: 'admin@example.com',
+    accountType: 'admin',
+    role: 'admin'
+  }));
+  const payload = {
+    ...createLocalBookingPayload(),
+    bookingId: 'RIDPUBLIC123',
+    status: 'pending_admin_review'
+  };
+
+  const queueResponse = await request(app)
+    .post('/api/bookings/fallback/admin-review-queue')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web')
+    .send({ source: 'customer_dashboard_public_sync', bookings: [payload] });
+
+  assert.equal(queueResponse.status, 200);
+  assert.equal(queueResponse.body.ok, true);
+  assert.equal(queueResponse.body.queued, 1);
+  assert.equal(BookingMock.rows.length, 0);
+
+  const pendingResponse = await request(app)
+    .get('/api/bookings/admin/pending?limit=50')
+    .set('Authorization', 'Bearer admin-token');
+
+  assert.equal(pendingResponse.status, 200);
+  assert.equal(pendingResponse.body.pendingCount, 1);
+  const bridged = pendingResponse.body.items.find((item) => item.bookingId === 'RIDPUBLIC123');
+  assert.ok(bridged);
+  assert.equal(bridged.pickupLocation, 'Jaipur');
+  assert.equal(bridged.dropLocation, 'Delhi');
+  assert.equal(bridged.adminReviewStatus, 'pending');
+  assert.equal(bridged.sourceKey, 'customer_dashboard_public_sync');
+
+  const reviewResponse = await request(app)
+    .post('/api/bookings/RIDPUBLIC123/admin/review')
+    .set('Authorization', 'Bearer admin-token')
+    .send({ decision: 'approved', reason: 'Approved from admin portal test' });
+
+  assert.equal(reviewResponse.status, 200);
+  assert.equal(reviewResponse.body.adminReviewStatus, 'approved');
+  assert.equal(reviewResponse.body.status, 'approved');
+
+  const afterReviewResponse = await request(app)
+    .get('/api/bookings/admin/pending?limit=50')
+    .set('Authorization', 'Bearer admin-token');
+
+  assert.equal(afterReviewResponse.status, 200);
+  assert.equal(afterReviewResponse.body.pendingCount, 0);
+  assert.equal(afterReviewResponse.body.items.some((item) => item.bookingId === 'RIDPUBLIC123'), false);
 });
