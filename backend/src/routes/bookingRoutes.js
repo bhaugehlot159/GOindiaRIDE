@@ -1025,6 +1025,64 @@ function mapFallbackQueueRowForAdmin(row = {}) {
   };
 }
 
+function isBookingDatabaseReady() {
+  return !Booking.db || Number(Booking.db.readyState) === 1;
+}
+
+function mapStoredBookingRowForAdmin(row = {}) {
+  return {
+    bookingId: row.bookingId,
+    status: row.status,
+    adminReviewStatus: row.adminReviewStatus || 'pending',
+    distanceKm: Number(row.distanceKm || 0),
+    amount: Number(row.amount || 0),
+    referralCode: row.referralCode || '',
+    pickupLocation: row.pickupLocation || '',
+    dropLocation: row.dropLocation || '',
+    rideDate: row.rideDate || '',
+    rideTime: row.rideTime || '',
+    outboundDateTime: row.outboundDateTime || null,
+    returnDate: row.returnDate || '',
+    returnTime: row.returnTime || '',
+    tripPlan: row.tripPlan || '',
+    paymentMethod: row.paymentMethod || '',
+    vehicleType: row.vehicleType || '',
+    passengers: Number(row.passengers || 1),
+    luggage: row.luggage || '',
+    notes: row.notes || '',
+    stops: Array.isArray(row.stops) ? row.stops : [],
+    editCount: getBookingEditCount(row),
+    lastEditedAt: row.lastEditedAt || null,
+    editPolicyVersion: row.editPolicyVersion || '',
+    editHistory: Array.isArray(row.editHistory) ? row.editHistory : [],
+    specialRequests: row.specialRequests && typeof row.specialRequests === 'object' ? row.specialRequests : {},
+    safetyAccessibility: row.safetyAccessibility && typeof row.safetyAccessibility === 'object' ? row.safetyAccessibility : {},
+    customerSnapshot: row.customerSnapshot && typeof row.customerSnapshot === 'object'
+      ? {
+          name: row.customerSnapshot.name || '',
+          email: row.customerSnapshot.email || '',
+          phone: row.customerSnapshot.phone || ''
+        }
+      : null,
+    driverId: row.driverId || null,
+    adminReviewedBy: row.adminReviewedBy || null,
+    adminReviewedAt: row.adminReviewedAt || null,
+    adminReviewNote: row.adminReviewNote || null,
+    sourceKey: 'backend_booking_collection',
+    customer: row.userId && typeof row.userId === 'object'
+      ? {
+          id: String(row.userId._id || ''),
+          name: row.userId.name || '',
+          email: row.userId.email || '',
+          phone: row.userId.phone || '',
+          accountType: row.userId.accountType || ''
+        }
+      : null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
+  };
+}
+
 function humanizeKey(key) {
   return String(key || '')
     .replace(/_/g, ' ')
@@ -1720,22 +1778,52 @@ router.get('/fallback/admin-review-queue', bookingFallbackEmailLimiter, async (r
 
   const limit = Math.min(Math.max(Number(req.query.limit || 100), 1), 500);
   const status = sanitizeText(req.query.status, 20).toLowerCase();
+  const query = {
+    adminReviewStatus: status === 'approved' || status === 'rejected' ? status : 'pending'
+  };
+
+  if (query.adminReviewStatus === 'pending') {
+    query.status = 'created';
+  }
+
+  let storedRows = [];
+  if (isBookingDatabaseReady()) {
+    try {
+      storedRows = await Booking.find(query)
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .populate('userId', 'name email phone accountType')
+        .lean();
+    } catch (error) {
+      logger.warn('fallback_admin_review_public_db_read_failed', {
+        message: error.message
+      });
+      storedRows = [];
+    }
+  }
+
   const queue = readFallbackBookingReviewQueue();
-  const rows = queue
+  const fallbackRows = queue
     .filter((row) => isFallbackQueueRowVisibleForStatus(row, status))
-    .slice(0, limit)
-    .map(mapFallbackQueueRowForAdmin)
+    .slice(0, Math.max(limit - storedRows.length, 0))
+    .map(mapFallbackQueueRowForAdmin);
+  const rows = [...storedRows.map(mapStoredBookingRowForAdmin), ...fallbackRows]
     .sort((left, right) => {
       return (Date.parse(right.updatedAt || right.createdAt || '') || 0)
         - (Date.parse(left.updatedAt || left.createdAt || '') || 0);
-    });
-  const pendingCount = queue.filter((row) => isFallbackQueueRowVisibleForStatus(row, 'pending')).length;
+    })
+    .slice(0, limit);
+  const pendingStoredCount = isBookingDatabaseReady()
+    ? await Booking.countDocuments({ adminReviewStatus: 'pending', status: 'created' }).catch(() => 0)
+    : 0;
+  const pendingFallbackCount = queue.filter((row) => isFallbackQueueRowVisibleForStatus(row, 'pending')).length;
 
   return res.status(200).json({
     ok: true,
     count: rows.length,
-    pendingCount,
+    pendingCount: pendingStoredCount + pendingFallbackCount,
     fallbackCount: queue.length,
+    storedCount: storedRows.length,
     items: rows
   });
 });

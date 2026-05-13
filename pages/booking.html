@@ -5381,6 +5381,10 @@
                     sanitizeInput(createData.status || 'created'),
                     `Booking ${liveBookingId} created and sent to admin for live approval`
                 );
+                const liveQueueResult = await queueBookingRecordForBackendAdminReview(liveBooking, 'live_backend_created');
+                if (!liveQueueResult.ok) {
+                    console.warn('Live booking admin queue mirror pending:', liveQueueResult.reason || 'queue_failed');
+                }
                 handleBookingEmailDispatchFeedback({
                     ok: true,
                     bookingId: liveBookingId,

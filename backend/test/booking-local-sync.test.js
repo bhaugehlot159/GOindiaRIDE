@@ -322,3 +322,50 @@ test('fallback admin review queue bridges tokenless customer bookings into admin
   assert.equal(afterReviewResponse.body.pendingCount, 0);
   assert.equal(afterReviewResponse.body.items.some((item) => item.bookingId === 'RIDPUBLIC123'), false);
 });
+
+test('public admin review queue includes live backend pending bookings without admin JWT', async (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gir-live-pending-queue-'));
+  process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE = path.join(tempDir, 'queue.json');
+  t.after(() => {
+    delete process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  const BookingMock = createBookingModelMock();
+  BookingMock.rows.push({
+    bookingId: 'RIDLIVE123456',
+    status: 'created',
+    adminReviewStatus: 'pending',
+    pickupLocation: 'Udaipur',
+    dropLocation: 'Jodhpur',
+    rideDate: '2026-06-10',
+    rideTime: '09:15',
+    amount: 6200,
+    distanceKm: 250,
+    customerSnapshot: {
+      name: 'Live Rider',
+      email: 'live@example.com',
+      phone: '+919888888888'
+    },
+    createdAt: new Date('2026-05-13T05:00:00.000Z'),
+    updatedAt: new Date('2026-05-13T05:00:00.000Z')
+  });
+
+  const app = createApp(loadBookingRouter(BookingMock));
+
+  const response = await request(app)
+    .get('/api/bookings/fallback/admin-review-queue?limit=50')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web');
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.ok, true);
+  assert.equal(response.body.pendingCount, 1);
+  assert.equal(response.body.storedCount, 1);
+  const live = response.body.items.find((item) => item.bookingId === 'RIDLIVE123456');
+  assert.ok(live);
+  assert.equal(live.pickupLocation, 'Udaipur');
+  assert.equal(live.dropLocation, 'Jodhpur');
+  assert.equal(live.sourceKey, 'backend_booking_collection');
+  assert.equal(live.adminReviewStatus, 'pending');
+});
