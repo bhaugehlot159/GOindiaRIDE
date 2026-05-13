@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOindiaRIDE Admin App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-app.css?v=20260513-admin-create-booking1">
+    <link rel="stylesheet" href="./css/admin-app.css?v=20260513-booking-search1">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -205,6 +205,10 @@
                             <h2>Customer Bookings</h2>
                         </div>
                         <div class="toolbar">
+                            <label class="booking-search-field" for="bookingSearchInput">
+                                <i class="fas fa-search"></i>
+                                <input id="bookingSearchInput" type="search" placeholder="Search any booking detail" autocomplete="off" aria-label="Search bookings by any booking detail">
+                            </label>
                             <select id="bookingStatusFilter" aria-label="Booking status filter">
                                 <option value="all">All status</option>
                                 <option value="pending">Pending review</option>
@@ -326,6 +330,6 @@
 
     <script src="../js/portal-connector.js"></script>
     <script src="../js/admin-control-bridge.js?v=20260512-data-preserve1"></script>
-    <script src="./js/admin-app.js?v=20260513-admin-dedupe-customer-sync5"></script>
+    <script src="./js/admin-app.js?v=20260513-booking-search1"></script>
 </body>
 </html>

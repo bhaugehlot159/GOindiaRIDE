@@ -119,6 +119,7 @@
         connection: loadConnectionState(),
         controls: null,
         query: "",
+        bookingQuery: "",
         view: "overview",
         bookingFilter: "all",
         queueFilter: "all",
@@ -2011,27 +2012,61 @@
         }
     }
 
-    function getFilteredBookings(filter = state.bookingFilter) {
-        const query = state.query.toLowerCase();
-        return state.bookings.filter((booking) => {
-            const text = [
-                booking.bookingId,
-                booking.customerName,
-                booking.customerPhone,
-                booking.customerEmail,
-                booking.pickup,
-                booking.dropoff,
-                booking.vehicleType,
-                booking.rideDate,
-                booking.rideTime,
-                booking.notes,
-                booking.stops,
-                booking.paymentMethod,
-                booking.status,
-                booking.adminReviewStatus
-            ].join(" ").toLowerCase();
+    function collectBookingSearchTokens(value, tokens = [], depth = 0, visited = new Set()) {
+        if (value === null || value === undefined || depth > 6) return tokens;
+        const type = typeof value;
+        if (type === "string" || type === "number" || type === "boolean") {
+            const text = cleanText(value);
+            if (text) tokens.push(text);
+            return tokens;
+        }
+        if (value instanceof Date) {
+            tokens.push(value.toISOString(), value.toLocaleString("en-IN"));
+            return tokens;
+        }
+        if (Array.isArray(value)) {
+            value.forEach((item) => collectBookingSearchTokens(item, tokens, depth + 1, visited));
+            return tokens;
+        }
+        if (type === "object") {
+            if (visited.has(value)) return tokens;
+            visited.add(value);
+            Object.entries(value).forEach(([key, item]) => {
+                if (item === true) {
+                    const label = humanizeKey(key);
+                    if (label) tokens.push(label);
+                }
+                collectBookingSearchTokens(item, tokens, depth + 1, visited);
+            });
+        }
+        return tokens;
+    }
 
-            if (query && !text.includes(query)) return false;
+    function normalizeBookingSearchQuery(value) {
+        return cleanText(value).toLowerCase();
+    }
+
+    function bookingMatchesSearch(booking, query) {
+        const terms = normalizeBookingSearchQuery(query).split(/\s+/).filter(Boolean);
+        if (!terms.length) return true;
+        const searchableText = collectBookingSearchTokens(booking).join(" ").toLowerCase();
+        const compactText = searchableText.replace(/\s+/g, "");
+        const digitsText = searchableText.replace(/\D/g, "");
+        return terms.every((term) => {
+            const compactTerm = term.replace(/\s+/g, "");
+            const digitsTerm = term.replace(/\D/g, "");
+            return searchableText.includes(term)
+                || (compactTerm && compactText.includes(compactTerm))
+                || (digitsTerm && digitsText.includes(digitsTerm));
+        });
+    }
+
+    function getFilteredBookings(filter = state.bookingFilter) {
+        const globalQuery = state.query;
+        const bookingQuery = state.bookingQuery;
+        return state.bookings.filter((booking) => {
+            if (globalQuery && !bookingMatchesSearch(booking, globalQuery)) return false;
+            if (bookingQuery && !bookingMatchesSearch(booking, bookingQuery)) return false;
             if (filter === "pending") return isPending(booking);
             if (filter === "approved") return isApproved(booking);
             if (filter === "rejected") return isRejected(booking);
@@ -2207,7 +2242,9 @@
         if (!host) return;
         const rows = getFilteredBookings(state.bookingFilter);
         if (!rows.length) {
-            host.innerHTML = `<tr><td colspan="6"><div class="empty-state">No booking rows found.</div></td></tr>`;
+            const query = cleanText(state.bookingQuery || state.query);
+            const message = query ? `No booking rows found for "${query}".` : "No booking rows found.";
+            host.innerHTML = `<tr><td colspan="6"><div class="empty-state">${escapeHtml(message)}</div></td></tr>`;
             return;
         }
 
@@ -3067,6 +3104,11 @@
             renderQueue();
             renderBookingTable();
             renderPortalControls();
+        });
+
+        $("#bookingSearchInput")?.addEventListener("input", (event) => {
+            state.bookingQuery = event.target.value || "";
+            renderBookingTable();
         });
 
         $all(".segment").forEach((button) => {

@@ -22,6 +22,21 @@ test('admin portal exposes customer booking creation controls', () => {
   assert.match(adminApp, /\/api\/bookings\/fallback\/admin-review-queue/);
 });
 
+test('admin booking table has a dedicated all-detail search control', () => {
+  const appHtml = readRepoFile('admin/app.html');
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+  const adminCss = readRepoFile('admin/css/admin-app.css');
+
+  assert.match(appHtml, /id="bookingSearchInput"/);
+  assert.match(appHtml, /Search any booking detail/);
+  assert.match(adminCss, /\.booking-search-field/);
+  assert.match(adminApp, /bookingQuery/);
+  assert.match(adminApp, /function collectBookingSearchTokens\(/);
+  assert.match(adminApp, /function bookingMatchesSearch\(/);
+  assert.match(adminApp, /#bookingSearchInput/);
+  assert.match(adminApp, /renderBookingTable\(\)/);
+});
+
 test('admin edit/create sync reaches customer portal without depending on PortalConnector', () => {
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const customerDashboard = readRepoFile('pages/customer-dashboard.html');

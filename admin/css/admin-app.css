@@ -130,6 +130,7 @@ button {
 }
 
 .app-search input,
+.booking-search-field input,
 .toolbar select,
 .settings-grid input {
     width: 100%;
@@ -142,15 +143,37 @@ button {
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.app-search input {
+.app-search input,
+.booking-search-field input {
     padding: 0 12px 0 38px;
 }
 
 .app-search input:focus,
+.booking-search-field input:focus,
 .toolbar select:focus,
 .settings-grid input:focus {
     border-color: rgba(37, 99, 166, 0.68);
     box-shadow: 0 0 0 3px rgba(37, 99, 166, 0.12);
+}
+
+.booking-search-field {
+    position: relative;
+    flex: 1 1 300px;
+    max-width: 430px;
+    min-width: min(300px, 100%);
+}
+
+.booking-search-field i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+}
+
+.booking-search-field input::placeholder {
+    color: var(--muted);
 }
 
 .app-nav {
@@ -278,6 +301,15 @@ button {
 .topbar-actions {
     flex-wrap: wrap;
     justify-content: flex-end;
+}
+
+.toolbar {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.toolbar select {
+    flex: 0 0 188px;
 }
 
 .icon-button {
@@ -1224,6 +1256,27 @@ button {
     .topbar-actions {
         width: 100%;
         justify-content: flex-start;
+    }
+
+    .panel-title-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .toolbar {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .booking-search-field {
+        max-width: none;
+        flex-basis: 100%;
+    }
+
+    .toolbar select,
+    .toolbar .primary-action,
+    .toolbar .secondary-action {
+        flex: 1 1 100%;
     }
 
     .ops-strip,
