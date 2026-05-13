@@ -5,6 +5,7 @@
     const AUDIT_KEY = "adminAuditLogs";
     const LOCAL_EVENT = "goindiaride:admin-control-update";
     const POLICY_EVENT = "goindiaride:admin-control-policy";
+    const FEATURE_BLOCK_EVENT = "goindiaride:admin-control-feature-blocked";
     const BOOKING_KEYS = [
         "bookings",
         "goride_bookings",
@@ -574,8 +575,8 @@
             ".admin-control-banner.active{display:flex}",
             ".admin-control-banner i{font-style:normal}",
             "html[data-admin-portal-locked='true'] .admin-lock-sensitive{pointer-events:none;opacity:.55}",
-            ".admin-feature-disabled{pointer-events:none!important;opacity:.55!important;filter:grayscale(.2)}",
-            ".admin-feature-disabled input,.admin-feature-disabled button,.admin-feature-disabled select,.admin-feature-disabled textarea{pointer-events:none!important}"
+            ".admin-feature-disabled{pointer-events:none!important;opacity:.55!important;filter:grayscale(.2);cursor:not-allowed!important}",
+            ".admin-feature-disabled input,.admin-feature-disabled button,.admin-feature-disabled select,.admin-feature-disabled textarea{pointer-events:none!important;cursor:not-allowed!important}"
         ].join("");
         global.document.head.appendChild(style);
     }
@@ -606,6 +607,135 @@
         if (!policy.allowed && typeof settings.onBlocked === "function") settings.onBlocked(policy);
         if (policy.allowed && typeof settings.onAllowed === "function") settings.onAllowed(policy);
         return policy;
+    }
+
+    function featureDisplayName(featureId) {
+        return cleanText(featureId).replace(/_/g, " ") || "feature";
+    }
+
+    function blockedFeatureMessage(policy, featureId) {
+        const reason = cleanText(policy && policy.reason);
+        const correction = cleanText(policy && policy.correction);
+        return reason || correction || `${featureDisplayName(featureId)} is paused by admin.`;
+    }
+
+    function showBlockedFeatureMessage(message) {
+        if (!message) return;
+        if (typeof global.showWarningToast === "function") {
+            global.showWarningToast(message, "Admin Control");
+        } else if (typeof global.showError === "function") {
+            global.showError(message);
+        } else if (typeof global.showToast === "function") {
+            global.showToast(message);
+        } else if (typeof global.alert === "function") {
+            global.alert(message);
+        }
+    }
+
+    function resolveActionFeature(featureEntry, args, actionName) {
+        if (typeof featureEntry === "function") {
+            return cleanText(featureEntry.apply(global, args || []));
+        }
+        if (featureEntry && typeof featureEntry === "object") {
+            if (typeof featureEntry.resolve === "function") {
+                return cleanText(featureEntry.resolve.apply(global, args || []));
+            }
+            if (featureEntry.feature) return cleanText(featureEntry.feature);
+            if (featureEntry.defaultFeature) return cleanText(featureEntry.defaultFeature);
+        }
+        return cleanText(featureEntry || actionName).toLowerCase();
+    }
+
+    function guardFeatureAction(portalType, featureId, actionName, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const safeFeature = cleanText(featureId).toLowerCase();
+        if (!safeFeature) return true;
+
+        const settings = options && typeof options === "object" ? options : {};
+        const subject = typeof settings.getSubject === "function" ? settings.getSubject() : currentSubject(safePortal);
+        const policy = getFeaturePolicy(safePortal, safeFeature, subject);
+        if (policy.allowed) return true;
+
+        const message = blockedFeatureMessage(policy, safeFeature);
+        const detail = {
+            ...policy,
+            actionName: cleanText(actionName),
+            message
+        };
+        global.dispatchEvent(new CustomEvent(FEATURE_BLOCK_EVENT, { detail }));
+
+        if (typeof settings.onBlocked === "function") {
+            settings.onBlocked(detail);
+        } else {
+            showBlockedFeatureMessage(message);
+        }
+        return false;
+    }
+
+    function wrapFeatureActions(portalType, actionMap, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const actions = actionMap && typeof actionMap === "object" ? actionMap : {};
+        const settings = options && typeof options === "object" ? options : {};
+        const originalStore = global.__goindiarideAdminControlOriginalActions || {};
+        global.__goindiarideAdminControlOriginalActions = originalStore;
+
+        function wrapNow() {
+            const wrapped = [];
+            const missing = [];
+            Object.keys(actions).forEach((actionName) => {
+                const currentAction = global[actionName];
+                if (typeof currentAction !== "function") {
+                    missing.push(actionName);
+                    return;
+                }
+
+                if (
+                    currentAction.__goindiarideAdminControlWrapped === true
+                    && currentAction.__goindiarideAdminControlPortal === safePortal
+                ) {
+                    currentAction.__goindiarideAdminControlFeatureEntry = actions[actionName];
+                    wrapped.push(actionName);
+                    return;
+                }
+
+                const storeKey = `${safePortal}:${actionName}`;
+                const originalAction = currentAction.__goindiarideAdminControlOriginal
+                    || originalStore[storeKey]
+                    || currentAction;
+                originalStore[storeKey] = originalAction;
+
+                const guardedAction = function guardedAdminFeatureAction() {
+                    const args = Array.prototype.slice.call(arguments);
+                    const mappedFeature = resolveActionFeature(guardedAction.__goindiarideAdminControlFeatureEntry, args, actionName);
+                    if (mappedFeature && !guardFeatureAction(safePortal, mappedFeature, actionName, settings)) {
+                        return false;
+                    }
+                    return originalAction.apply(this, args);
+                };
+
+                guardedAction.__goindiarideAdminControlWrapped = true;
+                guardedAction.__goindiarideAdminControlPortal = safePortal;
+                guardedAction.__goindiarideAdminControlActionName = actionName;
+                guardedAction.__goindiarideAdminControlFeatureEntry = actions[actionName];
+                guardedAction.__goindiarideAdminControlOriginal = originalAction;
+                global[actionName] = guardedAction;
+                wrapped.push(actionName);
+            });
+
+            return {
+                ok: true,
+                wrapped,
+                missing: unique(missing)
+            };
+        }
+
+        const result = wrapNow();
+        if (typeof global.setTimeout === "function") {
+            [50, 300, 1000, 2000].forEach((delay) => {
+                global.setTimeout(wrapNow, delay);
+            });
+        }
+        return result;
     }
 
     function initPortalRuntime(portalType, options) {
@@ -641,7 +771,9 @@
                     if (!Object.prototype.hasOwnProperty.call(node.dataset, "adminOriginalTitle")) {
                         node.dataset.adminOriginalTitle = node.title || "";
                     }
+                    node.dataset.adminFeatureAllowed = policy.allowed ? "true" : "false";
                     node.classList.toggle("admin-feature-disabled", !policy.allowed);
+                    if (node.setAttribute) node.setAttribute("aria-disabled", policy.allowed ? "false" : "true");
                     if ("disabled" in node && node.dataset.adminOriginalDisabled === undefined) {
                         node.dataset.adminOriginalDisabled = node.disabled ? "true" : "false";
                     }
@@ -700,6 +832,8 @@
         initFeatureRuntime,
         applyPortalRuntime,
         applyFeatureRuntime,
+        guardFeatureAction,
+        wrapFeatureActions,
         canUsePortal,
         entityKey,
         sameEntity
