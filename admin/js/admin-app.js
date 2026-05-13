@@ -739,6 +739,41 @@
         `;
     }
 
+    function normalizeAdminPhoneValue(value) {
+        const raw = cleanText(value);
+        if (!raw) return "";
+        const compact = raw.replace(/\s+/g, "");
+        if (compact.startsWith("+")) {
+            const digits = compact.slice(1).replace(/\D/g, "");
+            return digits ? `+${digits}` : "";
+        }
+        const digits = compact.replace(/\D/g, "");
+        if (digits.length === 10 && /^[6-9]/.test(digits)) return `+91${digits}`;
+        return digits ? `+${digits}` : "";
+    }
+
+    function normalizeAdminEmailValue(value) {
+        return cleanText(value).toLowerCase();
+    }
+
+    function defaultAdminRideDate() {
+        const date = new Date();
+        date.setDate(date.getDate() + 1);
+        return date.toISOString().slice(0, 10);
+    }
+
+    function defaultAdminRideTime() {
+        const date = new Date();
+        date.setHours(date.getHours() + 2, 0, 0, 0);
+        return date.toTimeString().slice(0, 5);
+    }
+
+    function generateAdminBookingId() {
+        const stamp = new Date().toISOString().replace(/\D/g, "").slice(2, 14);
+        const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+        return `BKADM${stamp}${suffix}`;
+    }
+
     function ensureBookingEditorModal() {
         let modal = $("#bookingEditModal");
         if (modal) return modal;
@@ -761,6 +796,140 @@
         `;
         document.body.appendChild(modal);
         return modal;
+    }
+
+    function ensureAdminCreateBookingModal() {
+        let modal = $("#adminCreateBookingModal");
+        if (modal) return modal;
+
+        modal = document.createElement("div");
+        modal.id = "adminCreateBookingModal";
+        modal.className = "booking-edit-modal";
+        modal.setAttribute("aria-hidden", "true");
+        modal.innerHTML = `
+            <div class="booking-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="adminCreateBookingTitle">
+                <header>
+                    <div>
+                        <span class="section-kicker">Admin customer assist</span>
+                        <h2 id="adminCreateBookingTitle">Add Booking For Customer</h2>
+                    </div>
+                    <button class="icon-button" data-close-admin-create-booking type="button" title="Close booking creator"><i class="fas fa-xmark"></i></button>
+                </header>
+                <form id="adminCreateBookingForm"></form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    function renderAdminCustomerOptions() {
+        const customers = getCustomerRows().slice(0, 300);
+        if (!customers.length) {
+            return `<option value="">Manual customer details</option>`;
+        }
+        return [
+            `<option value="">Manual customer details</option>`,
+            ...customers.map((customer) => {
+                const key = getControlEntityKey(customer);
+                const label = [
+                    customer.name || customer.fullname || "Customer",
+                    customer.phone || "",
+                    customer.email || ""
+                ].filter(Boolean).join(" | ");
+                return `<option value="${escapeHtml(key)}">${escapeHtml(label)}</option>`;
+            })
+        ].join("");
+    }
+
+    function buildAdminCreateBookingForm() {
+        return `
+            <div class="booking-edit-grid">
+                <label class="booking-edit-field wide">
+                    <span>Select existing customer</span>
+                    <select name="customerKey" id="adminCreateCustomerSelect">${renderAdminCustomerOptions()}</select>
+                </label>
+                ${renderEditInput("customerName", "Customer name", "")}
+                ${renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+919876543210"')}
+                ${renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="customer@example.com"')}
+                ${renderEditInput("pickup", "Pickup", "", "required")}
+                ${renderEditInput("dropoff", "Drop", "", "required")}
+                ${renderEditInput("rideDate", "Ride date", defaultAdminRideDate(), 'type="date" required')}
+                ${renderEditInput("rideTime", "Ride time", defaultAdminRideTime(), 'type="time" required')}
+                ${renderEditInput("returnDate", "Return date", "", 'type="date"')}
+                ${renderEditInput("returnTime", "Return time", "", 'type="time"')}
+                ${renderEditInput("tripPlan", "Trip plan", "city")}
+                ${renderEditInput("vehicleType", "Vehicle type", "sedan")}
+                ${renderEditInput("vehicleModel", "Vehicle model", "")}
+                ${renderEditInput("passengers", "Passengers", 1, 'type="number" min="1" max="20"')}
+                ${renderEditInput("luggage", "Luggage", "none")}
+                ${renderEditInput("paymentMethod", "Payment method", "cash")}
+                ${renderEditInput("fare", "Fare / amount", 0, 'type="number" min="0" step="1"')}
+                ${renderEditInput("distanceKm", "Distance KM", 0, 'type="number" min="0" step="0.1"')}
+                <label class="booking-edit-field">
+                    <span>Booking status</span>
+                    <select name="status">${renderSelectOptions(BOOKING_STATUS_OPTIONS, "pending_admin_review")}</select>
+                </label>
+                <label class="booking-edit-field">
+                    <span>Admin review</span>
+                    <select name="adminReviewStatus">${renderSelectOptions(ADMIN_REVIEW_OPTIONS, "pending")}</select>
+                </label>
+                ${renderEditTextarea("stops", "Stops", "", 'placeholder="One stop per line"')}
+                ${renderEditTextarea("notes", "Admin/customer notes", "Booking created by admin for customer assistance.")}
+                ${renderEditTextarea("specialRequests", "Special requests", "", 'placeholder="JSON or comma list"')}
+                ${renderEditTextarea("safetyAccessibility", "Safety and accessibility", "", 'placeholder="JSON or comma list"')}
+                ${renderEditTextarea("adminEditReason", "Admin note", "Admin created this booking for the customer.", 'placeholder="Reason shown in audit/customer notification"')}
+            </div>
+            <div class="booking-edit-actions">
+                <button class="text-button" data-close-admin-create-booking type="button">Cancel</button>
+                <button class="primary-action" type="submit"><i class="fas fa-plus"></i> Add booking</button>
+            </div>
+        `;
+    }
+
+    function findAdminCreateCustomer(key) {
+        const safeKey = cleanText(key).toLowerCase();
+        if (!safeKey) return null;
+        return getCustomerRows().find((customer) => getControlEntityKey(customer) === safeKey) || null;
+    }
+
+    function hydrateAdminCreateCustomerFields(form, customer) {
+        if (!form) return;
+        if (!customer) {
+            if (form.elements.customerName) form.elements.customerName.value = "";
+            if (form.elements.customerPhone) form.elements.customerPhone.value = "";
+            if (form.elements.customerEmail) form.elements.customerEmail.value = "";
+            return;
+        }
+        const name = cleanText(customer.name || customer.fullname || customer.customerName || "");
+        const phone = normalizeAdminPhoneValue(customer.phone || customer.mobile || customer.customerPhone || "");
+        const email = normalizeAdminEmailValue(customer.email || customer.customerEmail || "");
+        if (form.elements.customerName && name) form.elements.customerName.value = name;
+        if (form.elements.customerPhone && phone) form.elements.customerPhone.value = phone;
+        if (form.elements.customerEmail && email) form.elements.customerEmail.value = email;
+    }
+
+    function openAdminCreateBookingModal() {
+        const modal = ensureAdminCreateBookingModal();
+        const form = $("#adminCreateBookingForm", modal);
+        if (form) {
+            form.innerHTML = buildAdminCreateBookingForm();
+            const selectedCustomer = getCustomerRows()[0] || null;
+            if (selectedCustomer) {
+                const key = getControlEntityKey(selectedCustomer);
+                if (form.elements.customerKey) form.elements.customerKey.value = key;
+                hydrateAdminCreateCustomerFields(form, selectedCustomer);
+            }
+        }
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+        modal.querySelector("input[name='pickup']")?.focus();
+    }
+
+    function closeAdminCreateBookingModal() {
+        const modal = $("#adminCreateBookingModal");
+        if (!modal) return;
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
     }
 
     function buildBookingEditForm(booking) {
@@ -870,6 +1039,155 @@
             specialRequests: parseFlexibleMap(data.get("specialRequests")),
             safetyAccessibility: parseFlexibleMap(data.get("safetyAccessibility")),
             adminEditReason: text("adminEditReason")
+        };
+    }
+
+    function collectAdminCreateBookingForm(form) {
+        const data = new FormData(form);
+        const text = (name) => cleanText(data.get(name));
+        const selectedCustomer = findAdminCreateCustomer(text("customerKey"));
+        const selectedKey = selectedCustomer ? getControlEntityKey(selectedCustomer) : "";
+        const customerName = text("customerName") || cleanText(selectedCustomer?.name || selectedCustomer?.fullname || selectedCustomer?.customerName || "Customer");
+        const customerPhone = normalizeAdminPhoneValue(text("customerPhone") || selectedCustomer?.phone || selectedCustomer?.mobile || selectedCustomer?.customerPhone || "");
+        const customerEmail = normalizeAdminEmailValue(text("customerEmail") || selectedCustomer?.email || selectedCustomer?.customerEmail || "");
+        return {
+            bookingId: generateAdminBookingId(),
+            customerKey: selectedKey,
+            customerId: cleanText(selectedCustomer?.id || selectedCustomer?.userId || selectedCustomer?.customerId || selectedKey || customerEmail || customerPhone),
+            customerName,
+            customerPhone,
+            customerEmail,
+            pickup: text("pickup"),
+            dropoff: text("dropoff"),
+            rideDate: text("rideDate"),
+            rideTime: text("rideTime"),
+            returnDate: text("returnDate"),
+            returnTime: text("returnTime"),
+            tripPlan: text("tripPlan") || "city",
+            vehicleType: text("vehicleType") || "sedan",
+            vehicleModel: text("vehicleModel"),
+            passengers: Math.min(Math.max(Number(text("passengers")) || 1, 1), 20),
+            luggage: text("luggage") || "none",
+            paymentMethod: text("paymentMethod") || "cash",
+            fare: toAmount(text("fare")),
+            distanceKm: toAmount(text("distanceKm")),
+            status: text("status") || "pending_admin_review",
+            adminReviewStatus: text("adminReviewStatus") || "pending",
+            stops: parseTextList(data.get("stops")),
+            notes: text("notes"),
+            specialRequests: parseFlexibleMap(data.get("specialRequests")),
+            safetyAccessibility: parseFlexibleMap(data.get("safetyAccessibility")),
+            adminEditReason: text("adminEditReason") || "Admin created this booking for the customer."
+        };
+    }
+
+    function validateAdminCreateBooking(data) {
+        if (!cleanText(data.customerName)) return "Customer name is required.";
+        if (!cleanText(data.customerPhone) && !cleanText(data.customerEmail)) return "Customer phone or email is required.";
+        if (!cleanText(data.pickup)) return "Pickup is required.";
+        if (!cleanText(data.dropoff)) return "Drop is required.";
+        if (!cleanText(data.rideDate)) return "Ride date is required.";
+        if (!cleanText(data.rideTime)) return "Ride time is required.";
+        return "";
+    }
+
+    function buildAdminCreatedBooking(data) {
+        const now = new Date().toISOString();
+        const amount = toAmount(data.fare);
+        const distanceKm = toAmount(data.distanceKm);
+        const customerId = cleanText(data.customerId || data.customerKey || data.customerEmail || data.customerPhone || `admin_customer_${Date.now()}`);
+        return {
+            id: data.bookingId,
+            bookingId: data.bookingId,
+            customerId,
+            backendUserId: customerId,
+            userId: customerId,
+            customerName: data.customerName,
+            customerPhone: data.customerPhone,
+            customerEmail: data.customerEmail,
+            customerSnapshot: {
+                id: customerId,
+                name: data.customerName,
+                phone: data.customerPhone,
+                email: data.customerEmail
+            },
+            pickup: data.pickup,
+            pickupLocation: data.pickup,
+            from: data.pickup,
+            dropoff: data.dropoff,
+            drop: data.dropoff,
+            dropLocation: data.dropoff,
+            to: data.dropoff,
+            rideDate: data.rideDate,
+            rideTime: data.rideTime,
+            returnDate: data.returnDate,
+            returnTime: data.returnTime,
+            returnTrip: {
+                enabled: Boolean(data.returnDate || data.returnTime),
+                returnDate: data.returnDate || "",
+                returnTime: data.returnTime || ""
+            },
+            tripPlan: data.tripPlan,
+            vehicleType: data.vehicleType,
+            rideType: data.vehicleType,
+            vehicleModel: data.vehicleModel,
+            passengers: data.passengers,
+            luggage: data.luggage,
+            paymentMethod: data.paymentMethod,
+            fare: amount,
+            totalFare: amount,
+            amount,
+            finalFare: amount,
+            distanceKm,
+            distance: distanceKm,
+            status: data.status,
+            adminReviewStatus: data.adminReviewStatus,
+            notes: data.notes,
+            stops: data.stops,
+            specialRequests: data.specialRequests,
+            safetyAccessibility: data.safetyAccessibility,
+            customerFeatures: {
+                specialRequests: data.specialRequests,
+                safetyAccessibility: data.safetyAccessibility
+            },
+            fareBreakdown: {
+                totalFare: amount,
+                amount,
+                distanceKm,
+                distanceSource: "admin_manual",
+                adminCreatedAt: now
+            },
+            fareQuote: {
+                amount,
+                distanceKm,
+                source: "admin_manual"
+            },
+            mode: "admin_created_for_customer",
+            sourceKey: "admin_portal_customer_booking",
+            adminCreated: true,
+            createdBy: "admin",
+            createdAt: now,
+            updatedAt: now,
+            adminLastEditedAt: now,
+            adminEditReason: data.adminEditReason,
+            editPolicyVersion: "admin_portal_full_control_v1",
+            statusHistory: [
+                {
+                    status: "admin_created",
+                    at: now,
+                    source: "standalone_admin_app",
+                    note: data.adminEditReason
+                }
+            ],
+            editHistory: [
+                {
+                    editedAt: now,
+                    by: "admin",
+                    source: "standalone_admin_app",
+                    reason: data.adminEditReason,
+                    changedFields: ["booking_created_for_customer"]
+                }
+            ]
         };
     }
 
@@ -2215,17 +2533,27 @@
     function broadcastAdminBookingCustomerSync(booking, action, changedFields = [], reason = "") {
         const bookingId = cleanText(booking?.bookingId || booking?.id || "");
         if (!bookingId) return;
+        const payload = {
+            bookingId,
+            action: cleanText(action || "admin_booking_updated", 80),
+            changedFields: Array.isArray(changedFields) ? changedFields.slice(0, 40) : [],
+            reason: cleanText(reason || "Updated by admin portal.", 180),
+            booking,
+            updatedAt: new Date().toISOString()
+        };
         try {
-            localStorage.setItem(ADMIN_BOOKING_EDIT_SIGNAL_KEY, JSON.stringify({
-                bookingId,
-                action: cleanText(action || "admin_booking_updated", 80),
-                changedFields: Array.isArray(changedFields) ? changedFields.slice(0, 40) : [],
-                reason: cleanText(reason || "Updated by admin portal.", 180),
-                booking,
-                updatedAt: new Date().toISOString()
-            }));
+            localStorage.setItem(ADMIN_BOOKING_EDIT_SIGNAL_KEY, JSON.stringify(payload));
         } catch (_error) {
             // Storage can be unavailable in private browser modes.
+        }
+        try {
+            if (typeof BroadcastChannel === "function") {
+                const channel = new BroadcastChannel("goindiaride-admin-booking-sync");
+                channel.postMessage(payload);
+                channel.close();
+            }
+        } catch (_error) {
+            // BroadcastChannel is optional; storage event still carries the update.
         }
     }
 
@@ -2256,6 +2584,94 @@
             if (upsertBookingIntoStore(key, sharedBooking)) touched = true;
         });
         return { touched, booking: sharedBooking };
+    }
+
+    function upsertAdminCustomerAccount(booking) {
+        const id = cleanText(booking.customerId || booking.backendUserId || booking.userId || booking.customerEmail || booking.customerPhone);
+        const phone = normalizeAdminPhoneValue(booking.customerPhone || "");
+        const email = normalizeAdminEmailValue(booking.customerEmail || "");
+        const name = cleanText(booking.customerName || "Customer");
+        if (!id && !phone && !email) return false;
+
+        const customerRow = {
+            id: id || email || phone,
+            userId: id || email || phone,
+            customerId: id || email || phone,
+            role: "customer",
+            type: "customer",
+            name,
+            fullname: name,
+            email,
+            phone,
+            mobile: phone,
+            updatedAt: new Date().toISOString(),
+            sourceKey: "admin_portal_customer_booking"
+        };
+
+        let touched = false;
+        USER_KEYS.forEach((key) => {
+            const rows = readArray(key);
+            const index = rows.findIndex((row) => {
+                return cleanText(row.id || row.userId || row.customerId) === customerRow.id
+                    || (!!email && normalizeAdminEmailValue(row.email || row.customerEmail || "") === email)
+                    || (!!phone && normalizeAdminPhoneValue(row.phone || row.mobile || row.customerPhone || "") === phone);
+            });
+            const nextRows = rows.slice();
+            if (index >= 0) {
+                nextRows[index] = { ...nextRows[index], ...customerRow };
+            } else {
+                nextRows.unshift(customerRow);
+            }
+            writeArray(key, nextRows);
+            touched = true;
+        });
+        return touched;
+    }
+
+    function persistAdminCreatedBooking(booking) {
+        if (!booking || !booking.bookingId) return { touched: false, booking: null };
+        const sharedBooking = buildSharedBookingUpdate(booking.bookingId, booking, booking, booking.updatedAt || new Date().toISOString());
+        let touched = false;
+        BOOKING_KEYS.forEach((key) => {
+            if (upsertBookingIntoStore(key, sharedBooking)) touched = true;
+        });
+        CUSTOMER_BOOKING_SYNC_KEYS.forEach((key) => {
+            if (upsertBookingIntoStore(key, sharedBooking)) touched = true;
+        });
+        if (upsertAdminCustomerAccount(sharedBooking)) touched = true;
+        return { touched, booking: sharedBooking };
+    }
+
+    async function syncAdminCreatedBookingToFallbackQueue(booking) {
+        if (!booking || !booking.bookingId) return { ok: false, reason: "missing_booking" };
+        const apiBases = buildBackendApiCandidates();
+        const payload = {
+            ...booking,
+            source: "admin_portal_customer_booking",
+            sourceKey: "admin_portal_customer_booking",
+            mode: "admin_created_for_customer"
+        };
+        for (const apiBase of apiBases) {
+            try {
+                const response = await fetch(`${apiBase}/api/bookings/fallback/admin-review-queue`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        "x-booking-client": "goindiaride-web",
+                        "x-idempotency-key": createAdminIdempotencyKey("gir-admin-create-customer-booking", booking.bookingId)
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) continue;
+                return { ok: true, apiBase, data };
+            } catch (_error) {
+                // Try the next configured API base.
+            }
+        }
+        return { ok: false, reason: "fallback_queue_sync_failed" };
     }
 
     function addAudit(action, details) {
@@ -2442,6 +2858,36 @@
         }
 
         refreshData();
+    }
+
+    async function handleAdminCreateBookingSubmit(form) {
+        const data = collectAdminCreateBookingForm(form);
+        const validationError = validateAdminCreateBooking(data);
+        if (validationError) {
+            showToast(validationError);
+            return;
+        }
+
+        const booking = buildAdminCreatedBooking(data);
+        const syncResult = persistAdminCreatedBooking(booking);
+        const savedBooking = syncResult.booking || booking;
+        const customerMessage = `Booking ${savedBooking.bookingId} created by admin for ${savedBooking.customerName}.`;
+        addAudit("BOOKING_CREATED_BY_ADMIN", `Admin created booking ${savedBooking.bookingId} for ${savedBooking.customerName}.`);
+        notifyPortal("booking_created_by_admin", savedBooking, customerMessage, ["customer", "admin"], {
+            bookingId: savedBooking.bookingId,
+            status: savedBooking.status,
+            adminReviewStatus: savedBooking.adminReviewStatus,
+            source: "admin_portal_customer_booking"
+        });
+        broadcastAdminBookingCustomerSync(savedBooking, "admin_create", ["booking_created_for_customer"], data.adminEditReason);
+        const backendQueue = await syncAdminCreatedBookingToFallbackQueue(savedBooking);
+        closeAdminCreateBookingModal();
+        refreshData();
+        showToast(
+            backendQueue.ok
+                ? `Booking ${savedBooking.bookingId} added for customer and queued for admin/customer sync.`
+                : `Booking ${savedBooking.bookingId} added locally and sent to customer portal. Backend queue sync pending.`
+        );
     }
 
     async function handleBookingEditSubmit(form) {
@@ -2644,8 +3090,19 @@
                 return;
             }
 
+            const closeAdminCreateButton = event.target.closest("[data-close-admin-create-booking]");
+            if (closeAdminCreateButton) {
+                closeAdminCreateBookingModal();
+                return;
+            }
+
             if (event.target && event.target.id === "bookingEditModal") {
                 closeBookingEditor();
+                return;
+            }
+
+            if (event.target && event.target.id === "adminCreateBookingModal") {
+                closeAdminCreateBookingModal();
                 return;
             }
 
@@ -2667,19 +3124,39 @@
         });
 
         document.addEventListener("submit", (event) => {
+            const createForm = event.target.closest("#adminCreateBookingForm");
+            if (createForm) {
+                event.preventDefault();
+                handleAdminCreateBookingSubmit(createForm);
+                return;
+            }
+
             const form = event.target.closest("#bookingEditForm");
             if (!form) return;
             event.preventDefault();
             handleBookingEditSubmit(form);
         });
 
+        document.addEventListener("change", (event) => {
+            const select = event.target.closest("#adminCreateCustomerSelect");
+            if (!select) return;
+            const form = select.closest("#adminCreateBookingForm");
+            const customer = findAdminCreateCustomer(select.value || "");
+            hydrateAdminCreateCustomerFields(form, customer);
+        });
+
         document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && $("#adminCreateBookingModal")?.classList.contains("open")) {
+                closeAdminCreateBookingModal();
+                return;
+            }
             if (event.key === "Escape" && $("#bookingEditModal")?.classList.contains("open")) {
                 closeBookingEditor();
             }
         });
 
         $("#exportBookingsBtn")?.addEventListener("click", exportBookings);
+        $("#addBookingForCustomerBtn")?.addEventListener("click", openAdminCreateBookingModal);
         $("#seedDriverBtn")?.addEventListener("click", seedDriver);
         $("#clearLogViewBtn")?.addEventListener("click", () => {
             state.hideOldActivity = !state.hideOldActivity;

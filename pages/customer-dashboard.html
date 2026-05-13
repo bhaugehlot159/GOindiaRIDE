@@ -5679,8 +5679,7 @@ Thank you for riding with us! 🚗
                 });
             }
 
-            if (!window.PortalConnector) return;
-
+            let lastAdminBookingSyncSignal = '';
             function invalidateCustomerRuntimeBookingCache() {
                 if (!window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__) return;
                 window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__.cachedBookings = null;
@@ -5745,18 +5744,28 @@ Thank you for riding with us! 🚗
                 if (typeof renderCustomerAlerts === 'function') renderCustomerAlerts();
             }
 
+            function handleAdminBookingSyncSignal(rawSignal) {
+                const raw = typeof rawSignal === 'string'
+                    ? rawSignal
+                    : JSON.stringify(rawSignal || {});
+                if (!raw || raw === '{}' || raw === lastAdminBookingSyncSignal) return false;
+                lastAdminBookingSyncSignal = raw;
+                try {
+                    const signal = typeof rawSignal === 'string' ? JSON.parse(rawSignal) : rawSignal;
+                    if (signal && signal.booking && typeof signal.booking === 'object') {
+                        upsertDashboardBookingFromAdminPayload(signal.booking, signal.bookingId);
+                    }
+                } catch (_error) {
+                    // Ignore malformed admin sync signals.
+                }
+                refreshCustomerBookingViewsFromAdminSync();
+                return true;
+            }
+
             window.addEventListener('storage', function(event) {
                 if (!event || !event.key) return;
                 if (event.key === ADMIN_BOOKING_EDIT_SIGNAL_KEY && event.newValue) {
-                    try {
-                        const signal = JSON.parse(event.newValue);
-                        if (signal && signal.booking && typeof signal.booking === 'object') {
-                            upsertDashboardBookingFromAdminPayload(signal.booking, signal.bookingId);
-                        }
-                    } catch (_error) {
-                        // Ignore malformed admin sync signals.
-                    }
-                    refreshCustomerBookingViewsFromAdminSync();
+                    handleAdminBookingSyncSignal(event.newValue);
                     return;
                 }
 
@@ -5764,6 +5773,36 @@ Thank you for riding with us! 🚗
                     refreshCustomerBookingViewsFromAdminSync();
                 }
             });
+
+            try {
+                if (typeof BroadcastChannel === 'function') {
+                    const adminBookingChannel = new BroadcastChannel('goindiaride-admin-booking-sync');
+                    adminBookingChannel.onmessage = function (event) {
+                        handleAdminBookingSyncSignal(event && event.data);
+                    };
+                    window.__goindiarideAdminBookingSyncChannel = adminBookingChannel;
+                }
+            } catch (_error) {
+                // Storage polling below still catches admin sync updates.
+            }
+
+            window.setInterval(function () {
+                try {
+                    const rawSignal = localStorage.getItem(ADMIN_BOOKING_EDIT_SIGNAL_KEY) || '';
+                    if (rawSignal) handleAdminBookingSyncSignal(rawSignal);
+                } catch (_error) {
+                    // Ignore storage read failures.
+                }
+            }, 2000);
+
+            try {
+                const rawSignal = localStorage.getItem(ADMIN_BOOKING_EDIT_SIGNAL_KEY) || '';
+                if (rawSignal) handleAdminBookingSyncSignal(rawSignal);
+            } catch (_error) {
+                // Ignore startup storage read failures.
+            }
+
+            if (!window.PortalConnector) return;
 
             PortalConnector.setActivePortal('customer');
             PortalConnector.listen('customer', (notification) => {
@@ -5776,16 +5815,19 @@ Thank you for riding with us! 🚗
                 const isAdminRejection = notification.type === 'booking_rejected'
                     || (notification.type === 'booking_admin_status_update' && status === 'rejected');
                 const isAdminEdit = notification.type === 'booking_admin_edited';
+                const isAdminCreate = notification.type === 'booking_created_by_admin';
 
                 if (typeof showToast === 'function' && isAdminApproval) {
                     showToast(notification.message || `Booking ${bookingId} approved by admin. Driver assignment will start shortly.`, 'success');
                 } else if (typeof showToast === 'function' && isAdminRejection) {
                     showToast(notification.message || `Booking ${bookingId} was not approved by admin.`, 'warning');
+                } else if (typeof showToast === 'function' && isAdminCreate) {
+                    showToast(notification.message || `Booking ${bookingId} created by admin.`, 'success');
                 } else if (typeof showToast === 'function' && isAdminEdit) {
                     showToast(notification.message || `Booking ${bookingId} details updated by admin.`, 'info');
                 }
 
-                if (isAdminApproval || isAdminRejection || isAdminEdit) {
+                if (isAdminApproval || isAdminRejection || isAdminEdit || isAdminCreate) {
                     upsertDashboardBookingFromAdminNotification(notification);
                     refreshCustomerBookingViewsFromAdminSync();
                 }
