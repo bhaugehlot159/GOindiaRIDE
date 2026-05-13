@@ -369,3 +369,70 @@ test('public admin review queue includes live backend pending bookings without a
   assert.equal(live.sourceKey, 'backend_booking_collection');
   assert.equal(live.adminReviewStatus, 'pending');
 });
+
+test('admin edit updates fallback booking so customer/admin stores receive latest details', async (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gir-admin-edit-queue-'));
+  process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE = path.join(tempDir, 'queue.json');
+  t.after(() => {
+    delete process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  const BookingMock = createBookingModelMock();
+  const app = createApp(loadBookingRouter(BookingMock, {
+    id: '65f0b7d6f3a9a1b2c3d4e5a1',
+    email: 'admin@example.com',
+    accountType: 'admin',
+    role: 'admin'
+  }));
+
+  const payload = {
+    ...createLocalBookingPayload(),
+    bookingId: 'RIDADMINEDIT123',
+    pickup: 'Jaipur',
+    dropoff: 'Delhi',
+    status: 'pending_admin_review'
+  };
+
+  const queueResponse = await request(app)
+    .post('/api/bookings/fallback/admin-review-queue')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web')
+    .send({ source: 'customer_booking_submit', bookings: [payload] });
+
+  assert.equal(queueResponse.status, 200);
+  assert.equal(queueResponse.body.queued, 1);
+
+  const editResponse = await request(app)
+    .post('/api/bookings/RIDADMINEDIT123/admin/edit')
+    .set('Authorization', 'Bearer admin-token')
+    .send({
+      pickup: 'Jaipur Airport',
+      dropoff: 'City Palace Jaipur',
+      rideDate: '2026-06-02',
+      rideTime: '12:45',
+      vehicleType: 'SUV',
+      passengers: 3,
+      amount: 1250,
+      distanceKm: 18,
+      reason: 'Admin corrected pickup/drop for customer'
+    });
+
+  assert.equal(editResponse.status, 200);
+  assert.equal(editResponse.body.booking.bookingId, 'RIDADMINEDIT123');
+  assert.equal(editResponse.body.booking.pickupLocation, 'Jaipur Airport');
+  assert.equal(editResponse.body.booking.dropLocation, 'City Palace Jaipur');
+  assert.equal(editResponse.body.booking.amount, 1250);
+
+  const publicQueueResponse = await request(app)
+    .get('/api/bookings/fallback/admin-review-queue?limit=50')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web');
+
+  const edited = publicQueueResponse.body.items.find((item) => item.bookingId === 'RIDADMINEDIT123');
+  assert.ok(edited);
+  assert.equal(edited.pickupLocation, 'Jaipur Airport');
+  assert.equal(edited.dropLocation, 'City Palace Jaipur');
+  assert.equal(edited.amount, 1250);
+  assert.equal(edited.vehicleType, 'SUV');
+});

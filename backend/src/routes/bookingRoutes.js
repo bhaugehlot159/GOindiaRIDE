@@ -953,6 +953,56 @@ function updateFallbackBookingReviewDecision(bookingId, { decision, note, review
   return updated;
 }
 
+function updateFallbackBookingReviewEdit(bookingId, { updates = {}, changedFields = [], reason = '', editedBy = '' } = {}) {
+  const safeBookingId = sanitizeText(bookingId, 120).toUpperCase();
+  if (!safeBookingId) return null;
+  const queue = readFallbackBookingReviewQueue();
+  const index = queue.findIndex((item) => sanitizeText(item.bookingId || item.id, 120).toUpperCase() === safeBookingId);
+  if (index < 0) return null;
+
+  const now = new Date().toISOString();
+  const current = queue[index] || {};
+  const normalized = normalizeFallbackQueueBooking({
+    ...current,
+    ...updates,
+    id: safeBookingId,
+    bookingId: safeBookingId,
+    updatedAt: now
+  }, {
+    sourceKey: current.sourceKey || 'fallback_admin_review_queue',
+    mode: 'admin_edit'
+  });
+  if (!normalized) return null;
+
+  const editHistory = Array.isArray(current.editHistory) ? current.editHistory.slice(-49) : [];
+  editHistory.push({
+    editedAt: now,
+    by: 'admin',
+    source: 'admin_portal',
+    reason: sanitizeText(reason || 'Updated by admin portal.', 180),
+    changedFields: Array.isArray(changedFields) ? changedFields.slice(0, 40) : []
+  });
+  normalized.editHistory = editHistory;
+  normalized.editCount = Math.max(Number(current.editCount || 0), editHistory.length);
+  normalized.lastEditedAt = now;
+  normalized.adminLastEditedAt = now;
+  normalized.adminEditReason = sanitizeText(reason || 'Updated by admin portal.', 180);
+  normalized.adminEditedBy = sanitizeText(editedBy, 120) || null;
+
+  const statusHistory = Array.isArray(current.statusHistory) ? current.statusHistory.slice(-49) : [];
+  statusHistory.push({
+    status: 'admin_edited',
+    at: now,
+    source: 'admin_portal',
+    note: normalized.adminEditReason
+  });
+  normalized.statusHistory = statusHistory;
+
+  queue[index] = normalized;
+  writeFallbackBookingReviewQueue(queue);
+  return normalized;
+}
+
 function isFallbackQueueRowVisibleForStatus(row = {}, status = 'pending') {
   const reviewStatus = sanitizeText(row.adminReviewStatus, 40).toLowerCase() || 'pending';
   const requestedStatus = sanitizeText(status, 20).toLowerCase();
@@ -2733,6 +2783,222 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
       usedEdits: getBookingEditCount(booking),
       remainingEdits: Math.max(0, CUSTOMER_BOOKING_EDIT_MAX_COUNT - getBookingEditCount(booking))
     }
+  });
+});
+
+router.post('/:id/admin/edit', authenticate, continuousRiskGate, async (req, res) => {
+  if (!isAdminUser(req.user)) {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  const bookingId = sanitizeText(req.params.id, 120).toUpperCase();
+  if (!bookingId) {
+    return res.status(400).json({ message: 'booking id is required' });
+  }
+
+  const reason = sanitizeText(req.body.reason || req.body.adminEditReason || 'Updated by admin portal.', 180);
+  const updates = {
+    customerName: sanitizeText(req.body.customerName || req.body.customerSnapshot?.name, 140),
+    customerEmail: normalizeEmail(req.body.customerEmail || req.body.customerSnapshot?.email || ''),
+    customerPhone: formatCustomerPhoneForEmail(req.body.customerPhone || req.body.customerSnapshot?.phone || ''),
+    pickupLocation: sanitizeText(req.body.pickup || req.body.pickupLocation || req.body.from, 180),
+    dropLocation: sanitizeText(req.body.dropoff || req.body.drop || req.body.dropLocation || req.body.to, 180),
+    rideDate: sanitizeText(req.body.rideDate, 40),
+    rideTime: normalizeBookingTimeValue(req.body.rideTime),
+    returnDate: sanitizeText(req.body.returnDate || req.body.returnTrip?.returnDate, 40),
+    returnTime: normalizeBookingTimeValue(req.body.returnTime || req.body.returnTrip?.returnTime),
+    tripPlan: sanitizeText(req.body.tripPlan, 80),
+    paymentMethod: sanitizeText(req.body.paymentMethod || req.body.payment?.method, 80),
+    vehicleType: sanitizeText(req.body.vehicleType || req.body.rideType, 80),
+    vehicleModel: sanitizeText(req.body.vehicleModel, 80),
+    passengers: normalizeInteger(req.body.passengers, 1, 1, 20),
+    luggage: sanitizeText(req.body.luggage, 80),
+    notes: sanitizeText(req.body.notes, 600),
+    stops: sanitizeStringArray(req.body.stops, 8, 160),
+    specialRequests: sanitizeBooleanMap(req.body.specialRequests || req.body.customerFeatures?.specialRequests, 60),
+    safetyAccessibility: sanitizeBooleanMap(req.body.safetyAccessibility || req.body.customerFeatures?.safetyAccessibility, 60),
+    amount: normalizePersistedAmount(req.body.amount || req.body.totalFare || req.body.fare || req.body.finalFare),
+    distanceKm: normalizePersistedAmount(req.body.distanceKm || req.body.distance),
+    driverId: sanitizeText(req.body.driverId, 120),
+    driverName: sanitizeText(req.body.driverName, 140),
+    adminReviewStatus: sanitizeText(req.body.adminReviewStatus, 40).toLowerCase()
+  };
+
+  const booking = await Booking.findOne({ bookingId });
+  if (!booking) {
+    const fallbackUpdates = {
+      ...req.body,
+      ...updates,
+      customerSnapshot: {
+        name: updates.customerName,
+        email: updates.customerEmail,
+        phone: updates.customerPhone
+      },
+      pickup: updates.pickupLocation,
+      dropoff: updates.dropLocation,
+      drop: updates.dropLocation,
+      totalFare: updates.amount,
+      fare: updates.amount,
+      amount: updates.amount,
+      status: sanitizeText(req.body.status || 'pending_admin_review', 40),
+      adminReviewStatus: ['approved', 'rejected'].includes(updates.adminReviewStatus) ? updates.adminReviewStatus : 'pending',
+      fareBreakdown: safeMixedObject(req.body.fareBreakdown),
+      fareQuote: safeMixedObject(req.body.fareQuote),
+      customerFeatures: {
+        ...safeMixedObject(req.body.customerFeatures),
+        specialRequests: updates.specialRequests,
+        safetyAccessibility: updates.safetyAccessibility
+      }
+    };
+    const fallbackBooking = updateFallbackBookingReviewEdit(bookingId, {
+      updates: fallbackUpdates,
+      changedFields: Array.isArray(req.body.changedFields) ? req.body.changedFields : [],
+      reason,
+      editedBy: String(req.user.id)
+    });
+    if (!fallbackBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    return res.status(200).json({
+      message: 'Fallback booking updated by admin',
+      booking: mapFallbackQueueRowForAdmin(fallbackBooking),
+      changedFields: Array.isArray(req.body.changedFields) ? req.body.changedFields : [],
+      sourceKey: fallbackBooking.sourceKey || 'fallback_admin_review_queue'
+    });
+  }
+
+  const previous = {
+    customerName: booking.customerSnapshot?.name || '',
+    customerEmail: booking.customerSnapshot?.email || '',
+    customerPhone: booking.customerSnapshot?.phone || '',
+    pickupLocation: booking.pickupLocation || '',
+    dropLocation: booking.dropLocation || '',
+    rideDate: booking.rideDate || '',
+    rideTime: booking.rideTime || '',
+    returnDate: booking.returnDate || '',
+    returnTime: booking.returnTime || '',
+    tripPlan: booking.tripPlan || '',
+    paymentMethod: booking.paymentMethod || '',
+    vehicleType: booking.vehicleType || '',
+    vehicleModel: booking.vehicleModel || '',
+    passengers: Number(booking.passengers || 1),
+    luggage: booking.luggage || '',
+    notes: booking.notes || '',
+    stops: Array.isArray(booking.stops) ? booking.stops : [],
+    specialRequests: safeMixedObject(booking.specialRequests),
+    safetyAccessibility: safeMixedObject(booking.safetyAccessibility),
+    amount: Number(booking.amount || 0),
+    distanceKm: Number(booking.distanceKm || 0),
+    driverId: booking.driverId || '',
+    adminReviewStatus: booking.adminReviewStatus || 'pending'
+  };
+
+  const changedFields = [];
+  const setIfChanged = (field, nextValue, apply) => {
+    if (nextValue === '' && !['returnDate', 'returnTime', 'driverId', 'driverName', 'notes', 'luggage', 'vehicleModel'].includes(field)) return;
+    if (JSON.stringify(previous[field] ?? null) === JSON.stringify(nextValue ?? null)) return;
+    apply();
+    changedFields.push(field);
+  };
+
+  setIfChanged('customerName', updates.customerName, () => { booking.customerSnapshot.name = updates.customerName; });
+  setIfChanged('customerEmail', updates.customerEmail, () => { booking.customerSnapshot.email = updates.customerEmail; });
+  setIfChanged('customerPhone', updates.customerPhone, () => { booking.customerSnapshot.phone = updates.customerPhone; });
+  setIfChanged('pickupLocation', updates.pickupLocation, () => { booking.pickupLocation = updates.pickupLocation; });
+  setIfChanged('dropLocation', updates.dropLocation, () => { booking.dropLocation = updates.dropLocation; });
+  setIfChanged('rideDate', updates.rideDate, () => { booking.rideDate = updates.rideDate; });
+  setIfChanged('rideTime', updates.rideTime, () => { booking.rideTime = updates.rideTime; });
+  setIfChanged('returnDate', updates.returnDate, () => { booking.returnDate = updates.returnDate; });
+  setIfChanged('returnTime', updates.returnTime, () => { booking.returnTime = updates.returnTime; });
+  setIfChanged('tripPlan', updates.tripPlan, () => { booking.tripPlan = updates.tripPlan; });
+  setIfChanged('paymentMethod', updates.paymentMethod, () => { booking.paymentMethod = updates.paymentMethod; });
+  setIfChanged('vehicleType', updates.vehicleType, () => { booking.vehicleType = updates.vehicleType; });
+  setIfChanged('vehicleModel', updates.vehicleModel, () => { booking.vehicleModel = updates.vehicleModel; });
+  setIfChanged('passengers', updates.passengers, () => { booking.passengers = updates.passengers; });
+  setIfChanged('luggage', updates.luggage, () => { booking.luggage = updates.luggage; });
+  setIfChanged('notes', updates.notes, () => { booking.notes = updates.notes; });
+  setIfChanged('stops', updates.stops, () => { booking.stops = updates.stops; });
+  setIfChanged('specialRequests', updates.specialRequests, () => { booking.specialRequests = updates.specialRequests; });
+  setIfChanged('safetyAccessibility', updates.safetyAccessibility, () => { booking.safetyAccessibility = updates.safetyAccessibility; });
+  setIfChanged('amount', updates.amount, () => { booking.amount = updates.amount; });
+  setIfChanged('distanceKm', updates.distanceKm, () => { booking.distanceKm = updates.distanceKm; });
+  setIfChanged('driverId', updates.driverId, () => { booking.driverId = updates.driverId || null; });
+
+  if (['pending', 'approved', 'rejected'].includes(updates.adminReviewStatus)) {
+    setIfChanged('adminReviewStatus', updates.adminReviewStatus, () => {
+      booking.adminReviewStatus = updates.adminReviewStatus;
+      booking.adminReviewedBy = String(req.user.id);
+      booking.adminReviewedAt = new Date();
+      booking.adminReviewNote = reason;
+    });
+  }
+
+  const requestedStatus = sanitizeText(req.body.status, 40).toLowerCase();
+  if (requestedStatus === 'completed') booking.status = 'completed';
+  else if (requestedStatus === 'cancelled' || requestedStatus === 'rejected') booking.status = 'cancelled';
+  else if (booking.status !== 'completed' && booking.status !== 'cancelled') booking.status = 'created';
+
+  if (!changedFields.length) {
+    return res.status(200).json({
+      message: 'No admin edit changes detected',
+      booking: mapStoredBookingRowForAdmin(booking.toObject()),
+      changedFields
+    });
+  }
+
+  const now = new Date();
+  booking.lastEditedAt = now;
+  booking.editCount = getBookingEditCount(booking) + 1;
+  booking.editPolicyVersion = 'admin_portal_full_control_v1';
+  booking.outboundDateTime = parseBookingRideStartDateTime({
+    rideDate: booking.rideDate,
+    rideTime: booking.rideTime
+  });
+  booking.fareBreakdown = {
+    ...safeMixedObject(booking.fareBreakdown),
+    ...safeMixedObject(req.body.fareBreakdown),
+    totalFare: Number(booking.amount || 0),
+    amount: Number(booking.amount || 0),
+    distanceKm: Number(booking.distanceKm || 0),
+    adminEditedAt: now.toISOString()
+  };
+  booking.fareQuote = {
+    ...safeMixedObject(booking.fareQuote),
+    ...safeMixedObject(req.body.fareQuote),
+    amount: Number(booking.amount || 0),
+    distanceKm: Number(booking.distanceKm || 0),
+    source: req.body.fareQuote?.source || booking.fareQuote?.source || 'admin_edit'
+  };
+  booking.customerFeatures = {
+    ...safeMixedObject(booking.customerFeatures),
+    specialRequests: booking.specialRequests,
+    safetyAccessibility: booking.safetyAccessibility
+  };
+
+  booking.editHistory = Array.isArray(booking.editHistory) ? booking.editHistory : [];
+  booking.editHistory.push({
+    editedAt: now,
+    by: 'admin',
+    source: 'admin_portal',
+    windowTier: 'admin_full_control',
+    hoursUntilRide: null,
+    changedFields
+  });
+  booking.statusHistory = Array.isArray(booking.statusHistory) ? booking.statusHistory : [];
+  booking.statusHistory.push({
+    status: 'admin_edited',
+    at: now,
+    source: 'admin_portal',
+    note: reason
+  });
+
+  await booking.save();
+
+  return res.status(200).json({
+    message: 'Booking updated by admin',
+    booking: mapStoredBookingRowForAdmin(booking.toObject()),
+    changedFields,
+    sourceKey: 'backend_booking_collection'
   });
 });
 

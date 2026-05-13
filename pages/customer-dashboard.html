@@ -2322,6 +2322,17 @@
         let selectedDonationAmount = 0;
         let currentRideForDonation = null;
         let customerRealtimeSyncTimer = null;
+        const ADMIN_BOOKING_EDIT_SIGNAL_KEY = 'goindiaride_admin_booking_edit_signal_v1';
+        const DASHBOARD_BOOKING_SYNC_KEYS = [
+            'goride_bookings',
+            'bookings',
+            'goindiaride_active_bookings',
+            'goindiaride_scheduled_rides',
+            'goindiaride_ride_history',
+            'goindiaride_admin_review_inbox_v1',
+            'customerBookings',
+            'customer_bookings'
+        ];
         const DASHBOARD_ADMIN_EMAIL_RETRY_QUEUE_KEY = 'goindiaride_admin_email_retry_queue_v1';
         const DASHBOARD_ADMIN_EMAIL_BATCH_SIZE = 3;
         const PROFILE_PHONE_VERIFICATION_SESSION_KEY = 'goindiaride-dashboard-phone-verify';
@@ -2605,16 +2616,7 @@
         }
 
         function readDashboardBookingsStore() {
-            const storageKeys = [
-                'goride_bookings',
-                'bookings',
-                'goindiaride_active_bookings',
-                'goindiaride_scheduled_rides',
-                'goindiaride_ride_history',
-                'goindiaride_admin_review_inbox_v1',
-                'customerBookings',
-                'customer_bookings'
-            ];
+            const storageKeys = DASHBOARD_BOOKING_SYNC_KEYS;
             const rows = [];
             storageKeys.forEach((key) => {
                 try {
@@ -2665,7 +2667,7 @@
 
         function mirrorDashboardBookingsForAdminPortal(bookings) {
             if (!Array.isArray(bookings) || !bookings.length) return;
-            const keys = ['bookings', 'goride_bookings', 'goindiaride_active_bookings', 'goindiaride_admin_review_inbox_v1'];
+            const keys = DASHBOARD_BOOKING_SYNC_KEYS;
             keys.forEach((key) => {
                 let rows = [];
                 try {
@@ -5637,14 +5639,17 @@ Thank you for riding with us! 🚗
 
             if (!window.PortalConnector) return;
 
-            function upsertDashboardBookingFromAdminNotification(notification) {
-                const booking = notification && notification.booking && typeof notification.booking === 'object'
-                    ? notification.booking
-                    : {};
-                const bookingId = String(booking.id || booking.bookingId || notification?.metadata?.bookingId || '').trim();
+            function invalidateCustomerRuntimeBookingCache() {
+                if (!window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__) return;
+                window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__.cachedBookings = null;
+                window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__.cachedBookingsAt = 0;
+            }
+
+            function upsertDashboardBookingFromAdminPayload(booking, fallbackBookingId) {
+                const bookingId = String(booking?.id || booking?.bookingId || fallbackBookingId || '').trim();
                 if (!bookingId) return;
 
-                ['bookings', 'goride_bookings'].forEach(function (key) {
+                DASHBOARD_BOOKING_SYNC_KEYS.forEach(function (key) {
                     let rows = [];
                     try {
                         const parsed = JSON.parse(localStorage.getItem(key) || '[]');
@@ -5679,7 +5684,44 @@ Thank you for riding with us! 🚗
                     }
                     localStorage.setItem(key, JSON.stringify(rows));
                 });
+                invalidateCustomerRuntimeBookingCache();
             }
+
+            function upsertDashboardBookingFromAdminNotification(notification) {
+                const booking = notification && notification.booking && typeof notification.booking === 'object'
+                    ? notification.booking
+                    : {};
+                const bookingId = String(booking.id || booking.bookingId || notification?.metadata?.bookingId || '').trim();
+                upsertDashboardBookingFromAdminPayload(booking, bookingId);
+            }
+
+            function refreshCustomerBookingViewsFromAdminSync() {
+                invalidateCustomerRuntimeBookingCache();
+                if (typeof loadRides === 'function') loadRides();
+                if (typeof loadDashboard === 'function') loadDashboard();
+                if (typeof checkForCompletedRides === 'function') checkForCompletedRides();
+                if (typeof renderCustomerAlerts === 'function') renderCustomerAlerts();
+            }
+
+            window.addEventListener('storage', function(event) {
+                if (!event || !event.key) return;
+                if (event.key === ADMIN_BOOKING_EDIT_SIGNAL_KEY && event.newValue) {
+                    try {
+                        const signal = JSON.parse(event.newValue);
+                        if (signal && signal.booking && typeof signal.booking === 'object') {
+                            upsertDashboardBookingFromAdminPayload(signal.booking, signal.bookingId);
+                        }
+                    } catch (_error) {
+                        // Ignore malformed admin sync signals.
+                    }
+                    refreshCustomerBookingViewsFromAdminSync();
+                    return;
+                }
+
+                if (DASHBOARD_BOOKING_SYNC_KEYS.includes(event.key)) {
+                    refreshCustomerBookingViewsFromAdminSync();
+                }
+            });
 
             PortalConnector.setActivePortal('customer');
             PortalConnector.listen('customer', (notification) => {
@@ -5703,8 +5745,7 @@ Thank you for riding with us! 🚗
 
                 if (isAdminApproval || isAdminRejection || isAdminEdit) {
                     upsertDashboardBookingFromAdminNotification(notification);
-                    if (typeof loadRides === 'function') loadRides();
-                    if (typeof loadDashboard === 'function') loadDashboard();
+                    refreshCustomerBookingViewsFromAdminSync();
                 }
 
                 if (window.PortalAlerts && typeof PortalAlerts.pushAlert === 'function') {
@@ -5741,7 +5782,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
   window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ = window.__GOINDIARIDE_API_ORIGIN__;
 }
 </script>
-<script src="/js/customer-dashboard-live-bridge.js?v=20260512-admin-queue1"></script>
+<script src="/js/customer-dashboard-live-bridge.js?v=20260513-admin-edit-sync1"></script>
 <script data-goi-defer-src="/js/future-feature-runtime.js?v=20260317-ratingfare1" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="/js/future-feature-runtime-extensions.js?v=20260507-allpay13" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1" data-goi-performance="deferred-runtime"></script>

@@ -19,8 +19,19 @@
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
+    const ADMIN_QUEUE_SYNC_SIGNAL_KEY = "goindiaride_admin_review_queue_signal_v1";
+    const ADMIN_BOOKING_EDIT_SIGNAL_KEY = "goindiaride_admin_booking_edit_signal_v1";
     const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
     const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
+    const ADMIN_AUTO_REFRESH_INTERVAL_MS = 10 * 1000;
+    const ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS = 60 * 1000;
+    const CUSTOMER_BOOKING_SYNC_KEYS = [
+        "bookings",
+        "goride_bookings",
+        "goindiaride_active_bookings",
+        "customerBookings",
+        "customer_bookings"
+    ];
     const ADMIN_LOGOUT_KEYS = [
         "currentAdmin",
         "userRole",
@@ -117,7 +128,9 @@
         startupAt: Date.now(),
         editingBookingId: "",
         refreshTimer: null,
-        backendBookingSyncing: false
+        backendBookingSyncing: false,
+        lastAuthenticatedBookingSyncAt: 0,
+        authBookingSyncCooldownUntil: 0
     };
 
     const viewTitles = {
@@ -229,7 +242,7 @@
     }
 
     function sourceLooksBookingRelated(sourceKey) {
-        return /booking|bookings|ride|rides|trip|trips|reservation|admin_review|portal_notifications/i.test(cleanText(sourceKey));
+        return /booking|bookings|ride|rides|trip|trips|reservation|admin_review/i.test(cleanText(sourceKey));
     }
 
     function getBookingIdentity(row) {
@@ -261,6 +274,9 @@
 
     function isBookingLikeRecord(row, sourceKey = "") {
         if (!isPlainObject(row)) return false;
+        if (Array.isArray(row.targetPortals) && firstText(row.type, row.title, row.message) && isPlainObject(row.booking)) {
+            return false;
+        }
         const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin, row.source);
         const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination);
         const identity = getBookingIdentity(row);
@@ -282,6 +298,91 @@
         const hintedSource = sourceLooksBookingRelated(sourceKey);
         return (hasRoute && (identity || tripMeta || status || hasFare))
             || (hintedSource && Boolean(identity) && (hasRoute || tripMeta || status || hasFare));
+    }
+
+    function isPlaceholderText(value) {
+        const text = cleanText(value).toLowerCase();
+        return !text || text === "pickup pending" || text === "drop pending" || text === "not set" || text === "distance pending";
+    }
+
+    function isInternalDiagnosticBooking(row) {
+        const text = [
+            row?.bookingId,
+            row?.id,
+            row?.sourceKey,
+            row?.customerEmail,
+            row?.customerName,
+            row?.notes,
+            row?.mode
+        ].join(" ").toLowerCase();
+        return (
+            /\b(bktest|ridpublic|codex_live_test|codex test|adminDemoBookings|admin demo)\b/i.test(text)
+            || cleanText(row?.bookingId || row?.id).startsWith("LOCAL-")
+        );
+    }
+
+    function bookingCompletenessScore(row) {
+        if (!row || typeof row !== "object") return 0;
+        let score = 0;
+        const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin);
+        const dropoff = firstText(row.dropoff, row.dropLocation, row.drop, row.to, row.destination);
+        if (!isPlaceholderText(pickup)) score += 15;
+        if (!isPlaceholderText(dropoff)) score += 15;
+        if (toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare) > 0) score += 12;
+        if (toAmount(row.distanceKm || row.distance || row.fareQuote?.distanceKm || row.fareBreakdown?.distanceKm) > 0) score += 8;
+        if (firstText(row.customerPhone, row.customerEmail, row.customerSnapshot?.phone, row.customerSnapshot?.email)) score += 10;
+        if (firstText(row.rideDate, row.outboundDateTime)) score += 6;
+        if (firstText(row.rideTime)) score += 4;
+        if (firstText(row.vehicleType, row.rideType, row.vehicleModel)) score += 4;
+        if (Array.isArray(row.stops) && row.stops.length) score += 2;
+        if (isPlainObject(row.fareBreakdown) && Object.keys(row.fareBreakdown).length) score += 4;
+        if (/backend|customer_booking_submit|customer_dashboard_public_sync|fallback_admin_review_queue/i.test(cleanText(row.sourceKey))) score += 5;
+        if (/portal_notifications|notification|signal/i.test(cleanText(row.sourceKey))) score -= 10;
+        if (isInternalDiagnosticBooking(row)) score -= 100;
+        return score;
+    }
+
+    function mergeBookingRowsByQuality(existing = {}, incoming = {}) {
+        const existingScore = bookingCompletenessScore(existing);
+        const incomingScore = bookingCompletenessScore(incoming);
+        const primary = incomingScore >= existingScore ? incoming : existing;
+        const secondary = incomingScore >= existingScore ? existing : incoming;
+        const merged = { ...secondary, ...primary };
+        [
+            "pickup",
+            "pickupLocation",
+            "from",
+            "dropoff",
+            "drop",
+            "dropLocation",
+            "to",
+            "customerName",
+            "customerPhone",
+            "customerEmail",
+            "rideDate",
+            "rideTime",
+            "vehicleType",
+            "paymentMethod"
+        ].forEach((field) => {
+            if (isPlaceholderText(merged[field]) && !isPlaceholderText(secondary[field])) {
+                merged[field] = secondary[field];
+            }
+        });
+        ["fare", "totalFare", "amount", "finalFare", "distanceKm", "distance"].forEach((field) => {
+            if (toAmount(merged[field]) <= 0 && toAmount(secondary[field]) > 0) {
+                merged[field] = secondary[field];
+            }
+        });
+        if (!isPlainObject(merged.customerSnapshot) && isPlainObject(secondary.customerSnapshot)) {
+            merged.customerSnapshot = secondary.customerSnapshot;
+        }
+        if (!isPlainObject(merged.fareBreakdown) && isPlainObject(secondary.fareBreakdown)) {
+            merged.fareBreakdown = secondary.fareBreakdown;
+        }
+        if (!isPlainObject(merged.fareQuote) && isPlainObject(secondary.fareQuote)) {
+            merged.fareQuote = secondary.fareQuote;
+        }
+        return merged;
     }
 
     function pushBookingCandidate(row, sourceKey, target) {
@@ -1058,14 +1159,21 @@
                 credentials: "include",
                 cache: "no-store"
             });
-            if (!response.ok) return { ok: false, rows: [] };
+            if (!response.ok) {
+                return {
+                    ok: false,
+                    rows: [],
+                    status: Number(response.status || 0),
+                    unauthorized: response.status === 401 || response.status === 403
+                };
+            }
             const payload = await response.json().catch(() => ({}));
             const rows = extractBackendPayloadRows(payload)
                 .map((row) => mapBackendBookingRow(row, sourceKey))
                 .filter((row) => cleanText(row.bookingId || row.id));
-            return { ok: true, rows };
+            return { ok: true, rows, status: Number(response.status || 200), unauthorized: false };
         } catch (_error) {
-            return { ok: false, rows: [] };
+            return { ok: false, rows: [], status: 0, unauthorized: false };
         }
     }
 
@@ -1164,23 +1272,23 @@
         items.forEach((item) => {
             if (!item || !item.id) return;
             const existing = map.get(item.id) || {};
-            map.set(item.id, { ...existing, ...item });
+            map.set(item.id, mergeBookingRowsByQuality(existing, item));
         });
-        return Array.from(map.values());
+        return Array.from(map.values()).filter((row) => !isInternalDiagnosticBooking(row));
     }
 
     function loadBookings() {
         const rows = [];
         BOOKING_KEYS.forEach((key) => {
-            readArray(key).forEach((item) => rows.push(normalizeBooking(item, key)));
+            readArray(key).forEach((item) => {
+                const normalized = normalizeBooking(item, key);
+                if (!isInternalDiagnosticBooking(normalized)) rows.push(normalized);
+            });
         });
         const discovered = scanAllStorageForBookingRows()
-            .map((item) => normalizeBooking(item, item.sourceKey || "storage_scan"));
+            .map((item) => normalizeBooking(item, item.sourceKey || "storage_scan"))
+            .filter((item) => !isInternalDiagnosticBooking(item));
         discovered.forEach((item) => rows.push(item));
-        if (discovered.length) {
-            mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, discovered);
-            mergeBookingsIntoStore("goindiaride_active_bookings", discovered);
-        }
 
         return mergeById(rows).sort((a, b) => {
             const at = Date.parse(b.createdAt || "") || 0;
@@ -1198,6 +1306,32 @@
         );
     }
 
+    function createAdminIdempotencyKey(prefix, bookingId) {
+        const safePrefix = cleanText(prefix || "gir-admin-booking").replace(/[^A-Za-z0-9:_-]/g, "_") || "gir-admin-booking";
+        const safeBookingId = cleanText(bookingId || "").replace(/[^A-Za-z0-9:_-]/g, "_") || "booking";
+        return `${safePrefix}:${safeBookingId}:${Date.now()}:${Math.random().toString(36).slice(2, 12)}`;
+    }
+
+    function parseJwtPayload(token) {
+        const parts = cleanText(token).split(".");
+        if (parts.length !== 3) return null;
+        try {
+            const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+            const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+            return JSON.parse(atob(padded));
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function isBackendAccessTokenUsable(token) {
+        const safeToken = cleanText(token);
+        if (!safeToken) return false;
+        const payload = parseJwtPayload(safeToken);
+        if (!payload || !payload.exp) return true;
+        return Number(payload.exp) * 1000 > Date.now() + 30 * 1000;
+    }
+
     function mergeBookingsIntoStore(key, incomingRows) {
         if (!Array.isArray(incomingRows) || !incomingRows.length) return false;
         const existing = readArray(key);
@@ -1212,10 +1346,10 @@
             if (!row || typeof row !== "object") return;
             const id = cleanText(row.bookingId || row.id || row._id);
             if (!id) return;
+            if (isInternalDiagnosticBooking({ ...row, id, bookingId: id })) return;
             const current = byId.get(id) || {};
             const merged = {
-                ...current,
-                ...row,
+                ...mergeBookingRowsByQuality(current, row),
                 id,
                 bookingId: id,
                 ...(/^backend_/i.test(cleanText(row.sourceKey || "")) ? { syncedFromBackendAt: row.syncedFromBackendAt || new Date().toISOString() } : {})
@@ -1230,7 +1364,8 @@
     }
 
     async function syncBackendBookings() {
-        const token = getBackendAccessToken();
+        const rawToken = getBackendAccessToken();
+        const token = isBackendAccessTokenUsable(rawToken) ? rawToken : "";
         if (state.backendBookingSyncing) return false;
         state.backendBookingSyncing = true;
         try {
@@ -1239,8 +1374,14 @@
                 const publicFallbackResult = await fetchPublicFallbackBookingRows({ apiBase });
                 let pendingResult = { ok: false, rows: [] };
                 let allBookingsResult = { ok: false, rows: [] };
+                const shouldRunAuthenticatedSync = Boolean(
+                    token
+                    && Date.now() >= state.authBookingSyncCooldownUntil
+                    && Date.now() - state.lastAuthenticatedBookingSyncAt >= ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS
+                );
 
-                if (token) {
+                if (shouldRunAuthenticatedSync) {
+                    state.lastAuthenticatedBookingSyncAt = Date.now();
                     pendingResult = await fetchBackendBookingRows({
                         apiBase,
                         token,
@@ -1253,6 +1394,9 @@
                         endpoint: "/api/bookings/my?limit=500",
                         sourceKey: "backend_admin_all"
                     });
+                    if (pendingResult.unauthorized || allBookingsResult.unauthorized) {
+                        state.authBookingSyncCooldownUntil = Date.now() + ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS;
+                    }
                 }
 
                 if (!publicFallbackResult.ok && !pendingResult.ok && !allBookingsResult.ok) continue;
@@ -1298,7 +1442,8 @@
                         Accept: "application/json",
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
-                        "x-booking-client": "goindiaride-web"
+                        "x-booking-client": "goindiaride-web",
+                        "x-idempotency-key": createAdminIdempotencyKey("gir-admin-booking-review", safeBookingId)
                     },
                     credentials: "include",
                     body: JSON.stringify({
@@ -1324,6 +1469,48 @@
             }
         }
         return { ok: false, reason: "backend_review_failed" };
+    }
+
+    async function syncBackendBookingEdit(bookingId, booking, changedFields = [], reason = "") {
+        const rawToken = getBackendAccessToken();
+        const token = isBackendAccessTokenUsable(rawToken) ? rawToken : "";
+        const safeBookingId = cleanText(bookingId);
+        if (!token || !safeBookingId) return { ok: false, reason: "missing_backend_token_or_booking" };
+
+        const payload = {
+            ...booking,
+            reason: cleanText(reason || booking?.adminEditReason || "Updated by admin portal."),
+            changedFields: Array.isArray(changedFields) ? changedFields : []
+        };
+        const apiBases = buildBackendApiCandidates();
+        for (const apiBase of apiBases) {
+            try {
+                const response = await fetch(`${apiBase}/api/bookings/${encodeURIComponent(safeBookingId)}/admin/edit`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                        "x-booking-client": "goindiaride-web",
+                        "x-idempotency-key": createAdminIdempotencyKey("gir-admin-booking-edit", safeBookingId)
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) continue;
+                if (data && data.booking) {
+                    const mapped = mapBackendBookingRow(data.booking, data.sourceKey || "backend_admin_edit");
+                    mergeBookingsIntoStore(ADMIN_REVIEW_INBOX_KEY, [mapped]);
+                    mergeBookingsIntoStore("goindiaride_active_bookings", [mapped]);
+                    CUSTOMER_BOOKING_SYNC_KEYS.forEach((key) => upsertBookingIntoStore(key, buildSharedBookingUpdate(safeBookingId, booking, mapped)));
+                }
+                return { ok: true, apiBase, data };
+            } catch (_error) {
+                // Try next API base.
+            }
+        }
+        return { ok: false, reason: "backend_edit_failed" };
     }
 
     function loadDrivers() {
@@ -1644,7 +1831,7 @@
             ["fa-bell", "Admin notifications", `${unreadAdmin} unread portal alerts`],
             ["fa-cloud", "API base", apiBase],
             ["fa-link", "Portal bridge", connection],
-            ["fa-clock", "Auto refresh", state.settings.autoRefresh ? "Every 20 seconds" : "Manual"]
+            ["fa-clock", "Auto refresh", state.settings.autoRefresh ? "Every 10 seconds" : "Manual"]
         ];
         host.innerHTML = rows.map((row) => `
             <div class="pulse-item">
@@ -1969,7 +2156,82 @@
         renderSettings();
     }
 
-    function updateBookingAcrossStores(bookingId, updates) {
+    function buildSharedBookingUpdate(bookingId, baseBooking = {}, updates = {}, updatedAt = new Date().toISOString()) {
+        const merged = {
+            ...(baseBooking && typeof baseBooking === "object" ? baseBooking : {}),
+            ...(updates && typeof updates === "object" ? updates : {})
+        };
+        const pickup = firstText(merged.pickup, merged.pickupLocation, merged.from, merged.origin);
+        const dropoff = firstText(merged.dropoff, merged.dropLocation, merged.drop, merged.to, merged.destination);
+        const amount = toAmount(merged.totalFare || merged.amount || merged.finalFare || merged.fare);
+        const distanceKm = toAmount(merged.distanceKm || merged.distance || merged.fareQuote?.distanceKm || merged.fareBreakdown?.distanceKm);
+        return {
+            ...merged,
+            id: bookingId,
+            bookingId,
+            pickup,
+            pickupLocation: pickup,
+            from: pickup,
+            dropoff,
+            drop: dropoff,
+            dropLocation: dropoff,
+            to: dropoff,
+            fare: amount,
+            totalFare: amount,
+            amount,
+            finalFare: amount,
+            distanceKm,
+            distance: distanceKm,
+            customerSnapshot: {
+                ...(isPlainObject(merged.customerSnapshot) ? merged.customerSnapshot : {}),
+                name: merged.customerName || merged.customerSnapshot?.name || "",
+                phone: merged.customerPhone || merged.customerSnapshot?.phone || "",
+                email: merged.customerEmail || merged.customerSnapshot?.email || ""
+            },
+            sourceKey: merged.sourceKey || "admin_booking_sync",
+            adminCustomerSyncStatus: "synced",
+            adminCustomerSyncedAt: updatedAt,
+            updatedAt
+        };
+    }
+
+    function upsertBookingIntoStore(key, booking) {
+        if (!key || !booking || !booking.bookingId) return false;
+        const rows = readArray(key);
+        const index = rows.findIndex((row) => cleanText(row.bookingId || row.id || row._id) === booking.bookingId);
+        const nextRows = rows.slice();
+        if (index >= 0) {
+            const current = nextRows[index] || {};
+            const merged = { ...current, ...booking };
+            if (JSON.stringify(current) === JSON.stringify(merged)) return false;
+            nextRows[index] = merged;
+        } else {
+            nextRows.unshift(booking);
+        }
+        writeArray(key, nextRows);
+        return true;
+    }
+
+    function broadcastAdminBookingCustomerSync(booking, action, changedFields = [], reason = "") {
+        const bookingId = cleanText(booking?.bookingId || booking?.id || "");
+        if (!bookingId) return;
+        try {
+            localStorage.setItem(ADMIN_BOOKING_EDIT_SIGNAL_KEY, JSON.stringify({
+                bookingId,
+                action: cleanText(action || "admin_booking_updated", 80),
+                changedFields: Array.isArray(changedFields) ? changedFields.slice(0, 40) : [],
+                reason: cleanText(reason || "Updated by admin portal.", 180),
+                booking,
+                updatedAt: new Date().toISOString()
+            }));
+        } catch (_error) {
+            // Storage can be unavailable in private browser modes.
+        }
+    }
+
+    function updateBookingAcrossStores(bookingId, updates, sourceBooking = {}) {
+        const updatedAt = new Date().toISOString();
+        const sharedBooking = buildSharedBookingUpdate(bookingId, sourceBooking, updates, updatedAt);
         let touched = false;
         BOOKING_KEYS.forEach((key) => {
             const rows = readArray(key);
@@ -1981,15 +2243,19 @@
                 touched = true;
                 return {
                     ...row,
-                    ...updates,
-                    id: row.id || bookingId,
+                    ...sharedBooking,
+                    id: bookingId,
                     bookingId,
-                    updatedAt: new Date().toISOString()
+                    updatedAt
                 };
             });
             if (changed) writeArray(key, nextRows);
         });
-        return touched;
+
+        CUSTOMER_BOOKING_SYNC_KEYS.forEach((key) => {
+            if (upsertBookingIntoStore(key, sharedBooking)) touched = true;
+        });
+        return { touched, booking: sharedBooking };
     }
 
     function addAudit(action, details) {
@@ -2178,7 +2444,7 @@
         refreshData();
     }
 
-    function handleBookingEditSubmit(form) {
+    async function handleBookingEditSubmit(form) {
         const data = collectBookingEditForm(form);
         const booking = state.bookings.find((item) => item.bookingId === data.bookingId);
         if (!booking) {
@@ -2192,8 +2458,8 @@
             return;
         }
 
-        const touched = updateBookingAcrossStores(data.bookingId, patch.updates);
-        const updatedBooking = { ...booking, ...patch.updates, bookingId: data.bookingId, id: data.bookingId };
+        const syncResult = updateBookingAcrossStores(data.bookingId, patch.updates, booking);
+        const updatedBooking = syncResult.booking || { ...booking, ...patch.updates, bookingId: data.bookingId, id: data.bookingId };
         const changedLabel = patch.changedFields.map(humanizeKey).join(", ");
         const customerMessage = `Booking ${data.bookingId} details updated by admin: ${changedLabel}.`;
 
@@ -2205,9 +2471,15 @@
             changedFields: patch.changedFields,
             reason: patch.reason
         });
+        broadcastAdminBookingCustomerSync(updatedBooking, "admin_edit", patch.changedFields, patch.reason);
+        const backendEdit = await syncBackendBookingEdit(data.bookingId, updatedBooking, patch.changedFields, patch.reason);
         closeBookingEditor();
         refreshData();
-        showToast(touched ? "Booking details updated." : "Edit saved in notification/audit only.");
+        showToast(
+            backendEdit.ok
+                ? "Booking details updated in admin, customer portal, and backend."
+                : (syncResult.touched ? "Booking details updated and synced to customer portal." : "Edit saved in notification/audit only.")
+        );
     }
 
     async function handleBookingDecision(bookingId, decision) {
@@ -2224,7 +2496,7 @@
             adminDecisionAt: new Date().toISOString()
         };
 
-        const touched = updateBookingAcrossStores(bookingId, updates);
+        const syncResult = updateBookingAcrossStores(bookingId, updates, booking);
         const customerMessage = approved
             ? `Booking ${bookingId} approved by admin. Driver assignment will start shortly.`
             : `Booking ${bookingId} was not approved by admin. Please check booking details or contact support.`;
@@ -2240,10 +2512,11 @@
         const backendReview = await reviewBackendBooking(bookingId, decision, customerMessage);
         addAudit(approved ? "BOOKING_APPROVED" : "BOOKING_REJECTED", message);
         if (!bridgeNotified) {
-            notifyPortal(approved ? "booking_approved" : "booking_rejected", { ...booking, ...updates }, customerMessage, ["customer", "driver", "admin"]);
+            notifyPortal(approved ? "booking_approved" : "booking_rejected", syncResult.booking || { ...booking, ...updates }, customerMessage, ["customer", "driver", "admin"]);
         }
+        broadcastAdminBookingCustomerSync(syncResult.booking || { ...booking, ...updates }, approved ? "admin_approve" : "admin_reject", ["adminReviewStatus", "status"], customerMessage);
         refreshData();
-        showToast(backendReview.ok || touched ? message : "Decision recorded locally; backend review sync is still pending.");
+        showToast(backendReview.ok || syncResult.touched ? message : "Decision recorded locally; backend review sync is still pending.");
     }
 
     function seedDriver() {
@@ -2436,7 +2709,7 @@
 
         window.addEventListener("storage", (event) => {
             const controlKey = window.AdminControlBridge && window.AdminControlBridge.keys ? window.AdminControlBridge.keys.CONTROL_KEY : "";
-            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, controlKey].includes(event.key)
+            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, ADMIN_QUEUE_SYNC_SIGNAL_KEY, ADMIN_BOOKING_EDIT_SIGNAL_KEY, controlKey].includes(event.key)
                 || sourceLooksBookingRelated(event.key || "")) {
                 refreshData();
             }
@@ -2450,7 +2723,7 @@
             state.refreshTimer = null;
         }
         if (state.settings.autoRefresh) {
-            state.refreshTimer = setInterval(refreshData, 20000);
+            state.refreshTimer = setInterval(refreshData, ADMIN_AUTO_REFRESH_INTERVAL_MS);
         }
     }
 

@@ -2626,6 +2626,7 @@
         let currentRideForDonation = null;
         let appliedPromo = null;
         let latestFareEstimate = null;
+        const ADMIN_REVIEW_QUEUE_SIGNAL_KEY = 'goindiaride_admin_review_queue_signal_v1';
 
         const PROMO_OFFERS = {
             RIDE50: { type: 'flat', value: 50, description: 'Flat INR 50 off on any ride' },
@@ -3984,6 +3985,22 @@
             return createIdempotencyKey(prefix);
         }
 
+        function broadcastAdminReviewQueueSync(bookingId, details = {}) {
+            const safeBookingId = sanitizeInput(bookingId || '', 120);
+            if (!safeBookingId) return;
+            try {
+                localStorage.setItem(ADMIN_REVIEW_QUEUE_SIGNAL_KEY, JSON.stringify({
+                    bookingId: safeBookingId,
+                    apiBase: sanitizeInput(details.apiBase || '', 240),
+                    state: sanitizeInput(details.state || 'queued', 80),
+                    reason: sanitizeInput(details.reason || 'customer_booking_submit', 140),
+                    updatedAt: new Date().toISOString()
+                }));
+            } catch (_error) {
+                // Storage can be unavailable in strict/private browser modes.
+            }
+        }
+
         function isDuplicateIdempotencyConflictResponse(statusCode, payload = {}) {
             if (Number(statusCode || 0) !== 409) return false;
             const reasonText = String(payload?.reason || payload?.message || '').toLowerCase();
@@ -4065,6 +4082,7 @@
             includeJson = true,
             includeIdempotency = false,
             idPrefix = 'gir-api',
+            idempotencyKey = '',
             extraHeaders = {},
             timeoutMs = 8000,
             retryStatuses = [404, 405, 408, 429, 500, 502, 503, 504]
@@ -4108,7 +4126,8 @@
                                 token,
                                 includeJson,
                                 includeIdempotency,
-                                idPrefix
+                                idPrefix,
+                                idempotencyKey
                             }),
                             ...extraHeaders
                         },
@@ -4768,6 +4787,11 @@
                     adminQueueSyncStatus: queueState,
                     adminQueueSyncedAt: new Date().toISOString(),
                     backendStatus: `admin_review_queue_${queueState}`
+                });
+                broadcastAdminReviewQueueSync(bookingId, {
+                    apiBase: result.apiBase,
+                    state: queueState,
+                    reason
                 });
                 return { ok: true, bookingId, apiBase: result.apiBase, data };
             }
