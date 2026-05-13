@@ -876,10 +876,24 @@
             --pro-teal: #157f9f;
             --pro-gold: #f3b24b;
             --pro-soft: #f5f9ff;
+            overflow-x: hidden !important;
         }
 
+        html,
+        body.booking-page,
+        body.booking-page.professional-booking {
+            max-width: 100%;
+            overflow-x: hidden !important;
+        }
+
+        body.booking-page.professional-booking {
+            padding: clamp(10px, 1.4vw, 18px) !important;
+        }
+
+        body.booking-page .container,
         body.booking-page.professional-booking .container {
-            max-width: 1560px;
+            width: 100% !important;
+            max-width: min(1500px, 100%) !important;
         }
 
         body.booking-page.professional-booking .header {
@@ -1355,11 +1369,13 @@
                 #f7f9fc !important;
             color: var(--booking-ink);
             padding: clamp(10px, 1.25vw, 18px) !important;
+            max-width: 100%;
+            overflow-x: hidden !important;
         }
 
         body.booking-page.professional-booking .container {
-            width: min(1440px, calc(100vw - 20px));
-            max-width: 1440px !important;
+            width: 100% !important;
+            max-width: min(1440px, 100%) !important;
         }
 
         body.booking-page.professional-booking .booking-top-actions {
@@ -1444,7 +1460,7 @@
         }
 
         body.booking-page.professional-booking .booking-grid {
-            grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr) !important;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr) !important;
             gap: 0.85rem !important;
             align-items: start !important;
         }
@@ -1747,18 +1763,65 @@
         }
 
         body.booking-page.professional-booking .map-container {
-            height: 175px !important;
+            min-height: 175px !important;
+            height: auto !important;
             padding: 1rem !important;
             background: linear-gradient(135deg, #edf7fb 0%, #fff7ea 100%) !important;
         }
 
-        body.booking-page.professional-booking .map-container i {
+        body.booking-page.professional-booking .map-container > i {
             font-size: 2.15rem;
             color: var(--booking-blue) !important;
         }
 
         body.booking-page.professional-booking .map-container p {
             color: #254860 !important;
+        }
+
+        .route-preview-card {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            color: #254860;
+        }
+
+        .route-preview-icon {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 48px;
+            border-radius: 12px;
+            background: #ffffff;
+            color: var(--booking-blue);
+            box-shadow: 0 8px 18px rgba(31, 45, 61, 0.12);
+        }
+
+        .route-preview-icon i {
+            font-size: 1.3rem;
+        }
+
+        .route-preview-content {
+            display: grid;
+            gap: 0.28rem;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .route-preview-content strong,
+        .route-preview-content span {
+            overflow-wrap: anywhere;
+        }
+
+        .route-preview-content a {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: #17416a;
+            font-weight: 800;
+            text-decoration: none;
         }
 
         body.booking-page.professional-booking .market-highlights {
@@ -1817,7 +1880,7 @@
 
         @media (max-width: 1180px) {
             body.booking-page.professional-booking .booking-grid {
-                grid-template-columns: minmax(0, 1fr) minmax(330px, 0.8fr) !important;
+                grid-template-columns: minmax(0, 1fr) minmax(300px, 0.78fr) !important;
             }
 
             body.booking-page.professional-booking .section-selector-bar {
@@ -2286,18 +2349,18 @@
                 <div class="fare-card">
                     <div class="fare-title">
                         <i class="fas fa-receipt"></i>
-                        Fare Estimate
+                        Live Fare
                     </div>
                     <div class="booking-context-chips" id="bookingContextChips"></div>
 
                     <div class="fare-item">
                         <span class="label">Base Fare</span>
-                        <span class="amount" id="baseFare">₹50</span>
+                        <span class="amount" id="baseFare">₹0</span>
                     </div>
 
                     <div class="fare-item">
-                        <span class="label">Distance (<span id="distanceKm">5</span> km)</span>
-                        <span class="amount" id="distanceFare">₹50</span>
+                        <span class="label">Distance (<span id="distanceKm">0</span> km)</span>
+                        <span class="amount" id="distanceFare">₹0</span>
                     </div>
                     <p class="fare-subnote">Distance source: <span id="distanceSource">Awaiting route</span></p>
                     <p class="fare-subnote" id="distanceBreakdownNote">Included distance and extra kilometer charges will appear here.</p>
@@ -2386,7 +2449,7 @@
 
                     <div class="fare-item">
                         <span class="label">GST / Service Tax</span>
-                        <span class="amount" id="taxesFare">₹20</span>
+                        <span class="amount" id="taxesFare">₹0</span>
                     </div>
 
                     <div class="fare-item discount-row">
@@ -2396,12 +2459,12 @@
 
                     <div class="fare-item total">
                         <span class="label">Total Amount</span>
-                        <span class="amount" id="totalFare">₹120</span>
+                        <span class="amount" id="totalFare">₹0</span>
                     </div>
 
-                    <p style="color: #999; font-size: 0.85rem; margin-top: 1rem;">
+                    <p style="color: #68788a; font-size: 0.85rem; margin-top: 1rem;">
                         <i class="fas fa-info-circle"></i>
-                        This is an estimate. Final fare may vary based on actual distance.
+                        Fare is calculated from the selected route and saved with the booking for admin review.
                     </p>
                 </div>
 
@@ -2418,17 +2481,17 @@
 
                     <div class="driver-details" id="driverDetails">
                         <div class="driver-info">
-                            <div class="driver-avatar" id="driverAvatar">D</div>
+                            <div class="driver-avatar" id="driverAvatar">AD</div>
                             <div class="driver-text">
-                                <h4 id="driverName">Driver Name</h4>
-                                <p id="driverRating">⭐⭐⭐⭐⭐ 5.0</p>
+                                <h4 id="driverName">Awaiting admin assignment</h4>
+                                <p id="driverRating">Driver details appear after approval</p>
                             </div>
                         </div>
 
                         <div class="driver-vehicle">
-                            <p><strong>Vehicle:</strong> <span id="vehicleType">Car</span></p>
-                            <p><strong>Registration:</strong> <span id="vehicleNumber">RJ 01 AB 1234</span></p>
-                            <p><strong>ETA:</strong> <span id="driverETA">5 mins</span></p>
+                            <p><strong>Vehicle:</strong> <span id="vehicleType">Pending</span></p>
+                            <p><strong>Registration:</strong> <span id="vehicleNumber">Pending</span></p>
+                            <p><strong>ETA:</strong> <span id="driverETA">Pending</span></p>
                         </div>
 
                         <div class="driver-actions">
@@ -2444,9 +2507,16 @@
 
                 <!-- Map -->
                 <div class="map-container" id="mapContainer">
-                    <i class="fas fa-map"></i>
-                    <p>Route Map</p>
-                    <small style="opacity: 0.7;">Enter location to see route</small>
+                    <div class="route-preview-card">
+                        <div class="route-preview-icon"><i class="fas fa-route"></i></div>
+                        <div class="route-preview-content">
+                            <strong id="routePreviewTitle">Live route preview</strong>
+                            <span id="routePreviewText">Enter pickup and dropoff to calculate fare and route.</span>
+                            <a id="routePreviewLink" href="#" target="_blank" rel="noopener" style="display: none;">
+                                <i class="fas fa-arrow-up-right-from-square"></i> Open route
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="market-highlights">
@@ -2468,9 +2538,9 @@
             <div class="modal-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <div class="modal-title">Booking Confirmed!</div>
+            <div class="modal-title">Booking Sent for Approval</div>
             <div class="modal-text">
-                Your ride has been booked successfully. 
+                Your ride request has been saved successfully.
                 <br><br>
                 <strong id="bookingReference">Reference: #RID12345</strong>
                 <br><br>
@@ -2996,6 +3066,7 @@
             }
 
             updateFormProgress();
+            updateRoutePreview();
         }
 
         function bindProfessionalInputs() {
@@ -3138,7 +3209,7 @@
                 passengers: Number.parseInt(document.getElementById('passengers').value, 10) || 1,
                 luggage: document.getElementById('luggage').value,
                 budgetAmount: Number.parseFloat(document.getElementById('budgetAmount').value || 0) || 0,
-                distanceKm: Number.parseFloat(document.getElementById('distanceKm').textContent) || 5,
+                distanceKm: Number.parseFloat(document.getElementById('distanceKm').textContent) || 0,
                 distanceSource: sanitizeInput(document.getElementById('distanceSource').textContent || 'fallback'),
                 stops: [stop1, stop2].filter(Boolean),
                 specialRequests: {
@@ -3161,15 +3232,20 @@
             };
         }
 
+        function routeIsReady(inputs = {}) {
+            return Boolean(sanitizeInput(inputs.pickup || '').trim() && sanitizeInput(inputs.drop || inputs.dropoff || '').trim());
+        }
+
         function renderFareEstimate(estimate = {}) {
             const values = estimate && typeof estimate === 'object' ? estimate : {};
+            const hasRoute = routeIsReady(values);
             const setText = (id, text) => {
                 const node = document.getElementById(id);
                 if (node) node.textContent = text;
             };
 
-            if (Number.isFinite(Number(values.distanceKm)) && Number(values.distanceKm) > 0) {
-                setText('distanceKm', String(Math.max(1, Math.round(Number(values.distanceKm)))));
+            if (Number.isFinite(Number(values.distanceKm))) {
+                setText('distanceKm', String(Math.max(0, Math.round(Number(values.distanceKm)))));
             }
             if (values.distanceSource) {
                 setText('distanceSource', String(values.distanceSource).replace(/_/g, ' '));
@@ -3178,10 +3254,20 @@
             setText('baseFare', formatCurrency(values.baseFare || 0));
             setText('distanceFare', formatCurrency(values.distanceFare || 0));
             setText('extraDistanceFare', formatCurrency(values.extraDistanceFare || 0));
-            setText('distanceBreakdownNote', `Included: ${Number(values.includedDistanceKm || 0)} km • Extra: ${Number(values.extraDistanceKm || 0)} km`);
+            setText(
+                'distanceBreakdownNote',
+                hasRoute
+                    ? `Included: ${Number(values.includedDistanceKm || 0)} km • Extra: ${Number(values.extraDistanceKm || 0)} km`
+                    : 'Enter pickup and dropoff to calculate live distance.'
+            );
             setText('timeFare', formatCurrency(values.timeFare || 0));
             setText('extraTimeFare', formatCurrency(values.extraTimeFare || 0));
-            setText('timeBreakdownNote', `Included: ${Number(values.includedDurationMin || 0)} min • Extra: ${Number(values.extraTimeMin || 0)} min`);
+            setText(
+                'timeBreakdownNote',
+                hasRoute
+                    ? `Included: ${Number(values.includedDurationMin || 0)} min • Extra: ${Number(values.extraTimeMin || 0)} min`
+                    : 'Time and traffic charges appear after route calculation.'
+            );
             setText('passengerFare', formatCurrency(values.passengerFare || 0));
             setText('tripPlanFare', formatCurrency(values.tripPlanFare || 0));
             setText('luggageFare', formatCurrency(values.luggageFare || 0));
@@ -3195,7 +3281,7 @@
             const tollSource = String(values.tollSource || '').replace(/_/g, ' ');
             const tollNote = tollPlazas.length
                 ? `Mapped toll plazas: ${tollNames}${tollPlazas.length > 4 ? ` +${tollPlazas.length - 4} more` : ''}${values.tollUsedReturnRate ? ' • return rate' : ''}`
-                : (tollSource ? `Toll source: ${tollSource}` : 'Toll source: awaiting mapped route');
+                : (hasRoute && tollSource ? `Toll source: ${tollSource}` : 'Toll source: awaiting mapped route');
             setText('tollBreakdownNote', tollNote);
             setText('parkingFare', formatCurrency(values.parkingCharge || 0));
             setText('stateTaxFare', formatCurrency(values.otherStateTax || values.stateTax || 0));
@@ -3212,7 +3298,51 @@
             return Number(values.totalFare || values.amount || 0);
         }
 
+        function createAwaitingFareEstimate(inputs = {}) {
+            return {
+                ...inputs,
+                distanceKm: 0,
+                distanceSource: 'Awaiting route',
+                baseFare: 0,
+                distanceFare: 0,
+                includedDistanceKm: 0,
+                extraDistanceKm: 0,
+                extraDistanceFare: 0,
+                includedDurationMin: 0,
+                estimatedDurationMin: 0,
+                extraTimeMin: 0,
+                extraTimeFare: 0,
+                timeFare: 0,
+                passengerFare: 0,
+                tripPlanFare: 0,
+                luggageFare: 0,
+                extrasFare: 0,
+                safetyFare: 0,
+                stopFare: 0,
+                returnTripFare: 0,
+                roundTripCharge: 0,
+                tollCharge: 0,
+                parkingCharge: 0,
+                stateTax: 0,
+                otherStateTax: 0,
+                nightCharge: 0,
+                driverNightBatta: 0,
+                paymentFee: 0,
+                taxesFare: 0,
+                promoDiscount: 0,
+                totalFare: 0,
+                amount: 0,
+                finalFare: 0,
+                customerBidAmount: Number(inputs.budgetAmount || 0),
+                budgetAmount: Number(inputs.budgetAmount || 0),
+                budgetGap: Number(inputs.budgetAmount || 0)
+            };
+        }
+
         function buildFallbackFareEstimate(inputs = {}) {
+            if (!routeIsReady(inputs)) {
+                return createAwaitingFareEstimate(inputs);
+            }
             const distance = Math.max(1, Number(inputs.distanceKm || 5));
             const baseFare = 50;
             const includedDistanceKm = Math.min(distance, 5);
@@ -3269,6 +3399,9 @@
         function updateFare() {
             const calculator = getFareCalculator();
             const inputs = readFareEstimateInputs();
+            if (!routeIsReady(inputs)) {
+                return renderFareEstimate(createAwaitingFareEstimate(inputs));
+            }
             const estimate = calculator ? calculator.estimateBookingFare(inputs) : buildFallbackFareEstimate(inputs);
 
             if (appliedPromo) {
@@ -3298,20 +3431,48 @@
 
         let distanceEstimateToken = 0;
 
+        function updateRoutePreview(statusText = '') {
+            const pickup = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
+            const dropoff = sanitizeInput(document.getElementById('dropoff')?.value || '').trim();
+            const distance = sanitizeInput(document.getElementById('distanceKm')?.textContent || '0');
+            const source = sanitizeInput(document.getElementById('distanceSource')?.textContent || '');
+            const titleNode = document.getElementById('routePreviewTitle');
+            const textNode = document.getElementById('routePreviewText');
+            const linkNode = document.getElementById('routePreviewLink');
+
+            if (!titleNode || !textNode || !linkNode) return;
+
+            if (!pickup || !dropoff) {
+                titleNode.textContent = 'Live route preview';
+                textNode.textContent = 'Enter pickup and dropoff to calculate fare and route.';
+                linkNode.style.display = 'none';
+                linkNode.removeAttribute('href');
+                return;
+            }
+
+            const cleanedSource = source && source !== 'Awaiting route' ? ` • ${source}` : '';
+            titleNode.textContent = `${pickup} to ${dropoff}`;
+            textNode.textContent = statusText || `${distance || '0'} km route ready${cleanedSource}`;
+            linkNode.href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
+            linkNode.style.display = 'inline-flex';
+        }
+
         async function updateDistanceEstimate() {
             const pickup = sanitizeInput(document.getElementById('pickup').value).trim();
             const dropoff = sanitizeInput(document.getElementById('dropoff').value).trim();
             const sourceNode = document.getElementById('distanceSource');
 
             if (!pickup || !dropoff) {
-                document.getElementById('distanceKm').textContent = '5';
+                document.getElementById('distanceKm').textContent = '0';
                 if (sourceNode) sourceNode.textContent = 'Awaiting route';
+                updateRoutePreview();
                 updateFare();
                 return;
             }
 
             const token = ++distanceEstimateToken;
             if (sourceNode) sourceNode.textContent = 'Calculating...';
+            updateRoutePreview('Calculating live distance...');
 
             try {
                 if (window.LocationDistanceEstimator && typeof LocationDistanceEstimator.estimateDistanceKm === 'function') {
@@ -3334,6 +3495,7 @@
                 if (sourceNode) sourceNode.textContent = 'fallback';
             }
 
+            updateRoutePreview();
             updateFare();
         }
 
@@ -5556,8 +5718,8 @@
             document.getElementById('driverName').textContent = driver.name;
             document.getElementById('driverRating').textContent = `⭐⭐⭐⭐⭐ ${driver.rating || 5.0}`;
             document.getElementById('vehicleType').textContent = driver.vehicle?.model || driver.vehicleType || 'Car';
-            document.getElementById('vehicleNumber').textContent = driver.vehicle?.number || driver.vehicleNumber || 'RJ 01 AB 1234';
-            document.getElementById('driverETA').textContent = booking?.driverETA || '5 mins';
+            document.getElementById('vehicleNumber').textContent = driver.vehicle?.number || driver.vehicleNumber || 'Pending';
+            document.getElementById('driverETA').textContent = booking?.driverETA || 'Pending';
 
             const initials = driver.name.split(' ').map(n => n[0]).join('').toUpperCase();
             document.getElementById('driverAvatar').textContent = initials;
