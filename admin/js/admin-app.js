@@ -1037,7 +1037,8 @@
                     Accept: "application/json",
                     Authorization: `Bearer ${token}`
                 },
-                credentials: "include"
+                credentials: "include",
+                cache: "no-store"
             });
             if (!response.ok) return { ok: false, rows: [] };
             const payload = await response.json().catch(() => ({}));
@@ -1058,7 +1059,8 @@
                     Accept: "application/json",
                     "x-booking-client": "goindiaride-web"
                 },
-                credentials: "include"
+                credentials: "include",
+                cache: "no-store"
             });
             if (!response.ok) return { ok: false, rows: [] };
             const payload = await response.json().catch(() => ({}));
