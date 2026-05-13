@@ -3530,6 +3530,16 @@
             return normalized.includes('cloudfunctions.net') || normalized.includes('api.goindiaride.in');
         }
 
+        function isFrontendOnlyApiBase(base) {
+            try {
+                const parsed = new URL(normalizeApiBase(base));
+                const host = String(parsed.hostname || '').toLowerCase();
+                return host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
+            } catch (_error) {
+                return false;
+            }
+        }
+
         function getBackendApiBaseCandidates() {
             const host = String(window.location.hostname || '').toLowerCase();
             const originBase = normalizeApiBase(window.location.origin || '');
@@ -3560,21 +3570,22 @@
                 if (!base) return;
                 if (!/^https?:\/\//i.test(base)) return;
                 if (isDeprecatedApiBase(base)) return;
+                if (avoidSameOriginFallback && isFrontendOnlyApiBase(base)) return;
                 if (isApiBaseQuarantined(base)) return;
                 if (!candidates.includes(base)) {
                     candidates.push(base);
                 }
             };
 
-            // Next priority: explicit/runtime overrides (after sanitization).
-            pushUnique(fromRuntime);
-            pushUnique(fromStorage);
-            pushUnique(fromWindow);
-
             // Production website must prioritize Render backend directly.
             if (isPrimaryWebsiteHost || isGitHubPagesHost) {
                 pushUnique(renderPrimaryBase);
             }
+
+            // Next priority: explicit/runtime overrides (after sanitization).
+            pushUnique(fromRuntime);
+            pushUnique(fromStorage);
+            pushUnique(fromWindow);
 
             // Local dev default backend.
             if (host === 'localhost' || host === '127.0.0.1') {

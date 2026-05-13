@@ -925,7 +925,7 @@
             autoRefresh: parsed.autoRefresh !== false,
             compactRows: parsed.compactRows === true,
             portalPopupAlerts: parsed.portalPopupAlerts === true,
-            apiBase: cleanText(
+            apiBase: resolveAdminApiBase(
                 parsed.apiBase
                 || localStorage.getItem("goindiaride_admin_api_base")
                 || localStorage.getItem("goindiaride_api_base")
@@ -935,9 +935,11 @@
     }
 
     function saveSettings() {
+        state.settings.apiBase = resolveAdminApiBase(state.settings.apiBase || DEFAULT_API_BASE);
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
         if (state.settings.apiBase) {
             localStorage.setItem("goindiaride_api_base", state.settings.apiBase.replace(/\/$/, ""));
+            localStorage.setItem("goindiaride_admin_api_base", state.settings.apiBase.replace(/\/$/, ""));
         }
     }
 
@@ -959,28 +961,44 @@
         return cleanText(value || DEFAULT_API_BASE).replace(/\/$/, "");
     }
 
+    function isFrontendOnlyApiBase(base) {
+        try {
+            const parsed = new URL(normalizeApiBase(base));
+            const host = cleanText(parsed.hostname || "").toLowerCase();
+            return host === "goindiaride.in" || host === "www.goindiaride.in";
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function resolveAdminApiBase(value) {
+        const normalized = normalizeApiBase(value || DEFAULT_API_BASE);
+        return isFrontendOnlyApiBase(normalized) ? DEFAULT_API_BASE : normalized;
+    }
+
     function buildBackendApiCandidates() {
         const host = cleanText(window.location?.hostname || "").toLowerCase();
         const sameOriginBase = cleanText(window.location?.origin || "").replace(/\/$/, "");
-        const preferredConfigured = cleanText(
+        const preferredConfigured = resolveAdminApiBase(
             state.settings.apiBase
             || localStorage.getItem("goindiaride_admin_api_base")
             || localStorage.getItem("goindiaride_api_base")
             || ""
-        ).replace(/\/$/, "");
-        const explicitWindowBase = cleanText(
+        );
+        const explicitWindowBase = resolveAdminApiBase(
             window.GOINDIARIDE_API_BASE
             || window.__GOINDIARIDE_RUNTIME_API_ORIGIN__
             || window.__GOINDIARIDE_API_ORIGIN__
             || ""
-        ).replace(/\/$/, "");
+        );
         const primaryCloudBase = normalizeApiBase(DEFAULT_API_BASE);
         const primaryWebsiteHost = host === "goindiaride.in" || host === "www.goindiaride.in";
         const ordered = primaryWebsiteHost
-            ? [sameOriginBase, preferredConfigured, explicitWindowBase, primaryCloudBase]
+            ? [primaryCloudBase, preferredConfigured, explicitWindowBase]
             : [preferredConfigured, explicitWindowBase, sameOriginBase, primaryCloudBase];
         const seen = new Set();
         return ordered.filter((base) => {
+            if (primaryWebsiteHost && isFrontendOnlyApiBase(base)) return false;
             if (!base || seen.has(base)) return false;
             seen.add(base);
             return true;
@@ -1358,7 +1376,7 @@
 
     function connectAllPortalFeatures(options = {}) {
         const now = new Date().toISOString();
-        const apiBase = normalizeApiBase(state.settings.apiBase || localStorage.getItem("goindiaride_api_base"));
+        const apiBase = resolveAdminApiBase(state.settings.apiBase || localStorage.getItem("goindiaride_api_base"));
         const controls = loadAdminControls();
         const nextControls = {
             ...controls,
