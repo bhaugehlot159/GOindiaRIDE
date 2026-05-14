@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOindiaRIDE Admin App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-app.css?v=20260513-booking-search1">
+    <link rel="stylesheet" href="./css/admin-app.css?v=20260514-booking-split1">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -220,6 +220,20 @@
                             <button class="primary-action" id="exportBookingsBtn" type="button"><i class="fas fa-download"></i> Export</button>
                         </div>
                     </div>
+                    <div class="booking-split-summary" aria-label="Customer and driver booking split">
+                        <article>
+                            <span>Customer bookings</span>
+                            <strong id="customerBookingCount">0</strong>
+                        </article>
+                        <article>
+                            <span>Driver requests</span>
+                            <strong id="driverBookingCount">0</strong>
+                        </article>
+                        <article>
+                            <span>Split saved</span>
+                            <strong id="bookingSplitSavedAt">Not set</strong>
+                        </article>
+                    </div>
                     <div class="table-wrap">
                         <table class="data-table">
                             <thead>
@@ -233,6 +247,29 @@
                                 </tr>
                             </thead>
                             <tbody id="bookingTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="workspace-panel driver-booking-panel">
+                    <div class="panel-title-row">
+                        <div>
+                            <span class="section-kicker">Driver side</span>
+                            <h2>Driver Booking Requests</h2>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table driver-booking-table">
+                            <thead>
+                                <tr>
+                                    <th>Request</th>
+                                    <th>Driver</th>
+                                    <th>Vehicle</th>
+                                    <th>Route / Source</th>
+                                    <th>Status</th>
+                                    <th>Scope</th>
+                                </tr>
+                            </thead>
+                            <tbody id="driverBookingTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -330,6 +367,6 @@
 
     <script src="../js/portal-connector.js"></script>
     <script src="../js/admin-control-bridge.js?v=20260512-data-preserve1"></script>
-    <script src="./js/admin-app.js?v=20260513-booking-search1"></script>
+    <script src="./js/admin-app.js?v=20260514-booking-split1"></script>
 </body>
 </html>

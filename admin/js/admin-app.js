@@ -21,6 +21,14 @@
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
     const ADMIN_QUEUE_SYNC_SIGNAL_KEY = "goindiaride_admin_review_queue_signal_v1";
     const ADMIN_BOOKING_EDIT_SIGNAL_KEY = "goindiaride_admin_booking_edit_signal_v1";
+    const CUSTOMER_BOOKING_SPLIT_KEY = "goindiaride_admin_customer_bookings_current_v1";
+    const DRIVER_BOOKING_SPLIT_KEY = "goindiaride_admin_driver_bookings_current_v1";
+    const BOOKING_SPLIT_VIEW_KEY = "goindiaride_admin_booking_split_views_current_v1";
+    const ADMIN_INTERNAL_BOOKING_SCAN_SKIP_KEYS = new Set([
+        CUSTOMER_BOOKING_SPLIT_KEY,
+        DRIVER_BOOKING_SPLIT_KEY,
+        BOOKING_SPLIT_VIEW_KEY
+    ]);
     const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
     const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
     const ADMIN_AUTO_REFRESH_INTERVAL_MS = 10 * 1000;
@@ -113,6 +121,7 @@
 
     const state = {
         bookings: [],
+        driverBookings: [],
         drivers: [],
         users: [],
         notifications: [],
@@ -246,6 +255,14 @@
         return /booking|bookings|ride|rides|trip|trips|reservation|admin_review/i.test(cleanText(sourceKey));
     }
 
+    function sourceLooksDriverBookingRelated(sourceKey) {
+        return /driver[_-]?(booking|bookings|request|requests|ride|rides)|booking_requests|driver_only|driver-only|driver_queue/i.test(cleanText(sourceKey));
+    }
+
+    function sourceLooksCustomerBookingRelated(sourceKey) {
+        return /customer|admin_review|active_bookings|scheduled_rides|ride_history|fallback_admin_review_queue|booking_submit|bookings/i.test(cleanText(sourceKey));
+    }
+
     function getBookingIdentity(row) {
         return firstText(
             row.bookingId,
@@ -304,6 +321,127 @@
     function isPlaceholderText(value) {
         const text = cleanText(value).toLowerCase();
         return !text || text === "pickup pending" || text === "drop pending" || text === "not set" || text === "distance pending";
+    }
+
+    function hasUsableBookingRoute(row = {}) {
+        const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin);
+        const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination);
+        return !isPlaceholderText(pickup) && !isPlaceholderText(dropoff);
+    }
+
+    function hasStrongDriverOperationalIdentity(row = {}) {
+        const driver = isPlainObject(row.driver) ? row.driver : {};
+        const vehicle = isPlainObject(row.vehicle) ? row.vehicle : {};
+        const id = cleanText(row.driverId || row.id || row._id || driver.id || driver._id);
+        return /^drv/i.test(id)
+            || Boolean(firstText(
+                row.driverId,
+                row.driverName,
+                row.driverPhone,
+                row.approvalStatus,
+                row.kycStatus,
+                row.kycVerified,
+                row.docsVerified,
+                row.licenseNumber,
+                row.licenceNumber,
+                row.dlNumber,
+                row.vehicleNumber,
+                driver.id,
+                driver.name,
+                driver.phone,
+                vehicle.number
+            ));
+    }
+
+    function hasCustomerBookingIdentity(row = {}) {
+        const customer = isPlainObject(row.customer) ? row.customer : {};
+        const customerSnapshot = isPlainObject(row.customerSnapshot) ? row.customerSnapshot : {};
+        const explicitCustomer = firstText(
+            row.customerId,
+            row.userId,
+            row.backendUserId,
+            row.customerName,
+            row.customerEmail,
+            customerSnapshot.name,
+            customerSnapshot.email,
+            customer.id,
+            customer._id,
+            customer.name,
+            customer.email
+        );
+        if (explicitCustomer) return true;
+        if (firstUsableAdminPhone(row.customerPhone, customerSnapshot.phone, customer.phone)) return true;
+        return Boolean(firstUsableAdminPhone(row.phone, row.mobile, row.contact) && !hasStrongDriverOperationalIdentity(row));
+    }
+
+    function hasDriverOperationalIdentity(row = {}) {
+        const driver = isPlainObject(row.driver) ? row.driver : {};
+        const vehicle = isPlainObject(row.vehicle) ? row.vehicle : {};
+        return hasStrongDriverOperationalIdentity(row)
+            || Boolean(firstText(
+                row.vehicleModel,
+                row.vehicleType,
+                row.isOnline,
+                row.online,
+                driver.id,
+                driver.name,
+                driver.phone,
+                vehicle.number,
+                vehicle.model,
+                vehicle.type
+            ));
+    }
+
+    function isDriverOnlyOperationalRecord(row = {}, sourceKey = "") {
+        if (!isPlainObject(row)) return false;
+        const source = cleanText(row.sourceKey || row.source || sourceKey).toLowerCase();
+        const status = cleanText(row.status || row.approvalStatus || row.driverStatus || "").toLowerCase();
+        const mode = cleanText(row.bookingMode || row.mode || row.tripPlan || "").toLowerCase();
+        const driverSignals = hasDriverOperationalIdentity(row);
+        const driverSource = sourceLooksDriverBookingRelated(source)
+            || source.includes("drivers")
+            || source.includes("driver_data")
+            || source.includes("driver portal");
+        const operationalStatus = ["pending", "approved", "available", "active", "inactive", "suspended", "offline_forced", "blocked"].includes(status);
+        return driverSignals
+            && !hasUsableBookingRoute(row)
+            && !hasCustomerBookingIdentity(row)
+            && (driverSource || operationalStatus || /^driver[_-]?only/.test(mode));
+    }
+
+    function hasCustomerBookingSignal(row = {}, sourceKey = "") {
+        const route = hasUsableBookingRoute(row);
+        const customerIdentity = hasCustomerBookingIdentity(row);
+        const identity = getBookingIdentity(row);
+        const tripMeta = firstText(
+            row.rideDate,
+            row.rideTime,
+            row.outboundDateTime,
+            row.returnDate,
+            row.returnTime,
+            row.vehicleType,
+            row.rideType,
+            row.tripPlan,
+            row.bookingMode,
+            row.paymentMethod
+        );
+        const hasFare = toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare) > 0;
+        const customerSource = sourceLooksCustomerBookingRelated(row.sourceKey || row.source || sourceKey);
+        return (route && Boolean(identity || customerIdentity || tripMeta || hasFare))
+            || (customerIdentity && Boolean(identity || route || tripMeta || hasFare || customerSource))
+            || (customerSource && Boolean(identity) && Boolean(route || customerIdentity || tripMeta || hasFare));
+    }
+
+    function getAdminBookingRecordScope(row = {}, sourceKey = "") {
+        if (!isPlainObject(row) || isInternalDiagnosticBooking(row)) return "";
+        const explicitScope = cleanText(row.adminBookingScope || row.portalScope || row.bookingScope || row.recordScope || row.ownerPortal).toLowerCase();
+        if (explicitScope.includes("driver")) return "driver";
+        if (explicitScope.includes("customer")) return "customer";
+        if (isDriverOnlyOperationalRecord(row, sourceKey)) return "driver";
+        if (hasCustomerBookingSignal(row, sourceKey)) return "customer";
+        if (sourceLooksDriverBookingRelated(row.sourceKey || row.source || sourceKey) && hasDriverOperationalIdentity(row)) return "driver";
+        if (isBookingLikeRecord(row, sourceKey)) return "customer";
+        return "";
     }
 
     function isInternalDiagnosticBooking(row) {
@@ -387,12 +525,14 @@
     }
 
     function pushBookingCandidate(row, sourceKey, target) {
-        if (!isBookingLikeRecord(row, sourceKey)) return;
+        const scope = getAdminBookingRecordScope(row, sourceKey);
+        if (!scope) return;
         const bookingId = getBookingIdentity(row) || makeSyntheticBookingId(row, sourceKey);
         target.push({
             ...row,
             id: bookingId,
             bookingId,
+            adminBookingScope: scope,
             sourceKey: row.sourceKey || sourceKey,
             discoveredByAdminScanner: true
         });
@@ -482,6 +622,7 @@
             for (let index = 0; index < storage.length; index += 1) {
                 const key = storage.key(index);
                 if (!key) continue;
+                if (ADMIN_INTERNAL_BOOKING_SCAN_SKIP_KEYS.has(key)) continue;
                 const parsed = parseJson(storage.getItem(key), null);
                 extractBookingCandidates(parsed, `${label}:${key}`, rows);
             }
@@ -1595,10 +1736,11 @@
             dropoff,
             fare,
             customerName,
-            customerPhone: firstText(row.customerPhone, customerSnapshot.phone, customer.phone, row.phone, row.mobile, row.contact),
+            customerPhone: firstUsableAdminPhone(row.customerPhone, customerSnapshot.phone, customer.phone, row.phone, row.mobile, row.contact),
             customerEmail: firstText(row.customerEmail, customerSnapshot.email, customer.email, row.email, row.userEmail),
             status,
             adminReviewStatus,
+            adminBookingScope: "customer",
             sourceKey,
             createdAt,
             rideDate: cleanText(row.rideDate || ""),
@@ -1612,6 +1754,48 @@
             dropLocation: firstText(row.dropLocation, row.dropoff, row.drop, row.to, row.destination),
             totalFare: toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare),
             customerId: firstText(row.customerId, row.userId, row.backendUserId, customer.id, customer._id, customer.email, customer.phone)
+        };
+    }
+
+    function normalizeDriverBooking(row, sourceKey) {
+        const driver = isPlainObject(row.driver) ? row.driver : {};
+        const vehicle = isPlainObject(row.vehicle) ? row.vehicle : {};
+        const id = firstText(
+            row.driverBookingId,
+            row.requestId,
+            row.bookingRequestId,
+            row.driverRequestId,
+            row.bookingId,
+            row.id,
+            row._id,
+            row.driverId,
+            driver.id,
+            driver._id
+        ) || makeSyntheticBookingId(row, sourceKey);
+        const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin);
+        const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination);
+        const status = cleanText(row.driverStatus || row.requestStatus || row.status || row.approvalStatus || "pending").toLowerCase();
+        const createdAt = cleanText(row.createdAt || row.timestamp || row.date || row.updatedAt || "");
+
+        return {
+            ...row,
+            id,
+            bookingId: id,
+            driverBookingId: id,
+            adminBookingScope: "driver",
+            sourceKey,
+            driverId: firstText(row.driverId, driver.id, driver._id, row.id),
+            driverName: firstText(row.driverName, driver.name, row.name, row.fullName, row.fullname) || "Driver",
+            driverPhone: firstUsableAdminPhone(row.driverPhone, driver.phone, row.phone, row.mobile, row.contact),
+            vehicleType: firstText(row.vehicleType, row.rideType, vehicle.type, row.vehicleModel, vehicle.model) || "Vehicle not set",
+            vehicleNumber: firstText(row.vehicleNumber, vehicle.number, row.registrationNumber),
+            pickup: pickup || "Driver side request",
+            dropoff: dropoff || "No customer route",
+            fare: toAmount(row.totalFare || row.amount || row.finalFare || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare),
+            distanceKm: toAmount(row.distanceKm || row.distance || row.fareQuote?.distanceKm || row.fareBreakdown?.distanceKm),
+            status,
+            requestStatus: status,
+            createdAt
         };
     }
 
@@ -1652,24 +1836,75 @@
         return Array.from(map.values()).filter((row) => !isInternalDiagnosticBooking(row));
     }
 
-    function loadBookings() {
-        const rows = [];
-        BOOKING_KEYS.forEach((key) => {
-            readArray(key).forEach((item) => {
-                const normalized = normalizeBooking(item, key);
-                if (!isInternalDiagnosticBooking(normalized)) rows.push(normalized);
-            });
+    function mergeDriverBookingsById(items) {
+        const map = new Map();
+        items.forEach((item) => {
+            if (!item || !item.id) return;
+            const existing = map.get(item.id) || {};
+            map.set(item.id, { ...existing, ...item });
         });
-        const discovered = scanAllStorageForBookingRows()
-            .map((item) => normalizeBooking(item, item.sourceKey || "storage_scan"))
-            .filter((item) => !isInternalDiagnosticBooking(item));
-        discovered.forEach((item) => rows.push(item));
+        return Array.from(map.values()).filter((row) => !isInternalDiagnosticBooking(row));
+    }
 
-        return mergeById(rows).sort((a, b) => {
-            const at = Date.parse(b.createdAt || "") || 0;
-            const bt = Date.parse(a.createdAt || "") || 0;
+    function sortRowsByCreatedAt(rows) {
+        return rows.sort((a, b) => {
+            const at = Date.parse(b.createdAt || b.updatedAt || "") || 0;
+            const bt = Date.parse(a.createdAt || a.updatedAt || "") || 0;
             return at - bt;
         });
+    }
+
+    function persistBookingSplitViews(customerBookings, driverBookings) {
+        const updatedAt = new Date().toISOString();
+        const customerRows = Array.isArray(customerBookings) ? customerBookings : [];
+        const driverRows = Array.isArray(driverBookings) ? driverBookings : [];
+        try {
+            writeArray(CUSTOMER_BOOKING_SPLIT_KEY, customerRows.map((row) => ({ ...row, adminBookingScope: "customer", adminSplitSavedAt: updatedAt })));
+            writeArray(DRIVER_BOOKING_SPLIT_KEY, driverRows.map((row) => ({ ...row, adminBookingScope: "driver", adminSplitSavedAt: updatedAt })));
+            localStorage.setItem(BOOKING_SPLIT_VIEW_KEY, JSON.stringify({
+                updatedAt,
+                customerCount: customerRows.length,
+                driverCount: driverRows.length,
+                customerKey: CUSTOMER_BOOKING_SPLIT_KEY,
+                driverKey: DRIVER_BOOKING_SPLIT_KEY
+            }));
+        } catch (_error) {
+            // Split snapshots are a view cache; original booking and driver rows remain untouched.
+        }
+    }
+
+    function pushScopedBookingRow(item, sourceKey, customerRows, driverRows) {
+        const scope = getAdminBookingRecordScope(item, sourceKey);
+        if (scope === "driver") {
+            driverRows.push(normalizeDriverBooking(item, sourceKey));
+            return;
+        }
+        if (scope === "customer") {
+            customerRows.push(normalizeBooking(item, sourceKey));
+        }
+    }
+
+    function loadBookingSplit() {
+        const customerRows = [];
+        const driverRows = [];
+        BOOKING_KEYS.forEach((key) => {
+            readArray(key).forEach((item) => {
+                pushScopedBookingRow(item, key, customerRows, driverRows);
+            });
+        });
+        scanAllStorageForBookingRows().forEach((item) => {
+            pushScopedBookingRow(item, item.sourceKey || "storage_scan", customerRows, driverRows);
+        });
+
+        const customerBookings = sortRowsByCreatedAt(mergeById(customerRows));
+        const driverBookings = sortRowsByCreatedAt(mergeDriverBookingsById(driverRows));
+        persistBookingSplitViews(customerBookings, driverBookings);
+
+        return { customerBookings, driverBookings };
+    }
+
+    function loadBookings() {
+        return loadBookingSplit().customerBookings;
     }
 
     function getBackendAccessToken() {
@@ -2054,7 +2289,9 @@
     }
 
     function refreshData(options = {}) {
-        state.bookings = loadBookings();
+        const bookingSplit = loadBookingSplit();
+        state.bookings = bookingSplit.customerBookings;
+        state.driverBookings = bookingSplit.driverBookings;
         state.drivers = loadDrivers();
         state.users = loadUsers();
         state.notifications = loadNotifications();
@@ -2332,6 +2569,65 @@
         `).join("");
     }
 
+    function renderBookingSplitSummary() {
+        setText("#customerBookingCount", getFilteredBookings("all").length);
+        setText("#driverBookingCount", getFilteredDriverBookings().length);
+        setText("#bookingSplitSavedAt", formatDate(new Date().toISOString()));
+    }
+
+    function getFilteredDriverBookings() {
+        const globalQuery = state.query;
+        const bookingQuery = state.bookingQuery;
+        return state.driverBookings.filter((booking) => {
+            if (globalQuery && !bookingMatchesSearch(booking, globalQuery)) return false;
+            if (bookingQuery && !bookingMatchesSearch(booking, bookingQuery)) return false;
+            return true;
+        });
+    }
+
+    function getDriverBookingStatusClass(row) {
+        const status = cleanText(row.requestStatus || row.status || "").toLowerCase();
+        if (/(approved|accepted|active|assigned|available|verified)/.test(status)) return "approved";
+        if (/(rejected|cancelled|suspended|blocked|offline)/.test(status)) return "rejected";
+        if (/completed/.test(status)) return "completed";
+        return "pending";
+    }
+
+    function getDriverBookingStatusLabel(row) {
+        const status = cleanText(row.requestStatus || row.status || "pending");
+        return status.replace(/_/g, " ");
+    }
+
+    function renderDriverBookingRequests() {
+        const host = $("#driverBookingTableBody");
+        if (!host) return;
+        const rows = getFilteredDriverBookings();
+        if (!rows.length) {
+            const query = cleanText(state.bookingQuery || state.query);
+            const message = query ? `No driver booking rows found for "${query}".` : "No driver booking rows found.";
+            host.innerHTML = `<tr><td colspan="6"><div class="empty-state">${escapeHtml(message)}</div></td></tr>`;
+            return;
+        }
+
+        host.innerHTML = rows.map((row) => {
+            const hasRoute = hasUsableBookingRoute(row);
+            const routeText = hasRoute ? `${row.pickup} -> ${row.dropoff}` : "Driver profile / request";
+            const routeSubtext = hasRoute
+                ? (row.distanceKm ? `${Math.round(row.distanceKm)} km` : "Distance pending")
+                : (row.vehicleNumber || row.sourceKey || "Driver-side data");
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(row.driverBookingId || row.bookingId || row.id)}</strong><br><small>${escapeHtml(formatDate(row.createdAt || row.updatedAt))}</small></td>
+                    <td>${escapeHtml(row.driverName || "Driver")}<br><small>${escapeHtml(row.driverPhone || row.driverId || "No driver contact")}</small></td>
+                    <td>${escapeHtml(row.vehicleType || "Vehicle not set")}<br><small>${escapeHtml(row.vehicleNumber || row.sourceKey || "No vehicle number")}</small></td>
+                    <td><strong>${escapeHtml(routeText)}</strong><br><small>${escapeHtml(routeSubtext)}</small></td>
+                    <td><span class="status-pill ${getDriverBookingStatusClass(row)}">${escapeHtml(getDriverBookingStatusLabel(row))}</span></td>
+                    <td><span class="source-pill">Driver</span></td>
+                </tr>
+            `;
+        }).join("");
+    }
+
     function renderDrivers() {
         const host = $("#driverGrid");
         if (!host) return;
@@ -2565,7 +2861,9 @@
         renderPulse();
         renderFareAudit();
         renderActivity();
+        renderBookingSplitSummary();
         renderBookingTable();
+        renderDriverBookingRequests();
         renderDrivers();
         renderFinance();
         renderSafety();
@@ -3087,7 +3385,13 @@
         const payload = {
             exportedAt: new Date().toISOString(),
             source: "GOindiaRIDE standalone admin app",
-            bookings: getFilteredBookings("all")
+            bookings: getFilteredBookings("all"),
+            customerBookings: getFilteredBookings("all"),
+            driverBookings: getFilteredDriverBookings(),
+            splitKeys: {
+                customer: CUSTOMER_BOOKING_SPLIT_KEY,
+                driver: DRIVER_BOOKING_SPLIT_KEY
+            }
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -3165,12 +3469,16 @@
             state.query = event.target.value || "";
             renderQueue();
             renderBookingTable();
+            renderDriverBookingRequests();
+            renderBookingSplitSummary();
             renderPortalControls();
         });
 
         $("#bookingSearchInput")?.addEventListener("input", (event) => {
             state.bookingQuery = event.target.value || "";
             renderBookingTable();
+            renderDriverBookingRequests();
+            renderBookingSplitSummary();
         });
 
         $all(".segment").forEach((button) => {
@@ -3185,6 +3493,7 @@
         $("#bookingStatusFilter")?.addEventListener("change", (event) => {
             state.bookingFilter = event.target.value || "all";
             renderBookingTable();
+            renderBookingSplitSummary();
         });
 
         document.addEventListener("click", (event) => {

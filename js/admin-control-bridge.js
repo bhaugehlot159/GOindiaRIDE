@@ -155,6 +155,50 @@
         }, {});
     }
 
+    function featureOwnerMap() {
+        const owners = {};
+        Object.keys(FEATURE_DEFINITIONS).forEach((portal) => {
+            FEATURE_DEFINITIONS[portal].forEach((featureId) => {
+                owners[featureId] = owners[featureId] || [];
+                owners[featureId].push(portal);
+            });
+        });
+        return owners;
+    }
+
+    function normalizePortalFeatures(storedFeatures) {
+        const owners = featureOwnerMap();
+        const normalized = {
+            customer: featureDefaults("customer"),
+            driver: featureDefaults("driver")
+        };
+        const misplaced = { customer: {}, driver: {}, unknown: {} };
+        const source = storedFeatures && typeof storedFeatures === "object" ? storedFeatures : {};
+
+        ["customer", "driver"].forEach((sourcePortal) => {
+            const bucket = source[sourcePortal] && typeof source[sourcePortal] === "object" ? source[sourcePortal] : {};
+            Object.keys(bucket).forEach((rawFeatureId) => {
+                const featureId = cleanText(rawFeatureId).toLowerCase();
+                const featureOwners = owners[featureId] || [];
+                if (!featureOwners.length) {
+                    misplaced.unknown[sourcePortal] = misplaced.unknown[sourcePortal] || {};
+                    misplaced.unknown[sourcePortal][featureId] = bucket[rawFeatureId];
+                    return;
+                }
+                const owner = featureOwners.includes(sourcePortal) ? sourcePortal : featureOwners[0];
+                normalized[owner][featureId] = {
+                    ...(normalized[owner][featureId] || {}),
+                    ...(bucket[rawFeatureId] || {})
+                };
+                if (owner !== sourcePortal) {
+                    misplaced[sourcePortal][featureId] = bucket[rawFeatureId];
+                }
+            });
+        });
+
+        return { normalized, misplaced };
+    }
+
     function defaultControls() {
         return {
             version: 1,
@@ -176,6 +220,7 @@
     function readControls() {
         const defaults = defaultControls();
         const stored = parseJson(global.localStorage.getItem(CONTROL_KEY), {});
+        const featureBuckets = normalizePortalFeatures((stored || {}).portalFeatures || {});
         return {
             ...defaults,
             ...stored,
@@ -186,14 +231,12 @@
                 driver: { ...defaults.portals.driver, ...((stored.portals || {}).driver || {}) }
             },
             portalFeatures: {
-                customer: {
-                    ...defaults.portalFeatures.customer,
-                    ...(((stored.portalFeatures || {}).customer) || {})
-                },
-                driver: {
-                    ...defaults.portalFeatures.driver,
-                    ...(((stored.portalFeatures || {}).driver) || {})
-                }
+                customer: featureBuckets.normalized.customer,
+                driver: featureBuckets.normalized.driver
+            },
+            legacyMixedFeatureControls: {
+                ...(stored.legacyMixedFeatureControls || {}),
+                latestReadPartition: featureBuckets.misplaced
             },
             customers: { ...(stored.customers || {}) },
             drivers: { ...(stored.drivers || {}) },

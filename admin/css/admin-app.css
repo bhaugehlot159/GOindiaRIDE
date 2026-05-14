@@ -445,6 +445,10 @@ button {
     display: block;
 }
 
+.view-panel > .workspace-panel + .workspace-panel {
+    margin-top: 14px;
+}
+
 .overview-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.65fr);
@@ -551,6 +555,36 @@ button {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-top: 10px;
+}
+
+.booking-split-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.booking-split-summary article {
+    min-height: 70px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-soft);
+}
+
+.booking-split-summary span {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.booking-split-summary strong {
+    color: var(--text);
+    font-size: 1.04rem;
+    overflow-wrap: anywhere;
 }
 
 .booking-mini-grid span {
@@ -1302,6 +1336,7 @@ button {
     }
 
     .booking-mini-grid,
+    .booking-split-summary,
     .booking-detail-grid,
     .booking-edit-grid {
         grid-template-columns: 1fr;

@@ -51,6 +51,34 @@ test('admin customer booking creator only targets real customer records', () => 
   assert.doesNotMatch(adminApp, /const selectedCustomer = getCustomerRows\(\)\[0\]/);
 });
 
+test('admin booking view separates customer bookings from driver-side rows', () => {
+  const appHtml = readRepoFile('admin/app.html');
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+  const adminCss = readRepoFile('admin/css/admin-app.css');
+
+  assert.match(appHtml, /id="driverBookingTableBody"/);
+  assert.match(appHtml, /id="customerBookingCount"/);
+  assert.match(appHtml, /id="driverBookingCount"/);
+  assert.match(adminCss, /\.booking-split-summary/);
+  assert.match(adminApp, /CUSTOMER_BOOKING_SPLIT_KEY/);
+  assert.match(adminApp, /DRIVER_BOOKING_SPLIT_KEY/);
+  assert.match(adminApp, /function getAdminBookingRecordScope\(/);
+  assert.match(adminApp, /function isDriverOnlyOperationalRecord\(/);
+  assert.match(adminApp, /function loadBookingSplit\(/);
+  assert.match(adminApp, /function renderDriverBookingRequests\(/);
+  assert.match(adminApp, /state\.driverBookings/);
+  assert.match(adminApp, /persistBookingSplitViews\(customerBookings, driverBookings\)/);
+  assert.match(adminApp, /ADMIN_INTERNAL_BOOKING_SCAN_SKIP_KEYS\.has\(key\)/);
+});
+
+test('admin customer and driver split stores are protected by data preservation', () => {
+  const preservationGuard = readRepoFile('js/data-preservation-guard.js');
+
+  assert.match(preservationGuard, /goindiaride_admin_customer_bookings_current_v1/);
+  assert.match(preservationGuard, /goindiaride_admin_driver_bookings_current_v1/);
+  assert.match(preservationGuard, /goindiaride_admin_booking_split_views_current_v1/);
+});
+
 test('admin edit/create sync reaches customer portal without depending on PortalConnector', () => {
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const customerDashboard = readRepoFile('pages/customer-dashboard.html');

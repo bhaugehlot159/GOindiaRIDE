@@ -38,6 +38,8 @@ const CUSTOMER_FEATURES = [
   'emergency'
 ];
 
+const DRIVER_FEATURES = ['availability', 'booking_requests', 'active_trips', 'earnings', 'kyc', 'wallet', 'messages', 'safety'];
+
 function createLocalStorage() {
   const store = new Map();
   return {
@@ -174,6 +176,37 @@ test('customer portal exposes every admin-controlled feature', () => {
   const actualFeatures = Object.keys(controls.portalFeatures.customer).sort();
 
   assert.deepEqual(actualFeatures, CUSTOMER_FEATURES.slice().sort());
+});
+
+test('admin control bridge keeps customer and driver features in separate buckets', () => {
+  const sandbox = loadBridge();
+  const bridge = sandbox.AdminControlBridge;
+
+  sandbox.localStorage.setItem('goindiaride_admin_portal_controls_v1', JSON.stringify({
+    portalFeatures: {
+      customer: {
+        booking: { enabled: false, reason: 'Customer booking paused' },
+        booking_requests: { enabled: false, reason: 'Wrong customer bucket' }
+      },
+      driver: {
+        availability: { enabled: false, reason: 'Driver unavailable' },
+        quick_booking: { enabled: false, reason: 'Wrong driver bucket' }
+      }
+    }
+  }));
+
+  const controls = bridge.readControls();
+
+  assert.equal(controls.portalFeatures.customer.booking.enabled, false);
+  assert.equal(controls.portalFeatures.customer.quick_booking.enabled, false);
+  assert.equal(controls.portalFeatures.driver.availability.enabled, false);
+  assert.equal(controls.portalFeatures.driver.booking_requests.enabled, false);
+  assert.equal(Object.hasOwn(controls.portalFeatures.customer, 'booking_requests'), false);
+  assert.equal(Object.hasOwn(controls.portalFeatures.driver, 'quick_booking'), false);
+  assert.deepEqual(Object.keys(controls.portalFeatures.customer).sort(), CUSTOMER_FEATURES.slice().sort());
+  assert.deepEqual(Object.keys(controls.portalFeatures.driver).sort(), DRIVER_FEATURES.slice().sort());
+  assert.equal(controls.legacyMixedFeatureControls.latestReadPartition.customer.booking_requests.reason, 'Wrong customer bucket');
+  assert.equal(controls.legacyMixedFeatureControls.latestReadPartition.driver.quick_booking.reason, 'Wrong driver bucket');
 });
 
 test('admin can pause and resume every customer feature', () => {
