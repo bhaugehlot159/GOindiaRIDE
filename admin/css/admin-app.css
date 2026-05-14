@@ -194,6 +194,7 @@ button {
     background: transparent;
     color: var(--muted);
     text-align: left;
+    text-decoration: none;
     font-weight: 800;
 }
 
@@ -552,7 +553,7 @@ button {
 
 .booking-mini-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 8px;
     margin-top: 10px;
 }
@@ -600,16 +601,18 @@ button {
 .booking-mini-grid span {
     min-width: 0;
     display: grid;
-    grid-template-columns: 18px minmax(74px, auto) minmax(0, 1fr);
+    grid-template-columns: 18px minmax(74px, max-content) minmax(120px, 1fr);
     align-items: center;
     gap: 6px;
+    min-height: 48px;
     padding: 8px 10px;
     border: 1px solid var(--line);
     border-radius: 9px;
     color: var(--muted);
     background: var(--surface-soft);
     font-size: 0.78rem;
-    overflow-wrap: anywhere;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .booking-mini-grid i {
@@ -624,13 +627,13 @@ button {
 .booking-full-details {
     margin-top: 10px;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--surface);
     overflow: hidden;
 }
 
 .booking-full-details > summary {
-    min-height: 40px;
+    min-height: 42px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -679,7 +682,7 @@ button {
 
 .booking-detail-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 8px;
 }
 
@@ -703,7 +706,8 @@ button {
 .booking-detail-pair strong {
     color: var(--text);
     font-size: 0.82rem;
-    overflow-wrap: anywhere;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .booking-payload-details {

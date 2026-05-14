@@ -103,7 +103,7 @@
             </tr>
             <tr class="booking-detail-row">
                 <td colspan="6">
-                    <details class="booking-full-details" open>
+                    <details class="booking-full-details">
                         <summary><i class="fas fa-circle-info"></i><span>Customer full saved payload</span></summary>
                         <div class="booking-detail-content">
                             <pre>${payload(row)}</pre>

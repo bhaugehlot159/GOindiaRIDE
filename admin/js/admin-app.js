@@ -3,6 +3,7 @@
 
     const ADMIN_REVIEW_INBOX_KEY = "goindiaride_admin_review_inbox_v1";
     const SETTINGS_KEY = "goindiaride_admin_app_settings_v1";
+    const AUTO_REFRESH_DISABLED_MIGRATION_KEY = "goindiaride_admin_auto_refresh_manual_default_v1";
     const AUDIT_KEY = "adminAuditLogs";
     const BOOKING_KEYS = [
         "bookings",
@@ -1580,8 +1581,9 @@
 
     function loadSettings() {
         const parsed = parseJson(localStorage.getItem(SETTINGS_KEY), {});
-        return {
-            autoRefresh: parsed.autoRefresh !== false,
+        const shouldDisableAutoRefresh = localStorage.getItem(AUTO_REFRESH_DISABLED_MIGRATION_KEY) !== "1";
+        const settings = {
+            autoRefresh: shouldDisableAutoRefresh ? false : parsed.autoRefresh === true,
             compactRows: parsed.compactRows === true,
             portalPopupAlerts: parsed.portalPopupAlerts === true,
             apiBase: resolveAdminApiBase(
@@ -1591,6 +1593,11 @@
                 || DEFAULT_API_BASE
             )
         };
+        if (shouldDisableAutoRefresh) {
+            localStorage.setItem(AUTO_REFRESH_DISABLED_MIGRATION_KEY, "1");
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+        return settings;
     }
 
     function saveSettings() {
@@ -2605,7 +2612,7 @@
             <tr class="booking-detail-row">
                 <td colspan="6">
                     ${renderBookingHighlights(booking)}
-                    ${renderBookingFullDetails(booking, { open: true })}
+                    ${renderBookingFullDetails(booking)}
                 </td>
             </tr>
         `).join("");
