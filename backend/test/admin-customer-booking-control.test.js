@@ -10,6 +10,155 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
+function createLocalStorage() {
+  const store = new Map();
+  return {
+    get length() {
+      return store.size;
+    },
+    key(index) {
+      return Array.from(store.keys())[index] || null;
+    },
+    getItem(key) {
+      const safeKey = String(key);
+      return store.has(safeKey) ? store.get(safeKey) : null;
+    },
+    setItem(key, value) {
+      store.set(String(key), String(value));
+    },
+    removeItem(key) {
+      store.delete(String(key));
+    }
+  };
+}
+
+function createNode(id = '') {
+  return {
+    id,
+    value: '',
+    checked: false,
+    textContent: '',
+    innerHTML: '',
+    dataset: {},
+    style: {},
+    classList: {
+      add() {},
+      remove() {},
+      toggle() {},
+      contains() {
+        return false;
+      }
+    },
+    addEventListener() {},
+    appendChild(child) {
+      return child;
+    },
+    remove() {},
+    querySelector(selector) {
+      return this.__querySelector(selector);
+    },
+    querySelectorAll() {
+      return [];
+    },
+    closest() {
+      return null;
+    },
+    setAttribute() {},
+    getAttribute() {
+      return null;
+    },
+    __querySelector() {
+      return null;
+    }
+  };
+}
+
+function runAdminAppWithBookingRows(rows) {
+  const nodes = new Map();
+  function byId(id) {
+    if (!nodes.has(id)) {
+      const node = createNode(id);
+      node.__querySelector = querySelector;
+      nodes.set(id, node);
+    }
+    return nodes.get(id);
+  }
+  function querySelector(selector) {
+    if (selector && selector.startsWith('#')) return byId(selector.slice(1));
+    return null;
+  }
+
+  const localStorage = createLocalStorage();
+  localStorage.setItem('goindiaride_active_bookings', JSON.stringify(rows));
+  const domListeners = {};
+  const sandbox = {
+    console,
+    localStorage,
+    sessionStorage: createLocalStorage(),
+    location: {
+      hostname: 'localhost',
+      origin: 'http://localhost:8080',
+      href: 'http://localhost:8080/admin/app.html'
+    },
+    document: {
+      body: byId('body'),
+      documentElement: {
+        dataset: {},
+        setAttribute() {},
+        getAttribute() {
+          return null;
+        }
+      },
+      querySelector,
+      querySelectorAll() {
+        return [];
+      },
+      createElement(tag) {
+        return createNode(tag);
+      },
+      addEventListener(type, handler) {
+        domListeners[type] = handler;
+      },
+      getElementById: byId
+    },
+    addEventListener() {},
+    dispatchEvent() {},
+    CustomEvent: class CustomEvent {
+      constructor(type, options = {}) {
+        this.type = type;
+        this.detail = options.detail || null;
+      }
+    },
+    setInterval() {
+      return 1;
+    },
+    clearInterval() {},
+    setTimeout() {
+      return 1;
+    },
+    clearTimeout() {},
+    fetch() {
+      return Promise.resolve({ ok: false, json: async () => ({}) });
+    },
+    BroadcastChannel: class BroadcastChannel {
+      postMessage() {}
+      close() {}
+    }
+  };
+  sandbox.window = sandbox;
+  sandbox.globalThis = sandbox;
+
+  vm.runInNewContext(readRepoFile('admin/js/admin-app.js'), sandbox, { filename: 'admin/js/admin-app.js' });
+  domListeners.DOMContentLoaded();
+
+  return {
+    customerHtml: byId('bookingTableBody').innerHTML,
+    driverHtml: byId('driverBookingTableBody').innerHTML,
+    customerSplit: JSON.parse(localStorage.getItem('goindiaride_admin_customer_bookings_current_v1') || '[]'),
+    driverSplit: JSON.parse(localStorage.getItem('goindiaride_admin_driver_bookings_current_v1') || '[]')
+  };
+}
+
 test('admin portal exposes customer booking creation controls', () => {
   const appHtml = readRepoFile('admin/app.html');
   const adminApp = readRepoFile('admin/js/admin-app.js');
@@ -69,6 +218,43 @@ test('admin booking view separates customer bookings from driver-side rows', () 
   assert.match(adminApp, /state\.driverBookings/);
   assert.match(adminApp, /persistBookingSplitViews\(customerBookings, driverBookings\)/);
   assert.match(adminApp, /ADMIN_INTERNAL_BOOKING_SCAN_SKIP_KEYS\.has\(key\)/);
+});
+
+test('admin booking classifier moves DRV placeholder rows out of customer bookings', () => {
+  const result = runAdminAppWithBookingRows([
+    {
+      id: 'DRV1778672498873',
+      bookingId: 'DRV1778672498873',
+      customerName: 'New Verified Driver',
+      customerPhone: '+91',
+      pickup: 'Pickup pending',
+      dropoff: 'Drop pending',
+      vehicleType: 'Sedan',
+      fare: 0,
+      status: 'rejected',
+      createdAt: '2026-05-13T11:41:00.000Z'
+    },
+    {
+      id: 'RID1778669288778',
+      bookingId: 'RID1778669288778',
+      customerName: 'Bhavesh Meghwal',
+      customerPhone: '+918239909104',
+      pickup: 'Chittorgarh Fort, Udaipur',
+      dropoff: 'Udaipur, Rajasthan',
+      fare: 2155,
+      distanceKm: 124,
+      status: 'approved',
+      createdAt: '2026-05-13T10:48:00.000Z'
+    }
+  ]);
+
+  assert.match(result.customerHtml, /RID1778669288778/);
+  assert.doesNotMatch(result.customerHtml, /DRV1778672498873/);
+  assert.match(result.driverHtml, /DRV1778672498873/);
+  assert.equal(result.customerSplit.length, 1);
+  assert.equal(result.customerSplit[0].bookingId, 'RID1778669288778');
+  assert.equal(result.driverSplit.length, 1);
+  assert.equal(result.driverSplit[0].driverBookingId, 'DRV1778672498873');
 });
 
 test('admin customer and driver split stores are protected by data preservation', () => {

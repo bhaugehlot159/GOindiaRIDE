@@ -329,10 +329,49 @@
         return !isPlaceholderText(pickup) && !isPlaceholderText(dropoff);
     }
 
+    function getDriverCandidateId(row = {}) {
+        const driver = isPlainObject(row.driver) ? row.driver : {};
+        return cleanText(
+            row.driverId
+            || row.driverBookingId
+            || row.driverRequestId
+            || row.bookingRequestId
+            || row.requestId
+            || row.bookingId
+            || row.id
+            || row._id
+            || driver.id
+            || driver._id
+        );
+    }
+
+    function driverIdentityName(row = {}) {
+        const driver = isPlainObject(row.driver) ? row.driver : {};
+        return cleanText(row.driverName || driver.name || row.name || row.fullName || row.fullname || row.customerName).toLowerCase();
+    }
+
+    function nameLooksDriverOnly(row = {}) {
+        const name = driverIdentityName(row);
+        return /\bdriver\b/.test(name) || /verified driver/.test(name);
+    }
+
+    function hasDriverVehicleSignal(row = {}) {
+        const vehicle = isPlainObject(row.vehicle) ? row.vehicle : {};
+        return Boolean(firstText(row.vehicleNumber, row.vehicleModel, row.vehicleType, row.rideType, vehicle.number, vehicle.model, vehicle.type));
+    }
+
+    function hasDriverOnlyPrimarySignal(row = {}, sourceKey = "") {
+        const id = getDriverCandidateId(row);
+        const source = cleanText(row.sourceKey || row.source || sourceKey).toLowerCase();
+        return /^drv/i.test(id)
+            || (nameLooksDriverOnly(row) && hasDriverVehicleSignal(row))
+            || (sourceLooksDriverBookingRelated(source) && (nameLooksDriverOnly(row) || hasDriverVehicleSignal(row)));
+    }
+
     function hasStrongDriverOperationalIdentity(row = {}) {
         const driver = isPlainObject(row.driver) ? row.driver : {};
         const vehicle = isPlainObject(row.vehicle) ? row.vehicle : {};
-        const id = cleanText(row.driverId || row.id || row._id || driver.id || driver._id);
+        const id = getDriverCandidateId(row);
         return /^drv/i.test(id)
             || Boolean(firstText(
                 row.driverId,
@@ -356,11 +395,11 @@
     function hasCustomerBookingIdentity(row = {}) {
         const customer = isPlainObject(row.customer) ? row.customer : {};
         const customerSnapshot = isPlainObject(row.customerSnapshot) ? row.customerSnapshot : {};
+        const driverOnlyShell = hasDriverOnlyPrimarySignal(row) && !hasUsableBookingRoute(row);
         const explicitCustomer = firstText(
             row.customerId,
             row.userId,
             row.backendUserId,
-            row.customerName,
             row.customerEmail,
             customerSnapshot.name,
             customerSnapshot.email,
@@ -370,8 +409,9 @@
             customer.email
         );
         if (explicitCustomer) return true;
+        if (!driverOnlyShell && firstText(row.customerName)) return true;
         if (firstUsableAdminPhone(row.customerPhone, customerSnapshot.phone, customer.phone)) return true;
-        return Boolean(firstUsableAdminPhone(row.phone, row.mobile, row.contact) && !hasStrongDriverOperationalIdentity(row));
+        return Boolean(firstUsableAdminPhone(row.phone, row.mobile, row.contact) && !driverOnlyShell && !hasStrongDriverOperationalIdentity(row));
     }
 
     function hasDriverOperationalIdentity(row = {}) {
@@ -402,14 +442,15 @@
             || source.includes("drivers")
             || source.includes("driver_data")
             || source.includes("driver portal");
-        const operationalStatus = ["pending", "approved", "available", "active", "inactive", "suspended", "offline_forced", "blocked"].includes(status);
+        const operationalStatus = ["pending", "approved", "available", "active", "inactive", "suspended", "offline_forced", "blocked", "rejected", "cancelled"].includes(status);
         return driverSignals
             && !hasUsableBookingRoute(row)
-            && !hasCustomerBookingIdentity(row)
+            && (!hasCustomerBookingIdentity(row) || hasDriverOnlyPrimarySignal(row, sourceKey))
             && (driverSource || operationalStatus || /^driver[_-]?only/.test(mode));
     }
 
     function hasCustomerBookingSignal(row = {}, sourceKey = "") {
+        if (hasDriverOnlyPrimarySignal(row, sourceKey) && !hasUsableBookingRoute(row)) return false;
         const route = hasUsableBookingRoute(row);
         const customerIdentity = hasCustomerBookingIdentity(row);
         const identity = getBookingIdentity(row);
@@ -437,6 +478,7 @@
         const explicitScope = cleanText(row.adminBookingScope || row.portalScope || row.bookingScope || row.recordScope || row.ownerPortal).toLowerCase();
         if (explicitScope.includes("driver")) return "driver";
         if (explicitScope.includes("customer")) return "customer";
+        if (hasDriverOnlyPrimarySignal(row, sourceKey) && !hasUsableBookingRoute(row)) return "driver";
         if (isDriverOnlyOperationalRecord(row, sourceKey)) return "driver";
         if (hasCustomerBookingSignal(row, sourceKey)) return "customer";
         if (sourceLooksDriverBookingRelated(row.sourceKey || row.source || sourceKey) && hasDriverOperationalIdentity(row)) return "driver";
