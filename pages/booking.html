@@ -2688,7 +2688,13 @@
                 return null;
             }
 
-            return JSON.parse(currentUser);
+            const parsedUser = JSON.parse(currentUser);
+            if (customerRowLooksDriver(parsedUser) || !customerRowLooksCustomer(parsedUser)) {
+                alert('Please login as customer to book a ride');
+                window.location.href = './login.html';
+                return null;
+            }
+            return parsedUser;
         }
 
         let currentUser = null;
@@ -3807,6 +3813,55 @@
             return '';
         }
 
+        function customerAccountRole(row = {}) {
+            return sanitizeInput(row.role || row.userRole || row.accountType || row.userType || row.type || row.portalType || '', 80).toLowerCase();
+        }
+
+        function customerPhoneLooksUsable(value) {
+            return Boolean(normalizeCustomerPhoneValue(value));
+        }
+
+        function customerEmailLooksUsable(value) {
+            const email = sanitizeInput(value || '', 180).toLowerCase();
+            return Boolean(email && email.includes('@') && email !== 'customer@example.com');
+        }
+
+        function customerIdentityName(row = {}) {
+            return sanitizeInput(row.driverName || row.name || row.fullName || row.fullname || row.customerName || '', 140).toLowerCase();
+        }
+
+        function customerRowLooksDriver(row = {}) {
+            const role = customerAccountRole(row);
+            const source = sanitizeInput(row.sourceKey || row.source || '', 120).toLowerCase();
+            const identityName = customerIdentityName(row);
+            const hasCustomerContact = Boolean(
+                row.customerId
+                || row.customerName
+                || customerEmailLooksUsable(row.customerEmail || row.email || row.userEmail)
+                || customerPhoneLooksUsable(row.customerPhone || row.phone || row.mobile)
+            );
+            return role.includes('driver')
+                || source.includes('driver')
+                || Boolean(identityName.includes('driver') && !hasCustomerContact)
+                || Boolean(row.driverId)
+                || Boolean(row.driverName)
+                || Boolean(row.vehicleNumber)
+                || Boolean(row.vehicleModel && !row.customerId && !row.customerName)
+                || Boolean(row.vehicleType && !row.customerId && !row.customerName && !row.customerEmail);
+        }
+
+        function customerRowLooksCustomer(row = {}) {
+            const role = customerAccountRole(row);
+            if (role && role.includes('driver')) return false;
+            if (role && (role.includes('customer') || role.includes('user'))) return true;
+            return Boolean(
+                row.customerId
+                || row.customerName
+                || customerEmailLooksUsable(row.customerEmail || row.email || row.userEmail)
+                || customerPhoneLooksUsable(row.customerPhone || row.phone || row.mobile)
+            );
+        }
+
         function isTruthyVerificationFlag(value) {
             if (value === true) return true;
             const normalized = String(value || '').trim().toLowerCase();
@@ -3839,7 +3894,7 @@
                 'goindia_users',
                 'goindiaride_user_accounts',
                 'user_accounts'
-            ]);
+            ]).filter((item) => customerRowLooksCustomer(item) && !customerRowLooksDriver(item));
         }
 
         function persistResolvedCurrentUserSession(partial = {}) {

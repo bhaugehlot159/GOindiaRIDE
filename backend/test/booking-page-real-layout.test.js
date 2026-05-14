@@ -16,6 +16,13 @@ test('booking page starts in live route state instead of demo fare or driver dat
   assert.match(html, /google\.com\/maps\/dir/);
   assert.match(html, /function createAwaitingFareEstimate\(/);
   assert.match(html, /if \(!routeIsReady\(inputs\)\)/);
+  assert.match(html, /function customerRowLooksDriver\(/);
+  assert.match(html, /function customerRowLooksCustomer\(/);
+  assert.match(html, /function customerPhoneLooksUsable\(/);
+  assert.match(html, /function customerEmailLooksUsable\(/);
+  assert.match(html, /customerRowLooksDriver\(parsedUser\)/);
+  assert.match(html, /identityName\.includes\('driver'\) && !hasCustomerContact/);
+  assert.match(html, /filter\(\(item\) => customerRowLooksCustomer\(item\) && !customerRowLooksDriver\(item\)\)/);
   assert.match(html, /Booking Sent for Approval/);
   assert.match(html, /overflow-x: hidden !important/);
   assert.match(html, /max-width: min\(1440px, 100%\) !important/);

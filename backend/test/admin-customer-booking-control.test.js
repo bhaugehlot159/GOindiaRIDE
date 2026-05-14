@@ -37,6 +37,20 @@ test('admin booking table has a dedicated all-detail search control', () => {
   assert.match(adminApp, /renderBookingTable\(\)/);
 });
 
+test('admin customer booking creator only targets real customer records', () => {
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+
+  assert.match(adminApp, /function adminRowLooksDriver\(/);
+  assert.match(adminApp, /function adminRowLooksCustomer\(/);
+  assert.match(adminApp, /function adminIdentityName\(/);
+  assert.match(adminApp, /function firstUsableAdminPhone\(/);
+  assert.match(adminApp, /identityName\.includes\("driver"\) && !hasCustomerContact/);
+  assert.match(adminApp, /Enter a full customer phone number/);
+  assert.match(adminApp, /getCustomerEntityKey/);
+  assert.match(adminApp, /if \(!phone && !email\) return;/);
+  assert.doesNotMatch(adminApp, /const selectedCustomer = getCustomerRows\(\)\[0\]/);
+});
+
 test('admin edit/create sync reaches customer portal without depending on PortalConnector', () => {
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const customerDashboard = readRepoFile('pages/customer-dashboard.html');

@@ -757,6 +757,67 @@
         return cleanText(value).toLowerCase();
     }
 
+    function adminPhoneLooksUsable(value) {
+        const digits = cleanText(value).replace(/\D/g, "");
+        if (!digits || digits === "91") return false;
+        return digits.length >= 8 && digits.length <= 15;
+    }
+
+    function firstUsableAdminPhone(...values) {
+        for (const value of values) {
+            const phone = normalizeAdminPhoneValue(value);
+            if (adminPhoneLooksUsable(phone)) return phone;
+        }
+        return "";
+    }
+
+    function adminAccountRole(row = {}) {
+        return cleanText(row.role || row.userRole || row.accountType || row.userType || row.type || row.portalType).toLowerCase();
+    }
+
+    function adminIdentityName(row = {}) {
+        return cleanText(row.driverName || row.name || row.fullName || row.fullname || row.customerName).toLowerCase();
+    }
+
+    function adminRowLooksDriver(row = {}) {
+        const role = adminAccountRole(row);
+        const source = cleanText(row.sourceKey || row.source || "").toLowerCase();
+        const identityName = adminIdentityName(row);
+        const hasCustomerContact = Boolean(
+            row.customerId
+            || row.customerName
+            || row.customerEmail
+            || row.email
+            || firstUsableAdminPhone(row.customerPhone, row.phone, row.mobile)
+        );
+        return role === "driver"
+            || role.includes("driver")
+            || source.includes("driver")
+            || Boolean(identityName.includes("driver") && !hasCustomerContact)
+            || Boolean(row.driverId)
+            || Boolean(row.driverName)
+            || Boolean(row.vehicleNumber)
+            || Boolean(row.vehicleModel && !row.customerId && !row.customerName)
+            || Boolean(row.vehicleType && !row.customerId && !row.customerName && !row.customerEmail && !row.customerPhone);
+    }
+
+    function adminRowLooksCustomer(row = {}) {
+        const role = adminAccountRole(row);
+        if (role && role.includes("driver")) return false;
+        if (role && (role.includes("customer") || role.includes("user"))) return true;
+        return Boolean(
+            row.customerId
+            || row.customerName
+            || row.customerEmail
+            || row.email
+            || firstUsableAdminPhone(row.customerPhone, row.phone, row.mobile)
+        );
+    }
+
+    function getCustomerEntityKey(row = {}) {
+        return cleanText(row.customerId || row.userId || row.id || row.email || row.customerEmail || firstUsableAdminPhone(row.phone, row.mobile, row.customerPhone)).toLowerCase();
+    }
+
     function defaultAdminRideDate() {
         const date = new Date();
         date.setDate(date.getDate() + 1);
@@ -831,10 +892,10 @@
         return [
             `<option value="">Manual customer details</option>`,
             ...customers.map((customer) => {
-                const key = getControlEntityKey(customer);
+                const key = getCustomerEntityKey(customer);
                 const label = [
                     customer.name || customer.fullname || "Customer",
-                    customer.phone || "",
+                    firstUsableAdminPhone(customer.phone, customer.mobile, customer.customerPhone) || "",
                     customer.email || ""
                 ].filter(Boolean).join(" | ");
                 return `<option value="${escapeHtml(key)}">${escapeHtml(label)}</option>`;
@@ -890,7 +951,7 @@
     function findAdminCreateCustomer(key) {
         const safeKey = cleanText(key).toLowerCase();
         if (!safeKey) return null;
-        return getCustomerRows().find((customer) => getControlEntityKey(customer) === safeKey) || null;
+        return getCustomerRows().find((customer) => getCustomerEntityKey(customer) === safeKey) || null;
     }
 
     function hydrateAdminCreateCustomerFields(form, customer) {
@@ -902,7 +963,7 @@
             return;
         }
         const name = cleanText(customer.name || customer.fullname || customer.customerName || "");
-        const phone = normalizeAdminPhoneValue(customer.phone || customer.mobile || customer.customerPhone || "");
+        const phone = firstUsableAdminPhone(customer.phone, customer.mobile, customer.customerPhone);
         const email = normalizeAdminEmailValue(customer.email || customer.customerEmail || "");
         if (form.elements.customerName && name) form.elements.customerName.value = name;
         if (form.elements.customerPhone && phone) form.elements.customerPhone.value = phone;
@@ -914,12 +975,6 @@
         const form = $("#adminCreateBookingForm", modal);
         if (form) {
             form.innerHTML = buildAdminCreateBookingForm();
-            const selectedCustomer = getCustomerRows()[0] || null;
-            if (selectedCustomer) {
-                const key = getControlEntityKey(selectedCustomer);
-                if (form.elements.customerKey) form.elements.customerKey.value = key;
-                hydrateAdminCreateCustomerFields(form, selectedCustomer);
-            }
         }
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
@@ -1047,9 +1102,9 @@
         const data = new FormData(form);
         const text = (name) => cleanText(data.get(name));
         const selectedCustomer = findAdminCreateCustomer(text("customerKey"));
-        const selectedKey = selectedCustomer ? getControlEntityKey(selectedCustomer) : "";
+        const selectedKey = selectedCustomer ? getCustomerEntityKey(selectedCustomer) : "";
         const customerName = text("customerName") || cleanText(selectedCustomer?.name || selectedCustomer?.fullname || selectedCustomer?.customerName || "Customer");
-        const customerPhone = normalizeAdminPhoneValue(text("customerPhone") || selectedCustomer?.phone || selectedCustomer?.mobile || selectedCustomer?.customerPhone || "");
+        const customerPhone = firstUsableAdminPhone(text("customerPhone"), selectedCustomer?.phone, selectedCustomer?.mobile, selectedCustomer?.customerPhone);
         const customerEmail = normalizeAdminEmailValue(text("customerEmail") || selectedCustomer?.email || selectedCustomer?.customerEmail || "");
         return {
             bookingId: generateAdminBookingId(),
@@ -1085,6 +1140,7 @@
     function validateAdminCreateBooking(data) {
         if (!cleanText(data.customerName)) return "Customer name is required.";
         if (!cleanText(data.customerPhone) && !cleanText(data.customerEmail)) return "Customer phone or email is required.";
+        if (cleanText(data.customerPhone) && !adminPhoneLooksUsable(data.customerPhone)) return "Enter a full customer phone number, not only country code.";
         if (!cleanText(data.pickup)) return "Pickup is required.";
         if (!cleanText(data.dropoff)) return "Drop is required.";
         if (!cleanText(data.rideDate)) return "Ride date is required.";
@@ -2085,19 +2141,25 @@
     function getCustomerRows() {
         const map = new Map();
         state.users.forEach((user) => {
-            const key = getControlEntityKey(user);
-            if (key) map.set(key, { ...user, type: "stored_user" });
+            if (adminRowLooksDriver(user) || !adminRowLooksCustomer(user)) return;
+            const phone = firstUsableAdminPhone(user.phone, user.mobile, user.customerPhone);
+            const key = getCustomerEntityKey({ ...user, phone });
+            if (key) map.set(key, { ...user, phone, type: "stored_customer" });
         });
 
         state.bookings.forEach((booking) => {
+            const phone = firstUsableAdminPhone(booking.customerPhone, booking.phone, booking.mobile);
+            const email = normalizeAdminEmailValue(booking.customerEmail || booking.email || "");
+            if (!phone && !email) return;
             const customer = {
                 id: booking.customerId || booking.userId || booking.backendUserId || "",
                 name: booking.customerName || "Customer",
-                email: booking.customerEmail || "",
-                phone: booking.customerPhone || "",
+                email,
+                phone,
                 type: "booking_customer"
             };
-            const key = getControlEntityKey(customer);
+            if (adminRowLooksDriver(customer)) return;
+            const key = getCustomerEntityKey(customer);
             if (key && !map.has(key)) map.set(key, customer);
         });
 
