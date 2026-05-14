@@ -153,7 +153,6 @@ function runAdminAppWithBookingRows(rows) {
 
   return {
     customerHtml: byId('bookingTableBody').innerHTML,
-    driverHtml: byId('driverBookingTableBody').innerHTML,
     customerSplit: JSON.parse(localStorage.getItem('goindiaride_admin_customer_bookings_current_v1') || '[]'),
     driverSplit: JSON.parse(localStorage.getItem('goindiaride_admin_driver_bookings_current_v1') || '[]')
   };
@@ -204,13 +203,23 @@ test('admin booking view separates customer bookings from driver-side rows', () 
   const appHtml = readRepoFile('admin/app.html');
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const adminCss = readRepoFile('admin/css/admin-app.css');
+  const customerFolderHtml = readRepoFile('admin/customer-bookings/index.html');
+  const driverFolderHtml = readRepoFile('admin/driver-bookings/index.html');
+  const customerFolderJs = readRepoFile('admin/customer-bookings/customer-bookings.js');
+  const driverFolderJs = readRepoFile('admin/driver-bookings/driver-bookings.js');
 
-  assert.match(appHtml, /id="driverBookingTableBody"/);
+  assert.doesNotMatch(appHtml, /id="driverBookingTableBody"/);
+  assert.match(appHtml, /\.\/driver-bookings\//);
+  assert.match(customerFolderHtml, /id="customerFolderTableBody"/);
+  assert.match(driverFolderHtml, /id="driverFolderTableBody"/);
+  assert.match(customerFolderJs, /Customer full saved payload/);
+  assert.match(driverFolderJs, /Driver full saved payload/);
   assert.match(appHtml, /id="customerBookingCount"/);
-  assert.match(appHtml, /id="driverBookingCount"/);
   assert.match(adminCss, /\.booking-split-summary/);
+  assert.match(adminCss, /\.booking-folder-link/);
   assert.match(adminApp, /CUSTOMER_BOOKING_SPLIT_KEY/);
   assert.match(adminApp, /DRIVER_BOOKING_SPLIT_KEY/);
+  assert.match(adminApp, /GoIndiaAdminBookingSplit/);
   assert.match(adminApp, /function getAdminBookingRecordScope\(/);
   assert.match(adminApp, /function isDriverOnlyOperationalRecord\(/);
   assert.match(adminApp, /function loadBookingSplit\(/);
@@ -250,7 +259,6 @@ test('admin booking classifier moves DRV placeholder rows out of customer bookin
 
   assert.match(result.customerHtml, /RID1778669288778/);
   assert.doesNotMatch(result.customerHtml, /DRV1778672498873/);
-  assert.match(result.driverHtml, /DRV1778672498873/);
   assert.equal(result.customerSplit.length, 1);
   assert.equal(result.customerSplit[0].bookingId, 'RID1778669288778');
   assert.equal(result.driverSplit.length, 1);
@@ -286,7 +294,7 @@ test('admin edit/create sync reaches customer portal without depending on Portal
 
 test('changed inline scripts still compile', () => {
   const inlineScriptRegex = new RegExp('<script\\b(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>', 'gi');
-  for (const relativePath of ['admin/app.html', 'pages/customer-dashboard.html', 'pages/booking.html']) {
+  for (const relativePath of ['admin/app.html', 'admin/customer-bookings/index.html', 'admin/driver-bookings/index.html', 'pages/customer-dashboard.html', 'pages/booking.html']) {
     const html = readRepoFile(relativePath);
     let index = 0;
     for (const match of html.matchAll(inlineScriptRegex)) {
@@ -295,5 +303,13 @@ test('changed inline scripts still compile', () => {
         new vm.Script(match[1], { filename: `${relativePath}:inline-script-${index}` });
       });
     }
+  }
+});
+
+test('separate admin booking folder scripts compile', () => {
+  for (const relativePath of ['admin/customer-bookings/customer-bookings.js', 'admin/driver-bookings/driver-bookings.js']) {
+    assert.doesNotThrow(() => {
+      new vm.Script(readRepoFile(relativePath), { filename: relativePath });
+    });
   }
 });

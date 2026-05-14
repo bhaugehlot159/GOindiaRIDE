@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOindiaRIDE Customer Bookings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin-app.css?v=20260514-booking-folders1">
+    <script>
+        (function requireAdminSessionForCustomerBookings() {
+            try {
+                const role = String(localStorage.getItem("userRole") || localStorage.getItem("role") || "").toLowerCase();
+                const accountType = String(localStorage.getItem("accountType") || "").toLowerCase();
+                const currentAdmin = localStorage.getItem("currentAdmin");
+                const isAdmin = role === "admin" || accountType === "admin" || Boolean(currentAdmin);
+                if (!isAdmin) {
+                    window.location.replace("../login.html?next=%2Fadmin%2Fcustomer-bookings%2F");
+                }
+            } catch (_error) {
+                window.location.replace("../login.html?next=%2Fadmin%2Fcustomer-bookings%2F");
+            }
+        })();
+    </script>
+    <script src="../../js/data-preservation-guard.js?v=20260512-data-preserve1"></script>
+</head>
+<body class="admin-app-shell admin-booking-folder-shell">
+    <div class="app-layout">
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="brand-lockup">
+                <div class="brand-mark"><i class="fas fa-route"></i></div>
+                <div>
+                    <strong>GOindiaRIDE</strong>
+                    <span>Customer Folder</span>
+                </div>
+            </div>
+
+            <div class="app-search">
+                <i class="fas fa-search"></i>
+                <input id="folderSearchInput" type="search" placeholder="Search customer booking data">
+            </div>
+
+            <nav class="app-nav" aria-label="Customer booking folder">
+                <a class="nav-item" href="../app.html"><i class="fas fa-table-columns"></i><span>Admin Overview</span></a>
+                <a class="nav-item active" href="./"><i class="fas fa-clipboard-list"></i><span>Customer Bookings</span><strong id="customerFolderCount">0</strong></a>
+                <a class="nav-item" href="../driver-bookings/"><i class="fas fa-car-side"></i><span>Driver Bookings</span><strong id="driverFolderCount">0</strong></a>
+                <a class="nav-item" href="../app.html#drivers"><i class="fas fa-id-card"></i><span>Drivers</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="../index.html"><i class="fas fa-layer-group"></i><span>Legacy Portal</span></a>
+                <a href="../../index.html"><i class="fas fa-house"></i><span>Main Site</span></a>
+            </div>
+        </aside>
+
+        <main class="app-main">
+            <header class="app-topbar">
+                <button class="icon-button mobile-menu-btn" id="mobileMenuBtn" type="button" title="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-heading">
+                    <span id="todayLabel">Separate customer booking folder</span>
+                    <h1>Customer Bookings</h1>
+                </div>
+                <div class="topbar-actions">
+                    <a class="secondary-action" href="../driver-bookings/"><i class="fas fa-car-side"></i> Driver Folder</a>
+                    <button class="icon-button" id="folderRefreshBtn" type="button" title="Refresh customer data">
+                        <i class="fas fa-rotate"></i>
+                    </button>
+                </div>
+            </header>
+
+            <section class="workspace-panel">
+                <div class="panel-title-row">
+                    <div>
+                        <span class="section-kicker">Customer data only</span>
+                        <h2>Saved Customer Booking Data</h2>
+                    </div>
+                    <span class="status-pill good" id="customerFolderSavedAt">Saved</span>
+                </div>
+                <div class="booking-split-summary" aria-label="Customer booking folder summary">
+                    <article>
+                        <span>Customer rows</span>
+                        <strong id="customerFolderMetric">0</strong>
+                    </article>
+                    <article>
+                        <span>Storage key</span>
+                        <strong>goindiaride_admin_customer_bookings_current_v1</strong>
+                    </article>
+                    <article>
+                        <span>Driver data</span>
+                        <strong><a class="booking-folder-link" href="../driver-bookings/">Separate folder</a></strong>
+                    </article>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Booking</th>
+                                <th>Customer</th>
+                                <th>Route</th>
+                                <th>Fare</th>
+                                <th>Status</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerFolderTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+    <script src="../../js/portal-connector.js"></script>
+    <script src="../../js/admin-control-bridge.js?v=20260512-data-preserve1"></script>
+    <script src="../js/admin-app.js?v=20260514-booking-folders1"></script>
+    <script src="./customer-bookings.js?v=20260514-booking-folders1"></script>
+</body>
+</html>

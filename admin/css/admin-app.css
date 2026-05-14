@@ -587,6 +587,16 @@ button {
     overflow-wrap: anywhere;
 }
 
+.booking-folder-link {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+.booking-folder-link:hover,
+.booking-folder-link:focus-visible {
+    text-decoration: underline;
+}
+
 .booking-mini-grid span {
     min-width: 0;
     display: grid;

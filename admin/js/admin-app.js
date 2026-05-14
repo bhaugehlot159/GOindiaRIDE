@@ -2614,6 +2614,7 @@
     function renderBookingSplitSummary() {
         setText("#customerBookingCount", getFilteredBookings("all").length);
         setText("#driverBookingCount", getFilteredDriverBookings().length);
+        setText("#navDriverBookingCount", getFilteredDriverBookings().length);
         setText("#bookingSplitSavedAt", formatDate(new Date().toISOString()));
     }
 
@@ -3677,6 +3678,31 @@
             });
         }
     }
+
+    window.GoIndiaAdminBookingSplit = {
+        keys: {
+            customer: CUSTOMER_BOOKING_SPLIT_KEY,
+            driver: DRIVER_BOOKING_SPLIT_KEY,
+            summary: BOOKING_SPLIT_VIEW_KEY
+        },
+        refresh: loadBookingSplit,
+        getCustomerBookings() {
+            return loadBookingSplit().customerBookings;
+        },
+        getDriverBookings() {
+            return loadBookingSplit().driverBookings;
+        },
+        helpers: {
+            cleanText,
+            escapeHtml,
+            formatDate,
+            formatMoney,
+            getStatusClass,
+            getStatusLabel,
+            getDriverBookingStatusClass,
+            getDriverBookingStatusLabel
+        }
+    };
 
     function init() {
         const today = new Date().toLocaleDateString("en-IN", {

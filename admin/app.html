@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOindiaRIDE Admin App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-app.css?v=20260514-booking-split2">
+    <link rel="stylesheet" href="./css/admin-app.css?v=20260514-booking-folders1">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -42,7 +42,8 @@
             <nav class="app-nav" aria-label="Admin sections">
                 <button class="nav-item active" data-view="overview" type="button"><i class="fas fa-table-columns"></i><span>Overview</span></button>
                 <button class="nav-item" data-view="portals" type="button"><i class="fas fa-network-wired"></i><span>Portals</span><strong id="navPortalCount">2</strong></button>
-                <button class="nav-item" data-view="bookings" type="button"><i class="fas fa-clipboard-list"></i><span>Bookings</span><strong id="navPendingCount">0</strong></button>
+                <button class="nav-item" data-view="bookings" type="button"><i class="fas fa-clipboard-list"></i><span>Customer Bookings</span><strong id="navPendingCount">0</strong></button>
+                <a class="nav-item" href="./driver-bookings/"><i class="fas fa-car-side"></i><span>Driver Bookings</span><strong id="navDriverBookingCount">0</strong></a>
                 <button class="nav-item" data-view="drivers" type="button"><i class="fas fa-id-card"></i><span>Drivers</span></button>
                 <button class="nav-item" data-view="finance" type="button"><i class="fas fa-file-invoice-dollar"></i><span>Finance</span></button>
                 <button class="nav-item" data-view="safety" type="button"><i class="fas fa-shield-halved"></i><span>Safety</span></button>
@@ -220,14 +221,14 @@
                             <button class="primary-action" id="exportBookingsBtn" type="button"><i class="fas fa-download"></i> Export</button>
                         </div>
                     </div>
-                    <div class="booking-split-summary" aria-label="Customer and driver booking split">
+                    <div class="booking-split-summary" aria-label="Customer booking split">
                         <article>
                             <span>Customer bookings</span>
                             <strong id="customerBookingCount">0</strong>
                         </article>
                         <article>
-                            <span>Driver requests</span>
-                            <strong id="driverBookingCount">0</strong>
+                            <span>Driver folder</span>
+                            <strong><a class="booking-folder-link" href="./driver-bookings/">Open driver bookings</a></strong>
                         </article>
                         <article>
                             <span>Split saved</span>
@@ -247,29 +248,6 @@
                                 </tr>
                             </thead>
                             <tbody id="bookingTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="workspace-panel driver-booking-panel">
-                    <div class="panel-title-row">
-                        <div>
-                            <span class="section-kicker">Driver side</span>
-                            <h2>Driver Booking Requests</h2>
-                        </div>
-                    </div>
-                    <div class="table-wrap">
-                        <table class="data-table driver-booking-table">
-                            <thead>
-                                <tr>
-                                    <th>Request</th>
-                                    <th>Driver</th>
-                                    <th>Vehicle</th>
-                                    <th>Route / Source</th>
-                                    <th>Status</th>
-                                    <th>Scope</th>
-                                </tr>
-                            </thead>
-                            <tbody id="driverBookingTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -367,6 +345,6 @@
 
     <script src="../js/portal-connector.js"></script>
     <script src="../js/admin-control-bridge.js?v=20260512-data-preserve1"></script>
-    <script src="./js/admin-app.js?v=20260514-booking-split2"></script>
+    <script src="./js/admin-app.js?v=20260514-booking-folders1"></script>
 </body>
 </html>
