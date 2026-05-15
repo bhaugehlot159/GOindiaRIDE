@@ -319,6 +319,9 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(runtimeBridge, /function mergeBookingRowSnapshots\(/);
   assert.match(runtimeBridge, /function fetchFallbackAdminQueueBookings\(/);
   assert.match(runtimeBridge, /fallback\/admin-review-queue\?limit=220&status=/);
+  assert.match(runtimeBridge, /existingRefs/);
+  assert.match(runtimeBridge, /bookingBelongsToUser\(item,\s*user\)/);
+  assert.match(runtimeBridge, /existingRefs\[ref\]/);
   assert.match(runtimeBridge, /function localRowLooksFresher\(/);
   assert.match(runtimeBridge, /localRowLooksFresher\(existing,\s*mapped\)/);
   assert.match(runtimeBridge, /editSyncStatus:\s*'synced'/);

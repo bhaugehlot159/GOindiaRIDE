@@ -472,6 +472,13 @@
   async function fetchFallbackAdminQueueBookings(user) {
     var apiBases = getDashboardApiBasesSafe();
     var statuses = ['pending', 'approved', 'rejected'];
+    var existingRefs = {};
+    readLocalBookings()
+      .filter(function (row) { return bookingBelongsToUser(row, user); })
+      .forEach(function (row) {
+        var ref = getBookingRef(row);
+        if (ref) existingRefs[ref] = true;
+      });
     for (var i = 0; i < apiBases.length; i += 1) {
       var collected = [];
       var anySuccess = false;
@@ -498,7 +505,9 @@
       if (!anySuccess) continue;
       var mappedRows = [];
       safeArray(collected).forEach(function (item) {
-        if (!bookingBelongsToUser(item, user)) return;
+        var ref = getBookingRef(item);
+        var belongsToCurrentUser = bookingBelongsToUser(item, user);
+        if (!belongsToCurrentUser && !(ref && existingRefs[ref])) return;
         var mapped = mapBackendBookingToLocal(item, user);
         mapped.adminCustomerSyncStatus = normalizeTextValue(item && (item.adminCustomerSyncStatus || item.adminReviewStatus || 'synced'), 40) || 'synced';
         mapped.adminCustomerSyncedAt = normalizeTextValue(item && (item.adminCustomerSyncedAt || item.adminLastEditedAt || item.lastEditedAt || item.updatedAt), 80) || new Date().toISOString();
