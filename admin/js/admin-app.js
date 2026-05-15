@@ -232,6 +232,15 @@
         });
     }
 
+    function buildOutboundDateTime(rideDate, rideTime) {
+        const date = cleanText(rideDate);
+        const time = cleanText(rideTime);
+        if (!date) return "";
+        if (!time) return `${date}T00:00:00.000Z`;
+        const safeTime = /^\d{2}:\d{2}/.test(time) ? `${time}:00` : "00:00:00";
+        return `${date}T${safeTime}.000Z`;
+    }
+
     function isPlainObject(value) {
         return Boolean(value && typeof value === "object" && !Array.isArray(value));
     }
@@ -1545,9 +1554,14 @@
             to: data.dropoff,
             rideDate: data.rideDate,
             rideTime: data.rideTime,
+            outboundDateTime: buildOutboundDateTime(data.rideDate, data.rideTime),
             returnDate: data.returnDate,
             returnTime: data.returnTime,
-            returnTrip: { returnDate: data.returnDate, returnTime: data.returnTime },
+            returnTrip: {
+                returnDate: data.returnDate,
+                returnTime: data.returnTime,
+                returnDateTime: buildOutboundDateTime(data.returnDate, data.returnTime)
+            },
             tripPlan: data.tripPlan,
             vehicleType: data.vehicleType,
             rideType: data.vehicleType,
@@ -2967,6 +2981,7 @@
             finalFare: amount,
             distanceKm,
             distance: distanceKm,
+            outboundDateTime: firstText(merged.outboundDateTime, buildOutboundDateTime(merged.rideDate, merged.rideTime)),
             customerSnapshot: {
                 ...(isPlainObject(merged.customerSnapshot) ? merged.customerSnapshot : {}),
                 name: merged.customerName || merged.customerSnapshot?.name || "",
@@ -2976,6 +2991,8 @@
             sourceKey: merged.sourceKey || "admin_booking_sync",
             adminCustomerSyncStatus: "synced",
             adminCustomerSyncedAt: updatedAt,
+            backendSyncStatus: "retry",
+            backendSyncQueuedAt: updatedAt,
             updatedAt
         };
     }

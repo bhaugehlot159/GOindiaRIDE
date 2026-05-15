@@ -300,6 +300,24 @@ test('admin edit/create sync reaches customer portal without depending on Portal
   );
 });
 
+test('customer runtime bridge preserves fresher admin-edited rows until backend catches up', () => {
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+  const customerDashboard = readRepoFile('pages/customer-dashboard.html');
+  const runtimeBridge = readRepoFile('js/customer-dashboard-live-bridge.js');
+
+  assert.match(adminApp, /backendSyncStatus:\s*"retry"/);
+  assert.match(adminApp, /backendSyncQueuedAt:\s*updatedAt/);
+  assert.match(adminApp, /outboundDateTime:\s*buildOutboundDateTime\(data\.rideDate,\s*data\.rideTime\)/);
+  assert.match(customerDashboard, /goindiaride_admin_customer_bookings_current_v1/);
+
+  assert.match(runtimeBridge, /LOCAL_BOOKING_KEYS/);
+  assert.match(runtimeBridge, /goindiaride_admin_customer_bookings_current_v1/);
+  assert.match(runtimeBridge, /function localRowLooksFresher\(/);
+  assert.match(runtimeBridge, /localRowLooksFresher\(existing,\s*mapped\)/);
+  assert.match(runtimeBridge, /editSyncStatus:\s*'synced'/);
+  assert.match(runtimeBridge, /editSyncConflict:\s*false/);
+});
+
 test('changed inline scripts still compile', () => {
   const inlineScriptRegex = new RegExp('<script\\b(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>', 'gi');
   for (const relativePath of ['admin/app.html', 'admin/customer-bookings/index.html', 'admin/driver-bookings/index.html', 'pages/customer-dashboard.html', 'pages/booking.html']) {

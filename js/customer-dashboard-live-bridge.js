@@ -3,6 +3,14 @@
 
   var RUNTIME_HISTORY_SYNC_KEY = 'goindiaride.customer.dashboard.runtime-history-sync.v1';
   var PUBLIC_ADMIN_QUEUE_SYNC_KEY = 'goindiaride.customer.dashboard.public-admin-queue-sync.v1';
+  var LOCAL_BOOKING_KEYS = [
+    'bookings',
+    'goride_bookings',
+    'goindiaride_active_bookings',
+    'customerBookings',
+    'customer_bookings',
+    'goindiaride_admin_customer_bookings_current_v1'
+  ];
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
   window.__GOINDIARIDE_DISABLE_DEMO_CHAT__ = true;
 
@@ -173,9 +181,14 @@
   }
 
   function readLocalBookings() {
-    var localRows = safeArray(parseJson(localStorage.getItem('bookings') || '[]', []));
-    var sharedRows = safeArray(parseJson(localStorage.getItem('goride_bookings') || '[]', []));
-    return mergeBookingCollections(sharedRows, localRows);
+    var merged = [];
+    for (var i = 0; i < LOCAL_BOOKING_KEYS.length; i += 1) {
+      merged = mergeBookingCollections(
+        merged,
+        safeArray(parseJson(localStorage.getItem(LOCAL_BOOKING_KEYS[i]) || '[]', []))
+      );
+    }
+    return merged;
   }
 
   function writeLocalBookings(rows) {
@@ -349,16 +362,35 @@
     return String((row && row.editSyncStatus) || '').trim().toLowerCase() === 'pending';
   }
 
+  function toTimestamp(value) {
+    var time = new Date(value || 0).getTime();
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function localRowLooksFresher(existing, mapped) {
+    if (!existing || !mapped) return false;
+    var localUpdatedAt = toTimestamp(existing.updatedAt || existing.lastEditedAt || existing.adminLastEditedAt || existing.createdAt);
+    var backendUpdatedAt = toTimestamp(mapped.updatedAt || mapped.createdAt);
+    if (!localUpdatedAt || !backendUpdatedAt) return false;
+    if (localUpdatedAt <= backendUpdatedAt) return false;
+    var hasAdminSyncMarker = Boolean(existing.adminCustomerSyncedAt || existing.adminCustomerSyncStatus || existing.adminLastEditedAt);
+    return hasAdminSyncMarker;
+  }
+
   function mergeBackendBookingRow(existing, mapped) {
-    if (!existing || !hasPendingLocalEdit(existing)) {
-      return Object.assign({}, existing || {}, mapped);
+    if (!existing) {
+      return Object.assign({}, mapped || {});
     }
 
-    return Object.assign({}, mapped, existing, {
-      liveBackendSnapshot: mapped,
-      editSyncStatus: 'pending',
-      editSyncConflict: true
-    });
+    if (hasPendingLocalEdit(existing) || localRowLooksFresher(existing, mapped)) {
+      return Object.assign({}, mapped, existing, {
+        liveBackendSnapshot: mapped,
+        editSyncStatus: String((existing && existing.editSyncStatus) || 'pending').trim().toLowerCase() || 'pending',
+        editSyncConflict: true
+      });
+    }
+
+    return Object.assign({}, existing || {}, mapped);
   }
 
   function mergeBackendBookingsIntoLocal(items, user) {
@@ -412,7 +444,9 @@
       if (state === 'synced' || state === 'existing') {
         return Object.assign({}, row, {
           backendSyncStatus: 'synced',
-          backendSyncedAt: new Date().toISOString()
+          backendSyncedAt: new Date().toISOString(),
+          editSyncStatus: 'synced',
+          editSyncConflict: false
         });
       }
       return Object.assign({}, row, {
