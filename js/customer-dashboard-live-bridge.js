@@ -188,7 +188,6 @@
     var source = String(row.sourceKey || '').toLowerCase();
     if (row.adminLastEditedAt || row.adminCustomerSyncStatus || row.adminCustomerSyncedAt) score += 40;
     if (source.indexOf('admin') >= 0 || source.indexOf('fallback') >= 0) score += 15;
-    if (String(row.backendSyncStatus || '').toLowerCase() === 'synced') score += 4;
     return score;
   }
 
@@ -399,7 +398,7 @@
       adminLastEditedAt: normalizeTextValue(item && (item.adminLastEditedAt || item.lastEditedAt), 80),
       adminReviewStatus: normalizeTextValue(item && item.adminReviewStatus, 40) || 'pending',
       adminCustomerSyncStatus: normalizeTextValue(item && item.adminCustomerSyncStatus, 40) || '',
-      adminCustomerSyncedAt: normalizeTextValue(item && (item.adminCustomerSyncedAt || item.adminLastEditedAt || item.lastEditedAt || item.updatedAt), 80),
+      adminCustomerSyncedAt: normalizeTextValue(item && (item.adminCustomerSyncedAt || item.adminLastEditedAt || item.lastEditedAt), 80),
       backendSyncStatus: 'synced',
       backendSyncedAt: new Date().toISOString()
     };
@@ -431,6 +430,31 @@
   function mergeBackendBookingRow(existing, mapped) {
     if (!existing) {
       return Object.assign({}, mapped || {});
+    }
+
+    var localHasAdminSyncMarker = Boolean(
+      existing && (
+        existing.adminCustomerSyncedAt
+        || existing.adminCustomerSyncStatus
+        || existing.adminLastEditedAt
+        || existing.lastEditedAt
+      )
+    );
+    var mappedHasAdminSyncMarker = Boolean(
+      mapped && (
+        mapped.adminCustomerSyncedAt
+        || mapped.adminCustomerSyncStatus
+        || mapped.adminLastEditedAt
+        || mapped.lastEditedAt
+      )
+    );
+
+    if (localHasAdminSyncMarker && !mappedHasAdminSyncMarker) {
+      return Object.assign({}, mapped, existing, {
+        liveBackendSnapshot: mapped,
+        editSyncStatus: String((existing && existing.editSyncStatus) || 'pending').trim().toLowerCase() || 'pending',
+        editSyncConflict: true
+      });
     }
 
     if (hasPendingLocalEdit(existing) || localRowLooksFresher(existing, mapped)) {
