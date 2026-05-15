@@ -48,6 +48,10 @@ body.admin-app-shell {
     letter-spacing: 0;
 }
 
+body.admin-app-shell.admin-modal-open {
+    overflow: hidden;
+}
+
 button,
 input,
 select {
@@ -756,17 +760,22 @@ button {
     z-index: 100;
     display: none;
     place-items: center;
+    align-items: flex-start;
     padding: 18px;
     background: rgba(15, 23, 42, 0.46);
+    overflow: auto;
+    overscroll-behavior: contain;
 }
 
 .booking-edit-modal.open {
     display: grid;
+    justify-items: center;
 }
 
 .booking-edit-dialog {
-    width: min(1040px, 100%);
-    max-height: min(90vh, 860px);
+    width: min(1120px, calc(100vw - 24px));
+    max-height: calc(100dvh - 40px);
+    margin: 12px 0;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     border: 1px solid var(--line);
@@ -791,16 +800,23 @@ button {
     font-size: 1.12rem;
 }
 
-#bookingEditForm {
+#bookingEditForm,
+#adminCreateBookingForm {
     min-height: 0;
     overflow: auto;
     padding: 16px;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable both-edges;
 }
 
 .booking-edit-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
+}
+
+.booking-edit-grid > .booking-edit-field {
+    min-width: 0;
 }
 
 .booking-edit-field {
@@ -1392,6 +1408,16 @@ button {
 
     .booking-edit-actions button {
         width: 100%;
+    }
+
+    .booking-edit-modal {
+        padding: 10px;
+    }
+
+    .booking-edit-dialog {
+        width: min(100%, calc(100vw - 12px));
+        max-height: calc(100dvh - 16px);
+        margin: 0;
     }
 
     .pulse-item {

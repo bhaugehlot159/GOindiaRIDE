@@ -1123,8 +1123,8 @@
                     <select name="customerKey" id="adminCreateCustomerSelect">${renderAdminCustomerOptions()}</select>
                 </label>
                 ${renderEditInput("customerName", "Customer name", "")}
-                ${renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+919876543210"')}
-                ${renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="customer@example.com"')}
+                ${renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+91XXXXXXXXXX" autocomplete="tel"')}
+                ${renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="name@domain.com" autocomplete="email"')}
                 ${renderEditInput("pickup", "Pickup", "", "required")}
                 ${renderEditInput("dropoff", "Drop", "", "required")}
                 ${renderEditInput("rideDate", "Ride date", defaultAdminRideDate(), 'type="date" required')}
@@ -1160,6 +1160,14 @@
         `;
     }
 
+    function setAdminModalBodyLock() {
+        const hasOpenModal = Boolean(
+            $("#adminCreateBookingModal")?.classList.contains("open")
+            || $("#bookingEditModal")?.classList.contains("open")
+        );
+        document.body.classList.toggle("admin-modal-open", hasOpenModal);
+    }
+
     function findAdminCreateCustomer(key) {
         const safeKey = cleanText(key).toLowerCase();
         if (!safeKey) return null;
@@ -1187,9 +1195,19 @@
         const form = $("#adminCreateBookingForm", modal);
         if (form) {
             form.innerHTML = buildAdminCreateBookingForm();
+            const select = form.querySelector("#adminCreateCustomerSelect");
+            if (select && !cleanText(select.value)) {
+                const firstRealOption = Array.from(select.options || []).find((option) => cleanText(option?.value || ""));
+                if (firstRealOption) {
+                    select.value = firstRealOption.value;
+                    const customer = findAdminCreateCustomer(firstRealOption.value);
+                    hydrateAdminCreateCustomerFields(form, customer);
+                }
+            }
         }
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
+        setAdminModalBodyLock();
         modal.querySelector("input[name='pickup']")?.focus();
     }
 
@@ -1198,6 +1216,7 @@
         if (!modal) return;
         modal.classList.remove("open");
         modal.setAttribute("aria-hidden", "true");
+        setAdminModalBodyLock();
     }
 
     function buildBookingEditForm(booking) {
@@ -1265,6 +1284,7 @@
         if (form) form.innerHTML = buildBookingEditForm(booking);
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
+        setAdminModalBodyLock();
         modal.querySelector("input[name='pickup']")?.focus();
     }
 
@@ -1274,6 +1294,7 @@
         if (!modal) return;
         modal.classList.remove("open");
         modal.setAttribute("aria-hidden", "true");
+        setAdminModalBodyLock();
     }
 
     function collectBookingEditForm(form) {
