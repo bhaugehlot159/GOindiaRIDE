@@ -22,6 +22,7 @@
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
     const ADMIN_QUEUE_SYNC_SIGNAL_KEY = "goindiaride_admin_review_queue_signal_v1";
     const ADMIN_BOOKING_EDIT_SIGNAL_KEY = "goindiaride_admin_booking_edit_signal_v1";
+    const ADMIN_BOOKING_AUTOFILL_MEMORY_KEY = "goindiaride_admin_booking_autofill_memory_v1";
     const CUSTOMER_BOOKING_SPLIT_KEY = "goindiaride_admin_customer_bookings_current_v1";
     const DRIVER_BOOKING_SPLIT_KEY = "goindiaride_admin_driver_bookings_current_v1";
     const BOOKING_SPLIT_VIEW_KEY = "goindiaride_admin_booking_split_views_current_v1";
@@ -952,6 +953,172 @@
         `;
     }
 
+    function readAdminAutofillMemory() {
+        const parsed = parseJson(localStorage.getItem(ADMIN_BOOKING_AUTOFILL_MEMORY_KEY), {});
+        return isPlainObject(parsed) ? parsed : {};
+    }
+
+    function writeAdminAutofillMemory(nextMemory = {}) {
+        const safeMemory = isPlainObject(nextMemory) ? nextMemory : {};
+        localStorage.setItem(ADMIN_BOOKING_AUTOFILL_MEMORY_KEY, JSON.stringify(safeMemory));
+    }
+
+    function normalizeAutofillNumber(value, fallback = 0) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+    }
+
+    function buildAutofillTemplateFromBooking(row = {}) {
+        const specialRequests = isPlainObject(row.specialRequests)
+            ? row.specialRequests
+            : (isPlainObject(row.customerFeatures?.specialRequests) ? row.customerFeatures.specialRequests : {});
+        const safetyAccessibility = isPlainObject(row.safetyAccessibility)
+            ? row.safetyAccessibility
+            : (isPlainObject(row.customerFeatures?.safetyAccessibility) ? row.customerFeatures.safetyAccessibility : {});
+        return {
+            pickup: cleanText(row.pickup || row.pickupLocation || row.from || ""),
+            dropoff: cleanText(row.dropoff || row.dropLocation || row.drop || row.to || ""),
+            tripPlan: cleanText(row.tripPlan || row.bookingMode || row.mode || ""),
+            vehicleType: cleanText(row.vehicleType || row.rideType || ""),
+            vehicleModel: cleanText(row.vehicleModel || ""),
+            passengers: normalizeAutofillNumber(row.passengers, 1),
+            luggage: cleanText(row.luggage || ""),
+            paymentMethod: cleanText(row.paymentMethod || row.payment?.method || row.paymentMode || ""),
+            fare: toAmount(row.fare || row.totalFare || row.amount || row.finalFare),
+            distanceKm: toAmount(row.distanceKm || row.distance || row.fareQuote?.distanceKm || row.fareBreakdown?.distanceKm),
+            stops: serializeList(Array.isArray(row.stops) ? row.stops : []),
+            notes: cleanText(row.notes || ""),
+            specialRequests: serializeMap(specialRequests),
+            safetyAccessibility: serializeMap(safetyAccessibility),
+            updatedAt: cleanText(row.updatedAt || row.lastEditedAt || row.createdAt || "")
+        };
+    }
+
+    function getBookingFreshnessForAutofill(row = {}) {
+        const source = row || {};
+        const points = [
+            source.adminLastEditedAt,
+            source.lastEditedAt,
+            source.updatedAt,
+            source.createdAt
+        ]
+            .map((value) => new Date(value || 0).getTime())
+            .filter((value) => Number.isFinite(value));
+        return points.length ? Math.max(...points) : 0;
+    }
+
+    function buildBookingCustomerKeySet(row = {}) {
+        const keySet = new Set();
+        const addKey = (value) => {
+            const token = cleanText(value).toLowerCase();
+            if (token) keySet.add(token);
+        };
+        addKey(row.customerId);
+        addKey(row.userId);
+        addKey(row.backendUserId);
+        addKey(row.id);
+        addKey(row.customerEmail);
+        addKey(row.email);
+        const phone = firstUsableAdminPhone(row.customerPhone, row.phone, row.mobile, row.contact);
+        if (phone) addKey(phone);
+        return keySet;
+    }
+
+    function findLatestTemplateBookingForCustomer(customerKey = "") {
+        const safeKey = cleanText(customerKey).toLowerCase();
+        if (!safeKey) return null;
+        return state.bookings
+            .filter((row) => row && !isInternalDiagnosticBooking(row))
+            .filter((row) => buildBookingCustomerKeySet(row).has(safeKey))
+            .sort((left, right) => getBookingFreshnessForAutofill(right) - getBookingFreshnessForAutofill(left))[0] || null;
+    }
+
+    function findLatestGlobalTemplateBooking() {
+        return state.bookings
+            .filter((row) => row && !isInternalDiagnosticBooking(row))
+            .sort((left, right) => getBookingFreshnessForAutofill(right) - getBookingFreshnessForAutofill(left))[0] || null;
+    }
+
+    function setFormFieldValue(form, name, value, fillMissingOnly = false) {
+        if (!form || !name) return false;
+        const field = form.elements[name];
+        if (!field) return false;
+        const nextValue = String(value ?? "");
+        const currentValue = String(field.value || "");
+        if (fillMissingOnly && cleanText(currentValue)) return false;
+        if (currentValue === nextValue) return false;
+        field.value = nextValue;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+        return true;
+    }
+
+    function renderLocationSuggestions(id) {
+        const suggestions = new Set();
+        const addLocation = (value) => {
+            const text = cleanText(value);
+            if (text && text.length <= 160) suggestions.add(text);
+        };
+        state.bookings.forEach((booking) => {
+            addLocation(booking.pickup);
+            addLocation(booking.pickupLocation);
+            addLocation(booking.from);
+            addLocation(booking.dropoff);
+            addLocation(booking.dropLocation);
+            addLocation(booking.drop);
+            addLocation(booking.to);
+        });
+        const options = Array.from(suggestions).slice(0, 120).map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
+        return `<datalist id="${escapeHtml(id)}">${options}</datalist>`;
+    }
+
+    function applyBookingTemplateToForm(form, template = {}, options = {}) {
+        if (!form || !isPlainObject(template)) return false;
+        const fillMissingOnly = Boolean(options.fillMissingOnly);
+        let changed = false;
+        changed = setFormFieldValue(form, "pickup", template.pickup, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "dropoff", template.dropoff, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "tripPlan", template.tripPlan, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "vehicleType", template.vehicleType, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "vehicleModel", template.vehicleModel, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "passengers", template.passengers, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "luggage", template.luggage, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "paymentMethod", template.paymentMethod, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "fare", template.fare, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "distanceKm", template.distanceKm, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "stops", template.stops, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "notes", template.notes, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "specialRequests", template.specialRequests, fillMissingOnly) || changed;
+        changed = setFormFieldValue(form, "safetyAccessibility", template.safetyAccessibility, fillMissingOnly) || changed;
+        return changed;
+    }
+
+    function saveFormAutofillMemory(form) {
+        if (!form) return;
+        const currentMemory = readAdminAutofillMemory();
+        const fields = [
+            "pickup", "dropoff", "tripPlan", "vehicleType", "vehicleModel",
+            "passengers", "luggage", "paymentMethod", "fare", "distanceKm",
+            "stops", "notes", "specialRequests", "safetyAccessibility"
+        ];
+        const nextMemory = { ...currentMemory };
+        fields.forEach((fieldName) => {
+            if (!form.elements[fieldName]) return;
+            const value = form.elements[fieldName].value;
+            if (cleanText(value) || String(value || "") === "0") {
+                nextMemory[fieldName] = value;
+            }
+        });
+        nextMemory.updatedAt = new Date().toISOString();
+        writeAdminAutofillMemory(nextMemory);
+    }
+
+    function applyMemoryToForm(form, options = {}) {
+        const memory = readAdminAutofillMemory();
+        if (!isPlainObject(memory) || !Object.keys(memory).length) return false;
+        return applyBookingTemplateToForm(form, memory, options);
+    }
+
     function normalizeAdminPhoneValue(value) {
         const raw = cleanText(value);
         if (!raw) return "";
@@ -1125,8 +1292,8 @@
                 ${renderEditInput("customerName", "Customer name", "")}
                 ${renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+91XXXXXXXXXX" autocomplete="tel"')}
                 ${renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="name@domain.com" autocomplete="email"')}
-                ${renderEditInput("pickup", "Pickup", "", "required")}
-                ${renderEditInput("dropoff", "Drop", "", "required")}
+                ${renderEditInput("pickup", "Pickup", "", 'required list="adminCreatePickupSuggestions" autocomplete="street-address"')}
+                ${renderEditInput("dropoff", "Drop", "", 'required list="adminCreateDropSuggestions" autocomplete="street-address"')}
                 ${renderEditInput("rideDate", "Ride date", defaultAdminRideDate(), 'type="date" required')}
                 ${renderEditInput("rideTime", "Ride time", defaultAdminRideTime(), 'type="time" required')}
                 ${renderEditInput("returnDate", "Return date", "", 'type="date"')}
@@ -1153,8 +1320,11 @@
                 ${renderEditTextarea("safetyAccessibility", "Safety and accessibility", "", 'placeholder="JSON or comma list"')}
                 ${renderEditTextarea("adminEditReason", "Admin note", "Admin created this booking for the customer.", 'placeholder="Reason shown in audit/customer notification"')}
             </div>
+            ${renderLocationSuggestions("adminCreatePickupSuggestions")}
+            ${renderLocationSuggestions("adminCreateDropSuggestions")}
             <div class="booking-edit-actions">
                 <button class="text-button" data-close-admin-create-booking type="button">Cancel</button>
+                <button class="secondary-action" data-admin-create-autofill type="button"><i class="fas fa-wand-magic-sparkles"></i> Auto fill</button>
                 <button class="primary-action" type="submit"><i class="fas fa-plus"></i> Add booking</button>
             </div>
         `;
@@ -1190,6 +1360,60 @@
         if (form.elements.customerEmail && email) form.elements.customerEmail.value = email;
     }
 
+    function resolveCreateFormCustomerKey(form) {
+        if (!form) return "";
+        const selectKey = cleanText(form.elements.customerKey?.value || "").toLowerCase();
+        if (selectKey) return selectKey;
+        const email = normalizeAdminEmailValue(form.elements.customerEmail?.value || "");
+        if (email) return email;
+        const phone = firstUsableAdminPhone(form.elements.customerPhone?.value || "");
+        return cleanText(phone).toLowerCase();
+    }
+
+    function applyCreateFormAutofill(form, options = {}) {
+        if (!form) return { changed: false, source: "none" };
+        const fillMissingOnly = Boolean(options.fillMissingOnly);
+        const customerKey = resolveCreateFormCustomerKey(form);
+        const customerTemplateRow = customerKey ? findLatestTemplateBookingForCustomer(customerKey) : null;
+        const globalTemplateRow = customerTemplateRow ? null : findLatestGlobalTemplateBooking();
+        let changed = false;
+
+        if (customerTemplateRow) {
+            changed = applyBookingTemplateToForm(form, buildAutofillTemplateFromBooking(customerTemplateRow), { fillMissingOnly }) || changed;
+        } else if (globalTemplateRow) {
+            changed = applyBookingTemplateToForm(form, buildAutofillTemplateFromBooking(globalTemplateRow), { fillMissingOnly }) || changed;
+        }
+
+        changed = applyMemoryToForm(form, { fillMissingOnly: true }) || changed;
+        if (changed) saveFormAutofillMemory(form);
+
+        return {
+            changed,
+            source: customerTemplateRow ? "customer_latest_booking" : (globalTemplateRow ? "recent_booking" : "memory")
+        };
+    }
+
+    function applyEditFormAutofill(form, booking, options = {}) {
+        if (!form || !booking) return { changed: false, source: "none" };
+        const fillMissingOnly = options.fillMissingOnly !== false;
+        const customerKeys = buildBookingCustomerKeySet(booking);
+        let templateRow = null;
+        for (const key of customerKeys) {
+            templateRow = findLatestTemplateBookingForCustomer(key);
+            if (templateRow && cleanText(templateRow.bookingId || templateRow.id) !== cleanText(booking.bookingId || booking.id)) break;
+            templateRow = null;
+        }
+        if (!templateRow) templateRow = findLatestGlobalTemplateBooking();
+
+        let changed = false;
+        if (templateRow) {
+            changed = applyBookingTemplateToForm(form, buildAutofillTemplateFromBooking(templateRow), { fillMissingOnly }) || changed;
+        }
+        changed = applyMemoryToForm(form, { fillMissingOnly: true }) || changed;
+        if (changed) saveFormAutofillMemory(form);
+        return { changed, source: templateRow ? "recent_template_booking" : "memory" };
+    }
+
     function openAdminCreateBookingModal() {
         const modal = ensureAdminCreateBookingModal();
         const form = $("#adminCreateBookingForm", modal);
@@ -1204,6 +1428,7 @@
                     hydrateAdminCreateCustomerFields(form, customer);
                 }
             }
+            applyCreateFormAutofill(form, { fillMissingOnly: true });
         }
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
@@ -1214,6 +1439,8 @@
     function closeAdminCreateBookingModal() {
         const modal = $("#adminCreateBookingModal");
         if (!modal) return;
+        const form = $("#adminCreateBookingForm", modal);
+        if (form) saveFormAutofillMemory(form);
         modal.classList.remove("open");
         modal.setAttribute("aria-hidden", "true");
         setAdminModalBodyLock();
@@ -1232,8 +1459,8 @@
                 ${renderEditInput("customerName", "Customer name", booking.customerName)}
                 ${renderEditInput("customerPhone", "Customer phone", booking.customerPhone)}
                 ${renderEditInput("customerEmail", "Customer email", booking.customerEmail, 'type="email"')}
-                ${renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation)}
-                ${renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation)}
+                ${renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation, 'list="adminEditPickupSuggestions" autocomplete="street-address"')}
+                ${renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation, 'list="adminEditDropSuggestions" autocomplete="street-address"')}
                 ${renderEditInput("rideDate", "Ride date", booking.rideDate, 'type="date"')}
                 ${renderEditInput("rideTime", "Ride time", booking.rideTime, 'type="time"')}
                 ${renderEditInput("returnDate", "Return date", booking.returnDate || booking.returnTrip?.returnDate, 'type="date"')}
@@ -1262,8 +1489,11 @@
                 ${renderEditTextarea("safetyAccessibility", "Safety and accessibility", serializeMap(safetyAccessibility), 'placeholder=\'JSON or comma list: wheelchair=true, child_seat=true\'')}
                 ${renderEditTextarea("adminEditReason", "Admin edit note", "", 'placeholder="Reason shown in audit/customer notification"')}
             </div>
+            ${renderLocationSuggestions("adminEditPickupSuggestions")}
+            ${renderLocationSuggestions("adminEditDropSuggestions")}
             <div class="booking-edit-actions">
                 <button class="text-button" data-close-booking-editor type="button">Cancel</button>
+                <button class="secondary-action" data-booking-edit-autofill type="button"><i class="fas fa-wand-magic-sparkles"></i> Auto fill</button>
                 <button class="primary-action" type="submit"><i class="fas fa-floppy-disk"></i> Save booking</button>
             </div>
         `;
@@ -1281,7 +1511,10 @@
         const title = $("#bookingEditTitle", modal);
         const form = $("#bookingEditForm", modal);
         if (title) title.textContent = `Edit Booking ${bookingId}`;
-        if (form) form.innerHTML = buildBookingEditForm(booking);
+        if (form) {
+            form.innerHTML = buildBookingEditForm(booking);
+            applyEditFormAutofill(form, booking, { fillMissingOnly: true });
+        }
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
         setAdminModalBodyLock();
@@ -1292,6 +1525,8 @@
         const modal = $("#bookingEditModal");
         state.editingBookingId = "";
         if (!modal) return;
+        const form = $("#bookingEditForm", modal);
+        if (form) saveFormAutofillMemory(form);
         modal.classList.remove("open");
         modal.setAttribute("aria-hidden", "true");
         setAdminModalBodyLock();
@@ -3406,6 +3641,7 @@
             showToast(validationError);
             return;
         }
+        saveFormAutofillMemory(form);
 
         const booking = buildAdminCreatedBooking(data);
         const syncResult = persistAdminCreatedBooking(booking);
@@ -3436,6 +3672,7 @@
             showToast("Booking not found.");
             return;
         }
+        saveFormAutofillMemory(form);
 
         const patch = buildBookingEditPatch(booking, data);
         if (!patch.changedFields.length) {
@@ -3695,6 +3932,24 @@
                 return;
             }
 
+            const createAutofillButton = event.target.closest("[data-admin-create-autofill]");
+            if (createAutofillButton) {
+                const form = createAutofillButton.closest("#adminCreateBookingForm");
+                const result = applyCreateFormAutofill(form, { fillMissingOnly: false });
+                showToast(result.changed ? "Auto fill applied from recent booking data." : "No recent template found for auto fill.");
+                return;
+            }
+
+            const editAutofillButton = event.target.closest("[data-booking-edit-autofill]");
+            if (editAutofillButton) {
+                const form = editAutofillButton.closest("#bookingEditForm");
+                const bookingId = cleanText(form?.elements?.bookingId?.value || "");
+                const booking = state.bookings.find((item) => item.bookingId === bookingId);
+                const result = applyEditFormAutofill(form, booking, { fillMissingOnly: true });
+                showToast(result.changed ? "Missing fields auto-filled from recent data." : "No missing fields to auto-fill.");
+                return;
+            }
+
             const controlButton = event.target.closest("[data-control-action]");
             if (controlButton) {
                 handlePortalControlAction(controlButton);
@@ -3732,6 +3987,7 @@
             const form = select.closest("#adminCreateBookingForm");
             const customer = findAdminCreateCustomer(select.value || "");
             hydrateAdminCreateCustomerFields(form, customer);
+            applyCreateFormAutofill(form, { fillMissingOnly: true });
         });
 
         document.addEventListener("keydown", (event) => {
