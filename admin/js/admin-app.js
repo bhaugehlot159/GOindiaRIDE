@@ -23,6 +23,14 @@
     const ADMIN_QUEUE_SYNC_SIGNAL_KEY = "goindiaride_admin_review_queue_signal_v1";
     const ADMIN_BOOKING_EDIT_SIGNAL_KEY = "goindiaride_admin_booking_edit_signal_v1";
     const ADMIN_BOOKING_AUTOFILL_MEMORY_KEY = "goindiaride_admin_booking_autofill_memory_v1";
+    const ADMIN_BOOKING_AUTOCOMPLETE_SCRIPT_URLS = [
+        "../js/locations.js",
+        "../js/rajasthan-data.js",
+        "../js/data/rajasthan-master-data.js",
+        "../js/rajasthan-live-data.js",
+        "../js/autocomplete.js?v=20260316-autocomplete-fix2",
+        "../js/autocomplete-downward-hotfix.js?v=20260316-livefix1"
+    ];
     const CUSTOMER_BOOKING_SPLIT_KEY = "goindiaride_admin_customer_bookings_current_v1";
     const DRIVER_BOOKING_SPLIT_KEY = "goindiaride_admin_driver_bookings_current_v1";
     const BOOKING_SPLIT_VIEW_KEY = "goindiaride_admin_booking_split_views_current_v1";
@@ -148,6 +156,11 @@
         lastAuthenticatedBookingSyncAt: 0,
         authBookingSyncCooldownUntil: 0
     };
+    let adminBookingAutocompleteReady = Boolean(
+        typeof window.initializeAutocomplete === "function"
+        && window.locationsData
+    );
+    let adminBookingAutocompleteLoaderPromise = null;
 
     const viewTitles = {
         overview: "Operations Overview",
@@ -174,6 +187,83 @@
         } catch (_error) {
             return fallback;
         }
+    }
+
+    function normalizeAbsoluteScriptUrl(sourceUrl) {
+        try {
+            return new URL(String(sourceUrl || ""), window.location.href).href;
+        } catch (_error) {
+            return String(sourceUrl || "");
+        }
+    }
+
+    function loadScriptOnce(sourceUrl) {
+        const absoluteUrl = normalizeAbsoluteScriptUrl(sourceUrl);
+        const existing = Array.from(document.querySelectorAll("script[src]"))
+            .find((script) => normalizeAbsoluteScriptUrl(script.getAttribute("src")) === absoluteUrl);
+        if (existing) {
+            if (!Object.prototype.hasOwnProperty.call(existing.dataset || {}, "adminScriptLoaded")) {
+                return Promise.resolve();
+            }
+            if (existing.dataset.adminScriptLoaded === "1") return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                existing.addEventListener("load", () => {
+                    existing.dataset.adminScriptLoaded = "1";
+                    resolve();
+                }, { once: true });
+                existing.addEventListener("error", () => reject(new Error(`Failed to load ${sourceUrl}`)), { once: true });
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = sourceUrl;
+            script.async = false;
+            script.dataset.adminScriptLoaded = "0";
+            script.addEventListener("load", () => {
+                script.dataset.adminScriptLoaded = "1";
+                resolve();
+            }, { once: true });
+            script.addEventListener("error", () => reject(new Error(`Failed to load ${sourceUrl}`)), { once: true });
+            document.head.appendChild(script);
+        });
+    }
+
+    function ensureAdminBookingAutocompleteAssets() {
+        if (adminBookingAutocompleteReady) return Promise.resolve(true);
+        if (adminBookingAutocompleteLoaderPromise) return adminBookingAutocompleteLoaderPromise;
+
+        adminBookingAutocompleteLoaderPromise = ADMIN_BOOKING_AUTOCOMPLETE_SCRIPT_URLS
+            .reduce((chain, scriptUrl) => chain.then(() => loadScriptOnce(scriptUrl)), Promise.resolve())
+            .then(() => {
+                adminBookingAutocompleteReady = typeof window.initializeAutocomplete === "function" && Boolean(window.locationsData);
+                return adminBookingAutocompleteReady;
+            })
+            .catch((error) => {
+                console.warn("[admin-app] booking autocomplete assets could not be loaded", error);
+                adminBookingAutocompleteReady = false;
+                return false;
+            })
+            .finally(() => {
+                if (!adminBookingAutocompleteReady) {
+                    adminBookingAutocompleteLoaderPromise = null;
+                }
+            });
+
+        return adminBookingAutocompleteLoaderPromise;
+    }
+
+    function connectBookingAutocompleteForInputs(inputIds = []) {
+        const safeIds = Array.isArray(inputIds) ? inputIds.filter(Boolean) : [];
+        if (!safeIds.length) return;
+        ensureAdminBookingAutocompleteAssets().then((ready) => {
+            if (!ready || typeof window.initializeAutocomplete !== "function") return;
+            safeIds.forEach((inputId) => {
+                const input = document.getElementById(inputId);
+                if (!input) return;
+                window.initializeAutocomplete(inputId);
+            });
+        });
     }
 
     function readArray(key) {
@@ -1292,8 +1382,8 @@
                 ${renderEditInput("customerName", "Customer name", "")}
                 ${renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+91XXXXXXXXXX" autocomplete="tel"')}
                 ${renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="name@domain.com" autocomplete="email"')}
-                ${renderEditInput("pickup", "Pickup", "", 'required list="adminCreatePickupSuggestions" autocomplete="street-address"')}
-                ${renderEditInput("dropoff", "Drop", "", 'required list="adminCreateDropSuggestions" autocomplete="street-address"')}
+                ${renderEditInput("pickup", "Pickup", "", 'id="adminCreatePickupInput" required list="adminCreatePickupSuggestions" autocomplete="street-address"')}
+                ${renderEditInput("dropoff", "Drop", "", 'id="adminCreateDropoffInput" required list="adminCreateDropSuggestions" autocomplete="street-address"')}
                 ${renderEditInput("rideDate", "Ride date", defaultAdminRideDate(), 'type="date" required')}
                 ${renderEditInput("rideTime", "Ride time", defaultAdminRideTime(), 'type="time" required')}
                 ${renderEditInput("returnDate", "Return date", "", 'type="date"')}
@@ -1429,6 +1519,7 @@
                 }
             }
             applyCreateFormAutofill(form, { fillMissingOnly: true });
+            connectBookingAutocompleteForInputs(["adminCreatePickupInput", "adminCreateDropoffInput"]);
         }
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
@@ -1459,8 +1550,8 @@
                 ${renderEditInput("customerName", "Customer name", booking.customerName)}
                 ${renderEditInput("customerPhone", "Customer phone", booking.customerPhone)}
                 ${renderEditInput("customerEmail", "Customer email", booking.customerEmail, 'type="email"')}
-                ${renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation, 'list="adminEditPickupSuggestions" autocomplete="street-address"')}
-                ${renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation, 'list="adminEditDropSuggestions" autocomplete="street-address"')}
+                ${renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation, 'id="adminEditPickupInput" list="adminEditPickupSuggestions" autocomplete="street-address"')}
+                ${renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation, 'id="adminEditDropoffInput" list="adminEditDropSuggestions" autocomplete="street-address"')}
                 ${renderEditInput("rideDate", "Ride date", booking.rideDate, 'type="date"')}
                 ${renderEditInput("rideTime", "Ride time", booking.rideTime, 'type="time"')}
                 ${renderEditInput("returnDate", "Return date", booking.returnDate || booking.returnTrip?.returnDate, 'type="date"')}
@@ -1514,6 +1605,7 @@
         if (form) {
             form.innerHTML = buildBookingEditForm(booking);
             applyEditFormAutofill(form, booking, { fillMissingOnly: true });
+            connectBookingAutocompleteForInputs(["adminEditPickupInput", "adminEditDropoffInput"]);
         }
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");

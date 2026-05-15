@@ -856,6 +856,62 @@ button {
     box-shadow: 0 0 0 3px rgba(37, 99, 166, 0.12);
 }
 
+.autocomplete-suggestions {
+    position: fixed;
+    background: var(--surface);
+    border: 2px solid #667eea;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 350px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(31, 56, 112, 0.26);
+    display: none;
+}
+
+.autocomplete-category {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.autocomplete-item {
+    padding: 0.72rem 0.85rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+    transition: background-color 0.18s ease, color 0.18s ease;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--surface);
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.autocomplete-active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+    color: var(--blue);
+    font-weight: 700;
+}
+
+.autocomplete-item strong {
+    color: #5d49ba;
+    font-weight: 800;
+}
+
+.autocomplete-no-results {
+    padding: 0.85rem;
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+}
+
 .booking-edit-actions {
     position: sticky;
     bottom: -16px;
