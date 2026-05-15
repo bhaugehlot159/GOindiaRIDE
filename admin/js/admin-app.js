@@ -3158,6 +3158,40 @@
         return { ok: false, reason: "fallback_queue_sync_failed" };
     }
 
+    async function syncAdminBookingUpdateToFallbackQueue(booking, mode = "admin_edit", reason = "", changedFields = []) {
+        if (!booking || !booking.bookingId) return { ok: false, reason: "missing_booking" };
+        const apiBases = buildBackendApiCandidates();
+        const payload = {
+            ...booking,
+            source: "admin_portal_customer_booking",
+            sourceKey: "admin_portal_customer_booking",
+            mode: cleanText(mode || "admin_edit", 80) || "admin_edit",
+            reason: cleanText(reason || booking.adminEditReason || "Updated by admin portal.", 180),
+            changedFields: Array.isArray(changedFields) ? changedFields.slice(0, 40) : []
+        };
+        for (const apiBase of apiBases) {
+            try {
+                const response = await fetch(`${apiBase}/api/bookings/fallback/admin-review-queue`, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        "x-booking-client": "goindiaride-web",
+                        "x-idempotency-key": createAdminIdempotencyKey("gir-admin-booking-update-fallback", booking.bookingId)
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) continue;
+                return { ok: true, apiBase, data };
+            } catch (_error) {
+                // Try the next configured API base.
+            }
+        }
+        return { ok: false, reason: "fallback_queue_sync_failed" };
+    }
+
     function addAudit(action, details) {
         const rows = readArray(AUDIT_KEY);
         rows.unshift({
@@ -3403,12 +3437,15 @@
         });
         broadcastAdminBookingCustomerSync(updatedBooking, "admin_edit", patch.changedFields, patch.reason);
         const backendEdit = await syncBackendBookingEdit(data.bookingId, updatedBooking, patch.changedFields, patch.reason);
+        const fallbackEdit = await syncAdminBookingUpdateToFallbackQueue(updatedBooking, "admin_edit", patch.reason, patch.changedFields);
         closeBookingEditor();
         refreshData();
         showToast(
             backendEdit.ok
                 ? "Booking details updated in admin, customer portal, and backend."
-                : (syncResult.touched ? "Booking details updated and synced to customer portal." : "Edit saved in notification/audit only.")
+                : (fallbackEdit.ok
+                    ? "Booking details updated and synced through admin fallback queue."
+                    : (syncResult.touched ? "Booking details updated and synced to customer portal." : "Edit saved in notification/audit only."))
         );
     }
 
@@ -3445,8 +3482,14 @@
             notifyPortal(approved ? "booking_approved" : "booking_rejected", syncResult.booking || { ...booking, ...updates }, customerMessage, ["customer", "driver", "admin"]);
         }
         broadcastAdminBookingCustomerSync(syncResult.booking || { ...booking, ...updates }, approved ? "admin_approve" : "admin_reject", ["adminReviewStatus", "status"], customerMessage);
+        const fallbackDecision = await syncAdminBookingUpdateToFallbackQueue(
+            syncResult.booking || { ...booking, ...updates, bookingId },
+            approved ? "admin_approve" : "admin_reject",
+            customerMessage,
+            ["adminReviewStatus", "status"]
+        );
         refreshData();
-        showToast(backendReview.ok || syncResult.touched ? message : "Decision recorded locally; backend review sync is still pending.");
+        showToast(backendReview.ok || fallbackDecision.ok || syncResult.touched ? message : "Decision recorded locally; backend review sync is still pending.");
     }
 
     function seedDriver() {

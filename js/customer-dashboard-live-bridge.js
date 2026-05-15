@@ -165,6 +165,49 @@
     });
   }
 
+  function toTimestampSafe(value) {
+    var time = new Date(value || 0).getTime();
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function bookingFreshness(row) {
+    if (!row || typeof row !== 'object') return 0;
+    return Math.max(
+      toTimestampSafe(row.adminLastEditedAt),
+      toTimestampSafe(row.lastEditedAt),
+      toTimestampSafe(row.adminCustomerSyncedAt),
+      toTimestampSafe(row.backendSyncedAt),
+      toTimestampSafe(row.updatedAt),
+      toTimestampSafe(row.createdAt)
+    );
+  }
+
+  function bookingQualityScore(row) {
+    if (!row || typeof row !== 'object') return 0;
+    var score = 0;
+    var source = String(row.sourceKey || '').toLowerCase();
+    if (row.adminLastEditedAt || row.adminCustomerSyncStatus || row.adminCustomerSyncedAt) score += 40;
+    if (source.indexOf('admin') >= 0 || source.indexOf('fallback') >= 0) score += 15;
+    if (String(row.backendSyncStatus || '').toLowerCase() === 'synced') score += 4;
+    return score;
+  }
+
+  function shouldIncomingBookingWin(existing, incoming) {
+    if (!existing) return true;
+    var existingScore = bookingQualityScore(existing);
+    var incomingScore = bookingQualityScore(incoming);
+    if (incomingScore !== existingScore) return incomingScore > existingScore;
+    return bookingFreshness(incoming) >= bookingFreshness(existing);
+  }
+
+  function mergeBookingRowSnapshots(existing, incoming) {
+    if (!existing) return Object.assign({}, incoming || {});
+    if (!incoming) return Object.assign({}, existing || {});
+    return shouldIncomingBookingWin(existing, incoming)
+      ? Object.assign({}, existing, incoming)
+      : Object.assign({}, incoming, existing);
+  }
+
   function mergeBookingCollections(existing, incoming) {
     var mergedMap = {};
     var looseRows = [];
@@ -175,7 +218,7 @@
         looseRows.push(row);
         return;
       }
-      mergedMap[ref] = Object.assign({}, mergedMap[ref] || {}, row);
+      mergedMap[ref] = mergeBookingRowSnapshots(mergedMap[ref] || null, row);
     });
     return looseRows.concat(sortBookingRows(Object.keys(mergedMap).map(function (key) { return mergedMap[key]; })));
   }
@@ -352,7 +395,11 @@
       editPolicyVersion: normalizeTextValue(item && item.editPolicyVersion, 80),
       createdAt: item && item.createdAt ? item.createdAt : new Date().toISOString(),
       updatedAt: item && item.updatedAt ? item.updatedAt : new Date().toISOString(),
+      lastEditedAt: normalizeTextValue(item && item.lastEditedAt, 80),
+      adminLastEditedAt: normalizeTextValue(item && (item.adminLastEditedAt || item.lastEditedAt), 80),
       adminReviewStatus: normalizeTextValue(item && item.adminReviewStatus, 40) || 'pending',
+      adminCustomerSyncStatus: normalizeTextValue(item && item.adminCustomerSyncStatus, 40) || '',
+      adminCustomerSyncedAt: normalizeTextValue(item && (item.adminCustomerSyncedAt || item.adminLastEditedAt || item.lastEditedAt || item.updatedAt), 80),
       backendSyncStatus: 'synced',
       backendSyncedAt: new Date().toISOString()
     };
@@ -363,17 +410,21 @@
   }
 
   function toTimestamp(value) {
-    var time = new Date(value || 0).getTime();
-    return Number.isFinite(time) ? time : 0;
+    return toTimestampSafe(value);
   }
 
   function localRowLooksFresher(existing, mapped) {
     if (!existing || !mapped) return false;
-    var localUpdatedAt = toTimestamp(existing.updatedAt || existing.lastEditedAt || existing.adminLastEditedAt || existing.createdAt);
-    var backendUpdatedAt = toTimestamp(mapped.updatedAt || mapped.createdAt);
+    var localUpdatedAt = bookingFreshness(existing);
+    var backendUpdatedAt = bookingFreshness(mapped);
     if (!localUpdatedAt || !backendUpdatedAt) return false;
     if (localUpdatedAt <= backendUpdatedAt) return false;
-    var hasAdminSyncMarker = Boolean(existing.adminCustomerSyncedAt || existing.adminCustomerSyncStatus || existing.adminLastEditedAt);
+    var hasAdminSyncMarker = Boolean(
+      existing.adminCustomerSyncedAt
+      || existing.adminCustomerSyncStatus
+      || existing.adminLastEditedAt
+      || existing.lastEditedAt
+    );
     return hasAdminSyncMarker;
   }
 
@@ -393,14 +444,13 @@
     return Object.assign({}, existing || {}, mapped);
   }
 
-  function mergeBackendBookingsIntoLocal(items, user) {
+  function mergeMappedBookingsIntoLocal(mappedRows, user) {
     var localRows = readLocalBookings();
     var localCurrentUserRows = localRows.filter(function (row) { return bookingBelongsToUser(row, user); });
     var localOtherRows = localRows.filter(function (row) { return !bookingBelongsToUser(row, user); });
     var mergedMap = {};
     localCurrentUserRows.forEach(function (row) { var ref = getBookingRef(row); if (ref) mergedMap[ref] = Object.assign({}, row); });
-    safeArray(items).forEach(function (item) {
-      var mapped = mapBackendBookingToLocal(item, user);
+    safeArray(mappedRows).forEach(function (mapped) {
       var ref = getBookingRef(mapped);
       if (ref) mergedMap[ref] = mergeBackendBookingRow(mergedMap[ref] || null, mapped);
     });
@@ -410,6 +460,54 @@
     });
     writeLocalBookings(localOtherRows.concat(mergedCurrentUserRows));
     return mergedCurrentUserRows;
+  }
+
+  function mergeBackendBookingsIntoLocal(items, user) {
+    var mappedRows = safeArray(items).map(function (item) {
+      return mapBackendBookingToLocal(item, user);
+    });
+    return mergeMappedBookingsIntoLocal(mappedRows, user);
+  }
+
+  async function fetchFallbackAdminQueueBookings(user) {
+    var apiBases = getDashboardApiBasesSafe();
+    var statuses = ['pending', 'approved', 'rejected'];
+    for (var i = 0; i < apiBases.length; i += 1) {
+      var collected = [];
+      var anySuccess = false;
+      for (var s = 0; s < statuses.length; s += 1) {
+        try {
+          var response = await fetchWithTimeoutSafe(
+            apiBases[i] + '/api/bookings/fallback/admin-review-queue?limit=220&status=' + statuses[s],
+            {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+                'x-booking-client': 'goindiaride-web'
+              }
+            },
+            15000
+          );
+          var payload = await response.json().catch(function () { return {}; });
+          if (response.ok && payload && Array.isArray(payload.items)) {
+            anySuccess = true;
+            collected = collected.concat(payload.items);
+          }
+        } catch (_error) {}
+      }
+      if (!anySuccess) continue;
+      var mappedRows = [];
+      safeArray(collected).forEach(function (item) {
+        if (!bookingBelongsToUser(item, user)) return;
+        var mapped = mapBackendBookingToLocal(item, user);
+        mapped.adminCustomerSyncStatus = normalizeTextValue(item && (item.adminCustomerSyncStatus || item.adminReviewStatus || 'synced'), 40) || 'synced';
+        mapped.adminCustomerSyncedAt = normalizeTextValue(item && (item.adminCustomerSyncedAt || item.adminLastEditedAt || item.lastEditedAt || item.updatedAt), 80) || new Date().toISOString();
+        mapped.adminLastEditedAt = normalizeTextValue(item && (item.adminLastEditedAt || item.lastEditedAt || item.updatedAt), 80) || mapped.adminCustomerSyncedAt;
+        mappedRows.push(mapped);
+      });
+      return { ok: true, items: mappedRows };
+    }
+    return { ok: false, items: [] };
   }
 
   function getDashboardAccessTokenSafe() {
@@ -710,6 +808,10 @@
     await syncLocalBookingsToBackend(user);
     writeLocalBookings(readLocalBookings());
     var localRows = readLocalBookings().filter(function (row) { return bookingBelongsToUser(row, user); });
+    var fallback = await fetchFallbackAdminQueueBookings(user);
+    if (fallback.ok && fallback.items.length) {
+      localRows = mergeMappedBookingsIntoLocal(fallback.items, user);
+    }
     var remote = await fetchBackendBookings(user, Boolean(settings.forceSync));
     var mergedRows = remote.ok && remote.items.length ? mergeBackendBookingsIntoLocal(remote.items, user) : localRows;
     window.__GOINDIARIDE_CUSTOMER_DASHBOARD_BOOKINGS__ = mergedRows.slice();

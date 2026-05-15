@@ -2631,6 +2631,41 @@
                     // Ignore broken legacy entries and keep the remaining booking stores alive.
                 }
             });
+
+            const toDashboardTimestamp = (value) => {
+                const time = new Date(value || 0).getTime();
+                return Number.isFinite(time) ? time : 0;
+            };
+            const dashboardBookingFreshness = (booking) => {
+                if (!booking || typeof booking !== 'object') return 0;
+                return Math.max(
+                    toDashboardTimestamp(booking.adminLastEditedAt),
+                    toDashboardTimestamp(booking.lastEditedAt),
+                    toDashboardTimestamp(booking.adminCustomerSyncedAt),
+                    toDashboardTimestamp(booking.updatedAt),
+                    toDashboardTimestamp(booking.createdAt)
+                );
+            };
+            const dashboardBookingScore = (booking) => {
+                if (!booking || typeof booking !== 'object') return 0;
+                let score = 0;
+                const source = String(booking.sourceKey || '').toLowerCase();
+                if (booking.adminLastEditedAt || booking.adminCustomerSyncedAt || booking.adminCustomerSyncStatus) score += 40;
+                if (source.includes('admin') || source.includes('fallback')) score += 15;
+                if (String(booking.backendSyncStatus || '').toLowerCase() === 'synced') score += 4;
+                return score;
+            };
+            const mergeDashboardBookingRows = (existing, incoming) => {
+                if (!existing) return { ...(incoming || {}) };
+                if (!incoming) return { ...(existing || {}) };
+                const existingScore = dashboardBookingScore(existing);
+                const incomingScore = dashboardBookingScore(incoming);
+                if (incomingScore > existingScore) return { ...existing, ...incoming };
+                if (incomingScore < existingScore) return { ...incoming, ...existing };
+                if (dashboardBookingFreshness(incoming) >= dashboardBookingFreshness(existing)) return { ...existing, ...incoming };
+                return { ...incoming, ...existing };
+            };
+
             const mergedByRef = new Map();
             const looseRows = [];
             rows.forEach((booking) => {
@@ -2640,7 +2675,7 @@
                     looseRows.push(booking);
                     return;
                 }
-                mergedByRef.set(ref, { ...(mergedByRef.get(ref) || {}), ...booking });
+                mergedByRef.set(ref, mergeDashboardBookingRows(mergedByRef.get(ref) || null, booking));
             });
             const merged = [
                 ...looseRows,
@@ -5871,7 +5906,7 @@ if (!window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ && window.__GOINDIARIDE_API_ORIGI
   window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ = window.__GOINDIARIDE_API_ORIGIN__;
 }
 </script>
-<script src="/js/customer-dashboard-live-bridge.js?v=20260513-admin-edit-sync1"></script>
+<script src="/js/customer-dashboard-live-bridge.js?v=20260515-admin-full-field-sync2"></script>
 <script data-goi-defer-src="/js/future-feature-runtime.js?v=20260317-ratingfare1" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="/js/future-feature-runtime-extensions.js?v=20260507-allpay13" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="/js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1" data-goi-performance="deferred-runtime"></script>

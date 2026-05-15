@@ -308,10 +308,17 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(adminApp, /backendSyncStatus:\s*"retry"/);
   assert.match(adminApp, /backendSyncQueuedAt:\s*updatedAt/);
   assert.match(adminApp, /outboundDateTime:\s*buildOutboundDateTime\(data\.rideDate,\s*data\.rideTime\)/);
+  assert.match(adminApp, /function syncAdminBookingUpdateToFallbackQueue\(/);
+  assert.match(adminApp, /mode:\s*cleanText\(mode \|\| "admin_edit"/);
+  assert.match(adminApp, /syncAdminBookingUpdateToFallbackQueue\(updatedBooking,\s*"admin_edit"/);
   assert.match(customerDashboard, /goindiaride_admin_customer_bookings_current_v1/);
+  assert.match(customerDashboard, /customer-dashboard-live-bridge\.js\?v=20260515-admin-full-field-sync2/);
 
   assert.match(runtimeBridge, /LOCAL_BOOKING_KEYS/);
   assert.match(runtimeBridge, /goindiaride_admin_customer_bookings_current_v1/);
+  assert.match(runtimeBridge, /function mergeBookingRowSnapshots\(/);
+  assert.match(runtimeBridge, /function fetchFallbackAdminQueueBookings\(/);
+  assert.match(runtimeBridge, /fallback\/admin-review-queue\?limit=220&status=/);
   assert.match(runtimeBridge, /function localRowLooksFresher\(/);
   assert.match(runtimeBridge, /localRowLooksFresher\(existing,\s*mapped\)/);
   assert.match(runtimeBridge, /editSyncStatus:\s*'synced'/);
