@@ -2878,7 +2878,7 @@
 
             window.setTimeout(() => {
                 if (typeof field.focus === 'function') {
-                    field.focus({ preventScroll: false });
+                    field.focus({ preventScroll: true });
                 }
             }, 60);
         }
@@ -2912,9 +2912,6 @@
                 button.setAttribute('aria-pressed', 'false');
                 button.addEventListener('click', () => {
                     setActiveAccordionSection(sections, section);
-                    if (typeof section.scrollIntoView === 'function') {
-                        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }
                 });
                 selector.appendChild(button);
             });
@@ -6037,7 +6034,7 @@ Thank you for your generosity! ❤️
     <script src="../js/location-distance.js"></script>
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-connector.js"></script>
-    <script src="../js/admin-control-bridge.js?v=20260513-admin-customer-controls1"></script>
+    <script src="../js/admin-control-bridge.js?v=20260514-feature-parity1"></script>
     <script>
         (function connectBookingPageToAdminControl() {
             if (!window.AdminControlBridge || typeof AdminControlBridge.initPortalRuntime !== 'function') return;
@@ -6056,6 +6053,10 @@ Thank you for your generosity! ❤️
                 saved_places: ['#pickup', '#dropoff', '#ff-runtime-card-saved-locations', '#ffx-location-save', '#ffx-location-refresh'],
                 fare_estimator: ['#fareEstimate', '#fareBreakdown', '#ff-runtime-card-fare-estimator', '[id*="fare" i]'],
                 scheduled_rides: ['#rideDate', '#rideTime', '#returnDate', '#returnTime'],
+                airport_transfers: ['#tripFlowPills [data-flow="airport"]', '#tripPlan option[value="airport"]', '#tripServiceType option[value="airport_transfer"]'],
+                outstation_rides: ['#tripFlowPills [data-flow="outstation"]', '#tripPlan option[value="outstation"]'],
+                hourly_rentals: ['#tripFlowPills [data-flow="day_trips"]', '#tripPlan option[value="rental"]'],
+                trip_modes: ['input[name="journeyMode"]', '.journey-mode-chip'],
                 wallet: ['#paymentMethod', '#ff-runtime-card-payment', '#ffx-payment-wallet', '#ffx-payment-wallet-add'],
                 wallet_topup: ['#ff-runtime-card-payment', '#ffx-payment-wallet', '#ffx-payment-wallet-add'],
                 rewards: ['#promoCode', 'button[onclick*="applyPromoCode"]', '#ffx-payment-coupon', '#ffx-payment-apply'],

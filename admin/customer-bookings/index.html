@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOindiaRIDE Customer Bookings</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/admin-app.css?v=20260514-booking-ui2">
+    <link rel="stylesheet" href="../css/admin-app.css?v=20260515-prof-ui4">
     <script>
         (function requireAdminSessionForCustomerBookings() {
             try {
@@ -58,7 +58,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="page-heading">
-                    <span id="todayLabel">Separate customer booking folder</span>
+                    <span id="todayLabel">Customer booking workspace</span>
                     <h1>Customer Bookings</h1>
                 </div>
                 <div class="topbar-actions">
@@ -72,7 +72,7 @@
             <section class="workspace-panel">
                 <div class="panel-title-row">
                     <div>
-                        <span class="section-kicker">Customer data only</span>
+                        <span class="section-kicker">Customer dataset</span>
                         <h2>Saved Customer Booking Data</h2>
                     </div>
                     <span class="status-pill good" id="customerFolderSavedAt">Saved</span>
@@ -83,12 +83,12 @@
                         <strong id="customerFolderMetric">0</strong>
                     </article>
                     <article>
-                        <span>Storage key</span>
-                        <strong>goindiaride_admin_customer_bookings_current_v1</strong>
+                        <span>Storage channel</span>
+                        <strong class="source-inline-code" title="goindiaride_admin_customer_bookings_current_v1">goindiaride_admin_customer_bookings_current_v1</strong>
                     </article>
                     <article>
-                        <span>Driver data</span>
-                        <strong><a class="booking-folder-link" href="../driver-bookings/">Separate folder</a></strong>
+                        <span>Driver folder sync</span>
+                        <strong><a class="booking-folder-link" href="../driver-bookings/">Open driver workspace</a></strong>
                     </article>
                 </div>
                 <div class="table-wrap">
@@ -113,8 +113,8 @@
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
     <script src="../../js/portal-connector.js"></script>
-    <script src="../../js/admin-control-bridge.js?v=20260512-data-preserve1"></script>
-    <script src="../js/admin-app.js?v=20260514-booking-ui2"></script>
-    <script src="./customer-bookings.js?v=20260514-booking-ui2"></script>
+    <script src="../../js/admin-control-bridge.js?v=20260514-feature-parity1"></script>
+    <script src="../js/admin-app.js?v=20260515-prof-ui4"></script>
+    <script src="./customer-bookings.js?v=20260515-prof-ui4"></script>
 </body>
 </html>

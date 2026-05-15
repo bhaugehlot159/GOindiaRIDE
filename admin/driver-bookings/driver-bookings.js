@@ -56,6 +56,17 @@
         return escapeHtml(JSON.stringify(row, null, 2));
     }
 
+    function formatSourceInline(value, maxLength = 56) {
+        const raw = cleanText(value);
+        if (!raw) return "split_store";
+        const normalized = raw
+            .replace(/^localStorage:/i, "")
+            .replace(/^sessionStorage:/i, "")
+            .replace(/\s+/g, " ");
+        if (normalized.length <= maxLength) return normalized;
+        return `${normalized.slice(0, Math.max(12, maxLength - 1)).trimEnd()}…`;
+    }
+
     function refreshSplit() {
         const api = splitApi();
         if (!api || typeof api.refresh !== "function") return { customerBookings: [], driverBookings: [] };
@@ -72,7 +83,10 @@
     }
 
     function routeSubtext(row) {
-        return cleanText(row.vehicleNumber || row.sourceKey || row.distanceKm && `${Math.round(Number(row.distanceKm))} km` || "Driver-side data");
+        if (row.distanceKm && Number.isFinite(Number(row.distanceKm)) && Number(row.distanceKm) > 0) {
+            return `${Math.round(Number(row.distanceKm))} km`;
+        }
+        return cleanText(row.vehicleNumber || formatSourceInline(row.sourceKey, 64) || "Driver-side data");
     }
 
     function render() {
@@ -107,7 +121,7 @@
                 <td>${escapeHtml(row.vehicleType || row.vehicleModel || "Vehicle not set")}<br><small>${escapeHtml(row.vehicleNumber || "No vehicle number")}</small></td>
                 <td><strong>${escapeHtml(routeText(row))}</strong><br><small>${escapeHtml(routeSubtext(row))}</small></td>
                 <td><span class="status-pill ${statusClass(row)}">${escapeHtml(statusLabel(row))}</span></td>
-                <td><span class="source-pill">Driver</span><br><small>${escapeHtml(row.sourceKey || "driver split")}</small></td>
+                <td><span class="source-pill">Driver</span><br><small class="source-inline-code" title="${escapeHtml(cleanText(row.sourceKey || "driver split"))}">${escapeHtml(formatSourceInline(row.sourceKey || "driver split", 58))}</small></td>
             </tr>
             <tr class="booking-detail-row">
                 <td colspan="6">

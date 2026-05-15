@@ -61,6 +61,17 @@
         return escapeHtml(JSON.stringify(row, null, 2));
     }
 
+    function formatSourceInline(value, maxLength = 56) {
+        const raw = cleanText(value);
+        if (!raw) return "split_store";
+        const normalized = raw
+            .replace(/^localStorage:/i, "")
+            .replace(/^sessionStorage:/i, "")
+            .replace(/\s+/g, " ");
+        if (normalized.length <= maxLength) return normalized;
+        return `${normalized.slice(0, Math.max(12, maxLength - 1)).trimEnd()}…`;
+    }
+
     function refreshSplit() {
         const api = splitApi();
         if (!api || typeof api.refresh !== "function") return { customerBookings: [], driverBookings: [] };
@@ -99,7 +110,7 @@
                 <td><strong>${escapeHtml(row.pickup || row.pickupLocation || "Pickup pending")}</strong><br><small>${escapeHtml(row.dropoff || row.dropLocation || "Drop pending")}</small></td>
                 <td>${formatMoney(row.fare || row.totalFare || row.amount)}<br><small>${escapeHtml(row.distanceKm ? `${Math.round(Number(row.distanceKm))} km` : "Distance pending")}</small></td>
                 <td><span class="status-pill ${bookingStatusClass(row)}">${escapeHtml(bookingStatusLabel(row))}</span></td>
-                <td><span class="source-pill">Customer</span><br><small>${escapeHtml(row.sourceKey || "customer split")}</small></td>
+                <td><span class="source-pill">Customer</span><br><small class="source-inline-code" title="${escapeHtml(cleanText(row.sourceKey || "customer split"))}">${escapeHtml(formatSourceInline(row.sourceKey || "customer split", 58))}</small></td>
             </tr>
             <tr class="booking-detail-row">
                 <td colspan="6">

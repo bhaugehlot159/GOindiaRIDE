@@ -598,11 +598,11 @@ button {
     text-decoration: underline;
 }
 
-.booking-mini-grid span {
+.booking-mini-grid > span {
     min-width: 0;
     display: grid;
-    grid-template-columns: 18px minmax(74px, max-content) minmax(120px, 1fr);
-    align-items: center;
+    grid-template-columns: 18px minmax(86px, max-content) minmax(0, 1fr);
+    align-items: start;
     gap: 6px;
     min-height: 48px;
     padding: 8px 10px;
@@ -611,17 +611,29 @@ button {
     color: var(--muted);
     background: var(--surface-soft);
     font-size: 0.78rem;
+    line-height: 1.3;
     word-break: normal;
     overflow-wrap: break-word;
 }
 
-.booking-mini-grid i {
+.booking-mini-grid > span > i {
     color: var(--teal);
 }
 
-.booking-mini-grid strong {
+.booking-mini-grid > span > strong {
     color: var(--text);
     font-size: 0.76rem;
+}
+
+.booking-mini-value {
+    min-width: 0;
+    display: block;
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.32;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .booking-full-details {
@@ -1105,7 +1117,7 @@ button {
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 860px;
+    min-width: 720px;
     background: var(--surface);
 }
 
@@ -1129,6 +1141,23 @@ button {
 
 .data-table tbody tr:last-child td {
     border-bottom: 0;
+}
+
+.data-table td small {
+    display: block;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.source-inline-code {
+    display: inline-block;
+    max-width: clamp(160px, 22vw, 340px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.72rem;
 }
 
 .booking-detail-row td {

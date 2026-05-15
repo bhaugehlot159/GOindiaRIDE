@@ -69,6 +69,10 @@
         ["fare_estimator", "Fare estimator", "Fare calculator, preview and route estimate widgets"],
         ["active_rides", "Active rides", "Live ride cards and edit controls"],
         ["scheduled_rides", "Scheduled rides", "Scheduled ride list and recurring ride controls"],
+        ["airport_transfers", "Airport transfers", "Airport pickup and drop booking flow controls"],
+        ["outstation_rides", "Outstation rides", "Intercity outstation ride selection and review controls"],
+        ["hourly_rentals", "Hourly rentals", "Hourly rental and day trip booking controls"],
+        ["trip_modes", "Trip modes", "One-way, round-trip and multi-city journey mode controls"],
         ["ride_history", "Ride history", "Past trips and receipts"],
         ["wallet", "Wallet", "Add money, withdrawal and ledger"],
         ["wallet_topup", "Wallet top-up", "Customer add-money and online payment initiation"],
@@ -726,6 +730,17 @@
         return enabled.length ? enabled.join(", ") : fallback;
     }
 
+    function formatSourceInline(value, maxLength = 56) {
+        const raw = cleanText(value, "");
+        if (!raw) return "split_store";
+        const normalized = raw
+            .replace(/^localStorage:/i, "")
+            .replace(/^sessionStorage:/i, "")
+            .replace(/\s+/g, " ");
+        if (normalized.length <= maxLength) return normalized;
+        return `${normalized.slice(0, Math.max(12, maxLength - 1)).trimEnd()}…`;
+    }
+
     function renderDetailPairs(pairs) {
         return pairs
             .map(([label, value]) => [label, formatPlainValue(value)])
@@ -761,9 +776,13 @@
         if (!items.length) return "";
         return `
             <div class="booking-mini-grid">
-                ${items.map(([icon, label, value]) => `
-                    <span><i class="fas ${icon}"></i><strong>${escapeHtml(label)}</strong>${escapeHtml(formatPlainValue(value))}</span>
-                `).join("")}
+                ${items.map(([icon, label, value]) => {
+                    const plainValue = formatPlainValue(value);
+                    const titleAttr = plainValue.length > 40 ? ` title="${escapeHtml(plainValue)}"` : "";
+                    return `
+                        <span><i class="fas ${icon}"></i><strong>${escapeHtml(label)}</strong><span class="booking-mini-value"${titleAttr}>${escapeHtml(plainValue)}</span></span>
+                    `;
+                }).join("")}
             </div>
         `;
     }
@@ -2664,7 +2683,8 @@
             const routeText = hasRoute ? `${row.pickup} -> ${row.dropoff}` : "Driver profile / request";
             const routeSubtext = hasRoute
                 ? (row.distanceKm ? `${Math.round(row.distanceKm)} km` : "Distance pending")
-                : (row.vehicleNumber || row.sourceKey || "Driver-side data");
+                : (row.vehicleNumber || formatSourceInline(row.sourceKey, 64) || "Driver-side data");
+            const sourceHint = formatSourceInline(row.sourceKey || "driver split", 58);
             return `
                 <tr>
                     <td><strong>${escapeHtml(row.driverBookingId || row.bookingId || row.id)}</strong><br><small>${escapeHtml(formatDate(row.createdAt || row.updatedAt))}</small></td>
@@ -2672,7 +2692,7 @@
                     <td>${escapeHtml(row.vehicleType || "Vehicle not set")}<br><small>${escapeHtml(row.vehicleNumber || row.sourceKey || "No vehicle number")}</small></td>
                     <td><strong>${escapeHtml(routeText)}</strong><br><small>${escapeHtml(routeSubtext)}</small></td>
                     <td><span class="status-pill ${getDriverBookingStatusClass(row)}">${escapeHtml(getDriverBookingStatusLabel(row))}</span></td>
-                    <td><span class="source-pill">Driver</span></td>
+                    <td><span class="source-pill">Driver</span><br><small class="source-inline-code" title="${escapeHtml(cleanText(row.sourceKey || "driver split"))}">${escapeHtml(sourceHint)}</small></td>
                 </tr>
             `;
         }).join("");
@@ -3486,12 +3506,37 @@
         setTimeout(() => node.remove(), 3200);
     }
 
+    function resolveInitialView() {
+        try {
+            const params = new URLSearchParams(window.location.search || "");
+            const fromQuery = cleanText(params.get("view")).toLowerCase();
+            const fromHash = cleanText((window.location.hash || "").replace(/^#/, "")).toLowerCase();
+            const candidate = fromQuery || fromHash;
+            return Object.prototype.hasOwnProperty.call(viewTitles, candidate) ? candidate : "overview";
+        } catch (_error) {
+            return "overview";
+        }
+    }
+
+    function syncViewIntoUrl(view) {
+        try {
+            const safeView = cleanText(view).toLowerCase();
+            if (!Object.prototype.hasOwnProperty.call(viewTitles, safeView)) return;
+            const url = new URL(window.location.href);
+            url.searchParams.set("view", safeView);
+            window.history.replaceState({}, "", url.toString());
+        } catch (_error) {
+            // URL sync can fail in restricted browser sessions.
+        }
+    }
+
     function switchView(view) {
         state.view = view;
         $all(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
         $all(".view-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `view-${view}`));
         setText("#viewTitle", viewTitles[view] || "Admin App");
         $("#appSidebar")?.classList.remove("open");
+        syncViewIntoUrl(view);
     }
 
     function setupEvents() {
@@ -3721,8 +3766,10 @@
         setText("#todayLabel", today);
         const theme = localStorage.getItem("adminAppTheme");
         if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        state.view = resolveInitialView();
         hydrateOperator();
         setupEvents();
+        switchView(state.view);
         connectAllPortalFeatures();
         setupPortalListener();
         applySettings();
