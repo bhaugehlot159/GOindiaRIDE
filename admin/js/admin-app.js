@@ -3454,6 +3454,7 @@
 
     function renderPortalControls() {
         const portalHost = $("#portalControlGrid");
+        const featureFolderHost = $("#portalFeatureFolderGrid");
         const customerHost = $("#customerControlList");
         const driverHost = $("#driverControlList");
         const controls = state.controls || loadAdminControls();
@@ -3488,17 +3489,29 @@
             portalHost.innerHTML = portalCards;
         }
 
+        if (featureFolderHost) {
+            featureFolderHost.innerHTML = [
+                renderPortalFeatureFolder(
+                    "customer",
+                    "Customer Portal Feature Folder",
+                    "Open this separate folder only when customer portal features need control.",
+                    CUSTOMER_FEATURES,
+                    controls
+                ),
+                renderPortalFeatureFolder(
+                    "driver",
+                    "Driver Portal Feature Folder",
+                    "Open this separate folder only when driver portal features need control.",
+                    DRIVER_FEATURES,
+                    controls
+                )
+            ].join("");
+        }
+
         if (customerHost) {
             const customers = getCustomerRows().slice(0, 20);
-            const customerFolder = renderPortalFeatureFolder(
-                "customer",
-                "Customer Portal Feature Folder",
-                "Open this folder only when customer portal features need control.",
-                CUSTOMER_FEATURES,
-                controls
-            );
             if (!customers.length) {
-                customerHost.innerHTML = `${customerFolder}<div class="empty-state">No customer records found yet. Booking customers will appear here automatically.</div>`;
+                customerHost.innerHTML = `<div class="empty-state">No customer records found yet. Booking customers will appear here automatically.</div>`;
             } else {
                 const customerRows = customers.map((customer) => {
                     const key = getControlEntityKey(customer);
@@ -3519,25 +3532,18 @@
                         </article>
                     `;
                 }).join("");
-                customerHost.innerHTML = customerFolder + customerRows;
+                customerHost.innerHTML = customerRows;
             }
         }
 
         if (driverHost) {
             const query = state.query.toLowerCase();
-            const driverFolder = renderPortalFeatureFolder(
-                "driver",
-                "Driver Portal Feature Folder",
-                "Open this folder only when driver portal features need control.",
-                DRIVER_FEATURES,
-                controls
-            );
             const drivers = state.drivers.filter((driver) => {
                 if (!query) return true;
                 return [driver.name, driver.phone, driver.vehicle, driver.status, driver.id].join(" ").toLowerCase().includes(query);
             }).slice(0, 24);
             if (!drivers.length) {
-                driverHost.innerHTML = `${driverFolder}<div class="empty-state">No driver records found. Existing driver data will appear here automatically.</div>`;
+                driverHost.innerHTML = `<div class="empty-state">No driver records found. Existing driver data will appear here automatically.</div>`;
             } else {
                 const driverRows = drivers.map((driver) => {
                     const key = getControlEntityKey(driver);
@@ -3560,7 +3566,7 @@
                         </article>
                     `;
                 }).join("");
-                driverHost.innerHTML = driverFolder + driverRows;
+                driverHost.innerHTML = driverRows;
             }
         }
     }

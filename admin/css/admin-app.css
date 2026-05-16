@@ -1174,9 +1174,19 @@ button {
     gap: 10px;
 }
 
+.portal-feature-folder-panel {
+    order: 3;
+}
+
+.portal-feature-folder-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
 .portal-feature-list {
     display: grid;
-    gap: 8px;
+    gap: 6px;
 }
 
 .portal-feature-folder {
@@ -1187,15 +1197,15 @@ button {
 }
 
 .portal-feature-folder > summary {
-    min-height: 54px;
+    min-height: 42px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 14px;
+    padding: 8px 10px;
     color: var(--text);
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 0.86rem;
     font-weight: 950;
     list-style: none;
 }
@@ -1217,13 +1227,13 @@ button {
 .portal-feature-folder > summary small {
     margin-left: auto;
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
 }
 
 .portal-feature-folder > summary::after {
     content: "+";
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     display: grid;
     place-items: center;
     border: 1px solid var(--line);
@@ -1242,21 +1252,24 @@ button {
 
 .portal-feature-folder > p {
     margin: 0;
-    padding: 10px 14px 0;
+    padding: 8px 10px 0;
     color: var(--muted);
+    font-size: 0.78rem;
 }
 
 .portal-feature-folder .portal-feature-list {
-    padding: 12px 14px 14px;
+    max-height: 360px;
+    overflow: auto;
+    padding: 8px 10px 10px;
 }
 
 .feature-control-row {
-    min-height: 68px;
+    min-height: 46px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 12px;
+    gap: 8px;
+    padding: 7px 8px;
     border: 1px solid var(--line);
     border-radius: 10px;
     background: var(--surface-soft);
@@ -1271,8 +1284,18 @@ button {
     display: block;
 }
 
+.feature-control-row strong {
+    font-size: 0.82rem;
+}
+
 .feature-control-row small {
     color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
 }
 
 .feature-correction-note {
@@ -1317,7 +1340,23 @@ button {
     display: inline-flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 6px;
+}
+
+.feature-control-row .control-actions {
+    flex-wrap: nowrap;
+}
+
+.feature-control-row .row-action,
+.feature-control-row .danger-action {
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 9px;
+}
+
+.feature-control-row .status-pill {
+    padding: 0.3rem 0.58rem;
+    font-size: 0.68rem;
 }
 
 .access-control-row {
@@ -1544,6 +1583,10 @@ button {
     .portal-control-grid {
         grid-template-columns: 1fr;
     }
+
+    .portal-feature-folder-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 820px) {
@@ -1608,6 +1651,7 @@ button {
     .finance-grid,
     .safety-grid,
     .driver-control-list,
+    .portal-feature-folder-grid,
     .settings-grid {
         grid-template-columns: 1fr;
     }
