@@ -40,6 +40,137 @@
             .slice(0, maxLen || 160);
     }
 
+    function isPlainObject(value) {
+        return Boolean(value && typeof value === "object" && !Array.isArray(value));
+    }
+
+    function firstText(...values) {
+        for (const value of values) {
+            if (value === null || value === undefined) continue;
+            if (isPlainObject(value) || Array.isArray(value)) continue;
+            const text = cleanText(value);
+            if (text) return text;
+        }
+        return "";
+    }
+
+    function firstUsablePhone(...values) {
+        for (const value of values) {
+            const raw = cleanText(value, 40);
+            if (!raw) continue;
+            const compact = raw.replace(/\s+/g, "");
+            const digits = compact.replace(/\D/g, "");
+            if (digits.length < 8 || digits.length > 15) continue;
+            if (compact.startsWith("+")) return `+${digits}`;
+            if (digits.length === 10 && /^[6-9]\d{9}$/.test(digits)) return `+91${digits}`;
+            return `+${digits}`;
+        }
+        return "";
+    }
+
+    function firstEmail(...values) {
+        return firstText(...values).toLowerCase();
+    }
+
+    function getBookingContact(booking = {}) {
+        const customer = isPlainObject(booking.customer) ? booking.customer : {};
+        const customerSnapshot = isPlainObject(booking.customerSnapshot) ? booking.customerSnapshot : {};
+        return {
+            phone: firstUsablePhone(
+                booking.customerPhone,
+                customerSnapshot.phone,
+                customer.phone,
+                booking.phone,
+                booking.mobile,
+                booking.contact,
+                booking.contact1
+            ),
+            email: firstEmail(
+                booking.customerEmail,
+                customerSnapshot.email,
+                customer.email,
+                booking.email,
+                booking.userEmail
+            ),
+            name: firstText(booking.customerName, customerSnapshot.name, customer.name, booking.name, booking.fullname)
+        };
+    }
+
+    function isPlaceholderText(value) {
+        const text = cleanText(value).toLowerCase();
+        return !text
+            || text === "pickup pending"
+            || text === "drop pending"
+            || text === "not set"
+            || text === "distance pending"
+            || text === "unknown";
+    }
+
+    function isInternalDiagnosticBooking(row = {}) {
+        const text = [
+            row.bookingId,
+            row.id,
+            row.sourceKey,
+            row.customerEmail,
+            row.customerName,
+            row.notes,
+            row.mode
+        ].join(" ").toLowerCase();
+        return /(bkttest|bktest|ridpublic|codex_live_test|codex test|admin demo|admindemobookings)/i.test(text);
+    }
+
+    function isIncompleteLocalOnlyBooking(row = {}) {
+        const id = cleanText(row.bookingId || row.id || row._id, 120);
+        if (!id.startsWith("LOCAL-")) return false;
+        const contact = getBookingContact(row);
+        if (contact.phone || contact.email) return false;
+        const source = cleanText(row.sourceKey || row.source || row.backendStatus, 160).toLowerCase();
+        return source.includes("localstorage")
+            || source.includes("sessionstorage")
+            || source.includes("discoveredbyadminscanner")
+            || source.includes("fallback_admin_review_queue")
+            || Boolean(row.discoveredByAdminScanner);
+    }
+
+    function hasActionableBookingShape(row = {}) {
+        const pickup = firstText(row.pickup, row.pickupLocation, row.from, row.origin);
+        const dropoff = firstText(row.dropoff, row.drop, row.dropLocation, row.to, row.destination);
+        const amount = Number(row.finalFare || row.totalFare || row.amount || row.fare || 0);
+        const contact = getBookingContact(row);
+        return Boolean(
+            (contact.phone || contact.email)
+            || (!isPlaceholderText(pickup) && !isPlaceholderText(dropoff))
+            || amount > 0
+        );
+    }
+
+    function mergeBookingRow(existing = {}, incoming = {}) {
+        const merged = { ...existing, ...incoming };
+        const existingContact = getBookingContact(existing);
+        const incomingContact = getBookingContact(incoming);
+        const contact = {
+            phone: incomingContact.phone || existingContact.phone,
+            email: incomingContact.email || existingContact.email,
+            name: incomingContact.name || existingContact.name
+        };
+        if (contact.phone) merged.customerPhone = contact.phone;
+        if (contact.email) merged.customerEmail = contact.email;
+        if (contact.name) merged.customerName = contact.name;
+        merged.customerSnapshot = {
+            ...(isPlainObject(existing.customerSnapshot) ? existing.customerSnapshot : {}),
+            ...(isPlainObject(incoming.customerSnapshot) ? incoming.customerSnapshot : {}),
+            ...(contact.name ? { name: contact.name } : {}),
+            ...(contact.phone ? { phone: contact.phone } : {}),
+            ...(contact.email ? { email: contact.email } : {})
+        };
+        ["pickup", "pickupLocation", "dropoff", "drop", "dropLocation"].forEach((field) => {
+            if (isPlaceholderText(merged[field]) && !isPlaceholderText(existing[field])) {
+                merged[field] = existing[field];
+            }
+        });
+        return merged;
+    }
+
     function money(value) {
         return `INR ${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
     }
@@ -53,7 +184,11 @@
                 if (!row || typeof row !== "object") return;
                 const id = cleanText(row.bookingId || row.id || row._id || "", 120);
                 if (!id) return;
-                byId.set(id, { ...(byId.get(id) || {}), ...row, id, bookingId: id });
+                const normalized = mergeBookingRow(byId.get(id) || {}, { ...row, id, bookingId: id });
+                if (isInternalDiagnosticBooking(normalized)) return;
+                if (isIncompleteLocalOnlyBooking(normalized)) return;
+                if (!hasActionableBookingShape(normalized)) return;
+                byId.set(id, normalized);
             });
         });
         return Array.from(byId.values());
@@ -211,12 +346,13 @@
         const flags = [];
         const phoneCounts = {};
         bookings.forEach((booking) => {
-            const phone = cleanText(booking.customerPhone || booking.phone, 30);
+            const contact = getBookingContact(booking);
+            const phone = contact.phone;
             if (phone) phoneCounts[phone] = (phoneCounts[phone] || 0) + 1;
             const amount = Number(booking.finalFare || booking.totalFare || booking.amount || booking.fare || 0);
             if (amount <= 0) flags.push({ severity: "high", label: `${booking.bookingId}: missing fare` });
             if (amount > 50000) flags.push({ severity: "medium", label: `${booking.bookingId}: high fare ${money(amount)}` });
-            if (!phone && !booking.customerEmail) flags.push({ severity: "medium", label: `${booking.bookingId}: no customer contact` });
+            if (!phone && !contact.email) flags.push({ severity: "medium", label: `${booking.bookingId}: no customer contact` });
         });
         Object.entries(phoneCounts).forEach(([phone, count]) => {
             if (count > 3) flags.push({ severity: "medium", label: `${phone}: ${count} active bookings` });
@@ -233,7 +369,8 @@
     function demandSummary(bookings) {
         const counts = {};
         bookings.forEach((booking) => {
-            const pickup = cleanText(booking.pickup || booking.pickupLocation || "Unknown", 40);
+            const pickup = cleanText(booking.pickup || booking.pickupLocation || "", 40);
+            if (isPlaceholderText(pickup)) return;
             counts[pickup] = (counts[pickup] || 0) + 1;
         });
         return Object.entries(counts)

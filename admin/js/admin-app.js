@@ -602,7 +602,7 @@
             row?.mode
         ].join(" ").toLowerCase();
         return (
-            /\b(bktest|ridpublic|codex_live_test|codex test|adminDemoBookings|admin demo)\b/i.test(text)
+            /(bkttest|bktest|ridpublic|codex_live_test|codex test|adminDemoBookings|admin demo)/i.test(text)
             || cleanText(row?.bookingId || row?.id).startsWith("LOCAL-")
         );
     }
@@ -889,7 +889,9 @@
 
     function renderBookingFullDetails(booking, options = {}) {
         const openAttr = options.open ? " open" : "";
-        const safePayload = escapeHtml(JSON.stringify(booking, null, 2));
+        const showRawPayload = window.GOINDIARIDE_ADMIN_DEBUG_PAYLOADS === true
+            || localStorage.getItem("goindiaride_admin_debug_payloads") === "true";
+        const safePayload = showRawPayload ? escapeHtml(JSON.stringify(booking, null, 2)) : "";
         const returnDate = booking.returnDate || booking.returnTrip?.returnDate;
         const returnTime = booking.returnTime || booking.returnTrip?.returnTime;
         const specialRequests = isPlainObject(booking.specialRequests)
@@ -962,10 +964,10 @@
                 <summary><i class="fas fa-circle-info"></i><span>Full booking details</span></summary>
                 <div class="booking-detail-content">
                     ${sections || `<div class="empty-state">No extra booking details stored for this row.</div>`}
-                    <details class="booking-payload-details">
+                    ${showRawPayload ? `<details class="booking-payload-details">
                         <summary>Stored payload</summary>
                         <pre>${safePayload}</pre>
-                    </details>
+                    </details>` : ""}
                 </div>
             </details>
         `;

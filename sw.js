@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v38-20260516-real-live-workflows';
+const CACHE_NAME = 'goindiaride-pwa-v39-20260516-overview-clean1';
 const ASSETS = [
   './',
   './index.html',
