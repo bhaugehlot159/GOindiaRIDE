@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOindiaRIDE Admin App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-app.css?v=20260516-master-feature-folders3">
+    <link rel="stylesheet" href="./css/admin-app.css?v=20260516-two-portal-folders4">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -161,46 +161,15 @@
 
             <section class="view-panel" id="view-portals">
                 <div class="portal-control-grid">
-                    <section class="workspace-panel">
+                    <section class="workspace-panel wide-panel portal-folder-only-panel">
                         <div class="panel-title-row">
                             <div>
                                 <span class="section-kicker">Admin authority</span>
-                                <h2>Portal Master Control</h2>
+                                <h2>Portal Folders</h2>
                             </div>
                             <span class="status-pill good">Connected</span>
                         </div>
-                        <label class="control-reason">
-                            <span>Reason / note for portal actions</span>
-                            <input id="controlReasonInput" type="text" placeholder="Example: KYC pending, manual review, support hold">
-                        </label>
-                        <div class="portal-switch-grid" id="portalControlGrid"></div>
-                        <div class="portal-master-folders">
-                            <div class="portal-folder-heading">
-                                <span class="section-kicker">Feature folders</span>
-                                <strong>Customer and driver folders</strong>
-                            </div>
-                            <div class="portal-feature-folder-grid" id="portalFeatureFolderGrid"></div>
-                        </div>
-                    </section>
-
-                    <section class="workspace-panel">
-                        <div class="panel-title-row">
-                            <div>
-                                <span class="section-kicker">Customer portal</span>
-                                <h2>Customer Access Control</h2>
-                            </div>
-                        </div>
-                        <div class="control-list" id="customerControlList"></div>
-                    </section>
-
-                    <section class="workspace-panel wide-panel">
-                        <div class="panel-title-row">
-                            <div>
-                                <span class="section-kicker">Driver portal</span>
-                                <h2>Driver Operations Control</h2>
-                            </div>
-                        </div>
-                        <div class="control-list driver-control-list" id="driverControlList"></div>
+                        <div class="portal-folder-grid" id="portalFolderGrid"></div>
                     </section>
                 </div>
             </section>
@@ -352,6 +321,6 @@
 
     <script src="../js/portal-connector.js"></script>
     <script src="../js/admin-control-bridge.js?v=20260514-feature-parity1"></script>
-    <script src="./js/admin-app.js?v=20260516-master-feature-folders3"></script>
+    <script src="./js/admin-app.js?v=20260516-two-portal-folders4"></script>
 </body>
 </html>

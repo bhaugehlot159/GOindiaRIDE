@@ -984,9 +984,9 @@
         `;
     }
 
-    function renderPortalFeatureFolder(portal, title, description, features, controls) {
+    function renderPortalFeatureRows(portal, features, controls) {
         const portalFeatures = ((controls.portalFeatures || {})[portal]) || {};
-        const rows = features.map((feature) => {
+        return features.map((feature) => {
             const control = portalFeatures[feature[0]] || {};
             const enabled = control.enabled !== false && !["disabled", "paused", "blocked"].includes(cleanText(control.status || "active").toLowerCase());
             const featureLabel = cleanText(control.labelOverride || feature[1]);
@@ -1007,6 +1007,10 @@
                 </div>
             `;
         }).join("");
+    }
+
+    function renderPortalFeatureFolder(portal, title, description, features, controls) {
+        const rows = renderPortalFeatureRows(portal, features, controls);
         return `
             <details class="portal-feature-folder ${portal}-feature-folder">
                 <summary>
@@ -1015,6 +1019,33 @@
                 </summary>
                 <p>${escapeHtml(description)}</p>
                 <div class="portal-feature-list">${rows}</div>
+            </details>
+        `;
+    }
+
+    function renderPortalOnlyFolder(portal, title, description, features, accessRows, controls) {
+        const portalState = ((controls.portals || {})[portal]) || {};
+        const enabled = portalState.enabled !== false;
+        const featureRows = renderPortalFeatureRows(portal, features, controls);
+        return `
+            <details class="portal-feature-folder portal-only-folder ${portal}-feature-folder">
+                <summary>
+                    <span><i class="fas ${portal === "driver" ? "fa-car-side" : "fa-user"}"></i> ${escapeHtml(title)}</span>
+                    <small>${features.length} features</small>
+                </summary>
+                <div class="portal-folder-control-strip">
+                    <div>
+                        <strong>${escapeHtml(portal === "driver" ? "Driver Portal" : "Customer Portal")}</strong>
+                        <small>${escapeHtml(description)}</small>
+                    </div>
+                    <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Active" : "Paused"}</span>
+                    <button class="row-action" data-control-action="enable-portal" data-portal="${escapeHtml(portal)}" type="button"><i class="fas fa-play"></i> Enable</button>
+                    <button class="danger-action" data-control-action="disable-portal" data-portal="${escapeHtml(portal)}" type="button"><i class="fas fa-pause"></i> Pause</button>
+                </div>
+                <div class="portal-folder-subtitle">Features</div>
+                <div class="portal-feature-list">${featureRows}</div>
+                <div class="portal-folder-subtitle">${portal === "driver" ? "Driver access controls" : "Customer access controls"}</div>
+                <div class="portal-folder-access-list">${accessRows || `<div class="empty-state">No ${escapeHtml(portal)} records found yet.</div>`}</div>
             </details>
         `;
     }
@@ -3453,11 +3484,83 @@
     }
 
     function renderPortalControls() {
+        const folderHost = $("#portalFolderGrid");
         const portalHost = $("#portalControlGrid");
         const featureFolderHost = $("#portalFeatureFolderGrid");
         const customerHost = $("#customerControlList");
         const driverHost = $("#driverControlList");
         const controls = state.controls || loadAdminControls();
+        const buildCustomerRows = () => {
+            const customers = getCustomerRows().slice(0, 20);
+            return customers.map((customer) => {
+                const key = getControlEntityKey(customer);
+                const control = (controls.customers || {})[key] || {};
+                const status = cleanText(control.status || customer.adminControlStatus || "active").toLowerCase();
+                const blocked = ["suspended", "blocked", "disabled"].includes(status) || control.enabled === false;
+                return `
+                    <article class="access-control-row">
+                        <div>
+                            <strong>${escapeHtml(customer.name || customer.fullname || "Customer")}</strong>
+                            <small>${escapeHtml(customer.phone || customer.email || key || "No contact")} | ${escapeHtml(customer.type || "customer")}</small>
+                        </div>
+                        <div class="control-actions">
+                            <span class="status-pill ${blocked ? "rejected" : "approved"}">${blocked ? "Suspended" : "Active"}</span>
+                            <button class="row-action" data-control-action="activate-customer" data-subject-key="${escapeHtml(key)}" type="button"><i class="fas fa-unlock"></i> Activate</button>
+                            <button class="danger-action" data-control-action="suspend-customer" data-subject-key="${escapeHtml(key)}" type="button"><i class="fas fa-ban"></i> Suspend</button>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        };
+        const buildDriverRows = () => {
+            const query = state.query.toLowerCase();
+            return state.drivers.filter((driver) => {
+                if (!query) return true;
+                return [driver.name, driver.phone, driver.vehicle, driver.status, driver.id].join(" ").toLowerCase().includes(query);
+            }).slice(0, 24).map((driver) => {
+                const key = getControlEntityKey(driver);
+                const control = (controls.drivers || {})[key] || {};
+                const status = cleanText(control.status || driver.adminControlStatus || driver.status || "pending").toLowerCase();
+                const blocked = ["suspended", "blocked", "offline_forced", "disabled"].includes(status) || control.enabled === false;
+                return `
+                    <article class="access-control-row">
+                        <div>
+                            <strong>${escapeHtml(driver.name)}</strong>
+                            <small>${escapeHtml(driver.phone || "No phone")} | ${escapeHtml(driver.vehicle)} | ${escapeHtml(driver.sourceKey)}</small>
+                        </div>
+                        <div class="control-actions">
+                            <span class="status-pill ${blocked ? "rejected" : status === "approved" ? "approved" : "pending"}">${escapeHtml(status.replace(/_/g, " "))}</span>
+                            <button class="row-action" data-control-action="approve-driver" data-subject-key="${escapeHtml(key)}" type="button"><i class="fas fa-check"></i> Approve</button>
+                            <button class="row-action" data-control-action="activate-driver" data-subject-key="${escapeHtml(key)}" type="button"><i class="fas fa-unlock"></i> Activate</button>
+                            <button class="danger-action" data-control-action="offline-driver" data-subject-key="${escapeHtml(key)}" type="button"><i class="fas fa-power-off"></i> Force offline</button>
+                            <button class="danger-action" data-control-action="suspend-driver" data-subject-key="${escapeHtml(key)}" type="button"><i class="fas fa-ban"></i> Suspend</button>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        };
+
+        if (folderHost) {
+            folderHost.innerHTML = [
+                renderPortalOnlyFolder(
+                    "customer",
+                    "Customer Portal Folder",
+                    "Customer bookings, ride history, wallet, profile, alerts and access controls.",
+                    CUSTOMER_FEATURES,
+                    buildCustomerRows(),
+                    controls
+                ),
+                renderPortalOnlyFolder(
+                    "driver",
+                    "Driver Portal Folder",
+                    "Driver availability, booking requests, KYC, wallet, trips and access controls.",
+                    DRIVER_FEATURES,
+                    buildDriverRows(),
+                    controls
+                )
+            ].join("");
+            return;
+        }
 
         if (portalHost) {
             const portals = [
