@@ -1877,7 +1877,6 @@
                                 <p style="color: #333; font-weight: 600;" id="profilePhone">-</p>
                                 <p id="profilePhoneVerificationBadge" style="margin-top: 0.35rem; color: #5f6b7a; font-size: 0.88rem;">No mobile number saved</p>
                             </div>
-                            <!-- Pending: Firebase OTP verification UI temporarily paused. We will resume this later. -->
                             <div style="margin-top: 0.5rem; padding: 1rem; border: 1px solid rgba(102, 126, 234, 0.18); border-radius: 12px; background: rgba(102, 126, 234, 0.04);">
                                 <h4 style="margin:0 0 1rem; color:#1f2937;">Edit Profile</h4>
                                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.85rem;">
@@ -1892,12 +1891,17 @@
                                 </div>
                                 <div style="margin-top:0.85rem;">
                                     <label for="profilePhoneInput" style="display:block; color:#333; font-weight:600; margin-bottom:0.5rem;">Mobile Number</label>
-                                    <input type="tel" id="profilePhoneInput" placeholder="Example: +919876543210" oninput="handleProfilePhoneInputChange()" style="width:100%; padding:0.85rem 1rem; border:1px solid #d7def0; border-radius:10px;">
+                                    <input type="tel" id="profilePhoneInput" placeholder="Example: +919876543210" oninput="handleProfilePhoneInputChange()" style="width:100%; padding:0.85rem 1rem; border:1px solid #d7def0; border-radius:10px; margin-bottom:0.75rem;">
+                                    <label for="profilePhoneOtpInput" style="display:block; color:#333; font-weight:600; margin-bottom:0.5rem;">OTP Code</label>
+                                    <input type="text" id="profilePhoneOtpInput" inputmode="numeric" maxlength="8" placeholder="Enter OTP" style="width:100%; padding:0.85rem 1rem; border:1px solid #d7def0; border-radius:10px;">
                                 </div>
-                                <p id="profilePhoneUpdateStatus" style="margin-top:0.85rem; color:#5f6b7a; font-size:0.9rem;">Use an active mobile number so our team can contact you when needed. This number is used in booking and admin notifications.</p>
+                                <p id="profilePhoneUpdateStatus" style="margin-top:0.85rem; color:#5f6b7a; font-size:0.9rem;">Verified mobile admin mail aur booking contact ke liye use hoga.</p>
                                 <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.85rem;">
                                     <button type="button" class="quick-action-btn" onclick="saveProfileDetails()">Save Profile</button>
+                                    <button type="button" class="quick-action-btn" onclick="sendProfilePhoneOtp()">Send OTP</button>
+                                    <button type="button" class="quick-action-btn" onclick="verifyAndSaveProfilePhone()">Verify &amp; Save Mobile</button>
                                 </div>
+                                <div id="profilePhoneRecaptchaContainer" style="min-height:1px; margin-top:0.5rem;"></div>
                                 <p id="profileSaveStatus" style="margin-top:0.85rem; color:#5f6b7a; font-size:0.9rem;">Update your name, email, and mobile number, then click Save Profile.</p>
                             </div>
                         </div>
@@ -2376,6 +2380,10 @@
         }
 
         function normalizeDashboardPhoneValue(value) {
+            if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.normalizePhone === 'function') {
+                return window.GoIndiaPhoneVerification.normalizePhone(value);
+            }
+
             const raw = String(value || '').trim();
             if (!raw) return '';
 
@@ -2906,9 +2914,14 @@
         function updateProfilePhoneBadge(phone, verified) {
             const badge = document.getElementById('profilePhoneVerificationBadge');
             if (!badge) return;
-            if (phone) {
-                badge.textContent = `Saved contact: ${phone}`;
+            if (phone && verified) {
+                badge.textContent = `Verified: ${phone}`;
                 badge.style.color = '#15803d';
+                return;
+            }
+            if (phone) {
+                badge.textContent = `Unverified: ${phone}`;
+                badge.style.color = '#b45309';
                 return;
             }
             badge.textContent = 'No mobile number saved';
@@ -2972,7 +2985,7 @@
                             name: profilePatch.name || profilePatch.fullname || '',
                             email: profilePatch.email || '',
                             phone: profilePatch.phone || '',
-                            verified: false
+                            verified: Boolean(profilePatch.verified || profilePatch.isPhoneVerified || profilePatch.phoneVerified)
                         })
                     }, 12000);
 
@@ -4726,19 +4739,29 @@
             const nameInput = document.getElementById('profileNameInput');
             const emailInput = document.getElementById('profileEmailInput');
             const input = document.getElementById('profilePhoneInput');
+            const otpInput = document.getElementById('profilePhoneOtpInput');
+            const phoneVerified = Boolean(currentUser?.isPhoneVerified || currentUser?.phoneVerified);
             if (nameInput) nameInput.value = safeName || '';
             if (emailInput) emailInput.value = safeEmail || '';
             if (input) input.value = safePhone || '';
-            updateProfilePhoneBadge(safePhone, Boolean(safePhone));
-            if (safePhone) {
-                setProfilePhoneUpdateStatus('Your saved mobile number will be used for booking and admin notifications.');
+            if (otpInput) otpInput.value = '';
+            updateProfilePhoneBadge(safePhone, phoneVerified);
+            if (safePhone && phoneVerified) {
+                setProfilePhoneUpdateStatus('Verified mobile is ready for booking and admin notifications.');
+            } else if (safePhone) {
+                setProfilePhoneUpdateStatus('Mobile number saved but unverified. Send OTP and verify before booking.');
             } else {
-                setProfilePhoneUpdateStatus('Please enter an active mobile number so our team can contact you.');
+                setProfilePhoneUpdateStatus('Please enter an active mobile number and verify it with OTP.');
             }
         }
 
         function handleProfilePhoneInputChange() {
-            setProfilePhoneUpdateStatus('New mobile number captured. Click Save Profile to apply.');
+            const otpInput = document.getElementById('profilePhoneOtpInput');
+            if (otpInput) otpInput.value = '';
+            if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
+                window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
+            }
+            setProfilePhoneUpdateStatus('Send OTP to verify this mobile number before booking.');
         }
 
         function loadProfile() {
@@ -4757,6 +4780,9 @@
             const safeName = normalizeDashboardNameValue(nameInput?.value || '');
             const safeEmail = normalizeDashboardEmailValue(emailInput?.value || '');
             const safePhone = normalizeDashboardPhoneValue(phoneInput?.value || '');
+            const currentPhone = normalizeDashboardPhoneValue(currentUser?.phone || '');
+            const currentPhoneVerified = Boolean(currentUser?.isPhoneVerified || currentUser?.phoneVerified);
+            const nextPhoneVerified = Boolean(safePhone && currentPhone && safePhone === currentPhone && currentPhoneVerified);
 
             if (!safeName) {
                 setProfilePhoneUpdateStatus('Full name is required.', 'error');
@@ -4791,8 +4817,8 @@
                 email: safeEmail,
                 phone: safePhone,
                 mobile: safePhone,
-                isPhoneVerified: false,
-                phoneVerified: false
+                isPhoneVerified: nextPhoneVerified,
+                phoneVerified: nextPhoneVerified
             });
             updateDashboardCustomerAccountStores({
                 fullname: safeName,
@@ -4800,8 +4826,8 @@
                 email: safeEmail,
                 phone: safePhone,
                 mobile: safePhone,
-                isPhoneVerified: false,
-                phoneVerified: false
+                isPhoneVerified: nextPhoneVerified,
+                phoneVerified: nextPhoneVerified
             });
 
             document.getElementById('profileName').textContent = safeName;
@@ -4821,7 +4847,8 @@
                 name: safeName,
                 fullname: safeName,
                 email: safeEmail,
-                phone: safePhone
+                phone: safePhone,
+                verified: nextPhoneVerified
             });
 
             if (syncResult && syncResult.ok && syncResult.data && syncResult.data.user) {
@@ -4847,10 +4874,16 @@
             }
 
             hydrateProfilePhoneEditor();
-            setProfilePhoneUpdateStatus('Your saved mobile number will be used for booking and admin notifications.');
+            if (nextPhoneVerified) {
+                setProfilePhoneUpdateStatus('Verified mobile is ready for booking and admin notifications.');
+            } else {
+                setProfilePhoneUpdateStatus('Profile saved. Mobile number needs OTP verification before booking.');
+            }
             if (statusNode) {
                 if (syncResult && syncResult.ok) {
-                    statusNode.textContent = 'Profile saved successfully.';
+                    statusNode.textContent = nextPhoneVerified
+                        ? 'Profile saved successfully with verified mobile.'
+                        : 'Profile saved successfully. Verify mobile with OTP to use booking.';
                     statusNode.style.color = '#15803d';
                 } else if (syncResult && syncResult.reason === 'missing_access_token') {
                     statusNode.textContent = 'Profile saved in your current session. It will sync to backend after your next authenticated refresh.';
@@ -4863,13 +4896,124 @@
         }
 
         async function sendProfilePhoneOtp() {
-            // Pending by request: Firebase OTP profile verification is paused for now.
-            setProfilePhoneUpdateStatus('Phone OTP verification is currently paused. Please use Save Profile for now.');
+            const input = document.getElementById('profilePhoneInput');
+            const normalizedPhone = normalizeDashboardPhoneValue(input?.value || '');
+            if (!normalizedPhone) {
+                setProfilePhoneUpdateStatus('Please enter a valid mobile number with country code.', 'error');
+                showProfilePhoneError('Please enter a valid mobile number with country code.');
+                return;
+            }
+            if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {
+                setProfilePhoneUpdateStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
+                return;
+            }
+
+            try {
+                setProfilePhoneUpdateStatus('Sending OTP...');
+                await window.GoIndiaPhoneVerification.sendOtp(normalizedPhone, {
+                    sessionKey: PROFILE_PHONE_VERIFICATION_SESSION_KEY,
+                    containerId: 'profilePhoneRecaptchaContainer'
+                });
+                if (input) input.value = normalizedPhone;
+                setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
+                }
+            } catch (error) {
+                const message = String(error?.message || 'OTP send failed. Please retry.').trim();
+                setProfilePhoneUpdateStatus(message, 'error');
+                showProfilePhoneError(message);
+            }
         }
 
         async function verifyAndSaveProfilePhone() {
-            // Pending by request: Firebase OTP profile verification is paused for now.
-            saveProfileDetails();
+            const otpValue = sanitizeInput(document.getElementById('profilePhoneOtpInput')?.value || '', 12);
+            if (!otpValue) {
+                setProfilePhoneUpdateStatus('Please enter the OTP code.', 'error');
+                return;
+            }
+            if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.verifyOtp !== 'function') {
+                setProfilePhoneUpdateStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
+                return;
+            }
+
+            try {
+                setProfilePhoneUpdateStatus('Verifying OTP...');
+                const result = await window.GoIndiaPhoneVerification.verifyOtp(otpValue, {
+                    sessionKey: PROFILE_PHONE_VERIFICATION_SESSION_KEY
+                });
+                const verifiedPhone = normalizeDashboardPhoneValue(result?.phone || document.getElementById('profilePhoneInput')?.value || '');
+                if (!verifiedPhone) {
+                    throw new Error('Verified phone number missing after OTP confirmation.');
+                }
+
+                const safeName = normalizeDashboardNameValue(document.getElementById('profileNameInput')?.value || currentUser?.fullname || currentUser?.name || '');
+                const safeEmail = normalizeDashboardEmailValue(document.getElementById('profileEmailInput')?.value || currentUser?.email || '');
+                persistDashboardCurrentUserSession({
+                    fullname: safeName || currentUser?.fullname || currentUser?.name || '',
+                    name: safeName || currentUser?.name || currentUser?.fullname || '',
+                    email: safeEmail || currentUser?.email || '',
+                    phone: verifiedPhone,
+                    mobile: verifiedPhone,
+                    isPhoneVerified: true,
+                    phoneVerified: true
+                });
+                updateDashboardCustomerAccountStores({
+                    fullname: safeName || currentUser?.fullname || currentUser?.name || '',
+                    name: safeName || currentUser?.name || currentUser?.fullname || '',
+                    email: safeEmail || currentUser?.email || '',
+                    phone: verifiedPhone,
+                    mobile: verifiedPhone,
+                    isPhoneVerified: true,
+                    phoneVerified: true
+                }, true);
+
+                const input = document.getElementById('profilePhoneInput');
+                if (input) input.value = verifiedPhone;
+                document.getElementById('profilePhone').textContent = verifiedPhone;
+
+                const syncResult = await syncDashboardPhoneWithBackend(verifiedPhone);
+                if (syncResult?.ok && syncResult.data?.user) {
+                    const backendUser = syncResult.data.user;
+                    persistDashboardCurrentUserSession({
+                        fullname: backendUser.name || currentUser?.fullname || currentUser?.name || '',
+                        name: backendUser.name || currentUser?.name || currentUser?.fullname || '',
+                        email: backendUser.email || currentUser?.email || '',
+                        phone: normalizeDashboardPhoneValue(backendUser.phone || verifiedPhone) || verifiedPhone,
+                        mobile: normalizeDashboardPhoneValue(backendUser.phone || verifiedPhone) || verifiedPhone,
+                        isPhoneVerified: Boolean(backendUser.isPhoneVerified),
+                        phoneVerified: Boolean(backendUser.isPhoneVerified)
+                    });
+                    updateDashboardCustomerAccountStores({
+                        fullname: backendUser.name || currentUser?.fullname || currentUser?.name || '',
+                        name: backendUser.name || currentUser?.name || currentUser?.fullname || '',
+                        email: backendUser.email || currentUser?.email || '',
+                        phone: normalizeDashboardPhoneValue(backendUser.phone || verifiedPhone) || verifiedPhone,
+                        mobile: normalizeDashboardPhoneValue(backendUser.phone || verifiedPhone) || verifiedPhone,
+                        isPhoneVerified: Boolean(backendUser.isPhoneVerified),
+                        phoneVerified: Boolean(backendUser.isPhoneVerified)
+                    }, Boolean(backendUser.isPhoneVerified));
+                    setProfilePhoneUpdateStatus(`Verified mobile saved to backend: ${verifiedPhone}`, 'success');
+                } else if (syncResult?.reason === 'missing_access_token') {
+                    setProfilePhoneUpdateStatus(`Verified mobile saved in this session: ${verifiedPhone}. Backend sync will happen after login refresh.`, 'success');
+                } else {
+                    setProfilePhoneUpdateStatus(`Verified mobile saved locally: ${verifiedPhone}. Backend sync is pending.`, 'success');
+                }
+
+                hydrateProfilePhoneEditor();
+                const statusNode = document.getElementById('profileSaveStatus');
+                if (statusNode) {
+                    statusNode.textContent = 'Mobile verified and saved.';
+                    statusNode.style.color = '#15803d';
+                }
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast(`Mobile verified: ${verifiedPhone}`, 'Phone Verification');
+                }
+            } catch (error) {
+                const message = String(error?.message || 'OTP verification failed. Please retry.').trim();
+                setProfilePhoneUpdateStatus(message, 'error');
+                showProfilePhoneError(message);
+            }
         }
 
         // ----------------------------------------====
@@ -5553,12 +5697,10 @@ Thank you for riding with us! 🚗
     <script src="../js/wallet-core.js?v=20260508-speed1"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/toast.js"></script>
-    <!-- Pending by request: Firebase OTP verification scripts are temporarily paused.
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="../js/firebase-config.js?v=20260502-otpfix2"></script>
-    <script src="../js/phone-verification.js?v=20260502-otpfix2"></script>
-    -->
+    <script src="../js/firebase-config.js?v=20260516-inline-phone1"></script>
+    <script src="../js/phone-verification.js?v=20260516-inline-phone1"></script>
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
     <script src="../js/portal-connector.js"></script>
