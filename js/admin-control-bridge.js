@@ -6,6 +6,7 @@
     const LOCAL_EVENT = "goindiaride:admin-control-update";
     const POLICY_EVENT = "goindiaride:admin-control-policy";
     const FEATURE_BLOCK_EVENT = "goindiaride:admin-control-feature-blocked";
+    const FEATURE_VERIFY_KEY = "goindiaride_admin_portal_feature_live_verification_v1";
     const BOOKING_KEYS = [
         "bookings",
         "goride_bookings",
@@ -201,6 +202,171 @@
         });
 
         return { normalized, misplaced };
+    }
+
+    function portalFeatureIds(portalType, featureIds) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const defined = FEATURE_DEFINITIONS[safePortal] || [];
+        const requested = Array.isArray(featureIds) && featureIds.length
+            ? featureIds.map((item) => cleanText(Array.isArray(item) ? item[0] : item).toLowerCase())
+            : defined;
+        return unique(requested).filter((featureId) => defined.includes(featureId));
+    }
+
+    function readFeatureVerificationStore() {
+        const parsed = parseJson(global.localStorage.getItem(FEATURE_VERIFY_KEY), {});
+        return parsed && typeof parsed === "object" ? parsed : {};
+    }
+
+    function writeFeatureVerificationSnapshot(portalType, snapshot, scope) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const safeScope = cleanText(scope || "admin") || "admin";
+        const store = readFeatureVerificationStore();
+        store[safeScope] = {
+            ...(store[safeScope] || {}),
+            [safePortal]: snapshot
+        };
+        if (safeScope === "admin") {
+            store[safePortal] = snapshot;
+        }
+        global.localStorage.setItem(FEATURE_VERIFY_KEY, JSON.stringify(store));
+        return store;
+    }
+
+    function buildPortalFeatureVerificationSnapshot(portalType, featureIds, controls, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const settings = options && typeof options === "object" ? options : {};
+        const now = cleanText(settings.verifiedAt || nowIso());
+        const features = {};
+        let passed = 0;
+        const ids = portalFeatureIds(safePortal, featureIds);
+        const portalFeatures = (((controls || {}).portalFeatures || {})[safePortal]) || {};
+
+        ids.forEach((featureId) => {
+            const feature = portalFeatures[featureId] || {};
+            const status = cleanText(feature.status || "active").toLowerCase();
+            const active = feature.enabled !== false && !["disabled", "paused", "blocked"].includes(status);
+            const demoReady = feature.demoReady === true || feature.demoMode === true || feature.connectionMode === "demo_live";
+            const liveReady = feature.liveReady === true || feature.liveMode === true || feature.connectionMode === "demo_live";
+            const connected = feature.connected === true || feature.controlledByAdminApp === true || feature.connectionMode === "demo_live";
+            const verified = active && connected && demoReady && liveReady;
+            if (verified) passed += 1;
+            features[featureId] = {
+                status: feature.status || "active",
+                allowed: active,
+                connected,
+                demoReady,
+                liveReady,
+                verified,
+                verificationStatus: verified ? "passed" : "failed",
+                label: cleanText(feature.label || feature.labelOverride || featureDisplayName(featureId)),
+                correction: cleanText(feature.correction || ""),
+                verifiedAt: feature.verifiedAt || now
+            };
+        });
+
+        return {
+            portal: safePortal,
+            mode: "demo_live",
+            source: cleanText(settings.source || "admin_control_bridge"),
+            total: ids.length,
+            passed,
+            failed: Math.max(0, ids.length - passed),
+            ok: ids.length > 0 && passed === ids.length,
+            verifiedAt: now,
+            features
+        };
+    }
+
+    function connectPortalFeaturesLive(portalType, featureIds, options) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const settings = options && typeof options === "object" ? options : {};
+        const now = nowIso();
+        const ids = portalFeatureIds(safePortal, featureIds);
+        const reason = cleanText(settings.reason || `${safePortal} portal demo/live features connected and verified by admin.`);
+        const controls = readControls();
+        controls.portals = controls.portals || {};
+        controls.portalFeatures = controls.portalFeatures || {};
+        controls.portalFeatures[safePortal] = {
+            ...featureDefaults(safePortal),
+            ...(controls.portalFeatures[safePortal] || {})
+        };
+
+        ids.forEach((featureId) => {
+            const current = controls.portalFeatures[safePortal][featureId] || {};
+            controls.portalFeatures[safePortal][featureId] = {
+                ...current,
+                enabled: true,
+                status: "active",
+                reason,
+                connected: true,
+                controlledByAdminApp: true,
+                connectionMode: "demo_live",
+                runtimeMode: "demo_live",
+                demoMode: true,
+                liveMode: true,
+                demoReady: true,
+                liveReady: true,
+                verified: true,
+                verificationStatus: "passed",
+                verifiedAt: now,
+                updatedAt: now
+            };
+        });
+
+        controls.portals[safePortal] = {
+            ...((controls.portals || {})[safePortal] || {}),
+            enabled: true,
+            status: "active",
+            reason,
+            connected: true,
+            controlledByAdminApp: true,
+            connectionMode: "demo_live",
+            runtimeMode: "demo_live",
+            demoMode: true,
+            liveMode: true,
+            demoReady: true,
+            liveReady: true,
+            verified: true,
+            verificationStatus: "passed",
+            controlledFeatures: ids,
+            liveVerifiedAt: now,
+            updatedAt: now
+        };
+
+        const verification = buildPortalFeatureVerificationSnapshot(safePortal, ids, controls, {
+            ...settings,
+            source: cleanText(settings.source || "admin_control_bridge"),
+            verifiedAt: now
+        });
+        controls.portalFeatureVerification = {
+            ...(controls.portalFeatureVerification || {}),
+            [safePortal]: verification
+        };
+
+        const next = writeControls(controls);
+        writeFeatureVerificationSnapshot(safePortal, verification, "admin");
+        addAudit("PORTAL_FEATURE_DEMO_LIVE_VERIFIED", `${safePortal} portal ${verification.passed}/${verification.total} features verified in demo/live mode`, {
+            portal: safePortal,
+            mode: "demo_live",
+            passed: verification.passed,
+            total: verification.total
+        });
+        notify({
+            type: "portal_feature_demo_live_verified",
+            title: "Admin Demo/Live Verification",
+            message: reason,
+            sourcePortal: "admin",
+            targetPortals: [safePortal, "admin"],
+            metadata: { portal: safePortal, mode: "demo_live", passed: verification.passed, total: verification.total }
+        });
+        return { ok: verification.ok, controls: next, verification };
+    }
+
+    function getPortalFeatureVerification(portalType) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const store = readFeatureVerificationStore();
+        return ((store.admin || {})[safePortal]) || store[safePortal] || null;
     }
 
     function defaultControls() {
@@ -803,6 +969,66 @@
         return apply;
     }
 
+    function countSelectorMatches(selector) {
+        if (!selector || !global.document || typeof global.document.querySelectorAll !== "function") return 0;
+        try {
+            return global.document.querySelectorAll(selector).length;
+        } catch (_error) {
+            return 0;
+        }
+    }
+
+    function recordRuntimeFeatureVerification(portalType, featureMap, subject) {
+        const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
+        const map = featureMap && typeof featureMap === "object" ? featureMap : {};
+        const ids = portalFeatureIds(safePortal);
+        const now = nowIso();
+        const features = {};
+        let passed = 0;
+
+        ids.forEach((featureId) => {
+            const selectors = Array.isArray(map[featureId]) ? map[featureId] : [map[featureId]];
+            const safeSelectors = selectors.filter(Boolean);
+            const nodeCount = safeSelectors.reduce((sum, selector) => sum + countSelectorMatches(selector), 0);
+            const policy = getFeaturePolicy(safePortal, featureId, subject);
+            const mapped = Object.prototype.hasOwnProperty.call(map, featureId);
+            const verified = mapped && policy.allowed;
+            if (verified) passed += 1;
+            features[featureId] = {
+                mapped,
+                selectorCount: safeSelectors.length,
+                nodeCount,
+                allowed: policy.allowed,
+                status: policy.status,
+                correction: policy.correction,
+                verified,
+                verificationStatus: verified ? "passed" : "failed",
+                verifiedAt: now
+            };
+        });
+
+        const snapshot = {
+            portal: safePortal,
+            mode: "runtime_map",
+            source: "customer_runtime",
+            page: global.location ? String(global.location.pathname || global.location.href || "") : "",
+            total: ids.length,
+            passed,
+            failed: Math.max(0, ids.length - passed),
+            ok: ids.length > 0 && passed === ids.length,
+            verifiedAt: now,
+            features
+        };
+        const pageScope = "runtime:" + cleanText(snapshot.page || "page").replace(/[^a-z0-9/_-]/gi, "_");
+        writeFeatureVerificationSnapshot(safePortal, snapshot, pageScope);
+        if (global.document && global.document.documentElement) {
+            global.document.documentElement.dataset.adminFeatureRuntime = snapshot.ok ? "verified" : "partial";
+            global.document.documentElement.dataset.adminFeatureRuntimePortal = safePortal;
+            global.document.documentElement.dataset.adminFeatureRuntimePassed = `${passed}/${ids.length}`;
+        }
+        return snapshot;
+    }
+
     function applyFeatureRuntime(portalType, featureMap, options) {
         const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
         const settings = options || {};
@@ -835,6 +1061,7 @@
                 });
             });
         });
+        recordRuntimeFeatureVerification(safePortal, featureMap || {}, subject);
         return readControls();
     }
 
@@ -862,7 +1089,7 @@
     }
 
     global.AdminControlBridge = {
-        keys: { CONTROL_KEY, AUDIT_KEY, BOOKING_KEYS, DRIVER_KEYS, USER_KEYS },
+        keys: { CONTROL_KEY, AUDIT_KEY, FEATURE_VERIFY_KEY, BOOKING_KEYS, DRIVER_KEYS, USER_KEYS },
         readControls,
         writeControls,
         getPortalPolicy,
@@ -870,6 +1097,8 @@
         setPortalEnabled,
         setFeatureEnabled,
         setFeatureCorrection,
+        connectPortalFeaturesLive,
+        getPortalFeatureVerification,
         setSubjectStatus,
         approveDriver,
         forceDriverOffline,

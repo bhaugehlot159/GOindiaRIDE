@@ -989,17 +989,19 @@
         return features.map((feature) => {
             const control = portalFeatures[feature[0]] || {};
             const enabled = control.enabled !== false && !["disabled", "paused", "blocked"].includes(cleanText(control.status || "active").toLowerCase());
+            const liveVerified = control.verified === true || cleanText(control.verificationStatus).toLowerCase() === "passed";
             const featureLabel = cleanText(control.labelOverride || feature[1]);
             const correction = cleanText(control.correction || "");
             return `
-                <div class="feature-control-row" data-feature-owner="${escapeHtml(portal)}">
+                <div class="feature-control-row" data-feature-owner="${escapeHtml(portal)}" data-live-verified="${liveVerified ? "true" : "false"}">
                     <div class="feature-control-copy">
                         <strong>${escapeHtml(featureLabel)}</strong>
                         <small>${escapeHtml(feature[2])}</small>
+                        ${liveVerified ? `<small class="feature-live-note">Demo/live verified: ${escapeHtml(formatDate(control.verifiedAt || control.updatedAt))}</small>` : ""}
                         ${correction ? `<small class="feature-correction-note">Admin correction: ${escapeHtml(correction)}</small>` : ""}
                     </div>
                     <div class="control-actions">
-                        <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Connected" : "Paused"}</span>
+                        <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? (liveVerified ? "Live verified" : "Connected") : "Paused"}</span>
                         <button class="row-action" data-control-action="edit-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button" title="Edit correction"><i class="fas fa-pen-to-square"></i></button>
                         <button class="row-action" data-control-action="enable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-link"></i></button>
                         <button class="danger-action" data-control-action="disable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-pause"></i></button>
@@ -1026,7 +1028,14 @@
     function renderPortalOnlyFolder(portal, title, description, features, accessRows, controls) {
         const portalState = ((controls.portals || {})[portal]) || {};
         const enabled = portalState.enabled !== false;
+        const verification = getStoredPortalVerification(controls, portal);
+        const verifiedLabel = verification && verification.total
+            ? `${verification.passed}/${verification.total} live`
+            : "";
         const featureRows = renderPortalFeatureRows(portal, features, controls);
+        const verifyButton = portal === "customer"
+            ? `<button class="row-action" data-control-action="verify-customer-features" data-portal="customer" type="button"><i class="fas fa-vial-circle-check"></i> Test live</button>`
+            : "";
         return `
             <details class="portal-feature-folder portal-only-folder ${portal}-feature-folder">
                 <summary>
@@ -1038,7 +1047,8 @@
                         <strong>${escapeHtml(portal === "driver" ? "Driver Portal" : "Customer Portal")}</strong>
                         <small>${escapeHtml(description)}</small>
                     </div>
-                    <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Active" : "Paused"}</span>
+                    <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? (verifiedLabel || "Active") : "Paused"}</span>
+                    ${verifyButton}
                     <button class="row-action" data-control-action="enable-portal" data-portal="${escapeHtml(portal)}" type="button"><i class="fas fa-play"></i> Enable</button>
                     <button class="danger-action" data-control-action="disable-portal" data-portal="${escapeHtml(portal)}" type="button"><i class="fas fa-pause"></i> Pause</button>
                 </div>
@@ -2956,6 +2966,20 @@
         return controls;
     }
 
+    function activateCustomerPortalDemoLiveFeatures(reasonOverride = "") {
+        if (!window.AdminControlBridge || typeof window.AdminControlBridge.connectPortalFeaturesLive !== "function") {
+            return { ok: false, reason: "feature_live_bridge_missing" };
+        }
+        return window.AdminControlBridge.connectPortalFeaturesLive(
+            "customer",
+            CUSTOMER_FEATURES.map((feature) => feature[0]),
+            {
+                source: "admin_app",
+                reason: cleanText(reasonOverride || "All customer portal features connected and verified in demo/live mode by admin.")
+            }
+        );
+    }
+
     function connectAllPortalFeatures(options = {}) {
         const now = new Date().toISOString();
         const apiBase = resolveAdminApiBase(state.settings.apiBase || localStorage.getItem("goindiaride_api_base"));
@@ -3021,12 +3045,19 @@
         localStorage.setItem("goindiaride_api_base", apiBase);
         localStorage.setItem("goindiaride_admin_api_base", apiBase);
         state.controls = writeAdminControls(nextControls);
+        const customerLiveResult = activateCustomerPortalDemoLiveFeatures("All customer portal features connected and verified in admin demo/live mode.");
+        const customerVerification = customerLiveResult.ok ? customerLiveResult.verification : null;
+        if (customerLiveResult.ok && customerLiveResult.controls) {
+            state.controls = customerLiveResult.controls;
+        }
         state.connection = {
             connected: true,
             apiBase,
             features: PORTAL_FEATURES,
             customerFeatures: CUSTOMER_FEATURES.map((feature) => feature[0]),
             driverFeatures: DRIVER_FEATURES.map((feature) => feature[0]),
+            customerFeatureVerification: customerVerification,
+            customerFeatureVerificationStatus: customerVerification ? `${customerVerification.passed}/${customerVerification.total}` : "",
             bookingKeys: BOOKING_KEYS,
             driverKeys: DRIVER_KEYS,
             customerKeys: USER_KEYS,
@@ -4054,6 +4085,16 @@
         return match ? match[1] : cleanText(featureId, "Feature").replace(/_/g, " ");
     }
 
+    function getStoredPortalVerification(controls, portal) {
+        const safePortal = cleanText(portal).toLowerCase() === "driver" ? "driver" : "customer";
+        const localVerification = (controls && controls.portalFeatureVerification && controls.portalFeatureVerification[safePortal]) || null;
+        if (localVerification) return localVerification;
+        if (window.AdminControlBridge && typeof window.AdminControlBridge.getPortalFeatureVerification === "function") {
+            return window.AdminControlBridge.getPortalFeatureVerification(safePortal);
+        }
+        return null;
+    }
+
     function handlePortalControlAction(button) {
         if (!window.AdminControlBridge) {
             showToast("Admin control bridge is not loaded.");
@@ -4066,7 +4107,10 @@
         const key = button.dataset.subjectKey || "";
         let result = { ok: true };
 
-        if (action === "enable-portal" || action === "disable-portal") {
+        if (action === "verify-customer-features") {
+            result = activateCustomerPortalDemoLiveFeatures(controlReason("All customer portal features connected and verified in admin demo/live mode."));
+            showToast(result.ok ? `Customer features live verified ${result.verification.passed}/${result.verification.total}.` : "Customer feature live verification failed.");
+        } else if (action === "enable-portal" || action === "disable-portal") {
             const enabled = action === "enable-portal";
             window.AdminControlBridge.setPortalEnabled(portal, enabled, controlReason(enabled ? "Portal enabled by admin." : "Portal paused by admin."));
             showToast(`${portal} portal ${enabled ? "enabled" : "paused"}.`);

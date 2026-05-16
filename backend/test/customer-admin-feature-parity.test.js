@@ -24,29 +24,39 @@ test('customer feature runtime maps match admin control feature catalog', () => 
   const bridgeSource = readRepoFile('js/admin-control-bridge.js');
   const bookingHtml = readRepoFile('pages/booking.html');
   const customerDashboardHtml = readRepoFile('pages/customer-dashboard.html');
+  const customerPortalJs = readRepoFile('customer/js/customer-portal.js');
 
   const expectedFeatures = extractCustomerFeatureDefinitions(bridgeSource);
   const bookingMapFeatures = extractMapKeys(bookingHtml, 'bookingPageFeatureMap');
   const dashboardMapFeatures = extractMapKeys(customerDashboardHtml, 'customerAdminFeatureMap');
+  const customerPortalMapFeatures = extractMapKeys(customerPortalJs, 'customerFeatureMap');
 
-  const union = new Set([...bookingMapFeatures, ...dashboardMapFeatures]);
+  const union = new Set([...bookingMapFeatures, ...dashboardMapFeatures, ...customerPortalMapFeatures]);
   const missingFeatures = expectedFeatures.filter((featureId) => !union.has(featureId));
   const unknownFeatures = Array.from(union).filter((featureId) => !expectedFeatures.includes(featureId));
 
   assert.deepEqual(missingFeatures, [], `Customer runtime is missing features: ${missingFeatures.join(', ')}`);
   assert.deepEqual(unknownFeatures, [], `Customer runtime has unknown features: ${unknownFeatures.join(', ')}`);
+  assert.deepEqual(
+    expectedFeatures.filter((featureId) => !customerPortalMapFeatures.includes(featureId)),
+    [],
+    'Customer root portal is missing admin feature mappings'
+  );
 });
 
 test('benchmark ride features are admin-controlled in both booking and dashboard flows', () => {
   const bookingHtml = readRepoFile('pages/booking.html');
   const customerDashboardHtml = readRepoFile('pages/customer-dashboard.html');
+  const customerPortalJs = readRepoFile('customer/js/customer-portal.js');
 
   const bookingMapFeatures = extractMapKeys(bookingHtml, 'bookingPageFeatureMap');
   const dashboardMapFeatures = extractMapKeys(customerDashboardHtml, 'customerAdminFeatureMap');
+  const customerPortalMapFeatures = extractMapKeys(customerPortalJs, 'customerFeatureMap');
   const benchmarkFeatureIds = ['airport_transfers', 'outstation_rides', 'hourly_rentals', 'trip_modes'];
 
   benchmarkFeatureIds.forEach((featureId) => {
     assert.ok(bookingMapFeatures.includes(featureId), `Booking page is missing ${featureId} admin feature mapping`);
     assert.ok(dashboardMapFeatures.includes(featureId), `Customer dashboard is missing ${featureId} admin feature mapping`);
+    assert.ok(customerPortalMapFeatures.includes(featureId), `Customer root portal is missing ${featureId} admin feature mapping`);
   });
 });

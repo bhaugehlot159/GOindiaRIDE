@@ -1294,7 +1294,7 @@ button {
 
 .portal-folder-control-strip {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
@@ -1379,6 +1379,12 @@ button {
 .feature-correction-note {
     margin-top: 4px;
     color: var(--blue) !important;
+    overflow-wrap: anywhere;
+}
+
+.feature-live-note {
+    margin-top: 4px;
+    color: #0f684c !important;
     overflow-wrap: anywhere;
 }
 

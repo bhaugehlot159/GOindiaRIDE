@@ -57,32 +57,41 @@ function getCurrentCustomerSubject() {
 function setupAdminCustomerControls() {
     if (!window.AdminControlBridge) return;
 
-    if (typeof AdminControlBridge.initPortalRuntime === 'function') {
-        AdminControlBridge.initPortalRuntime('customer', {
-            getSubject: getCurrentCustomerSubject,
-            onBlocked: function () {
-                document.querySelectorAll('.main-container, .bottom-nav, #sosButton').forEach(function (node) {
-                    node.classList.add('admin-lock-sensitive');
-                });
-            },
-            onAllowed: function () {
-                document.querySelectorAll('.admin-lock-sensitive').forEach(function (node) {
-                    node.classList.remove('admin-lock-sensitive');
-                });
-            }
-        });
-    }
-
-    if (typeof AdminControlBridge.initFeatureRuntime !== 'function') return;
-
-    AdminControlBridge.initFeatureRuntime('customer', {
+    const customerSectionFeatures = {
+        homeSection: 'home_dashboard',
+        bookingsSection: 'active_rides',
+        walletSection: 'wallet',
+        tourismSection: 'tourism',
+        profileSection: 'profile'
+    };
+    const bookingTypeFeatures = {
+        local: 'booking',
+        outstation: 'outstation_rides',
+        rental: 'hourly_rentals',
+        airport: 'airport_transfers'
+    };
+    const modalFeatures = {
+        bookingModal: 'booking',
+        scheduleModal: 'scheduled_rides',
+        addMoneyModal: 'wallet_topup',
+        donationModal: 'donations',
+        splitFareModal: 'split_fare',
+        preferencesModal: 'ride_preferences',
+        supportChatModal: 'customer_support',
+        sosModal: 'emergency'
+    };
+    const customerFeatureMap = {
         home_dashboard: ['#homeSection', '.bottom-nav .nav-btn[data-section="homeSection"]', '.offers-banner'],
-        booking: ['#bookingModal', '#bookingForm', '#scheduleModal', '#scheduleForm', '.booking-types', '.booking-type-btn', '#scheduleBookingBtn'],
+        booking: ['#bookingModal', '#bookingForm', '#scheduleModal', '#scheduleForm', '.booking-types', '.booking-type-btn[data-type="local"]', '#scheduleBookingBtn'],
         quick_booking: ['.quick-booking-card', '#searchLocation', '.booking-types', '.booking-type-btn'],
         saved_places: ['#recentPlaces', '#recentPlacesList', '#favoriteLocations', '#favoritesList'],
         fare_estimator: ['.fare-calculator', '#openFareCalc', '#farePreview'],
-        active_rides: ['#activeBookings', '#activeBookingsList'],
+        active_rides: ['#bookingsSection', '#activeBookings', '#activeBookingsList'],
         scheduled_rides: ['#scheduledBookings', '#scheduledBookingsList', '#scheduleBookingBtn', '#scheduleModal'],
+        airport_transfers: ['.booking-type-btn[data-type="airport"]', '#bookingModalTitle', '#bookingMode'],
+        outstation_rides: ['.booking-type-btn[data-type="outstation"]', '#bookingModalTitle', '#bookingMode'],
+        hourly_rentals: ['.booking-type-btn[data-type="rental"]', '#bookingMode option[value="driver_only_hourly"]', '#driverOnlyDurationGroup'],
+        trip_modes: ['#bookingMode', '#driverOnlyDuration', '#driverOnlyDurationGroup'],
         ride_history: ['#rideHistory', '#rideHistoryList'],
         wallet: ['#walletSection', '.bottom-nav .nav-btn[data-section="walletSection"]', '.dual-wallet', '.wallet-actions', '.transaction-history'],
         wallet_topup: ['.btn-add-money', '#addMoneyModal', '.payment-wallet', '.donation-wallet'],
@@ -104,12 +113,64 @@ function setupAdminCustomerControls() {
         profile: ['#profileSection', '.bottom-nav .nav-btn[data-section="profileSection"]', '.profile-card'],
         ride_preferences: ['#ridePreferences', '#preferencesModal'],
         emergency_contacts: ['#emergencyContacts', '#emergencyContactBtn'],
-        notifications: ['#notificationSettings'],
-        customer_support: ['#customerSupport', '#supportChatModal'],
+        notifications: ['#notificationSettings', '#notificationPanel', '#notificationList'],
+        customer_support: ['#customerSupport', '#supportChatModal', '#raiseTicket'],
         emergency: ['#sosButton', '#sosModal', '.sos-buttons', '#shareLocationBtn']
-    }, {
-        getSubject: getCurrentCustomerSubject
-    });
+    };
+    const customerActionMap = {
+        showSection: function (sectionId) {
+            return customerSectionFeatures[String(sectionId || '')] || 'home_dashboard';
+        },
+        openModal: function (modalId) {
+            return modalFeatures[String(modalId || '')] || 'home_dashboard';
+        },
+        openBookingModal: function (type) {
+            return bookingTypeFeatures[String(type || '').toLowerCase()] || 'booking';
+        },
+        openAddMoneyModal: 'wallet_topup',
+        handleLogout: 'profile',
+        shareLocationViaWhatsApp: 'emergency',
+        logSOSActivation: 'emergency',
+        rebookRide: 'ride_history',
+        showTempleTimings: 'temple_timings',
+        showCulturalGuide: 'cultural_guide',
+        showLocalEvents: 'local_events',
+        showTourPackages: 'tour_packages',
+        showHeritageWalks: 'heritage_walks',
+        showFoodGuide: 'food_guide',
+        showShoppingGuide: 'shopping_guide',
+        bookTourPackage: 'tour_packages'
+    };
+
+    window.__GOINDIARIDE_CUSTOMER_FEATURE_MAP__ = customerFeatureMap;
+
+    if (typeof AdminControlBridge.initPortalRuntime === 'function') {
+        AdminControlBridge.initPortalRuntime('customer', {
+            getSubject: getCurrentCustomerSubject,
+            onBlocked: function () {
+                document.querySelectorAll('.main-container, .bottom-nav, #sosButton').forEach(function (node) {
+                    node.classList.add('admin-lock-sensitive');
+                });
+            },
+            onAllowed: function () {
+                document.querySelectorAll('.admin-lock-sensitive').forEach(function (node) {
+                    node.classList.remove('admin-lock-sensitive');
+                });
+            }
+        });
+    }
+
+    if (typeof AdminControlBridge.initFeatureRuntime === 'function') {
+        AdminControlBridge.initFeatureRuntime('customer', customerFeatureMap, {
+            getSubject: getCurrentCustomerSubject
+        });
+    }
+
+    if (typeof AdminControlBridge.wrapFeatureActions === 'function') {
+        AdminControlBridge.wrapFeatureActions('customer', customerActionMap, {
+            getSubject: getCurrentCustomerSubject
+        });
+    }
 }
 
 
