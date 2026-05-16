@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v36-20260512-data-preserve1';
+const CACHE_NAME = 'goindiaride-pwa-v37-20260516-admin-customer-live-refresh';
 const ASSETS = [
   './',
   './index.html',
@@ -40,6 +40,14 @@ self.addEventListener('fetch', (event) => {
   const isSameOrigin = requestUrl.origin === self.location.origin;
   const path = String(requestUrl.pathname || '').toLowerCase();
   const destination = String(event.request.destination || '').toLowerCase();
+  const isCriticalLiveControlAsset = isSameOrigin && (
+    path.startsWith('/admin/') ||
+    path.startsWith('/customer/') ||
+    path === '/js/admin-control-bridge.js' ||
+    path === '/js/customer-dashboard-live-bridge.js' ||
+    path === '/pages/customer-dashboard.html' ||
+    path === '/pages/booking.html'
+  );
   const shouldUseNetworkFirst = event.request.mode === 'navigate' || (
     isSameOrigin && (
       destination === 'script' ||
@@ -51,6 +59,21 @@ self.addEventListener('fetch', (event) => {
       path.startsWith('/pages/')
     )
   );
+
+  if (isCriticalLiveControlAsset) {
+    event.respondWith(
+      fetch(new Request(event.request, { cache: 'reload' }))
+        .then((response) => {
+          if (response && response.status === 200 && event.request.url.startsWith('http')) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    );
+    return;
+  }
 
   // Keep HTML/pages/scripts/styles fresh so latest deploy appears immediately.
   if (shouldUseNetworkFirst) {
