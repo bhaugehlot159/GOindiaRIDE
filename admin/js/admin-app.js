@@ -1058,6 +1058,171 @@
         return Number.isFinite(number) ? number : fallback;
     }
 
+    const BOOKING_AUTOFILL_FIELDS = [
+        "customerName", "customerPhone", "customerEmail",
+        "pickup", "dropoff", "rideDate", "rideTime", "returnDate", "returnTime",
+        "tripPlan", "vehicleType", "vehicleModel", "passengers", "luggage",
+        "paymentMethod", "fare", "distanceKm", "driverId", "driverName",
+        "status", "adminReviewStatus", "stops", "notes", "specialRequests",
+        "safetyAccessibility", "adminEditReason"
+    ];
+
+    const BOOKING_AUTOFILL_FULL_LABELS = {
+        tripPlan: {
+            city: "City / local ride within one city",
+            local: "City / local ride within one city",
+            outstation: "Outstation intercity ride",
+            one_way: "One-way outstation ride",
+            round_trip: "Round-trip outstation ride with return journey",
+            rental: "Hourly rental / day rental ride",
+            hourly: "Hourly rental / day rental ride",
+            airport: "Airport pickup or drop transfer",
+            airport_pickup: "Airport pickup transfer",
+            airport_drop: "Airport drop transfer",
+            multi_city: "Multi-city journey with route stops"
+        },
+        vehicleType: {
+            economy: "Economy ride category",
+            mini: "Mini compact ride category",
+            sedan: "Sedan comfort ride category",
+            suv: "SUV family ride category",
+            premium: "Premium ride category",
+            luxury: "Luxury ride category"
+        },
+        vehicleModel: {
+            hatchback_car: "Hatchback car",
+            sedan_car: "Sedan car",
+            suv_car: "SUV car",
+            tempo_traveller: "Tempo traveller",
+            luxury_car: "Luxury car"
+        },
+        luggage: {
+            none: "No luggage",
+            small: "Small luggage",
+            medium: "Medium luggage",
+            large: "Large luggage",
+            extra: "Extra luggage"
+        },
+        paymentMethod: {
+            cash: "Cash payment",
+            upi: "UPI payment",
+            card: "Card payment",
+            wallet: "Wallet payment",
+            online: "Online payment",
+            paypal: "PayPal payment",
+            razorpay: "Razorpay online payment"
+        }
+    };
+
+    function normalizeAutofillFullText(fieldName, value) {
+        const text = cleanText(value);
+        if (!text) return "";
+        const labels = Object.values(BOOKING_AUTOFILL_FULL_LABELS[fieldName] || {});
+        if (labels.includes(text)) return text;
+        const key = text.toLowerCase().replace(/[\s-]+/g, "_");
+        const label = BOOKING_AUTOFILL_FULL_LABELS[fieldName]?.[key];
+        if (label) return label;
+        return text
+            .replace(/[_-]+/g, " ")
+            .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+
+    function normalizeAutofillDate(value) {
+        const text = cleanText(value);
+        if (!text) return "";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+        const date = new Date(text);
+        if (Number.isNaN(date.getTime())) return "";
+        return date.toISOString().slice(0, 10);
+    }
+
+    function normalizeAutofillTime(value) {
+        const text = cleanText(value);
+        if (!text) return "";
+        const direct = text.match(/^(\d{1,2}):(\d{2})/);
+        if (direct) return `${direct[1].padStart(2, "0")}:${direct[2]}`;
+        const meridian = text.match(/^(\d{1,2})(?::(\d{2}))?\s*([ap]m)$/i);
+        if (!meridian) return "";
+        let hours = Number(meridian[1]);
+        const minutes = meridian[2] || "00";
+        const suffix = meridian[3].toLowerCase();
+        if (suffix === "pm" && hours < 12) hours += 12;
+        if (suffix === "am" && hours === 12) hours = 0;
+        return `${String(hours).padStart(2, "0")}:${minutes}`;
+    }
+
+    function normalizeAutofillTemplateValue(fieldName, value) {
+        if (["tripPlan", "vehicleType", "vehicleModel", "luggage", "paymentMethod"].includes(fieldName)) {
+            return normalizeAutofillFullText(fieldName, value);
+        }
+        if (["rideDate", "returnDate"].includes(fieldName)) return normalizeAutofillDate(value);
+        if (["rideTime", "returnTime"].includes(fieldName)) return normalizeAutofillTime(value);
+        if (fieldName === "customerPhone") return firstUsableAdminPhone(value) || cleanText(value);
+        if (fieldName === "customerEmail") return normalizeAdminEmailValue(value);
+        return value;
+    }
+
+    function buildDefaultBookingAutofillTemplate(form) {
+        const customer = findAdminCreateCustomer(form?.elements?.customerKey?.value || "");
+        return {
+            customerName: cleanText(customer?.name || customer?.fullname || customer?.customerName || "Walk-in Customer"),
+            customerPhone: firstUsableAdminPhone(customer?.phone, customer?.mobile, customer?.customerPhone) || "+919999999999",
+            customerEmail: normalizeAdminEmailValue(customer?.email || customer?.customerEmail || "customer@goindiaride.in"),
+            pickup: "Udaipur, Rajasthan",
+            dropoff: "Jaipur, Rajasthan",
+            rideDate: defaultAdminRideDate(),
+            rideTime: defaultAdminRideTime(),
+            returnDate: "",
+            returnTime: "",
+            tripPlan: "City / local ride within one city",
+            vehicleType: "Sedan comfort ride category",
+            vehicleModel: "Sedan car",
+            passengers: 1,
+            luggage: "No luggage",
+            paymentMethod: "Cash payment",
+            fare: 0,
+            distanceKm: 0,
+            driverId: "",
+            driverName: "",
+            status: "pending_admin_review",
+            adminReviewStatus: "pending",
+            stops: "No route stops requested",
+            notes: "Admin assisted booking with complete customer, trip, fare, payment, safety and review details filled.",
+            specialRequests: JSON.stringify({
+                trip_assistance: "Customer support can confirm route, fare and timing before dispatch",
+                driver_preference: "Verified GOindiaRIDE driver with clean vehicle and polite behaviour",
+                communication: "Call or WhatsApp customer before pickup"
+            }, null, 2),
+            safetyAccessibility: JSON.stringify({
+                safety_priority: "Share ride details with customer and keep SOS support available",
+                accessibility: "Ask customer if wheelchair, senior citizen support or child seat is needed",
+                luggage_help: "Driver should help with luggage at pickup and drop"
+            }, null, 2),
+            adminEditReason: "Autofilled complete booking details so admin can create or edit without typing."
+        };
+    }
+
+    function mergeAutofillTemplateWithDefaults(template = {}, form) {
+        const defaults = buildDefaultBookingAutofillTemplate(form);
+        const merged = { ...defaults };
+        BOOKING_AUTOFILL_FIELDS.forEach((fieldName) => {
+            if (!Object.prototype.hasOwnProperty.call(template, fieldName)) return;
+            const value = normalizeAutofillTemplateValue(fieldName, template[fieldName]);
+            if (cleanText(value) || String(value ?? "") === "0") merged[fieldName] = value;
+        });
+        return merged;
+    }
+
+    function normalizePartialAutofillTemplate(template = {}) {
+        const normalized = {};
+        BOOKING_AUTOFILL_FIELDS.forEach((fieldName) => {
+            if (!Object.prototype.hasOwnProperty.call(template, fieldName)) return;
+            const value = normalizeAutofillTemplateValue(fieldName, template[fieldName]);
+            if (cleanText(value) || String(value ?? "") === "0") normalized[fieldName] = value;
+        });
+        return normalized;
+    }
+
     function buildAutofillTemplateFromBooking(row = {}) {
         const specialRequests = isPlainObject(row.specialRequests)
             ? row.specialRequests
@@ -1066,20 +1231,32 @@
             ? row.safetyAccessibility
             : (isPlainObject(row.customerFeatures?.safetyAccessibility) ? row.customerFeatures.safetyAccessibility : {});
         return {
+            customerName: cleanText(row.customerName || row.customerSnapshot?.name || row.name || ""),
+            customerPhone: firstUsableAdminPhone(row.customerPhone, row.customerSnapshot?.phone, row.phone, row.mobile),
+            customerEmail: normalizeAdminEmailValue(row.customerEmail || row.customerSnapshot?.email || row.email || ""),
             pickup: cleanText(row.pickup || row.pickupLocation || row.from || ""),
             dropoff: cleanText(row.dropoff || row.dropLocation || row.drop || row.to || ""),
-            tripPlan: cleanText(row.tripPlan || row.bookingMode || row.mode || ""),
-            vehicleType: cleanText(row.vehicleType || row.rideType || ""),
-            vehicleModel: cleanText(row.vehicleModel || ""),
+            rideDate: normalizeAutofillDate(row.rideDate || row.pickupDate || row.date || row.outboundDateTime || row.createdAt),
+            rideTime: normalizeAutofillTime(row.rideTime || row.pickupTime || row.time || row.outboundDateTime),
+            returnDate: normalizeAutofillDate(row.returnDate || row.returnTrip?.returnDate || row.returnDateTime),
+            returnTime: normalizeAutofillTime(row.returnTime || row.returnTrip?.returnTime || row.returnDateTime),
+            tripPlan: normalizeAutofillFullText("tripPlan", row.tripPlan || row.bookingMode || row.mode || ""),
+            vehicleType: normalizeAutofillFullText("vehicleType", row.vehicleType || row.rideType || ""),
+            vehicleModel: normalizeAutofillFullText("vehicleModel", row.vehicleModel || ""),
             passengers: normalizeAutofillNumber(row.passengers, 1),
-            luggage: cleanText(row.luggage || ""),
-            paymentMethod: cleanText(row.paymentMethod || row.payment?.method || row.paymentMode || ""),
+            luggage: normalizeAutofillFullText("luggage", row.luggage || ""),
+            paymentMethod: normalizeAutofillFullText("paymentMethod", row.paymentMethod || row.payment?.method || row.paymentMode || ""),
             fare: toAmount(row.fare || row.totalFare || row.amount || row.finalFare),
             distanceKm: toAmount(row.distanceKm || row.distance || row.fareQuote?.distanceKm || row.fareBreakdown?.distanceKm),
+            driverId: cleanText(row.driverId || row.assignedDriverId || row.driver?.id || ""),
+            driverName: cleanText(row.driverName || row.assignedDriverName || row.driver?.name || ""),
+            status: cleanText(row.status || "pending_admin_review"),
+            adminReviewStatus: cleanText(row.adminReviewStatus || "pending"),
             stops: serializeList(Array.isArray(row.stops) ? row.stops : []),
             notes: cleanText(row.notes || ""),
             specialRequests: serializeMap(specialRequests),
             safetyAccessibility: serializeMap(safetyAccessibility),
+            adminEditReason: cleanText(row.adminEditReason || row.editHistory?.[row.editHistory.length - 1]?.reason || "Autofilled with full booking details from recent admin booking data."),
             updatedAt: cleanText(row.updatedAt || row.lastEditedAt || row.createdAt || "")
         };
     }
@@ -1166,33 +1343,18 @@
         if (!form || !isPlainObject(template)) return false;
         const fillMissingOnly = Boolean(options.fillMissingOnly);
         let changed = false;
-        changed = setFormFieldValue(form, "pickup", template.pickup, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "dropoff", template.dropoff, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "tripPlan", template.tripPlan, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "vehicleType", template.vehicleType, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "vehicleModel", template.vehicleModel, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "passengers", template.passengers, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "luggage", template.luggage, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "paymentMethod", template.paymentMethod, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "fare", template.fare, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "distanceKm", template.distanceKm, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "stops", template.stops, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "notes", template.notes, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "specialRequests", template.specialRequests, fillMissingOnly) || changed;
-        changed = setFormFieldValue(form, "safetyAccessibility", template.safetyAccessibility, fillMissingOnly) || changed;
+        BOOKING_AUTOFILL_FIELDS.forEach((fieldName) => {
+            if (!Object.prototype.hasOwnProperty.call(template, fieldName)) return;
+            changed = setFormFieldValue(form, fieldName, template[fieldName], fillMissingOnly) || changed;
+        });
         return changed;
     }
 
     function saveFormAutofillMemory(form) {
         if (!form) return;
         const currentMemory = readAdminAutofillMemory();
-        const fields = [
-            "pickup", "dropoff", "tripPlan", "vehicleType", "vehicleModel",
-            "passengers", "luggage", "paymentMethod", "fare", "distanceKm",
-            "stops", "notes", "specialRequests", "safetyAccessibility"
-        ];
         const nextMemory = { ...currentMemory };
-        fields.forEach((fieldName) => {
+        BOOKING_AUTOFILL_FIELDS.forEach((fieldName) => {
             if (!form.elements[fieldName]) return;
             const value = form.elements[fieldName].value;
             if (cleanText(value) || String(value || "") === "0") {
@@ -1206,7 +1368,7 @@
     function applyMemoryToForm(form, options = {}) {
         const memory = readAdminAutofillMemory();
         if (!isPlainObject(memory) || !Object.keys(memory).length) return false;
-        return applyBookingTemplateToForm(form, memory, options);
+        return applyBookingTemplateToForm(form, normalizePartialAutofillTemplate(memory), options);
     }
 
     function normalizeAdminPhoneValue(value) {
@@ -1466,20 +1628,19 @@
         const customerKey = resolveCreateFormCustomerKey(form);
         const customerTemplateRow = customerKey ? findLatestTemplateBookingForCustomer(customerKey) : null;
         const globalTemplateRow = customerTemplateRow ? null : findLatestGlobalTemplateBooking();
+        const sourceTemplate = customerTemplateRow
+            ? buildAutofillTemplateFromBooking(customerTemplateRow)
+            : (globalTemplateRow ? buildAutofillTemplateFromBooking(globalTemplateRow) : {});
+        const completeTemplate = mergeAutofillTemplateWithDefaults(sourceTemplate, form);
         let changed = false;
 
-        if (customerTemplateRow) {
-            changed = applyBookingTemplateToForm(form, buildAutofillTemplateFromBooking(customerTemplateRow), { fillMissingOnly }) || changed;
-        } else if (globalTemplateRow) {
-            changed = applyBookingTemplateToForm(form, buildAutofillTemplateFromBooking(globalTemplateRow), { fillMissingOnly }) || changed;
-        }
-
-        changed = applyMemoryToForm(form, { fillMissingOnly: true }) || changed;
+        changed = applyBookingTemplateToForm(form, completeTemplate, { fillMissingOnly }) || changed;
+        changed = applyMemoryToForm(form, { fillMissingOnly }) || changed;
         if (changed) saveFormAutofillMemory(form);
 
         return {
             changed,
-            source: customerTemplateRow ? "customer_latest_booking" : (globalTemplateRow ? "recent_booking" : "memory")
+            source: customerTemplateRow ? "customer_latest_booking" : (globalTemplateRow ? "recent_booking" : "default_full_booking")
         };
     }
 
@@ -1496,12 +1657,14 @@
         if (!templateRow) templateRow = findLatestGlobalTemplateBooking();
 
         let changed = false;
-        if (templateRow) {
-            changed = applyBookingTemplateToForm(form, buildAutofillTemplateFromBooking(templateRow), { fillMissingOnly }) || changed;
-        }
-        changed = applyMemoryToForm(form, { fillMissingOnly: true }) || changed;
+        const sourceTemplate = templateRow
+            ? buildAutofillTemplateFromBooking(templateRow)
+            : buildAutofillTemplateFromBooking(booking);
+        const completeTemplate = mergeAutofillTemplateWithDefaults(sourceTemplate, form);
+        changed = applyBookingTemplateToForm(form, completeTemplate, { fillMissingOnly }) || changed;
+        changed = applyMemoryToForm(form, { fillMissingOnly }) || changed;
         if (changed) saveFormAutofillMemory(form);
-        return { changed, source: templateRow ? "recent_template_booking" : "memory" };
+        return { changed, source: templateRow ? "recent_template_booking" : "default_full_booking" };
     }
 
     function openAdminCreateBookingModal() {
@@ -1518,7 +1681,7 @@
                     hydrateAdminCreateCustomerFields(form, customer);
                 }
             }
-            applyCreateFormAutofill(form, { fillMissingOnly: true });
+            applyCreateFormAutofill(form, { fillMissingOnly: false });
             connectBookingAutocompleteForInputs(["adminCreatePickupInput", "adminCreateDropoffInput"]);
         }
         modal.classList.add("open");
@@ -1604,7 +1767,7 @@
         if (title) title.textContent = `Edit Booking ${bookingId}`;
         if (form) {
             form.innerHTML = buildBookingEditForm(booking);
-            applyEditFormAutofill(form, booking, { fillMissingOnly: true });
+            applyEditFormAutofill(form, booking, { fillMissingOnly: false });
             connectBookingAutocompleteForInputs(["adminEditPickupInput", "adminEditDropoffInput"]);
         }
         modal.classList.add("open");
@@ -4037,8 +4200,8 @@
                 const form = editAutofillButton.closest("#bookingEditForm");
                 const bookingId = cleanText(form?.elements?.bookingId?.value || "");
                 const booking = state.bookings.find((item) => item.bookingId === bookingId);
-                const result = applyEditFormAutofill(form, booking, { fillMissingOnly: true });
-                showToast(result.changed ? "Missing fields auto-filled from recent data." : "No missing fields to auto-fill.");
+                const result = applyEditFormAutofill(form, booking, { fillMissingOnly: false });
+                showToast(result.changed ? "Full booking form auto-filled from recent data." : "Booking form is already fully auto-filled.");
                 return;
             }
 
@@ -4079,7 +4242,7 @@
             const form = select.closest("#adminCreateBookingForm");
             const customer = findAdminCreateCustomer(select.value || "");
             hydrateAdminCreateCustomerFields(form, customer);
-            applyCreateFormAutofill(form, { fillMissingOnly: true });
+            applyCreateFormAutofill(form, { fillMissingOnly: false });
         });
 
         document.addEventListener("keydown", (event) => {
