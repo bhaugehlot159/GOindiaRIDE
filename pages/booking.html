@@ -1935,6 +1935,791 @@
                 padding: 0.75rem !important;
             }
         }
+
+        body.booking-page.professional-booking .cab-booking-console,
+        body.booking-page.professional-booking .cab-content-section {
+            background: #ffffff;
+            border: 1px solid rgba(30, 61, 89, 0.13);
+            border-radius: 14px;
+            box-shadow: 0 14px 30px rgba(31, 45, 61, 0.09);
+        }
+
+        .cab-booking-console {
+            margin-bottom: 0.9rem;
+            padding: 0.9rem;
+        }
+
+        .cab-console-head {
+            display: none;
+        }
+
+        .cab-icon-action {
+            width: 38px;
+            height: 38px;
+            border: 0;
+            border-radius: 999px;
+            background: #f3f7fb;
+            color: #173350;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+        }
+
+        .cab-console-title {
+            display: grid;
+            text-align: center;
+            gap: 0.12rem;
+            color: #102b45;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .cab-console-title small {
+            color: #6a7888;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .cab-mode-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            border: 1px solid #d5dfeb;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .cab-mode-tab {
+            position: relative;
+            min-height: 82px;
+            border: 0;
+            border-right: 1px solid #d5dfeb;
+            background: #ffffff;
+            color: #293b4e;
+            display: grid;
+            place-items: center;
+            gap: 0.28rem;
+            padding: 0.72rem 0.45rem;
+            font: inherit;
+            font-weight: 800;
+            line-height: 1.16;
+            cursor: pointer;
+        }
+
+        .cab-mode-tab:last-child {
+            border-right: 0;
+        }
+
+        .cab-mode-tab i {
+            color: #7a8793;
+            font-size: 1rem;
+        }
+
+        .cab-mode-tab.is-active {
+            background: #eef6ff;
+            color: #1684ba;
+            outline: 2px solid #2ea9d7;
+            outline-offset: -2px;
+        }
+
+        .cab-mode-tab.is-active i {
+            color: #1684ba;
+        }
+
+        .cab-new-badge {
+            position: absolute;
+            top: -1px;
+            right: 18px;
+            border-radius: 999px;
+            padding: 0.12rem 0.42rem;
+            background: #d7193f;
+            color: #ffffff;
+            font-size: 0.58rem;
+            letter-spacing: 0;
+            line-height: 1.2;
+        }
+
+        .cab-mode-notice {
+            display: flex;
+            align-items: center;
+            gap: 0.46rem;
+            margin-top: 0.85rem;
+            padding: 0.7rem 0.82rem;
+            border-radius: 10px;
+            background: #fff2d9;
+            color: #a06614;
+            font-size: 0.87rem;
+            font-weight: 800;
+        }
+
+        .cab-mode-notice i {
+            color: #c3821c;
+        }
+
+        .cab-journey-row {
+            display: flex;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+            margin-top: 0.78rem;
+            padding: 0.54rem;
+            border: 1px solid #dce4ef;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .cab-journey-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            min-height: 40px;
+            border: 1px solid #d5dfeb;
+            border-radius: 10px;
+            padding: 0.48rem 0.72rem;
+            background: #ffffff;
+            color: #34485d;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .cab-journey-chip.is-active {
+            border-color: #25a9dc;
+            background: #eff9ff;
+            color: #117eaa;
+            box-shadow: inset 0 0 0 1px #25a9dc;
+        }
+
+        .cab-booking-console:not(.is-outstation) .cab-journey-row {
+            display: none;
+        }
+
+        .cab-quick-fields {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.7rem;
+            margin-top: 0.82rem;
+        }
+
+        .cab-quick-field {
+            min-height: 76px;
+            border: 1px solid #dce4ef;
+            border-radius: 12px;
+            background: #fbfcfe;
+            display: flex;
+            align-items: center;
+            gap: 0.62rem;
+            padding: 0.72rem 0.78rem;
+            text-align: left;
+            color: #283d52;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .cab-quick-field i {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 30px;
+            border-radius: 999px;
+            background: #edf5fc;
+            color: #587083;
+        }
+
+        .cab-quick-field span {
+            min-width: 0;
+            display: grid;
+            gap: 0.2rem;
+        }
+
+        .cab-quick-field strong {
+            color: #6a7280;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0;
+        }
+
+        .cab-quick-field small {
+            color: #16273b;
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1.18;
+            overflow-wrap: anywhere;
+        }
+
+        .cab-booking-console:not(.is-hourly) .cab-package-field {
+            display: none;
+        }
+
+        .cab-booking-console.is-hourly .cab-quick-field[data-reveal-field="dropoff"] {
+            display: none;
+        }
+
+        .cab-booking-console:not(.is-hourly) .cab-quick-fields {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-console-actions {
+            display: grid;
+            grid-template-columns: auto minmax(220px, 1fr);
+            gap: 0.72rem;
+            margin-top: 0.82rem;
+        }
+
+        .cab-add-stop-btn,
+        .cab-primary-search,
+        .cab-section-action,
+        .cab-offer-card button {
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 900;
+        }
+
+        .cab-add-stop-btn {
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.42rem;
+            border: 1px solid #24a4d4;
+            border-radius: 10px;
+            padding: 0.72rem 0.92rem;
+            background: #ffffff;
+            color: #1485ad;
+        }
+
+        .cab-booking-console:not(.is-outstation) .cab-add-stop-btn {
+            display: none;
+        }
+
+        .cab-booking-console:not(.is-outstation) .cab-console-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .cab-primary-search {
+            min-height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(100deg, #36aeea 0%, #0562f0 100%);
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            box-shadow: 0 12px 24px rgba(5, 98, 240, 0.2);
+        }
+
+        .cab-trust-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.52rem;
+            margin-top: 0.78rem;
+        }
+
+        .cab-trust-strip span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.34rem;
+            padding: 0.38rem 0.58rem;
+            border-radius: 999px;
+            background: #eef7f2;
+            color: #206343;
+            font-size: 0.74rem;
+            font-weight: 800;
+        }
+
+        .cab-page-content {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .cab-content-section {
+            padding: 1rem;
+        }
+
+        .cab-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .cab-section-head p {
+            color: #6b7a89;
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            margin: 0 0 0.12rem;
+        }
+
+        .cab-section-head h2 {
+            color: #071c30;
+            font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+            line-height: 1.1;
+            letter-spacing: 0;
+            margin: 0;
+        }
+
+        .cab-section-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            border-radius: 999px;
+            padding: 0.6rem 0.86rem;
+            background: #eef7ff;
+            color: #135f91;
+        }
+
+        .cab-offer-rail {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.82rem;
+        }
+
+        .cab-offer-card,
+        .cab-update-card,
+        .cab-experience-grid article,
+        .cab-faq-card,
+        .cab-route-columns > div {
+            border: 1px solid #dce4ef;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
+        .cab-offer-card {
+            min-height: 238px;
+            position: relative;
+            overflow: hidden;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: #ffffff;
+            isolation: isolate;
+        }
+
+        .cab-offer-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.82), rgba(7, 24, 39, 0.2)),
+                linear-gradient(135deg, #0e3b5b, #2b8492 56%, #d8a43e);
+        }
+
+        .cab-offer-airport::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.82), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #11345e, #3f93c6 56%, #e7c98d);
+        }
+
+        .cab-offer-hourly::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.84), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #203144, #5b7e74 52%, #d0a84e);
+        }
+
+        .cab-offer-visual {
+            position: absolute;
+            top: 0.85rem;
+            right: 0.85rem;
+            width: 74px;
+            height: 74px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 2rem;
+        }
+
+        .cab-offer-card span {
+            width: fit-content;
+            border-radius: 999px;
+            padding: 0.18rem 0.48rem;
+            background: rgba(255, 255, 255, 0.88);
+            color: #152a3d;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .cab-offer-card h3 {
+            max-width: 340px;
+            margin: 0.58rem 0 0.28rem;
+            color: #ffffff;
+            font-size: 1.15rem;
+            line-height: 1.13;
+            letter-spacing: 0;
+        }
+
+        .cab-offer-card p {
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 0.84rem;
+            line-height: 1.38;
+            margin: 0 0 0.78rem;
+        }
+
+        .cab-offer-card button {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            border-radius: 999px;
+            padding: 0.58rem 0.78rem;
+            background: #ffffff;
+            color: #075d90;
+        }
+
+        .cab-update-grid,
+        .cab-experience-grid,
+        .cab-route-columns {
+            display: grid;
+            gap: 0.82rem;
+        }
+
+        .cab-update-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-update-card,
+        .cab-experience-grid article {
+            padding: 0.95rem;
+        }
+
+        .cab-update-card i,
+        .cab-experience-grid article i {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #eef8ff;
+            color: #1684ba;
+            margin-bottom: 0.72rem;
+        }
+
+        .cab-update-card h3,
+        .cab-experience-grid article h3,
+        .cab-route-columns h3 {
+            color: #102b45;
+            font-size: 0.98rem;
+            line-height: 1.2;
+            letter-spacing: 0;
+            margin: 0 0 0.36rem;
+        }
+
+        .cab-update-card p,
+        .cab-experience-grid article p,
+        .cab-faq-card p {
+            color: #4d6072;
+            font-size: 0.86rem;
+            line-height: 1.46;
+            margin: 0;
+        }
+
+        .cab-experience-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .cab-faq-section {
+            display: grid;
+            gap: 0.68rem;
+        }
+
+        .cab-faq-card {
+            padding: 0.9rem 1rem;
+        }
+
+        .cab-faq-card summary {
+            color: #102b45;
+            cursor: pointer;
+            font-weight: 900;
+            line-height: 1.25;
+        }
+
+        .cab-faq-card p {
+            margin-top: 0.6rem;
+        }
+
+        .cab-route-columns {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-route-columns > div {
+            padding: 0.95rem;
+            background: #f7fbff;
+        }
+
+        .cab-route-columns ul {
+            list-style: none;
+            display: grid;
+            gap: 0.34rem;
+            margin: 0;
+            padding: 0;
+            color: #4e6277;
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .cab-route-columns li::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #1a9fc5;
+            margin-right: 0.42rem;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 1039px) {
+            .cab-offer-rail,
+            .cab-update-grid,
+            .cab-experience-grid,
+            .cab-route-columns {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            body.booking-page.professional-booking .container {
+                display: flex;
+                flex-direction: column;
+            }
+
+            body.booking-page.professional-booking #cabBookingConsole {
+                order: 1;
+            }
+
+            body.booking-page.professional-booking #errorMessage {
+                order: 2;
+            }
+
+            body.booking-page.professional-booking #successMessage {
+                order: 3;
+            }
+
+            body.booking-page.professional-booking #bookingProgressCard {
+                order: 4;
+            }
+
+            body.booking-page.professional-booking .booking-grid {
+                order: 5;
+            }
+
+            body.booking-page.professional-booking .cab-page-content {
+                order: 6;
+            }
+
+            body.booking-page.professional-booking .booking-top-actions,
+            body.booking-page.professional-booking > .container > .header {
+                display: none !important;
+            }
+
+            body.booking-page.professional-booking .cab-page-content,
+            body.booking-page.professional-booking .cab-content-section {
+                width: 100% !important;
+                max-width: calc(100vw - 16px) !important;
+                min-width: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                overflow: hidden;
+            }
+
+            .cab-booking-console {
+                padding: 0.72rem;
+                margin-bottom: 0.72rem;
+                border-radius: 16px;
+            }
+
+            .cab-console-head {
+                display: grid;
+                grid-template-columns: 38px 1fr 38px;
+                align-items: center;
+                gap: 0.55rem;
+                margin-bottom: 0.72rem;
+            }
+
+            .cab-icon-action {
+                min-width: 38px !important;
+                min-height: 38px !important;
+                padding: 0 !important;
+                font-size: 0 !important;
+            }
+
+            .cab-icon-action i {
+                display: none !important;
+            }
+
+            .cab-icon-action::before {
+                content: "←";
+                font-size: 1.35rem;
+                line-height: 1;
+                font-weight: 900;
+                color: #173350;
+            }
+
+            .cab-icon-action[aria-label="Go home"]::before {
+                content: "⌂";
+                font-size: 1.18rem;
+                letter-spacing: 0;
+            }
+
+            .cab-mode-tab {
+                min-height: 88px;
+                font-size: 0.94rem;
+            }
+
+            .cab-mode-notice {
+                font-size: 0.82rem;
+            }
+
+            .cab-quick-fields,
+            .cab-booking-console:not(.is-hourly) .cab-quick-fields {
+                grid-template-columns: 1fr;
+                gap: 0.58rem;
+            }
+
+            .cab-quick-field {
+                min-height: 64px;
+            }
+
+            .cab-console-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .cab-trust-strip {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .cab-content-section {
+                padding: 0.85rem;
+            }
+
+            .cab-section-head {
+                align-items: flex-start;
+            }
+
+            .cab-section-action {
+                display: none;
+            }
+
+            .cab-offer-rail {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+                overflow: hidden;
+                padding-bottom: 0;
+            }
+
+            .cab-offer-card {
+                min-width: 0;
+            }
+
+            .cab-update-grid,
+            .cab-experience-grid,
+            .cab-route-columns {
+                grid-template-columns: 1fr;
+            }
+
+            body.booking-page.professional-booking .booking-form-section {
+                border-radius: 14px !important;
+            }
+        }
+
+        body.booking-page.professional-booking .cab-booking-console.goi-section-shell::before,
+        body.booking-page.professional-booking .cab-content-section.goi-section-shell::before {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console,
+        body.booking-page.professional-booking .cab-content-section {
+            background: #ffffff !important;
+            border-color: rgba(30, 61, 89, 0.13) !important;
+            box-shadow: 0 14px 30px rgba(31, 45, 61, 0.09) !important;
+        }
+
+        body.booking-page.professional-booking .cab-icon-action {
+            background: #f3f7fb !important;
+            color: #173350 !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            border-radius: 999px !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab {
+            background: #ffffff !important;
+            color: #293b4e !important;
+            border-radius: 0 !important;
+            border: 0 !important;
+            border-right: 1px solid #d5dfeb !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab:last-child {
+            border-right: 0 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab i {
+            color: #7a8793 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab.is-active {
+            background: #eef6ff !important;
+            color: #1684ba !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab.is-active i {
+            color: #1684ba !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip,
+        body.booking-page.professional-booking .cab-quick-field,
+        body.booking-page.professional-booking .cab-add-stop-btn,
+        body.booking-page.professional-booking .cab-section-action,
+        body.booking-page.professional-booking .cab-offer-card button {
+            background: #ffffff !important;
+            color: #283d52 !important;
+            border-color: #dce4ef !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip.is-active {
+            background: #eff9ff !important;
+            color: #117eaa !important;
+            border-color: #25a9dc !important;
+            box-shadow: inset 0 0 0 1px #25a9dc !important;
+        }
+
+        body.booking-page.professional-booking .cab-quick-field {
+            background: #fbfcfe !important;
+            border-color: #dce4ef !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .cab-quick-field i {
+            background: #edf5fc !important;
+            color: #587083 !important;
+        }
+
+        body.booking-page.professional-booking .cab-add-stop-btn,
+        body.booking-page.professional-booking .cab-section-action,
+        body.booking-page.professional-booking .cab-offer-card button {
+            color: #1485ad !important;
+        }
+
+        body.booking-page.professional-booking .cab-primary-search {
+            background: linear-gradient(100deg, #36aeea 0%, #0562f0 100%) !important;
+            color: #ffffff !important;
+            border: 0 !important;
+            box-shadow: 0 12px 24px rgba(5, 98, 240, 0.2) !important;
+            border-radius: 12px !important;
+        }
     </style>
     <script src="../js/data-preservation-guard.js?v=20260512-data-preserve1"></script>
 </head>
@@ -1956,9 +2741,9 @@
         <div class="header">
             <h1>
                 <i class="fas fa-car"></i>
-                Book Your Ride
+                Cab Booking
             </h1>
-            <p>Quick, safe, and affordable rides across Rajasthan</p>
+            <p>Airport, outstation, hourly rental, and local cab bookings with live fare review</p>
         </div>
 
         <!-- Messages -->
@@ -1981,6 +2766,105 @@
                 <span class="booking-progress-fill" id="bookingProgressFill"></span>
             </div>
         </div>
+
+        <section class="cab-booking-console" id="cabBookingConsole" aria-label="Customer cab booking shortcut">
+            <div class="cab-console-head">
+                <button type="button" class="cab-icon-action" onclick="goBack()" aria-label="Go back">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="cab-console-title">
+                    <span>Cab Booking</span>
+                    <small>GO India RIDE customer desk</small>
+                </div>
+                <button type="button" class="cab-icon-action" onclick="goHome()" aria-label="Go home">
+                    <i class="fas fa-house"></i>
+                </button>
+            </div>
+
+            <div class="cab-mode-tabs" id="cabModeTabs" role="tablist" aria-label="Cab service type">
+                <button type="button" class="cab-mode-tab" data-flow-target="outstation" data-trip-plan-target="outstation" role="tab" aria-selected="false">
+                    <i class="fas fa-car-side"></i>
+                    <span>Outstation<br>Cabs</span>
+                </button>
+                <button type="button" class="cab-mode-tab is-active" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="true">
+                    <i class="fas fa-plane-departure"></i>
+                    <span>Airport<br>Cabs</span>
+                </button>
+                <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
+                    <b class="cab-new-badge">NEW</b>
+                    <i class="fas fa-clock"></i>
+                    <span>Hourly<br>Rentals</span>
+                </button>
+            </div>
+
+            <div class="cab-mode-notice" id="cabModeNotice">
+                <i class="fas fa-circle-info"></i>
+                <span>Pre-book domestic and international airport cabs with meet and greet readiness.</span>
+            </div>
+
+            <div class="cab-journey-row" id="cabJourneyQuickModes" aria-label="Journey type">
+                <button type="button" class="cab-journey-chip is-active" data-journey-target="one_way">
+                    <i class="fas fa-arrow-right"></i>
+                    One Way
+                </button>
+                <button type="button" class="cab-journey-chip" data-journey-target="round_trip">
+                    <i class="fas fa-repeat"></i>
+                    Round Trip
+                </button>
+                <button type="button" class="cab-journey-chip" data-journey-target="multi_city">
+                    <i class="fas fa-route"></i>
+                    Multi City
+                </button>
+            </div>
+
+            <div class="cab-quick-fields">
+                <button type="button" class="cab-quick-field" data-reveal-field="pickup">
+                    <i class="fas fa-circle-dot"></i>
+                    <span>
+                        <strong>From</strong>
+                        <small id="cabQuickFrom">Select pickup location</small>
+                    </span>
+                </button>
+                <button type="button" class="cab-quick-field" data-reveal-field="dropoff">
+                    <i class="far fa-circle-dot"></i>
+                    <span>
+                        <strong>To</strong>
+                        <small id="cabQuickTo">Select drop location</small>
+                    </span>
+                </button>
+                <button type="button" class="cab-quick-field" data-reveal-field="rideDate">
+                    <i class="far fa-calendar"></i>
+                    <span>
+                        <strong>Trip Start</strong>
+                        <small id="cabQuickStart">Choose date and time</small>
+                    </span>
+                </button>
+                <button type="button" class="cab-quick-field cab-package-field" data-reveal-field="tripPlan">
+                    <i class="far fa-clock"></i>
+                    <span>
+                        <strong>Select Package</strong>
+                        <small id="cabQuickPackage">Airport transfer</small>
+                    </span>
+                </button>
+            </div>
+
+            <div class="cab-console-actions">
+                <button type="button" class="cab-add-stop-btn" data-reveal-field="stop1">
+                    <i class="fas fa-plus"></i>
+                    Add Stops
+                </button>
+                <button type="button" class="cab-primary-search" id="cabPrimarySearch">
+                    <i class="fas fa-magnifying-glass"></i>
+                    Search
+                </button>
+            </div>
+
+            <div class="cab-trust-strip" aria-label="Booking trust highlights">
+                <span><i class="fas fa-shield-halved"></i> Admin approval before driver assignment</span>
+                <span><i class="fas fa-receipt"></i> Live fare breakdown</span>
+                <span><i class="fas fa-globe"></i> International payment ready</span>
+            </div>
+        </section>
 
         <!-- Main Grid -->
         <div class="booking-grid">
@@ -2052,13 +2936,13 @@
                         </div>
 
                         <div class="trip-flow-pills" id="tripFlowPills">
-                            <button type="button" class="trip-flow-pill is-active" data-flow="airport">Airport Rides</button>
-                            <button type="button" class="trip-flow-pill" data-flow="outstation">Outstation</button>
-                            <button type="button" class="trip-flow-pill" data-flow="day_trips">Day Trips</button>
+                            <button type="button" class="trip-flow-pill is-active" data-flow="airport"><i class="fas fa-plane-departure"></i> Airport Cabs</button>
+                            <button type="button" class="trip-flow-pill" data-flow="outstation"><i class="fas fa-car-side"></i> Outstation Cabs</button>
+                            <button type="button" class="trip-flow-pill" data-flow="day_trips"><i class="fas fa-clock"></i> Hourly Rentals</button>
                         </div>
                         <input type="hidden" id="tripFlow" value="airport">
 
-                        <div class="journey-mode-row">
+                        <div class="journey-mode-row" id="journeyModeRow">
                             <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="one_way" checked> One Way</label>
                             <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="round_trip"> Round Trip</label>
                             <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="multi_city"> Multi City</label>
@@ -2069,7 +2953,7 @@
                                 <label for="tripPlan">Trip Category *</label>
                                 <select id="tripPlan" required onchange="updateFare()">
                                     <option value="city">City Ride</option>
-                                    <option value="airport">Airport Transfer</option>
+                                    <option value="airport" selected>Airport Transfer</option>
                                     <option value="outstation">Outstation Ride</option>
                                     <option value="rental">Hourly Rental</option>
                                 </select>
@@ -2538,6 +3422,169 @@
                 </div>
             </div>
         </div>
+
+        <div class="cab-page-content" aria-label="Cab booking customer information">
+            <section class="cab-content-section" aria-labelledby="cabOffersTitle">
+                <div class="cab-section-head">
+                    <div>
+                        <p>Live offers</p>
+                        <h2 id="cabOffersTitle">Offers</h2>
+                    </div>
+                    <button type="button" class="cab-section-action" data-reveal-field="promoCode">
+                        <i class="fas fa-ticket"></i>
+                        Apply code
+                    </button>
+                </div>
+                <div class="cab-offer-rail">
+                    <article class="cab-offer-card cab-offer-outstation">
+                        <div class="cab-offer-visual" aria-hidden="true">
+                            <i class="fas fa-car-side"></i>
+                        </div>
+                        <span>Cabs</span>
+                        <h3>Fixed fares on outstation cabs</h3>
+                        <p>Use route-aware pricing, toll mapping, and admin fare review before assignment.</p>
+                        <button type="button" data-mode-shortcut="outstation">Book now <i class="fas fa-chevron-right"></i></button>
+                    </article>
+                    <article class="cab-offer-card cab-offer-airport">
+                        <div class="cab-offer-visual" aria-hidden="true">
+                            <i class="fas fa-plane-departure"></i>
+                        </div>
+                        <span>Airport</span>
+                        <h3>Pre-book airport transfers</h3>
+                        <p>Domestic and international pickup support with meet and greet notes.</p>
+                        <button type="button" data-mode-shortcut="airport">Book now <i class="fas fa-chevron-right"></i></button>
+                    </article>
+                    <article class="cab-offer-card cab-offer-hourly">
+                        <div class="cab-offer-visual" aria-hidden="true">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <span>Hourly</span>
+                        <h3>City rentals by package</h3>
+                        <p>Choose hourly rentals for meetings, shopping, local sightseeing, and multi-stop work.</p>
+                        <button type="button" data-mode-shortcut="day_trips">Book now <i class="fas fa-chevron-right"></i></button>
+                    </article>
+                </div>
+            </section>
+
+            <section class="cab-content-section" aria-labelledby="cabWhatsNewTitle">
+                <div class="cab-section-head">
+                    <div>
+                        <p>Product updates</p>
+                        <h2 id="cabWhatsNewTitle">What's New</h2>
+                    </div>
+                </div>
+                <div class="cab-update-grid">
+                    <article class="cab-update-card">
+                        <i class="fas fa-globe-asia"></i>
+                        <h3>International airport cab pre-booking</h3>
+                        <p>Capture flight, pickup, phone verification, and international payment mode in the same booking flow.</p>
+                    </article>
+                    <article class="cab-update-card">
+                        <i class="fas fa-map-location-dot"></i>
+                        <h3>District auto suggestion</h3>
+                        <p>Rajasthan route suggestions stay connected to pickup and drop inputs without replacing manual entry.</p>
+                    </article>
+                    <article class="cab-update-card">
+                        <i class="fas fa-user-shield"></i>
+                        <h3>Approval-first driver matching</h3>
+                        <p>Customer request reaches admin review before driver assignment, keeping the live workflow controlled.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="cab-content-section cab-experience-section" aria-labelledby="cabExperienceTitle">
+                <div class="cab-section-head">
+                    <div>
+                        <p>Why customers choose us</p>
+                        <h2 id="cabExperienceTitle">Travel Made Simple</h2>
+                    </div>
+                </div>
+                <div class="cab-experience-grid">
+                    <article>
+                        <i class="fas fa-location-crosshairs"></i>
+                        <h3>Route clarity</h3>
+                        <p>Pickup, drop, stops, distance, route preview, toll source, and fare hash stay visible before submit.</p>
+                    </article>
+                    <article>
+                        <i class="fas fa-wallet"></i>
+                        <h3>Flexible payments</h3>
+                        <p>Cash, UPI, card, wallet, net banking, international card, PayPal, coupons, and customer budget are retained.</p>
+                    </article>
+                    <article>
+                        <i class="fas fa-people-group"></i>
+                        <h3>Every trip size</h3>
+                        <p>Hatchback, sedan, SUV, premium car, tempo traveller, coach, parcel, driver, ambulance, and loading options remain available.</p>
+                    </article>
+                    <article>
+                        <i class="fas fa-star-half-stroke"></i>
+                        <h3>Trip comfort</h3>
+                        <p>AC, WiFi, charger, music, child seat, wheelchair assist, pet friendly, masked calling, and live trip sharing are built in.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="cab-content-section cab-faq-section" aria-labelledby="cabFaqTitle">
+                <div class="cab-section-head">
+                    <div>
+                        <p>Help center</p>
+                        <h2 id="cabFaqTitle">Frequently Asked Questions</h2>
+                    </div>
+                </div>
+                <details class="cab-faq-card" open>
+                    <summary>How can I book cheap cabs online?</summary>
+                    <p>Enter pickup, drop, trip start, vehicle, payment mode, and promo code. The page calculates a live estimate and saves it for admin approval.</p>
+                </details>
+                <details class="cab-faq-card">
+                    <summary>Can I book airport and hourly rental cabs?</summary>
+                    <p>Yes. Use the Airport Cabs and Hourly Rentals tabs, then choose the service type, package, stops, and payment method already available in the booking form.</p>
+                </details>
+                <details class="cab-faq-card">
+                    <summary>Will old booking features remain active?</summary>
+                    <p>Yes. OTP verification, customer details, ride type, vehicle model, route add-ons, fare breakdown, backend sync, admin queue, and receipt modals are still connected.</p>
+                </details>
+            </section>
+
+            <section class="cab-content-section cab-route-section" aria-labelledby="cabRoutesTitle">
+                <div class="cab-section-head">
+                    <div>
+                        <p>Popular services</p>
+                        <h2 id="cabRoutesTitle">Routes & Service Types</h2>
+                    </div>
+                </div>
+                <div class="cab-route-columns">
+                    <div>
+                        <h3>Cab Rental Services</h3>
+                        <ul>
+                            <li>Car rental in Jaipur</li>
+                            <li>Car rental in Udaipur</li>
+                            <li>Car rental in Jodhpur</li>
+                            <li>Car rental in Ajmer</li>
+                            <li>Car rental in Kota</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Book Taxi Services</h3>
+                        <ul>
+                            <li>Jaipur to Delhi taxi</li>
+                            <li>Jaipur to Udaipur taxi</li>
+                            <li>Udaipur to Mount Abu taxi</li>
+                            <li>Jodhpur to Jaisalmer taxi</li>
+                            <li>Airport taxi service</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Tempo Traveller & Coach</h3>
+                        <ul>
+                            <li>Tempo traveller in Jaipur</li>
+                            <li>Force Urbania rental</li>
+                            <li>Small coach booking</li>
+                            <li>Luxury coach booking</li>
+                            <li>Corporate group travel</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
     <!-- Success Modal -->
@@ -2718,6 +3765,252 @@
             AIRPORT100: { type: 'flat', value: 100, tripPlan: 'airport', description: 'Airport transfer flat INR 100 off' },
             GLOBAL15: { type: 'percent', value: 15, max: 400, paymentMethods: ['international_card', 'paypal'], description: '15% off for international payment methods' }
         };
+
+        const CAB_FLOW_CONFIG = {
+            airport: {
+                label: 'Airport Cabs',
+                shortLabel: 'Airport',
+                tripPlan: 'airport',
+                serviceType: 'airport_transfer',
+                notice: 'Pre-book domestic and international airport cabs with meet and greet readiness.',
+                packageLabel: 'Airport transfer'
+            },
+            outstation: {
+                label: 'Outstation Cabs',
+                shortLabel: 'Outstation',
+                tripPlan: 'outstation',
+                serviceType: 'round_trip_service',
+                notice: 'Tap Add Stops and enter more locations to personalise your journey.',
+                packageLabel: 'One way or round trip'
+            },
+            day_trips: {
+                label: 'Hourly Rentals',
+                shortLabel: 'Hourly',
+                tripPlan: 'rental',
+                serviceType: 'city_local_trip',
+                notice: 'Take multi stops, opt for any drop location in the city, and choose a rental package.',
+                packageLabel: '1 hr 10 kms'
+            }
+        };
+
+        function getCabFlowConfig(flow) {
+            return CAB_FLOW_CONFIG[flow] || CAB_FLOW_CONFIG.airport;
+        }
+
+        function inferCabFlowFromTripPlan(tripPlan) {
+            if (tripPlan === 'outstation') return 'outstation';
+            if (tripPlan === 'rental' || tripPlan === 'city') return tripPlan === 'rental' ? 'day_trips' : 'airport';
+            return 'airport';
+        }
+
+        function getActiveCabFlow() {
+            const hiddenValue = document.getElementById('tripFlow')?.value;
+            if (hiddenValue && CAB_FLOW_CONFIG[hiddenValue]) return hiddenValue;
+            return inferCabFlowFromTripPlan(document.getElementById('tripPlan')?.value || 'airport');
+        }
+
+        function setTextIfPresent(id, value) {
+            const node = document.getElementById(id);
+            if (node) node.textContent = value;
+        }
+
+        function readSelectedOptionText(selectId, fallback = '') {
+            const node = document.getElementById(selectId);
+            if (!node) return fallback;
+            return node.options[node.selectedIndex]?.text || fallback;
+        }
+
+        function formatCabStartText(dateValue, timeValue) {
+            if (!dateValue && !timeValue) return 'Choose date and time';
+            const dateTime = dateValue ? new Date(`${dateValue}T${timeValue || '00:00'}`) : null;
+            if (dateTime && !Number.isNaN(dateTime.getTime())) {
+                const formattedDate = dateTime.toLocaleDateString('en-IN', {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const formattedTime = timeValue
+                    ? dateTime.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
+                    : 'Select time';
+                return `${formattedDate}, ${formattedTime}`;
+            }
+            return `${dateValue || 'Choose date'}, ${timeValue || 'Select time'}`;
+        }
+
+        function syncCabQuickFields() {
+            const pickup = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
+            const dropoff = sanitizeInput(document.getElementById('dropoff')?.value || '').trim();
+            const rideDate = document.getElementById('rideDate')?.value || '';
+            const rideTime = document.getElementById('rideTime')?.value || '';
+            const activeFlow = getActiveCabFlow();
+            const config = getCabFlowConfig(activeFlow);
+            const tripLabel = readSelectedOptionText('tripPlan', config.packageLabel);
+            const modelLabel = readSelectedOptionText('vehicleModel', 'Hatchback Car');
+
+            setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
+            setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
+            setTextIfPresent('cabQuickStart', formatCabStartText(rideDate, rideTime));
+            setTextIfPresent('cabQuickPackage', activeFlow === 'day_trips' ? `${config.packageLabel} • ${modelLabel}` : tripLabel);
+        }
+
+        function syncCabModeUi(flow = getActiveCabFlow()) {
+            const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
+            const config = getCabFlowConfig(activeFlow);
+            const consoleNode = document.getElementById('cabBookingConsole');
+            if (consoleNode) {
+                consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly');
+                consoleNode.classList.add(activeFlow === 'day_trips' ? 'is-hourly' : `is-${activeFlow}`);
+            }
+
+            document.querySelectorAll('[data-flow-target]').forEach((button) => {
+                const isActive = button.dataset.flowTarget === activeFlow;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            document.querySelectorAll('#tripFlowPills .trip-flow-pill').forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.flow === activeFlow);
+            });
+
+            const noticeText = document.querySelector('#cabModeNotice span');
+            if (noticeText) noticeText.textContent = config.notice;
+
+            syncCabQuickFields();
+        }
+
+        function setCabJourneyMode(mode, options = {}) {
+            const normalized = ['one_way', 'round_trip', 'multi_city'].includes(mode) ? mode : 'one_way';
+            document.querySelectorAll('input[name="journeyMode"]').forEach((radio) => {
+                radio.checked = radio.value === normalized;
+            });
+            document.querySelectorAll('[data-journey-target]').forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.journeyTarget === normalized);
+            });
+
+            const returnToggle = document.getElementById('isReturnTrip');
+            if (returnToggle && options.syncReturnTrip !== false) {
+                returnToggle.checked = normalized === 'round_trip';
+                toggleReturnTrip();
+                if (normalized === 'multi_city') {
+                    const stopField = document.getElementById('stop1');
+                    if (stopField && !stopField.value) {
+                        stopField.placeholder = 'Add first stop for multi-city journey';
+                    }
+                }
+                if (options.skipFare !== true) updateFare();
+            }
+
+            updateBookingExperience();
+        }
+
+        function setCabBookingMode(flow, options = {}) {
+            const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
+            const config = getCabFlowConfig(activeFlow);
+            const hiddenNode = document.getElementById('tripFlow');
+            const tripPlanNode = document.getElementById('tripPlan');
+            const serviceTypeNode = document.getElementById('tripServiceType');
+
+            if (hiddenNode) hiddenNode.value = activeFlow;
+            if (options.syncTripPlan !== false && tripPlanNode && config.tripPlan) {
+                tripPlanNode.value = config.tripPlan;
+            }
+            if (serviceTypeNode && config.serviceType) {
+                serviceTypeNode.value = config.serviceType;
+            }
+
+            syncCabModeUi(activeFlow);
+            if (options.skipFare !== true) updateFare();
+            else updateBookingExperience();
+        }
+
+        function revealFieldFromShortcut(fieldId) {
+            if (!fieldId) return;
+            revealBookingField(fieldId);
+            const field = document.getElementById(fieldId);
+            if (field) {
+                window.setTimeout(() => field.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+            }
+        }
+
+        function handleCabPrimarySearch() {
+            const activeFlow = getActiveCabFlow();
+            const requiredFieldIds = activeFlow === 'day_trips'
+                ? ['pickup', 'rideDate', 'rideTime']
+                : ['pickup', 'dropoff', 'rideDate', 'rideTime'];
+            const missingField = requiredFieldIds.find((id) => !String(document.getElementById(id)?.value || '').trim());
+            if (missingField) {
+                revealFieldFromShortcut(missingField);
+                return;
+            }
+
+            updateDistanceEstimate();
+            revealFieldFromShortcut(activeFlow === 'day_trips' ? 'tripPlan' : 'bookingCustomerPhone');
+        }
+
+        function initInternationalCabBookingUI() {
+            document.querySelectorAll('[data-flow-target]').forEach((button) => {
+                if (button.dataset.cabBound === '1') return;
+                button.addEventListener('click', () => {
+                    setCabBookingMode(button.dataset.flowTarget || 'airport');
+                });
+                button.dataset.cabBound = '1';
+            });
+
+            document.querySelectorAll('[data-journey-target]').forEach((button) => {
+                if (button.dataset.cabBound === '1') return;
+                button.addEventListener('click', () => {
+                    setCabJourneyMode(button.dataset.journeyTarget || 'one_way');
+                });
+                button.dataset.cabBound = '1';
+            });
+
+            document.querySelectorAll('[data-reveal-field]').forEach((button) => {
+                if (button.dataset.revealBound === '1') return;
+                button.addEventListener('click', () => revealFieldFromShortcut(button.dataset.revealField));
+                button.dataset.revealBound = '1';
+            });
+
+            document.querySelectorAll('[data-mode-shortcut]').forEach((button) => {
+                if (button.dataset.modeBound === '1') return;
+                button.addEventListener('click', () => {
+                    setCabBookingMode(button.dataset.modeShortcut || 'airport');
+                    document.getElementById('cabBookingConsole')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                button.dataset.modeBound = '1';
+            });
+
+            document.querySelectorAll('input[name="journeyMode"]').forEach((radio) => {
+                if (radio.dataset.journeyBound === '1') return;
+                radio.addEventListener('change', () => {
+                    if (radio.checked) setCabJourneyMode(radio.value, { syncReturnTrip: radio.value !== 'one_way' });
+                });
+                radio.dataset.journeyBound = '1';
+            });
+
+            const tripPlanNode = document.getElementById('tripPlan');
+            if (tripPlanNode && tripPlanNode.dataset.cabModeBound !== '1') {
+                tripPlanNode.addEventListener('change', () => {
+                    setCabBookingMode(inferCabFlowFromTripPlan(tripPlanNode.value), {
+                        syncTripPlan: false,
+                        skipFare: true
+                    });
+                });
+                tripPlanNode.dataset.cabModeBound = '1';
+            }
+
+            const searchButton = document.getElementById('cabPrimarySearch');
+            if (searchButton && searchButton.dataset.cabBound !== '1') {
+                searchButton.addEventListener('click', handleCabPrimarySearch);
+                searchButton.dataset.cabBound = '1';
+            }
+
+            setCabBookingMode(getActiveCabFlow(), { syncTripPlan: false, skipFare: true });
+            setCabJourneyMode(document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way', {
+                syncReturnTrip: false,
+                skipFare: true
+            });
+        }
 
         function formatCurrency(amount) {
             return `₹${Math.max(0, Math.round(Number(amount) || 0))}`;
@@ -3013,12 +4306,7 @@
                 const target = event.target.closest('.trip-flow-pill');
                 if (!target) return;
 
-                pillHost.querySelectorAll('.trip-flow-pill').forEach((pill) => {
-                    pill.classList.toggle('is-active', pill === target);
-                });
-
-                hiddenNode.value = target.dataset.flow || 'airport';
-                updateBookingExperience();
+                setCabBookingMode(target.dataset.flow || 'airport');
             });
 
             pillHost.dataset.bound = '1';
@@ -3048,11 +4336,10 @@
         }
 
         function updateBookingExperience() {
+            const currentFlow = getActiveCabFlow();
+            const flowConfig = getCabFlowConfig(currentFlow);
             const chipsNode = document.getElementById('bookingContextChips');
             if (chipsNode) {
-                const activeFlow = String(document.getElementById('tripFlow')?.value || 'airport')
-                    .replace(/_/g, ' ')
-                    .replace(/\b\w/g, (char) => char.toUpperCase());
                 const journeyMode = String(document.querySelector('input[name=\"journeyMode\"]:checked')?.value || 'one_way')
                     .replace(/_/g, ' ')
                     .replace(/\b\w/g, (char) => char.toUpperCase());
@@ -3061,7 +4348,7 @@
                 const budget = Number.parseFloat(document.getElementById('budgetAmount')?.value || 0);
 
                 const items = [
-                    `<span class=\"context-chip\"><i class=\"fas fa-route\"></i> ${activeFlow}</span>`,
+                    `<span class=\"context-chip\"><i class=\"fas fa-route\"></i> ${flowConfig.shortLabel}</span>`,
                     `<span class=\"context-chip\"><i class=\"fas fa-map-signs\"></i> ${journeyMode}</span>`
                 ];
 
@@ -3076,6 +4363,7 @@
                 chipsNode.innerHTML = items.join('');
             }
 
+            syncCabModeUi(currentFlow);
             updateFormProgress();
             updateRoutePreview();
         }
@@ -3114,6 +4402,7 @@
             initFormAccordion();
             initTripFlowControls();
             bindProfessionalInputs();
+            initInternationalCabBookingUI();
             updateBookingExperience();
         }
 
