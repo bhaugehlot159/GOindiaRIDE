@@ -971,6 +971,19 @@
         `;
     }
 
+    function renderBookingCompactDetails(booking) {
+        const quick = renderBookingHighlights(booking);
+        const full = renderBookingFullDetails(booking);
+        if (!quick && !full) return "";
+        return `
+            <details class="booking-row-details">
+                <summary><i class="fas fa-layer-group"></i><span>Booking details</span></summary>
+                ${quick}
+                ${full}
+            </details>
+        `;
+    }
+
     function formValue(value) {
         return escapeHtml(formatPlainValue(value, ""));
     }
@@ -1049,6 +1062,19 @@
                 <span>${escapeHtml(label)}</span>
                 <select name="${escapeHtml(name)}">${renderDetailedSelectOptions(options, value, name)}</select>
             </label>
+        `;
+    }
+
+    function renderBookingEditSection(title, fields, options = {}) {
+        const openAttr = options.open ? " open" : "";
+        const countLabel = fields.length ? ` <small>${fields.length} fields</small>` : "";
+        return `
+            <details class="booking-edit-section"${openAttr}>
+                <summary><span>${escapeHtml(title)}</span>${countLabel}</summary>
+                <div class="booking-edit-section-grid">
+                    ${fields.join("")}
+                </div>
+            </details>
         `;
     }
 
@@ -1605,42 +1631,57 @@
     }
 
     function buildAdminCreateBookingForm() {
+        const customerFields = [
+            `<label class="booking-edit-field wide">
+                <span>Select existing customer</span>
+                <select name="customerKey" id="adminCreateCustomerSelect">${renderAdminCustomerOptions()}</select>
+            </label>`,
+            renderEditInput("customerName", "Customer name", ""),
+            renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+91XXXXXXXXXX" autocomplete="tel"'),
+            renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="name@domain.com" autocomplete="email"')
+        ];
+        const tripFields = [
+            renderEditInput("pickup", "Pickup", "", 'id="adminCreatePickupInput" required list="adminCreatePickupSuggestions" autocomplete="street-address"'),
+            renderEditInput("dropoff", "Drop", "", 'id="adminCreateDropoffInput" required list="adminCreateDropSuggestions" autocomplete="street-address"'),
+            renderEditInput("rideDate", "Ride date", defaultAdminRideDate(), 'type="date" required'),
+            renderEditInput("rideTime", "Ride time", defaultAdminRideTime(), 'type="time" required'),
+            renderEditInput("passengers", "Passengers", 1, 'type="number" min="1" max="20"'),
+            renderEditInput("fare", "Fare / amount", 0, 'type="number" min="0" step="1"')
+        ];
+        const requirementFields = [
+            renderEditDetailedSelect("tripPlan", "Trip plan", "city", BOOKING_REQUIREMENT_OPTIONS.tripPlan),
+            renderEditDetailedSelect("vehicleType", "Vehicle type", "sedan", BOOKING_REQUIREMENT_OPTIONS.vehicleType),
+            renderEditDetailedSelect("vehicleModel", "Vehicle model", "sedan_car", BOOKING_REQUIREMENT_OPTIONS.vehicleModel),
+            renderEditDetailedSelect("luggage", "Luggage", "none", BOOKING_REQUIREMENT_OPTIONS.luggage),
+            renderEditDetailedSelect("paymentMethod", "Payment method", "cash", BOOKING_REQUIREMENT_OPTIONS.paymentMethod),
+            renderEditInput("distanceKm", "Distance KM", 0, 'type="number" min="0" step="0.1"')
+        ];
+        const routeFields = [
+            renderEditInput("returnDate", "Return date", "", 'type="date"'),
+            renderEditInput("returnTime", "Return time", "", 'type="time"'),
+            renderEditTextarea("stops", "Stops", "", 'placeholder="One stop per line"'),
+            renderEditTextarea("specialRequests", "Special requests", "", 'placeholder="JSON or comma list"'),
+            renderEditTextarea("safetyAccessibility", "Safety and accessibility", "", 'placeholder="JSON or comma list"')
+        ];
+        const adminFields = [
+            `<label class="booking-edit-field">
+                <span>Booking status</span>
+                <select name="status">${renderSelectOptions(BOOKING_STATUS_OPTIONS, "pending_admin_review")}</select>
+            </label>`,
+            `<label class="booking-edit-field">
+                <span>Admin review</span>
+                <select name="adminReviewStatus">${renderSelectOptions(ADMIN_REVIEW_OPTIONS, "pending")}</select>
+            </label>`,
+            renderEditTextarea("notes", "Admin/customer notes", "Booking created by admin for customer assistance."),
+            renderEditTextarea("adminEditReason", "Admin note", "Admin created this booking for the customer.", 'placeholder="Reason shown in audit/customer notification"')
+        ];
         return `
-            <div class="booking-edit-grid">
-                <label class="booking-edit-field wide">
-                    <span>Select existing customer</span>
-                    <select name="customerKey" id="adminCreateCustomerSelect">${renderAdminCustomerOptions()}</select>
-                </label>
-                ${renderEditInput("customerName", "Customer name", "")}
-                ${renderEditInput("customerPhone", "Customer phone", "", 'placeholder="+91XXXXXXXXXX" autocomplete="tel"')}
-                ${renderEditInput("customerEmail", "Customer email", "", 'type="email" placeholder="name@domain.com" autocomplete="email"')}
-                ${renderEditInput("pickup", "Pickup", "", 'id="adminCreatePickupInput" required list="adminCreatePickupSuggestions" autocomplete="street-address"')}
-                ${renderEditInput("dropoff", "Drop", "", 'id="adminCreateDropoffInput" required list="adminCreateDropSuggestions" autocomplete="street-address"')}
-                ${renderEditInput("rideDate", "Ride date", defaultAdminRideDate(), 'type="date" required')}
-                ${renderEditInput("rideTime", "Ride time", defaultAdminRideTime(), 'type="time" required')}
-                ${renderEditInput("returnDate", "Return date", "", 'type="date"')}
-                ${renderEditInput("returnTime", "Return time", "", 'type="time"')}
-                ${renderEditDetailedSelect("tripPlan", "Trip plan", "city", BOOKING_REQUIREMENT_OPTIONS.tripPlan)}
-                ${renderEditDetailedSelect("vehicleType", "Vehicle type", "sedan", BOOKING_REQUIREMENT_OPTIONS.vehicleType)}
-                ${renderEditDetailedSelect("vehicleModel", "Vehicle model", "sedan_car", BOOKING_REQUIREMENT_OPTIONS.vehicleModel)}
-                ${renderEditInput("passengers", "Passengers", 1, 'type="number" min="1" max="20"')}
-                ${renderEditDetailedSelect("luggage", "Luggage", "none", BOOKING_REQUIREMENT_OPTIONS.luggage)}
-                ${renderEditDetailedSelect("paymentMethod", "Payment method", "cash", BOOKING_REQUIREMENT_OPTIONS.paymentMethod)}
-                ${renderEditInput("fare", "Fare / amount", 0, 'type="number" min="0" step="1"')}
-                ${renderEditInput("distanceKm", "Distance KM", 0, 'type="number" min="0" step="0.1"')}
-                <label class="booking-edit-field">
-                    <span>Booking status</span>
-                    <select name="status">${renderSelectOptions(BOOKING_STATUS_OPTIONS, "pending_admin_review")}</select>
-                </label>
-                <label class="booking-edit-field">
-                    <span>Admin review</span>
-                    <select name="adminReviewStatus">${renderSelectOptions(ADMIN_REVIEW_OPTIONS, "pending")}</select>
-                </label>
-                ${renderEditTextarea("stops", "Stops", "", 'placeholder="One stop per line"')}
-                ${renderEditTextarea("notes", "Admin/customer notes", "Booking created by admin for customer assistance.")}
-                ${renderEditTextarea("specialRequests", "Special requests", "", 'placeholder="JSON or comma list"')}
-                ${renderEditTextarea("safetyAccessibility", "Safety and accessibility", "", 'placeholder="JSON or comma list"')}
-                ${renderEditTextarea("adminEditReason", "Admin note", "Admin created this booking for the customer.", 'placeholder="Reason shown in audit/customer notification"')}
+            <div class="booking-edit-sections">
+                ${renderBookingEditSection("Trip essentials", tripFields, { open: true })}
+                ${renderBookingEditSection("Ride requirements", requirementFields)}
+                ${renderBookingEditSection("Customer details", customerFields)}
+                ${renderBookingEditSection("Return, stops and safety", routeFields)}
+                ${renderBookingEditSection("Admin status and notes", adminFields)}
             </div>
             ${renderLocationSuggestions("adminCreatePickupSuggestions")}
             ${renderLocationSuggestions("adminCreateDropSuggestions")}
@@ -1777,41 +1818,56 @@
         const safetyAccessibility = isPlainObject(booking.safetyAccessibility)
             ? booking.safetyAccessibility
             : booking.customerFeatures?.safetyAccessibility;
+        const customerFields = [
+            renderEditInput("customerName", "Customer name", booking.customerName),
+            renderEditInput("customerPhone", "Customer phone", booking.customerPhone),
+            renderEditInput("customerEmail", "Customer email", booking.customerEmail, 'type="email"')
+        ];
+        const tripFields = [
+            renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation, 'id="adminEditPickupInput" list="adminEditPickupSuggestions" autocomplete="street-address"'),
+            renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation, 'id="adminEditDropoffInput" list="adminEditDropSuggestions" autocomplete="street-address"'),
+            renderEditInput("rideDate", "Ride date", booking.rideDate, 'type="date"'),
+            renderEditInput("rideTime", "Ride time", booking.rideTime, 'type="time"'),
+            renderEditInput("passengers", "Passengers", booking.passengers || 1, 'type="number" min="1" max="20"'),
+            renderEditInput("fare", "Fare / amount", booking.fare || booking.totalFare || booking.amount || booking.finalFare, 'type="number" min="0" step="1"')
+        ];
+        const requirementFields = [
+            renderEditDetailedSelect("tripPlan", "Trip plan", booking.tripPlan || booking.bookingMode || booking.mode, BOOKING_REQUIREMENT_OPTIONS.tripPlan),
+            renderEditDetailedSelect("vehicleType", "Vehicle type", booking.vehicleType || booking.rideType, BOOKING_REQUIREMENT_OPTIONS.vehicleType),
+            renderEditDetailedSelect("vehicleModel", "Vehicle model", booking.vehicleModel, BOOKING_REQUIREMENT_OPTIONS.vehicleModel),
+            renderEditDetailedSelect("luggage", "Luggage", booking.luggage, BOOKING_REQUIREMENT_OPTIONS.luggage),
+            renderEditDetailedSelect("paymentMethod", "Payment method", booking.paymentMethod || booking.payment?.method || booking.paymentMode, BOOKING_REQUIREMENT_OPTIONS.paymentMethod),
+            renderEditInput("distanceKm", "Distance KM", booking.distanceKm || booking.distance, 'type="number" min="0" step="0.1"')
+        ];
+        const routeFields = [
+            renderEditInput("returnDate", "Return date", booking.returnDate || booking.returnTrip?.returnDate, 'type="date"'),
+            renderEditInput("returnTime", "Return time", booking.returnTime || booking.returnTrip?.returnTime, 'type="time"'),
+            renderEditTextarea("stops", "Stops", serializeList(booking.stops), 'placeholder="One stop per line"'),
+            renderEditTextarea("specialRequests", "Special requests", serializeMap(specialRequests), 'placeholder=\'JSON or comma list: pet=true, extra_waiting=true\''),
+            renderEditTextarea("safetyAccessibility", "Safety and accessibility", serializeMap(safetyAccessibility), 'placeholder=\'JSON or comma list: wheelchair=true, child_seat=true\'')
+        ];
+        const adminFields = [
+            renderEditInput("driverId", "Driver ID", booking.driverId),
+            renderEditInput("driverName", "Driver name", booking.driverName),
+            `<label class="booking-edit-field">
+                <span>Booking status</span>
+                <select name="status">${renderSelectOptions(BOOKING_STATUS_OPTIONS, booking.status)}</select>
+            </label>`,
+            `<label class="booking-edit-field">
+                <span>Admin review</span>
+                <select name="adminReviewStatus">${renderSelectOptions(ADMIN_REVIEW_OPTIONS, booking.adminReviewStatus || "pending")}</select>
+            </label>`,
+            renderEditTextarea("notes", "Notes", booking.notes),
+            renderEditTextarea("adminEditReason", "Admin edit note", "", 'placeholder="Reason shown in audit/customer notification"')
+        ];
         return `
             <input type="hidden" name="bookingId" value="${escapeHtml(booking.bookingId)}">
-            <div class="booking-edit-grid">
-                ${renderEditInput("customerName", "Customer name", booking.customerName)}
-                ${renderEditInput("customerPhone", "Customer phone", booking.customerPhone)}
-                ${renderEditInput("customerEmail", "Customer email", booking.customerEmail, 'type="email"')}
-                ${renderEditInput("pickup", "Pickup", booking.pickup || booking.pickupLocation, 'id="adminEditPickupInput" list="adminEditPickupSuggestions" autocomplete="street-address"')}
-                ${renderEditInput("dropoff", "Drop", booking.dropoff || booking.dropLocation, 'id="adminEditDropoffInput" list="adminEditDropSuggestions" autocomplete="street-address"')}
-                ${renderEditInput("rideDate", "Ride date", booking.rideDate, 'type="date"')}
-                ${renderEditInput("rideTime", "Ride time", booking.rideTime, 'type="time"')}
-                ${renderEditInput("returnDate", "Return date", booking.returnDate || booking.returnTrip?.returnDate, 'type="date"')}
-                ${renderEditInput("returnTime", "Return time", booking.returnTime || booking.returnTrip?.returnTime, 'type="time"')}
-                ${renderEditDetailedSelect("tripPlan", "Trip plan", booking.tripPlan || booking.bookingMode || booking.mode, BOOKING_REQUIREMENT_OPTIONS.tripPlan)}
-                ${renderEditDetailedSelect("vehicleType", "Vehicle type", booking.vehicleType || booking.rideType, BOOKING_REQUIREMENT_OPTIONS.vehicleType)}
-                ${renderEditDetailedSelect("vehicleModel", "Vehicle model", booking.vehicleModel, BOOKING_REQUIREMENT_OPTIONS.vehicleModel)}
-                ${renderEditInput("passengers", "Passengers", booking.passengers || 1, 'type="number" min="1" max="20"')}
-                ${renderEditDetailedSelect("luggage", "Luggage", booking.luggage, BOOKING_REQUIREMENT_OPTIONS.luggage)}
-                ${renderEditDetailedSelect("paymentMethod", "Payment method", booking.paymentMethod || booking.payment?.method || booking.paymentMode, BOOKING_REQUIREMENT_OPTIONS.paymentMethod)}
-                ${renderEditInput("fare", "Fare / amount", booking.fare || booking.totalFare || booking.amount || booking.finalFare, 'type="number" min="0" step="1"')}
-                ${renderEditInput("distanceKm", "Distance KM", booking.distanceKm || booking.distance, 'type="number" min="0" step="0.1"')}
-                ${renderEditInput("driverId", "Driver ID", booking.driverId)}
-                ${renderEditInput("driverName", "Driver name", booking.driverName)}
-                <label class="booking-edit-field">
-                    <span>Booking status</span>
-                    <select name="status">${renderSelectOptions(BOOKING_STATUS_OPTIONS, booking.status)}</select>
-                </label>
-                <label class="booking-edit-field">
-                    <span>Admin review</span>
-                    <select name="adminReviewStatus">${renderSelectOptions(ADMIN_REVIEW_OPTIONS, booking.adminReviewStatus || "pending")}</select>
-                </label>
-                ${renderEditTextarea("stops", "Stops", serializeList(booking.stops), 'placeholder="One stop per line"')}
-                ${renderEditTextarea("notes", "Notes", booking.notes)}
-                ${renderEditTextarea("specialRequests", "Special requests", serializeMap(specialRequests), 'placeholder=\'JSON or comma list: pet=true, extra_waiting=true\'')}
-                ${renderEditTextarea("safetyAccessibility", "Safety and accessibility", serializeMap(safetyAccessibility), 'placeholder=\'JSON or comma list: wheelchair=true, child_seat=true\'')}
-                ${renderEditTextarea("adminEditReason", "Admin edit note", "", 'placeholder="Reason shown in audit/customer notification"')}
+            <div class="booking-edit-sections">
+                ${renderBookingEditSection("Trip essentials", tripFields, { open: true })}
+                ${renderBookingEditSection("Ride requirements", requirementFields)}
+                ${renderBookingEditSection("Customer details", customerFields)}
+                ${renderBookingEditSection("Return, stops and safety", routeFields)}
+                ${renderBookingEditSection("Driver, status and notes", adminFields)}
             </div>
             ${renderLocationSuggestions("adminEditPickupSuggestions")}
             ${renderLocationSuggestions("adminEditDropSuggestions")}
@@ -3118,8 +3174,7 @@
                     </div>
                     <div class="queue-route">${escapeHtml(booking.pickup)} -> ${escapeHtml(booking.dropoff)}</div>
                     <div class="queue-meta">${escapeHtml(booking.customerName)} | ${formatMoney(booking.fare)} | ${formatDate(booking.createdAt)}</div>
-                    ${renderBookingHighlights(booking)}
-                    ${renderBookingFullDetails(booking)}
+                    ${renderBookingCompactDetails(booking)}
                 </div>
                 <div class="queue-actions">
                     <button class="secondary-action" data-booking-edit="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-pen-to-square"></i><span>Edit</span></button>
@@ -3225,8 +3280,7 @@
             </tr>
             <tr class="booking-detail-row">
                 <td colspan="6">
-                    ${renderBookingHighlights(booking)}
-                    ${renderBookingFullDetails(booking)}
+                    ${renderBookingCompactDetails(booking)}
                 </td>
             </tr>
         `).join("");
