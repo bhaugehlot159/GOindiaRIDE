@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GOindiaRIDE Admin App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-app.css?v=20260516-separated-feature-folders2">
+    <link rel="stylesheet" href="./css/admin-app.css?v=20260516-master-feature-folders3">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -123,7 +123,7 @@
                         <div class="queue-list" id="overviewQueue"></div>
                     </section>
 
-                    <section class="workspace-panel">
+                    <section class="workspace-panel portal-master-panel">
                         <div class="panel-title-row">
                             <div>
                                 <span class="section-kicker">Live health</span>
@@ -174,6 +174,13 @@
                             <input id="controlReasonInput" type="text" placeholder="Example: KYC pending, manual review, support hold">
                         </label>
                         <div class="portal-switch-grid" id="portalControlGrid"></div>
+                        <div class="portal-master-folders">
+                            <div class="portal-folder-heading">
+                                <span class="section-kicker">Feature folders</span>
+                                <strong>Customer and driver folders</strong>
+                            </div>
+                            <div class="portal-feature-folder-grid" id="portalFeatureFolderGrid"></div>
+                        </div>
                     </section>
 
                     <section class="workspace-panel">
@@ -184,16 +191,6 @@
                             </div>
                         </div>
                         <div class="control-list" id="customerControlList"></div>
-                    </section>
-
-                    <section class="workspace-panel wide-panel portal-feature-folder-panel">
-                        <div class="panel-title-row">
-                            <div>
-                                <span class="section-kicker">Feature folders</span>
-                                <h2>Portal Feature Folders</h2>
-                            </div>
-                        </div>
-                        <div class="portal-feature-folder-grid" id="portalFeatureFolderGrid"></div>
                     </section>
 
                     <section class="workspace-panel wide-panel">
@@ -355,6 +352,6 @@
 
     <script src="../js/portal-connector.js"></script>
     <script src="../js/admin-control-bridge.js?v=20260514-feature-parity1"></script>
-    <script src="./js/admin-app.js?v=20260516-separated-feature-folders2"></script>
+    <script src="./js/admin-app.js?v=20260516-master-feature-folders3"></script>
 </body>
 </html>
