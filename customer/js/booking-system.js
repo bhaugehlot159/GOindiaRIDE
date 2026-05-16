@@ -15,6 +15,8 @@ let lastEstimatedDistanceKm = 5;
 let lastDistanceSource = 'fallback';
 let distanceEstimateTimer = null;
 let distanceRequestToken = 0;
+const LIVE_CUSTOMER_BOOKING_QUEUE_KEY = 'goindiaride_live_customer_booking_queue_v1';
+const LIVE_PAYMENT_RECORDS_KEY = 'goindiaride_live_payment_records_v1';
 
 /**
  * Initialize booking system
@@ -148,6 +150,56 @@ function getVehicleRate(vehicleType) {
     return rates[vehicleType] || rates.sedan;
 }
 
+function cleanBookingText(value, maxLen = 160) {
+    return String(value || '')
+        .replace(/[<>]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, maxLen);
+}
+
+function generateLiveBookingId() {
+    const stamp = Date.now().toString(36).toUpperCase();
+    const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `RID${stamp}${suffix}`;
+}
+
+function getRidePaymentMethod() {
+    const node = document.getElementById('ridePaymentMethod');
+    return node ? String(node.value || 'upi_intent') : 'upi_intent';
+}
+
+function buildFareBreakdown(pickup, drop, vehicleType, distanceKm, bookingMode, bookingModeDuration, isFirstBooking) {
+    const distance = Math.max(1, Number(distanceKm) || 5);
+    const baseFare = Number(calculateFare(pickup, drop, vehicleType, distance, bookingMode, bookingModeDuration).toFixed(2));
+    const routeText = `${pickup} ${drop}`.toLowerCase();
+    const tollCharge = distance >= 80 ? Number(Math.max(60, distance * 1.25).toFixed(2)) : 0;
+    const parkingCharge = /(airport|railway|station|mall|fort|palace|hotel)/i.test(routeText) ? 40 : 0;
+    const hour = new Date().getHours();
+    const nightCharge = (hour >= 22 || hour < 5) ? Number((baseFare * 0.15).toFixed(2)) : 0;
+    const subtotalBeforeTax = Number((baseFare + tollCharge + parkingCharge + nightCharge).toFixed(2));
+    const gst = Number((subtotalBeforeTax * 0.05).toFixed(2));
+    const promoDiscount = isFirstBooking ? Number((subtotalBeforeTax * 0.05).toFixed(2)) : 0;
+    const totalFare = Number(Math.max(70, subtotalBeforeTax + gst - promoDiscount).toFixed(2));
+
+    return {
+        currency: 'INR',
+        distanceKm: distance,
+        distanceSource: lastDistanceSource,
+        vehicleType,
+        bookingMode,
+        bookingModeDuration,
+        baseFare,
+        tollCharge,
+        parkingCharge,
+        nightCharge,
+        gst,
+        promoDiscount,
+        totalFare,
+        calculatedAt: new Date().toISOString()
+    };
+}
+
 function formatBookingModeLabel(mode, duration) {
     const normalized = String(mode || 'standard');
 
@@ -215,15 +267,20 @@ async function estimateDistanceForBooking() {
 }
 
 function getBackendApiBase() {
+    const fromApiOrigin = String(window.__GOINDIARIDE_API_ORIGIN__ || '').trim();
     const fromWindow = String(window.GOINDIARIDE_API_BASE || '').trim();
     const fromStorage = String(localStorage.getItem('goindiaride_api_base') || '').trim();
-    const base = fromWindow || fromStorage;
+    const base = fromApiOrigin || fromWindow || fromStorage;
 
     if (base) return base.replace(/\/$/, '');
 
     const host = String(window.location.hostname || '').toLowerCase();
     if (host === 'localhost' || host === '127.0.0.1') {
         return 'http://localhost:5000';
+    }
+
+    if (/(^|\.)goindiaride\.in$/i.test(host)) {
+        return 'https://api.goindiaride.in';
     }
 
     return String(window.location.origin || '').replace(/\/$/, '');
@@ -292,11 +349,24 @@ async function createSecureBackendBooking({
     bookingMode,
     bookingModeDuration,
     distanceKm,
-    referralCode
+    referralCode,
+    paymentMethod,
+    fareBreakdown
 }) {
     const token = String(getBackendAccessToken() || '').trim();
     if (!token) {
-        throw new Error('Secure session missing. Please login again.');
+        return createFallbackAdminReviewBooking({
+            pickup,
+            drop,
+            vehicleType,
+            bookingMode,
+            bookingModeDuration,
+            distanceKm,
+            paymentMethod,
+            fareBreakdown,
+            referralCode,
+            reason: 'browser_session_missing'
+        });
     }
 
     const apiBase = getBackendApiBase();
@@ -325,7 +395,9 @@ async function createSecureBackendBooking({
         drop,
         vehicleType,
         bookingMode,
-        bookingModeDuration
+        bookingModeDuration,
+        paymentMethod,
+        fareBreakdown
     };
 
     const bookingResponse = await fetch(`${apiBase}/api/bookings`, {
@@ -342,10 +414,143 @@ async function createSecureBackendBooking({
 
     const bookingData = await bookingResponse.json().catch(() => ({}));
     if (!bookingResponse.ok) {
-        throw new Error(bookingData.message || 'Booking request failed');
+        return createFallbackAdminReviewBooking({
+            pickup,
+            drop,
+            vehicleType,
+            bookingMode,
+            bookingModeDuration,
+            distanceKm,
+            paymentMethod,
+            fareBreakdown,
+            referralCode,
+            reason: bookingData.message || 'secure_booking_failed'
+        });
     }
 
     return bookingData;
+}
+
+async function createFallbackAdminReviewBooking({
+    pickup,
+    drop,
+    vehicleType,
+    bookingMode,
+    bookingModeDuration,
+    distanceKm,
+    paymentMethod,
+    fareBreakdown,
+    referralCode,
+    reason
+}) {
+    const bookingId = generateLiveBookingId();
+    const now = new Date().toISOString();
+    const amount = Number(fareBreakdown?.totalFare || calculateFare(pickup, drop, vehicleType, distanceKm, bookingMode, bookingModeDuration));
+    const booking = {
+        id: bookingId,
+        bookingId,
+        pickup: cleanBookingText(pickup),
+        drop: cleanBookingText(drop),
+        pickupLocation: cleanBookingText(pickup),
+        dropLocation: cleanBookingText(drop),
+        vehicleType,
+        tripPlan: bookingMode,
+        bookingMode,
+        bookingModeDuration,
+        distanceKm: Number(distanceKm || 0),
+        paymentMethod,
+        fareBreakdown,
+        amount,
+        totalFare: amount,
+        finalFare: amount,
+        status: 'created',
+        adminReviewStatus: 'pending',
+        source: 'customer_live_booking_flow',
+        sourceKey: 'customer_live_booking_flow',
+        syncStatus: 'queued_for_admin_review',
+        fallbackReason: cleanBookingText(reason, 120),
+        referralCode: cleanBookingText(referralCode, 40),
+        createdAt: now,
+        updatedAt: now
+    };
+
+    const apiBase = getBackendApiBase();
+    try {
+        const response = await fetch(`${apiBase}/api/bookings/fallback/admin-review-queue`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-booking-client': 'goindiaride-web'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                source: 'customer_live_booking_flow',
+                mode: 'customer_live_booking',
+                bookings: [booking]
+            })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data && data.ok !== false) {
+            booking.syncStatus = 'admin_review_queue_synced';
+            booking.backendStatus = 'created';
+            booking.fallbackQueued = true;
+            recordLivePayment(booking, paymentMethod, 'payment_selected');
+            queueLiveCustomerBooking(booking);
+            return {
+                ok: true,
+                bookingId,
+                status: 'created',
+                adminReviewStatus: 'pending',
+                fallbackQueue: data,
+                source: 'fallback_admin_review_queue'
+            };
+        }
+        booking.syncStatus = 'local_live_queue_pending';
+        booking.syncError = cleanBookingText(data.message || 'admin_review_queue_unavailable', 160);
+    } catch (error) {
+        booking.syncStatus = 'local_live_queue_pending';
+        booking.syncError = cleanBookingText(error.message || 'admin_review_queue_unavailable', 160);
+    }
+
+    recordLivePayment(booking, paymentMethod, 'payment_selected');
+    queueLiveCustomerBooking(booking);
+    return {
+        ok: true,
+        bookingId,
+        status: 'created',
+        adminReviewStatus: 'pending',
+        localLiveQueued: true,
+        source: 'local_live_admin_review_queue'
+    };
+}
+
+function queueLiveCustomerBooking(booking) {
+    const rows = JSON.parse(localStorage.getItem(LIVE_CUSTOMER_BOOKING_QUEUE_KEY) || '[]');
+    const bookingId = String(booking.bookingId || booking.id || '');
+    const idx = rows.findIndex((item) => String(item.bookingId || item.id || '') === bookingId);
+    if (idx >= 0) rows[idx] = { ...rows[idx], ...booking };
+    else rows.unshift(booking);
+    localStorage.setItem(LIVE_CUSTOMER_BOOKING_QUEUE_KEY, JSON.stringify(rows.slice(0, 250)));
+}
+
+function recordLivePayment(booking, paymentMethod, status) {
+    const rows = JSON.parse(localStorage.getItem(LIVE_PAYMENT_RECORDS_KEY) || '[]');
+    const bookingId = String(booking.bookingId || booking.id || generateLiveBookingId());
+    const amount = Number(booking.finalFare || booking.totalFare || booking.amount || booking.fare || 0);
+    const record = {
+        id: `PAY-${bookingId}`,
+        bookingId,
+        amount,
+        currency: 'INR',
+        method: paymentMethod || 'upi_intent',
+        status: status || 'payment_selected',
+        gatewayState: paymentMethod === 'cash' ? 'collect_after_ride' : 'ready_for_collection',
+        createdAt: new Date().toISOString()
+    };
+    const idx = rows.findIndex((item) => item.id === record.id);
+    if (idx >= 0) rows[idx] = { ...rows[idx], ...record };
+    else rows.unshift(record);
+    localStorage.setItem(LIVE_PAYMENT_RECORDS_KEY, JSON.stringify(rows.slice(0, 250)));
 }
 /**
  * Handle booking submission
@@ -354,6 +559,7 @@ async function handleBookingSubmit() {
     const pickup = document.getElementById('pickupLocation').value;
     const drop = document.getElementById('dropLocation').value;
     const vehicleType = document.getElementById('vehicleType').value;
+    const paymentMethod = getRidePaymentMethod();
     const { mode: bookingMode, duration: bookingModeDuration } = getBookingModeSelection();
     const acPreference = document.getElementById('acPreference').checked;
     const luggageSpace = document.getElementById('luggageSpace').checked;
@@ -365,6 +571,7 @@ async function handleBookingSubmit() {
     
     // Check if first booking
     const isFirstBooking = localStorage.getItem('goindiaride_user_type') === 'new';
+    const fareBreakdown = buildFareBreakdown(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration, isFirstBooking);
     
     CustomerPortal.showLoading();
 
@@ -376,6 +583,8 @@ async function handleBookingSubmit() {
             bookingMode,
             bookingModeDuration,
             distanceKm: lastEstimatedDistanceKm,
+            paymentMethod,
+            fareBreakdown,
             referralCode: ''
         });
 
@@ -386,13 +595,17 @@ async function handleBookingSubmit() {
             vehicleType,
             bookingMode,
             bookingModeDuration,
+            paymentMethod,
             acPreference,
             luggageSpace,
             status: 'pending_admin_review',
             timestamp: new Date().toISOString(),
             distanceKm: lastEstimatedDistanceKm,
-            fare: calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration),
-            discount: isFirstBooking ? 5 : 0,
+            fare: fareBreakdown.baseFare,
+            fareBreakdown,
+            discount: fareBreakdown.promoDiscount,
+            totalFare: fareBreakdown.totalFare,
+            amount: fareBreakdown.totalFare,
             otp: '----',
             backendStatus: String(bookingResponse.status || 'created'),
             adminReviewStatus: String(bookingResponse.adminReviewStatus || 'pending'),
@@ -400,13 +613,9 @@ async function handleBookingSubmit() {
             driverName: ''
         };
         
-        // Apply first booking discount
-        if (isFirstBooking) {
-            booking.finalFare = booking.fare * 0.95; // 5% discount
-            localStorage.setItem('goindiaride_user_type', 'existing');
-        } else {
-            booking.finalFare = booking.fare;
-        }
+        booking.finalFare = fareBreakdown.totalFare;
+        if (isFirstBooking) localStorage.setItem('goindiaride_user_type', 'existing');
+        recordLivePayment(booking, paymentMethod, 'payment_selected');
         
         // Save booking
         saveBooking(booking);
@@ -426,7 +635,7 @@ async function handleBookingSubmit() {
             : '';
 
         const message = isFirstBooking
-            ? `Booking submitted! First ride discount applied: ₹${(booking.fare - booking.finalFare).toFixed(0)} saved. Waiting for admin approval.`
+            ? `Booking submitted! First ride discount applied: ₹${fareBreakdown.promoDiscount.toFixed(0)} saved. Waiting for admin approval.`
             : 'Booking submitted! Waiting for admin approval.';
         const emailText = adminEmailSent ? ' Admin email sent instantly.' : '';
         
@@ -458,8 +667,7 @@ function calculateFarePreview() {
 
     const fare = calculateFare(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration);
     const isFirstBooking = localStorage.getItem('goindiaride_user_type') === 'new';
-    const discount = isFirstBooking ? fare * 0.05 : 0;
-    const finalFare = fare - discount;
+    const breakdown = buildFareBreakdown(pickup, drop, vehicleType, lastEstimatedDistanceKm, bookingMode, bookingModeDuration, isFirstBooking);
     const perKmRate = getVehicleRate(vehicleType);
     const distanceValue = Number(lastEstimatedDistanceKm || 0);
 
@@ -483,15 +691,31 @@ function calculateFarePreview() {
                 <span>Base Fare:</span>
                 <span>₹${fare.toFixed(0)}</span>
             </div>
-            ${isFirstBooking ? `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Toll / route charges:</span>
+                <span>₹${breakdown.tollCharge.toFixed(0)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Parking / pickup charge:</span>
+                <span>₹${breakdown.parkingCharge.toFixed(0)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>Night charge:</span>
+                <span>₹${breakdown.nightCharge.toFixed(0)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>GST:</span>
+                <span>₹${breakdown.gst.toFixed(0)}</span>
+            </div>
+            ${breakdown.promoDiscount ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #06A77D;">
                     <span>First Ride Discount (5%):</span>
-                    <span>-₹${discount.toFixed(0)}</span>
+                    <span>-₹${breakdown.promoDiscount.toFixed(0)}</span>
                 </div>
             ` : ''}
             <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 2px solid var(--border-color); padding-top: 0.5rem;">
                 <span>Total:</span>
-                <span>₹${finalFare.toFixed(0)}</span>
+                <span>₹${breakdown.totalFare.toFixed(0)}</span>
             </div>
         </div>
         <small style="color: var(--text-light);">*Distance-based estimate. Final fare depends on route + traffic.</small>

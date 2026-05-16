@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v37-20260516-admin-customer-live-refresh';
+const CACHE_NAME = 'goindiaride-pwa-v38-20260516-real-live-workflows';
 const ASSETS = [
   './',
   './index.html',
@@ -43,6 +43,7 @@ self.addEventListener('fetch', (event) => {
   const isCriticalLiveControlAsset = isSameOrigin && (
     path.startsWith('/admin/') ||
     path.startsWith('/customer/') ||
+    path.startsWith('/driver/') ||
     path === '/js/admin-control-bridge.js' ||
     path === '/js/customer-dashboard-live-bridge.js' ||
     path === '/pages/customer-dashboard.html' ||

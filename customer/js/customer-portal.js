@@ -492,12 +492,53 @@ function shareLocationViaWhatsApp() {
  * Log SOS activation
  */
 function logSOSActivation() {
-    const sosLogs = JSON.parse(localStorage.getItem('goindiaride_sos_logs') || '[]');
-    sosLogs.push({
-        timestamp: new Date().toISOString(),
-        location: 'Unknown' // Would be actual location in production
-    });
-    localStorage.setItem('goindiaride_sos_logs', JSON.stringify(sosLogs));
+    const persistAlert = (location) => {
+        const alert = {
+            id: `SOS-${Date.now().toString(36).toUpperCase()}`,
+            type: 'customer_sos',
+            status: 'active',
+            severity: 'critical',
+            timestamp: new Date().toISOString(),
+            customer: JSON.parse(localStorage.getItem('goindiaride_user') || '{}'),
+            location: location || { status: 'unavailable' }
+        };
+        const sosLogs = JSON.parse(localStorage.getItem('goindiaride_sos_logs') || '[]');
+        sosLogs.unshift(alert);
+        localStorage.setItem('goindiaride_sos_logs', JSON.stringify(sosLogs.slice(0, 100)));
+
+        if (window.PortalConnector && typeof PortalConnector.broadcastToAll === 'function') {
+            PortalConnector.broadcastToAll({
+                type: 'customer_sos',
+                title: 'Customer SOS',
+                message: 'Customer triggered SOS from customer portal.',
+                sourcePortal: 'customer',
+                metadata: alert
+            });
+        }
+    };
+
+    if (!navigator.geolocation) {
+        persistAlert({ status: 'unsupported' });
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            persistAlert({
+                status: 'captured',
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: position.coords.accuracy
+            });
+        },
+        (error) => {
+            persistAlert({
+                status: 'unavailable',
+                reason: error && error.message ? error.message : 'location_permission_denied'
+            });
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+    );
 }
 
 /**
