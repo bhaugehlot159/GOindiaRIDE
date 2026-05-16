@@ -984,6 +984,41 @@
         `;
     }
 
+    function renderPortalFeatureFolder(portal, title, description, features, controls) {
+        const portalFeatures = ((controls.portalFeatures || {})[portal]) || {};
+        const rows = features.map((feature) => {
+            const control = portalFeatures[feature[0]] || {};
+            const enabled = control.enabled !== false && !["disabled", "paused", "blocked"].includes(cleanText(control.status || "active").toLowerCase());
+            const featureLabel = cleanText(control.labelOverride || feature[1]);
+            const correction = cleanText(control.correction || "");
+            return `
+                <div class="feature-control-row" data-feature-owner="${escapeHtml(portal)}">
+                    <div class="feature-control-copy">
+                        <strong>${escapeHtml(featureLabel)}</strong>
+                        <small>${escapeHtml(feature[2])}</small>
+                        ${correction ? `<small class="feature-correction-note">Admin correction: ${escapeHtml(correction)}</small>` : ""}
+                    </div>
+                    <div class="control-actions">
+                        <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Connected" : "Paused"}</span>
+                        <button class="row-action" data-control-action="edit-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button" title="Edit correction"><i class="fas fa-pen-to-square"></i></button>
+                        <button class="row-action" data-control-action="enable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-link"></i></button>
+                        <button class="danger-action" data-control-action="disable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-pause"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+        return `
+            <details class="portal-feature-folder ${portal}-feature-folder">
+                <summary>
+                    <span><i class="fas ${portal === "driver" ? "fa-car-side" : "fa-user"}"></i> ${escapeHtml(title)}</span>
+                    <small>${features.length} features</small>
+                </summary>
+                <p>${escapeHtml(description)}</p>
+                <div class="portal-feature-list">${rows}</div>
+            </details>
+        `;
+    }
+
     function formValue(value) {
         return escapeHtml(formatPlainValue(value, ""));
     }
@@ -3450,57 +3485,22 @@
                 `;
             }).join("");
 
-            const featurePanels = [
-                ["customer", "Customer Feature Control", CUSTOMER_FEATURES],
-                ["driver", "Driver Feature Control", DRIVER_FEATURES]
-            ].map((group) => {
-                const portal = group[0];
-                const portalFeatures = ((controls.portalFeatures || {})[portal]) || {};
-                return `
-                    <article class="portal-control-card feature-control-panel">
-                        <header>
-                            <div>
-                                <strong>${escapeHtml(group[1])}</strong>
-                                <p>Feature-level control is shared with the live ${escapeHtml(portal)} portal.</p>
-                            </div>
-                            <span class="status-pill good">${group[2].length} linked</span>
-                        </header>
-                        <div class="portal-feature-list">
-                            ${group[2].map((feature) => {
-                                const control = portalFeatures[feature[0]] || {};
-                                const enabled = control.enabled !== false && !["disabled", "paused", "blocked"].includes(cleanText(control.status || "active").toLowerCase());
-                                const featureLabel = cleanText(control.labelOverride || feature[1]);
-                                const correction = cleanText(control.correction || "");
-                                return `
-                                    <div class="feature-control-row">
-                                        <div class="feature-control-copy">
-                                            <strong>${escapeHtml(featureLabel)}</strong>
-                                            <small>${escapeHtml(feature[2])}</small>
-                                            ${correction ? `<small class="feature-correction-note">Admin correction: ${escapeHtml(correction)}</small>` : ""}
-                                        </div>
-                                        <div class="control-actions">
-                                            <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? "Connected" : "Paused"}</span>
-                                            <button class="row-action" data-control-action="edit-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button" title="Edit correction"><i class="fas fa-pen-to-square"></i></button>
-                                            <button class="row-action" data-control-action="enable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-link"></i></button>
-                                            <button class="danger-action" data-control-action="disable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-pause"></i></button>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join("")}
-                        </div>
-                    </article>
-                `;
-            }).join("");
-
-            portalHost.innerHTML = portalCards + featurePanels;
+            portalHost.innerHTML = portalCards;
         }
 
         if (customerHost) {
             const customers = getCustomerRows().slice(0, 20);
+            const customerFolder = renderPortalFeatureFolder(
+                "customer",
+                "Customer Portal Feature Folder",
+                "Open this folder only when customer portal features need control.",
+                CUSTOMER_FEATURES,
+                controls
+            );
             if (!customers.length) {
-                customerHost.innerHTML = `<div class="empty-state">No customer records found yet. Booking customers will appear here automatically.</div>`;
+                customerHost.innerHTML = `${customerFolder}<div class="empty-state">No customer records found yet. Booking customers will appear here automatically.</div>`;
             } else {
-                customerHost.innerHTML = customers.map((customer) => {
+                const customerRows = customers.map((customer) => {
                     const key = getControlEntityKey(customer);
                     const control = (controls.customers || {})[key] || {};
                     const status = cleanText(control.status || customer.adminControlStatus || "active").toLowerCase();
@@ -3519,19 +3519,27 @@
                         </article>
                     `;
                 }).join("");
+                customerHost.innerHTML = customerFolder + customerRows;
             }
         }
 
         if (driverHost) {
             const query = state.query.toLowerCase();
+            const driverFolder = renderPortalFeatureFolder(
+                "driver",
+                "Driver Portal Feature Folder",
+                "Open this folder only when driver portal features need control.",
+                DRIVER_FEATURES,
+                controls
+            );
             const drivers = state.drivers.filter((driver) => {
                 if (!query) return true;
                 return [driver.name, driver.phone, driver.vehicle, driver.status, driver.id].join(" ").toLowerCase().includes(query);
             }).slice(0, 24);
             if (!drivers.length) {
-                driverHost.innerHTML = `<div class="empty-state">No driver records found. Existing driver data will appear here automatically.</div>`;
+                driverHost.innerHTML = `${driverFolder}<div class="empty-state">No driver records found. Existing driver data will appear here automatically.</div>`;
             } else {
-                driverHost.innerHTML = drivers.map((driver) => {
+                const driverRows = drivers.map((driver) => {
                     const key = getControlEntityKey(driver);
                     const control = (controls.drivers || {})[key] || {};
                     const status = cleanText(control.status || driver.adminControlStatus || driver.status || "pending").toLowerCase();
@@ -3552,6 +3560,7 @@
                         </article>
                     `;
                 }).join("");
+                driverHost.innerHTML = driverFolder + driverRows;
             }
         }
     }
