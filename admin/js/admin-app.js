@@ -1025,11 +1025,29 @@
         `).join("");
     }
 
+    function renderDetailedSelectOptions(options, currentValue, fieldName = "") {
+        const selected = normalizeAutofillFullText(fieldName, currentValue).toLowerCase();
+        return options.map(([value, label]) => {
+            const safeValue = cleanText(value);
+            const isSelected = selected && selected === safeValue.toLowerCase();
+            return `<option value="${escapeHtml(safeValue)}"${isSelected ? " selected" : ""}>${escapeHtml(label || safeValue)}</option>`;
+        }).join("");
+    }
+
     function renderEditInput(name, label, value, attrs = "") {
         return `
             <label class="booking-edit-field">
                 <span>${escapeHtml(label)}</span>
                 <input name="${escapeHtml(name)}" value="${formValue(value)}" ${attrs}>
+            </label>
+        `;
+    }
+
+    function renderEditDetailedSelect(name, label, value, options) {
+        return `
+            <label class="booking-edit-field">
+                <span>${escapeHtml(label)}</span>
+                <select name="${escapeHtml(name)}">${renderDetailedSelectOptions(options, value, name)}</select>
             </label>
         `;
     }
@@ -1071,47 +1089,99 @@
         tripPlan: {
             city: "City / local ride within one city",
             local: "City / local ride within one city",
-            outstation: "Outstation intercity ride",
-            one_way: "One-way outstation ride",
-            round_trip: "Round-trip outstation ride with return journey",
-            rental: "Hourly rental / day rental ride",
-            hourly: "Hourly rental / day rental ride",
+            outstation: "Outstation intercity ride with route and fare confirmation",
+            one_way: "One-way outstation ride with no return booking",
+            round_trip: "Round-trip outstation ride with confirmed return journey",
+            rental: "Hourly rental / day rental ride with flexible local stops",
+            hourly: "Hourly rental / day rental ride with flexible local stops",
             airport: "Airport pickup or drop transfer",
-            airport_pickup: "Airport pickup transfer",
-            airport_drop: "Airport drop transfer",
-            multi_city: "Multi-city journey with route stops"
+            airport_pickup: "Airport pickup transfer with flight and terminal coordination",
+            airport_drop: "Airport drop transfer with departure-time buffer",
+            multi_city: "Multi-city journey with route stops",
+            sightseeing: "Sightseeing / tourism ride with planned attraction stops",
+            tour_package: "Tour package ride with itinerary and support coordination",
+            corporate: "Corporate / business ride with invoice-ready details",
+            wedding_event: "Wedding / event ride with scheduled reporting time",
+            medical: "Medical / emergency support ride with priority pickup",
+            city_tour: "City tour package with fixed local sightseeing points",
+            pilgrimage: "Pilgrimage / temple tour with planned waiting time",
+            hotel_transfer: "Hotel, resort or villa transfer with doorstep pickup",
+            employee_shuttle: "Employee shuttle / monthly corporate commute",
+            hill_station: "Hill-station outstation ride with experienced hill-route driver",
+            event_shuttle: "Event shuttle for guest movement and multiple pickups",
+            late_night: "Late-night ride with verified driver and safety priority"
         },
         vehicleType: {
-            economy: "Economy ride category",
-            mini: "Mini compact ride category",
-            sedan: "Sedan comfort ride category",
-            suv: "SUV family ride category",
-            premium: "Premium ride category",
-            luxury: "Luxury ride category"
+            economy: "Economy ride category for budget city travel",
+            mini: "Mini compact ride category for 1-3 passengers",
+            sedan: "Sedan comfort ride category for family or business travel",
+            suv: "SUV family ride category for 5-7 passengers and luggage",
+            premium: "Premium ride category with upgraded comfort",
+            luxury: "Luxury ride category for VIP or special occasions",
+            tempo_traveller: "Tempo traveller category for group travel",
+            wheelchair_accessible: "Wheelchair accessible vehicle category",
+            women_safe: "Women-safe preferred ride category with verified driver",
+            ev: "Electric vehicle category where available",
+            mpv: "MPV / MUV category for family with extra luggage",
+            corporate_fleet: "Corporate fleet category with invoice and reporting support",
+            pet_friendly: "Pet-friendly cab category with prior driver confirmation"
         },
         vehicleModel: {
-            hatchback_car: "Hatchback car",
-            sedan_car: "Sedan car",
-            suv_car: "SUV car",
-            tempo_traveller: "Tempo traveller",
-            luxury_car: "Luxury car"
+            hatchback_car: "Hatchback car for compact city rides",
+            sedan_car: "Sedan car with AC comfort and boot space",
+            suv_car: "SUV car with extra seats and luggage space",
+            innova_crysta: "Toyota Innova Crysta / equivalent family SUV",
+            ertiga: "Maruti Ertiga / equivalent 6-7 seat MPV",
+            tempo_traveller: "Tempo traveller for group tours",
+            luxury_car: "Luxury car for premium guest travel",
+            wheelchair_accessible_car: "Wheelchair accessible car with assistance",
+            ev_car: "Electric vehicle option where available",
+            swift_dzire: "Swift Dzire / equivalent sedan for 4 passengers",
+            toyota_etios: "Toyota Etios / equivalent sedan for outstation travel",
+            toyota_innova: "Toyota Innova / equivalent 6-7 seat family vehicle",
+            tavera: "Chevrolet Tavera / equivalent large family vehicle",
+            xylo_marazzo: "Xylo, Marazzo, Triber or equivalent 6-7 seat SUV",
+            brezza_prime: "Maruti Brezza / SUV Prime equivalent compact SUV",
+            twelve_seater_traveller: "12-seater tempo traveller for group movement",
+            force_traveller: "Force Traveller / equivalent large group vehicle"
         },
         luggage: {
             none: "No luggage",
-            small: "Small luggage",
-            medium: "Medium luggage",
-            large: "Large luggage",
-            extra: "Extra luggage"
+            small: "Small luggage: 1 cabin bag or backpack",
+            medium: "Medium luggage: 1-2 suitcases",
+            large: "Large luggage: 3-4 suitcases",
+            extra: "Extra luggage: 5+ bags or bulky items",
+            sports: "Sports / fragile luggage requiring careful handling",
+            wheelchair: "Wheelchair or medical equipment luggage",
+            assured_boot: "Assured boot luggage space required",
+            roof_carrier: "Roof-top carrier required for extra bags",
+            airport_luggage: "Airport luggage: checked bags plus cabin bags",
+            family_luggage: "Family trip luggage with multiple suitcases",
+            no_cng_boot: "Avoid CNG boot-space issue; luggage space must be clear"
         },
         paymentMethod: {
-            cash: "Cash payment",
-            upi: "UPI payment",
-            card: "Card payment",
-            wallet: "Wallet payment",
-            online: "Online payment",
-            paypal: "PayPal payment",
-            razorpay: "Razorpay online payment"
+            cash: "Cash payment to driver after ride",
+            upi: "UPI payment using Indian payment apps",
+            card: "Card payment by debit or credit card",
+            wallet: "GOindiaRIDE wallet payment",
+            online: "Online payment link before ride",
+            paypal: "PayPal payment for international customer",
+            razorpay: "Razorpay online payment gateway",
+            advance_partial: "Partial advance payment with balance after ride",
+            corporate_invoice: "Corporate invoice / account billing",
+            net_banking: "Net banking payment before ride",
+            ewallet: "External e-wallet payment option",
+            pay_later: "Pay-later / collect balance after ride",
+            full_advance: "Full advance prepaid booking"
         }
+    };
+
+    const BOOKING_REQUIREMENT_OPTIONS = {
+        tripPlan: Object.values(BOOKING_AUTOFILL_FULL_LABELS.tripPlan).map((value) => [value, value]),
+        vehicleType: Object.values(BOOKING_AUTOFILL_FULL_LABELS.vehicleType).map((value) => [value, value]),
+        vehicleModel: Object.values(BOOKING_AUTOFILL_FULL_LABELS.vehicleModel).map((value) => [value, value]),
+        luggage: Object.values(BOOKING_AUTOFILL_FULL_LABELS.luggage).map((value) => [value, value]),
+        paymentMethod: Object.values(BOOKING_AUTOFILL_FULL_LABELS.paymentMethod).map((value) => [value, value])
     };
 
     function normalizeAutofillFullText(fieldName, value) {
@@ -1175,11 +1245,11 @@
             returnDate: "",
             returnTime: "",
             tripPlan: "City / local ride within one city",
-            vehicleType: "Sedan comfort ride category",
-            vehicleModel: "Sedan car",
+            vehicleType: "Sedan comfort ride category for family or business travel",
+            vehicleModel: "Sedan car with AC comfort and boot space",
             passengers: 1,
             luggage: "No luggage",
-            paymentMethod: "Cash payment",
+            paymentMethod: "Cash payment to driver after ride",
             fare: 0,
             distanceKm: 0,
             driverId: "",
@@ -1550,12 +1620,12 @@
                 ${renderEditInput("rideTime", "Ride time", defaultAdminRideTime(), 'type="time" required')}
                 ${renderEditInput("returnDate", "Return date", "", 'type="date"')}
                 ${renderEditInput("returnTime", "Return time", "", 'type="time"')}
-                ${renderEditInput("tripPlan", "Trip plan", "city")}
-                ${renderEditInput("vehicleType", "Vehicle type", "sedan")}
-                ${renderEditInput("vehicleModel", "Vehicle model", "")}
+                ${renderEditDetailedSelect("tripPlan", "Trip plan", "city", BOOKING_REQUIREMENT_OPTIONS.tripPlan)}
+                ${renderEditDetailedSelect("vehicleType", "Vehicle type", "sedan", BOOKING_REQUIREMENT_OPTIONS.vehicleType)}
+                ${renderEditDetailedSelect("vehicleModel", "Vehicle model", "sedan_car", BOOKING_REQUIREMENT_OPTIONS.vehicleModel)}
                 ${renderEditInput("passengers", "Passengers", 1, 'type="number" min="1" max="20"')}
-                ${renderEditInput("luggage", "Luggage", "none")}
-                ${renderEditInput("paymentMethod", "Payment method", "cash")}
+                ${renderEditDetailedSelect("luggage", "Luggage", "none", BOOKING_REQUIREMENT_OPTIONS.luggage)}
+                ${renderEditDetailedSelect("paymentMethod", "Payment method", "cash", BOOKING_REQUIREMENT_OPTIONS.paymentMethod)}
                 ${renderEditInput("fare", "Fare / amount", 0, 'type="number" min="0" step="1"')}
                 ${renderEditInput("distanceKm", "Distance KM", 0, 'type="number" min="0" step="0.1"')}
                 <label class="booking-edit-field">
@@ -1719,12 +1789,12 @@
                 ${renderEditInput("rideTime", "Ride time", booking.rideTime, 'type="time"')}
                 ${renderEditInput("returnDate", "Return date", booking.returnDate || booking.returnTrip?.returnDate, 'type="date"')}
                 ${renderEditInput("returnTime", "Return time", booking.returnTime || booking.returnTrip?.returnTime, 'type="time"')}
-                ${renderEditInput("tripPlan", "Trip plan", booking.tripPlan || booking.bookingMode || booking.mode)}
-                ${renderEditInput("vehicleType", "Vehicle type", booking.vehicleType || booking.rideType)}
-                ${renderEditInput("vehicleModel", "Vehicle model", booking.vehicleModel)}
+                ${renderEditDetailedSelect("tripPlan", "Trip plan", booking.tripPlan || booking.bookingMode || booking.mode, BOOKING_REQUIREMENT_OPTIONS.tripPlan)}
+                ${renderEditDetailedSelect("vehicleType", "Vehicle type", booking.vehicleType || booking.rideType, BOOKING_REQUIREMENT_OPTIONS.vehicleType)}
+                ${renderEditDetailedSelect("vehicleModel", "Vehicle model", booking.vehicleModel, BOOKING_REQUIREMENT_OPTIONS.vehicleModel)}
                 ${renderEditInput("passengers", "Passengers", booking.passengers || 1, 'type="number" min="1" max="20"')}
-                ${renderEditInput("luggage", "Luggage", booking.luggage)}
-                ${renderEditInput("paymentMethod", "Payment method", booking.paymentMethod || booking.payment?.method || booking.paymentMode)}
+                ${renderEditDetailedSelect("luggage", "Luggage", booking.luggage, BOOKING_REQUIREMENT_OPTIONS.luggage)}
+                ${renderEditDetailedSelect("paymentMethod", "Payment method", booking.paymentMethod || booking.payment?.method || booking.paymentMode, BOOKING_REQUIREMENT_OPTIONS.paymentMethod)}
                 ${renderEditInput("fare", "Fare / amount", booking.fare || booking.totalFare || booking.amount || booking.finalFare, 'type="number" min="0" step="1"')}
                 ${renderEditInput("distanceKm", "Distance KM", booking.distanceKm || booking.distance, 'type="number" min="0" step="0.1"')}
                 ${renderEditInput("driverId", "Driver ID", booking.driverId)}
