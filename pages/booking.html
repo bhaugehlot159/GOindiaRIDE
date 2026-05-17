@@ -3514,22 +3514,22 @@
                         </div>
 
                         <div class="form-section booking-phone-panel" style="margin-top: 1rem; padding: 1rem;">
-                            <h3 style="margin-bottom: 0.8rem;"><i class="fas fa-mobile-alt"></i> Mobile Verification</h3>
-                            <p class="booking-phone-copy">Verify your active mobile number before booking. The verified number appears in booking details and admin emails.</p>
+                            <h3 style="margin-bottom: 0.8rem;"><i class="fas fa-mobile-alt"></i> Contact Number</h3>
+                            <p class="booking-phone-copy">Enter an active mobile number for trip updates, driver coordination, and admin booking emails.</p>
                             <div class="form-group">
                                 <label for="bookingCustomerPhone">Customer Mobile *</label>
                                 <input type="tel" id="bookingCustomerPhone" placeholder="Example: +919876543210" oninput="handleBookingPhoneInputChange()">
                             </div>
-                            <div class="form-group" style="margin-top: 0.75rem;">
+                            <div class="form-group" style="display: none; margin-top: 0.75rem;">
                                 <label for="bookingPhoneOtp">OTP Code</label>
                                 <input type="text" id="bookingPhoneOtp" inputmode="numeric" maxlength="8" placeholder="Enter OTP">
                             </div>
-                            <div class="booking-phone-actions">
+                            <div class="booking-phone-actions" style="display: none;">
                                 <button type="button" class="quick-action-btn" onclick="sendBookingPhoneOtp()"><i class="fas fa-paper-plane"></i> Send OTP</button>
                                 <button type="button" class="quick-action-btn" onclick="verifyBookingPhoneOtp()"><i class="fas fa-check-circle"></i> Verify Phone</button>
                             </div>
-                            <p id="bookingPhoneStatus" class="promo-status" style="display: block; margin-top: 0.8rem;">Verified mobile number is required for booking.</p>
-                            <div id="bookingPhoneRecaptchaContainer" style="min-height:1px; margin-top:0.5rem;"></div>
+                            <p id="bookingPhoneStatus" class="promo-status" style="display: block; margin-top: 0.8rem;">Contact mobile number is required for booking.</p>
+                            <div id="bookingPhoneRecaptchaContainer" style="display:none; min-height:1px; margin-top:0.5rem;"></div>
                         </div>
                     </div>
 
@@ -3976,7 +3976,7 @@
                     <article class="cab-update-card">
                         <i class="fas fa-globe-asia"></i>
                         <h3>International airport cab pre-booking</h3>
-                        <p>Capture flight, pickup, phone verification, and international payment mode in the same booking flow.</p>
+                        <p>Capture flight, pickup, contact number, and international payment mode in the same booking flow.</p>
                     </article>
                     <article class="cab-update-card">
                         <i class="fas fa-map-location-dot"></i>
@@ -4039,7 +4039,7 @@
                 </details>
                 <details class="cab-faq-card">
                     <summary>Will old booking features remain active?</summary>
-                    <p>Yes. OTP verification, customer details, ride type, vehicle model, route add-ons, fare breakdown, backend sync, admin queue, and receipt modals are still connected.</p>
+                    <p>Yes. Customer details, required contact number, ride type, vehicle model, route add-ons, fare breakdown, backend sync, admin queue, and receipt modals are still connected.</p>
                 </details>
             </section>
 
@@ -4782,7 +4782,7 @@
             airport: {
                 location: 'Airport booking ke liye pickup aur airport/drop location fill karein.',
                 when: 'Flight ya pickup schedule ke hisaab se future date and time choose karein.',
-                trip: 'Airport transfer, payment mode, coupon and mobile verification yahin manage hota hai.',
+                trip: 'Airport transfer, payment mode, coupon and required contact number yahin manage hota hai.',
                 ride: 'Airport luggage aur comfort ke hisaab se vehicle segment select karein.',
                 passengers: 'Passenger and luggage details se fare estimate accurate hota hai.',
                 requests: 'Meet and greet, AC, charger, WiFi jaise airport comfort options yahin select karein.',
@@ -4792,7 +4792,7 @@
             outstation: {
                 location: 'Outstation ke liye pickup city aur destination city/location fill karein.',
                 when: 'Outstation journey start time future me hona chahiye.',
-                trip: 'One way, round trip, budget, payment, coupon and mobile verification yahin set hota hai.',
+                trip: 'One way, round trip, budget, payment, coupon and required contact number yahin set hota hai.',
                 ride: 'Long-route comfort ke liye sedan, SUV, traveller, coach ya premium segment select karein.',
                 passengers: 'Passenger count and luggage route planning ke liye important hai.',
                 route: 'Outstation me add stops, return route and intermediate city planning yahin rahega.',
@@ -4803,7 +4803,7 @@
             day_trips: {
                 location: 'Hourly rental ke liye pickup city/location fill karein. Drop city optional package flow me handle hota hai.',
                 when: 'Rental package start date and time choose karein.',
-                trip: 'Hourly package, city rental service, payment, coupon and mobile verification yahin set hota hai.',
+                trip: 'Hourly package, city rental service, payment, coupon and required contact number yahin set hota hai.',
                 ride: 'City rental ke liye hatchback, sedan, SUV ya premium vehicle choose karein.',
                 passengers: 'Passenger and luggage details city package ke liye set karein.',
                 route: 'Hourly rental me multi-stop city route yahin add karein.',
@@ -6082,6 +6082,8 @@
             return resolvedEmail;
         }
 
+        const BOOKING_PHONE_OTP_REQUIRED = window.__GOINDIARIDE_BOOKING_OTP_REQUIRED__ === true;
+
         function resolveCurrentCustomerPhoneMeta() {
             const directLocalPhone = normalizeCustomerPhoneValue((currentUser && (currentUser.phone || currentUser.mobile)) || '');
             const formPhone = normalizeCustomerPhoneValue(document.getElementById('bookingCustomerPhone')?.value || '');
@@ -6109,26 +6111,30 @@
                 matched && (matched.phone || matched.mobile || matched.contact || matched.contact1 || '')
             );
             const resolvedLocalPhone = formPhone || directLocalPhone || matchedLocalPhone;
-            const formPhoneNeedsVerification = Boolean(formPhone && formPhone !== directLocalPhone && formPhone !== matchedLocalPhone);
+            const formPhoneNeedsVerification = Boolean(BOOKING_PHONE_OTP_REQUIRED && formPhone && formPhone !== directLocalPhone && formPhone !== matchedLocalPhone);
             const hasVerificationMarker = Boolean(
-                formPhoneNeedsVerification
-                || (currentUser && (Object.prototype.hasOwnProperty.call(currentUser, 'isPhoneVerified') || Object.prototype.hasOwnProperty.call(currentUser, 'phoneVerified')))
-                || (matched && (
-                    Object.prototype.hasOwnProperty.call(matched, 'isPhoneVerified')
-                    || Object.prototype.hasOwnProperty.call(matched, 'phoneVerified')
-                    || Object.prototype.hasOwnProperty.call(matched, 'mobileVerified')
-                ))
+                BOOKING_PHONE_OTP_REQUIRED && (
+                    formPhoneNeedsVerification
+                    || (currentUser && (Object.prototype.hasOwnProperty.call(currentUser, 'isPhoneVerified') || Object.prototype.hasOwnProperty.call(currentUser, 'phoneVerified')))
+                    || (matched && (
+                        Object.prototype.hasOwnProperty.call(matched, 'isPhoneVerified')
+                        || Object.prototype.hasOwnProperty.call(matched, 'phoneVerified')
+                        || Object.prototype.hasOwnProperty.call(matched, 'mobileVerified')
+                    ))
+                )
             );
-            const verified = Boolean(
-                isTruthyVerificationFlag(currentUser && (currentUser.isPhoneVerified || currentUser.phoneVerified))
-                || isTruthyVerificationFlag(matched && (matched.isPhoneVerified || matched.phoneVerified || matched.mobileVerified))
-            );
+            const verified = BOOKING_PHONE_OTP_REQUIRED
+                ? Boolean(
+                    isTruthyVerificationFlag(currentUser && (currentUser.isPhoneVerified || currentUser.phoneVerified))
+                    || isTruthyVerificationFlag(matched && (matched.isPhoneVerified || matched.phoneVerified || matched.mobileVerified))
+                )
+                : Boolean(resolvedLocalPhone);
 
             if (resolvedLocalPhone) {
                 persistResolvedCurrentUserSession({
                     phone: resolvedLocalPhone,
                     phoneE164: resolvedLocalPhone,
-                    ...(hasVerificationMarker ? { isPhoneVerified: verified } : {})
+                    ...(BOOKING_PHONE_OTP_REQUIRED && hasVerificationMarker ? { isPhoneVerified: verified } : {})
                 });
             }
 
@@ -6550,6 +6556,14 @@
             input.value = phoneMeta.localPhone || '';
             const otpInput = document.getElementById('bookingPhoneOtp');
             if (otpInput) otpInput.value = '';
+            if (!BOOKING_PHONE_OTP_REQUIRED) {
+                if (phoneMeta.localPhone) {
+                    setBookingPhoneStatus(`Contact number ready: ${phoneMeta.localPhone}`, 'success');
+                } else {
+                    setBookingPhoneStatus('Contact mobile number is required for booking.');
+                }
+                return;
+            }
             const reviewFallback = getBookingPhoneReviewFallback(phoneMeta.localPhone);
             if (phoneMeta.localPhone && phoneMeta.verified) {
                 setBookingPhoneStatus(`Verified mobile ready: ${phoneMeta.localPhone}`, 'success');
@@ -6571,6 +6585,17 @@
             }
             clearBookingBackendOtpSession();
             clearBookingPhoneReviewFallback();
+            if (!BOOKING_PHONE_OTP_REQUIRED) {
+                const normalizedPhone = normalizeCustomerPhoneValue(phoneValue);
+                if (normalizedPhone) {
+                    setBookingPhoneStatus(`Contact number ready: ${normalizedPhone}`, 'success');
+                } else if (phoneValue) {
+                    setBookingPhoneStatus('Please enter a valid mobile number.', 'error');
+                } else {
+                    setBookingPhoneStatus('Contact mobile number is required for booking.');
+                }
+                return;
+            }
             if (phoneValue) {
                 setBookingPhoneStatus('Send OTP to verify this mobile number before booking.');
             } else {
@@ -6579,6 +6604,10 @@
         }
 
         async function sendBookingPhoneOtp() {
+            if (!BOOKING_PHONE_OTP_REQUIRED) {
+                setBookingPhoneStatus('OTP verification is temporarily disabled. Contact number is enough for booking.', 'success');
+                return;
+            }
             const input = document.getElementById('bookingCustomerPhone');
             const normalizedPhone = window.GoIndiaPhoneVerification?.normalizePhone
                 ? window.GoIndiaPhoneVerification.normalizePhone(input?.value || '')
@@ -6684,6 +6713,10 @@
         }
 
         async function verifyBookingPhoneOtp() {
+            if (!BOOKING_PHONE_OTP_REQUIRED) {
+                setBookingPhoneStatus('OTP verification is temporarily disabled. Contact number is enough for booking.', 'success');
+                return;
+            }
             const otpValue = sanitizeInput(document.getElementById('bookingPhoneOtp')?.value || '', 12);
             if (!otpValue) {
                 setBookingPhoneStatus('Please enter the OTP code.', 'error');
@@ -8008,11 +8041,11 @@
             const bookingPhoneInput = document.getElementById('bookingCustomerPhone');
             const customerPhoneMeta = resolveCurrentCustomerPhoneMeta();
             if (!customerPhoneMeta.localPhone) {
-                showError('Booking ke liye customer mobile number compulsory hai. Please enter your mobile number and verify OTP.');
+                showError('Booking ke liye customer mobile number compulsory hai. Please enter your mobile number.');
                 revealBookingField('bookingCustomerPhone');
                 return;
             }
-            if (customerPhoneMeta.hasVerificationMarker && !customerPhoneMeta.verified) {
+            if (BOOKING_PHONE_OTP_REQUIRED && customerPhoneMeta.hasVerificationMarker && !customerPhoneMeta.verified) {
                 showError('Booking ke liye verified mobile number compulsory hai. Please complete OTP verification first.');
                 revealBookingField('bookingCustomerPhone');
                 setBookingPhoneStatus('Please verify this mobile number with OTP before booking.', 'error');
@@ -8022,7 +8055,12 @@
             if (bookingPhoneInput) {
                 bookingPhoneInput.value = resolvedBookingPhone;
             }
-            setBookingPhoneStatus(`Verified mobile ready: ${resolvedBookingPhone}`, 'success');
+            setBookingPhoneStatus(
+                BOOKING_PHONE_OTP_REQUIRED
+                    ? `Verified mobile ready: ${resolvedBookingPhone}`
+                    : `Contact number ready: ${resolvedBookingPhone}`,
+                'success'
+            );
 
             const fareBreakdown = {
                 ...currentFareEstimate,
@@ -8073,8 +8111,8 @@
                 customerEmail: resolveCurrentCustomerEmail(),
                 customerPhone: resolvedBookingPhone,
                 phoneVerification: {
-                    status: 'verified',
-                    source: 'customer_otp',
+                    status: BOOKING_PHONE_OTP_REQUIRED ? 'verified' : 'contact_only',
+                    source: BOOKING_PHONE_OTP_REQUIRED ? 'customer_otp' : 'customer_required_contact',
                     fallbackReason: ''
                 },
                 pickup: pickup,

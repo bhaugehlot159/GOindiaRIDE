@@ -7,11 +7,20 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(__dirname, '..', '..', relativePath), 'utf8');
 }
 
-test('booking page requires live inline phone verification before booking submit', () => {
+test('booking page requires contact number while OTP verification is temporarily gated off', () => {
   const html = readRepoFile('pages/booking.html');
 
   assert.match(html, /id="bookingCustomerPhone"/);
+  assert.match(html, /Contact Number/);
+  assert.match(html, /Contact mobile number is required for booking/);
+  assert.match(html, /const BOOKING_PHONE_OTP_REQUIRED = window\.__GOINDIARIDE_BOOKING_OTP_REQUIRED__ === true/);
+  assert.match(html, /BOOKING_PHONE_OTP_REQUIRED && customerPhoneMeta\.hasVerificationMarker/);
+  assert.match(html, /Booking ke liye customer mobile number compulsory hai\. Please enter your mobile number\./);
+  assert.match(html, /status: BOOKING_PHONE_OTP_REQUIRED \? 'verified' : 'contact_only'/);
+  assert.match(html, /source: BOOKING_PHONE_OTP_REQUIRED \? 'customer_otp' : 'customer_required_contact'/);
+  assert.match(html, /OTP verification is temporarily disabled\. Contact number is enough for booking/);
   assert.match(html, /id="bookingPhoneOtp"/);
+  assert.match(html, /<div class="form-group" style="display: none; margin-top: 0\.75rem;">\s*<label for="bookingPhoneOtp">OTP Code<\/label>/);
   assert.match(html, /id="bookingPhoneRecaptchaContainer"/);
   assert.match(html, /function sendBookingPhoneOtp\(\)/);
   assert.match(html, /function verifyBookingPhoneOtp\(\)/);
@@ -26,8 +35,9 @@ test('booking page requires live inline phone verification before booking submit
   assert.match(html, /meta_send_failed/);
   assert.match(html, /syncVerifiedPhoneWithBackend\(verifiedPhone\)/);
   assert.match(html, /isPhoneVerified:\s*true/);
-  assert.match(html, /Booking ke liye verified mobile number compulsory hai/);
   assert.match(html, /phone-verification\.js\?v=20260516-inline-phone1/);
+  assert.doesNotMatch(html, /Mobile Verification<\/h3>/);
+  assert.doesNotMatch(html, /Please enter your mobile number and verify OTP/);
   assert.doesNotMatch(html, /admin_review_pending/);
   assert.doesNotMatch(html, /service_unavailable_admin_review/);
   assert.doesNotMatch(html, /Phone OTP verification is currently paused/);
