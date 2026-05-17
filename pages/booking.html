@@ -6166,7 +6166,14 @@
                 || text.includes('mobile otp provider is not configured')
                 || text.includes('sms/whatsapp settings')
                 || text.includes('sms_provider_not_configured')
+                || text.includes('meta_send_failed')
+                || text.includes('meta_request_failed')
+                || text.includes('meta token')
+                || text.includes('twilio_send_failed')
+                || text.includes('twilio_request_failed')
+                || text.includes('msg91_send_failed')
                 || text.includes('fast2sms_not_configured')
+                || text.includes('fast2sms_send_failed')
                 || text.includes('msg91_not_configured')
                 || text.includes('twilio_sms_not_configured')
                 || text.includes('api_domain_unreachable')
@@ -6436,8 +6443,7 @@
             const data = result.data || {};
             const delivery = data.delivery || {};
             const deliverySent = Boolean(delivery.sent);
-            const devOtpGenerated = Boolean(data.devOtp);
-            if (result.ok && (deliverySent || devOtpGenerated)) {
+            if (result.ok && deliverySent) {
                 setBookingBackendOtpSession(normalizedPhone, result.apiBase || '');
                 clearBookingPhoneReviewFallback();
                 return {
@@ -6447,7 +6453,10 @@
                 };
             }
 
-            const reason = sanitizeInput(data.message || result.reason || 'backend_sms_otp_failed', 220);
+            const reason = sanitizeInput(
+                [delivery.reason, delivery.message, data.message, result.reason, 'backend_sms_otp_failed'].filter(Boolean).join(': '),
+                260
+            );
             throw new Error(reason);
         }
 

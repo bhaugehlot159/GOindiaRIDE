@@ -32,6 +32,17 @@ const router = express.Router();
 const DEVICE_APPROVAL_ENABLED = true;
 const PASSWORD_RESET_PURPOSE = 'password_reset';
 
+function isProductionRuntime() {
+  const nodeEnv = String(process.env.NODE_ENV || '').toLowerCase().trim();
+  return nodeEnv === 'production'
+    || Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID || process.env.RENDER_EXTERNAL_URL);
+}
+
+function allowOtpDevResponse() {
+  if (isProductionRuntime()) return false;
+  return String(process.env.OTP_DEV_RESPONSE_ENABLED || process.env.TEST_MODE || '').toLowerCase().trim() === 'true';
+}
+
 function findTrustedDevice(user, deviceFingerprint) {
   if (!user || !Array.isArray(user.trustedDevices) || !deviceFingerprint) return null;
 
@@ -1784,7 +1795,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
       };
     }
 
-    const isProd = String(process.env.NODE_ENV || '').toLowerCase().trim() === 'production';
+    const canExposeDevOtp = allowOtpDevResponse();
     const deliveryOk = emailDeliverySucceeded(deliveryResult);
     const deliverySummary = {
       channel: 'email',
@@ -1794,7 +1805,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
       reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : (deliveryOk ? undefined : 'email_not_accepted'),
       bootstrapAdmin: Boolean(canBootstrapAdmin),
     };
-    if (!deliveryOk && isProd) {
+    if (!deliveryOk && !canExposeDevOtp) {
       return res.status(503).json({
         message: 'Password reset email provider is not configured or failed. Please check SMTP settings.',
         delivery: deliverySummary,
@@ -1804,7 +1815,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
     return res.status(200).json({
       message: deliveryOk ? 'Password reset OTP sent successfully' : 'Password reset OTP generated. Email provider is not configured.',
       delivery: deliverySummary,
-      ...(isProd ? {} : { devOtp: otp }),
+      ...(canExposeDevOtp ? { devOtp: otp } : {}),
     });
   } catch (error) {
     console.error('forgot-password/request error:', error);
@@ -2076,8 +2087,8 @@ router.post("/request-otp", async (req, res) => {
       };
     }
 
-    // 8) Response (devOtp only in non-production)
-    const isProd = String(process.env.NODE_ENV || "").toLowerCase().trim() === "production";
+    // 8) Response (devOtp only when explicitly enabled in local/test)
+    const canExposeDevOtp = allowOtpDevResponse();
     const deliveryOk = channel === 'email'
       ? emailDeliverySucceeded(deliveryResult)
       : Boolean(deliveryResult && deliveryResult.sent);
@@ -2095,10 +2106,11 @@ router.post("/request-otp", async (req, res) => {
           sent: deliveryOk,
           skipped: Boolean(deliveryResult && deliveryResult.skipped),
           provider: deliveryResult && deliveryResult.provider ? deliveryResult.provider : undefined,
-          reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined
+          reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined,
+          message: deliveryResult && deliveryResult.message ? deliveryResult.message : undefined
         };
 
-    if (!deliveryOk && isProd) {
+    if (!deliveryOk && !canExposeDevOtp) {
       return res.status(503).json({
         message: channel === 'email'
           ? 'Email OTP provider is not configured or failed. Please check SMTP settings.'
@@ -2110,7 +2122,7 @@ router.post("/request-otp", async (req, res) => {
     return res.status(200).json({
       message: deliveryOk ? "OTP sent successfully" : "OTP generated. Delivery provider is not configured.",
       delivery: deliverySummary,
-      ...(isProd ? {} : { devOtp: otp }),
+      ...(canExposeDevOtp ? { devOtp: otp } : {}),
     });
   } catch (err) {
     console.error("request-otp error:", err);

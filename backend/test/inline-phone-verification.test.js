@@ -21,6 +21,7 @@ test('booking page requires live inline phone verification before booking submit
   assert.match(html, /verifyBackendBookingPhoneOtp\(backendOtpSession\.phone,\s*otpValue\)/);
   assert.match(html, /\/api\/auth\/request-otp/);
   assert.match(html, /\/api\/auth\/otp\/verify/);
+  assert.match(html, /result\.ok && deliverySent/);
   assert.match(html, /syncVerifiedPhoneWithBackend\(verifiedPhone\)/);
   assert.match(html, /isPhoneVerified:\s*true/);
   assert.match(html, /Booking ke liye verified mobile number compulsory hai/);
@@ -29,6 +30,16 @@ test('booking page requires live inline phone verification before booking submit
   assert.doesNotMatch(html, /service_unavailable_admin_review/);
   assert.doesNotMatch(html, /Phone OTP verification is currently paused/);
   assert.doesNotMatch(html, /Firebase OTP verification scripts are temporarily paused/);
+});
+
+test('backend OTP responses do not expose dev codes on live runtime', () => {
+  const authRoutes = readRepoFile('backend/src/routes/authRoutes.js');
+
+  assert.match(authRoutes, /function allowOtpDevResponse\(\)/);
+  assert.match(authRoutes, /isProductionRuntime\(\)/);
+  assert.match(authRoutes, /if \(!deliveryOk && !canExposeDevOtp\)/);
+  assert.match(authRoutes, /\.\.\.\(canExposeDevOtp \? \{ devOtp: otp \} : \{\}\)/);
+  assert.doesNotMatch(authRoutes, /\.\.\.\(isProd \? \{\} : \{ devOtp: otp \}\)/);
 });
 
 test('customer dashboard profile saves phone through live OTP verification', () => {
