@@ -6208,6 +6208,19 @@
             return rawMessage;
         }
 
+        function shouldTryFirebaseAfterBackendOtpFailure(message) {
+            const text = String(message || '').trim().toLowerCase();
+            return (
+                text.includes('api_domain_unreachable')
+                || text.includes('server_api_unavailable')
+                || text.includes('all_api_candidates_failed')
+                || text.includes('no_available_api_base_candidates')
+                || text.includes('request_timeout')
+                || text.includes('network_error')
+                || text.includes('failed to fetch')
+            );
+        }
+
         function setBookingPhoneReviewFallback(phone, reason = '') {
             const normalizedPhone = normalizeCustomerPhoneValue(phone);
             if (!normalizedPhone) return;
@@ -6580,6 +6593,31 @@
             if (phoneMeta.verified && phoneMeta.localPhone === normalizedPhone) {
                 setBookingPhoneStatus(`Mobile already verified: ${normalizedPhone}`, 'success');
                 return;
+            }
+
+            try {
+                setBookingPhoneStatus('Sending OTP through secure SMS gateway...');
+                await sendBackendBookingPhoneOtp(normalizedPhone);
+                if (input) input.value = normalizedPhone;
+                setBookingPhoneStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify Phone.`, 'success');
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
+                }
+                return;
+            } catch (backendFirstError) {
+                const backendFirstMessage = String(backendFirstError?.message || '').trim();
+                console.warn('Booking phone backend SMS OTP failed before Firebase fallback.', backendFirstError);
+                if (!shouldTryFirebaseAfterBackendOtpFailure(backendFirstMessage)) {
+                    if (isBookingPhoneServiceUnavailableReason(backendFirstMessage)) {
+                        setBookingPhoneReviewFallback(normalizedPhone, backendFirstMessage);
+                    }
+                    const message = getBookingPhoneCustomerMessage(backendFirstMessage, 'OTP send failed. Please retry.');
+                    setBookingPhoneStatus(message, 'error');
+                    if (typeof showErrorToast === 'function') {
+                        showErrorToast(message, 'Phone Verification');
+                    }
+                    return;
+                }
             }
 
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {

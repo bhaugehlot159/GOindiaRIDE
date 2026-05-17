@@ -22,6 +22,8 @@ test('booking page requires live inline phone verification before booking submit
   assert.match(html, /\/api\/auth\/request-otp/);
   assert.match(html, /\/api\/auth\/otp\/verify/);
   assert.match(html, /result\.ok && deliverySent/);
+  assert.match(html, /shouldTryFirebaseAfterBackendOtpFailure/);
+  assert.match(html, /meta_send_failed/);
   assert.match(html, /syncVerifiedPhoneWithBackend\(verifiedPhone\)/);
   assert.match(html, /isPhoneVerified:\s*true/);
   assert.match(html, /Booking ke liye verified mobile number compulsory hai/);
