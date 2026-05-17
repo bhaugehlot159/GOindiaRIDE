@@ -1534,6 +1534,23 @@
             border-color: transparent !important;
         }
 
+        body.booking-page.professional-booking .section-selector-btn.is-locked {
+            opacity: 0.48;
+            cursor: not-allowed;
+            filter: grayscale(0.2);
+        }
+
+        body.booking-page.professional-booking .section-selector-btn.is-complete {
+            border-color: rgba(29, 142, 89, 0.24) !important;
+            background: #edf8f2 !important;
+            color: #1d6443 !important;
+        }
+
+        body.booking-page.professional-booking .section-selector-btn.is-complete.is-active {
+            background: linear-gradient(135deg, #17416a 0%, #1e7d8c 100%) !important;
+            color: #ffffff !important;
+        }
+
         body.booking-page.professional-booking .form-section.pro-collapsible {
             margin-bottom: 0 !important;
             padding: 0 !important;
@@ -1545,6 +1562,15 @@
 
         body.booking-page.professional-booking .form-section.pro-collapsible.is-collapsed {
             display: none;
+        }
+
+        body.booking-page.professional-booking .form-section.pro-collapsible.is-service-hidden {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .form-section.pro-collapsible.is-step-locked .section-toggle-btn {
+            cursor: not-allowed;
+            opacity: 0.78;
         }
 
         body.booking-page.professional-booking .section-toggle-btn {
@@ -1565,8 +1591,80 @@
             padding: 0.82rem 0.92rem 0.95rem;
         }
 
+        body.booking-page.professional-booking .service-folder-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin: 0 0 0.72rem;
+            padding: 0.62rem 0.72rem;
+            border-radius: 10px;
+            background: #eef8ff;
+            color: #25556e;
+            font-size: 0.82rem;
+            line-height: 1.35;
+            font-weight: 800;
+        }
+
+        body.booking-page.professional-booking .service-folder-note i {
+            margin-top: 0.1rem;
+            color: #1684ba;
+        }
+
+        body.booking-page.professional-booking .service-folder-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-top: 0.85rem;
+            padding-top: 0.85rem;
+            border-top: 1px solid rgba(45, 69, 103, 0.1);
+        }
+
+        body.booking-page.professional-booking .service-folder-prev,
+        body.booking-page.professional-booking .service-folder-next {
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            border-radius: 9px !important;
+            padding: 0.56rem 0.78rem !important;
+            border: 1px solid #cdd9e8 !important;
+            font-weight: 900;
+        }
+
+        body.booking-page.professional-booking .service-folder-prev {
+            background: #ffffff !important;
+            color: #31516e !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .service-folder-next {
+            background: linear-gradient(100deg, #35aee7 0%, #0867e9 100%) !important;
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 8px 18px rgba(8, 103, 233, 0.18) !important;
+            margin-left: auto;
+        }
+
+        body.booking-page.professional-booking .service-folder-prev[disabled],
+        body.booking-page.professional-booking .service-folder-next[disabled] {
+            opacity: 0.48;
+            cursor: not-allowed;
+        }
+
         body.booking-page.professional-booking .form-group {
             margin-bottom: 0.65rem;
+        }
+
+        body.booking-page.professional-booking .booking-form-section .feature-pills,
+        body.booking-page.professional-booking .booking-form-section #tripFlowPills {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking:not(.cab-flow-outstation) #journeyModeRow,
+        body.booking-page.professional-booking:not(.cab-flow-outstation) .return-trip-toggle-row,
+        body.booking-page.professional-booking:not(.cab-flow-outstation) #returnTripFields {
+            display: none !important;
         }
 
         body.booking-page.professional-booking .form-group label {
@@ -2720,6 +2818,292 @@
             box-shadow: 0 12px 24px rgba(5, 98, 240, 0.2) !important;
             border-radius: 12px !important;
         }
+
+        body.booking-page.professional-booking .cab-console-brand {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+        }
+
+        body.booking-page.professional-booking .cab-brand-kicker {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.34rem 0.6rem;
+            border-radius: 999px;
+            background: #eef8ff;
+            color: #0e7fab;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .cab-console-brand h2 {
+            margin: 0.45rem 0 0;
+            color: #071f35 !important;
+            font-size: clamp(1.55rem, 2.5vw, 2.1rem);
+            line-height: 1.08;
+            letter-spacing: 0;
+        }
+
+        body.booking-page.professional-booking .cab-brand-proof {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.45rem;
+            max-width: 310px;
+        }
+
+        body.booking-page.professional-booking .cab-brand-proof span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.34rem;
+            padding: 0.45rem 0.66rem;
+            border-radius: 999px;
+            background: #f6f9fc;
+            color: #244158;
+            border: 1px solid #dbe6f0;
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+
+        body.booking-page.professional-booking .cab-console-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(270px, 0.38fr);
+            gap: 0.95rem;
+            align-items: stretch;
+        }
+
+        body.booking-page.professional-booking .cab-console-main,
+        body.booking-page.professional-booking .cab-live-sidecar {
+            min-width: 0;
+        }
+
+        body.booking-page.professional-booking .cab-mini-form {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.72rem;
+            margin-top: 0.82rem;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field {
+            min-width: 0;
+            min-height: 78px;
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            grid-template-rows: auto 1fr;
+            column-gap: 0.65rem;
+            align-items: center;
+            border: 1px solid #dbe5ef;
+            border-radius: 14px;
+            padding: 0.68rem 0.78rem;
+            background: #fbfcfe;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field i {
+            grid-row: 1 / 3;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: #edf6fd;
+            color: #477186 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field span {
+            color: #6b7480;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input,
+        body.booking-page.professional-booking .cab-mini-field select {
+            width: 100%;
+            min-width: 0;
+            min-height: 32px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: #132a40 !important;
+            font-size: 0.98rem !important;
+            font-weight: 900;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input::placeholder {
+            color: #6c7680;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input:focus,
+        body.booking-page.professional-booking .cab-mini-field select:focus {
+            outline: none;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field:focus-within {
+            border-color: #23a5d4;
+            background: #ffffff;
+            box-shadow: 0 10px 22px rgba(35, 165, 212, 0.12);
+        }
+
+        body.booking-page.professional-booking .cab-mini-field-wide {
+            grid-column: span 2;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console.is-hourly .cab-drop-mini-field {
+            display: none;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console:not(.is-hourly) .cab-mini-field.cab-package-field {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-live-sidecar {
+            display: grid;
+            gap: 0.72rem;
+            padding: 0.9rem;
+            border-radius: 14px;
+            background:
+                linear-gradient(180deg, #f8fcff 0%, #ffffff 100%) !important;
+            border: 1px solid #dbe5ef;
+        }
+
+        body.booking-page.professional-booking .cab-side-title {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.8rem;
+        }
+
+        body.booking-page.professional-booking .cab-side-title span,
+        body.booking-page.professional-booking .cab-side-grid small {
+            color: #6a7887;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .cab-side-title strong {
+            color: #09243c;
+            font-size: 1.75rem;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        body.booking-page.professional-booking .cab-live-sidecar p {
+            margin: 0;
+            color: #50677a;
+            font-size: 0.86rem;
+            line-height: 1.4;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.55rem;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid span {
+            min-width: 0;
+            display: grid;
+            gap: 0.16rem;
+            padding: 0.62rem;
+            border-radius: 12px;
+            background: #f2f7fb;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid i {
+            color: #158bb7 !important;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid b {
+            min-width: 0;
+            color: #132a40;
+            font-size: 0.88rem;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        body.booking-page.professional-booking .cab-side-status {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.48rem;
+            padding: 0.62rem 0.72rem;
+            border-radius: 12px;
+            background: #eaf8ef;
+            color: #17633d;
+            font-size: 0.82rem;
+            font-weight: 900;
+            line-height: 1.3;
+        }
+
+        body.booking-page.professional-booking .cab-side-status i {
+            margin-top: 0.08rem;
+            color: #17633d !important;
+        }
+
+        @media (max-width: 1180px) {
+            body.booking-page.professional-booking .cab-console-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body.booking-page.professional-booking .cab-live-sidecar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            body.booking-page.professional-booking .cab-console-brand {
+                display: none;
+            }
+
+            body.booking-page.professional-booking .cab-console-grid {
+                gap: 0.78rem;
+            }
+
+            body.booking-page.professional-booking .cab-mini-form {
+                grid-template-columns: 1fr;
+                gap: 0.58rem;
+                margin-top: 0.72rem;
+            }
+
+            body.booking-page.professional-booking .cab-mini-field,
+            body.booking-page.professional-booking .cab-mini-field-wide {
+                grid-column: auto;
+                min-height: 66px;
+            }
+
+            body.booking-page.professional-booking .cab-mini-field input,
+            body.booking-page.professional-booking .cab-mini-field select {
+                font-size: 0.92rem !important;
+            }
+
+            body.booking-page.professional-booking .cab-mini-field input::placeholder {
+                font-size: 0.82rem;
+            }
+
+            body.booking-page.professional-booking .cab-live-sidecar {
+                padding: 0.78rem;
+            }
+
+            body.booking-page.professional-booking .cab-side-title strong {
+                font-size: 1.42rem;
+            }
+
+            body.booking-page.professional-booking .cab-side-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
     </style>
     <script src="../js/data-preservation-guard.js?v=20260512-data-preserve1"></script>
 </head>
@@ -2781,88 +3165,125 @@
                 </button>
             </div>
 
-            <div class="cab-mode-tabs" id="cabModeTabs" role="tablist" aria-label="Cab service type">
-                <button type="button" class="cab-mode-tab" data-flow-target="outstation" data-trip-plan-target="outstation" role="tab" aria-selected="false">
-                    <i class="fas fa-car-side"></i>
-                    <span>Outstation<br>Cabs</span>
-                </button>
-                <button type="button" class="cab-mode-tab is-active" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="true">
-                    <i class="fas fa-plane-departure"></i>
-                    <span>Airport<br>Cabs</span>
-                </button>
-                <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
-                    <b class="cab-new-badge">NEW</b>
-                    <i class="fas fa-clock"></i>
-                    <span>Hourly<br>Rentals</span>
-                </button>
+            <div class="cab-console-brand">
+                <div>
+                    <span class="cab-brand-kicker">Services across India and 2000+ cities</span>
+                    <h2>Book reliable cabs with live fare clarity</h2>
+                </div>
+                <div class="cab-brand-proof" aria-label="Booking proof">
+                    <span><i class="fas fa-star"></i> 4.8 service rating</span>
+                    <span><i class="fas fa-headset"></i> 24/7 trip desk</span>
+                </div>
             </div>
 
-            <div class="cab-mode-notice" id="cabModeNotice">
-                <i class="fas fa-circle-info"></i>
-                <span>Pre-book domestic and international airport cabs with meet and greet readiness.</span>
-            </div>
+            <div class="cab-console-grid">
+                <div class="cab-console-main">
+                    <div class="cab-mode-tabs" id="cabModeTabs" role="tablist" aria-label="Cab service type">
+                        <button type="button" class="cab-mode-tab" data-flow-target="outstation" data-trip-plan-target="outstation" role="tab" aria-selected="false">
+                            <i class="fas fa-car-side"></i>
+                            <span>Outstation<br>Cabs</span>
+                        </button>
+                        <button type="button" class="cab-mode-tab is-active" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="true">
+                            <i class="fas fa-plane-departure"></i>
+                            <span>Airport<br>Cabs</span>
+                        </button>
+                        <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
+                            <b class="cab-new-badge">NEW</b>
+                            <i class="fas fa-clock"></i>
+                            <span>Hourly<br>Rentals</span>
+                        </button>
+                    </div>
 
-            <div class="cab-journey-row" id="cabJourneyQuickModes" aria-label="Journey type">
-                <button type="button" class="cab-journey-chip is-active" data-journey-target="one_way">
-                    <i class="fas fa-arrow-right"></i>
-                    One Way
-                </button>
-                <button type="button" class="cab-journey-chip" data-journey-target="round_trip">
-                    <i class="fas fa-repeat"></i>
-                    Round Trip
-                </button>
-                <button type="button" class="cab-journey-chip" data-journey-target="multi_city">
-                    <i class="fas fa-route"></i>
-                    Multi City
-                </button>
-            </div>
+                    <div class="cab-mode-notice" id="cabModeNotice">
+                        <i class="fas fa-circle-info"></i>
+                        <span>Pre-book domestic and international airport cabs with meet and greet readiness.</span>
+                    </div>
 
-            <div class="cab-quick-fields">
-                <button type="button" class="cab-quick-field" data-reveal-field="pickup">
-                    <i class="fas fa-circle-dot"></i>
-                    <span>
-                        <strong>From</strong>
-                        <small id="cabQuickFrom">Select pickup location</small>
-                    </span>
-                </button>
-                <button type="button" class="cab-quick-field" data-reveal-field="dropoff">
-                    <i class="far fa-circle-dot"></i>
-                    <span>
-                        <strong>To</strong>
-                        <small id="cabQuickTo">Select drop location</small>
-                    </span>
-                </button>
-                <button type="button" class="cab-quick-field" data-reveal-field="rideDate">
-                    <i class="far fa-calendar"></i>
-                    <span>
-                        <strong>Trip Start</strong>
-                        <small id="cabQuickStart">Choose date and time</small>
-                    </span>
-                </button>
-                <button type="button" class="cab-quick-field cab-package-field" data-reveal-field="tripPlan">
-                    <i class="far fa-clock"></i>
-                    <span>
-                        <strong>Select Package</strong>
-                        <small id="cabQuickPackage">Airport transfer</small>
-                    </span>
-                </button>
-            </div>
+                    <div class="cab-journey-row" id="cabJourneyQuickModes" aria-label="Journey type">
+                        <button type="button" class="cab-journey-chip is-active" data-journey-target="one_way">
+                            <i class="fas fa-arrow-right"></i>
+                            One Way
+                        </button>
+                        <button type="button" class="cab-journey-chip" data-journey-target="round_trip">
+                            <i class="fas fa-repeat"></i>
+                            Round Trip
+                        </button>
+                        <button type="button" class="cab-journey-chip" data-journey-target="multi_city">
+                            <i class="fas fa-route"></i>
+                            Multi City
+                        </button>
+                    </div>
 
-            <div class="cab-console-actions">
-                <button type="button" class="cab-add-stop-btn" data-reveal-field="stop1">
-                    <i class="fas fa-plus"></i>
-                    Add Stops
-                </button>
-                <button type="button" class="cab-primary-search" id="cabPrimarySearch">
-                    <i class="fas fa-magnifying-glass"></i>
-                    Search
-                </button>
+                    <div class="cab-mini-form" aria-label="Quick cab booking form">
+                        <label class="cab-mini-field cab-mini-field-wide">
+                            <i class="fas fa-circle-dot"></i>
+                            <span>From</span>
+                            <input type="text" id="cabQuickPickupInput" placeholder="Pickup city / airport" autocomplete="off">
+                        </label>
+                        <label class="cab-mini-field cab-drop-mini-field">
+                            <i class="far fa-circle-dot"></i>
+                            <span>To</span>
+                            <input type="text" id="cabQuickDropoffInput" placeholder="Drop city / airport" autocomplete="off">
+                        </label>
+                        <label class="cab-mini-field">
+                            <i class="far fa-calendar"></i>
+                            <span>Trip Start</span>
+                            <input type="date" id="cabQuickDateInput">
+                        </label>
+                        <label class="cab-mini-field">
+                            <i class="far fa-clock"></i>
+                            <span>Time</span>
+                            <input type="time" id="cabQuickTimeInput">
+                        </label>
+                        <label class="cab-mini-field cab-package-field">
+                            <i class="fas fa-suitcase-rolling"></i>
+                            <span>Package</span>
+                            <select id="cabQuickPackageSelect">
+                                <option value="airport">Airport pickup / drop</option>
+                                <option value="outstation_one_way">Outstation one way</option>
+                                <option value="outstation_round">Outstation round trip</option>
+                                <option value="rental_1h">1 hr 10 kms</option>
+                                <option value="rental_4h">4 hrs 40 kms</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="cab-console-actions">
+                        <button type="button" class="cab-add-stop-btn" data-reveal-field="stop1">
+                            <i class="fas fa-plus"></i>
+                            Add Stops
+                        </button>
+                        <button type="button" class="cab-primary-search" id="cabPrimarySearch">
+                            <i class="fas fa-magnifying-glass"></i>
+                            Search Cabs
+                        </button>
+                    </div>
+                </div>
+
+                <aside class="cab-live-sidecar" aria-label="Live booking snapshot">
+                    <div class="cab-side-title">
+                        <span>Live Quote</span>
+                        <strong id="cabMiniTotalFare">₹0</strong>
+                    </div>
+                    <p id="cabMiniFareMeta">Enter pickup and drop to calculate route-aware fare.</p>
+                    <div class="cab-side-grid">
+                        <span><i class="fas fa-route"></i><b id="cabMiniDistance">0 km</b><small>Distance</small></span>
+                        <span><i class="fas fa-car-side"></i><b id="cabMiniVehicle">Hatchback Car</b><small>Vehicle</small></span>
+                        <span><i class="fas fa-receipt"></i><b id="cabMiniFareMode">Live fare</b><small>Pricing</small></span>
+                        <span><i class="fas fa-user-shield"></i><b>Approval first</b><small>Dispatch</small></span>
+                    </div>
+                    <div class="cab-side-status">
+                        <i class="fas fa-shield-halved"></i>
+                        <span id="cabMiniRouteStatus">Admin approval before driver assignment</span>
+                    </div>
+                </aside>
             </div>
 
             <div class="cab-trust-strip" aria-label="Booking trust highlights">
-                <span><i class="fas fa-shield-halved"></i> Admin approval before driver assignment</span>
+                <span><i class="fas fa-shield-halved"></i> Verified driver network</span>
                 <span><i class="fas fa-receipt"></i> Live fare breakdown</span>
                 <span><i class="fas fa-globe"></i> International payment ready</span>
+                <span><i class="fas fa-map-location-dot"></i> Airport, local, outstation</span>
             </div>
         </section>
 
@@ -2982,7 +3403,7 @@
                             <div id="promoStatus" class="promo-status"></div>
                         </div>
 
-                        <div class="toggle-row">
+                        <div class="toggle-row return-trip-toggle-row">
                             <label for="isReturnTrip"><strong>Round Trip</strong> (save on return leg)</label>
                             <input type="checkbox" id="isReturnTrip" onchange="toggleReturnTrip(); updateFare();">
                         </div>
@@ -3820,6 +4241,40 @@
             return node.options[node.selectedIndex]?.text || fallback;
         }
 
+        function setQuickControlValue(id, value) {
+            const node = document.getElementById(id);
+            if (!node || document.activeElement === node) return;
+            node.value = value || '';
+        }
+
+        function resolveCabPackageValue(flow = getActiveCabFlow()) {
+            const journeyMode = document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way';
+            if (flow === 'day_trips') return 'rental_1h';
+            if (flow === 'outstation') return journeyMode === 'round_trip' ? 'outstation_round' : 'outstation_one_way';
+            return 'airport';
+        }
+
+        function applyCabPackageValue(value, options = {}) {
+            const packageValue = String(value || 'airport');
+            if (packageValue === 'rental_1h' || packageValue === 'rental_4h') {
+                setCabBookingMode('day_trips', { skipFare: true });
+            } else if (packageValue === 'outstation_round') {
+                setCabBookingMode('outstation', { skipFare: true });
+                setCabJourneyMode('round_trip', { skipFare: true });
+            } else if (packageValue === 'outstation_one_way') {
+                setCabBookingMode('outstation', { skipFare: true });
+                setCabJourneyMode('one_way', { skipFare: true });
+            } else {
+                setCabBookingMode('airport', { skipFare: true });
+            }
+
+            if (options.skipFare !== true) {
+                updateFare();
+            } else {
+                updateBookingExperience();
+            }
+        }
+
         function formatCabStartText(dateValue, timeValue) {
             if (!dateValue && !timeValue) return 'Choose date and time';
             const dateTime = dateValue ? new Date(`${dateValue}T${timeValue || '00:00'}`) : null;
@@ -3848,10 +4303,41 @@
             const tripLabel = readSelectedOptionText('tripPlan', config.packageLabel);
             const modelLabel = readSelectedOptionText('vehicleModel', 'Hatchback Car');
 
+            setQuickControlValue('cabQuickPickupInput', pickup);
+            setQuickControlValue('cabQuickDropoffInput', dropoff);
+            setQuickControlValue('cabQuickDateInput', rideDate);
+            setQuickControlValue('cabQuickTimeInput', rideTime);
+            setQuickControlValue('cabQuickPackageSelect', resolveCabPackageValue(activeFlow));
             setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
             setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
             setTextIfPresent('cabQuickStart', formatCabStartText(rideDate, rideTime));
             setTextIfPresent('cabQuickPackage', activeFlow === 'day_trips' ? `${config.packageLabel} • ${modelLabel}` : tripLabel);
+        }
+
+        function syncCabMiniFare(estimate = {}) {
+            const values = estimate && typeof estimate === 'object' ? estimate : {};
+            const total = Number(values.totalFare || values.amount || 0);
+            const distanceKm = Number(values.distanceKm || 0);
+            const vehicleLabel = readSelectedOptionText('vehicleModel', 'Hatchback Car');
+            const flowLabel = getCabFlowConfig(getActiveCabFlow()).shortLabel;
+            const ready = routeIsReady(values);
+
+            setTextIfPresent('cabMiniTotalFare', formatCurrency(total));
+            setTextIfPresent('cabMiniDistance', `${Math.max(0, Math.round(distanceKm))} km`);
+            setTextIfPresent('cabMiniVehicle', vehicleLabel);
+            setTextIfPresent('cabMiniFareMode', flowLabel);
+            setTextIfPresent(
+                'cabMiniFareMeta',
+                ready
+                    ? `${flowLabel} estimate includes route, time, toll, tax and selected extras.`
+                    : 'Enter pickup and drop to calculate route-aware fare.'
+            );
+            setTextIfPresent(
+                'cabMiniRouteStatus',
+                ready
+                    ? 'Route ready for admin approval and driver dispatch.'
+                    : 'Admin approval before driver assignment'
+            );
         }
 
         function syncCabModeUi(flow = getActiveCabFlow()) {
@@ -3861,6 +4347,10 @@
             if (consoleNode) {
                 consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly');
                 consoleNode.classList.add(activeFlow === 'day_trips' ? 'is-hourly' : `is-${activeFlow}`);
+            }
+            if (document.body) {
+                document.body.classList.remove('cab-flow-airport', 'cab-flow-outstation', 'cab-flow-hourly');
+                document.body.classList.add(activeFlow === 'day_trips' ? 'cab-flow-hourly' : `cab-flow-${activeFlow}`);
             }
 
             document.querySelectorAll('[data-flow-target]').forEach((button) => {
@@ -3944,6 +4434,14 @@
                 return;
             }
 
+            if (activeFlow === 'day_trips') {
+                const pickupValue = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
+                const dropoffNode = document.getElementById('dropoff');
+                if (pickupValue && dropoffNode && !String(dropoffNode.value || '').trim()) {
+                    dropoffNode.value = `Hourly rental within ${pickupValue}`;
+                }
+            }
+
             updateDistanceEstimate();
             revealFieldFromShortcut(activeFlow === 'day_trips' ? 'tripPlan' : 'bookingCustomerPhone');
         }
@@ -4005,11 +4503,67 @@
                 searchButton.dataset.cabBound = '1';
             }
 
+            const pickupMini = document.getElementById('cabQuickPickupInput');
+            const dropoffMini = document.getElementById('cabQuickDropoffInput');
+            const dateMini = document.getElementById('cabQuickDateInput');
+            const timeMini = document.getElementById('cabQuickTimeInput');
+            const packageMini = document.getElementById('cabQuickPackageSelect');
+
+            const bindMiniLocation = (miniNode, targetId) => {
+                if (!miniNode || miniNode.dataset.cabMiniBound === '1') return;
+                miniNode.addEventListener('input', () => {
+                    const target = document.getElementById(targetId);
+                    if (target) target.value = miniNode.value;
+                    updateBookingExperience();
+                });
+                ['change', 'blur'].forEach((eventName) => {
+                    miniNode.addEventListener(eventName, () => {
+                        const target = document.getElementById(targetId);
+                        if (target) target.value = miniNode.value;
+                        handleLocationUpdated();
+                    });
+                });
+                miniNode.dataset.cabMiniBound = '1';
+            };
+
+            bindMiniLocation(pickupMini, 'pickup');
+            bindMiniLocation(dropoffMini, 'dropoff');
+
+            if (dateMini && dateMini.dataset.cabMiniBound !== '1') {
+                dateMini.addEventListener('change', () => {
+                    const rideDateNode = document.getElementById('rideDate');
+                    if (rideDateNode) rideDateNode.value = dateMini.value;
+                    toggleReturnTrip();
+                    updateFare();
+                    updateBookingExperience();
+                });
+                dateMini.dataset.cabMiniBound = '1';
+            }
+
+            if (timeMini && timeMini.dataset.cabMiniBound !== '1') {
+                timeMini.addEventListener('change', () => {
+                    const rideTimeNode = document.getElementById('rideTime');
+                    if (rideTimeNode) rideTimeNode.value = timeMini.value;
+                    toggleReturnTrip();
+                    updateFare();
+                    updateBookingExperience();
+                });
+                timeMini.dataset.cabMiniBound = '1';
+            }
+
+            if (packageMini && packageMini.dataset.cabMiniBound !== '1') {
+                packageMini.addEventListener('change', () => {
+                    applyCabPackageValue(packageMini.value);
+                });
+                packageMini.dataset.cabMiniBound = '1';
+            }
+
             setCabBookingMode(getActiveCabFlow(), { syncTripPlan: false, skipFare: true });
             setCabJourneyMode(document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way', {
                 syncReturnTrip: false,
                 skipFare: true
             });
+            syncCabMiniFare(latestFareEstimate || createAwaitingFareEstimate(readFareEstimateInputs()));
         }
 
         function formatCurrency(amount) {
@@ -4128,12 +4682,162 @@
             'additional notes': 'Notes'
         };
 
+        const BOOKING_STEP_KEY_BY_LABEL = {
+            'location': 'location',
+            'when': 'when',
+            'trip plan & payment': 'trip',
+            'ride type *': 'ride',
+            'passenger details': 'passengers',
+            'special requests': 'requests',
+            'route add-ons': 'route',
+            'safety & accessibility': 'safety',
+            'additional notes': 'notes'
+        };
+
+        const SERVICE_FOLDER_STEPS = {
+            airport: ['location', 'when', 'trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            outstation: ['location', 'when', 'trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes'],
+            day_trips: ['location', 'when', 'trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes']
+        };
+
+        const SERVICE_FOLDER_NOTES = {
+            airport: {
+                location: 'Airport booking ke liye pickup aur airport/drop location fill karein.',
+                when: 'Flight ya pickup schedule ke hisaab se future date and time choose karein.',
+                trip: 'Airport transfer, payment mode, coupon and mobile verification yahin manage hota hai.',
+                ride: 'Airport luggage aur comfort ke hisaab se vehicle segment select karein.',
+                passengers: 'Passenger and luggage details se fare estimate accurate hota hai.',
+                requests: 'Meet and greet, AC, charger, WiFi jaise airport comfort options yahin select karein.',
+                safety: 'Live sharing, masked calling, child seat and accessibility options add karein.',
+                notes: 'Flight number, terminal, gate, or pickup instruction yahan likh sakte hain.'
+            },
+            outstation: {
+                location: 'Outstation ke liye pickup city aur destination city/location fill karein.',
+                when: 'Outstation journey start time future me hona chahiye.',
+                trip: 'One way, round trip, budget, payment, coupon and mobile verification yahin set hota hai.',
+                ride: 'Long-route comfort ke liye sedan, SUV, traveller, coach ya premium segment select karein.',
+                passengers: 'Passenger count and luggage route planning ke liye important hai.',
+                route: 'Outstation me add stops, return route and intermediate city planning yahin rahega.',
+                requests: 'Long drive comfort options choose karein.',
+                safety: 'Verified driver, live trip share and accessibility options yahin choose karein.',
+                notes: 'Highway stop, hotel pickup, waiting, toll preference ya driver instruction yahan likhein.'
+            },
+            day_trips: {
+                location: 'Hourly rental ke liye pickup city/location fill karein. Drop city optional package flow me handle hota hai.',
+                when: 'Rental package start date and time choose karein.',
+                trip: 'Hourly package, city rental service, payment, coupon and mobile verification yahin set hota hai.',
+                ride: 'City rental ke liye hatchback, sedan, SUV ya premium vehicle choose karein.',
+                passengers: 'Passenger and luggage details city package ke liye set karein.',
+                route: 'Hourly rental me multi-stop city route yahin add karein.',
+                requests: 'City travel comfort options select karein.',
+                safety: 'Live sharing, masked calling and safety preferences add karein.',
+                notes: 'Meeting stops, waiting instruction, office route or local sightseeing notes yahan likhein.'
+            }
+        };
+
         function getCompactAccordionLabel(label) {
             const key = normalizeAccordionLabel(label)
                 .toLowerCase()
                 .replace(/\s+/g, ' ')
                 .trim();
             return BOOKING_STEP_SHORT_LABELS[key] || label;
+        }
+
+        function getSectionStepKey(section) {
+            const title = normalizeAccordionLabel(section?.dataset?.sectionTitle || '', '')
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+            return BOOKING_STEP_KEY_BY_LABEL[title] || section?.dataset?.stepKey || '';
+        }
+
+        function getServiceStepKeys(flow = getActiveCabFlow()) {
+            return SERVICE_FOLDER_STEPS[flow] || SERVICE_FOLDER_STEPS.airport;
+        }
+
+        function getAllAccordionSections() {
+            return Array.from(document.querySelectorAll('#bookingForm > .form-section.pro-collapsible'));
+        }
+
+        function getServiceVisibleSections(flow = getActiveCabFlow()) {
+            const allowed = new Set(getServiceStepKeys(flow));
+            return getAllAccordionSections().filter((section) => allowed.has(section.dataset.stepKey || getSectionStepKey(section)));
+        }
+
+        function isBookingStepComplete(stepKey, flow = getActiveCabFlow()) {
+            const hasValue = (id) => String(document.getElementById(id)?.value || '').trim().length > 0;
+            if (stepKey === 'location') {
+                if (flow === 'day_trips') return hasValue('pickup');
+                return hasValue('pickup') && hasValue('dropoff');
+            }
+            if (stepKey === 'when') return hasValue('rideDate') && hasValue('rideTime');
+            if (stepKey === 'trip') return hasValue('tripPlan') && hasValue('paymentMethod');
+            if (stepKey === 'ride') return Boolean(document.querySelector('input[name="rideType"]:checked')) && hasValue('vehicleModel');
+            if (stepKey === 'passengers') return hasValue('passengers') && hasValue('luggage');
+            return true;
+        }
+
+        function getUnlockedServiceStepIndex(sections, flow = getActiveCabFlow()) {
+            if (!sections.length) return -1;
+            const firstIncomplete = sections.findIndex((section) => !isBookingStepComplete(section.dataset.stepKey, flow));
+            if (firstIncomplete === -1) return sections.length - 1;
+            return Math.min(sections.length - 1, firstIncomplete);
+        }
+
+        function ensureServiceFolderNote(section, flow = getActiveCabFlow()) {
+            if (!section) return;
+            const body = section.querySelector(':scope > .form-section-body');
+            if (!body) return;
+            let note = body.querySelector(':scope > .service-folder-note');
+            if (!note) {
+                note = document.createElement('div');
+                note.className = 'service-folder-note';
+                note.innerHTML = '<i class="fas fa-folder-open"></i><span></span>';
+                body.insertBefore(note, body.firstChild);
+            }
+            const noteText = SERVICE_FOLDER_NOTES[flow]?.[section.dataset.stepKey] || 'Is folder ko complete karke next step par jaayein.';
+            const textNode = note.querySelector('span');
+            if (textNode) textNode.textContent = noteText;
+        }
+
+        function ensureServiceFolderActions(section) {
+            if (!section) return;
+            const body = section.querySelector(':scope > .form-section-body');
+            if (!body || body.querySelector(':scope > .service-folder-actions')) return;
+            const actions = document.createElement('div');
+            actions.className = 'service-folder-actions';
+            actions.innerHTML = `
+                <button type="button" class="service-folder-prev"><i class="fas fa-arrow-left"></i> Back</button>
+                <button type="button" class="service-folder-next">Continue <i class="fas fa-arrow-right"></i></button>
+            `;
+            body.appendChild(actions);
+            actions.querySelector('.service-folder-prev')?.addEventListener('click', () => moveServiceFolder(section, -1));
+            actions.querySelector('.service-folder-next')?.addEventListener('click', () => moveServiceFolder(section, 1));
+        }
+
+        function moveServiceFolder(currentSection, direction) {
+            const flow = getActiveCabFlow();
+            const sections = getServiceVisibleSections(flow);
+            const currentIndex = sections.indexOf(currentSection);
+            if (currentIndex === -1) return;
+
+            const nextIndex = currentIndex + direction;
+            if (nextIndex < 0) return;
+            if (nextIndex >= sections.length) {
+                document.querySelector('.summary-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            const unlockedIndex = getUnlockedServiceStepIndex(sections, flow);
+            if (direction > 0 && currentIndex > unlockedIndex) return;
+            if (direction > 0 && !isBookingStepComplete(currentSection.dataset.stepKey, flow)) {
+                const firstField = currentSection.querySelector('input:not([type="hidden"]), select, textarea');
+                if (firstField && typeof firstField.focus === 'function') firstField.focus({ preventScroll: true });
+                return;
+            }
+
+            setActiveAccordionSection(sections, sections[Math.min(nextIndex, unlockedIndex)]);
+            syncServiceFolderVisibility(flow);
         }
 
         function setSectionExpanded(section, expanded) {
@@ -4162,7 +4866,8 @@
         function setActiveAccordionSection(sections, activeSection) {
             if (!Array.isArray(sections) || !sections.length || !activeSection) return;
             sections.forEach((section) => {
-                setSectionExpanded(section, section === activeSection);
+                const isVisible = !section.classList.contains('is-service-hidden');
+                setSectionExpanded(section, isVisible && section === activeSection);
             });
             syncAccordionSelectorState(activeSection);
         }
@@ -4173,8 +4878,10 @@
 
             const section = field.closest('.form-section.pro-collapsible');
             if (section) {
-                const sections = Array.from(document.querySelectorAll('#bookingForm > .form-section.pro-collapsible'));
-                setActiveAccordionSection(sections, section);
+                const sections = getServiceVisibleSections();
+                if (!section.classList.contains('is-service-hidden')) {
+                    setActiveAccordionSection(sections, section);
+                }
             }
 
             window.setTimeout(() => {
@@ -4208,16 +4915,78 @@
                 button.textContent = getCompactAccordionLabel(label);
                 button.title = label;
                 button.dataset.targetSectionId = section.dataset.sectionId || '';
+                button.dataset.stepKey = section.dataset.stepKey || '';
                 button.setAttribute('aria-controls', section.id || '');
                 button.setAttribute('aria-label', `Open ${label}`);
                 button.setAttribute('aria-pressed', 'false');
                 button.addEventListener('click', () => {
+                    if (button.classList.contains('is-locked')) return;
                     setActiveAccordionSection(sections, section);
+                    syncServiceFolderVisibility(getActiveCabFlow());
                 });
                 selector.appendChild(button);
             });
 
             selector.dataset.version = version;
+        }
+
+        function syncServiceFolderVisibility(flow = getActiveCabFlow()) {
+            const allSections = getAllAccordionSections();
+            if (!allSections.length) return;
+
+            const allowedSteps = new Set(getServiceStepKeys(flow));
+            allSections.forEach((section) => {
+                const stepKey = section.dataset.stepKey || getSectionStepKey(section);
+                const isAllowed = allowedSteps.has(stepKey);
+                section.classList.toggle('is-service-hidden', !isAllowed);
+                if (!isAllowed) {
+                    setSectionExpanded(section, false);
+                }
+            });
+
+            const visibleSections = getServiceVisibleSections(flow);
+            if (!visibleSections.length) return;
+            ensureAccordionSelector(visibleSections);
+
+            const unlockedIndex = getUnlockedServiceStepIndex(visibleSections, flow);
+            let activeSection = visibleSections.find((section) => !section.classList.contains('is-collapsed'));
+            const activeIndex = visibleSections.indexOf(activeSection);
+            if (!activeSection || activeIndex === -1 || activeIndex > unlockedIndex) {
+                activeSection = visibleSections.find((section) => !isBookingStepComplete(section.dataset.stepKey, flow)) || visibleSections[Math.min(unlockedIndex, visibleSections.length - 1)];
+            }
+
+            visibleSections.forEach((section, index) => {
+                const stepComplete = isBookingStepComplete(section.dataset.stepKey, flow);
+                const isLocked = index > unlockedIndex;
+                section.classList.toggle('is-step-locked', isLocked);
+                section.dataset.serviceUnlocked = isLocked ? '0' : '1';
+                section.dataset.serviceComplete = stepComplete ? '1' : '0';
+                ensureServiceFolderNote(section, flow);
+                ensureServiceFolderActions(section);
+
+                const prevButton = section.querySelector('.service-folder-prev');
+                const nextButton = section.querySelector('.service-folder-next');
+                if (prevButton) prevButton.disabled = index === 0;
+                if (nextButton) {
+                    nextButton.disabled = isLocked || (index < visibleSections.length - 1 && !stepComplete);
+                    nextButton.innerHTML = index === visibleSections.length - 1
+                        ? 'Review Fare <i class="fas fa-receipt"></i>'
+                        : 'Continue <i class="fas fa-arrow-right"></i>';
+                }
+            });
+
+            document.querySelectorAll('#bookingSectionSelector .section-selector-btn').forEach((button) => {
+                const section = visibleSections.find((item) => item.dataset.sectionId === button.dataset.targetSectionId);
+                const index = visibleSections.indexOf(section);
+                const isLocked = index > unlockedIndex;
+                const complete = Boolean(section && isBookingStepComplete(section.dataset.stepKey, flow));
+                button.classList.toggle('is-locked', isLocked);
+                button.classList.toggle('is-complete', complete);
+                button.disabled = isLocked;
+                button.setAttribute('aria-disabled', isLocked ? 'true' : 'false');
+            });
+
+            setActiveAccordionSection(visibleSections, activeSection);
         }
 
         function initFormAccordion() {
@@ -4232,6 +5001,7 @@
                     if (!section.dataset.sectionTitle) {
                         const existingLabel = section.querySelector(':scope > .section-toggle-btn span');
                         section.dataset.sectionTitle = normalizeAccordionLabel(existingLabel?.textContent, `Step ${index + 1}`);
+                        section.dataset.stepKey = getSectionStepKey(section);
                     }
                     return;
                 }
@@ -4239,6 +5009,7 @@
                 const heading = section.querySelector(':scope > h3');
                 if (!heading) return;
                 section.dataset.sectionTitle = normalizeAccordionLabel(heading.textContent, `Step ${index + 1}`);
+                section.dataset.stepKey = getSectionStepKey(section);
 
                 const body = document.createElement('div');
                 body.className = 'form-section-body';
@@ -4269,17 +5040,15 @@
                 setSectionExpanded(section, shouldOpen);
 
                 trigger.addEventListener('click', () => {
-                    setActiveAccordionSection(sections, section);
+                    if (section.classList.contains('is-step-locked')) return;
+                    setActiveAccordionSection(getServiceVisibleSections(), section);
+                    syncServiceFolderVisibility(getActiveCabFlow());
                 });
 
                 section.dataset.proAccordionInit = '1';
             });
 
-            ensureAccordionSelector(sections);
-            const defaultSection = sections.find((section) => !section.classList.contains('is-collapsed')) || sections[0];
-            if (defaultSection) {
-                setActiveAccordionSection(sections, defaultSection);
-            }
+            syncServiceFolderVisibility(getActiveCabFlow());
 
             const form = document.getElementById('bookingForm');
             if (form && !form.dataset.proFocusBound) {
@@ -4287,8 +5056,8 @@
                     const isToggleTrigger = event.target && event.target.closest && event.target.closest('.section-toggle-btn');
                     if (isToggleTrigger) return;
                     const hostSection = event.target.closest('.form-section.pro-collapsible');
-                    if (hostSection && hostSection.classList.contains('is-collapsed')) {
-                        setActiveAccordionSection(sections, hostSection);
+                    if (hostSection && !hostSection.classList.contains('is-service-hidden') && !hostSection.classList.contains('is-step-locked') && hostSection.classList.contains('is-collapsed')) {
+                        setActiveAccordionSection(getServiceVisibleSections(), hostSection);
                     } else if (hostSection) {
                         syncAccordionSelectorState(hostSection);
                     }
@@ -4365,6 +5134,7 @@
 
             syncCabModeUi(currentFlow);
             updateFormProgress();
+            syncServiceFolderVisibility(currentFlow);
             updateRoutePreview();
         }
 
@@ -4594,6 +5364,7 @@
             setText('totalFare', formatCurrency(values.totalFare || values.amount || 0));
 
             latestFareEstimate = values;
+            syncCabMiniFare(values);
             updateBookingExperience();
             return Number(values.totalFare || values.amount || 0);
         }
@@ -6666,11 +7437,12 @@
 
             // Sanitize all inputs
             const pickup = sanitizeInput(document.getElementById('pickup').value);
-            const dropoff = sanitizeInput(document.getElementById('dropoff').value);
+            let dropoff = sanitizeInput(document.getElementById('dropoff').value);
             const rideDate = document.getElementById('rideDate').value;
             const rideTime = document.getElementById('rideTime').value;
             const rideType = document.querySelector('input[name="rideType"]:checked').value;
             const tripPlan = document.getElementById('tripPlan').value;
+            const activeFlow = getActiveCabFlow();
             const paymentMethod = document.getElementById('paymentMethod').value;
             const passengers = parseInt(document.getElementById('passengers').value, 10) || 1;
             const luggage = document.getElementById('luggage').value;
@@ -6682,6 +7454,11 @@
             const stop1 = sanitizeInput(document.getElementById('stop1').value).trim();
             const stop2 = sanitizeInput(document.getElementById('stop2').value).trim();
             const intermediateStops = [stop1, stop2].filter(Boolean);
+            if (activeFlow === 'day_trips' && pickup && !dropoff) {
+                dropoff = `Hourly rental within ${pickup}`;
+                const dropoffNode = document.getElementById('dropoff');
+                if (dropoffNode) dropoffNode.value = dropoff;
+            }
 
             const specialRequests = {
                 airCondition: document.getElementById('airCondition').checked,
@@ -6705,7 +7482,7 @@
                 return;
             }
 
-            if (pickup === dropoff) {
+            if (pickup === dropoff && activeFlow !== 'day_trips') {
                 showError('Pickup and dropoff cannot be same');
                 revealBookingField('dropoff');
                 return;
