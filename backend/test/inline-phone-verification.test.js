@@ -20,7 +20,9 @@ test('booking page requires contact number while OTP verification is temporarily
   assert.match(html, /source: BOOKING_PHONE_OTP_REQUIRED \? 'customer_otp' : 'customer_required_contact'/);
   assert.match(html, /OTP verification is temporarily disabled\. Contact number is enough for booking/);
   assert.match(html, /id="bookingPhoneOtp"/);
-  assert.match(html, /<div class="form-group" style="display: none; margin-top: 0\.75rem;">\s*<label for="bookingPhoneOtp">OTP Code<\/label>/);
+  assert.match(html, /<div class="form-group booking-otp-field" style="display: none; margin-top: 0\.75rem;">\s*<label for="bookingPhoneOtp">OTP Code<\/label>/);
+  assert.match(html, /booking-phone-actions booking-otp-controls/);
+  assert.match(html, /not\(\.booking-otp-required\).*booking-otp-controls/s);
   assert.match(html, /id="bookingPhoneRecaptchaContainer"/);
   assert.match(html, /function sendBookingPhoneOtp\(\)/);
   assert.match(html, /function verifyBookingPhoneOtp\(\)/);

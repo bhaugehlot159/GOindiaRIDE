@@ -2889,6 +2889,28 @@
             font-size: 0.92rem !important;
         }
 
+        body.booking-page.professional-booking:not(.booking-otp-required) .booking-phone-panel .booking-otp-field,
+        body.booking-page.professional-booking:not(.booking-otp-required) .booking-phone-panel .booking-otp-controls,
+        body.booking-page.professional-booking:not(.booking-otp-required) .booking-phone-panel #bookingPhoneRecaptchaContainer {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        body.booking-page.professional-booking.booking-otp-required .booking-phone-panel .booking-otp-field {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        body.booking-page.professional-booking.booking-otp-required .booking-phone-panel .booking-otp-controls {
+            display: flex !important;
+            visibility: visible !important;
+        }
+
+        body.booking-page.professional-booking.booking-otp-required .booking-phone-panel #bookingPhoneRecaptchaContainer {
+            display: block !important;
+            visibility: visible !important;
+        }
+
         body.booking-page.professional-booking #bookingPhoneStatus {
             border-radius: 10px !important;
             font-size: 0.86rem !important;
@@ -3520,11 +3542,11 @@
                                 <label for="bookingCustomerPhone">Customer Mobile *</label>
                                 <input type="tel" id="bookingCustomerPhone" placeholder="Example: +919876543210" oninput="handleBookingPhoneInputChange()">
                             </div>
-                            <div class="form-group" style="display: none; margin-top: 0.75rem;">
+                            <div class="form-group booking-otp-field" style="display: none; margin-top: 0.75rem;">
                                 <label for="bookingPhoneOtp">OTP Code</label>
                                 <input type="text" id="bookingPhoneOtp" inputmode="numeric" maxlength="8" placeholder="Enter OTP">
                             </div>
-                            <div class="booking-phone-actions" style="display: none;">
+                            <div class="booking-phone-actions booking-otp-controls" style="display: none;">
                                 <button type="button" class="quick-action-btn" onclick="sendBookingPhoneOtp()"><i class="fas fa-paper-plane"></i> Send OTP</button>
                                 <button type="button" class="quick-action-btn" onclick="verifyBookingPhoneOtp()"><i class="fas fa-check-circle"></i> Verify Phone</button>
                             </div>
@@ -6084,6 +6106,13 @@
 
         const BOOKING_PHONE_OTP_REQUIRED = window.__GOINDIARIDE_BOOKING_OTP_REQUIRED__ === true;
 
+        function syncBookingOtpUiState() {
+            if (!document.body) return;
+            document.body.classList.toggle('booking-otp-required', Boolean(BOOKING_PHONE_OTP_REQUIRED));
+        }
+
+        syncBookingOtpUiState();
+
         function resolveCurrentCustomerPhoneMeta() {
             const directLocalPhone = normalizeCustomerPhoneValue((currentUser && (currentUser.phone || currentUser.mobile)) || '');
             const formPhone = normalizeCustomerPhoneValue(document.getElementById('bookingCustomerPhone')?.value || '');
@@ -6549,6 +6578,7 @@
         }
 
         function hydrateBookingPhoneVerificationUI() {
+            syncBookingOtpUiState();
             const input = document.getElementById('bookingCustomerPhone');
             if (!input) return;
 
