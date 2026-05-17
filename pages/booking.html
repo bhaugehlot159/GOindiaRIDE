@@ -2689,6 +2689,16 @@
                 grid-template-columns: 1fr;
             }
 
+            body.booking-page.professional-booking .booking-phone-actions {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            body.booking-page.professional-booking .booking-phone-actions .quick-action-btn {
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+
             .cab-trust-strip {
                 display: grid;
                 grid-template-columns: 1fr;
@@ -2817,6 +2827,74 @@
             border: 0 !important;
             box-shadow: 0 12px 24px rgba(5, 98, 240, 0.2) !important;
             border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-panel {
+            background: #f7faff !important;
+            border: 1px solid #d6e5f7 !important;
+            border-radius: 14px !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-panel h3 {
+            color: #112f50 !important;
+            font-size: 1.08rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-copy {
+            color: #5d6c7c !important;
+            font-size: 0.9rem !important;
+            line-height: 1.42 !important;
+            margin-bottom: 1rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 0.65rem !important;
+            margin-top: 0.85rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn {
+            width: auto !important;
+            min-width: 138px !important;
+            max-width: 100% !important;
+            min-height: 44px !important;
+            height: 44px !important;
+            padding: 0.68rem 0.95rem !important;
+            border: 0 !important;
+            border-radius: 11px !important;
+            background: linear-gradient(100deg, #1fa8d7 0%, #1769da 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 8px 18px rgba(23, 105, 218, 0.18) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.42rem !important;
+            font-size: 0.88rem !important;
+            font-weight: 900 !important;
+            line-height: 1 !important;
+            text-align: center !important;
+            transform: none !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 10px 22px rgba(23, 105, 218, 0.22) !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn i,
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn * {
+            color: #ffffff !important;
+            font-size: 0.92rem !important;
+        }
+
+        body.booking-page.professional-booking #bookingPhoneStatus {
+            border-radius: 10px !important;
+            font-size: 0.86rem !important;
+            line-height: 1.38 !important;
+            padding: 0.72rem 0.82rem !important;
+            overflow-wrap: anywhere !important;
         }
 
         body.booking-page.professional-booking .cab-console-brand {
@@ -3435,9 +3513,9 @@
                             </div>
                         </div>
 
-                        <div class="form-section" style="margin-top: 1rem; padding: 1rem; border: 1px solid rgba(102, 126, 234, 0.18); border-radius: 12px; background: rgba(102, 126, 234, 0.04);">
+                        <div class="form-section booking-phone-panel" style="margin-top: 1rem; padding: 1rem;">
                             <h3 style="margin-bottom: 0.8rem;"><i class="fas fa-mobile-alt"></i> Mobile Verification</h3>
-                            <p style="margin-bottom: 1rem; color: #5f6b7a; font-size: 0.92rem;">Verify your active mobile number before booking. The verified number appears in booking details and admin emails.</p>
+                            <p class="booking-phone-copy">Verify your active mobile number before booking. The verified number appears in booking details and admin emails.</p>
                             <div class="form-group">
                                 <label for="bookingCustomerPhone">Customer Mobile *</label>
                                 <input type="tel" id="bookingCustomerPhone" placeholder="Example: +919876543210" oninput="handleBookingPhoneInputChange()">
@@ -3446,7 +3524,7 @@
                                 <label for="bookingPhoneOtp">OTP Code</label>
                                 <input type="text" id="bookingPhoneOtp" inputmode="numeric" maxlength="8" placeholder="Enter OTP">
                             </div>
-                            <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.85rem;">
+                            <div class="booking-phone-actions">
                                 <button type="button" class="quick-action-btn" onclick="sendBookingPhoneOtp()"><i class="fas fa-paper-plane"></i> Send OTP</button>
                                 <button type="button" class="quick-action-btn" onclick="verifyBookingPhoneOtp()"><i class="fas fa-check-circle"></i> Verify Phone</button>
                             </div>
@@ -6006,6 +6084,7 @@
 
         function resolveCurrentCustomerPhoneMeta() {
             const directLocalPhone = normalizeCustomerPhoneValue((currentUser && (currentUser.phone || currentUser.mobile)) || '');
+            const formPhone = normalizeCustomerPhoneValue(document.getElementById('bookingCustomerPhone')?.value || '');
             const safeUserId = sanitizeInput((currentUser && currentUser.id) || '', 120);
             const safeEmail = sanitizeInput((currentUser && currentUser.email) || '', 180).toLowerCase();
             const candidateRows = getCustomerAccountLookupRows();
@@ -6026,11 +6105,14 @@
                 return false;
             });
 
-            const resolvedLocalPhone = directLocalPhone || normalizeCustomerPhoneValue(
+            const matchedLocalPhone = normalizeCustomerPhoneValue(
                 matched && (matched.phone || matched.mobile || matched.contact || matched.contact1 || '')
             );
+            const resolvedLocalPhone = formPhone || directLocalPhone || matchedLocalPhone;
+            const formPhoneNeedsVerification = Boolean(formPhone && formPhone !== directLocalPhone && formPhone !== matchedLocalPhone);
             const hasVerificationMarker = Boolean(
-                (currentUser && (Object.prototype.hasOwnProperty.call(currentUser, 'isPhoneVerified') || Object.prototype.hasOwnProperty.call(currentUser, 'phoneVerified')))
+                formPhoneNeedsVerification
+                || (currentUser && (Object.prototype.hasOwnProperty.call(currentUser, 'isPhoneVerified') || Object.prototype.hasOwnProperty.call(currentUser, 'phoneVerified')))
                 || (matched && (
                     Object.prototype.hasOwnProperty.call(matched, 'isPhoneVerified')
                     || Object.prototype.hasOwnProperty.call(matched, 'phoneVerified')
@@ -6059,11 +6141,188 @@
         }
 
         const BOOKING_PHONE_VERIFICATION_SESSION_KEY = 'goindiaride-booking-phone-verify';
+        const BOOKING_PHONE_BACKEND_OTP_SESSION_KEY = 'goindiaride-booking-phone-backend-otp';
+        const BOOKING_PHONE_REVIEW_FALLBACK_KEY = 'goindiaride-booking-phone-review-fallback';
+        const BOOKING_PHONE_BACKEND_OTP_TTL_MS = 7 * 60 * 1000;
+        const BOOKING_PHONE_REVIEW_FALLBACK_TTL_MS = 45 * 60 * 1000;
+        const BOOKING_PHONE_SERVICE_FALLBACK_MESSAGE = 'Phone verification service is temporarily unavailable. Please try Send OTP again in a moment or contact support.';
+
+        function isBookingPhoneServiceUnavailableReason(message) {
+            const text = String(message || '').trim().toLowerCase();
+            if (!text) return false;
+            return (
+                text.includes('firebase key mismatch')
+                || text.includes('auth/invalid-api-key')
+                || text.includes('invalid api key')
+                || text.includes('firebae_key')
+                || text.includes('firebase_key')
+                || text.includes('firebase phone verification config')
+                || text.includes('phone verification library load')
+                || text.includes('firebase domain/recaptcha')
+                || text.includes('auth/unauthorized-domain')
+                || text.includes('captcha-check-failed')
+                || text.includes('recaptcha')
+                || text.includes('phone verification service is still loading')
+                || text.includes('mobile otp provider is not configured')
+                || text.includes('sms/whatsapp settings')
+                || text.includes('sms_provider_not_configured')
+                || text.includes('fast2sms_not_configured')
+                || text.includes('msg91_not_configured')
+                || text.includes('twilio_sms_not_configured')
+                || text.includes('api_domain_unreachable')
+                || text.includes('server_api_unavailable')
+                || text.includes('all_api_candidates_failed')
+                || text.includes('no_available_api_base_candidates')
+                || text.includes('request_timeout')
+                || text.includes('network_error')
+                || text.includes('failed to fetch')
+            );
+        }
+
+        function getBookingPhoneCustomerMessage(message, fallback = 'Phone verification failed. Please retry.') {
+            const rawMessage = String(message || '').trim();
+            if (!rawMessage) return fallback;
+            const lower = rawMessage.toLowerCase();
+            if (isBookingPhoneServiceUnavailableReason(rawMessage)) {
+                return BOOKING_PHONE_SERVICE_FALLBACK_MESSAGE;
+            }
+            if (lower.includes('otp not found') || lower.includes('pehle otp')) {
+                return 'Please send OTP first, then enter the code here.';
+            }
+            if (lower.includes('otp already used')) {
+                return 'This OTP is already used. Please request a new OTP.';
+            }
+            if (lower.includes('otp expired')) {
+                return 'OTP expired. Please request a new OTP.';
+            }
+            if (lower.includes('invalid otp') || lower.includes('invalid-verification-code') || lower.includes('wrong')) {
+                return 'OTP code is not correct. Please check the SMS and try again.';
+            }
+            return rawMessage;
+        }
+
+        function setBookingPhoneReviewFallback(phone, reason = '') {
+            const normalizedPhone = normalizeCustomerPhoneValue(phone);
+            if (!normalizedPhone) return;
+            try {
+                sessionStorage.setItem(BOOKING_PHONE_REVIEW_FALLBACK_KEY, JSON.stringify({
+                    phone: normalizedPhone,
+                    reason: sanitizeInput(reason || 'phone_verification_service_unavailable', 180),
+                    createdAt: Date.now()
+                }));
+            } catch (_error) {
+                // Ignore storage restrictions; the current submit attempt can still proceed.
+            }
+        }
+
+        function getBookingPhoneReviewFallback(phone = '') {
+            const normalizedPhone = normalizeCustomerPhoneValue(phone);
+            try {
+                const parsed = JSON.parse(sessionStorage.getItem(BOOKING_PHONE_REVIEW_FALLBACK_KEY) || '{}');
+                const storedPhone = normalizeCustomerPhoneValue(parsed.phone || '');
+                const createdAt = Number(parsed.createdAt || 0);
+                const fresh = createdAt && Date.now() - createdAt < BOOKING_PHONE_REVIEW_FALLBACK_TTL_MS;
+                if (storedPhone && fresh && (!normalizedPhone || storedPhone === normalizedPhone)) {
+                    return {
+                        phone: storedPhone,
+                        reason: sanitizeInput(parsed.reason || 'phone_verification_service_unavailable', 180)
+                    };
+                }
+            } catch (_error) {
+                // Ignore malformed session storage.
+            }
+            return null;
+        }
+
+        function clearBookingPhoneReviewFallback() {
+            try {
+                sessionStorage.removeItem(BOOKING_PHONE_REVIEW_FALLBACK_KEY);
+            } catch (_error) {
+                // Ignore storage restrictions.
+            }
+        }
+
+        function setBookingBackendOtpSession(phone, apiBase = '') {
+            const normalizedPhone = normalizeCustomerPhoneValue(phone);
+            if (!normalizedPhone) return;
+            try {
+                sessionStorage.setItem(BOOKING_PHONE_BACKEND_OTP_SESSION_KEY, JSON.stringify({
+                    phone: normalizedPhone,
+                    apiBase: sanitizeInput(apiBase || '', 240),
+                    sentAt: Date.now()
+                }));
+            } catch (_error) {
+                // Ignore storage restrictions.
+            }
+        }
+
+        function getBookingBackendOtpSession(phone = '') {
+            const normalizedPhone = normalizeCustomerPhoneValue(phone);
+            try {
+                const parsed = JSON.parse(sessionStorage.getItem(BOOKING_PHONE_BACKEND_OTP_SESSION_KEY) || '{}');
+                const storedPhone = normalizeCustomerPhoneValue(parsed.phone || '');
+                const sentAt = Number(parsed.sentAt || 0);
+                const fresh = sentAt && Date.now() - sentAt < BOOKING_PHONE_BACKEND_OTP_TTL_MS;
+                if (storedPhone && fresh && (!normalizedPhone || storedPhone === normalizedPhone)) {
+                    return {
+                        phone: storedPhone,
+                        apiBase: sanitizeInput(parsed.apiBase || '', 240)
+                    };
+                }
+            } catch (_error) {
+                // Ignore malformed session storage.
+            }
+            return null;
+        }
+
+        function clearBookingBackendOtpSession() {
+            try {
+                sessionStorage.removeItem(BOOKING_PHONE_BACKEND_OTP_SESSION_KEY);
+            } catch (_error) {
+                // Ignore storage restrictions.
+            }
+        }
+
+        function getBookingDeviceFingerprint() {
+            if (window.GoIndiaSessionContinuity && typeof window.GoIndiaSessionContinuity.buildClientDeviceFingerprint === 'function') {
+                return window.GoIndiaSessionContinuity.buildClientDeviceFingerprint();
+            }
+
+            const key = 'goindiaride_device_fingerprint_v1';
+            try {
+                const existing = String(localStorage.getItem(key) || '').trim();
+                if (existing) return existing;
+            } catch (_error) {
+                // Continue with an in-memory fingerprint.
+            }
+
+            const parts = [
+                navigator.userAgent || '',
+                navigator.language || '',
+                screen && `${screen.width}x${screen.height}x${screen.colorDepth}`,
+                Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+            ];
+            let hash = 2166136261;
+            const input = parts.join('|');
+            for (let index = 0; index < input.length; index += 1) {
+                hash ^= input.charCodeAt(index);
+                hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+            }
+            const fingerprint = `web_${(hash >>> 0).toString(16)}`;
+            try {
+                localStorage.setItem(key, fingerprint);
+            } catch (_error) {
+                // Ignore storage restrictions.
+            }
+            return fingerprint;
+        }
 
         function setBookingPhoneStatus(message, type = '') {
             const node = document.getElementById('bookingPhoneStatus');
             if (!node) return;
-            node.textContent = message || '';
+            const rawMessage = String(message || '').trim();
+            node.dataset.rawMessage = rawMessage;
+            node.textContent = getBookingPhoneCustomerMessage(rawMessage, '');
             node.classList.remove('success', 'error');
             if (type) {
                 node.classList.add(type);
@@ -6160,6 +6419,107 @@
             return result;
         }
 
+        async function sendBackendBookingPhoneOtp(normalizedPhone) {
+            const result = await fetchJsonAcrossApiBases('/api/auth/request-otp', {
+                method: 'POST',
+                includeJson: true,
+                includeIdempotency: true,
+                idPrefix: 'gir-booking-phone-otp',
+                body: {
+                    channel: 'sms',
+                    accountType: 'customer',
+                    phone: normalizedPhone
+                },
+                timeoutMs: 14000
+            });
+
+            const data = result.data || {};
+            const delivery = data.delivery || {};
+            const deliverySent = Boolean(delivery.sent);
+            const devOtpGenerated = Boolean(data.devOtp);
+            if (result.ok && (deliverySent || devOtpGenerated)) {
+                setBookingBackendOtpSession(normalizedPhone, result.apiBase || '');
+                clearBookingPhoneReviewFallback();
+                return {
+                    ok: true,
+                    provider: sanitizeInput(delivery.provider || 'backend_sms', 80),
+                    apiBase: result.apiBase || ''
+                };
+            }
+
+            const reason = sanitizeInput(data.message || result.reason || 'backend_sms_otp_failed', 220);
+            throw new Error(reason);
+        }
+
+        function storeBackendPhoneVerificationSession(data = {}, verifiedPhone = '') {
+            const accessToken = String(data.accessToken || '').trim();
+            const refreshToken = String(data.refreshToken || '').trim();
+            if (accessToken) {
+                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('authToken', accessToken);
+                localStorage.setItem('token', accessToken);
+            }
+            if (refreshToken) {
+                localStorage.setItem('refreshToken', refreshToken);
+            }
+
+            persistResolvedCurrentUserSession({
+                id: sanitizeInput(data.id || (currentUser && currentUser.id) || '', 120),
+                name: sanitizeInput(data.name || (currentUser && (currentUser.name || currentUser.fullname)) || 'Customer', 140),
+                fullname: sanitizeInput(data.name || (currentUser && (currentUser.fullname || currentUser.name)) || 'Customer', 140),
+                email: sanitizeInput(data.email || (currentUser && currentUser.email) || '', 180),
+                phone: verifiedPhone,
+                mobile: verifiedPhone,
+                phoneE164: verifiedPhone,
+                isPhoneVerified: true,
+                phoneVerified: true,
+                accountType: sanitizeInput(data.accountType || (currentUser && currentUser.accountType) || 'customer', 40),
+                role: sanitizeInput(data.role || (currentUser && currentUser.role) || 'user', 40)
+            });
+        }
+
+        async function verifyBackendBookingPhoneOtp(normalizedPhone, otpValue) {
+            const deviceFingerprint = getBookingDeviceFingerprint();
+            const result = await fetchJsonAcrossApiBases('/api/auth/otp/verify', {
+                method: 'POST',
+                includeJson: true,
+                includeIdempotency: true,
+                idPrefix: 'gir-booking-phone-otp-verify',
+                extraHeaders: {
+                    'x-device-fingerprint': deviceFingerprint
+                },
+                body: {
+                    channel: 'sms',
+                    accountType: 'customer',
+                    phone: normalizedPhone,
+                    otp: otpValue,
+                    deviceFingerprint
+                },
+                timeoutMs: 14000
+            });
+
+            const data = result.data || {};
+            if (!result.ok) {
+                throw new Error(sanitizeInput(data.message || result.reason || 'backend_sms_otp_verify_failed', 220));
+            }
+
+            const verifiedPhone = normalizeCustomerPhoneValue(data.phone || normalizedPhone);
+            if (!verifiedPhone) {
+                throw new Error('Verified phone number missing after backend OTP confirmation.');
+            }
+
+            storeBackendPhoneVerificationSession(data, verifiedPhone);
+            updateCustomerAccountStoresWithPhone(verifiedPhone, true);
+            clearBookingBackendOtpSession();
+            clearBookingPhoneReviewFallback();
+            return {
+                ok: true,
+                phone: verifiedPhone,
+                data,
+                apiBase: result.apiBase || ''
+            };
+        }
+
         function hydrateBookingPhoneVerificationUI() {
             const input = document.getElementById('bookingCustomerPhone');
             if (!input) return;
@@ -6168,8 +6528,11 @@
             input.value = phoneMeta.localPhone || '';
             const otpInput = document.getElementById('bookingPhoneOtp');
             if (otpInput) otpInput.value = '';
+            const reviewFallback = getBookingPhoneReviewFallback(phoneMeta.localPhone);
             if (phoneMeta.localPhone && phoneMeta.verified) {
                 setBookingPhoneStatus(`Verified mobile ready: ${phoneMeta.localPhone}`, 'success');
+            } else if (phoneMeta.localPhone && reviewFallback) {
+                setBookingPhoneStatus('Phone verification service is temporarily unavailable. Please try Send OTP again in a moment or contact support.', 'error');
             } else if (phoneMeta.localPhone) {
                 setBookingPhoneStatus(`Mobile saved but not verified: ${phoneMeta.localPhone}. Please send OTP and verify.`, 'error');
             } else {
@@ -6184,6 +6547,8 @@
             if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
                 window.GoIndiaPhoneVerification.clearSession(BOOKING_PHONE_VERIFICATION_SESSION_KEY);
             }
+            clearBookingBackendOtpSession();
+            clearBookingPhoneReviewFallback();
             if (phoneValue) {
                 setBookingPhoneStatus('Send OTP to verify this mobile number before booking.');
             } else {
@@ -6209,8 +6574,27 @@
             }
 
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {
-                setBookingPhoneStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
-                return;
+                try {
+                    setBookingPhoneStatus('Sending OTP through secure SMS gateway...');
+                    const backendResult = await sendBackendBookingPhoneOtp(normalizedPhone);
+                    if (input) input.value = normalizedPhone;
+                    setBookingPhoneStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify Phone.`, 'success');
+                    if (typeof showSuccessToast === 'function') {
+                        showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
+                    }
+                    return;
+                } catch (backendError) {
+                    const rawMessage = String(backendError?.message || 'Phone verification service is still loading. Please retry in a moment.').trim();
+                    if (isBookingPhoneServiceUnavailableReason(rawMessage)) {
+                        setBookingPhoneReviewFallback(normalizedPhone, rawMessage);
+                    }
+                    const message = getBookingPhoneCustomerMessage(rawMessage);
+                    setBookingPhoneStatus(message, 'error');
+                    if (typeof showErrorToast === 'function') {
+                        showErrorToast(message, 'Phone Verification');
+                    }
+                    return;
+                }
             }
 
             try {
@@ -6225,10 +6609,29 @@
                     showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
                 }
             } catch (error) {
-                const message = String(error?.message || 'OTP send failed. Please retry.').trim();
-                setBookingPhoneStatus(message, 'error');
-                if (typeof showErrorToast === 'function') {
-                    showErrorToast(message, 'Phone Verification');
+                const firebaseMessage = String(error?.message || 'OTP send failed. Please retry.').trim();
+                console.warn('Booking phone Firebase OTP failed; trying backend SMS fallback.', error);
+                try {
+                    setBookingPhoneStatus('Firebase OTP unavailable. Trying secure SMS gateway...');
+                    const backendResult = await sendBackendBookingPhoneOtp(normalizedPhone);
+                    if (input) input.value = normalizedPhone;
+                    setBookingPhoneStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify Phone.`, 'success');
+                    if (typeof showSuccessToast === 'function') {
+                        showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
+                    }
+                    return;
+                } catch (backendError) {
+                    const backendMessage = String(backendError?.message || '').trim();
+                    const rawMessage = backendMessage || firebaseMessage;
+                    console.warn('Booking phone backend SMS OTP fallback failed.', backendError);
+                    if (isBookingPhoneServiceUnavailableReason(rawMessage) || isBookingPhoneServiceUnavailableReason(firebaseMessage)) {
+                        setBookingPhoneReviewFallback(normalizedPhone, rawMessage || firebaseMessage);
+                    }
+                    const message = getBookingPhoneCustomerMessage(rawMessage || firebaseMessage, 'OTP send failed. Please retry.');
+                    setBookingPhoneStatus(message, 'error');
+                    if (typeof showErrorToast === 'function') {
+                        showErrorToast(message, 'Phone Verification');
+                    }
                 }
             }
         }
@@ -6238,6 +6641,31 @@
             if (!otpValue) {
                 setBookingPhoneStatus('Please enter the OTP code.', 'error');
                 return;
+            }
+            const phoneInput = document.getElementById('bookingCustomerPhone');
+            const normalizedPhone = window.GoIndiaPhoneVerification?.normalizePhone
+                ? window.GoIndiaPhoneVerification.normalizePhone(phoneInput?.value || '')
+                : normalizeCustomerPhoneValue(phoneInput?.value || '');
+            const backendOtpSession = getBookingBackendOtpSession(normalizedPhone);
+            if (backendOtpSession) {
+                try {
+                    setBookingPhoneStatus('Verifying OTP...');
+                    const backendResult = await verifyBackendBookingPhoneOtp(backendOtpSession.phone, otpValue);
+                    const verifiedPhone = backendResult.phone;
+                    if (phoneInput) phoneInput.value = verifiedPhone;
+                    setBookingPhoneStatus(`Verified mobile saved to backend: ${verifiedPhone}`, 'success');
+                    if (typeof showSuccessToast === 'function') {
+                        showSuccessToast(`Mobile verified: ${verifiedPhone}`, 'Phone Verification');
+                    }
+                    return;
+                } catch (backendError) {
+                    const message = getBookingPhoneCustomerMessage(backendError?.message || 'OTP verification failed. Please retry.');
+                    setBookingPhoneStatus(message, 'error');
+                    if (typeof showErrorToast === 'function') {
+                        showErrorToast(message, 'Phone Verification');
+                    }
+                    return;
+                }
             }
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.verifyOtp !== 'function') {
                 setBookingPhoneStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
@@ -6262,6 +6690,8 @@
                     phoneVerified: true
                 });
                 updateCustomerAccountStoresWithPhone(verifiedPhone, true);
+                clearBookingBackendOtpSession();
+                clearBookingPhoneReviewFallback();
                 const input = document.getElementById('bookingCustomerPhone');
                 if (input) input.value = verifiedPhone;
 
@@ -6286,7 +6716,7 @@
                     showSuccessToast(`Mobile verified: ${verifiedPhone}`, 'Phone Verification');
                 }
             } catch (error) {
-                const message = String(error?.message || 'OTP verification failed. Please retry.').trim();
+                const message = getBookingPhoneCustomerMessage(error?.message || 'OTP verification failed. Please retry.');
                 setBookingPhoneStatus(message, 'error');
                 if (typeof showErrorToast === 'function') {
                     showErrorToast(message, 'Phone Verification');
@@ -7595,6 +8025,11 @@
                 customerName: sanitizeInput(currentUser.fullname || currentUser.name || 'Customer', 140),
                 customerEmail: resolveCurrentCustomerEmail(),
                 customerPhone: resolvedBookingPhone,
+                phoneVerification: {
+                    status: 'verified',
+                    source: 'customer_otp',
+                    fallbackReason: ''
+                },
                 pickup: pickup,
                 dropoff: dropoff,
                 stops: intermediateStops,
@@ -8177,6 +8612,7 @@ Thank you for your generosity! ❤️
             document.getElementById('successModal').classList.remove('active');
         }
 
+        window.GOINDIARIDE_FORCE_STATIC_FIREBASE_CONFIG = 'false';
         console.log('🚀 Booking page loaded');
     </script>
     

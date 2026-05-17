@@ -17,10 +17,16 @@ test('booking page requires live inline phone verification before booking submit
   assert.match(html, /function verifyBookingPhoneOtp\(\)/);
   assert.match(html, /GoIndiaPhoneVerification\.sendOtp/);
   assert.match(html, /GoIndiaPhoneVerification\.verifyOtp/);
+  assert.match(html, /sendBackendBookingPhoneOtp\(normalizedPhone\)/);
+  assert.match(html, /verifyBackendBookingPhoneOtp\(backendOtpSession\.phone,\s*otpValue\)/);
+  assert.match(html, /\/api\/auth\/request-otp/);
+  assert.match(html, /\/api\/auth\/otp\/verify/);
   assert.match(html, /syncVerifiedPhoneWithBackend\(verifiedPhone\)/);
   assert.match(html, /isPhoneVerified:\s*true/);
   assert.match(html, /Booking ke liye verified mobile number compulsory hai/);
   assert.match(html, /phone-verification\.js\?v=20260516-inline-phone1/);
+  assert.doesNotMatch(html, /admin_review_pending/);
+  assert.doesNotMatch(html, /service_unavailable_admin_review/);
   assert.doesNotMatch(html, /Phone OTP verification is currently paused/);
   assert.doesNotMatch(html, /Firebase OTP verification scripts are temporarily paused/);
 });
