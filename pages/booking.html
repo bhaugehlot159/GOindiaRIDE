@@ -4003,6 +4003,35 @@
             overflow: hidden !important;
         }
 
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow {
+            margin-top: 12px !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow > summary {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .booking-grid {
+            display: block !important;
+            padding: 0 !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .booking-form-section {
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .form-title,
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .service-folder-actions,
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .booking-btn,
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .summary-section {
+            display: none !important;
+        }
+
         body.booking-page.professional-booking .advanced-booking-drawer > summary {
             min-height: 48px !important;
             padding: 12px 14px !important;
@@ -5408,6 +5437,21 @@
             if (node) node.textContent = value;
         }
 
+        function mountAdvancedDrawerInline() {
+            const drawer = document.getElementById('advancedBookingDrawer');
+            const main = document.querySelector('#cabBookingConsole .cab-console-main');
+            const actions = main?.querySelector(':scope > .cab-console-actions');
+            if (!drawer || !main || drawer.dataset.inlineMounted === '1') return;
+
+            drawer.classList.add('is-inline-flow');
+            if (actions && actions.parentNode === main) {
+                actions.insertAdjacentElement('afterend', drawer);
+            } else {
+                main.appendChild(drawer);
+            }
+            drawer.dataset.inlineMounted = '1';
+        }
+
         function readSelectedOptionText(selectId, fallback = '') {
             const node = document.getElementById(selectId);
             if (!node) return fallback;
@@ -5716,11 +5760,38 @@
             const currentLayerReady = Boolean(currentLayer && currentLayer.complete());
             const isFinalStep = activeIndex >= lastLayerIndex;
             const searchButton = document.getElementById('cabPrimarySearch');
+            const helperNode = document.querySelector('#cabModeNotice .cab-layer-helper') || (() => {
+                const host = document.getElementById('cabModeNotice');
+                if (!host) return null;
+                const helper = document.createElement('small');
+                helper.className = 'cab-layer-helper';
+                host.appendChild(helper);
+                return helper;
+            })();
+
+            const advancedReady = Boolean(document.body?.classList.contains('booking-advanced-ready'));
+            const advancedSections = advancedReady ? getServiceVisibleSections(activeFlow) : [];
+            const advancedIndex = advancedReady ? getServiceFolderProgressIndex(activeFlow, advancedSections) : 0;
+            const advancedCurrentSection = advancedReady && advancedSections.length
+                ? advancedSections[Math.max(0, Math.min(advancedIndex, advancedSections.length - 1))]
+                : null;
+            const advancedCurrentComplete = advancedCurrentSection
+                ? isBookingStepComplete(advancedCurrentSection.dataset.stepKey || '', activeFlow)
+                : false;
+
             if (searchButton) {
-                searchButton.disabled = !currentLayerReady;
-                searchButton.classList.toggle('is-layer-locked', !currentLayerReady);
-                searchButton.setAttribute('aria-disabled', currentLayerReady ? 'false' : 'true');
-                searchButton.textContent = isFinalStep ? 'SEARCH' : 'NEXT';
+                if (advancedReady && advancedSections.length) {
+                    const isAdvancedFinal = advancedIndex >= advancedSections.length - 1;
+                    searchButton.disabled = !advancedCurrentComplete;
+                    searchButton.classList.toggle('is-layer-locked', !advancedCurrentComplete);
+                    searchButton.setAttribute('aria-disabled', advancedCurrentComplete ? 'false' : 'true');
+                    searchButton.textContent = isAdvancedFinal ? 'CONFIRM BOOKING' : 'NEXT';
+                } else {
+                    searchButton.disabled = !currentLayerReady;
+                    searchButton.classList.toggle('is-layer-locked', !currentLayerReady);
+                    searchButton.setAttribute('aria-disabled', currentLayerReady ? 'false' : 'true');
+                    searchButton.textContent = isFinalStep ? 'SEARCH' : 'NEXT';
+                }
             }
 
             const addStopButton = document.querySelector('.cab-add-stop-btn');
@@ -5735,17 +5806,14 @@
                 addStopButton.classList.toggle('is-layer-locked', !canAddStops);
             }
 
-            const helperNode = document.querySelector('#cabModeNotice .cab-layer-helper') || (() => {
-                const host = document.getElementById('cabModeNotice');
-                if (!host) return null;
-                const helper = document.createElement('small');
-                helper.className = 'cab-layer-helper';
-                host.appendChild(helper);
-                return helper;
-            })();
-
             if (helperNode) {
-                helperNode.textContent = `Step ${Math.max(1, activeIndex + 1)}/${layers.length}`;
+                if (advancedReady && advancedSections.length) {
+                    const totalSteps = layers.length + advancedSections.length;
+                    const activeStep = layers.length + Math.max(1, advancedIndex + 1);
+                    helperNode.textContent = `Step ${activeStep}/${totalSteps}`;
+                } else {
+                    helperNode.textContent = `Step ${Math.max(1, activeIndex + 1)}/${layers.length}`;
+                }
             }
         }
         function syncCabModeUi(flow = getActiveCabFlow()) {
@@ -5818,6 +5886,9 @@
                 serviceTypeNode.value = config.serviceType;
             }
 
+            if (document.body) {
+                document.body.classList.remove('booking-advanced-ready');
+            }
             resetCabLayerProgress(activeFlow);
             resetServiceFolderProgress(activeFlow);
             syncCabModeUi(activeFlow);
@@ -5850,6 +5921,7 @@
 
             setActiveAccordionSection(sections, targetSection);
             syncServiceFolderVisibility(flow);
+            syncCabLayerFlow(flow);
 
             const focusTarget = targetSection.querySelector('input:not([type="hidden"]), select, textarea');
             if (focusTarget && typeof focusTarget.focus === 'function') {
@@ -5920,13 +5992,42 @@
                 }
             }
 
-            if (document.body) {
-                document.body.classList.remove('booking-advanced-ready');
-            }
             updateDistanceEstimate();
             updateFare();
-            openNextAdvancedBookingStep();
-            showSuccess('Trip details captured. Outstation features unlocked step by step.');
+            const sections = getServiceVisibleSections(activeFlow);
+            if (!sections.length) return;
+
+            if (!document.body?.classList.contains('booking-advanced-ready')) {
+                setServiceFolderProgressIndex(activeFlow, 0, sections);
+                openNextAdvancedBookingStep();
+                showSuccess('Trip details captured. Next feature step is unlocked.');
+                return;
+            }
+
+            const currentIndex = getServiceFolderProgressIndex(activeFlow, sections);
+            const currentSection = sections[Math.max(0, Math.min(currentIndex, sections.length - 1))];
+            const currentComplete = isBookingStepComplete(currentSection?.dataset?.stepKey || '', activeFlow);
+            if (!currentComplete) {
+                const focusTarget = currentSection?.querySelector('input:not([type="hidden"]), select, textarea');
+                if (focusTarget && typeof focusTarget.focus === 'function') {
+                    focusTarget.focus({ preventScroll: true });
+                }
+                return;
+            }
+
+            if (currentIndex < sections.length - 1) {
+                setServiceFolderProgressIndex(activeFlow, currentIndex + 1, sections);
+                openNextAdvancedBookingStep();
+                showSuccess('Next feature step unlocked.');
+                return;
+            }
+
+            const form = document.getElementById('bookingForm');
+            if (form && typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                handleBookingFormSubmit();
+            }
         }
 
         function initInternationalCabBookingUI() {
@@ -6663,6 +6764,7 @@
 
         function initProfessionalBookingUI() {
             initFormAccordion();
+            mountAdvancedDrawerInline();
             initTripFlowControls();
             bindProfessionalInputs();
             initInternationalCabBookingUI();
