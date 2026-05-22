@@ -3228,6 +3228,14 @@
             display: none !important;
         }
 
+        body.booking-page.professional-booking .booking-internal-field {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .inline-grid-two:has(.booking-internal-field) {
+            grid-template-columns: 1fr !important;
+        }
+
         body.booking-page.professional-booking .cab-booking-console,
         body.booking-page.professional-booking .advanced-booking-drawer,
         body.booking-page.professional-booking .cab-content-section {
@@ -4612,7 +4620,7 @@
                         </div>
 
                         <div class="inline-grid-two">
-                            <div class="form-group">
+                            <div class="form-group booking-internal-field" hidden aria-hidden="true">
                                 <label for="tripPlan">Trip Category *</label>
                                 <select id="tripPlan" required onchange="updateFare()">
                                     <option value="city">City Ride</option>
@@ -4662,7 +4670,7 @@
                         </div>
 
                         <div class="inline-grid-two" style="margin-top: 0.8rem;">
-                            <div class="form-group">
+                            <div class="form-group booking-internal-field" hidden aria-hidden="true">
                                 <label for="tripServiceType">Service Type *</label>
                                 <select id="tripServiceType">
                                     <option value="railway_station_transfer">Railway Station Transfer</option>
@@ -5462,7 +5470,7 @@
             day_trips: ['rental']
         };
         const CAB_FLOW_SERVICE_TYPE_OPTIONS = {
-            airport: ['airport_transfer', 'railway_station_transfer'],
+            airport: ['airport_transfer'],
             outstation: ['round_trip_service'],
             day_trips: ['city_local_trip']
         };
@@ -5529,6 +5537,26 @@
             const isSingle = allowSet.size <= 1;
             selectNode.disabled = isSingle;
             selectNode.classList.toggle('is-flow-scoped-single', isSingle);
+            return {
+                isSingle,
+                visibleCount: allowSet.size
+            };
+        }
+
+        function syncInlineFieldRow(selectNode, visibleCount) {
+            if (!selectNode) return;
+            const formGroup = selectNode.closest('.form-group');
+            const row = formGroup?.parentElement;
+            if (!formGroup || !row) return;
+
+            const shouldHide = formGroup.classList.contains('booking-internal-field') || Number(visibleCount || 0) <= 1;
+            formGroup.style.display = shouldHide ? 'none' : '';
+            formGroup.hidden = shouldHide;
+            formGroup.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+
+            const siblingGroups = Array.from(row.children).filter((node) => node.classList && node.classList.contains('form-group'));
+            const visibleGroups = siblingGroups.filter((node) => node.style.display !== 'none' && !node.hidden);
+            row.style.gridTemplateColumns = visibleGroups.length <= 1 ? '1fr' : '';
         }
 
         function syncCabScopedSelectOptions(flow = getActiveCabFlow()) {
@@ -5537,18 +5565,20 @@
             const tripPlanNode = document.getElementById('tripPlan');
             const serviceTypeNode = document.getElementById('tripServiceType');
 
-            applyScopedSelectVisibility(
+            const tripPlanScopedState = applyScopedSelectVisibility(
                 tripPlanNode,
                 CAB_FLOW_TRIP_PLAN_OPTIONS[activeFlow] || CAB_FLOW_TRIP_PLAN_OPTIONS.airport,
                 config.tripPlan,
                 activeFlow
             );
-            applyScopedSelectVisibility(
+            const serviceTypeScopedState = applyScopedSelectVisibility(
                 serviceTypeNode,
                 CAB_FLOW_SERVICE_TYPE_OPTIONS[activeFlow] || CAB_FLOW_SERVICE_TYPE_OPTIONS.airport,
                 config.serviceType,
                 activeFlow
             );
+            syncInlineFieldRow(tripPlanNode, tripPlanScopedState?.visibleCount || 0);
+            syncInlineFieldRow(serviceTypeNode, serviceTypeScopedState?.visibleCount || 0);
         }
 
         function mountAdvancedDrawerInline() {
@@ -5591,12 +5621,12 @@
 
             if (advancedReady) {
                 const sections = getServiceVisibleSections(activeFlow);
-                if (!sections.length) return;
+                if (!sections.length) return false;
                 const currentIndex = getServiceFolderProgressIndex(activeFlow, sections);
                 if (currentIndex > 0) {
                     setServiceFolderProgressIndex(activeFlow, currentIndex - 1, sections);
                     openNextAdvancedBookingStep();
-                    return;
+                    return true;
                 }
 
                 if (document.body) {
@@ -5609,22 +5639,23 @@
                 }
                 syncCabLayerFlow(activeFlow);
                 syncCabStageLayout();
-                return;
+                return true;
             }
 
             const layers = buildCabQuickLayers(activeFlow);
-            if (!layers.length) return;
+            if (!layers.length) return false;
             if (cabLayerFlowSnapshot !== activeFlow) {
                 resetCabLayerProgress(activeFlow);
             }
 
             const currentIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : cabLayerUnlockedIndex;
-            if (currentIndex <= 0) return;
+            if (currentIndex <= 0) return false;
             cabLayerManualIndex = currentIndex - 1;
             cabLayerUnlockedIndex = Math.max(cabLayerUnlockedIndex, currentIndex);
             syncCabLayerFlow(activeFlow);
             const previousLayer = layers[cabLayerManualIndex];
             focusCabLayerInput(previousLayer && previousLayer.node, true);
+            return true;
         }
 
         function readSelectedOptionText(selectId, fallback = '') {
@@ -6968,6 +6999,7 @@
             bindProfessionalInputs();
             initInternationalCabBookingUI();
             updateBookingExperience();
+            initBookingBackGuard();
         }
 
         window.addEventListener('load', function() {
@@ -10459,12 +10491,101 @@ Thank you for your generosity! ❤️
         // UTILITY
         // ============================================
 
+        const BOOKING_BACK_GUARD_STATE_KEY = '__goindiaRideBookingBackGuard';
+        let bookingBackGuardBound = false;
+        let bookingBackGuardRestoring = false;
+
+        function createBookingBackGuardState(role = 'guard') {
+            const currentState = history.state && typeof history.state === 'object' ? history.state : {};
+            return {
+                ...currentState,
+                [BOOKING_BACK_GUARD_STATE_KEY]: true,
+                bookingBackRole: role,
+                bookingBackFlow: typeof getActiveCabFlow === 'function' ? getActiveCabFlow() : 'airport',
+                bookingBackStep: Date.now()
+            };
+        }
+
+        function pushBookingBackGuardState(role = 'guard') {
+            if (!window.history || typeof window.history.pushState !== 'function') return false;
+            try {
+                window.history.pushState(createBookingBackGuardState(role), '', window.location.href);
+                return true;
+            } catch (_error) {
+                return false;
+            }
+        }
+
+        function replaceBookingBackGuardState(role = 'base') {
+            if (!window.history || typeof window.history.replaceState !== 'function') return false;
+            try {
+                window.history.replaceState(createBookingBackGuardState(role), '', window.location.href);
+                return true;
+            } catch (_error) {
+                return false;
+            }
+        }
+
+        function stepBackInsideBooking() {
+            const moved = typeof handleCabStepBack === 'function' ? handleCabStepBack() : false;
+            if (moved) return true;
+            resetBookingConsoleHome();
+            return false;
+        }
+
+        function handleBookingBrowserBack() {
+            if (bookingBackGuardRestoring) return;
+            bookingBackGuardRestoring = true;
+
+            pushBookingBackGuardState('guard');
+            stepBackInsideBooking();
+            window.setTimeout(() => {
+                bookingBackGuardRestoring = false;
+            }, 0);
+        }
+
+        function initBookingBackGuard() {
+            if (bookingBackGuardBound) return;
+            if (!replaceBookingBackGuardState('base')) return;
+            if (!pushBookingBackGuardState('guard')) return;
+
+            window.addEventListener('popstate', handleBookingBrowserBack);
+            bookingBackGuardBound = true;
+        }
+
         function goBack() {
-            window.location.href = './customer-dashboard.html';
+            stepBackInsideBooking();
         }
 
         function goHome() {
-            window.location.href = '../index.html';
+            resetBookingConsoleHome();
+        }
+
+        function resetBookingConsoleHome() {
+            const flow = typeof getActiveCabFlow === 'function' ? getActiveCabFlow() : 'airport';
+            if (document.body) {
+                document.body.classList.remove('booking-advanced-ready');
+            }
+
+            const drawer = document.getElementById('advancedBookingDrawer');
+            if (drawer) drawer.open = false;
+
+            if (typeof resetCabLayerProgress === 'function') resetCabLayerProgress(flow);
+            if (typeof resetServiceFolderProgress === 'function') resetServiceFolderProgress(flow);
+            if (typeof syncCabScopedSelectOptions === 'function') syncCabScopedSelectOptions(flow);
+            if (typeof syncCabLayerFlow === 'function') syncCabLayerFlow(flow);
+            if (typeof syncCabStageLayout === 'function') syncCabStageLayout();
+            if (typeof updateBookingExperience === 'function') updateBookingExperience();
+
+            const shell = document.getElementById('cabBookingConsole') || document.querySelector('.container');
+            if (shell && typeof shell.scrollIntoView === 'function') {
+                shell.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            const firstField = document.getElementById('cabQuickPickupInput') || document.getElementById('pickup');
+            if (firstField && typeof firstField.focus === 'function') {
+                window.setTimeout(() => firstField.focus({ preventScroll: true }), 80);
+            }
         }
 
         function closeSuccessModal() {
@@ -10486,7 +10607,7 @@ Thank you for your generosity! ❤️
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                const swVersion = '20260512-data-preserve1';
+                const swVersion = '20260522-booking-back-guard1';
                 navigator.serviceWorker
                     .register('../sw.js?v=' + swVersion)
                     .then(function (registration) {
