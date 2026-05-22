@@ -4260,9 +4260,11 @@
             display: none !important;
         }
 
-        body.booking-page.professional-booking .advanced-booking-drawer,
-        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer {
+        body.booking-page.professional-booking .advanced-booking-drawer {
             display: none !important;
+        }
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer {
+            display: block !important;
         }
 
         @media (min-width: 760px) {
@@ -5817,6 +5819,7 @@
             }
 
             resetCabLayerProgress(activeFlow);
+            resetServiceFolderProgress(activeFlow);
             syncCabModeUi(activeFlow);
             if (options.skipFare !== true) updateFare();
             else updateBookingExperience();
@@ -5842,9 +5845,8 @@
             const sections = getServiceVisibleSections(flow);
             if (!sections.length) return;
 
-            const targetSection =
-                sections.find((section) => !isBookingStepComplete(section.dataset.stepKey, flow))
-                || sections[sections.length - 1];
+            const progressIndex = getServiceFolderProgressIndex(flow, sections);
+            const targetSection = sections[Math.max(0, Math.min(progressIndex, sections.length - 1))];
 
             setActiveAccordionSection(sections, targetSection);
             syncServiceFolderVisibility(flow);
@@ -5923,7 +5925,8 @@
             }
             updateDistanceEstimate();
             updateFare();
-            showSuccess('Trip details captured. Live fare has been updated.');
+            openNextAdvancedBookingStep();
+            showSuccess('Trip details captured. Outstation features unlocked step by step.');
         }
 
         function initInternationalCabBookingUI() {
@@ -6235,6 +6238,31 @@
             }
         };
 
+        const SERVICE_FOLDER_PROGRESS = {
+            airport: 0,
+            outstation: 0,
+            day_trips: 0
+        };
+
+        function resetServiceFolderProgress(flow = getActiveCabFlow()) {
+            const safeFlow = SERVICE_FOLDER_PROGRESS[flow] === undefined ? 'airport' : flow;
+            SERVICE_FOLDER_PROGRESS[safeFlow] = 0;
+        }
+
+        function getServiceFolderProgressIndex(flow = getActiveCabFlow(), sections = getServiceVisibleSections(flow)) {
+            const safeFlow = SERVICE_FOLDER_PROGRESS[flow] === undefined ? 'airport' : flow;
+            const maxIndex = Math.max(0, (Array.isArray(sections) ? sections.length : 0) - 1);
+            const current = Number(SERVICE_FOLDER_PROGRESS[safeFlow] || 0);
+            return Math.max(0, Math.min(current, maxIndex));
+        }
+
+        function setServiceFolderProgressIndex(flow = getActiveCabFlow(), index = 0, sections = getServiceVisibleSections(flow)) {
+            const safeFlow = SERVICE_FOLDER_PROGRESS[flow] === undefined ? 'airport' : flow;
+            const maxIndex = Math.max(0, (Array.isArray(sections) ? sections.length : 0) - 1);
+            SERVICE_FOLDER_PROGRESS[safeFlow] = Math.max(0, Math.min(Number(index || 0), maxIndex));
+            return SERVICE_FOLDER_PROGRESS[safeFlow];
+        }
+
         function getCompactAccordionLabel(label) {
             const key = normalizeAccordionLabel(label)
                 .toLowerCase()
@@ -6328,15 +6356,15 @@
                 return;
             }
 
-            const unlockedIndex = getUnlockedServiceStepIndex(sections, flow);
-            if (direction > 0 && currentIndex > unlockedIndex) return;
-            if (direction > 0 && !isBookingStepComplete(currentSection.dataset.stepKey, flow)) {
-                const firstField = currentSection.querySelector('input:not([type="hidden"]), select, textarea');
-                if (firstField && typeof firstField.focus === 'function') firstField.focus({ preventScroll: true });
-                return;
+            const currentProgress = getServiceFolderProgressIndex(flow, sections);
+            if (direction > 0 && nextIndex > currentProgress) {
+                setServiceFolderProgressIndex(flow, nextIndex, sections);
             }
 
-            setActiveAccordionSection(sections, sections[Math.min(nextIndex, unlockedIndex)]);
+            const targetIndex = direction > 0
+                ? Math.max(nextIndex, getServiceFolderProgressIndex(flow, sections))
+                : nextIndex;
+            setActiveAccordionSection(sections, sections[Math.max(0, Math.min(targetIndex, sections.length - 1))]);
             syncServiceFolderVisibility(flow);
         }
 
@@ -6379,7 +6407,12 @@
 
             const section = field.closest('.form-section.pro-collapsible');
             if (section) {
-                const sections = getServiceVisibleSections();
+                const flow = getActiveCabFlow();
+                const sections = getServiceVisibleSections(flow);
+                const sectionIndex = sections.indexOf(section);
+                if (sectionIndex >= 0) {
+                    setServiceFolderProgressIndex(flow, sectionIndex, sections);
+                }
                 if (!section.classList.contains('is-service-hidden')) {
                     setActiveAccordionSection(sections, section);
                 }
@@ -6415,11 +6448,11 @@
             if (!visibleSections.length) return;
             ensureAccordionSelector(visibleSections);
 
-            const unlockedIndex = getUnlockedServiceStepIndex(visibleSections, flow);
+            const unlockedIndex = getServiceFolderProgressIndex(flow, visibleSections);
             let activeSection = visibleSections.find((section) => !section.classList.contains('is-collapsed'));
             const activeIndex = visibleSections.indexOf(activeSection);
             if (!activeSection || activeIndex === -1 || activeIndex > unlockedIndex) {
-                activeSection = visibleSections.find((section) => !isBookingStepComplete(section.dataset.stepKey, flow)) || visibleSections[Math.min(unlockedIndex, visibleSections.length - 1)];
+                activeSection = visibleSections[Math.min(unlockedIndex, visibleSections.length - 1)];
             }
 
             visibleSections.forEach((section) => {
@@ -6439,7 +6472,7 @@
                 const nextButton = section.querySelector('.service-folder-next');
                 if (prevButton) prevButton.disabled = index === 0;
                 if (nextButton) {
-                    nextButton.disabled = isLocked || (index < visibleSections.length - 1 && !stepComplete);
+                    nextButton.disabled = isLocked;
                     nextButton.innerHTML = index === visibleSections.length - 1
                         ? 'Review Fare <i class="fas fa-receipt"></i>'
                         : 'Continue <i class="fas fa-arrow-right"></i>';
