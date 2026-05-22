@@ -5533,6 +5533,42 @@
             }
         }
 
+        function advanceCabLayerIfCurrentComplete(layerKey) {
+            const activeFlow = getActiveCabFlow();
+            const layers = buildCabQuickLayers(activeFlow);
+            if (!layers.length) return;
+
+            if (cabLayerFlowSnapshot !== activeFlow) {
+                resetCabLayerProgress(activeFlow);
+            }
+
+            const lastLayerIndex = layers.length - 1;
+            cabLayerUnlockedIndex = Math.max(0, Math.min(cabLayerUnlockedIndex, lastLayerIndex));
+            const activeIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : cabLayerUnlockedIndex;
+            const changedIndex = layers.findIndex((layer) => layer.key === layerKey);
+            if (changedIndex < 0 || changedIndex !== activeIndex) {
+                syncCabLayerFlow(activeFlow);
+                return;
+            }
+
+            const currentLayer = layers[activeIndex];
+            if (!currentLayer || !currentLayer.complete()) {
+                syncCabLayerFlow(activeFlow);
+                return;
+            }
+
+            if (activeIndex < lastLayerIndex) {
+                cabLayerManualIndex = null;
+                cabLayerUnlockedIndex = Math.min(lastLayerIndex, activeIndex + 1);
+                syncCabLayerFlow(activeFlow);
+                const nextLayer = layers[cabLayerUnlockedIndex];
+                focusCabLayerInput(nextLayer && nextLayer.node, true);
+                return;
+            }
+
+            syncCabLayerFlow(activeFlow);
+        }
+
         function formatMiniLayerDate(value) {
             if (!value) return 'Select date';
             const dateNode = new Date(`${value}T00:00`);
@@ -5687,9 +5723,12 @@
 
             const addStopButton = document.querySelector('.cab-add-stop-btn');
             if (addStopButton) {
-                const canAddStops = activeFlow !== 'outstation'
-                    ? true
-                    : layers.filter((layer) => layer.key === 'pickup' || layer.key === 'dropoff').every((layer) => layer.complete());
+                const pickupDropReady = layers
+                    .filter((layer) => layer.key === 'pickup' || layer.key === 'dropoff')
+                    .every((layer) => layer.complete());
+                const showAddStops = activeFlow === 'outstation' && pickupDropReady;
+                const canAddStops = activeFlow !== 'outstation' ? true : pickupDropReady;
+                addStopButton.style.display = showAddStops ? '' : 'none';
                 addStopButton.disabled = !canAddStops;
                 addStopButton.classList.toggle('is-layer-locked', !canAddStops);
             }
@@ -5950,7 +5989,7 @@
             const timeMini = document.getElementById('cabQuickTimeInput');
             const packageMini = document.getElementById('cabQuickPackageSelect');
 
-            const bindMiniLocation = (miniNode, targetId) => {
+            const bindMiniLocation = (miniNode, targetId, layerKey) => {
                 if (!miniNode || miniNode.dataset.cabMiniBound === '1') return;
                 miniNode.addEventListener('input', () => {
                     const target = document.getElementById(targetId);
@@ -5962,13 +6001,16 @@
                         const target = document.getElementById(targetId);
                         if (target) target.value = miniNode.value;
                         handleLocationUpdated();
+                        if (layerKey) {
+                            advanceCabLayerIfCurrentComplete(layerKey);
+                        }
                     });
                 });
                 miniNode.dataset.cabMiniBound = '1';
             };
 
-            bindMiniLocation(pickupMini, 'pickup');
-            bindMiniLocation(dropoffMini, 'dropoff');
+            bindMiniLocation(pickupMini, 'pickup', 'pickup');
+            bindMiniLocation(dropoffMini, 'dropoff', 'dropoff');
 
             const bindQuickAutocomplete = (attempt = 0) => {
                 if (typeof initializeAutocomplete === 'function') {
@@ -5991,6 +6033,7 @@
                     toggleReturnTrip();
                     updateFare();
                     updateBookingExperience();
+                    advanceCabLayerIfCurrentComplete('date');
                 });
                 dateMini.dataset.cabMiniBound = '1';
             }
@@ -6002,6 +6045,7 @@
                     toggleReturnTrip();
                     updateFare();
                     updateBookingExperience();
+                    advanceCabLayerIfCurrentComplete('time');
                 });
                 timeMini.dataset.cabMiniBound = '1';
             }
@@ -6009,6 +6053,7 @@
             if (packageMini && packageMini.dataset.cabMiniBound !== '1') {
                 packageMini.addEventListener('change', () => {
                     applyCabPackageValue(packageMini.value);
+                    advanceCabLayerIfCurrentComplete('package');
                 });
                 packageMini.dataset.cabMiniBound = '1';
             }
