@@ -4668,7 +4668,7 @@
                                     <option value="railway_station_transfer">Railway Station Transfer</option>
                                     <option value="airport_transfer" selected>Airport Transfer</option>
                                     <option value="city_local_trip">City Local Trip</option>
-                                    <option value="round_trip_service">Round Trip</option>
+                                    <option value="round_trip_service">Outstation Intercity</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -5456,6 +5456,16 @@
                 packageLabel: '1 hr 10 kms'
             }
         };
+        const CAB_FLOW_TRIP_PLAN_OPTIONS = {
+            airport: ['airport'],
+            outstation: ['outstation'],
+            day_trips: ['rental']
+        };
+        const CAB_FLOW_SERVICE_TYPE_OPTIONS = {
+            airport: ['airport_transfer', 'railway_station_transfer'],
+            outstation: ['round_trip_service'],
+            day_trips: ['city_local_trip']
+        };
 
         function getCabFlowConfig(flow) {
             return CAB_FLOW_CONFIG[flow] || CAB_FLOW_CONFIG.airport;
@@ -5476,6 +5486,69 @@
         function setTextIfPresent(id, value) {
             const node = document.getElementById(id);
             if (node) node.textContent = value;
+        }
+
+        function resolveScopedSelectLabel(selectId, option, flow = getActiveCabFlow()) {
+            if (!option) return '';
+            if (!option.dataset.baseLabel) {
+                option.dataset.baseLabel = String(option.textContent || '').trim();
+            }
+
+            const baseLabel = option.dataset.baseLabel || '';
+            const value = String(option.value || '');
+            if (selectId !== 'tripServiceType') return baseLabel;
+
+            if (flow === 'outstation' && value === 'round_trip_service') return 'Outstation Intercity';
+            if (flow === 'day_trips' && value === 'city_local_trip') return 'Hourly Rental Service';
+            if (flow === 'airport' && value === 'airport_transfer') return 'Airport Transfer';
+            if (flow === 'airport' && value === 'railway_station_transfer') return 'Railway Station Transfer';
+            return baseLabel;
+        }
+
+        function applyScopedSelectVisibility(selectNode, allowedValues = [], preferredValue = '', flow = getActiveCabFlow()) {
+            if (!selectNode) return;
+            const allowList = Array.isArray(allowedValues) ? allowedValues.filter(Boolean).map((value) => String(value)) : [];
+            const options = Array.from(selectNode.options);
+            if (!options.length) return;
+
+            const safeAllowList = allowList.length ? allowList : [String(preferredValue || options[0].value || '')];
+            const allowSet = new Set(safeAllowList);
+
+            options.forEach((option) => {
+                option.textContent = resolveScopedSelectLabel(selectNode.id, option, flow);
+                const visible = allowSet.has(String(option.value));
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+
+            const fallbackValue = safeAllowList.find((value) => options.some((option) => String(option.value) === String(value))) || String(options[0].value || '');
+            if (!allowSet.has(String(selectNode.value || ''))) {
+                selectNode.value = fallbackValue;
+            }
+
+            const isSingle = allowSet.size <= 1;
+            selectNode.disabled = isSingle;
+            selectNode.classList.toggle('is-flow-scoped-single', isSingle);
+        }
+
+        function syncCabScopedSelectOptions(flow = getActiveCabFlow()) {
+            const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
+            const config = getCabFlowConfig(activeFlow);
+            const tripPlanNode = document.getElementById('tripPlan');
+            const serviceTypeNode = document.getElementById('tripServiceType');
+
+            applyScopedSelectVisibility(
+                tripPlanNode,
+                CAB_FLOW_TRIP_PLAN_OPTIONS[activeFlow] || CAB_FLOW_TRIP_PLAN_OPTIONS.airport,
+                config.tripPlan,
+                activeFlow
+            );
+            applyScopedSelectVisibility(
+                serviceTypeNode,
+                CAB_FLOW_SERVICE_TYPE_OPTIONS[activeFlow] || CAB_FLOW_SERVICE_TYPE_OPTIONS.airport,
+                config.serviceType,
+                activeFlow
+            );
         }
 
         function mountAdvancedDrawerInline() {
@@ -5956,6 +6029,7 @@
             const noticeText = document.querySelector('#cabModeNotice span');
             if (noticeText) noticeText.textContent = config.notice;
 
+            syncCabScopedSelectOptions(activeFlow);
             syncCabQuickFields();
             syncCabLayerFlow(activeFlow);
         }
@@ -5982,6 +6056,7 @@
                 if (options.skipFare !== true) updateFare();
             }
 
+            syncCabScopedSelectOptions(getActiveCabFlow());
             updateBookingExperience();
         }
 
@@ -5999,6 +6074,7 @@
             if (serviceTypeNode && config.serviceType) {
                 serviceTypeNode.value = config.serviceType;
             }
+            syncCabScopedSelectOptions(activeFlow);
 
             if (document.body) {
                 document.body.classList.remove('booking-advanced-ready');
