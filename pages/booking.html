@@ -3975,6 +3975,22 @@
             box-shadow: none !important;
         }
 
+        body.booking-page.professional-booking .cab-step-back-btn {
+            min-height: 42px !important;
+            border-radius: 10px !important;
+            background: #ffffff !important;
+            color: #1f3f5f !important;
+            border: 1px solid #b8ccdf !important;
+            box-shadow: none !important;
+            display: none;
+            font-weight: 900 !important;
+        }
+
+        body.booking-page.professional-booking .cab-step-back-btn:disabled {
+            opacity: 0.55 !important;
+            cursor: not-allowed !important;
+        }
+
         body.booking-page.professional-booking .cab-booking-console:not(.is-outstation) .cab-add-stop-btn {
             display: none !important;
         }
@@ -4029,6 +4045,14 @@
         body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .service-folder-actions,
         body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .booking-btn,
         body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .summary-section {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-journey-row,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-mini-form,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-add-stop-btn,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-live-sidecar,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-trust-strip {
             display: none !important;
         }
 
@@ -4445,6 +4469,10 @@
                     </div>
 
                     <div class="cab-console-actions">
+                        <button type="button" class="cab-step-back-btn" id="cabStepBackBtn">
+                            <i class="fas fa-arrow-left"></i>
+                            Back
+                        </button>
                         <button type="button" class="cab-add-stop-btn" data-reveal-field="stop1">
                             <i class="fas fa-plus"></i>
                             Add Stops
@@ -5452,6 +5480,67 @@
             drawer.dataset.inlineMounted = '1';
         }
 
+        function syncCabStageLayout() {
+            const main = document.querySelector('#cabBookingConsole .cab-console-main');
+            const drawer = document.getElementById('advancedBookingDrawer');
+            const actions = main?.querySelector(':scope > .cab-console-actions');
+            const quickForm = main?.querySelector(':scope > .cab-mini-form');
+            if (!main || !drawer || !actions || !quickForm) return;
+
+            const advancedReady = Boolean(document.body?.classList.contains('booking-advanced-ready'));
+            if (advancedReady) {
+                if (actions.previousElementSibling !== drawer) {
+                    drawer.insertAdjacentElement('afterend', actions);
+                }
+            } else {
+                if (actions.previousElementSibling !== quickForm) {
+                    quickForm.insertAdjacentElement('afterend', actions);
+                }
+            }
+        }
+
+        function handleCabStepBack() {
+            const activeFlow = getActiveCabFlow();
+            const advancedReady = Boolean(document.body?.classList.contains('booking-advanced-ready'));
+
+            if (advancedReady) {
+                const sections = getServiceVisibleSections(activeFlow);
+                if (!sections.length) return;
+                const currentIndex = getServiceFolderProgressIndex(activeFlow, sections);
+                if (currentIndex > 0) {
+                    setServiceFolderProgressIndex(activeFlow, currentIndex - 1, sections);
+                    openNextAdvancedBookingStep();
+                    return;
+                }
+
+                if (document.body) {
+                    document.body.classList.remove('booking-advanced-ready');
+                }
+                const layers = buildCabQuickLayers(activeFlow);
+                if (layers.length) {
+                    cabLayerManualIndex = layers.length - 1;
+                    cabLayerUnlockedIndex = layers.length - 1;
+                }
+                syncCabLayerFlow(activeFlow);
+                syncCabStageLayout();
+                return;
+            }
+
+            const layers = buildCabQuickLayers(activeFlow);
+            if (!layers.length) return;
+            if (cabLayerFlowSnapshot !== activeFlow) {
+                resetCabLayerProgress(activeFlow);
+            }
+
+            const currentIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : cabLayerUnlockedIndex;
+            if (currentIndex <= 0) return;
+            cabLayerManualIndex = currentIndex - 1;
+            cabLayerUnlockedIndex = Math.max(cabLayerUnlockedIndex, currentIndex);
+            syncCabLayerFlow(activeFlow);
+            const previousLayer = layers[cabLayerManualIndex];
+            focusCabLayerInput(previousLayer && previousLayer.node, true);
+        }
+
         function readSelectedOptionText(selectId, fallback = '') {
             const node = document.getElementById(selectId);
             if (!node) return fallback;
@@ -5758,7 +5847,6 @@
 
             const currentLayer = layers[Math.max(0, activeIndex)] || null;
             const currentLayerReady = Boolean(currentLayer && currentLayer.complete());
-            const isFinalStep = activeIndex >= lastLayerIndex;
             const searchButton = document.getElementById('cabPrimarySearch');
             const helperNode = document.querySelector('#cabModeNotice .cab-layer-helper') || (() => {
                 const host = document.getElementById('cabModeNotice');
@@ -5785,12 +5873,24 @@
                     searchButton.disabled = !advancedCurrentComplete;
                     searchButton.classList.toggle('is-layer-locked', !advancedCurrentComplete);
                     searchButton.setAttribute('aria-disabled', advancedCurrentComplete ? 'false' : 'true');
-                    searchButton.textContent = isAdvancedFinal ? 'CONFIRM BOOKING' : 'NEXT';
+                    searchButton.textContent = isAdvancedFinal ? 'SEARCH' : 'NEXT';
                 } else {
                     searchButton.disabled = !currentLayerReady;
                     searchButton.classList.toggle('is-layer-locked', !currentLayerReady);
                     searchButton.setAttribute('aria-disabled', currentLayerReady ? 'false' : 'true');
-                    searchButton.textContent = isFinalStep ? 'SEARCH' : 'NEXT';
+                    searchButton.textContent = 'NEXT';
+                }
+            }
+
+            const backButton = document.getElementById('cabStepBackBtn');
+            if (backButton) {
+                if (advancedReady && advancedSections.length) {
+                    backButton.style.display = '';
+                    backButton.disabled = false;
+                } else {
+                    const showQuickBack = activeIndex > 0;
+                    backButton.style.display = showQuickBack ? '' : 'none';
+                    backButton.disabled = !showQuickBack;
                 }
             }
 
@@ -5815,6 +5915,7 @@
                     helperNode.textContent = `Step ${Math.max(1, activeIndex + 1)}/${layers.length}`;
                 }
             }
+            syncCabStageLayout();
         }
         function syncCabModeUi(flow = getActiveCabFlow()) {
             const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
@@ -5922,6 +6023,7 @@
             setActiveAccordionSection(sections, targetSection);
             syncServiceFolderVisibility(flow);
             syncCabLayerFlow(flow);
+            syncCabStageLayout();
 
             const focusTarget = targetSection.querySelector('input:not([type="hidden"]), select, textarea');
             if (focusTarget && typeof focusTarget.focus === 'function') {
@@ -6085,6 +6187,12 @@
             if (searchButton && searchButton.dataset.cabBound !== '1') {
                 searchButton.addEventListener('click', handleCabPrimarySearch);
                 searchButton.dataset.cabBound = '1';
+            }
+
+            const backButton = document.getElementById('cabStepBackBtn');
+            if (backButton && backButton.dataset.cabBound !== '1') {
+                backButton.addEventListener('click', handleCabStepBack);
+                backButton.dataset.cabBound = '1';
             }
 
             const pickupMini = document.getElementById('cabQuickPickupInput');
