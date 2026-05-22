@@ -6243,13 +6243,15 @@
                     initializeAutocomplete('dropoff');
                     initializeAutocomplete('cabQuickPickupInput');
                     initializeAutocomplete('cabQuickDropoffInput');
-                    return;
+                    return true;
                 }
-                if (attempt < 20) {
+                if (attempt < 80) {
                     window.setTimeout(() => bindQuickAutocomplete(attempt + 1), 250);
                 }
+                return false;
             };
             bindQuickAutocomplete();
+            window.addEventListener('load', () => bindQuickAutocomplete(0), { once: true });
 
             if (dateMini && dateMini.dataset.cabMiniBound !== '1') {
                 dateMini.addEventListener('change', () => {
@@ -7022,6 +7024,17 @@
             return Boolean(sanitizeInput(inputs.pickup || '').trim() && sanitizeInput(inputs.drop || inputs.dropoff || '').trim());
         }
 
+        function isLiveDistanceResolved(source) {
+            const normalized = String(source || '')
+                .toLowerCase()
+                .replace(/\s+/g, '_')
+                .trim();
+            if (!normalized) return false;
+            if (normalized === 'awaiting_route' || normalized === 'calculating') return false;
+            if (normalized.includes('fallback') || normalized.includes('unavailable') || normalized === 'none') return false;
+            return true;
+        }
+
         function renderFareEstimate(estimate = {}) {
             const values = estimate && typeof estimate === 'object' ? estimate : {};
             const hasRoute = routeIsReady(values);
@@ -7258,6 +7271,7 @@
             }
 
             const token = ++distanceEstimateToken;
+            let previewStatus = '';
             if (sourceNode) sourceNode.textContent = 'Calculating...';
             updateRoutePreview('Calculating live distance...');
 
@@ -7267,22 +7281,31 @@
                     if (token !== distanceEstimateToken) return;
 
                     const km = Number(estimate && estimate.km);
-                    const finalKm = Number.isFinite(km) && km > 0 ? Math.max(1, Math.round(km)) : 5;
+                    const finalKm = Number.isFinite(km) && km > 0 ? Math.max(1, Math.round(km)) : 0;
                     document.getElementById('distanceKm').textContent = String(finalKm);
 
                     if (sourceNode) {
-                        sourceNode.textContent = String((estimate && estimate.source) || 'fallback').replace(/_/g, ' ');
+                        const rawSource = String((estimate && estimate.source) || '');
+                        sourceNode.textContent = rawSource
+                            ? rawSource.replace(/_/g, ' ')
+                            : (BOOKING_STRICT_LIVE_MODE ? 'live route unavailable' : 'fallback');
                     }
                 } else {
-                    document.getElementById('distanceKm').textContent = '5';
-                    if (sourceNode) sourceNode.textContent = 'fallback';
+                    document.getElementById('distanceKm').textContent = '0';
+                    if (sourceNode) sourceNode.textContent = BOOKING_STRICT_LIVE_MODE ? 'live route unavailable' : 'fallback';
+                    if (BOOKING_STRICT_LIVE_MODE) {
+                        previewStatus = 'Live route temporarily unavailable. Please refine pickup/drop and try again.';
+                    }
                 }
             } catch (error) {
-                document.getElementById('distanceKm').textContent = '5';
-                if (sourceNode) sourceNode.textContent = 'fallback';
+                document.getElementById('distanceKm').textContent = '0';
+                if (sourceNode) sourceNode.textContent = BOOKING_STRICT_LIVE_MODE ? 'live route unavailable' : 'fallback';
+                if (BOOKING_STRICT_LIVE_MODE) {
+                    previewStatus = 'Live route temporarily unavailable. Please refine pickup/drop and try again.';
+                }
             }
 
-            updateRoutePreview();
+            updateRoutePreview(previewStatus);
             updateFare();
         }
 
@@ -8736,6 +8759,7 @@
         }
 
         const DRIVER_AUTO_ASSIGN_ENABLED = false; // Temporarily disabled: admin-first live booking flow.
+        const BOOKING_STRICT_LIVE_MODE = window.__GOINDIARIDE_BOOKING_STRICT_LIVE__ !== false;
         const API_BASE_QUARANTINE_KEY = 'goindiaride_api_base_quarantine_v1';
         const API_BASE_QUARANTINE_DEFAULT_MS = 45 * 60 * 1000;
         const API_BASE_QUARANTINE_STATIC_MS = 6 * 60 * 60 * 1000;
@@ -9682,8 +9706,13 @@
                 ? latestFareEstimate
                 : (fareCalculator ? fareCalculator.estimateBookingFare(fareEstimateInputs) : buildFallbackFareEstimate(fareEstimateInputs));
             const totalFare = Number(currentFareEstimate.totalFare || currentFareEstimate.amount || parseCurrencyValue(document.getElementById('totalFare').textContent) || 0);
-            const distance = Math.max(1, Math.round(Number(currentFareEstimate.distanceKm || parseInt(document.getElementById('distanceKm').textContent, 10) || 5)));
-            const distanceSource = sanitizeInput(currentFareEstimate.distanceSource || document.getElementById('distanceSource').textContent || 'fallback');
+            const distance = Math.max(0, Math.round(Number(currentFareEstimate.distanceKm || parseInt(document.getElementById('distanceKm').textContent, 10) || 0)));
+            const distanceSource = sanitizeInput(currentFareEstimate.distanceSource || document.getElementById('distanceSource').textContent || '');
+            if (BOOKING_STRICT_LIVE_MODE && (!distance || !isLiveDistanceResolved(distanceSource))) {
+                showError('Live route distance unavailable. Please choose valid pickup/drop from suggestions and try again.');
+                revealBookingField('dropoff');
+                return;
+            }
             const bookingPhoneInput = document.getElementById('bookingCustomerPhone');
             const customerPhoneMeta = resolveCurrentCustomerPhoneMeta();
             if (!customerPhoneMeta.localPhone) {
@@ -9824,6 +9853,13 @@
 
             const token = String(getBackendAccessToken() || '').trim();
             if (!token) {
+                if (BOOKING_STRICT_LIVE_MODE) {
+                    showError('Secure login session missing. Please login again to place a live booking.');
+                    window.setTimeout(() => {
+                        window.location.href = './login.html';
+                    }, 900);
+                    return;
+                }
                 console.warn('Booking fallback activated: secure token missing, redirect prevented.');
                 const queuedBooking = queueBookingForAdminReview(
                     booking,
@@ -9982,6 +10018,10 @@
                 console.log('✅ Live booking created:', liveBookingId, createData);
             } catch (error) {
                 console.error('Live booking failed', error);
+                if (BOOKING_STRICT_LIVE_MODE) {
+                    showError(error?.message || 'Live booking server unavailable right now. Please retry in a moment.');
+                    return;
+                }
                 const fallbackMessage = sanitizeInput(error.message || 'live_booking_failed');
                 const queued = queueBookingForAdminReview(
                     booking,
@@ -10320,11 +10360,23 @@ Thank you for your generosity! ❤️
         // ============================================
 
         function callDriver() {
-            alert('📞 Calling driver...');
+            const phoneText = sanitizeInput(document.getElementById('driverPhone')?.textContent || '').replace(/[^\d+]/g, '');
+            if (!phoneText) {
+                showError('Driver phone is not available yet.');
+                return;
+            }
+            window.location.href = `tel:${phoneText}`;
         }
 
         function trackDriver() {
-            alert('📍 Opening live tracking...');
+            const pickup = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
+            const dropoff = sanitizeInput(document.getElementById('dropoff')?.value || '').trim();
+            if (!pickup || !dropoff) {
+                showError('Pickup/drop missing for live route tracking.');
+                return;
+            }
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
+            window.open(url, '_blank', 'noopener');
         }
 
         // ============================================
