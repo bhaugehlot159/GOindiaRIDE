@@ -4239,6 +4239,35 @@
             margin-top: 0.45rem !important;
         }
 
+        body.booking-page.professional-booking .cab-page-content {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking #bookingSectionSelector,
+        body.booking-page.professional-booking .section-selector-bar {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .service-folder-note {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .form-section.pro-collapsible.is-step-hidden {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer:not([open]) .booking-grid {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer {
+            display: block !important;
+        }
+
         @media (min-width: 760px) {
             body.booking-page.professional-booking {
                 padding-top: 18px !important;
@@ -5742,6 +5771,33 @@
             }
         }
 
+        function openNextAdvancedBookingStep() {
+            const flow = getActiveCabFlow();
+            const drawer = document.getElementById('advancedBookingDrawer');
+            if (document.body) {
+                document.body.classList.add('booking-advanced-ready');
+            }
+            if (drawer) drawer.open = true;
+
+            const sections = getServiceVisibleSections(flow);
+            if (!sections.length) return;
+
+            const targetSection =
+                sections.find((section) => !isBookingStepComplete(section.dataset.stepKey, flow))
+                || sections[sections.length - 1];
+
+            setActiveAccordionSection(sections, targetSection);
+            syncServiceFolderVisibility(flow);
+
+            const focusTarget = targetSection.querySelector('input:not([type="hidden"]), select, textarea');
+            if (focusTarget && typeof focusTarget.focus === 'function') {
+                window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 60);
+            }
+            window.setTimeout(() => {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+        }
+
         function handleCabPrimarySearch() {
             const activeFlow = getActiveCabFlow();
             const requiredFieldIds = activeFlow === 'day_trips'
@@ -5749,6 +5805,20 @@
                 : ['pickup', 'dropoff', 'rideDate', 'rideTime'];
             const missingField = requiredFieldIds.find((id) => !String(document.getElementById(id)?.value || '').trim());
             if (missingField) {
+                const quickFieldMap = {
+                    pickup: 'cabQuickPickupInput',
+                    dropoff: 'cabQuickDropoffInput',
+                    rideDate: 'cabQuickDateInput',
+                    rideTime: 'cabQuickTimeInput'
+                };
+                const quickField = document.getElementById(quickFieldMap[missingField] || '');
+                if (quickField) {
+                    quickField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (typeof quickField.focus === 'function') {
+                        window.setTimeout(() => quickField.focus({ preventScroll: true }), 40);
+                    }
+                    return;
+                }
                 revealFieldFromShortcut(missingField);
                 return;
             }
@@ -5762,7 +5832,7 @@
             }
 
             updateDistanceEstimate();
-            revealFieldFromShortcut(activeFlow === 'day_trips' ? 'tripPlan' : 'bookingCustomerPhone');
+            openNextAdvancedBookingStep();
         }
 
         function initInternationalCabBookingUI() {
@@ -6174,12 +6244,7 @@
         }
 
         function syncAccordionSelectorState(activeSection) {
-            const activeId = String(activeSection?.dataset?.sectionId || '');
-            document.querySelectorAll('#bookingSectionSelector .section-selector-btn').forEach((button) => {
-                const isActive = button.dataset.targetSectionId === activeId;
-                button.classList.toggle('is-active', isActive);
-                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-            });
+            return;
         }
 
         function setActiveAccordionSection(sections, activeSection) {
@@ -6196,6 +6261,9 @@
             if (!field) return;
 
             const drawer = document.getElementById('advancedBookingDrawer');
+            if (document.body) {
+                document.body.classList.add('booking-advanced-ready');
+            }
             if (drawer) drawer.open = true;
 
             const section = field.closest('.form-section.pro-collapsible');
@@ -6214,42 +6282,8 @@
         }
 
         function ensureAccordionSelector(sections) {
-            const form = document.getElementById('bookingForm');
-            if (!form || !Array.isArray(sections) || !sections.length) return;
-
-            let selector = document.getElementById('bookingSectionSelector');
-            if (!selector) {
-                selector = document.createElement('div');
-                selector.id = 'bookingSectionSelector';
-                selector.className = 'section-selector-bar';
-                form.insertBefore(selector, form.firstChild);
-            }
-
-            const version = sections.map((section) => section.dataset.sectionId || '').join('|');
-            if (selector.dataset.version === version) return;
-
-            selector.innerHTML = '';
-            sections.forEach((section, index) => {
-                const label = normalizeAccordionLabel(section.dataset.sectionTitle, `Step ${index + 1}`);
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'section-selector-btn';
-                button.textContent = getCompactAccordionLabel(label);
-                button.title = label;
-                button.dataset.targetSectionId = section.dataset.sectionId || '';
-                button.dataset.stepKey = section.dataset.stepKey || '';
-                button.setAttribute('aria-controls', section.id || '');
-                button.setAttribute('aria-label', `Open ${label}`);
-                button.setAttribute('aria-pressed', 'false');
-                button.addEventListener('click', () => {
-                    if (button.classList.contains('is-locked')) return;
-                    setActiveAccordionSection(sections, section);
-                    syncServiceFolderVisibility(getActiveCabFlow());
-                });
-                selector.appendChild(button);
-            });
-
-            selector.dataset.version = version;
+            const selector = document.getElementById('bookingSectionSelector');
+            if (selector) selector.remove();
         }
 
         function syncServiceFolderVisibility(flow = getActiveCabFlow()) {
@@ -6277,6 +6311,10 @@
                 activeSection = visibleSections.find((section) => !isBookingStepComplete(section.dataset.stepKey, flow)) || visibleSections[Math.min(unlockedIndex, visibleSections.length - 1)];
             }
 
+            visibleSections.forEach((section) => {
+                section.classList.toggle('is-step-hidden', section !== activeSection);
+            });
+
             visibleSections.forEach((section, index) => {
                 const stepComplete = isBookingStepComplete(section.dataset.stepKey, flow);
                 const isLocked = index > unlockedIndex;
@@ -6295,17 +6333,6 @@
                         ? 'Review Fare <i class="fas fa-receipt"></i>'
                         : 'Continue <i class="fas fa-arrow-right"></i>';
                 }
-            });
-
-            document.querySelectorAll('#bookingSectionSelector .section-selector-btn').forEach((button) => {
-                const section = visibleSections.find((item) => item.dataset.sectionId === button.dataset.targetSectionId);
-                const index = visibleSections.indexOf(section);
-                const isLocked = index > unlockedIndex;
-                const complete = Boolean(section && isBookingStepComplete(section.dataset.stepKey, flow));
-                button.classList.toggle('is-locked', isLocked);
-                button.classList.toggle('is-complete', complete);
-                button.disabled = isLocked;
-                button.setAttribute('aria-disabled', isLocked ? 'true' : 'false');
             });
 
             setActiveAccordionSection(visibleSections, activeSection);
