@@ -4187,7 +4187,7 @@
         }
 
         body.booking-page.professional-booking .cab-booking-console:not(.is-outstation) .cab-journey-row {
-            display: grid !important;
+            display: none !important;
         }
 
         body.booking-page.professional-booking .cab-journey-row {
@@ -4240,7 +4240,7 @@
         }
 
         body.booking-page.professional-booking .cab-page-content {
-            display: none !important;
+            display: block !important;
         }
 
         body.booking-page.professional-booking #bookingSectionSelector,
@@ -4260,12 +4260,9 @@
             display: none !important;
         }
 
-        body.booking-page.professional-booking .advanced-booking-drawer {
-            display: none !important;
-        }
-
+        body.booking-page.professional-booking .advanced-booking-drawer,
         body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer {
-            display: block !important;
+            display: none !important;
         }
 
         @media (min-width: 760px) {
@@ -5515,6 +5512,26 @@
         }
 
         let cabLayerManualIndex = null;
+        let cabLayerUnlockedIndex = 0;
+        let cabLayerFlowSnapshot = '';
+
+        function resetCabLayerProgress(flow = getActiveCabFlow()) {
+            cabLayerManualIndex = null;
+            cabLayerUnlockedIndex = 0;
+            cabLayerFlowSnapshot = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
+        }
+
+        function focusCabLayerInput(layerNode, scroll = false) {
+            if (!layerNode) return;
+            const inputNode = layerNode.querySelector('input, select, textarea');
+            if (!inputNode) return;
+            if (scroll) {
+                layerNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            if (typeof inputNode.focus === 'function') {
+                window.setTimeout(() => inputNode.focus({ preventScroll: true }), 40);
+            }
+        }
 
         function formatMiniLayerDate(value) {
             if (!value) return 'Select date';
@@ -5603,24 +5620,32 @@
             const layers = buildCabQuickLayers(activeFlow);
             if (!layers.length) return;
 
+            if (cabLayerFlowSnapshot !== activeFlow) {
+                resetCabLayerProgress(activeFlow);
+            }
+
             const firstIncompleteIndex = layers.findIndex((layer) => !layer.complete());
-            const maxUnlockedIndex = firstIncompleteIndex === -1 ? layers.length - 1 : firstIncompleteIndex;
+            const lastLayerIndex = layers.length - 1;
+            if (firstIncompleteIndex !== -1 && firstIncompleteIndex < cabLayerUnlockedIndex) {
+                cabLayerUnlockedIndex = firstIncompleteIndex;
+            }
+            cabLayerUnlockedIndex = Math.max(0, Math.min(cabLayerUnlockedIndex, lastLayerIndex));
 
             if (Number.isInteger(cabLayerManualIndex)) {
                 const manualLayer = layers[cabLayerManualIndex];
-                if (!manualLayer || cabLayerManualIndex > maxUnlockedIndex || manualLayer.complete()) {
+                if (!manualLayer || cabLayerManualIndex > cabLayerUnlockedIndex) {
                     cabLayerManualIndex = null;
                 }
             }
 
-            const activeIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : maxUnlockedIndex;
+            const activeIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : cabLayerUnlockedIndex;
 
             layers.forEach((layer, index) => {
                 const node = layer.node;
                 const isComplete = layer.complete();
                 const isCurrent = index === activeIndex;
                 const isHidden = index > activeIndex;
-                const isCollapsed = isComplete && index < activeIndex;
+                const isCollapsed = index < activeIndex;
 
                 node.classList.add('cab-layer');
                 node.classList.toggle('is-layer-current', isCurrent);
@@ -5640,23 +5665,24 @@
                         const currentLayers = buildCabQuickLayers(getActiveCabFlow());
                         const clickedIndex = currentLayers.findIndex((item) => item.node === host);
                         if (clickedIndex < 0) return;
+                        if (clickedIndex > cabLayerUnlockedIndex) return;
                         cabLayerManualIndex = clickedIndex;
                         syncCabLayerFlow(getActiveCabFlow());
-                        const inputNode = host.querySelector('input, select, textarea');
-                        if (inputNode && typeof inputNode.focus === 'function') {
-                            window.setTimeout(() => inputNode.focus({ preventScroll: true }), 40);
-                        }
+                        focusCabLayerInput(host, false);
                     });
                     node.dataset.cabLayerBound = '1';
                 }
             });
 
-            const searchReady = layers.every((layer) => layer.complete());
+            const currentLayer = layers[Math.max(0, activeIndex)] || null;
+            const currentLayerReady = Boolean(currentLayer && currentLayer.complete());
+            const isFinalStep = activeIndex >= lastLayerIndex;
             const searchButton = document.getElementById('cabPrimarySearch');
             if (searchButton) {
-                searchButton.disabled = !searchReady;
-                searchButton.classList.toggle('is-layer-locked', !searchReady);
-                searchButton.setAttribute('aria-disabled', searchReady ? 'false' : 'true');
+                searchButton.disabled = !currentLayerReady;
+                searchButton.classList.toggle('is-layer-locked', !currentLayerReady);
+                searchButton.setAttribute('aria-disabled', currentLayerReady ? 'false' : 'true');
+                searchButton.textContent = isFinalStep ? 'SEARCH' : 'NEXT';
             }
 
             const addStopButton = document.querySelector('.cab-add-stop-btn');
@@ -5678,12 +5704,7 @@
             })();
 
             if (helperNode) {
-                if (searchReady) {
-                    helperNode.textContent = 'All steps complete. Tap NEXT to continue booking.';
-                } else {
-                    const currentLayer = layers[Math.max(0, activeIndex)];
-                    helperNode.textContent = `Step ${Math.max(1, activeIndex + 1)}/${layers.length}: complete ${String(currentLayer?.label || 'this step').toLowerCase()} to unlock next step.`;
-                }
+                helperNode.textContent = `Step ${Math.max(1, activeIndex + 1)}/${layers.length}`;
             }
         }
         function syncCabModeUi(flow = getActiveCabFlow()) {
@@ -5756,7 +5777,7 @@
                 serviceTypeNode.value = config.serviceType;
             }
 
-            cabLayerManualIndex = null;
+            resetCabLayerProgress(activeFlow);
             syncCabModeUi(activeFlow);
             if (options.skipFare !== true) updateFare();
             else updateBookingExperience();
@@ -5800,6 +5821,33 @@
 
         function handleCabPrimarySearch() {
             const activeFlow = getActiveCabFlow();
+            const layers = buildCabQuickLayers(activeFlow);
+            if (!layers.length) return;
+
+            if (cabLayerFlowSnapshot !== activeFlow) {
+                resetCabLayerProgress(activeFlow);
+            }
+
+            const lastLayerIndex = layers.length - 1;
+            cabLayerUnlockedIndex = Math.max(0, Math.min(cabLayerUnlockedIndex, lastLayerIndex));
+            const activeIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : cabLayerUnlockedIndex;
+            const currentLayer = layers[Math.max(0, activeIndex)] || null;
+
+            if (!currentLayer || !currentLayer.complete()) {
+                syncCabLayerFlow(activeFlow);
+                focusCabLayerInput(currentLayer && currentLayer.node, true);
+                return;
+            }
+
+            if (activeIndex < lastLayerIndex) {
+                cabLayerManualIndex = null;
+                cabLayerUnlockedIndex = Math.min(lastLayerIndex, activeIndex + 1);
+                syncCabLayerFlow(activeFlow);
+                const nextLayer = layers[cabLayerUnlockedIndex];
+                focusCabLayerInput(nextLayer && nextLayer.node, true);
+                return;
+            }
+
             const requiredFieldIds = activeFlow === 'day_trips'
                 ? ['pickup', 'rideDate', 'rideTime']
                 : ['pickup', 'dropoff', 'rideDate', 'rideTime'];
@@ -5831,8 +5879,12 @@
                 }
             }
 
+            if (document.body) {
+                document.body.classList.remove('booking-advanced-ready');
+            }
             updateDistanceEstimate();
-            openNextAdvancedBookingStep();
+            updateFare();
+            showSuccess('Trip details captured. Live fare has been updated.');
         }
 
         function initInternationalCabBookingUI() {
@@ -5918,10 +5970,19 @@
             bindMiniLocation(pickupMini, 'pickup');
             bindMiniLocation(dropoffMini, 'dropoff');
 
-            if (typeof initializeAutocomplete === 'function') {
-                initializeAutocomplete('cabQuickPickupInput');
-                initializeAutocomplete('cabQuickDropoffInput');
-            }
+            const bindQuickAutocomplete = (attempt = 0) => {
+                if (typeof initializeAutocomplete === 'function') {
+                    initializeAutocomplete('pickup');
+                    initializeAutocomplete('dropoff');
+                    initializeAutocomplete('cabQuickPickupInput');
+                    initializeAutocomplete('cabQuickDropoffInput');
+                    return;
+                }
+                if (attempt < 20) {
+                    window.setTimeout(() => bindQuickAutocomplete(attempt + 1), 250);
+                }
+            };
+            bindQuickAutocomplete();
 
             if (dateMini && dateMini.dataset.cabMiniBound !== '1') {
                 dateMini.addEventListener('change', () => {
