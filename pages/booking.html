@@ -4056,6 +4056,15 @@
             display: none !important;
         }
 
+        body.booking-page.professional-booking.booking-advanced-ready .cab-page-content {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking #tripFlowPills,
+        body.booking-page.professional-booking #journeyModeRow {
+            display: none !important;
+        }
+
         body.booking-page.professional-booking .advanced-booking-drawer > summary {
             min-height: 48px !important;
             padding: 12px 14px !important;
@@ -4292,8 +4301,12 @@
             margin-top: 0.45rem !important;
         }
 
-        body.booking-page.professional-booking .cab-page-content {
+        body.booking-page.professional-booking:not(.booking-advanced-ready) .cab-page-content {
             display: block !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .cab-page-content {
+            display: none !important;
         }
 
         body.booking-page.professional-booking #bookingSectionSelector,
@@ -6407,9 +6420,9 @@
         };
 
         const SERVICE_FOLDER_STEPS = {
-            airport: ['location', 'when', 'trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            outstation: ['location', 'when', 'trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes'],
-            day_trips: ['location', 'when', 'trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes']
+            airport: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            outstation: ['trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes'],
+            day_trips: ['trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes']
         };
 
         const SERVICE_FOLDER_NOTES = {
