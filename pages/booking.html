@@ -5918,6 +5918,11 @@
             bindMiniLocation(pickupMini, 'pickup');
             bindMiniLocation(dropoffMini, 'dropoff');
 
+            if (typeof initializeAutocomplete === 'function') {
+                initializeAutocomplete('cabQuickPickupInput');
+                initializeAutocomplete('cabQuickDropoffInput');
+            }
+
             if (dateMini && dateMini.dataset.cabMiniBound !== '1') {
                 dateMini.addEventListener('change', () => {
                     const rideDateNode = document.getElementById('rideDate');
@@ -10101,7 +10106,6 @@ Thank you for your generosity! ❤️
     <script src="../js/rajasthan-live-data.js"></script>
     <script src="../js/autocomplete.js?v=20260316-autocomplete-fix2"></script>
     <script src="/js/autocomplete-downward-hotfix.js?v=20260316-livefix1"></script>
-    <script src="../js/booking-district-autosuggest.js?v=20260504-originfix2"></script>
     <script src="../js/smart-route-tourist.js"></script>
 
     <script src="../js/global-ui.js?v=20260314-nav5"></script>
