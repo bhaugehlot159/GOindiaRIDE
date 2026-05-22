@@ -4081,6 +4081,71 @@
             grid-template-columns: 1fr !important;
         }
 
+        /* Layer-by-layer quick booking flow */
+        body.booking-page.professional-booking #cabModeNotice .cab-layer-helper {
+            display: block;
+            margin-top: 0.35rem;
+            color: #3b4f63;
+            font-size: 0.74rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer {
+            transition: border-color 0.24s ease, box-shadow 0.24s ease, background-color 0.24s ease;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-current {
+            border-color: #1ca4d8 !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 2px rgba(28, 164, 216, 0.14) !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-hidden {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer .cab-layer-value {
+            display: none;
+            grid-column: 2 / 3;
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: #153858;
+            line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed {
+            min-height: 60px !important;
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
+            border-style: dashed !important;
+            border-color: #b8ccdf !important;
+            background: #f4f9ff !important;
+            cursor: pointer;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed input,
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed select {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed .cab-layer-value {
+            display: block;
+        }
+
+        body.booking-page.professional-booking .cab-primary-search.is-layer-locked,
+        body.booking-page.professional-booking .cab-primary-search:disabled,
+        body.booking-page.professional-booking .cab-add-stop-btn.is-layer-locked,
+        body.booking-page.professional-booking .cab-add-stop-btn:disabled {
+            opacity: 0.55 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            pointer-events: none;
+        }
+
         @media (min-width: 760px) {
             body.booking-page.professional-booking {
                 padding-top: 18px !important;
@@ -5328,6 +5393,178 @@
             );
         }
 
+        let cabLayerManualIndex = null;
+
+        function formatMiniLayerDate(value) {
+            if (!value) return 'Select date';
+            const dateNode = new Date(`${value}T00:00`);
+            if (Number.isNaN(dateNode.getTime())) return value;
+            return dateNode.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function formatMiniLayerTime(value) {
+            if (!value) return 'Select time';
+            const dateNode = new Date(`1970-01-01T${value}`);
+            if (Number.isNaN(dateNode.getTime())) return value;
+            return dateNode.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+
+        function ensureCabLayerValueNode(layerNode) {
+            if (!layerNode) return null;
+            let valueNode = layerNode.querySelector('.cab-layer-value');
+            if (!valueNode) {
+                valueNode = document.createElement('small');
+                valueNode.className = 'cab-layer-value';
+                layerNode.appendChild(valueNode);
+            }
+            return valueNode;
+        }
+
+        function buildCabQuickLayers(flow = getActiveCabFlow()) {
+            const pickupNode = document.getElementById('cabQuickPickupInput');
+            const dropoffNode = document.getElementById('cabQuickDropoffInput');
+            const dateNode = document.getElementById('cabQuickDateInput');
+            const timeNode = document.getElementById('cabQuickTimeInput');
+            const packageNode = document.getElementById('cabQuickPackageSelect');
+
+            const baseLayers = [
+                {
+                    key: 'pickup',
+                    label: 'Pickup',
+                    node: pickupNode ? pickupNode.closest('.cab-mini-field') : null,
+                    complete: () => String(pickupNode?.value || '').trim().length >= 3,
+                    valueText: () => sanitizeInput(pickupNode?.value || '').trim(),
+                    pendingText: 'Enter pickup location'
+                },
+                {
+                    key: 'dropoff',
+                    label: 'Dropoff',
+                    node: dropoffNode ? dropoffNode.closest('.cab-mini-field') : null,
+                    complete: () => String(dropoffNode?.value || '').trim().length >= 3,
+                    valueText: () => sanitizeInput(dropoffNode?.value || '').trim(),
+                    pendingText: 'Enter drop location'
+                },
+                {
+                    key: 'date',
+                    label: 'Trip date',
+                    node: dateNode ? dateNode.closest('.cab-mini-field') : null,
+                    complete: () => Boolean(dateNode?.value),
+                    valueText: () => formatMiniLayerDate(dateNode?.value || ''),
+                    pendingText: 'Select trip date'
+                },
+                {
+                    key: 'time',
+                    label: 'Trip time',
+                    node: timeNode ? timeNode.closest('.cab-mini-field') : null,
+                    complete: () => Boolean(timeNode?.value),
+                    valueText: () => formatMiniLayerTime(timeNode?.value || ''),
+                    pendingText: 'Select pickup time'
+                }
+            ];
+
+            if (flow === 'day_trips') {
+                baseLayers.splice(1, 1);
+                baseLayers.push({
+                    key: 'package',
+                    label: 'Package',
+                    node: packageNode ? packageNode.closest('.cab-mini-field') : null,
+                    complete: () => Boolean(packageNode?.value),
+                    valueText: () => packageNode?.options?.[packageNode.selectedIndex]?.text || '',
+                    pendingText: 'Select rental package'
+                });
+            }
+
+            return baseLayers.filter((layer) => layer.node);
+        }
+
+        function syncCabLayerFlow(flow = getActiveCabFlow()) {
+            const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
+            const layers = buildCabQuickLayers(activeFlow);
+            if (!layers.length) return;
+
+            const firstIncompleteIndex = layers.findIndex((layer) => !layer.complete());
+            const maxUnlockedIndex = firstIncompleteIndex === -1 ? layers.length - 1 : firstIncompleteIndex;
+
+            if (Number.isInteger(cabLayerManualIndex)) {
+                const manualLayer = layers[cabLayerManualIndex];
+                if (!manualLayer || cabLayerManualIndex > maxUnlockedIndex || manualLayer.complete()) {
+                    cabLayerManualIndex = null;
+                }
+            }
+
+            const activeIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : maxUnlockedIndex;
+
+            layers.forEach((layer, index) => {
+                const node = layer.node;
+                const isComplete = layer.complete();
+                const isCurrent = index === activeIndex;
+                const isHidden = index > activeIndex;
+                const isCollapsed = isComplete && index < activeIndex;
+
+                node.classList.add('cab-layer');
+                node.classList.toggle('is-layer-current', isCurrent);
+                node.classList.toggle('is-layer-complete', isComplete);
+                node.classList.toggle('is-layer-hidden', isHidden);
+                node.classList.toggle('is-layer-collapsed', isCollapsed);
+
+                const valueNode = ensureCabLayerValueNode(node);
+                if (valueNode) {
+                    valueNode.textContent = layer.valueText() || layer.pendingText;
+                }
+
+                if (node.dataset.cabLayerBound !== '1') {
+                    node.addEventListener('click', (event) => {
+                        const host = event.currentTarget;
+                        if (!host || !host.classList.contains('is-layer-collapsed')) return;
+                        const currentLayers = buildCabQuickLayers(getActiveCabFlow());
+                        const clickedIndex = currentLayers.findIndex((item) => item.node === host);
+                        if (clickedIndex < 0) return;
+                        cabLayerManualIndex = clickedIndex;
+                        syncCabLayerFlow(getActiveCabFlow());
+                        const inputNode = host.querySelector('input, select, textarea');
+                        if (inputNode && typeof inputNode.focus === 'function') {
+                            window.setTimeout(() => inputNode.focus({ preventScroll: true }), 40);
+                        }
+                    });
+                    node.dataset.cabLayerBound = '1';
+                }
+            });
+
+            const searchReady = layers.every((layer) => layer.complete());
+            const searchButton = document.getElementById('cabPrimarySearch');
+            if (searchButton) {
+                searchButton.disabled = !searchReady;
+                searchButton.classList.toggle('is-layer-locked', !searchReady);
+                searchButton.setAttribute('aria-disabled', searchReady ? 'false' : 'true');
+            }
+
+            const addStopButton = document.querySelector('.cab-add-stop-btn');
+            if (addStopButton) {
+                const canAddStops = activeFlow !== 'outstation'
+                    ? true
+                    : layers.filter((layer) => layer.key === 'pickup' || layer.key === 'dropoff').every((layer) => layer.complete());
+                addStopButton.disabled = !canAddStops;
+                addStopButton.classList.toggle('is-layer-locked', !canAddStops);
+            }
+
+            const helperNode = document.querySelector('#cabModeNotice .cab-layer-helper') || (() => {
+                const host = document.getElementById('cabModeNotice');
+                if (!host) return null;
+                const helper = document.createElement('small');
+                helper.className = 'cab-layer-helper';
+                host.appendChild(helper);
+                return helper;
+            })();
+
+            if (helperNode) {
+                if (searchReady) {
+                    helperNode.textContent = 'All quick-booking layers complete. Tap SEARCH to continue.';
+                } else {
+                    const currentLayer = layers[Math.max(0, activeIndex)];
+                    helperNode.textContent = `Layer ${Math.max(1, activeIndex + 1)}/${layers.length}: complete ${String(currentLayer?.label || 'this step').toLowerCase()} to unlock the next layer.`;
+                }
+            }
+        }
         function syncCabModeUi(flow = getActiveCabFlow()) {
             const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
             const config = getCabFlowConfig(activeFlow);
@@ -5355,6 +5592,7 @@
             if (noticeText) noticeText.textContent = config.notice;
 
             syncCabQuickFields();
+            syncCabLayerFlow(activeFlow);
         }
 
         function setCabJourneyMode(mode, options = {}) {
@@ -5397,6 +5635,7 @@
                 serviceTypeNode.value = config.serviceType;
             }
 
+            cabLayerManualIndex = null;
             syncCabModeUi(activeFlow);
             if (options.skipFare !== true) updateFare();
             else updateBookingExperience();
