@@ -4146,6 +4146,99 @@
             pointer-events: none;
         }
 
+        /* Gozo-style visual tuning while keeping all booking features enabled */
+        body.booking-page.professional-booking {
+            background: #e8f2f8 !important;
+        }
+
+        body.booking-page.professional-booking .container {
+            max-width: 860px !important;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console {
+            border-radius: 16px !important;
+            border: 1px solid #c9d8e6 !important;
+            box-shadow: 0 10px 24px rgba(39, 67, 95, 0.12) !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tabs {
+            border-color: #cfdbe8 !important;
+            border-radius: 14px !important;
+            background: #f7fbff !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab {
+            min-height: 82px !important;
+            background: #ffffff !important;
+            color: #243347 !important;
+            border-right: 1px solid #d6e0ea !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab.is-active {
+            background: #edf5ff !important;
+            color: #147fcb !important;
+            outline: 2px solid #3aa4eb !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-notice {
+            background: #f7ecd6 !important;
+            color: #945c13 !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console:not(.is-outstation) .cab-journey-row {
+            display: grid !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-row {
+            background: #ffffff !important;
+            border-color: #d7e2ee !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip {
+            border-radius: 9px !important;
+            border-color: #d3deea !important;
+            color: #2f3f52 !important;
+            background: #ffffff !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip.is-active {
+            background: #eef7ff !important;
+            border-color: #33a5ec !important;
+            color: #127ec3 !important;
+            box-shadow: inset 0 0 0 1px #33a5ec !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field {
+            background: #ffffff !important;
+            border-color: #d1dce8 !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field i {
+            background: #edf5fb !important;
+            color: #5f7081 !important;
+        }
+
+        body.booking-page.professional-booking .cab-primary-search {
+            min-height: 52px !important;
+            border-radius: 8px !important;
+            border: 1px solid #df7d23 !important;
+            background: linear-gradient(180deg, #ff9d3b 0%, #f07f1f 100%) !important;
+            box-shadow: 0 10px 20px rgba(235, 124, 26, 0.25) !important;
+            letter-spacing: 0.03em !important;
+        }
+
+        body.booking-page.professional-booking .cab-primary-search i {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking #cabModeNotice .cab-layer-helper {
+            color: #4c5f72 !important;
+            font-weight: 800 !important;
+            margin-top: 0.45rem !important;
+        }
+
         @media (min-width: 760px) {
             body.booking-page.professional-booking {
                 padding-top: 18px !important;
@@ -4230,14 +4323,13 @@
                             <i class="fas fa-car-side"></i>
                             <span>Outstation<br>Cabs</span>
                         </button>
+                        <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
+                            <i class="fas fa-location-dot"></i>
+                            <span>Local<br>Cabs</span>
+                        </button>
                         <button type="button" class="cab-mode-tab is-active" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="true">
                             <i class="fas fa-plane-departure"></i>
                             <span>Airport<br>Cabs</span>
-                        </button>
-                        <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
-                            <b class="cab-new-badge">NEW</b>
-                            <i class="fas fa-clock"></i>
-                            <span>Hourly<br>Rentals</span>
                         </button>
                     </div>
 
@@ -4302,7 +4394,7 @@
                         </button>
                         <button type="button" class="cab-primary-search" id="cabPrimarySearch">
                             <i class="fas fa-magnifying-glass"></i>
-                            Search Cabs
+                            NEXT
                         </button>
                     </div>
                 </div>
@@ -5246,7 +5338,7 @@
                 shortLabel: 'Airport',
                 tripPlan: 'airport',
                 serviceType: 'airport_transfer',
-                notice: 'Pre-book domestic and international airport cabs with meet and greet readiness.',
+                notice: 'Airport transfer made easy: add pickup/drop and schedule your ride.',
                 packageLabel: 'Airport transfer'
             },
             outstation: {
@@ -5254,15 +5346,15 @@
                 shortLabel: 'Outstation',
                 tripPlan: 'outstation',
                 serviceType: 'round_trip_service',
-                notice: 'Tap Add Stops and enter more locations to personalise your journey.',
+                notice: 'Plan one-way or round-trip intercity rides with transparent fare.',
                 packageLabel: 'One way or round trip'
             },
             day_trips: {
-                label: 'Hourly Rentals',
-                shortLabel: 'Hourly',
+                label: 'Local Cabs',
+                shortLabel: 'Local',
                 tripPlan: 'rental',
                 serviceType: 'city_local_trip',
-                notice: 'Take multi stops, opt for any drop location in the city, and choose a rental package.',
+                notice: 'Book local hourly cabs with flexible packages and multi-stop support.',
                 packageLabel: '1 hr 10 kms'
             }
         };
@@ -5558,10 +5650,10 @@
 
             if (helperNode) {
                 if (searchReady) {
-                    helperNode.textContent = 'All quick-booking layers complete. Tap SEARCH to continue.';
+                    helperNode.textContent = 'All steps complete. Tap NEXT to continue booking.';
                 } else {
                     const currentLayer = layers[Math.max(0, activeIndex)];
-                    helperNode.textContent = `Layer ${Math.max(1, activeIndex + 1)}/${layers.length}: complete ${String(currentLayer?.label || 'this step').toLowerCase()} to unlock the next layer.`;
+                    helperNode.textContent = `Step ${Math.max(1, activeIndex + 1)}/${layers.length}: complete ${String(currentLayer?.label || 'this step').toLowerCase()} to unlock next step.`;
                 }
             }
         }
