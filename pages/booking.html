@@ -1557,6 +1557,7 @@
 
         body.booking-page.professional-booking:not(.cab-flow-outstation) #journeyModeRow,
         body.booking-page.professional-booking .return-trip-toggle-row,
+        body.booking-page.professional-booking #returnTripFields,
         body.booking-page.professional-booking:not(.cab-flow-outstation) #returnTripFields {
             display: none !important;
         }
@@ -2059,6 +2060,10 @@
             display: none;
         }
 
+        .cab-booking-console:not(.is-round-trip) .cab-return-mini-field {
+            display: none;
+        }
+
         .cab-quick-fields {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2122,6 +2127,10 @@
         }
 
         .cab-booking-console:not(.is-hourly) .cab-quick-fields {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-booking-console.is-round-trip .cab-quick-fields {
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
@@ -4271,6 +4280,10 @@
             display: none !important;
         }
 
+        body.booking-page.professional-booking #cabBookingConsole:not(.is-round-trip) .cab-return-mini-field {
+            display: none !important;
+        }
+
         body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow {
             background: transparent !important;
             border: 0 !important;
@@ -4518,13 +4531,23 @@
                         </label>
                         <label class="cab-mini-field">
                             <i class="far fa-calendar"></i>
-                            <span>Trip Start</span>
+                            <span>Pickup Date</span>
                             <input type="date" id="cabQuickDateInput">
                         </label>
                         <label class="cab-mini-field">
                             <i class="far fa-clock"></i>
-                            <span>Time</span>
+                            <span>Pickup Time</span>
                             <input type="time" id="cabQuickTimeInput">
+                        </label>
+                        <label class="cab-mini-field cab-return-mini-field">
+                            <i class="fas fa-rotate-left"></i>
+                            <span>Return Date</span>
+                            <input type="date" id="cabQuickReturnDateInput">
+                        </label>
+                        <label class="cab-mini-field cab-return-mini-field">
+                            <i class="far fa-clock"></i>
+                            <span>Return Time</span>
+                            <input type="time" id="cabQuickReturnTimeInput">
                         </label>
                         <label class="cab-mini-field cab-package-field">
                             <i class="fas fa-suitcase-rolling"></i>
@@ -5742,11 +5765,54 @@
             return `${dateValue || 'Choose date'}, ${timeValue || 'Select time'}`;
         }
 
+        function getCabJourneyMode() {
+            return document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way';
+        }
+
+        function isCabRoundTripActive(flow = getActiveCabFlow()) {
+            return flow === 'outstation' && getCabJourneyMode() === 'round_trip';
+        }
+
+        function syncCabRoundTripUi(flow = getActiveCabFlow()) {
+            const journeyMode = getCabJourneyMode();
+            const isOutstation = flow === 'outstation';
+            const isRoundTrip = isOutstation && journeyMode === 'round_trip';
+            const consoleNode = document.getElementById('cabBookingConsole');
+            const quickReturnDate = document.getElementById('cabQuickReturnDateInput');
+            const quickReturnTime = document.getElementById('cabQuickReturnTimeInput');
+            const returnDateNode = document.getElementById('returnDate');
+            const returnTimeNode = document.getElementById('returnTime');
+            const rideDateNode = document.getElementById('rideDate');
+
+            if (consoleNode) {
+                consoleNode.classList.toggle('is-one-way', isOutstation && journeyMode === 'one_way');
+                consoleNode.classList.toggle('is-round-trip', isRoundTrip);
+                consoleNode.classList.toggle('is-multi-city', isOutstation && journeyMode === 'multi_city');
+            }
+            if (document.body) {
+                document.body.classList.toggle('cab-one-way-active', isOutstation && journeyMode === 'one_way');
+                document.body.classList.toggle('cab-round-trip-active', isRoundTrip);
+                document.body.classList.toggle('cab-multi-city-active', isOutstation && journeyMode === 'multi_city');
+            }
+
+            if (quickReturnDate) {
+                quickReturnDate.required = isRoundTrip;
+                quickReturnDate.min = isRoundTrip ? (rideDateNode?.value || '') : '';
+                setQuickControlValue('cabQuickReturnDateInput', isRoundTrip ? (returnDateNode?.value || '') : '');
+            }
+            if (quickReturnTime) {
+                quickReturnTime.required = isRoundTrip;
+                setQuickControlValue('cabQuickReturnTimeInput', isRoundTrip ? (returnTimeNode?.value || '') : '');
+            }
+        }
+
         function syncCabQuickFields() {
             const pickup = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
             const dropoff = sanitizeInput(document.getElementById('dropoff')?.value || '').trim();
             const rideDate = document.getElementById('rideDate')?.value || '';
             const rideTime = document.getElementById('rideTime')?.value || '';
+            const returnDate = document.getElementById('returnDate')?.value || '';
+            const returnTime = document.getElementById('returnTime')?.value || '';
             const activeFlow = getActiveCabFlow();
             const config = getCabFlowConfig(activeFlow);
             const tripLabel = readSelectedOptionText('tripPlan', config.packageLabel);
@@ -5756,7 +5822,10 @@
             setQuickControlValue('cabQuickDropoffInput', dropoff);
             setQuickControlValue('cabQuickDateInput', rideDate);
             setQuickControlValue('cabQuickTimeInput', rideTime);
+            setQuickControlValue('cabQuickReturnDateInput', returnDate);
+            setQuickControlValue('cabQuickReturnTimeInput', returnTime);
             setQuickControlValue('cabQuickPackageSelect', resolveCabPackageValue(activeFlow));
+            syncCabRoundTripUi(activeFlow);
             setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
             setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
             setTextIfPresent('cabQuickStart', formatCabStartText(rideDate, rideTime));
@@ -5976,6 +6045,8 @@
             const dropoffNode = document.getElementById('cabQuickDropoffInput');
             const dateNode = document.getElementById('cabQuickDateInput');
             const timeNode = document.getElementById('cabQuickTimeInput');
+            const returnDateNode = document.getElementById('cabQuickReturnDateInput');
+            const returnTimeNode = document.getElementById('cabQuickReturnTimeInput');
             const packageNode = document.getElementById('cabQuickPackageSelect');
 
             const baseLayers = [
@@ -6012,6 +6083,27 @@
                     pendingText: 'Select pickup time'
                 }
             ];
+
+            if (flow === 'outstation' && getCabJourneyMode() === 'round_trip') {
+                baseLayers.push(
+                    {
+                        key: 'returnDate',
+                        label: 'Return date',
+                        node: returnDateNode ? returnDateNode.closest('.cab-mini-field') : null,
+                        complete: () => Boolean(returnDateNode?.value),
+                        valueText: () => formatMiniLayerDate(returnDateNode?.value || ''),
+                        pendingText: 'Select return date'
+                    },
+                    {
+                        key: 'returnTime',
+                        label: 'Return time',
+                        node: returnTimeNode ? returnTimeNode.closest('.cab-mini-field') : null,
+                        complete: () => Boolean(returnTimeNode?.value),
+                        valueText: () => formatMiniLayerTime(returnTimeNode?.value || ''),
+                        pendingText: 'Select return time'
+                    }
+                );
+            }
 
             if (flow === 'day_trips') {
                 baseLayers.splice(1, 1);
@@ -6141,7 +6233,12 @@
                 const pickupReady = layers
                     .filter((layer) => layer.key === 'pickup')
                     .every((layer) => layer.complete());
-                const showRouteAddons = (activeFlow === 'outstation' || activeFlow === 'day_trips') && pickupReady;
+                const dropoffLayers = layers.filter((layer) => layer.key === 'dropoff');
+                const dropoffReady = !dropoffLayers.length || dropoffLayers.every((layer) => layer.complete());
+                const showRouteAddons = activeFlow === 'outstation'
+                    && getCabJourneyMode() === 'multi_city'
+                    && pickupReady
+                    && dropoffReady;
                 routeAddons.classList.toggle('is-visible', showRouteAddons);
                 routeAddons.hidden = !showRouteAddons;
                 routeAddons.setAttribute('aria-hidden', showRouteAddons ? 'false' : 'true');
@@ -6212,7 +6309,9 @@
                 if (options.skipFare !== true) updateFare();
             }
 
+            syncCabRoundTripUi(getActiveCabFlow());
             syncCabScopedSelectOptions(getActiveCabFlow());
+            syncCabLayerFlow(getActiveCabFlow());
             updateBookingExperience();
         }
 
@@ -6308,16 +6407,22 @@
                 return;
             }
 
+            const journeyMode = getCabJourneyMode();
             const requiredFieldIds = activeFlow === 'day_trips'
                 ? ['pickup', 'rideDate', 'rideTime']
                 : ['pickup', 'dropoff', 'rideDate', 'rideTime'];
+            if (activeFlow === 'outstation' && journeyMode === 'round_trip') {
+                requiredFieldIds.push('returnDate', 'returnTime');
+            }
             const missingField = requiredFieldIds.find((id) => !String(document.getElementById(id)?.value || '').trim());
             if (missingField) {
                 const quickFieldMap = {
                     pickup: 'cabQuickPickupInput',
                     dropoff: 'cabQuickDropoffInput',
                     rideDate: 'cabQuickDateInput',
-                    rideTime: 'cabQuickTimeInput'
+                    rideTime: 'cabQuickTimeInput',
+                    returnDate: 'cabQuickReturnDateInput',
+                    returnTime: 'cabQuickReturnTimeInput'
                 };
                 const quickField = document.getElementById(quickFieldMap[missingField] || '');
                 if (quickField) {
@@ -6328,6 +6433,16 @@
                     return;
                 }
                 revealFieldFromShortcut(missingField);
+                return;
+            }
+
+            if (activeFlow === 'outstation' && journeyMode === 'multi_city' && !readRouteStops().length) {
+                ensureRouteStopsReady();
+                const firstStop = getRouteStopInputs()[0];
+                if (firstStop) {
+                    firstStop.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    window.setTimeout(() => firstStop.focus({ preventScroll: true }), 40);
+                }
                 return;
             }
 
@@ -6452,6 +6567,8 @@
             const dropoffMini = document.getElementById('cabQuickDropoffInput');
             const dateMini = document.getElementById('cabQuickDateInput');
             const timeMini = document.getElementById('cabQuickTimeInput');
+            const returnDateMini = document.getElementById('cabQuickReturnDateInput');
+            const returnTimeMini = document.getElementById('cabQuickReturnTimeInput');
             const packageMini = document.getElementById('cabQuickPackageSelect');
 
             const bindMiniLocation = (miniNode, targetId, layerKey) => {
@@ -6499,6 +6616,7 @@
                     const rideDateNode = document.getElementById('rideDate');
                     if (rideDateNode) rideDateNode.value = dateMini.value;
                     toggleReturnTrip();
+                    syncCabRoundTripUi(getActiveCabFlow());
                     updateFare();
                     updateBookingExperience();
                     advanceCabLayerIfCurrentComplete('date');
@@ -6511,11 +6629,36 @@
                     const rideTimeNode = document.getElementById('rideTime');
                     if (rideTimeNode) rideTimeNode.value = timeMini.value;
                     toggleReturnTrip();
+                    syncCabRoundTripUi(getActiveCabFlow());
                     updateFare();
                     updateBookingExperience();
                     advanceCabLayerIfCurrentComplete('time');
                 });
                 timeMini.dataset.cabMiniBound = '1';
+            }
+
+            if (returnDateMini && returnDateMini.dataset.cabMiniBound !== '1') {
+                returnDateMini.addEventListener('change', () => {
+                    const returnDateNode = document.getElementById('returnDate');
+                    if (returnDateNode) returnDateNode.value = returnDateMini.value;
+                    syncCabRoundTripUi(getActiveCabFlow());
+                    updateFare();
+                    updateBookingExperience();
+                    advanceCabLayerIfCurrentComplete('returnDate');
+                });
+                returnDateMini.dataset.cabMiniBound = '1';
+            }
+
+            if (returnTimeMini && returnTimeMini.dataset.cabMiniBound !== '1') {
+                returnTimeMini.addEventListener('change', () => {
+                    const returnTimeNode = document.getElementById('returnTime');
+                    if (returnTimeNode) returnTimeNode.value = returnTimeMini.value;
+                    syncCabRoundTripUi(getActiveCabFlow());
+                    updateFare();
+                    updateBookingExperience();
+                    advanceCabLayerIfCurrentComplete('returnTime');
+                });
+                returnTimeMini.dataset.cabMiniBound = '1';
             }
 
             if (packageMini && packageMini.dataset.cabMiniBound !== '1') {
@@ -6593,16 +6736,12 @@
                 fieldsNode.style.display = 'grid';
                 returnDateNode.required = true;
                 returnTimeNode.required = true;
-                if (!returnDateNode.value) {
-                    const rideDate = rideDateNode && rideDateNode.value ? new Date(rideDateNode.value) : new Date();
-                    rideDate.setDate(rideDate.getDate() + 1);
-                    returnDateNode.value = rideDate.toISOString().split('T')[0];
+                const rideDateValue = rideDateNode?.value || '';
+                if (rideDateValue) {
+                    returnDateNode.min = rideDateValue;
                 }
-                if (!returnTimeNode.value && rideTimeNode && rideTimeNode.value) {
-                    returnTimeNode.value = rideTimeNode.value;
-                }
-                if (rideDateNode && rideDateNode.value) {
-                    returnDateNode.min = rideDateNode.value;
+                if (rideDateValue && returnDateNode.value && returnDateNode.value < rideDateValue) {
+                    returnDateNode.value = '';
                 }
             } else {
                 fieldsNode.style.display = 'none';
@@ -6610,7 +6749,9 @@
                 returnTimeNode.required = false;
                 returnDateNode.value = '';
                 returnTimeNode.value = '';
+                returnDateNode.min = '';
             }
+            syncCabRoundTripUi(getActiveCabFlow());
         }
 
         function calculatePromoDiscount(grossTotal, tripPlan, paymentMethod) {
