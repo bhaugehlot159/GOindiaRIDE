@@ -2143,9 +2143,9 @@
 
         .cab-route-addons {
             display: none;
-            gap: 0.78rem;
-            padding: 0.82rem;
-            margin-top: 0.82rem;
+            gap: 0.58rem;
+            padding: 0.72rem;
+            margin-top: 0.72rem;
             border: 1px solid #24a4d4;
             border-radius: 14px;
             background: #ffffff;
@@ -2178,12 +2178,12 @@
 
         .route-stops-list {
             display: grid;
-            gap: 0.68rem;
+            gap: 0.52rem;
         }
 
         .route-stop-field {
             display: grid;
-            gap: 0.42rem;
+            gap: 0.34rem;
         }
 
         .route-stop-field label {
@@ -2192,12 +2192,19 @@
             font-weight: 800;
         }
 
+        .route-stop-input-wrap {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.42rem;
+        }
+
         .route-stop-field input {
             width: 100%;
-            min-height: 48px;
+            min-height: 44px;
             border: 1px solid #cfdceb;
             border-radius: 10px;
-            padding: 0.82rem 0.95rem;
+            padding: 0.72rem 0.86rem;
             color: #263c53;
             font: inherit;
         }
@@ -2208,9 +2215,28 @@
             box-shadow: 0 0 0 3px rgba(36, 164, 212, 0.14);
         }
 
+        .route-stop-remove-btn {
+            width: 34px;
+            height: 34px;
+            display: inline-grid;
+            place-items: center;
+            border: 1px solid #f0b2b2;
+            border-radius: 999px;
+            background: #fff7f7;
+            color: #c24141;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+
+        .route-stop-remove-btn[hidden] {
+            display: none;
+        }
+
         .route-stop-add-btn {
-            width: 42px;
-            height: 42px;
+            width: 30px;
+            height: 30px;
             justify-self: center;
             display: inline-grid;
             place-items: center;
@@ -2219,7 +2245,7 @@
             background: #ffffff;
             color: #1485ad;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 0.82rem;
             font-weight: 900;
         }
 
@@ -4416,7 +4442,12 @@
                         <div class="route-stops-list" id="routeStopsList">
                             <div class="route-stop-field" data-route-stop-row>
                                 <label for="stop1">Route 1 (Optional)</label>
-                                <input type="text" id="stop1" class="route-stop-input" data-route-stop-input placeholder="Add intermediate route / stop" autocomplete="off" oninput="handleRouteStopInputChange()">
+                                <div class="route-stop-input-wrap">
+                                    <input type="text" id="stop1" class="route-stop-input" data-route-stop-input placeholder="Add intermediate route / stop" autocomplete="off" oninput="handleRouteStopInputChange()">
+                                    <button type="button" class="route-stop-remove-btn" data-route-stop-remove aria-label="Remove route" onclick="removeRouteStop(this)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <button type="button" class="route-stop-add-btn" id="addRouteStopBtn" aria-label="Add another route">
@@ -5489,6 +5520,7 @@
             const drawer = document.getElementById('advancedBookingDrawer');
             const actions = main?.querySelector(':scope > .cab-console-actions');
             const quickForm = main?.querySelector(':scope > .cab-mini-form');
+            const routeAddons = main?.querySelector(':scope > .cab-route-addons');
             if (!main || !drawer || !actions || !quickForm) return;
 
             const advancedReady = Boolean(document.body?.classList.contains('booking-advanced-ready'));
@@ -5497,8 +5529,9 @@
                     drawer.insertAdjacentElement('afterend', actions);
                 }
             } else {
-                if (actions.previousElementSibling !== quickForm) {
-                    quickForm.insertAdjacentElement('afterend', actions);
+                const quickFlowAnchor = routeAddons || quickForm;
+                if (actions.previousElementSibling !== quickFlowAnchor) {
+                    quickFlowAnchor.insertAdjacentElement('afterend', actions);
                 }
             }
         }
@@ -5757,6 +5790,12 @@
                     label.setAttribute('for', input.id);
                     label.textContent = `Route ${routeNumber} (Optional)`;
                 }
+                const removeButton = input.closest('[data-route-stop-row]')?.querySelector('[data-route-stop-remove]');
+                if (removeButton) {
+                    const hasValue = Boolean((input.value || '').trim());
+                    removeButton.hidden = getRouteStopInputs().length <= 1 && !hasValue;
+                    removeButton.setAttribute('aria-label', `Remove route ${routeNumber}`);
+                }
             });
         }
 
@@ -5766,7 +5805,12 @@
             row.setAttribute('data-route-stop-row', '1');
             row.innerHTML = `
                 <label></label>
-                <input type="text" class="route-stop-input" data-route-stop-input autocomplete="off" oninput="handleRouteStopInputChange()">
+                <div class="route-stop-input-wrap">
+                    <input type="text" class="route-stop-input" data-route-stop-input autocomplete="off" oninput="handleRouteStopInputChange()">
+                    <button type="button" class="route-stop-remove-btn" data-route-stop-remove aria-label="Remove route" onclick="removeRouteStop(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             `;
             const input = row.querySelector('input');
             if (input) input.value = value || '';
@@ -5787,6 +5831,24 @@
                 window.setTimeout(() => input.focus({ preventScroll: true }), 40);
             }
             return input;
+        }
+
+        function removeRouteStop(button) {
+            const row = button?.closest('[data-route-stop-row]');
+            const input = row?.querySelector('[data-route-stop-input]');
+            const stops = getRouteStopInputs();
+            if (!row || !input) return;
+
+            if (stops.length <= 1) {
+                input.value = '';
+                input.focus({ preventScroll: true });
+            } else {
+                row.remove();
+            }
+
+            updateRouteStopLabels();
+            updateFare();
+            updateBookingExperience();
         }
 
         function ensureRouteStopsReady() {
