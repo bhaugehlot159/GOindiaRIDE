@@ -4481,10 +4481,319 @@
             display: block !important;
         }
 
+        /* Final compact booking pass: keep all features, reduce visual bulk. */
+        body.booking-page.professional-booking {
+            padding: 8px 10px 14px !important;
+        }
+
+        body.booking-page.professional-booking .container {
+            max-width: 780px !important;
+            gap: 8px !important;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console,
+        body.booking-page.professional-booking .advanced-booking-drawer,
+        body.booking-page.professional-booking .cab-content-section {
+            max-width: 760px !important;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console {
+            padding: 0.62rem !important;
+            border-radius: 15px !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-console-head {
+            grid-template-columns: 34px 1fr 34px !important;
+            gap: 0.42rem !important;
+            margin-bottom: 0.48rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-icon-action {
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            min-height: 34px !important;
+        }
+
+        body.booking-page.professional-booking .cab-icon-action::before {
+            font-size: 1rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-icon-action[aria-label="Go home"]::before {
+            font-size: 0.92rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-console-title span {
+            font-size: 1.04rem !important;
+            letter-spacing: 0.01em !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tabs {
+            border-radius: 13px !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab {
+            min-height: 58px !important;
+            padding: 0.38rem 0.3rem !important;
+            font-size: 0.78rem !important;
+            line-height: 1.08 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab i {
+            font-size: 0.86rem !important;
+            margin-bottom: 0.08rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-notice {
+            margin-top: 0.42rem !important;
+            min-height: auto !important;
+            padding: 0.42rem 0.55rem !important;
+            border-radius: 9px !important;
+            font-size: 0.75rem !important;
+            line-height: 1.25 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-notice i {
+            font-size: 0.78rem !important;
+        }
+
+        body.booking-page.professional-booking #cabModeNotice .cab-layer-helper {
+            margin-top: 0.22rem !important;
+            font-size: 0.7rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-row {
+            gap: 0.38rem !important;
+            margin-top: 0.42rem !important;
+            padding: 0.38rem !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip {
+            min-height: 34px !important;
+            padding: 0.34rem 0.46rem !important;
+            border-radius: 8px !important;
+            font-size: 0.75rem !important;
+            gap: 0.28rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-form {
+            gap: 0.42rem !important;
+            margin-top: 0.42rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field,
+        body.booking-page.professional-booking .cab-mini-field-wide,
+        body.booking-page.professional-booking .cab-drop-mini-field,
+        body.booking-page.professional-booking .cab-package-field {
+            min-height: 48px !important;
+            grid-template-columns: 28px minmax(0, 1fr) !important;
+            column-gap: 0.5rem !important;
+            padding: 0.46rem 0.56rem !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field i {
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 0.72rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field span {
+            font-size: 0.62rem !important;
+            letter-spacing: 0.03em !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input,
+        body.booking-page.professional-booking .cab-mini-field select {
+            min-height: 22px !important;
+            font-size: 0.84rem !important;
+            line-height: 1.12 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed {
+            min-height: 46px !important;
+            padding-top: 0.42rem !important;
+            padding-bottom: 0.42rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-route-addons {
+            margin-top: 0.44rem !important;
+            padding: 0.48rem !important;
+            gap: 0.38rem !important;
+            border-radius: 11px !important;
+        }
+
+        body.booking-page.professional-booking .cab-route-addons-title {
+            gap: 0.35rem !important;
+            margin-bottom: 0.12rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-route-addons-title span {
+            font-size: 0.88rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-route-addons-title small {
+            font-size: 0.66rem !important;
+        }
+
+        body.booking-page.professional-booking .route-stops-list {
+            gap: 0.32rem !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-field label {
+            font-size: 0.72rem !important;
+            margin-bottom: 0.16rem !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-field input {
+            min-height: 36px !important;
+            padding: 0.46rem 2.15rem 0.46rem 0.58rem !important;
+            border-radius: 9px !important;
+            font-size: 0.82rem !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-remove-btn {
+            width: 24px !important;
+            height: 24px !important;
+            right: 0.38rem !important;
+            font-size: 0.68rem !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-add-btn {
+            width: 26px !important;
+            height: 26px !important;
+            min-width: 26px !important;
+            min-height: 26px !important;
+            margin: 0.24rem auto 0 !important;
+            font-size: 0.7rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-console-actions {
+            gap: 0.42rem !important;
+            margin-top: 0.46rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-primary-search,
+        body.booking-page.professional-booking .cab-step-back-btn {
+            min-height: 42px !important;
+            border-radius: 9px !important;
+            font-size: 0.84rem !important;
+            letter-spacing: 0.04em !important;
+            padding: 0.56rem 0.78rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow {
+            margin-top: 0.46rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section.pro-collapsible {
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .section-toggle-btn {
+            min-height: 46px !important;
+            padding: 0.46rem 0.62rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .section-toggle-btn span {
+            gap: 0.38rem !important;
+            font-size: 0.86rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .section-toggle-btn span i {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 0.72rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section-body {
+            gap: 0.46rem !important;
+            padding: 0.56rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .inline-grid-two,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .special-requests,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .partner-preferences,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="ride"] .inline-grid-two {
+            gap: 0.46rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-group > label {
+            font-size: 0.7rem !important;
+            margin-bottom: 0.16rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow input,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow select,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow textarea {
+            min-height: 36px !important;
+            padding: 0.44rem 0.6rem !important;
+            border-radius: 9px !important;
+            font-size: 0.8rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .form-section-body {
+            gap: 0.46rem !important;
+            padding: 0.56rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .promo-apply-btn {
+            min-height: 36px !important;
+            padding: 0.42rem 0.68rem !important;
+            border-radius: 9px !important;
+            font-size: 0.8rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-panel {
+            padding: 0.5rem !important;
+            gap: 0.42rem 0.5rem !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-panel h3 {
+            font-size: 0.8rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-page-content {
+            max-width: 760px !important;
+            gap: 0.5rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-content-section {
+            padding: 0.55rem !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .cab-section-head {
+            margin-bottom: 0.42rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-section-head h2 {
+            font-size: 0.98rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-section-kicker {
+            font-size: 0.66rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card {
+            min-height: 112px !important;
+            padding: 0.55rem !important;
+            border-radius: 12px !important;
+        }
+
+        @media (min-width: 760px) {
+            body.booking-page.professional-booking .container {
+                max-width: 760px !important;
+            }
+        }
+
         @media (min-width: 760px) {
             body.booking-page.professional-booking {
-                padding-top: 18px !important;
-                padding-bottom: 18px !important;
+                padding-top: 10px !important;
+                padding-bottom: 12px !important;
             }
         }
     </style>
@@ -4493,9 +4802,9 @@
     <div class="container">
         <!-- Quick Navigation -->
         <div class="booking-top-actions" data-goi-nav-static="1">
-            <button class="back-btn" onclick="goBack()">
+            <button class="back-btn" onclick="goCustomerDashboard()">
                 <i class="fas fa-arrow-left"></i>
-                Back
+                Dashboard
             </button>
             <button class="back-btn home-btn" onclick="goHome()">
                 <i class="fas fa-home"></i>
@@ -4535,7 +4844,7 @@
 
         <section class="cab-booking-console" id="cabBookingConsole" aria-label="Customer cab booking shortcut">
             <div class="cab-console-head">
-                <button type="button" class="cab-icon-action" onclick="goBack()" aria-label="Go back">
+                <button type="button" class="cab-icon-action" onclick="goCustomerDashboard()" aria-label="Back to customer dashboard" title="Customer Dashboard">
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="cab-console-title">
@@ -10931,6 +11240,10 @@ Thank you for your generosity! ❤️
 
         function goBack() {
             stepBackInsideBooking();
+        }
+
+        function goCustomerDashboard() {
+            window.location.href = './customer-dashboard.html';
         }
 
         function goHome() {
