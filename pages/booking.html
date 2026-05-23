@@ -2023,6 +2023,66 @@
             color: #c3821c;
         }
 
+        .cab-airport-service-row {
+            display: none;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+            padding: 0.52rem;
+            border: 1px solid #d8e5ef;
+            border-radius: 12px;
+            background: #f8fbfe;
+        }
+
+        .cab-booking-console.is-airport .cab-airport-service-row {
+            display: grid;
+        }
+
+        .cab-airport-service-chip {
+            min-height: 58px;
+            border: 1px solid #d3e0ec;
+            border-radius: 11px;
+            background: #ffffff;
+            color: #163550;
+            display: grid;
+            grid-template-columns: 24px minmax(0, 1fr);
+            grid-template-areas:
+                "icon title"
+                "icon hint";
+            align-items: center;
+            column-gap: 0.45rem;
+            padding: 0.44rem 0.52rem;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+        }
+
+        .cab-airport-service-chip i {
+            grid-area: icon;
+            color: #1689bf;
+            font-size: 0.95rem;
+        }
+
+        .cab-airport-service-chip strong {
+            grid-area: title;
+            font-size: 0.78rem;
+            line-height: 1.05;
+        }
+
+        .cab-airport-service-chip small {
+            grid-area: hint;
+            color: #6d7b88;
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .cab-airport-service-chip.is-active {
+            border-color: #25a9dc;
+            background: #eff9ff;
+            box-shadow: inset 0 0 0 1px #25a9dc;
+        }
+
         .cab-journey-row {
             display: flex;
             gap: 0.55rem;
@@ -2062,6 +2122,10 @@
 
         .cab-booking-console:not(.is-round-trip) .cab-return-mini-field {
             display: none;
+        }
+
+        .cab-booking-console.is-airport-package .cab-package-field {
+            display: grid;
         }
 
         .cab-quick-fields {
@@ -2120,6 +2184,10 @@
 
         .cab-booking-console:not(.is-hourly) .cab-package-field {
             display: none;
+        }
+
+        .cab-booking-console.is-airport-package .cab-package-field {
+            display: grid;
         }
 
         .cab-booking-console.is-hourly .cab-quick-field[data-reveal-field="dropoff"] {
@@ -3032,6 +3100,10 @@
             display: none !important;
         }
 
+        body.booking-page.professional-booking #cabBookingConsole.is-airport-package .cab-mini-field.cab-package-field {
+            display: grid !important;
+        }
+
         body.booking-page.professional-booking .cab-live-sidecar {
             display: grid;
             gap: 0.72rem;
@@ -3924,6 +3996,10 @@
             display: none !important;
         }
 
+        body.booking-page.professional-booking #cabBookingConsole.is-airport-package .cab-package-field {
+            display: grid !important;
+        }
+
         body.booking-page.professional-booking .cab-console-actions {
             display: grid !important;
             grid-template-columns: 1fr !important;
@@ -4013,6 +4089,7 @@
         }
 
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-journey-row,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-airport-service-row,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-mini-form,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-local-scope-note,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-airport-scope-note,
@@ -4585,6 +4662,34 @@
             font-size: 0.7rem !important;
         }
 
+        body.booking-page.professional-booking .cab-airport-service-row {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 0.34rem !important;
+            margin-top: 0.42rem !important;
+            padding: 0.36rem !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-service-chip {
+            min-height: 42px !important;
+            grid-template-columns: 20px minmax(0, 1fr) !important;
+            column-gap: 0.3rem !important;
+            padding: 0.3rem 0.34rem !important;
+            border-radius: 9px !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-service-chip i {
+            font-size: 0.78rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-service-chip strong {
+            font-size: 0.67rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-service-chip small {
+            font-size: 0.54rem !important;
+        }
+
         body.booking-page.professional-booking .cab-journey-row {
             grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
             gap: 0.38rem !important;
@@ -4644,6 +4749,10 @@
             min-height: 46px !important;
             padding-top: 0.42rem !important;
             padding-bottom: 0.42rem !important;
+        }
+
+        body.booking-page.professional-booking #cabBookingConsole.is-airport-package .cab-package-field {
+            display: grid !important;
         }
 
         body.booking-page.professional-booking .cab-local-scope-note {
@@ -4912,6 +5021,10 @@
         }
 
         @media (max-width: 760px) {
+            body.booking-page.professional-booking .cab-airport-service-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
             body.booking-page.professional-booking .cab-local-scope-note,
             body.booking-page.professional-booking .cab-airport-scope-note {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -5017,6 +5130,45 @@
                         <i class="fas fa-circle-info"></i>
                         <span>Pre-book domestic and international airport cabs with meet and greet readiness.</span>
                     </div>
+
+                    <div class="cab-airport-service-row" id="cabAirportServiceModes" aria-label="Airport cab service type">
+                        <button type="button" class="cab-airport-service-chip is-active" data-airport-service="airport_drop">
+                            <i class="fas fa-plane-departure"></i>
+                            <strong>Airport Drop</strong>
+                            <small>City to airport</small>
+                        </button>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_pickup">
+                            <i class="fas fa-plane-arrival"></i>
+                            <strong>Airport Pickup</strong>
+                            <small>Airport to city</small>
+                        </button>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_to_airport">
+                            <i class="fas fa-plane"></i>
+                            <strong>Airport to Airport</strong>
+                            <small>Terminal transfer</small>
+                        </button>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_round">
+                            <i class="fas fa-repeat"></i>
+                            <strong>Round Trip</strong>
+                            <small>Drop + return</small>
+                        </button>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_hourly">
+                            <i class="fas fa-clock"></i>
+                            <strong>Hourly</strong>
+                            <small>Airport + city</small>
+                        </button>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_day">
+                            <i class="fas fa-calendar-day"></i>
+                            <strong>Full Day</strong>
+                            <small>Airport duty</small>
+                        </button>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_multi">
+                            <i class="fas fa-route"></i>
+                            <strong>Multi-stop</strong>
+                            <small>Airport + stops</small>
+                        </button>
+                    </div>
+                    <input type="hidden" id="airportServiceMode" value="airport_drop">
 
                     <div class="cab-journey-row" id="cabJourneyQuickModes" aria-label="Journey type">
                         <button type="button" class="cab-journey-chip is-active" data-journey-target="one_way">
@@ -6065,6 +6217,113 @@
             day_trips: ['city_local_trip']
         };
         const CAB_LOCAL_RENTAL_PACKAGE_VALUES = ['rental_4h', 'rental_6h', 'rental_8h', 'rental_10h', 'rental_12h', 'rental_24h'];
+        const CAB_LOCAL_RENTAL_PACKAGE_OPTIONS = [
+            { value: 'rental_4h', label: '4 hrs / 40 kms - Half day local' },
+            { value: 'rental_6h', label: '6 hrs / 60 kms - Meetings & errands' },
+            { value: 'rental_8h', label: '8 hrs / 80 kms - Full day city' },
+            { value: 'rental_10h', label: '10 hrs / 100 kms - Extended city' },
+            { value: 'rental_12h', label: '12 hrs / 120 kms - Long local duty' },
+            { value: 'rental_24h', label: '24 hrs / 300 kms - Full day reserve' }
+        ];
+        const AIRPORT_PACKAGE_OPTIONS = [
+            { value: 'airport_2h', label: '2 hrs / 20 kms - Airport buffer' },
+            { value: 'airport_4h', label: '4 hrs / 40 kms - Airport hourly' },
+            { value: 'airport_8h', label: '8 hrs / 80 kms - Airport full day' },
+            { value: 'airport_12h', label: '12 hrs / 120 kms - Long airport duty' },
+            { value: 'airport_full_day', label: 'Full day reserve - airport duty' }
+        ];
+        const AIRPORT_SERVICE_CONFIG = {
+            airport_drop: {
+                label: 'Airport Drop',
+                notice: 'City, hotel, station or home pickup to selected Indian airport with reporting-time buffer.',
+                pickupRole: 'place',
+                dropRole: 'airport',
+                journeyMode: 'one_way',
+                pickupLabel: 'Pickup place',
+                dropLabel: 'Airport',
+                pickupPlaceholder: 'City, hotel, station or address',
+                dropPlaceholder: 'Search destination airport in India',
+                chips: ['Airport drop', 'Reporting buffer', 'Driver details', 'Parking/toll review']
+            },
+            airport_pickup: {
+                label: 'Airport Pickup',
+                notice: 'Airport arrival pickup to city, hotel, office or station with flight-delay readiness.',
+                pickupRole: 'airport',
+                dropRole: 'place',
+                journeyMode: 'one_way',
+                pickupLabel: 'Airport',
+                dropLabel: 'Destination',
+                pickupPlaceholder: 'Search arrival airport in India',
+                dropPlaceholder: 'City, hotel, office or address',
+                chips: ['Arrival pickup', 'Flight delay ready', 'Meet & greet note', 'Luggage fit']
+            },
+            airport_to_airport: {
+                label: 'Airport to Airport',
+                notice: 'Select this only when the customer is travelling from one Indian airport to another airport/civil terminal.',
+                pickupRole: 'airport',
+                dropRole: 'airport',
+                journeyMode: 'one_way',
+                pickupLabel: 'Airport From',
+                dropLabel: 'Airport To',
+                pickupPlaceholder: 'Search departure airport in India',
+                dropPlaceholder: 'Search destination airport in India',
+                chips: ['Airport-to-airport', 'Terminal transfer', 'Flight details', 'Luggage-ready cab']
+            },
+            airport_round: {
+                label: 'Airport Round Trip',
+                notice: 'Airport drop with scheduled return pickup, return date/time, waiting and driver coordination.',
+                pickupRole: 'place',
+                dropRole: 'airport',
+                journeyMode: 'round_trip',
+                requiresReturn: true,
+                pickupLabel: 'Pickup place',
+                dropLabel: 'Airport',
+                pickupPlaceholder: 'City, hotel, station or address',
+                dropPlaceholder: 'Search airport for round trip',
+                chips: ['Round trip', 'Return pickup', 'Waiting ready', 'Same-route clarity']
+            },
+            airport_hourly: {
+                label: 'Airport Hourly',
+                notice: 'Airport pickup/drop plus hourly city use for meetings, errands, guest movement or layover work.',
+                pickupRole: 'airport',
+                dropRole: 'place',
+                journeyMode: 'one_way',
+                requiresPackage: true,
+                defaultPackage: 'airport_4h',
+                pickupLabel: 'Airport',
+                dropLabel: 'City base',
+                pickupPlaceholder: 'Search airport in India',
+                dropPlaceholder: 'City area, hotel or office base',
+                chips: ['Hourly package', 'Extra km/hr billed', 'Multiple city stops', 'Layover support']
+            },
+            airport_day: {
+                label: 'Airport Full Day',
+                notice: 'Airport reporting with full-day cab reserve for guest duty, business visits or city coverage.',
+                pickupRole: 'airport',
+                dropRole: 'place',
+                journeyMode: 'one_way',
+                requiresPackage: true,
+                defaultPackage: 'airport_8h',
+                pickupLabel: 'Airport',
+                dropLabel: 'Day base',
+                pickupPlaceholder: 'Search airport in India',
+                dropPlaceholder: 'City/hotel base for full-day duty',
+                chips: ['Full day duty', 'Driver reserve', 'City coverage', 'Admin fare review']
+            },
+            airport_multi: {
+                label: 'Airport Multi-stop',
+                notice: 'Airport pickup/drop with multiple planned stops. Add each route stop below before moving ahead.',
+                pickupRole: 'airport',
+                dropRole: 'place',
+                journeyMode: 'multi_city',
+                routeAddons: true,
+                pickupLabel: 'Airport',
+                dropLabel: 'Final drop',
+                pickupPlaceholder: 'Search airport in India',
+                dropPlaceholder: 'Final destination after stops',
+                chips: ['Multi-stop', 'Route add-ons', 'Hotel/meeting stops', 'Route-aware fare']
+            }
+        };
         const INDIA_AIRPORT_SUGGESTIONS = [
             'Veer Savarkar International Airport|Port Blair|Andaman and Nicobar Islands|IXZ|Port Blair Airport',
             'Agatti Airport|Agatti Island|Lakshadweep|AGX|Lakshadweep Airport',
@@ -6289,6 +6548,7 @@
                 aliases: aliases ? aliases.split(';').filter(Boolean) : []
             };
         });
+        let activeAirportServiceMode = 'airport_drop';
 
         function getCabFlowConfig(flow) {
             return CAB_FLOW_CONFIG[flow] || CAB_FLOW_CONFIG.airport;
@@ -6309,6 +6569,110 @@
         function setTextIfPresent(id, value) {
             const node = document.getElementById(id);
             if (node) node.textContent = value;
+        }
+
+        function getAirportServiceMode() {
+            const hiddenNode = document.getElementById('airportServiceMode');
+            const hiddenValue = hiddenNode?.value;
+            if (hiddenValue && AIRPORT_SERVICE_CONFIG[hiddenValue]) {
+                activeAirportServiceMode = hiddenValue;
+            }
+            return AIRPORT_SERVICE_CONFIG[activeAirportServiceMode] ? activeAirportServiceMode : 'airport_drop';
+        }
+
+        function getAirportServiceConfig(mode = getAirportServiceMode()) {
+            return AIRPORT_SERVICE_CONFIG[mode] || AIRPORT_SERVICE_CONFIG.airport_drop;
+        }
+
+        function isAirportPackageMode(mode = getAirportServiceMode()) {
+            return Boolean(getAirportServiceConfig(mode).requiresPackage);
+        }
+
+        function getAirportFieldRole(inputId, mode = getAirportServiceMode()) {
+            const config = getAirportServiceConfig(mode);
+            if (inputId === 'pickup' || inputId === 'cabQuickPickupInput') return config.pickupRole || 'place';
+            if (inputId === 'dropoff' || inputId === 'cabQuickDropoffInput') return config.dropRole || 'place';
+            return 'place';
+        }
+
+        function syncPackageSelectOptions(flow = getActiveCabFlow()) {
+            const selectNode = document.getElementById('cabQuickPackageSelect');
+            if (!selectNode) return;
+
+            const airportMode = getAirportServiceMode();
+            const useAirportPackages = flow === 'airport' && isAirportPackageMode(airportMode);
+            const sourceOptions = useAirportPackages ? AIRPORT_PACKAGE_OPTIONS : CAB_LOCAL_RENTAL_PACKAGE_OPTIONS;
+            const desiredKey = useAirportPackages ? 'airport' : 'local';
+
+            if (selectNode.dataset.packageOptionScope !== desiredKey) {
+                selectNode.innerHTML = sourceOptions
+                    .map((option) => `<option value="${option.value}">${option.label}</option>`)
+                    .join('');
+                selectNode.dataset.packageOptionScope = desiredKey;
+            }
+
+            if (useAirportPackages) {
+                const config = getAirportServiceConfig(airportMode);
+                const allowed = new Set(AIRPORT_PACKAGE_OPTIONS.map((option) => option.value));
+                if (!allowed.has(selectNode.value)) {
+                    selectNode.value = config.defaultPackage || AIRPORT_PACKAGE_OPTIONS[0].value;
+                }
+                return;
+            }
+
+            const allowedLocal = new Set(CAB_LOCAL_RENTAL_PACKAGE_OPTIONS.map((option) => option.value));
+            if (!allowedLocal.has(selectNode.value)) {
+                selectNode.value = 'rental_4h';
+            }
+        }
+
+        function syncAirportServiceChips(mode = getAirportServiceMode()) {
+            document.querySelectorAll('[data-airport-service]').forEach((button) => {
+                const isActive = button.dataset.airportService === mode;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function setAirportServiceMode(mode, options = {}) {
+            const previousMode = getAirportServiceMode();
+            const safeMode = AIRPORT_SERVICE_CONFIG[mode] ? mode : 'airport_drop';
+            const config = getAirportServiceConfig(safeMode);
+            const modeChanged = previousMode !== safeMode;
+            activeAirportServiceMode = safeMode;
+            const hiddenNode = document.getElementById('airportServiceMode');
+            if (hiddenNode) hiddenNode.value = safeMode;
+
+            syncAirportServiceChips(safeMode);
+            if (getActiveCabFlow() !== 'airport') return;
+
+            if (modeChanged && options.preserveFields !== true) {
+                ['pickup', 'dropoff', 'cabQuickPickupInput', 'cabQuickDropoffInput', 'returnDate', 'returnTime', 'cabQuickReturnDateInput', 'cabQuickReturnTimeInput']
+                    .forEach((inputId) => {
+                        const input = document.getElementById(inputId);
+                        if (input) input.value = '';
+                    });
+                getRouteStopInputs().forEach((input) => {
+                    input.value = '';
+                });
+                updateRouteStopLabels();
+            }
+
+            setCabJourneyMode(config.journeyMode || 'one_way', {
+                syncReturnTrip: true,
+                skipFare: true
+            });
+            syncPackageSelectOptions('airport');
+            if (modeChanged && config.requiresPackage && config.defaultPackage) {
+                const packageSelect = document.getElementById('cabQuickPackageSelect');
+                if (packageSelect) packageSelect.value = config.defaultPackage;
+            }
+            syncAirportOnlyFieldUi('airport');
+            resetCabLayerProgress('airport');
+            syncCabRoundTripUi('airport');
+            syncCabLayerFlow('airport');
+            if (options.skipFare !== true) updateFare();
+            else updateBookingExperience();
         }
 
         function normalizeAirportSearchText(value) {
@@ -6416,7 +6780,7 @@
         function closeAirportAutocompleteBoxes() {
             ['pickup', 'dropoff', 'cabQuickPickupInput', 'cabQuickDropoffInput'].forEach((inputId) => {
                 const box = document.getElementById(`${inputId}Autocomplete`);
-                if (!box || box.dataset.airportScoped !== '1') return;
+                if (!box) return;
                 box.innerHTML = '';
                 box.style.display = 'none';
             });
@@ -6455,7 +6819,7 @@
         }
 
         function showAirportAutocomplete(input) {
-            if (!input || getActiveCabFlow() !== 'airport') return false;
+            if (!input || getActiveCabFlow() !== 'airport' || getAirportFieldRole(input.id) !== 'airport') return false;
 
             const suggestionsBox = getBookingAutocompleteBox(input);
             if (!suggestionsBox) return false;
@@ -6536,11 +6900,13 @@
 
         function syncAirportOnlyFieldUi(flow = getActiveCabFlow()) {
             const isAirportFlow = flow === 'airport';
+            if (isAirportFlow) closeAirportAutocompleteBoxes();
+            const airportConfig = getAirportServiceConfig();
             const placeholderMap = {
-                cabQuickPickupInput: isAirportFlow ? 'Search pickup airport in India' : 'Pickup city / airport',
-                cabQuickDropoffInput: isAirportFlow ? 'Search drop airport in India' : 'Drop city / airport',
-                pickup: isAirportFlow ? 'Search Indian airport only' : 'Where are you? (Enter address or landmark)',
-                dropoff: isAirportFlow ? 'Search Indian airport only' : 'Where to? (Enter address or landmark)'
+                cabQuickPickupInput: isAirportFlow ? airportConfig.pickupPlaceholder : 'Pickup city / airport',
+                cabQuickDropoffInput: isAirportFlow ? airportConfig.dropPlaceholder : 'Drop city / airport',
+                pickup: isAirportFlow ? airportConfig.pickupPlaceholder : 'Where are you? (Enter address or landmark)',
+                dropoff: isAirportFlow ? airportConfig.dropPlaceholder : 'Where to? (Enter address or landmark)'
             };
 
             Object.keys(placeholderMap).forEach((inputId) => {
@@ -6550,13 +6916,27 @@
 
             const quickPickupLabel = document.getElementById('cabQuickPickupInput')?.closest('.cab-mini-field')?.querySelector('span');
             const quickDropoffLabel = document.getElementById('cabQuickDropoffInput')?.closest('.cab-mini-field')?.querySelector('span');
-            if (quickPickupLabel) quickPickupLabel.textContent = isAirportFlow ? 'Airport From' : 'From';
-            if (quickDropoffLabel) quickDropoffLabel.textContent = isAirportFlow ? 'Airport To' : 'To';
+            if (quickPickupLabel) quickPickupLabel.textContent = isAirportFlow ? airportConfig.pickupLabel : 'From';
+            if (quickDropoffLabel) quickDropoffLabel.textContent = isAirportFlow ? airportConfig.dropLabel : 'To';
+
+            const pickupLabel = document.querySelector('label[for="pickup"]');
+            const dropLabel = document.querySelector('label[for="dropoff"]');
+            if (pickupLabel) pickupLabel.textContent = isAirportFlow ? `${airportConfig.pickupLabel} *` : 'Pickup Location *';
+            if (dropLabel) dropLabel.textContent = isAirportFlow ? `${airportConfig.dropLabel} *` : 'Dropoff Location *';
+
+            const airportScopeNote = document.getElementById('cabAirportScopeNote');
+            if (airportScopeNote && isAirportFlow) {
+                const chipIcons = ['fa-plane-arrival', 'fa-clock', 'fa-id-card', 'fa-suitcase-rolling'];
+                airportScopeNote.innerHTML = (airportConfig.chips || ['Airport transfer', 'Flight ready', 'Driver details', 'Luggage fit'])
+                    .slice(0, 4)
+                    .map((chip, index) => `<span><i class="fas ${chipIcons[index] || 'fa-circle-check'}"></i> ${escapeBookingHtml(chip)}</span>`)
+                    .join('');
+            }
 
             const notesNode = document.getElementById('notes');
             if (notesNode) {
                 notesNode.placeholder = isAirportFlow
-                    ? 'Flight number, terminal, gate, pickup signboard, waiting or delay note'
+                    ? `${airportConfig.label}: flight number, terminal, gate, pickup signboard, waiting or delay note`
                     : 'E.g., Driver will wait for 5 mins, etc.';
             }
 
@@ -6746,11 +7126,25 @@
                 return CAB_LOCAL_RENTAL_PACKAGE_VALUES.includes(currentPackage) ? currentPackage : 'rental_4h';
             }
             if (flow === 'outstation') return journeyMode === 'round_trip' ? 'outstation_round' : 'outstation_one_way';
+            if (flow === 'airport' && isAirportPackageMode()) {
+                const currentPackage = document.getElementById('cabQuickPackageSelect')?.value || '';
+                const airportPackageValues = AIRPORT_PACKAGE_OPTIONS.map((option) => option.value);
+                return airportPackageValues.includes(currentPackage)
+                    ? currentPackage
+                    : (getAirportServiceConfig().defaultPackage || AIRPORT_PACKAGE_OPTIONS[0].value);
+            }
             return 'airport';
         }
 
         function applyCabPackageValue(value, options = {}) {
             const packageValue = String(value || 'airport');
+            if (getActiveCabFlow() === 'airport' && packageValue.startsWith('airport_')) {
+                syncPackageSelectOptions('airport');
+                syncCabLayerFlow('airport');
+                if (options.skipFare !== true) updateFare();
+                else updateBookingExperience();
+                return;
+            }
             if (CAB_LOCAL_RENTAL_PACKAGE_VALUES.includes(packageValue)) {
                 if (getActiveCabFlow() !== 'day_trips') {
                     setCabBookingMode('day_trips', { skipFare: true });
@@ -6798,13 +7192,15 @@
         }
 
         function isCabRoundTripActive(flow = getActiveCabFlow()) {
-            return flow === 'outstation' && getCabJourneyMode() === 'round_trip';
+            return (flow === 'outstation' && getCabJourneyMode() === 'round_trip')
+                || (flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn));
         }
 
         function syncCabRoundTripUi(flow = getActiveCabFlow()) {
             const journeyMode = getCabJourneyMode();
             const isOutstation = flow === 'outstation';
-            const isRoundTrip = isOutstation && journeyMode === 'round_trip';
+            const isAirportRoundTrip = flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn);
+            const isRoundTrip = (isOutstation && journeyMode === 'round_trip') || isAirportRoundTrip;
             const consoleNode = document.getElementById('cabBookingConsole');
             const quickReturnDate = document.getElementById('cabQuickReturnDateInput');
             const quickReturnTime = document.getElementById('cabQuickReturnTimeInput');
@@ -6845,6 +7241,7 @@
             const config = getCabFlowConfig(activeFlow);
             const tripLabel = readSelectedOptionText('tripPlan', config.packageLabel);
             const modelLabel = readSelectedOptionText('vehicleModel', 'Hatchback Car');
+            const airportPackageActive = activeFlow === 'airport' && isAirportPackageMode();
 
             setQuickControlValue('cabQuickPickupInput', pickup);
             setQuickControlValue('cabQuickDropoffInput', dropoff);
@@ -6852,14 +7249,17 @@
             setQuickControlValue('cabQuickTimeInput', rideTime);
             setQuickControlValue('cabQuickReturnDateInput', returnDate);
             setQuickControlValue('cabQuickReturnTimeInput', returnTime);
+            syncPackageSelectOptions(activeFlow);
             setQuickControlValue('cabQuickPackageSelect', resolveCabPackageValue(activeFlow));
             const selectedLocalPackage = readSelectedOptionText('cabQuickPackageSelect', config.packageLabel);
             syncCabRoundTripUi(activeFlow);
-            setTextIfPresent('cabQuickPackageLabel', activeFlow === 'day_trips' ? 'Local Package' : 'Package');
+            setTextIfPresent('cabQuickPackageLabel', activeFlow === 'day_trips'
+                ? 'Local Package'
+                : airportPackageActive ? 'Airport Package' : 'Package');
             setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
             setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
             setTextIfPresent('cabQuickStart', formatCabStartText(rideDate, rideTime));
-            setTextIfPresent('cabQuickPackage', activeFlow === 'day_trips' ? `${selectedLocalPackage} • ${modelLabel}` : tripLabel);
+            setTextIfPresent('cabQuickPackage', activeFlow === 'day_trips' || airportPackageActive ? `${selectedLocalPackage} • ${modelLabel}` : tripLabel);
         }
 
         function syncCabMiniFare(estimate = {}) {
@@ -7114,7 +7514,8 @@
                 }
             ];
 
-            if (flow === 'outstation' && getCabJourneyMode() === 'round_trip') {
+            if ((flow === 'outstation' && getCabJourneyMode() === 'round_trip')
+                || (flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn))) {
                 baseLayers.push(
                     {
                         key: 'returnDate',
@@ -7144,6 +7545,17 @@
                     complete: () => Boolean(packageNode?.value),
                     valueText: () => packageNode?.options?.[packageNode.selectedIndex]?.text || '',
                     pendingText: 'Select rental package'
+                });
+            }
+
+            if (flow === 'airport' && Boolean(getAirportServiceConfig().requiresPackage)) {
+                baseLayers.push({
+                    key: 'package',
+                    label: 'Airport package',
+                    node: packageNode ? packageNode.closest('.cab-mini-field') : null,
+                    complete: () => Boolean(packageNode?.value),
+                    valueText: () => packageNode?.options?.[packageNode.selectedIndex]?.text || '',
+                    pendingText: 'Select airport package'
                 });
             }
 
@@ -7271,21 +7683,28 @@
                 const routeTitle = routeAddons.querySelector('.cab-route-addons-title span');
                 const routeHint = routeAddons.querySelector('.cab-route-addons-title small');
                 const isLocalRental = activeFlow === 'day_trips';
+                const isAirportMulti = activeFlow === 'airport' && Boolean(getAirportServiceConfig().routeAddons);
                 const showRouteAddons = isLocalRental
                     ? pickupReady
-                    : activeFlow === 'outstation'
-                        && getCabJourneyMode() === 'multi_city'
-                        && pickupReady
-                        && dropoffReady;
+                    : isAirportMulti
+                        ? pickupReady && dropoffReady
+                        : activeFlow === 'outstation'
+                            && getCabJourneyMode() === 'multi_city'
+                            && pickupReady
+                            && dropoffReady;
                 if (routeTitle) {
                     routeTitle.innerHTML = isLocalRental
                         ? '<i class="fas fa-map-signs"></i> Local Stops'
-                        : '<i class="fas fa-map-signs"></i> Route Add-ons';
+                        : isAirportMulti
+                            ? '<i class="fas fa-map-signs"></i> Airport Stops'
+                            : '<i class="fas fa-map-signs"></i> Route Add-ons';
                 }
                 if (routeHint) {
                     routeHint.textContent = isLocalRental
                         ? 'Shopping, meetings, sightseeing stops'
-                        : 'Add routes/stops as needed';
+                        : isAirportMulti
+                            ? 'Add hotel, meeting, terminal or route stops'
+                            : 'Add routes/stops as needed';
                 }
                 routeAddons.classList.toggle('is-visible', showRouteAddons);
                 routeAddons.hidden = !showRouteAddons;
@@ -7306,10 +7725,13 @@
         function syncCabModeUi(flow = getActiveCabFlow()) {
             const activeFlow = CAB_FLOW_CONFIG[flow] ? flow : 'airport';
             const config = getCabFlowConfig(activeFlow);
+            const airportConfig = getAirportServiceConfig();
             const consoleNode = document.getElementById('cabBookingConsole');
             if (consoleNode) {
-                consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly');
+                consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly', 'is-airport-package', 'is-airport-multi');
                 consoleNode.classList.add(activeFlow === 'day_trips' ? 'is-hourly' : `is-${activeFlow}`);
+                consoleNode.classList.toggle('is-airport-package', activeFlow === 'airport' && Boolean(airportConfig.requiresPackage));
+                consoleNode.classList.toggle('is-airport-multi', activeFlow === 'airport' && Boolean(airportConfig.routeAddons));
             }
             if (document.body) {
                 document.body.classList.remove('cab-flow-airport', 'cab-flow-outstation', 'cab-flow-hourly');
@@ -7327,8 +7749,10 @@
             });
 
             const noticeText = document.querySelector('#cabModeNotice span');
-            if (noticeText) noticeText.textContent = config.notice;
+            if (noticeText) noticeText.textContent = activeFlow === 'airport' ? airportConfig.notice : config.notice;
 
+            syncAirportServiceChips();
+            syncPackageSelectOptions(activeFlow);
             syncAirportOnlyFieldUi(activeFlow);
             syncCabScopedSelectOptions(activeFlow);
             syncCabQuickFields();
@@ -7460,7 +7884,8 @@
             const requiredFieldIds = activeFlow === 'day_trips'
                 ? ['pickup', 'rideDate', 'rideTime']
                 : ['pickup', 'dropoff', 'rideDate', 'rideTime'];
-            if (activeFlow === 'outstation' && journeyMode === 'round_trip') {
+            if ((activeFlow === 'outstation' && journeyMode === 'round_trip')
+                || (activeFlow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn))) {
                 requiredFieldIds.push('returnDate', 'returnTime');
             }
             const missingField = requiredFieldIds.find((id) => !String(document.getElementById(id)?.value || '').trim());
@@ -7554,6 +7979,14 @@
                     setCabJourneyMode(button.dataset.journeyTarget || 'one_way');
                 });
                 button.dataset.cabBound = '1';
+            });
+
+            document.querySelectorAll('[data-airport-service]').forEach((button) => {
+                if (button.dataset.airportServiceBound === '1') return;
+                button.addEventListener('click', () => {
+                    setAirportServiceMode(button.dataset.airportService || 'airport_drop');
+                });
+                button.dataset.airportServiceBound = '1';
             });
 
             document.querySelectorAll('[data-reveal-field]').forEach((button) => {
@@ -7713,17 +8146,27 @@
 
             if (packageMini && packageMini.dataset.cabMiniBound !== '1') {
                 packageMini.addEventListener('change', () => {
-                    applyCabPackageValue(packageMini.value);
+                    if (getActiveCabFlow() === 'airport' && isAirportPackageMode()) {
+                        syncPackageSelectOptions('airport');
+                        updateFare();
+                        updateBookingExperience();
+                    } else {
+                        applyCabPackageValue(packageMini.value);
+                    }
                     advanceCabLayerIfCurrentComplete('package');
                 });
                 packageMini.dataset.cabMiniBound = '1';
             }
 
             setCabBookingMode(getActiveCabFlow(), { syncTripPlan: false, skipFare: true });
-            setCabJourneyMode(document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way', {
-                syncReturnTrip: false,
-                skipFare: true
-            });
+            if (getActiveCabFlow() === 'airport') {
+                setAirportServiceMode(getAirportServiceMode(), { skipFare: true });
+            } else {
+                setCabJourneyMode(document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way', {
+                    syncReturnTrip: false,
+                    skipFare: true
+                });
+            }
             syncCabMiniFare(latestFareEstimate || createAwaitingFareEstimate(readFareEstimateInputs()));
         }
 
@@ -8432,6 +8875,8 @@
                 vehicleFuelPreference: document.getElementById('vehicleFuelPreference')?.value || 'no_preference',
                 tripPlan: document.getElementById('tripPlan').value,
                 tripServiceType: document.getElementById('tripServiceType').value,
+                airportServiceMode: getActiveCabFlow() === 'airport' ? getAirportServiceMode() : '',
+                airportServiceLabel: getActiveCabFlow() === 'airport' ? getAirportServiceConfig().label : '',
                 paymentMethod: document.getElementById('paymentMethod').value,
                 passengers: Number.parseInt(document.getElementById('passengers').value, 10) || 1,
                 luggage: document.getElementById('luggage').value,
@@ -11244,6 +11689,8 @@
                 rideTime: rideTime,
                 tripPlan: tripPlan,
                 tripServiceType: fareEstimateInputs.tripServiceType || '',
+                airportServiceMode: fareEstimateInputs.airportServiceMode || '',
+                airportServiceLabel: fareEstimateInputs.airportServiceLabel || '',
                 paymentMethod: paymentMethod,
                 budgetAmount: Number(fareEstimateInputs.budgetAmount || 0),
                 customerBidAmount: Number(fareEstimateInputs.budgetAmount || 0),
