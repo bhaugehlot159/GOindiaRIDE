@@ -4374,6 +4374,80 @@
             font-size: 1rem !important;
         }
 
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .form-section-body {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.56rem !important;
+            padding: 0.72rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .inline-grid-two {
+            display: contents !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .form-group {
+            min-width: 0;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .form-group > label {
+            font-size: 0.76rem !important;
+            margin-bottom: 0.22rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] input,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] select {
+            min-height: 42px !important;
+            padding: 0.58rem 0.72rem !important;
+            font-size: 0.9rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .promo-wrap {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            gap: 0.5rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .promo-apply-btn {
+            min-height: 42px !important;
+            padding: 0.55rem 0.82rem !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-panel {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: minmax(170px, 0.75fr) minmax(0, 1fr);
+            gap: 0.56rem 0.7rem;
+            align-items: end;
+            padding: 0.62rem !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-panel h3 {
+            margin: 0 !important;
+            font-size: 0.92rem !important;
+            align-self: center;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-copy {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-panel .form-group {
+            margin: 0 !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] #bookingPhoneStatus {
+            grid-column: 1 / -1;
+            margin: 0 !important;
+            font-size: 0.78rem !important;
+            line-height: 1.25 !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="ride"] .inline-grid-two {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 0.62rem !important;
+        }
+
         body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .special-requests,
         body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .partner-preferences {
             display: grid !important;
@@ -4384,7 +4458,10 @@
         @media (max-width: 760px) {
             body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .inline-grid-two,
             body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .special-requests,
-            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .partner-preferences {
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .partner-preferences,
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .form-section-body,
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="trip"] .booking-phone-panel,
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .form-section[data-step-key="ride"] .inline-grid-two {
                 grid-template-columns: 1fr !important;
             }
         }
@@ -4836,6 +4913,19 @@
                                     <option value="top_rated">Top Rated Driver</option>
                                     <option value="nearby_fastest">Nearest Available Driver</option>
                                     <option value="female_preferred">Woman Driver Preferred</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleFuelPreference">Fuel Preference</label>
+                                <select id="vehicleFuelPreference" onchange="updateFare()">
+                                    <option value="no_preference" selected>Any Fuel / Best Available</option>
+                                    <option value="petrol">Petrol</option>
+                                    <option value="diesel">Diesel</option>
+                                    <option value="cng">CNG</option>
+                                    <option value="petrol_cng">Petrol + CNG</option>
+                                    <option value="petrol_diesel_only">Petrol/Diesel Only (No CNG)</option>
+                                    <option value="electric">Electric / EV</option>
+                                    <option value="hybrid">Hybrid</option>
                                 </select>
                             </div>
                         </div>
@@ -7213,6 +7303,8 @@
                     .replace(/\b\w/g, (char) => char.toUpperCase());
                 const modelNode = document.getElementById('vehicleModel');
                 const selectedModel = modelNode ? modelNode.options[modelNode.selectedIndex]?.text : '';
+                const fuelNode = document.getElementById('vehicleFuelPreference');
+                const selectedFuel = fuelNode ? fuelNode.options[fuelNode.selectedIndex]?.text : '';
                 const budget = Number.parseFloat(document.getElementById('budgetAmount')?.value || 0);
 
                 const items = [
@@ -7222,6 +7314,10 @@
 
                 if (selectedModel) {
                     items.push(`<span class=\"context-chip\"><i class=\"fas fa-car-side\"></i> ${selectedModel}</span>`);
+                }
+
+                if (selectedFuel && fuelNode?.value && fuelNode.value !== 'no_preference') {
+                    items.push(`<span class=\"context-chip\"><i class=\"fas fa-gas-pump\"></i> ${selectedFuel}</span>`);
                 }
 
                 if (budget > 0) {
@@ -7241,7 +7337,7 @@
             const watchIds = [
                 'pickup', 'dropoff', 'rideDate', 'rideTime', 'returnDate', 'returnTime',
                 'tripPlan', 'paymentMethod', 'tripServiceType', 'budgetAmount',
-                'vehicleModel', 'preferredDriverType', 'passengers', 'luggage',
+                'vehicleModel', 'preferredDriverType', 'vehicleFuelPreference', 'passengers', 'luggage',
                 'isReturnTrip', 'promoCode'
             ];
 
@@ -7373,6 +7469,7 @@
                 rideType: document.querySelector('input[name="rideType"]:checked')?.value || 'economy',
                 vehicleType: document.querySelector('input[name="rideType"]:checked')?.value || 'economy',
                 vehicleModel: document.getElementById('vehicleModel').value,
+                vehicleFuelPreference: document.getElementById('vehicleFuelPreference')?.value || 'no_preference',
                 tripPlan: document.getElementById('tripPlan').value,
                 tripServiceType: document.getElementById('tripServiceType').value,
                 paymentMethod: document.getElementById('paymentMethod').value,
@@ -9793,6 +9890,7 @@
                 paymentMethod: sanitizeInput(bookingRecord.paymentMethod || ''),
                 vehicleType: sanitizeInput(bookingRecord.vehicleType || bookingRecord.rideType || ''),
                 vehicleModel: sanitizeInput(bookingRecord.vehicleModel || ''),
+                vehicleFuelPreference: sanitizeInput(bookingRecord.vehicleFuelPreference || bookingRecord.fuelPreference || ''),
                 passengers: Number(bookingRecord.passengers || 1),
                 luggage: sanitizeInput(bookingRecord.luggage || ''),
                 notes: sanitizeInput(bookingRecord.notes || ''),
@@ -10003,6 +10101,7 @@
             const rideDate = document.getElementById('rideDate').value;
             const rideTime = document.getElementById('rideTime').value;
             const rideType = document.querySelector('input[name="rideType"]:checked').value;
+            const vehicleFuelPreference = document.getElementById('vehicleFuelPreference')?.value || 'no_preference';
             const tripPlan = document.getElementById('tripPlan').value;
             const activeFlow = getActiveCabFlow();
             const paymentMethod = document.getElementById('paymentMethod').value;
@@ -10155,7 +10254,8 @@
                 specialRequests,
                 safetyAccessibility,
                 hasStops: intermediateStops.length > 0,
-                hasReturnTrip: isReturnTrip
+                hasReturnTrip: isReturnTrip,
+                vehicleFuelPreference
             };
 
             const booking = {
@@ -10176,6 +10276,8 @@
                 rideType: rideType,
                 vehicleType: rideType,
                 vehicleModel: fareEstimateInputs.vehicleModel || '',
+                vehicleFuelPreference: fareEstimateInputs.vehicleFuelPreference || vehicleFuelPreference,
+                fuelPreference: fareEstimateInputs.vehicleFuelPreference || vehicleFuelPreference,
                 passengers: passengers,
                 luggage: luggage,
                 rideDate: rideDate,
@@ -10323,6 +10425,8 @@
                     drop: dropoff,
                     vehicleType: rideType,
                     vehicleModel: fareEstimateInputs.vehicleModel || '',
+                    vehicleFuelPreference: fareEstimateInputs.vehicleFuelPreference || vehicleFuelPreference,
+                    fuelPreference: fareEstimateInputs.vehicleFuelPreference || vehicleFuelPreference,
                     paymentMethod,
                     tripPlan,
                     tripServiceType: fareEstimateInputs.tripServiceType || '',
