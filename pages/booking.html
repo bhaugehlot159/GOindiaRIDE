@@ -4701,6 +4701,11 @@
             margin-top: 0.46rem !important;
         }
 
+        body.booking-page.professional-booking .cab-console-actions.has-step-back {
+            grid-template-columns: minmax(108px, 0.34fr) minmax(0, 1fr) !important;
+            align-items: center !important;
+        }
+
         body.booking-page.professional-booking .cab-primary-search,
         body.booking-page.professional-booking .cab-step-back-btn {
             min-height: 42px !important;
@@ -4708,6 +4713,22 @@
             font-size: 0.84rem !important;
             letter-spacing: 0.04em !important;
             padding: 0.56rem 0.78rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-step-back-btn {
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.34rem !important;
+            background: #ffffff !important;
+            color: #173350 !important;
+            border: 1px solid #b8ccdf !important;
+            box-shadow: none !important;
+            text-transform: uppercase !important;
+        }
+
+        body.booking-page.professional-booking .cab-console-actions.has-step-back .cab-step-back-btn {
+            display: inline-flex !important;
         }
 
         body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow {
@@ -4999,7 +5020,7 @@
                     <div class="cab-console-actions">
                         <button type="button" class="cab-step-back-btn" id="cabStepBackBtn">
                             <i class="fas fa-arrow-left"></i>
-                            Back
+                            Previous
                         </button>
                         <button type="button" class="cab-primary-search" id="cabPrimarySearch">
                             <i class="fas fa-magnifying-glass"></i>
@@ -6644,14 +6665,17 @@
 
             const backButton = document.getElementById('cabStepBackBtn');
             if (backButton) {
+                const actionRow = backButton.closest('.cab-console-actions');
+                let showBack = false;
                 if (advancedReady && advancedSections.length) {
-                    backButton.style.display = '';
+                    showBack = true;
                     backButton.disabled = false;
                 } else {
-                    const showQuickBack = activeIndex > 0;
-                    backButton.style.display = showQuickBack ? '' : 'none';
-                    backButton.disabled = !showQuickBack;
+                    showBack = activeIndex > 0;
+                    backButton.disabled = !showBack;
                 }
+                backButton.style.display = showBack ? 'inline-flex' : 'none';
+                if (actionRow) actionRow.classList.toggle('has-step-back', showBack);
             }
 
             const routeAddons = document.getElementById('cabRouteAddons');
