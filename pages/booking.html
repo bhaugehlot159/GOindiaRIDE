@@ -149,54 +149,8 @@
             transform: scale(1.05);
         }
 
-        /* Ride Type Selection */
-        .ride-types {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
         .ride-type-option {
             display: none;
-        }
-
-        .ride-type-label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .ride-type-option:checked + .ride-type-label {
-            border-color: #667eea;
-            background: #f0f4ff;
-            color: #667eea;
-        }
-
-        .ride-type-label:hover {
-            border-color: #667eea;
-            background: #f9f9f9;
-        }
-
-        .ride-type-icon {
-            font-size: 2rem;
-        }
-
-        .ride-type-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .ride-type-price {
-            color: #999;
-            font-size: 0.8rem;
         }
 
         /* Special Requests */
@@ -789,10 +743,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .ride-types {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
             .special-requests {
                 grid-template-columns: 1fr;
             }
@@ -1041,61 +991,6 @@
             box-shadow: 0 6px 14px rgba(13, 70, 116, 0.2);
         }
 
-        body.booking-page.professional-booking .ride-types {
-            gap: 0.85rem;
-        }
-
-        body.booking-page.professional-booking .ride-type-label {
-            min-height: 142px;
-            justify-content: center;
-            border: 1px solid #d4e0f5;
-            border-radius: 14px;
-            background: linear-gradient(165deg, #ffffff 0%, #f9fbff 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-        }
-
-        body.booking-page.professional-booking .ride-type-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            font-size: 0;
-            color: #0f3157;
-            background: linear-gradient(140deg, #fff0d8 0%, #ebf5ff 100%);
-            border: 1px solid rgba(11, 39, 72, 0.15);
-            position: relative;
-        }
-
-        body.booking-page.professional-booking .ride-type-name {
-            font-size: 1rem;
-        }
-
-        body.booking-page.professional-booking .ride-type-meta {
-            font-size: 0.76rem;
-            color: #5d738c;
-            font-weight: 600;
-        }
-
-        body.booking-page.professional-booking label[for="rideEconomy"] .ride-type-icon::before,
-        body.booking-page.professional-booking label[for="ridePremium"] .ride-type-icon::before,
-        body.booking-page.professional-booking label[for="rideXL"] .ride-type-icon::before {
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            font-size: 1.35rem;
-            line-height: 1;
-        }
-
-        body.booking-page.professional-booking label[for="rideEconomy"] .ride-type-icon::before { content: "\f1b9"; }
-        body.booking-page.professional-booking label[for="ridePremium"] .ride-type-icon::before { content: "\f5e4"; }
-        body.booking-page.professional-booking label[for="rideXL"] .ride-type-icon::before { content: "\f207"; }
-
-        body.booking-page.professional-booking .ride-type-option:checked + .ride-type-label {
-            border-color: #0f4e7e;
-            background: linear-gradient(145deg, #edf7ff 0%, #ffffff 100%);
-            box-shadow: 0 10px 24px rgba(15, 78, 126, 0.2);
-        }
-
         .trip-flow-pills {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1245,8 +1140,7 @@
 
         @media (max-width: 640px) {
             .trip-flow-pills,
-            .partner-preferences,
-            .ride-types {
+            .partner-preferences {
                 grid-template-columns: 1fr;
             }
         }
@@ -1730,32 +1624,6 @@
             background: linear-gradient(135deg, #17416a 0%, #1e7d8c 100%) !important;
             color: #ffffff !important;
             border-color: transparent !important;
-        }
-
-        body.booking-page.professional-booking .ride-types {
-            gap: 0.55rem !important;
-            margin-bottom: 0.65rem;
-        }
-
-        body.booking-page.professional-booking .ride-type-label {
-            min-height: 112px !important;
-            padding: 0.72rem 0.6rem !important;
-            border-radius: 11px !important;
-        }
-
-        body.booking-page.professional-booking .ride-type-icon {
-            width: 42px !important;
-            height: 42px !important;
-            border-radius: 10px !important;
-        }
-
-        body.booking-page.professional-booking .ride-type-name {
-            font-size: 0.9rem !important;
-        }
-
-        body.booking-page.professional-booking .ride-type-price,
-        body.booking-page.professional-booking .ride-type-meta {
-            font-size: 0.72rem !important;
         }
 
         body.booking-page.professional-booking .special-requests {
@@ -4709,39 +4577,11 @@
                     <div class="form-section">
                         <h3><i class="fas fa-car"></i> Ride Type *</h3>
 
-                        <div class="ride-types">
-                            <div>
-                                <input type="radio" name="rideType" id="rideEconomy" value="economy" class="ride-type-option" checked onchange="updateFare()">
-                                <label for="rideEconomy" class="ride-type-label">
-                                    <div class="ride-type-icon">🚗</div>
-                                    <div class="ride-type-name">Economy</div>
-                                    <div class="ride-type-price">₹10/km</div>
-                                    <div class="ride-type-meta">City friendly • Best budget</div>
-                                </label>
-                            </div>
-
-                            <div>
-                                <input type="radio" name="rideType" id="ridePremium" value="premium" class="ride-type-option" onchange="updateFare()">
-                                <label for="ridePremium" class="ride-type-label">
-                                    <div class="ride-type-icon">🚙</div>
-                                    <div class="ride-type-name">Premium</div>
-                                    <div class="ride-type-price">₹15/km</div>
-                                    <div class="ride-type-meta">SUV comfort • Long drives</div>
-                                </label>
-                            </div>
-
-                            <div>
-                                <input type="radio" name="rideType" id="rideXL" value="xl" class="ride-type-option" onchange="updateFare()">
-                                <label for="rideXL" class="ride-type-label">
-                                    <div class="ride-type-icon">🚌</div>
-                                    <div class="ride-type-name">XL</div>
-                                    <div class="ride-type-price">₹20/km</div>
-                                    <div class="ride-type-meta">Group rides • Extra seats</div>
-                                </label>
-                            </div>
+                        <div class="ride-types booking-internal-field" hidden aria-hidden="true">
+                            <input type="radio" name="rideType" id="rideEconomy" value="economy" class="ride-type-option" checked onchange="updateFare()">
                         </div>
 
-                        <div class="inline-grid-two" style="margin-top: 0.9rem;">
+                        <div class="inline-grid-two">
                             <div class="form-group">
                                 <label for="vehicleModel">Vehicle Model / Segment *</label>
                                 <select id="vehicleModel">
