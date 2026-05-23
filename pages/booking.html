@@ -4014,6 +4014,7 @@
 
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-journey-row,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-mini-form,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-local-scope-note,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-route-addons,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-live-sidecar,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-trust-strip {
@@ -4644,6 +4645,42 @@
             padding-bottom: 0.42rem !important;
         }
 
+        body.booking-page.professional-booking .cab-local-scope-note {
+            display: none !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 0.34rem !important;
+            margin-top: 0.42rem !important;
+            padding: 0.38rem !important;
+            border: 1px solid #d7e5ef !important;
+            border-radius: 10px !important;
+            background: #f7fbff !important;
+        }
+
+        body.booking-page.professional-booking.cab-flow-hourly .cab-local-scope-note {
+            display: grid !important;
+        }
+
+        body.booking-page.professional-booking .cab-local-scope-note span {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.24rem !important;
+            min-height: 28px !important;
+            padding: 0.24rem 0.32rem !important;
+            border-radius: 999px !important;
+            background: #ffffff !important;
+            color: #173350 !important;
+            border: 1px solid #d8e5f0 !important;
+            font-size: 0.62rem !important;
+            font-weight: 900 !important;
+            white-space: nowrap !important;
+        }
+
+        body.booking-page.professional-booking .cab-local-scope-note i {
+            color: #1689bf !important;
+            font-size: 0.66rem !important;
+        }
+
         body.booking-page.professional-booking .cab-route-addons {
             margin-top: 0.44rem !important;
             padding: 0.48rem !important;
@@ -4837,6 +4874,12 @@
             }
         }
 
+        @media (max-width: 760px) {
+            body.booking-page.professional-booking .cab-local-scope-note {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
         @media (min-width: 760px) {
             body.booking-page.professional-booking {
                 padding-top: 10px !important;
@@ -4985,15 +5028,23 @@
                         </label>
                         <label class="cab-mini-field cab-package-field">
                             <i class="fas fa-suitcase-rolling"></i>
-                            <span>Package</span>
+                            <span id="cabQuickPackageLabel">Local Package</span>
                             <select id="cabQuickPackageSelect">
-                                <option value="airport">Airport pickup / drop</option>
-                                <option value="outstation_one_way">Outstation one way</option>
-                                <option value="outstation_round">Outstation round trip</option>
-                                <option value="rental_1h">1 hr 10 kms</option>
-                                <option value="rental_4h">4 hrs 40 kms</option>
+                                <option value="rental_4h">4 hrs / 40 kms - Half day local</option>
+                                <option value="rental_6h">6 hrs / 60 kms - Meetings & errands</option>
+                                <option value="rental_8h">8 hrs / 80 kms - Full day city</option>
+                                <option value="rental_10h">10 hrs / 100 kms - Extended city</option>
+                                <option value="rental_12h">12 hrs / 120 kms - Long local duty</option>
+                                <option value="rental_24h">24 hrs / 300 kms - Full day reserve</option>
                             </select>
                         </label>
+                    </div>
+
+                    <div class="cab-local-scope-note" id="cabLocalScopeNote" aria-label="Local cab inclusions">
+                        <span><i class="fas fa-clock"></i> Hourly packages</span>
+                        <span><i class="fas fa-map-location-dot"></i> Multiple city stops</span>
+                        <span><i class="fas fa-receipt"></i> Extra km/hr billed</span>
+                        <span><i class="fas fa-city"></i> Within city limits</span>
                     </div>
 
                     <div class="cab-route-addons" id="cabRouteAddons" aria-label="Route add-ons">
@@ -5954,8 +6005,8 @@
                 shortLabel: 'Local',
                 tripPlan: 'rental',
                 serviceType: 'city_local_trip',
-                notice: 'Book local hourly cabs with flexible packages and multi-stop support.',
-                packageLabel: '1 hr 10 kms'
+                notice: 'Book local hourly rentals for city use: packages, local stops, extra km/hour billing, and driver preference.',
+                packageLabel: '4 hrs / 40 kms'
             }
         };
         const CAB_FLOW_TRIP_PLAN_OPTIONS = {
@@ -5968,6 +6019,7 @@
             outstation: ['round_trip_service'],
             day_trips: ['city_local_trip']
         };
+        const CAB_LOCAL_RENTAL_PACKAGE_VALUES = ['rental_4h', 'rental_6h', 'rental_8h', 'rental_10h', 'rental_12h', 'rental_24h'];
 
         function getCabFlowConfig(flow) {
             return CAB_FLOW_CONFIG[flow] || CAB_FLOW_CONFIG.airport;
@@ -6168,15 +6220,23 @@
 
         function resolveCabPackageValue(flow = getActiveCabFlow()) {
             const journeyMode = document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way';
-            if (flow === 'day_trips') return 'rental_1h';
+            if (flow === 'day_trips') {
+                const currentPackage = document.getElementById('cabQuickPackageSelect')?.value || '';
+                return CAB_LOCAL_RENTAL_PACKAGE_VALUES.includes(currentPackage) ? currentPackage : 'rental_4h';
+            }
             if (flow === 'outstation') return journeyMode === 'round_trip' ? 'outstation_round' : 'outstation_one_way';
             return 'airport';
         }
 
         function applyCabPackageValue(value, options = {}) {
             const packageValue = String(value || 'airport');
-            if (packageValue === 'rental_1h' || packageValue === 'rental_4h') {
-                setCabBookingMode('day_trips', { skipFare: true });
+            if (CAB_LOCAL_RENTAL_PACKAGE_VALUES.includes(packageValue)) {
+                if (getActiveCabFlow() !== 'day_trips') {
+                    setCabBookingMode('day_trips', { skipFare: true });
+                } else {
+                    syncCabScopedSelectOptions('day_trips');
+                    syncCabLayerFlow('day_trips');
+                }
             } else if (packageValue === 'outstation_round') {
                 setCabBookingMode('outstation', { skipFare: true });
                 setCabJourneyMode('round_trip', { skipFare: true });
@@ -6272,11 +6332,13 @@
             setQuickControlValue('cabQuickReturnDateInput', returnDate);
             setQuickControlValue('cabQuickReturnTimeInput', returnTime);
             setQuickControlValue('cabQuickPackageSelect', resolveCabPackageValue(activeFlow));
+            const selectedLocalPackage = readSelectedOptionText('cabQuickPackageSelect', config.packageLabel);
             syncCabRoundTripUi(activeFlow);
+            setTextIfPresent('cabQuickPackageLabel', activeFlow === 'day_trips' ? 'Local Package' : 'Package');
             setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
             setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
             setTextIfPresent('cabQuickStart', formatCabStartText(rideDate, rideTime));
-            setTextIfPresent('cabQuickPackage', activeFlow === 'day_trips' ? `${config.packageLabel} • ${modelLabel}` : tripLabel);
+            setTextIfPresent('cabQuickPackage', activeFlow === 'day_trips' ? `${selectedLocalPackage} • ${modelLabel}` : tripLabel);
         }
 
         function syncCabMiniFare(estimate = {}) {
@@ -6685,10 +6747,25 @@
                     .every((layer) => layer.complete());
                 const dropoffLayers = layers.filter((layer) => layer.key === 'dropoff');
                 const dropoffReady = !dropoffLayers.length || dropoffLayers.every((layer) => layer.complete());
-                const showRouteAddons = activeFlow === 'outstation'
-                    && getCabJourneyMode() === 'multi_city'
-                    && pickupReady
-                    && dropoffReady;
+                const routeTitle = routeAddons.querySelector('.cab-route-addons-title span');
+                const routeHint = routeAddons.querySelector('.cab-route-addons-title small');
+                const isLocalRental = activeFlow === 'day_trips';
+                const showRouteAddons = isLocalRental
+                    ? pickupReady
+                    : activeFlow === 'outstation'
+                        && getCabJourneyMode() === 'multi_city'
+                        && pickupReady
+                        && dropoffReady;
+                if (routeTitle) {
+                    routeTitle.innerHTML = isLocalRental
+                        ? '<i class="fas fa-map-signs"></i> Local Stops'
+                        : '<i class="fas fa-map-signs"></i> Route Add-ons';
+                }
+                if (routeHint) {
+                    routeHint.textContent = isLocalRental
+                        ? 'Shopping, meetings, sightseeing stops'
+                        : 'Add routes/stops as needed';
+                }
                 routeAddons.classList.toggle('is-visible', showRouteAddons);
                 routeAddons.hidden = !showRouteAddons;
                 routeAddons.setAttribute('aria-hidden', showRouteAddons ? 'false' : 'true');
