@@ -2127,12 +2127,11 @@
 
         .cab-console-actions {
             display: grid;
-            grid-template-columns: auto minmax(220px, 1fr);
+            grid-template-columns: 1fr;
             gap: 0.72rem;
             margin-top: 0.82rem;
         }
 
-        .cab-add-stop-btn,
         .cab-primary-search,
         .cab-section-action,
         .cab-offer-card button {
@@ -2142,25 +2141,86 @@
             font-weight: 900;
         }
 
-        .cab-add-stop-btn {
-            min-height: 48px;
+        .cab-route-addons {
+            display: none;
+            gap: 0.78rem;
+            padding: 0.82rem;
+            margin-top: 0.82rem;
+            border: 1px solid #24a4d4;
+            border-radius: 14px;
+            background: #ffffff;
+        }
+
+        .cab-route-addons.is-visible {
+            display: grid;
+        }
+
+        .cab-route-addons-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem;
+            color: #173350;
+            font-weight: 900;
+            flex-wrap: wrap;
+        }
+
+        .cab-route-addons-title span {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 0.44rem;
+        }
+
+        .cab-route-addons-title small {
+            color: #6a7280;
+            font-size: 0.78rem;
+        }
+
+        .route-stops-list {
+            display: grid;
+            gap: 0.68rem;
+        }
+
+        .route-stop-field {
+            display: grid;
             gap: 0.42rem;
-            border: 1px solid #24a4d4;
+        }
+
+        .route-stop-field label {
+            color: #2c4058;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .route-stop-field input {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid #cfdceb;
             border-radius: 10px;
-            padding: 0.72rem 0.92rem;
+            padding: 0.82rem 0.95rem;
+            color: #263c53;
+            font: inherit;
+        }
+
+        .route-stop-field input:focus {
+            outline: none;
+            border-color: #24a4d4;
+            box-shadow: 0 0 0 3px rgba(36, 164, 212, 0.14);
+        }
+
+        .route-stop-add-btn {
+            width: 42px;
+            height: 42px;
+            justify-self: center;
+            display: inline-grid;
+            place-items: center;
+            border: 1px solid #24a4d4;
+            border-radius: 999px;
             background: #ffffff;
             color: #1485ad;
-        }
-
-        .cab-booking-console:not(.is-outstation) .cab-add-stop-btn {
-            display: none;
-        }
-
-        .cab-booking-console:not(.is-outstation) .cab-console-actions {
-            grid-template-columns: 1fr;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 900;
         }
 
         .cab-primary-search {
@@ -2656,7 +2716,8 @@
 
         body.booking-page.professional-booking .cab-journey-chip,
         body.booking-page.professional-booking .cab-quick-field,
-        body.booking-page.professional-booking .cab-add-stop-btn,
+        body.booking-page.professional-booking .cab-route-addons,
+        body.booking-page.professional-booking .route-stop-add-btn,
         body.booking-page.professional-booking .cab-section-action,
         body.booking-page.professional-booking .cab-offer-card button {
             background: #ffffff !important;
@@ -2683,7 +2744,7 @@
             color: #587083 !important;
         }
 
-        body.booking-page.professional-booking .cab-add-stop-btn,
+        body.booking-page.professional-booking .route-stop-add-btn,
         body.booking-page.professional-booking .cab-section-action,
         body.booking-page.professional-booking .cab-offer-card button {
             color: #1485ad !important;
@@ -3244,13 +3305,6 @@
             grid-template-columns: 1fr !important;
             gap: 0.54rem !important;
             margin-top: 0.62rem !important;
-        }
-
-        body.booking-page.professional-booking .cab-add-stop-btn {
-            min-height: 42px !important;
-            padding: 0.56rem 0.76rem !important;
-            border-radius: 9px !important;
-            font-size: 0.84rem !important;
         }
 
         body.booking-page.professional-booking .cab-primary-search {
@@ -3842,12 +3896,15 @@
             margin-top: 12px !important;
         }
 
-        body.booking-page.professional-booking .cab-add-stop-btn {
-            min-height: 42px !important;
-            border-radius: 10px !important;
+        body.booking-page.professional-booking .cab-route-addons {
+            border-color: #24a4d4 !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-add-btn {
             background: #ffffff !important;
             color: #1485ad !important;
-            border: 1px solid #24a4d4 !important;
+            border-color: #24a4d4 !important;
             box-shadow: none !important;
         }
 
@@ -3865,10 +3922,6 @@
         body.booking-page.professional-booking .cab-step-back-btn:disabled {
             opacity: 0.55 !important;
             cursor: not-allowed !important;
-        }
-
-        body.booking-page.professional-booking .cab-booking-console:not(.is-outstation) .cab-add-stop-btn {
-            display: none !important;
         }
 
         body.booking-page.professional-booking .cab-primary-search {
@@ -3926,7 +3979,7 @@
 
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-journey-row,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-mini-form,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-add-stop-btn,
+        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-route-addons,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-live-sidecar,
         body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-trust-strip {
             display: none !important;
@@ -4075,9 +4128,7 @@
         }
 
         body.booking-page.professional-booking .cab-primary-search.is-layer-locked,
-        body.booking-page.professional-booking .cab-primary-search:disabled,
-        body.booking-page.professional-booking .cab-add-stop-btn.is-layer-locked,
-        body.booking-page.professional-booking .cab-add-stop-btn:disabled {
+        body.booking-page.professional-booking .cab-primary-search:disabled {
             opacity: 0.55 !important;
             cursor: not-allowed !important;
             box-shadow: none !important;
@@ -4357,14 +4408,26 @@
                         </label>
                     </div>
 
+                    <div class="cab-route-addons" id="cabRouteAddons" aria-label="Route add-ons">
+                        <div class="cab-route-addons-title">
+                            <span><i class="fas fa-map-signs"></i> Route Add-ons</span>
+                            <small>Add routes/stops as needed</small>
+                        </div>
+                        <div class="route-stops-list" id="routeStopsList">
+                            <div class="route-stop-field" data-route-stop-row>
+                                <label for="stop1">Route 1 (Optional)</label>
+                                <input type="text" id="stop1" class="route-stop-input" data-route-stop-input placeholder="Add intermediate route / stop" autocomplete="off" oninput="handleRouteStopInputChange()">
+                            </div>
+                        </div>
+                        <button type="button" class="route-stop-add-btn" id="addRouteStopBtn" aria-label="Add another route">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
                     <div class="cab-console-actions">
                         <button type="button" class="cab-step-back-btn" id="cabStepBackBtn">
                             <i class="fas fa-arrow-left"></i>
                             Back
-                        </button>
-                        <button type="button" class="cab-add-stop-btn" data-reveal-field="stop1">
-                            <i class="fas fa-plus"></i>
-                            Add Stops
                         </button>
                         <button type="button" class="cab-primary-search" id="cabPrimarySearch">
                             <i class="fas fa-magnifying-glass"></i>
@@ -4675,21 +4738,6 @@
                                 <input type="checkbox" id="music" onchange="updateFare()">
                                 <span>Music System</span>
                             </label>
-                        </div>
-                    </div>
-
-                    <!-- Route Add-ons -->
-                    <div class="form-section">
-                        <h3><i class="fas fa-map-signs"></i> Route Add-ons</h3>
-
-                        <div class="form-group">
-                            <label for="stop1">Stop 1 (Optional)</label>
-                            <input type="text" id="stop1" placeholder="Add intermediate stop (optional)" oninput="updateFare()">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="stop2">Stop 2 (Optional)</label>
-                            <input type="text" id="stop2" placeholder="Add second stop (optional)" oninput="updateFare()">
                         </div>
                     </div>
 
@@ -5686,6 +5734,76 @@
             return valueNode;
         }
 
+        function getRouteStopInputs() {
+            return Array.from(document.querySelectorAll('[data-route-stop-input]'));
+        }
+
+        function readRouteStops() {
+            return getRouteStopInputs()
+                .map((input) => sanitizeInput(input.value || '').trim())
+                .filter(Boolean);
+        }
+
+        function updateRouteStopLabels() {
+            getRouteStopInputs().forEach((input, index) => {
+                const routeNumber = index + 1;
+                input.id = `stop${routeNumber}`;
+                input.name = `stops[]`;
+                input.placeholder = routeNumber === 1
+                    ? 'Add intermediate route / stop'
+                    : 'Add another route / stop';
+                const label = input.closest('[data-route-stop-row]')?.querySelector('label');
+                if (label) {
+                    label.setAttribute('for', input.id);
+                    label.textContent = `Route ${routeNumber} (Optional)`;
+                }
+            });
+        }
+
+        function createRouteStopField(value = '') {
+            const row = document.createElement('div');
+            row.className = 'route-stop-field';
+            row.setAttribute('data-route-stop-row', '1');
+            row.innerHTML = `
+                <label></label>
+                <input type="text" class="route-stop-input" data-route-stop-input autocomplete="off" oninput="handleRouteStopInputChange()">
+            `;
+            const input = row.querySelector('input');
+            if (input) input.value = value || '';
+            return row;
+        }
+
+        function addRouteStop(value = '', focusNew = true) {
+            const list = document.getElementById('routeStopsList');
+            if (!list) return null;
+            const row = createRouteStopField(value);
+            list.appendChild(row);
+            updateRouteStopLabels();
+            const input = row.querySelector('[data-route-stop-input]');
+            if (input && typeof initializeAutocomplete === 'function') {
+                initializeAutocomplete(input.id);
+            }
+            if (focusNew && input && typeof input.focus === 'function') {
+                window.setTimeout(() => input.focus({ preventScroll: true }), 40);
+            }
+            return input;
+        }
+
+        function ensureRouteStopsReady() {
+            const list = document.getElementById('routeStopsList');
+            if (!list) return;
+            if (!getRouteStopInputs().length) {
+                list.appendChild(createRouteStopField());
+            }
+            updateRouteStopLabels();
+        }
+
+        function handleRouteStopInputChange() {
+            updateRouteStopLabels();
+            updateFare();
+            updateBookingExperience();
+        }
+
         function buildCabQuickLayers(flow = getActiveCabFlow()) {
             const pickupNode = document.getElementById('cabQuickPickupInput');
             const dropoffNode = document.getElementById('cabQuickDropoffInput');
@@ -5851,16 +5969,15 @@
                 }
             }
 
-            const addStopButton = document.querySelector('.cab-add-stop-btn');
-            if (addStopButton) {
-                const pickupDropReady = layers
-                    .filter((layer) => layer.key === 'pickup' || layer.key === 'dropoff')
+            const routeAddons = document.getElementById('cabRouteAddons');
+            if (routeAddons) {
+                const pickupReady = layers
+                    .filter((layer) => layer.key === 'pickup')
                     .every((layer) => layer.complete());
-                const showAddStops = activeFlow === 'outstation' && pickupDropReady;
-                const canAddStops = activeFlow !== 'outstation' ? true : pickupDropReady;
-                addStopButton.style.display = showAddStops ? '' : 'none';
-                addStopButton.disabled = !canAddStops;
-                addStopButton.classList.toggle('is-layer-locked', !canAddStops);
+                const showRouteAddons = (activeFlow === 'outstation' || activeFlow === 'day_trips') && pickupReady;
+                routeAddons.classList.toggle('is-visible', showRouteAddons);
+                routeAddons.hidden = !showRouteAddons;
+                routeAddons.setAttribute('aria-hidden', showRouteAddons ? 'false' : 'true');
             }
 
             if (helperNode) {
@@ -5919,7 +6036,8 @@
                 returnToggle.checked = normalized === 'round_trip';
                 toggleReturnTrip();
                 if (normalized === 'multi_city') {
-                    const stopField = document.getElementById('stop1');
+                    ensureRouteStopsReady();
+                    const stopField = getRouteStopInputs()[0];
                     if (stopField && !stopField.value) {
                         stopField.placeholder = 'Add first stop for multi-city journey';
                     }
@@ -6115,6 +6233,16 @@
                 button.dataset.revealBound = '1';
             });
 
+            ensureRouteStopsReady();
+            const addRouteStopButton = document.getElementById('addRouteStopBtn');
+            if (addRouteStopButton && addRouteStopButton.dataset.routeStopBound !== '1') {
+                addRouteStopButton.addEventListener('click', () => {
+                    addRouteStop('', true);
+                    updateFare();
+                });
+                addRouteStopButton.dataset.routeStopBound = '1';
+            }
+
             document.querySelectorAll('[data-mode-shortcut]').forEach((button) => {
                 if (button.dataset.modeBound === '1') return;
                 button.addEventListener('click', () => {
@@ -6190,6 +6318,7 @@
                     initializeAutocomplete('dropoff');
                     initializeAutocomplete('cabQuickPickupInput');
                     initializeAutocomplete('cabQuickDropoffInput');
+                    getRouteStopInputs().forEach((input) => initializeAutocomplete(input.id));
                     return true;
                 }
                 if (attempt < 80) {
@@ -6370,8 +6499,8 @@
 
         const SERVICE_FOLDER_STEPS = {
             airport: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            outstation: ['trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes'],
-            day_trips: ['trip', 'ride', 'passengers', 'route', 'requests', 'safety', 'notes']
+            outstation: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            day_trips: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes']
         };
 
         const SERVICE_FOLDER_NOTES = {
@@ -6925,8 +7054,7 @@
         }
 
         function readFareEstimateInputs() {
-            const stop1 = sanitizeInput(document.getElementById('stop1').value).trim();
-            const stop2 = sanitizeInput(document.getElementById('stop2').value).trim();
+            const routeStops = readRouteStops();
 
             return {
                 pickup: sanitizeInput(document.getElementById('pickup').value).trim(),
@@ -6947,7 +7075,7 @@
                 budgetAmount: Number.parseFloat(document.getElementById('budgetAmount').value || 0) || 0,
                 distanceKm: Number.parseFloat(document.getElementById('distanceKm').textContent) || 0,
                 distanceSource: sanitizeInput(document.getElementById('distanceSource').textContent || 'fallback'),
-                stops: [stop1, stop2].filter(Boolean),
+                stops: routeStops,
                 specialRequests: {
                     airCondition: document.getElementById('airCondition').checked,
                     wifi: document.getElementById('wifi').checked,
@@ -9579,9 +9707,7 @@
             const returnDate = document.getElementById('returnDate').value;
             const returnTime = document.getElementById('returnTime').value;
             const notes = sanitizeInput(document.getElementById('notes').value);
-            const stop1 = sanitizeInput(document.getElementById('stop1').value).trim();
-            const stop2 = sanitizeInput(document.getElementById('stop2').value).trim();
-            const intermediateStops = [stop1, stop2].filter(Boolean);
+            const intermediateStops = readRouteStops();
             if (activeFlow === 'day_trips' && pickup && !dropoff) {
                 dropoff = `Hourly rental within ${pickup}`;
                 const dropoffNode = document.getElementById('dropoff');
