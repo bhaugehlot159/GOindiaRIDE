@@ -4504,7 +4504,7 @@
         }
 
         body.booking-page.professional-booking .cab-console-head {
-            grid-template-columns: 34px 1fr 34px !important;
+            grid-template-columns: minmax(108px, auto) 1fr 34px !important;
             gap: 0.42rem !important;
             margin-bottom: 0.48rem !important;
         }
@@ -4522,6 +4522,26 @@
 
         body.booking-page.professional-booking .cab-icon-action[aria-label="Go home"]::before {
             font-size: 0.92rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-dashboard-action {
+            width: auto !important;
+            min-width: 108px !important;
+            padding: 0 0.62rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.32rem !important;
+            border-radius: 999px !important;
+            color: #133451 !important;
+            font-size: 0.72rem !important;
+            font-weight: 900 !important;
+            letter-spacing: 0.01em !important;
+            white-space: nowrap !important;
+        }
+
+        body.booking-page.professional-booking .cab-dashboard-action span {
+            display: inline-block !important;
         }
 
         body.booking-page.professional-booking .cab-console-title span {
@@ -4564,18 +4584,24 @@
         }
 
         body.booking-page.professional-booking .cab-journey-row {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
             gap: 0.38rem !important;
             margin-top: 0.42rem !important;
-            padding: 0.38rem !important;
+            padding: 0.3rem !important;
             border-radius: 10px !important;
         }
 
+        body.booking-page.professional-booking .cab-journey-chip[data-journey-target="multi_city"] {
+            grid-column: auto !important;
+        }
+
         body.booking-page.professional-booking .cab-journey-chip {
-            min-height: 34px !important;
-            padding: 0.34rem 0.46rem !important;
+            min-height: 31px !important;
+            padding: 0.28rem 0.34rem !important;
             border-radius: 8px !important;
-            font-size: 0.75rem !important;
-            gap: 0.28rem !important;
+            font-size: 0.69rem !important;
+            gap: 0.22rem !important;
+            white-space: nowrap !important;
         }
 
         body.booking-page.professional-booking .cab-mini-form {
@@ -4844,8 +4870,9 @@
 
         <section class="cab-booking-console" id="cabBookingConsole" aria-label="Customer cab booking shortcut">
             <div class="cab-console-head">
-                <button type="button" class="cab-icon-action" onclick="goCustomerDashboard()" aria-label="Back to customer dashboard" title="Customer Dashboard">
+                <button type="button" class="cab-icon-action cab-dashboard-action" onclick="goCustomerDashboard()" aria-label="Back to customer dashboard" title="Customer Dashboard">
                     <i class="fas fa-arrow-left"></i>
+                    <span>Dashboard</span>
                 </button>
                 <div class="cab-console-title">
                     <span>Cab Booking</span>
