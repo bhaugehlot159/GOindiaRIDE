@@ -5185,13 +5185,13 @@
                         </button>
                         <button type="button" class="cab-airport-service-chip" data-airport-service="airport_to_airport">
                             <i class="fas fa-plane"></i>
-                            <strong>Airport to Airport</strong>
-                            <small>Terminal transfer</small>
+                            <strong>Airport-to-Airport</strong>
+                            <small>One-way terminals</small>
                         </button>
                         <button type="button" class="cab-airport-service-chip" data-airport-service="airport_round">
                             <i class="fas fa-repeat"></i>
-                            <strong>Round Trip</strong>
-                            <small>Drop + return</small>
+                            <strong>Airport Return</strong>
+                            <small>Drop + pickup back</small>
                         </button>
                         <button type="button" class="cab-airport-service-chip" data-airport-service="airport_hourly">
                             <i class="fas fa-clock"></i>
@@ -6299,8 +6299,8 @@
                 chips: ['Arrival pickup', 'Flight delay ready', 'Meet & greet note', 'Luggage fit']
             },
             airport_to_airport: {
-                label: 'Airport to Airport',
-                notice: 'Select this only when the customer is travelling from one Indian airport to another airport/civil terminal.',
+                label: 'Airport-to-Airport',
+                notice: 'One-way transfer from one Indian airport or civil terminal to another. No return pickup in this mode.',
                 pickupRole: 'airport',
                 dropRole: 'airport',
                 journeyMode: 'one_way',
@@ -6308,11 +6308,11 @@
                 dropLabel: 'Airport To',
                 pickupPlaceholder: 'Search departure airport in India',
                 dropPlaceholder: 'Search destination airport in India',
-                chips: ['Airport-to-airport', 'Terminal transfer', 'Flight details', 'Luggage-ready cab']
+                chips: ['One-way terminals', 'Airport from/to', 'Flight details', 'Luggage-ready cab']
             },
             airport_round: {
-                label: 'Airport Round Trip',
-                notice: 'Airport drop with scheduled return pickup, return date/time, waiting and driver coordination.',
+                label: 'Airport Return Trip',
+                notice: 'City-to-airport drop with scheduled return pickup. Add return date and return time for the return leg.',
                 pickupRole: 'place',
                 dropRole: 'airport',
                 journeyMode: 'round_trip',
@@ -6321,7 +6321,7 @@
                 dropLabel: 'Airport',
                 pickupPlaceholder: 'City, hotel, station or address',
                 dropPlaceholder: 'Search airport for round trip',
-                chips: ['Round trip', 'Return pickup', 'Waiting ready', 'Same-route clarity']
+                chips: ['Drop + return pickup', 'Return date/time', 'Waiting ready', 'Same-route clarity']
             },
             airport_hourly: {
                 label: 'Airport Hourly',
