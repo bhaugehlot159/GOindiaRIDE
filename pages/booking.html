@@ -6736,25 +6736,95 @@
             return null;
         }
 
-        function getRankedAirportMatches(query) {
+        function getAirportInputPairId(inputId) {
+            return {
+                pickup: 'dropoff',
+                dropoff: 'pickup',
+                cabQuickPickupInput: 'cabQuickDropoffInput',
+                cabQuickDropoffInput: 'cabQuickPickupInput'
+            }[inputId] || '';
+        }
+
+        function getAirportContextTextForInput(input) {
+            if (!input || !input.id) return '';
+            const pairedInputId = getAirportInputPairId(input.id);
+            const pairedInput = pairedInputId ? document.getElementById(pairedInputId) : null;
+            if (!pairedInput || getAirportFieldRole(pairedInputId) === 'airport') return '';
+            return sanitizeInput(pairedInput.value || '').trim();
+        }
+
+        function getMeaningfulAirportTokens(value) {
+            const ignoredTokens = new Set(['a', 'an', 'and', 'at', 'by', 'for', 'from', 'in', 'india', 'indian', 'of', 'the', 'to']);
+            return normalizeAirportSearchText(value)
+                .split(' ')
+                .filter((token) => token.length > 1 && !ignoredTokens.has(token));
+        }
+
+        function getAirportContextScore(airport, contextText) {
+            const normalizedContext = normalizeAirportSearchText(contextText);
+            if (!normalizedContext) return 0;
+
+            const city = normalizeAirportSearchText(airport.city);
+            const state = normalizeAirportSearchText(airport.state);
+            const name = normalizeAirportSearchText(airport.name);
+            const aliases = Array.isArray(airport.aliases)
+                ? airport.aliases.map(normalizeAirportSearchText)
+                : [];
+            const airportTokens = getMeaningfulAirportTokens([
+                city,
+                state,
+                name,
+                airport.code,
+                ...aliases
+            ].join(' '));
+            const contextTokens = getMeaningfulAirportTokens(normalizedContext);
+            const contextHasCity = Boolean(city && (normalizedContext.includes(city) || city.includes(normalizedContext)));
+            const contextHasState = Boolean(state && normalizedContext.includes(state));
+            const cityTokenOverlap = getMeaningfulAirportTokens(city).some((token) => contextTokens.includes(token));
+            const aliasTokenOverlap = aliases.some((alias) => {
+                const aliasTokens = getMeaningfulAirportTokens(alias);
+                return aliasTokens.some((token) => contextTokens.includes(token));
+            });
+            const nameTokenOverlap = getMeaningfulAirportTokens(name).some((token) => contextTokens.includes(token));
+            const airportTokenOverlap = airportTokens.some((token) => contextTokens.includes(token));
+
+            if (contextHasCity) return 100;
+            if (cityTokenOverlap) return 90;
+            if (aliasTokenOverlap) return 80;
+            if (nameTokenOverlap) return 70;
+            if (airportTokenOverlap && contextTokens.length > 1) return 40;
+            if (contextHasState) return 10;
+            return 0;
+        }
+
+        function isBroadAirportQuery(value) {
+            const tokens = getMeaningfulAirportTokens(value);
+            if (tokens.length !== 1) return false;
+            return new Set(['airport', 'airports', 'domestic', 'international', 'rajasthan', 'terminal']).has(tokens[0]);
+        }
+
+        function getRankedAirportMatches(query, options = {}) {
             const normalizedQuery = normalizeAirportSearchText(query);
             if (normalizedQuery.length < 2) return [];
 
+            const contextText = sanitizeInput(options.contextText || '').trim();
             return INDIA_AIRPORT_SUGGESTIONS
                 .map((airport) => ({
                     airport,
-                    score: getAirportSearchScore(airport, normalizedQuery)
+                    score: getAirportSearchScore(airport, normalizedQuery),
+                    contextScore: getAirportContextScore(airport, contextText)
                 }))
                 .filter((entry) => entry.score !== null)
                 .sort((a, b) => {
+                    if (a.contextScore !== b.contextScore) return b.contextScore - a.contextScore;
                     if (a.score !== b.score) return a.score - b.score;
                     return formatAirportSuggestion(a.airport).localeCompare(formatAirportSuggestion(b.airport));
                 })
                 .slice(0, 18);
         }
 
-        function searchIndianAirports(query) {
-            return getRankedAirportMatches(query).map((entry) => entry.airport);
+        function searchIndianAirports(query, options = {}) {
+            return getRankedAirportMatches(query, options).map((entry) => entry.airport);
         }
 
         function findExactAirportMatch(value) {
@@ -6774,20 +6844,23 @@
             }) || null;
         }
 
-        function getResolvableAirport(value) {
+        function getResolvableAirport(value, options = {}) {
             const exactMatch = findExactAirportMatch(value);
             if (exactMatch) return exactMatch;
-            const matches = getRankedAirportMatches(value);
+            const matches = getRankedAirportMatches(value, options);
             if (!matches.length) return null;
             const [bestMatch, secondMatch] = matches;
+            if (bestMatch.contextScore > 0 && (!secondMatch || bestMatch.contextScore > secondMatch.contextScore)) {
+                return bestMatch.airport;
+            }
             if (bestMatch.score <= 3 && (!secondMatch || bestMatch.score < secondMatch.score)) {
                 return bestMatch.airport;
             }
             return matches.length === 1 ? matches[0].airport : null;
         }
 
-        function isAirportTextResolvable(value) {
-            return Boolean(getResolvableAirport(value));
+        function isAirportTextResolvable(value, options = {}) {
+            return Boolean(getResolvableAirport(value, options));
         }
 
         function getBookingAutocompleteBox(input) {
@@ -6981,6 +7054,61 @@
             return startsWithMatch || matches[0] || '';
         }
 
+        function showQuickGenericAutocomplete(input, queryOverride = '') {
+            if (!input || !input.id || !input.closest('#cabBookingConsole')) return false;
+            if (getActiveCabFlow() === 'airport' && getAirportFieldRole(input.id) === 'airport') return false;
+
+            const query = String(queryOverride || input.value || '').trim();
+            const suggestionsBox = getBookingAutocompleteBox(input);
+            if (!suggestionsBox) return false;
+
+            suggestionsBox.dataset.airportScoped = '0';
+            suggestionsBox.innerHTML = '';
+
+            if (query.length < 2) {
+                suggestionsBox.style.display = 'none';
+                return true;
+            }
+
+            const matches = getGenericLocationAutocompleteMatches(query);
+            suggestionsBox.style.display = 'block';
+
+            const header = document.createElement('div');
+            header.className = 'autocomplete-category';
+            header.textContent = 'Locations';
+            suggestionsBox.appendChild(header);
+
+            if (!matches.length) {
+                const empty = document.createElement('div');
+                empty.className = 'autocomplete-no-results';
+                empty.textContent = 'No location found';
+                suggestionsBox.appendChild(empty);
+                positionBookingAutocompleteBox(input, suggestionsBox);
+                return true;
+            }
+
+            matches.forEach((match, index) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.dataset.index = String(index);
+                item.innerHTML = `<span>${highlightAirportSuggestionText(match, query)}</span>`;
+                item.addEventListener('click', () => {
+                    input.value = match;
+                    input.dataset.cabCommittedSelection = '1';
+                    delete input.dataset.cabAutoResolvedSource;
+                    delete input.dataset.cabAutoResolvedValue;
+                    syncAirportPairedInput(input.id, match);
+                    closeAllBookingAutocompleteBoxes();
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateBookingExperience();
+                });
+                suggestionsBox.appendChild(item);
+            });
+
+            positionBookingAutocompleteBox(input, suggestionsBox);
+            return true;
+        }
+
         function syncAirportPairedInput(inputId, value) {
             const pairedInputId = {
                 pickup: 'cabQuickPickupInput',
@@ -7019,6 +7147,116 @@
             return true;
         }
 
+        function shouldAutoResolveQuickLocationInput(input, event) {
+            if (!input || !input.closest('#cabBookingConsole')) return false;
+            if (input.id !== 'cabQuickPickupInput' && input.id !== 'cabQuickDropoffInput') return false;
+            if (event?.isComposing) return false;
+
+            const inputType = String(event?.inputType || '').toLowerCase();
+            if (inputType.startsWith('delete') || inputType === 'historyundo' || inputType === 'historyredo') {
+                return false;
+            }
+
+            const rawValue = sanitizeInput(input.value || '').trim();
+            if (rawValue.length < 3) return false;
+
+            // Partial edits of already-expanded names should stay editable until NEXT.
+            if (/[(),]/.test(rawValue)) return false;
+            return true;
+        }
+
+        function autoResolveQuickLocationInput(input, options = {}) {
+            if (!shouldAutoResolveQuickLocationInput(input, options)) return false;
+
+            const rawValue = sanitizeInput(input.value || '').trim();
+            let resolvedValue = '';
+
+            if (getActiveCabFlow() === 'airport' && getAirportFieldRole(input.id) === 'airport') {
+                const contextText = getAirportContextTextForInput(input);
+                if (isBroadAirportQuery(rawValue) && !contextText) return false;
+                const airport = getResolvableAirport(rawValue, { contextText });
+                resolvedValue = airport ? formatAirportSuggestion(airport) : '';
+            } else {
+                resolvedValue = getResolvableGenericLocation(rawValue);
+            }
+
+            if (!resolvedValue || normalizeAirportSearchText(resolvedValue) === normalizeAirportSearchText(rawValue)) {
+                return false;
+            }
+
+            input.value = resolvedValue;
+            input.dataset.cabAutoResolvedSource = rawValue;
+            input.dataset.cabAutoResolvedValue = resolvedValue;
+            syncAirportPairedInput(input.id, resolvedValue);
+            updateBookingExperience();
+            if (options.keepSuggestions) {
+                if (getActiveCabFlow() === 'airport' && getAirportFieldRole(input.id) === 'airport') {
+                    showAirportAutocomplete(input, rawValue);
+                } else {
+                    showQuickGenericAutocomplete(input, rawValue);
+                }
+            } else {
+                closeAllBookingAutocompleteBoxes();
+            }
+            return true;
+        }
+
+        function restoreQuickTypingContinuation(input, event) {
+            if (!input) return false;
+
+            const resolvedValue = input.dataset.cabAutoResolvedValue || '';
+            const sourceValue = input.dataset.cabAutoResolvedSource || '';
+            if (!resolvedValue || !sourceValue) return false;
+
+            const inputType = String(event?.inputType || '').toLowerCase();
+            if (inputType.startsWith('delete') || inputType === 'historyundo' || inputType === 'historyredo') {
+                delete input.dataset.cabAutoResolvedSource;
+                delete input.dataset.cabAutoResolvedValue;
+                return false;
+            }
+
+            const currentValue = String(input.value || '');
+            if (currentValue.startsWith(resolvedValue) && currentValue.length > resolvedValue.length) {
+                const suffix = currentValue.slice(resolvedValue.length);
+                if (/^[a-z0-9\s-]+$/i.test(suffix)) {
+                    const continuedValue = `${sourceValue}${suffix}`;
+                    input.value = continuedValue;
+                    syncAirportPairedInput(input.id, continuedValue);
+                    delete input.dataset.cabAutoResolvedSource;
+                    delete input.dataset.cabAutoResolvedValue;
+                    return true;
+                }
+            }
+
+            if (normalizeAirportSearchText(currentValue) !== normalizeAirportSearchText(resolvedValue)) {
+                delete input.dataset.cabAutoResolvedSource;
+                delete input.dataset.cabAutoResolvedValue;
+            }
+            return false;
+        }
+
+        function scheduleAutoResolveQuickLocationInput(input, event) {
+            if (!input) return false;
+            if (input.__cabAutoResolveTimer) {
+                window.clearTimeout(input.__cabAutoResolveTimer);
+                input.__cabAutoResolveTimer = null;
+            }
+
+            if (!shouldAutoResolveQuickLocationInput(input, event)) return false;
+
+            const sourceValue = sanitizeInput(input.value || '').trim();
+            const inputType = String(event?.inputType || '');
+            input.__cabAutoResolveTimer = window.setTimeout(() => {
+                input.__cabAutoResolveTimer = null;
+                if (sanitizeInput(input.value || '').trim() !== sourceValue) return;
+                autoResolveQuickLocationInput(input, {
+                    inputType,
+                    keepSuggestions: true
+                });
+            }, 420);
+            return true;
+        }
+
         function resolveCabQuickLocationValues(options = {}) {
             ['cabQuickPickupInput', 'cabQuickDropoffInput'].forEach((inputId) => {
                 const input = document.getElementById(inputId);
@@ -7050,10 +7288,21 @@
 
             input.value = value;
             input.dataset.cabCommittedSelection = '1';
+            delete input.dataset.cabAutoResolvedSource;
+            delete input.dataset.cabAutoResolvedValue;
             syncAirportPairedInput(input.id, value);
             closeAirportAutocompleteBoxes();
             input.dispatchEvent(new Event('change', { bubbles: true }));
             updateBookingExperience();
+        }
+
+        function getVisibleAirportSuggestion(input) {
+            if (!input || !input.id) return null;
+            const box = document.getElementById(`${input.id}Autocomplete`);
+            const firstItem = box?.querySelector?.('.airport-autocomplete-item');
+            const display = sanitizeInput(firstItem?.dataset?.airportDisplay || '').trim();
+            if (!display) return null;
+            return findExactAirportMatch(display);
         }
 
         function resolveAirportInputValue(input, options = {}) {
@@ -7064,7 +7313,11 @@
             const rawValue = String(input.value || '').trim();
             if (!rawValue) return false;
 
-            const airport = getResolvableAirport(rawValue);
+            const contextText = getAirportContextTextForInput(input);
+            const visibleAirport = options.useVisibleSuggestion !== false && (contextText || !isBroadAirportQuery(rawValue))
+                ? getVisibleAirportSuggestion(input)
+                : null;
+            const airport = visibleAirport || getResolvableAirport(rawValue, { contextText });
             if (airport) {
                 const formatted = formatAirportSuggestion(airport);
                 if (formatted && input.value !== formatted) {
@@ -7083,7 +7336,7 @@
             return false;
         }
 
-        function showAirportAutocomplete(input) {
+        function showAirportAutocomplete(input, queryOverride = '') {
             if (!input || getActiveCabFlow() !== 'airport' || getAirportFieldRole(input.id) !== 'airport') return false;
 
             const suggestionsBox = getBookingAutocompleteBox(input);
@@ -7091,13 +7344,15 @@
             suggestionsBox.dataset.airportScoped = '1';
             suggestionsBox.innerHTML = '';
 
-            const query = String(input.value || '').trim();
+            const query = String(queryOverride || input.value || '').trim();
             if (query.length < 2) {
                 suggestionsBox.style.display = 'none';
                 return true;
             }
 
-            const matches = searchIndianAirports(query);
+            const matches = searchIndianAirports(query, {
+                contextText: getAirportContextTextForInput(input)
+            });
             suggestionsBox.style.display = 'block';
             positionBookingAutocompleteBox(input, suggestionsBox);
 
@@ -7118,6 +7373,7 @@
                 const item = document.createElement('div');
                 item.className = 'autocomplete-item airport-autocomplete-item';
                 item.dataset.index = String(index);
+                item.dataset.airportDisplay = formatAirportSuggestion(airport);
                 item.innerHTML = `
                     <span>${highlightAirportSuggestionText(formatAirportSuggestion(airport), query)}</span>
                     <small>${escapeBookingHtml([airport.code, airport.city, airport.state].filter(Boolean).join(' - '))}</small>
@@ -7849,7 +8105,9 @@
             if (value.length < 3) return false;
 
             if (getActiveCabFlow() === 'airport' && getAirportFieldRole(inputId) === 'airport') {
-                return isAirportTextResolvable(value);
+                return isAirportTextResolvable(value, {
+                    contextText: getAirportContextTextForInput(inputNode)
+                });
             }
 
             return true;
@@ -8492,8 +8750,11 @@
 
             const bindMiniLocation = (miniNode, targetId, layerKey) => {
                 if (!miniNode || miniNode.dataset.cabMiniBound === '1') return;
-                miniNode.addEventListener('input', () => {
+                miniNode.addEventListener('input', (event) => {
                     const target = document.getElementById(targetId);
+                    if (target) target.value = miniNode.value;
+                    restoreQuickTypingContinuation(miniNode, event);
+                    scheduleAutoResolveQuickLocationInput(miniNode, event);
                     if (target) target.value = miniNode.value;
                     updateBookingExperience();
                 });
