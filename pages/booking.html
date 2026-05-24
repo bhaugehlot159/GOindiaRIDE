@@ -6802,8 +6802,48 @@
             return suggestions;
         }
 
+        function getBookingConsoleActionRow(input) {
+            const consoleNode = input?.closest?.('#cabBookingConsole') || document.getElementById('cabBookingConsole');
+            return consoleNode?.querySelector?.('.cab-console-actions') || null;
+        }
+
+        function resetBookingAutocompleteActionGap() {
+            document.querySelectorAll('#cabBookingConsole .cab-console-actions').forEach((actions) => {
+                if (actions.dataset.bookingAutocompleteGap === '1') {
+                    actions.style.removeProperty('margin-top');
+                    delete actions.dataset.bookingAutocompleteGap;
+                }
+            });
+        }
+
+        function reserveBookingAutocompleteActionGap(input, suggestionsBox) {
+            if (!input || !suggestionsBox || !input.closest('#cabBookingConsole')) return;
+            const actions = getBookingConsoleActionRow(input);
+            if (!actions) return;
+
+            if (!actions.dataset.bookingBaseMarginTop) {
+                actions.dataset.bookingBaseMarginTop = window.getComputedStyle(actions).marginTop || '0px';
+            }
+
+            actions.style.removeProperty('margin-top');
+            delete actions.dataset.bookingAutocompleteGap;
+
+            const inputRect = input.getBoundingClientRect();
+            const actionTop = actions.getBoundingClientRect().top;
+            const desiredHeight = Math.min(260, suggestionsBox.scrollHeight || 180);
+            const requiredBottom = inputRect.bottom + desiredHeight + 12;
+            const extraGap = Math.max(0, requiredBottom - actionTop);
+            if (!extraGap) return;
+
+            const baseGap = Number.parseFloat(actions.dataset.bookingBaseMarginTop || '0') || 0;
+            actions.style.setProperty('margin-top', `${baseGap + extraGap}px`, 'important');
+            actions.dataset.bookingAutocompleteGap = '1';
+        }
+
         function positionBookingAutocompleteBox(input, suggestionsBox) {
             if (!input || !suggestionsBox) return;
+            reserveBookingAutocompleteActionGap(input, suggestionsBox);
+
             const rect = input.getBoundingClientRect();
             const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
             const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
@@ -6816,15 +6856,16 @@
             const actionRow = document.querySelector('#cabBookingConsole .cab-console-actions');
             const actionTop = actionRow?.getBoundingClientRect?.().top || 0;
             const actionSpace = actionTop > rect.bottom ? actionTop - rect.bottom - 10 : spaceBelow;
-            const maxHeight = Math.max(86, Math.min(340, spaceBelow - 4, actionSpace));
+            const desiredHeight = suggestionsBox.scrollHeight || 260;
+            const maxHeight = Math.max(80, Math.min(260, desiredHeight, spaceBelow - 4, actionSpace));
 
             suggestionsBox.style.position = 'fixed';
             suggestionsBox.style.left = `${left}px`;
-            suggestionsBox.style.top = `${Math.min(viewportHeight - margin - 40, rect.bottom - 1)}px`;
             suggestionsBox.style.width = `${width}px`;
             suggestionsBox.style.maxHeight = `${maxHeight}px`;
             suggestionsBox.style.marginTop = '0';
             suggestionsBox.style.zIndex = '9999';
+            suggestionsBox.style.top = `${Math.min(viewportHeight - margin - 40, rect.bottom - 1)}px`;
             suggestionsBox.style.borderTop = 'none';
             suggestionsBox.style.borderBottom = '2px solid #1689bf';
             suggestionsBox.style.borderRadius = '0 0 8px 8px';
@@ -6837,6 +6878,7 @@
                 box.innerHTML = '';
                 box.style.display = 'none';
             });
+            resetBookingAutocompleteActionGap();
         }
 
         function closeAllBookingAutocompleteBoxes() {
@@ -6844,21 +6886,27 @@
                 box.innerHTML = '';
                 box.style.display = 'none';
             });
+            resetBookingAutocompleteActionGap();
         }
 
         function capBookingAutocompleteBox(input, suggestionsBox) {
             if (!input || !suggestionsBox || !input.closest('#cabBookingConsole')) return;
-            const inputRect = input.getBoundingClientRect();
-            const boxTop = Number.parseFloat(suggestionsBox.style.top || '') || inputRect.bottom;
-            if (boxTop < inputRect.bottom - 4) return;
+            reserveBookingAutocompleteActionGap(input, suggestionsBox);
 
+            const inputRect = input.getBoundingClientRect();
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const margin = 8;
             const actionRow = document.querySelector('#cabBookingConsole .cab-console-actions');
             const actionTop = actionRow?.getBoundingClientRect?.().top || 0;
-            if (!actionTop || actionTop <= boxTop) return;
+            const actionSpace = actionTop > inputRect.bottom ? actionTop - inputRect.bottom - 10 : viewportHeight - inputRect.bottom - margin;
+            const desiredHeight = suggestionsBox.scrollHeight || 260;
+            const maxHeight = Math.max(80, Math.min(260, desiredHeight, viewportHeight - inputRect.bottom - margin - 4, actionSpace));
 
-            const currentMax = Number.parseFloat(suggestionsBox.style.maxHeight || '') || 350;
-            const cappedMax = Math.max(86, Math.min(currentMax, actionTop - boxTop - 10));
-            suggestionsBox.style.maxHeight = `${cappedMax}px`;
+            suggestionsBox.style.maxHeight = `${maxHeight}px`;
+            suggestionsBox.style.top = `${Math.min(viewportHeight - margin - 40, inputRect.bottom - 1)}px`;
+            suggestionsBox.style.borderTop = 'none';
+            suggestionsBox.style.borderBottom = '2px solid #667eea';
+            suggestionsBox.style.borderRadius = '0 0 8px 8px';
         }
 
         function patchBookingLocationAutocompletePositioner() {
@@ -6878,6 +6926,15 @@
                         this.input.dataset.cabCommittedSelection = '1';
                     }
                     originalSelectItem.call(this, value);
+                };
+            }
+            if (typeof Ctor.prototype.closeSuggestions === 'function') {
+                const originalCloseSuggestions = Ctor.prototype.closeSuggestions;
+                Ctor.prototype.closeSuggestions = function bookingTrackedCloseSuggestions() {
+                    originalCloseSuggestions.call(this);
+                    if (this.input?.closest?.('#cabBookingConsole')) {
+                        resetBookingAutocompleteActionGap();
+                    }
                 };
             }
             Ctor.prototype.__goiBookingActionCapPatched = true;
@@ -8379,15 +8436,49 @@
 
             const searchButton = document.getElementById('cabPrimarySearch');
             if (searchButton && searchButton.dataset.cabBound !== '1') {
-                searchButton.addEventListener('pointerdown', commitAndCloseBookingAutocompleteBoxes, true);
-                searchButton.addEventListener('click', handleCabPrimarySearch);
+                searchButton.addEventListener('pointerdown', (event) => {
+                    if (event.button && event.button !== 0) return;
+                    searchButton.dataset.cabPointerHandled = '1';
+                    window.setTimeout(() => {
+                        delete searchButton.dataset.cabPointerHandled;
+                    }, 350);
+                    event.preventDefault();
+                    handleCabPrimarySearch();
+                }, true);
+                searchButton.addEventListener('click', (event) => {
+                    if (searchButton.dataset.cabPointerHandled === '1') {
+                        delete searchButton.dataset.cabPointerHandled;
+                        event.preventDefault();
+                        return;
+                    }
+                    handleCabPrimarySearch();
+                });
                 searchButton.dataset.cabBound = '1';
             }
 
             const backButton = document.getElementById('cabStepBackBtn');
             if (backButton && backButton.dataset.cabBound !== '1') {
-                backButton.addEventListener('pointerdown', closeAllBookingAutocompleteBoxes, true);
-                backButton.addEventListener('click', handleCabStepBack);
+                const handleBackButtonAction = () => {
+                    closeAllBookingAutocompleteBoxes();
+                    handleCabStepBack();
+                };
+                backButton.addEventListener('pointerdown', (event) => {
+                    if (event.button && event.button !== 0) return;
+                    backButton.dataset.cabPointerHandled = '1';
+                    window.setTimeout(() => {
+                        delete backButton.dataset.cabPointerHandled;
+                    }, 350);
+                    event.preventDefault();
+                    handleBackButtonAction();
+                }, true);
+                backButton.addEventListener('click', (event) => {
+                    if (backButton.dataset.cabPointerHandled === '1') {
+                        delete backButton.dataset.cabPointerHandled;
+                        event.preventDefault();
+                        return;
+                    }
+                    handleBackButtonAction();
+                });
                 backButton.dataset.cabBound = '1';
             }
 
