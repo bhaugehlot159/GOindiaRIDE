@@ -6710,18 +6710,30 @@
             const name = normalizeAirportSearchText(airport.name);
             const city = normalizeAirportSearchText(airport.city);
             const state = normalizeAirportSearchText(airport.state);
+            const formatted = normalizeAirportSearchText(formatAirportSuggestion(airport));
             const aliases = Array.isArray(airport.aliases)
                 ? airport.aliases.map(normalizeAirportSearchText)
                 : [];
-            const haystack = [code, name, city, state, ...aliases].filter(Boolean).join(' ');
+            const haystack = [formatted, code, name, city, state, ...aliases].filter(Boolean).join(' ');
 
-            if (!normalizedQuery || !haystack.includes(normalizedQuery)) return null;
+            if (!normalizedQuery) return null;
             if (code && code === normalizedQuery) return 0;
+            if (formatted.startsWith(normalizedQuery)) return 1;
             if (city.startsWith(normalizedQuery)) return 1;
             if (name.startsWith(normalizedQuery)) return 2;
             if (aliases.some((alias) => alias.startsWith(normalizedQuery))) return 3;
             if (state.startsWith(normalizedQuery)) return 4;
-            return 5;
+            if (haystack.includes(normalizedQuery)) return 5;
+            const queryTokens = normalizedQuery.split(' ').filter(Boolean);
+            const haystackTokens = haystack.split(' ').filter(Boolean);
+            const allTokensResolvable = queryTokens.every((token, index) => {
+                if (index === queryTokens.length - 1) {
+                    return haystackTokens.some((part) => part.startsWith(token));
+                }
+                return haystackTokens.includes(token);
+            });
+            if (allTokensResolvable) return 6;
+            return null;
         }
 
         function getRankedAirportMatches(query) {
@@ -6801,7 +6813,10 @@
             const width = Math.min(Math.max(260, rect.width), Math.max(260, viewportWidth - margin * 2));
             const left = Math.max(margin, Math.min(rect.left, viewportWidth - width - margin));
             const spaceBelow = viewportHeight - rect.bottom - margin;
-            const maxHeight = Math.max(150, Math.min(340, spaceBelow - 4));
+            const actionRow = document.querySelector('#cabBookingConsole .cab-console-actions');
+            const actionTop = actionRow?.getBoundingClientRect?.().top || 0;
+            const actionSpace = actionTop > rect.bottom ? actionTop - rect.bottom - 10 : spaceBelow;
+            const maxHeight = Math.max(86, Math.min(340, spaceBelow - 4, actionSpace));
 
             suggestionsBox.style.position = 'fixed';
             suggestionsBox.style.left = `${left}px`;
@@ -6829,6 +6844,44 @@
                 box.innerHTML = '';
                 box.style.display = 'none';
             });
+        }
+
+        function capBookingAutocompleteBox(input, suggestionsBox) {
+            if (!input || !suggestionsBox || !input.closest('#cabBookingConsole')) return;
+            const inputRect = input.getBoundingClientRect();
+            const boxTop = Number.parseFloat(suggestionsBox.style.top || '') || inputRect.bottom;
+            if (boxTop < inputRect.bottom - 4) return;
+
+            const actionRow = document.querySelector('#cabBookingConsole .cab-console-actions');
+            const actionTop = actionRow?.getBoundingClientRect?.().top || 0;
+            if (!actionTop || actionTop <= boxTop) return;
+
+            const currentMax = Number.parseFloat(suggestionsBox.style.maxHeight || '') || 350;
+            const cappedMax = Math.max(86, Math.min(currentMax, actionTop - boxTop - 10));
+            suggestionsBox.style.maxHeight = `${cappedMax}px`;
+        }
+
+        function patchBookingLocationAutocompletePositioner() {
+            const Ctor = window.LocationAutocomplete;
+            if (!Ctor || !Ctor.prototype || typeof Ctor.prototype.positionSuggestions !== 'function') return false;
+            if (Ctor.prototype.__goiBookingActionCapPatched) return true;
+
+            const originalPosition = Ctor.prototype.positionSuggestions;
+            Ctor.prototype.positionSuggestions = function bookingActionCappedPositionSuggestions() {
+                originalPosition.call(this);
+                capBookingAutocompleteBox(this.input, this.suggestionsBox);
+            };
+            if (typeof Ctor.prototype.selectItem === 'function') {
+                const originalSelectItem = Ctor.prototype.selectItem;
+                Ctor.prototype.selectItem = function bookingTrackedSelectItem(value) {
+                    if (this.input?.closest?.('#cabBookingConsole')) {
+                        this.input.dataset.cabCommittedSelection = '1';
+                    }
+                    originalSelectItem.call(this, value);
+                };
+            }
+            Ctor.prototype.__goiBookingActionCapPatched = true;
+            return true;
         }
 
         function getAutocompleteDisplayTextFromBox(input) {
@@ -6939,6 +6992,7 @@
             if (!input || !value) return;
 
             input.value = value;
+            input.dataset.cabCommittedSelection = '1';
             syncAirportPairedInput(input.id, value);
             closeAirportAutocompleteBoxes();
             input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -7025,10 +7079,6 @@
 
             input.addEventListener('input', () => {
                 if (getActiveCabFlow() === 'airport') {
-                    const rawValue = String(input.value || '').trim();
-                    if (rawValue.length >= 3 && getAirportFieldRole(input.id) === 'airport' && resolveAirportInputValue(input, { showSuggestions: false })) {
-                        return;
-                    }
                     showAirportAutocomplete(input);
                 }
             });
@@ -7579,10 +7629,6 @@
 
         function advanceCabLayerIfCurrentComplete(layerKey) {
             const activeFlow = getActiveCabFlow();
-            resolveCabQuickLocationValues({
-                showSuggestions: false,
-                useVisibleSuggestion: true
-            });
             const layers = buildCabQuickLayers(activeFlow);
             if (!layers.length) return;
 
@@ -8137,7 +8183,10 @@
 
         function handleCabPrimarySearch() {
             const activeFlow = getActiveCabFlow();
-            resolveCabQuickLocationValues({ showSuggestions: false });
+            resolveCabQuickLocationValues({
+                showSuggestions: false,
+                useVisibleSuggestion: true
+            });
             const layers = buildCabQuickLayers(activeFlow);
             if (!layers.length) return;
 
@@ -8337,7 +8386,7 @@
 
             const backButton = document.getElementById('cabStepBackBtn');
             if (backButton && backButton.dataset.cabBound !== '1') {
-                backButton.addEventListener('pointerdown', commitAndCloseBookingAutocompleteBoxes, true);
+                backButton.addEventListener('pointerdown', closeAllBookingAutocompleteBoxes, true);
                 backButton.addEventListener('click', handleCabStepBack);
                 backButton.dataset.cabBound = '1';
             }
@@ -8359,11 +8408,12 @@
                 });
                 ['change', 'blur'].forEach((eventName) => {
                     miniNode.addEventListener(eventName, () => {
-                        resolveBookingLocationInputValue(miniNode, { showSuggestions: eventName !== 'blur' });
+                        const committedSelection = miniNode.dataset.cabCommittedSelection === '1';
+                        delete miniNode.dataset.cabCommittedSelection;
                         const target = document.getElementById(targetId);
                         if (target) target.value = miniNode.value;
                         handleLocationUpdated();
-                        if (layerKey) {
+                        if (eventName === 'change' && committedSelection && layerKey) {
                             advanceCabLayerIfCurrentComplete(layerKey);
                         }
                     });
@@ -8376,6 +8426,7 @@
 
             const bindQuickAutocomplete = (attempt = 0) => {
                 if (typeof initializeAutocomplete === 'function') {
+                    patchBookingLocationAutocompletePositioner();
                     initializeAutocomplete('pickup');
                     initializeAutocomplete('dropoff');
                     initializeAutocomplete('cabQuickPickupInput');
