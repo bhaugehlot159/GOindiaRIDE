@@ -4882,6 +4882,8 @@
         body.booking-page.professional-booking .cab-console-actions {
             gap: 0.42rem !important;
             margin-top: 0.46rem !important;
+            position: relative !important;
+            z-index: 10050 !important;
         }
 
         body.booking-page.professional-booking .cab-console-actions.has-step-back {
@@ -6722,7 +6724,7 @@
             return 5;
         }
 
-        function searchIndianAirports(query) {
+        function getRankedAirportMatches(query) {
             const normalizedQuery = normalizeAirportSearchText(query);
             if (normalizedQuery.length < 2) return [];
 
@@ -6736,8 +6738,44 @@
                     if (a.score !== b.score) return a.score - b.score;
                     return formatAirportSuggestion(a.airport).localeCompare(formatAirportSuggestion(b.airport));
                 })
-                .slice(0, 18)
-                .map((entry) => entry.airport);
+                .slice(0, 18);
+        }
+
+        function searchIndianAirports(query) {
+            return getRankedAirportMatches(query).map((entry) => entry.airport);
+        }
+
+        function findExactAirportMatch(value) {
+            const normalizedValue = normalizeAirportSearchText(value);
+            if (!normalizedValue) return null;
+
+            return INDIA_AIRPORT_SUGGESTIONS.find((airport) => {
+                const candidates = [
+                    formatAirportSuggestion(airport),
+                    airport.name,
+                    airport.city,
+                    airport.code,
+                    ...((Array.isArray(airport.aliases) && airport.aliases) || [])
+                ].map(normalizeAirportSearchText).filter(Boolean);
+
+                return candidates.includes(normalizedValue);
+            }) || null;
+        }
+
+        function getResolvableAirport(value) {
+            const exactMatch = findExactAirportMatch(value);
+            if (exactMatch) return exactMatch;
+            const matches = getRankedAirportMatches(value);
+            if (!matches.length) return null;
+            const [bestMatch, secondMatch] = matches;
+            if (bestMatch.score <= 3 && (!secondMatch || bestMatch.score < secondMatch.score)) {
+                return bestMatch.airport;
+            }
+            return matches.length === 1 ? matches[0].airport : null;
+        }
+
+        function isAirportTextResolvable(value) {
+            return Boolean(getResolvableAirport(value));
         }
 
         function getBookingAutocompleteBox(input) {
@@ -6786,6 +6824,53 @@
             });
         }
 
+        function closeAllBookingAutocompleteBoxes() {
+            document.querySelectorAll('.autocomplete-suggestions').forEach((box) => {
+                box.innerHTML = '';
+                box.style.display = 'none';
+            });
+        }
+
+        function getAutocompleteDisplayTextFromBox(input) {
+            if (!input || !input.id) return '';
+            const box = document.getElementById(`${input.id}Autocomplete`);
+            const firstItem = box?.querySelector('.autocomplete-item');
+            return sanitizeInput(firstItem?.textContent || '').trim();
+        }
+
+        function getGenericLocationAutocompleteMatches(value) {
+            const query = normalizeAirportSearchText(value);
+            if (query.length < 2 || typeof window.LocationAutocomplete !== 'function') return [];
+
+            try {
+                const resolver = Object.create(window.LocationAutocomplete.prototype);
+                resolver.data = window.locationsData || { states: {}, rajasthan: {} };
+                resolver.maxResults = 12;
+                resolver.minSearchLength = 2;
+                return resolver.searchLocations(query)
+                    .filter((item) => item && !item.isCategory && item.display)
+                    .map((item) => sanitizeInput(item.display).trim())
+                    .filter(Boolean);
+            } catch (_error) {
+                return [];
+            }
+        }
+
+        function getResolvableGenericLocation(value) {
+            const rawValue = sanitizeInput(value || '').trim();
+            const normalizedValue = normalizeAirportSearchText(rawValue);
+            if (normalizedValue.length < 2) return '';
+
+            const matches = getGenericLocationAutocompleteMatches(rawValue);
+            if (!matches.length) return '';
+
+            const exactMatch = matches.find((match) => normalizeAirportSearchText(match) === normalizedValue);
+            if (exactMatch) return exactMatch;
+
+            const startsWithMatch = matches.find((match) => normalizeAirportSearchText(match).startsWith(normalizedValue));
+            return startsWithMatch || matches[0] || '';
+        }
+
         function syncAirportPairedInput(inputId, value) {
             const pairedInputId = {
                 pickup: 'cabQuickPickupInput',
@@ -6797,6 +6882,48 @@
             if (pairedInput && pairedInput.value !== value) {
                 pairedInput.value = value;
             }
+        }
+
+        function resolveBookingLocationInputValue(input, options = {}) {
+            if (!input) return true;
+
+            if (getActiveCabFlow() === 'airport' && getAirportFieldRole(input.id) === 'airport') {
+                return resolveAirportInputValue(input, options);
+            }
+
+            const rawValue = sanitizeInput(input.value || '').trim();
+            if (rawValue.length < 2) return rawValue.length >= 3;
+
+            const visibleSuggestion = options.useVisibleSuggestion === false
+                ? ''
+                : getAutocompleteDisplayTextFromBox(input);
+            const resolvedValue = visibleSuggestion || getResolvableGenericLocation(rawValue);
+            if (!resolvedValue || normalizeAirportSearchText(resolvedValue) === normalizeAirportSearchText(rawValue)) {
+                return true;
+            }
+
+            input.value = resolvedValue;
+            syncAirportPairedInput(input.id, resolvedValue);
+            closeAllBookingAutocompleteBoxes();
+            updateBookingExperience();
+            return true;
+        }
+
+        function resolveCabQuickLocationValues(options = {}) {
+            ['cabQuickPickupInput', 'cabQuickDropoffInput'].forEach((inputId) => {
+                const input = document.getElementById(inputId);
+                if (input && String(input.value || '').trim()) {
+                    resolveBookingLocationInputValue(input, options);
+                }
+            });
+        }
+
+        function commitAndCloseBookingAutocompleteBoxes() {
+            resolveCabQuickLocationValues({
+                showSuggestions: false,
+                useVisibleSuggestion: true
+            });
+            closeAllBookingAutocompleteBoxes();
         }
 
         function highlightAirportSuggestionText(text, query) {
@@ -6816,6 +6943,33 @@
             closeAirportAutocompleteBoxes();
             input.dispatchEvent(new Event('change', { bubbles: true }));
             updateBookingExperience();
+        }
+
+        function resolveAirportInputValue(input, options = {}) {
+            if (!input || getActiveCabFlow() !== 'airport' || getAirportFieldRole(input.id) !== 'airport') {
+                return true;
+            }
+
+            const rawValue = String(input.value || '').trim();
+            if (!rawValue) return false;
+
+            const airport = getResolvableAirport(rawValue);
+            if (airport) {
+                const formatted = formatAirportSuggestion(airport);
+                if (formatted && input.value !== formatted) {
+                    input.value = formatted;
+                    syncAirportPairedInput(input.id, formatted);
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                closeAirportAutocompleteBoxes();
+                updateBookingExperience();
+                return true;
+            }
+
+            if (options.showSuggestions !== false) {
+                showAirportAutocomplete(input);
+            }
+            return false;
         }
 
         function showAirportAutocomplete(input) {
@@ -6871,6 +7025,10 @@
 
             input.addEventListener('input', () => {
                 if (getActiveCabFlow() === 'airport') {
+                    const rawValue = String(input.value || '').trim();
+                    if (rawValue.length >= 3 && getAirportFieldRole(input.id) === 'airport' && resolveAirportInputValue(input, { showSuggestions: false })) {
+                        return;
+                    }
                     showAirportAutocomplete(input);
                 }
             });
@@ -7169,6 +7327,115 @@
             }
         }
 
+        const BOOKING_MIN_LEAD_MINUTES = 60;
+
+        function padBookingDatePart(value) {
+            return String(value).padStart(2, '0');
+        }
+
+        function formatLocalDateInputValue(dateValue) {
+            const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+            return [
+                date.getFullYear(),
+                padBookingDatePart(date.getMonth() + 1),
+                padBookingDatePart(date.getDate())
+            ].join('-');
+        }
+
+        function formatLocalTimeInputValue(dateValue) {
+            const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+            return [
+                padBookingDatePart(date.getHours()),
+                padBookingDatePart(date.getMinutes())
+            ].join(':');
+        }
+
+        function getDefaultBookingStartDateTime() {
+            const date = new Date(Date.now() + BOOKING_MIN_LEAD_MINUTES * 60 * 1000);
+            const roundedMinutes = Math.ceil(date.getMinutes() / 5) * 5;
+            if (roundedMinutes >= 60) {
+                date.setHours(date.getHours() + 1, 0, 0, 0);
+            } else {
+                date.setMinutes(roundedMinutes, 0, 0);
+            }
+            return date;
+        }
+
+        function syncBookingDateTimeLimits() {
+            const minimumStart = getDefaultBookingStartDateTime();
+            const minimumDate = formatLocalDateInputValue(minimumStart);
+            const minimumTime = formatLocalTimeInputValue(minimumStart);
+            const rideDateNode = document.getElementById('rideDate');
+            const rideTimeNode = document.getElementById('rideTime');
+            const quickDateNode = document.getElementById('cabQuickDateInput');
+            const quickTimeNode = document.getElementById('cabQuickTimeInput');
+            const returnDateNode = document.getElementById('returnDate');
+            const returnTimeNode = document.getElementById('returnTime');
+            const quickReturnDateNode = document.getElementById('cabQuickReturnDateInput');
+            const quickReturnTimeNode = document.getElementById('cabQuickReturnTimeInput');
+
+            [rideDateNode, quickDateNode].forEach((node) => {
+                if (node) node.min = minimumDate;
+            });
+
+            if (rideDateNode && rideDateNode.value && rideDateNode.value < minimumDate) {
+                rideDateNode.value = minimumDate;
+            }
+            if (quickDateNode && quickDateNode.value && quickDateNode.value < minimumDate) {
+                quickDateNode.value = minimumDate;
+            }
+
+            const selectedRideDate = rideDateNode?.value || quickDateNode?.value || minimumDate;
+            const selectedMinimumTime = selectedRideDate === minimumDate ? minimumTime : '';
+            [rideTimeNode, quickTimeNode].forEach((node) => {
+                if (!node) return;
+                node.min = selectedMinimumTime;
+                if (selectedMinimumTime && node.value && node.value < selectedMinimumTime) {
+                    node.value = selectedMinimumTime;
+                }
+            });
+
+            const returnMinimumDate = selectedRideDate || minimumDate;
+            [returnDateNode, quickReturnDateNode].forEach((node) => {
+                if (!node) return;
+                node.min = returnMinimumDate;
+                if (node.value && node.value < returnMinimumDate) {
+                    node.value = returnMinimumDate;
+                }
+            });
+
+            const selectedReturnDate = returnDateNode?.value || quickReturnDateNode?.value || '';
+            const selectedRideTime = rideTimeNode?.value || quickTimeNode?.value || '';
+            const returnMinimumTime = selectedReturnDate && selectedReturnDate === selectedRideDate && selectedRideTime
+                ? selectedRideTime
+                : '';
+            [returnTimeNode, quickReturnTimeNode].forEach((node) => {
+                if (!node) return;
+                node.min = returnMinimumTime;
+                if (returnMinimumTime && node.value && node.value <= returnMinimumTime) {
+                    node.value = '';
+                }
+            });
+        }
+
+        function seedDefaultBookingDateTime() {
+            const defaultStart = getDefaultBookingStartDateTime();
+            const defaultDate = formatLocalDateInputValue(defaultStart);
+            const defaultTime = formatLocalTimeInputValue(defaultStart);
+            const values = [
+                ['rideDate', defaultDate],
+                ['cabQuickDateInput', defaultDate],
+                ['rideTime', defaultTime],
+                ['cabQuickTimeInput', defaultTime]
+            ];
+
+            values.forEach(([id, value]) => {
+                const node = document.getElementById(id);
+                if (node && !node.value) node.value = value;
+            });
+            syncBookingDateTimeLimits();
+        }
+
         function formatCabStartText(dateValue, timeValue) {
             if (!dateValue && !timeValue) return 'Choose date and time';
             const dateTime = dateValue ? new Date(`${dateValue}T${timeValue || '00:00'}`) : null;
@@ -7312,6 +7579,10 @@
 
         function advanceCabLayerIfCurrentComplete(layerKey) {
             const activeFlow = getActiveCabFlow();
+            resolveCabQuickLocationValues({
+                showSuggestions: false,
+                useVisibleSuggestion: true
+            });
             const layers = buildCabQuickLayers(activeFlow);
             if (!layers.length) return;
 
@@ -7470,6 +7741,17 @@
             updateBookingExperience();
         }
 
+        function isCabLocationLayerComplete(inputId, inputNode) {
+            const value = String(inputNode?.value || '').trim();
+            if (value.length < 3) return false;
+
+            if (getActiveCabFlow() === 'airport' && getAirportFieldRole(inputId) === 'airport') {
+                return isAirportTextResolvable(value);
+            }
+
+            return true;
+        }
+
         function buildCabQuickLayers(flow = getActiveCabFlow()) {
             const pickupNode = document.getElementById('cabQuickPickupInput');
             const dropoffNode = document.getElementById('cabQuickDropoffInput');
@@ -7483,16 +7765,18 @@
                 {
                     key: 'pickup',
                     label: 'Pickup',
+                    inputId: 'cabQuickPickupInput',
                     node: pickupNode ? pickupNode.closest('.cab-mini-field') : null,
-                    complete: () => String(pickupNode?.value || '').trim().length >= 3,
+                    complete: () => isCabLocationLayerComplete('cabQuickPickupInput', pickupNode),
                     valueText: () => sanitizeInput(pickupNode?.value || '').trim(),
                     pendingText: 'Enter pickup location'
                 },
                 {
                     key: 'dropoff',
                     label: 'Dropoff',
+                    inputId: 'cabQuickDropoffInput',
                     node: dropoffNode ? dropoffNode.closest('.cab-mini-field') : null,
-                    complete: () => String(dropoffNode?.value || '').trim().length >= 3,
+                    complete: () => isCabLocationLayerComplete('cabQuickDropoffInput', dropoffNode),
                     valueText: () => sanitizeInput(dropoffNode?.value || '').trim(),
                     pendingText: 'Enter drop location'
                 },
@@ -7853,6 +8137,7 @@
 
         function handleCabPrimarySearch() {
             const activeFlow = getActiveCabFlow();
+            resolveCabQuickLocationValues({ showSuggestions: false });
             const layers = buildCabQuickLayers(activeFlow);
             if (!layers.length) return;
 
@@ -7864,6 +8149,16 @@
             cabLayerUnlockedIndex = Math.max(0, Math.min(cabLayerUnlockedIndex, lastLayerIndex));
             const activeIndex = Number.isInteger(cabLayerManualIndex) ? cabLayerManualIndex : cabLayerUnlockedIndex;
             const currentLayer = layers[Math.max(0, activeIndex)] || null;
+            const currentLayerInput = currentLayer?.inputId ? document.getElementById(currentLayer.inputId) : null;
+
+            if (currentLayerInput && getActiveCabFlow() === 'airport' && getAirportFieldRole(currentLayerInput.id) === 'airport') {
+                const resolved = resolveAirportInputValue(currentLayerInput, { showSuggestions: true });
+                if (!resolved) {
+                    syncCabLayerFlow(activeFlow);
+                    focusCabLayerInput(currentLayer && currentLayer.node, true);
+                    return;
+                }
+            }
 
             if (!currentLayer || !currentLayer.complete()) {
                 syncCabLayerFlow(activeFlow);
@@ -8035,12 +8330,14 @@
 
             const searchButton = document.getElementById('cabPrimarySearch');
             if (searchButton && searchButton.dataset.cabBound !== '1') {
+                searchButton.addEventListener('pointerdown', commitAndCloseBookingAutocompleteBoxes, true);
                 searchButton.addEventListener('click', handleCabPrimarySearch);
                 searchButton.dataset.cabBound = '1';
             }
 
             const backButton = document.getElementById('cabStepBackBtn');
             if (backButton && backButton.dataset.cabBound !== '1') {
+                backButton.addEventListener('pointerdown', commitAndCloseBookingAutocompleteBoxes, true);
                 backButton.addEventListener('click', handleCabStepBack);
                 backButton.dataset.cabBound = '1';
             }
@@ -8062,6 +8359,7 @@
                 });
                 ['change', 'blur'].forEach((eventName) => {
                     miniNode.addEventListener(eventName, () => {
+                        resolveBookingLocationInputValue(miniNode, { showSuggestions: eventName !== 'blur' });
                         const target = document.getElementById(targetId);
                         if (target) target.value = miniNode.value;
                         handleLocationUpdated();
@@ -8098,6 +8396,7 @@
                 dateMini.addEventListener('change', () => {
                     const rideDateNode = document.getElementById('rideDate');
                     if (rideDateNode) rideDateNode.value = dateMini.value;
+                    syncBookingDateTimeLimits();
                     toggleReturnTrip();
                     syncCabRoundTripUi(getActiveCabFlow());
                     updateFare();
@@ -8111,6 +8410,7 @@
                 timeMini.addEventListener('change', () => {
                     const rideTimeNode = document.getElementById('rideTime');
                     if (rideTimeNode) rideTimeNode.value = timeMini.value;
+                    syncBookingDateTimeLimits();
                     toggleReturnTrip();
                     syncCabRoundTripUi(getActiveCabFlow());
                     updateFare();
@@ -8124,6 +8424,7 @@
                 returnDateMini.addEventListener('change', () => {
                     const returnDateNode = document.getElementById('returnDate');
                     if (returnDateNode) returnDateNode.value = returnDateMini.value;
+                    syncBookingDateTimeLimits();
                     syncCabRoundTripUi(getActiveCabFlow());
                     updateFare();
                     updateBookingExperience();
@@ -8136,6 +8437,7 @@
                 returnTimeMini.addEventListener('change', () => {
                     const returnTimeNode = document.getElementById('returnTime');
                     if (returnTimeNode) returnTimeNode.value = returnTimeMini.value;
+                    syncBookingDateTimeLimits();
                     syncCabRoundTripUi(getActiveCabFlow());
                     updateFare();
                     updateBookingExperience();
@@ -8783,14 +9085,7 @@
             resolveCurrentCustomerPhoneMeta();
             hydrateBookingPhoneVerificationUI();
 
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('rideDate').min = today;
-            document.getElementById('rideDate').value = today;
-
-            const now = new Date();
-            const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
-                              now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('rideTime').value = timeString;
+            seedDefaultBookingDateTime();
 
             const promoInput = document.getElementById('promoCode');
             if (promoInput) {
@@ -8804,15 +9099,23 @@
 
             toggleReturnTrip();
             document.getElementById('rideDate').addEventListener('change', () => {
+                syncBookingDateTimeLimits();
                 toggleReturnTrip();
                 updateFare();
             });
             document.getElementById('rideTime').addEventListener('change', () => {
+                syncBookingDateTimeLimits();
                 toggleReturnTrip();
                 updateFare();
             });
-            document.getElementById('returnDate').addEventListener('change', updateFare);
-            document.getElementById('returnTime').addEventListener('change', updateFare);
+            document.getElementById('returnDate').addEventListener('change', () => {
+                syncBookingDateTimeLimits();
+                updateFare();
+            });
+            document.getElementById('returnTime').addEventListener('change', () => {
+                syncBookingDateTimeLimits();
+                updateFare();
+            });
             const bookingForm = document.getElementById('bookingForm');
             if (bookingForm && bookingForm.dataset.submitGuardBound !== '1') {
                 const hasInlineSubmitHandler = typeof bookingForm.onsubmit === 'function' || !!bookingForm.getAttribute('onsubmit');
