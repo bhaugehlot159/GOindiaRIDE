@@ -5376,22 +5376,21 @@
                         </label>
                         <label class="cab-mini-field cab-package-field">
                             <i class="fas fa-suitcase-rolling"></i>
-                            <span id="cabQuickPackageLabel">Local Package</span>
+                            <span id="cabQuickPackageLabel">Day Plan</span>
                             <select id="cabQuickPackageSelect">
-                                <option value="rental_4h">4 hrs / 40 kms - Half day local</option>
-                                <option value="rental_6h">6 hrs / 60 kms - Meetings & errands</option>
-                                <option value="rental_8h">8 hrs / 80 kms - Full day city</option>
-                                <option value="rental_10h">10 hrs / 100 kms - Extended city</option>
-                                <option value="rental_12h">12 hrs / 120 kms - Long local duty</option>
-                                <option value="rental_24h">24 hrs / 300 kms - Full day reserve</option>
+                                <option value="day_plan_1d">1 Day / 300 kms - Day plan</option>
+                                <option value="day_plan_2d">2 Days / 600 kms - Day plan</option>
+                                <option value="day_plan_3d">3 Days / 900 kms - Day plan</option>
+                                <option value="day_plan_4d">4 Days / 1200 kms - Day plan</option>
+                                <option value="day_plan_5d">5 Days / 1500 kms - Day plan</option>
                             </select>
                         </label>
                     </div>
 
                     <div class="cab-local-scope-note" id="cabLocalScopeNote" aria-label="Local cab inclusions">
-                        <span><i class="fas fa-clock"></i> Hourly packages</span>
+                        <span><i class="fas fa-calendar-day"></i> Day plans</span>
                         <span><i class="fas fa-map-location-dot"></i> Multiple city stops</span>
-                        <span><i class="fas fa-receipt"></i> Extra km/hr billed</span>
+                        <span><i class="fas fa-receipt"></i> Extra km billed</span>
                         <span><i class="fas fa-city"></i> Within city limits</span>
                     </div>
 
@@ -5539,7 +5538,7 @@
                         <div class="trip-flow-pills" id="tripFlowPills">
                             <button type="button" class="trip-flow-pill is-active" data-flow="airport"><i class="fas fa-plane-departure"></i> Airport Cabs</button>
                             <button type="button" class="trip-flow-pill" data-flow="outstation"><i class="fas fa-car-side"></i> Outstation Cabs</button>
-                            <button type="button" class="trip-flow-pill" data-flow="day_trips"><i class="fas fa-clock"></i> Hourly Rentals</button>
+                            <button type="button" class="trip-flow-pill" data-flow="day_trips"><i class="fas fa-calendar-day"></i> Day Plan</button>
                         </div>
                         <input type="hidden" id="tripFlow" value="airport">
 
@@ -5556,7 +5555,7 @@
                                     <option value="city">City Ride</option>
                                     <option value="airport" selected>Airport Transfer</option>
                                     <option value="outstation">Outstation Ride</option>
-                                    <option value="rental">Hourly Rental</option>
+                                    <option value="rental">Day Plan</option>
                                 </select>
                             </div>
 
@@ -6368,8 +6367,8 @@
                 shortLabel: 'Day Plan',
                 tripPlan: 'rental',
                 serviceType: 'city_local_trip',
-                notice: 'Book local hourly rentals for city use: packages, local stops, extra km/hour billing, and driver preference.',
-                packageLabel: '4 hrs / 40 kms'
+                notice: 'Book full-day cab plans with per-day km allowance, extra km billing, and driver preference.',
+                packageLabel: '1 Day / 300 kms'
             }
         };
         const CAB_FLOW_TRIP_PLAN_OPTIONS = {
@@ -6384,15 +6383,15 @@
             outstation: ['round_trip_service'],
             day_trips: ['city_local_trip']
         };
-        const CAB_LOCAL_RENTAL_PACKAGE_VALUES = ['rental_4h', 'rental_6h', 'rental_8h', 'rental_10h', 'rental_12h', 'rental_24h'];
-        const CAB_LOCAL_RENTAL_PACKAGE_OPTIONS = [
-            { value: 'rental_4h', label: '4 hrs / 40 kms - Half day local' },
-            { value: 'rental_6h', label: '6 hrs / 60 kms - Meetings & errands' },
-            { value: 'rental_8h', label: '8 hrs / 80 kms - Full day city' },
-            { value: 'rental_10h', label: '10 hrs / 100 kms - Extended city' },
-            { value: 'rental_12h', label: '12 hrs / 120 kms - Long local duty' },
-            { value: 'rental_24h', label: '24 hrs / 300 kms - Full day reserve' }
-        ];
+        const CAB_DAY_PLAN_PACKAGE_OPTIONS = Array.from({ length: 15 }, (_, index) => {
+            const days = index + 1;
+            const includedKm = days * 300;
+            return {
+                value: `day_plan_${days}d`,
+                label: `${days} ${days === 1 ? 'Day' : 'Days'} / ${includedKm} kms - Day plan`
+            };
+        });
+        const CAB_DAY_PLAN_PACKAGE_VALUES = CAB_DAY_PLAN_PACKAGE_OPTIONS.map((option) => option.value);
         const AIRPORT_HOURLY_PACKAGE_OPTIONS = [
             { value: 'airport_2h', label: '2 hrs / 20 kms - Airport buffer' },
             { value: 'airport_4h', label: '4 hrs / 40 kms - Airport hourly' },
@@ -6856,7 +6855,7 @@
 
             const airportMode = getAirportServiceMode();
             const useAirportPackages = flow === 'airport' && isAirportPackageMode(airportMode);
-            const sourceOptions = useAirportPackages ? getAirportPackageOptions(airportMode) : CAB_LOCAL_RENTAL_PACKAGE_OPTIONS;
+            const sourceOptions = useAirportPackages ? getAirportPackageOptions(airportMode) : CAB_DAY_PLAN_PACKAGE_OPTIONS;
             const desiredKey = useAirportPackages ? `airport:${airportMode}` : 'local';
 
             if (selectNode.dataset.packageOptionScope !== desiredKey) {
@@ -6875,9 +6874,9 @@
                 return;
             }
 
-            const allowedLocal = new Set(CAB_LOCAL_RENTAL_PACKAGE_OPTIONS.map((option) => option.value));
-            if (!allowedLocal.has(selectNode.value)) {
-                selectNode.value = 'rental_4h';
+            const allowedDayPlan = new Set(CAB_DAY_PLAN_PACKAGE_VALUES);
+            if (!allowedDayPlan.has(selectNode.value)) {
+                selectNode.value = CAB_DAY_PLAN_PACKAGE_OPTIONS[0]?.value || '';
             }
         }
 
@@ -7725,7 +7724,7 @@
             if (selectId !== 'tripServiceType') return baseLabel;
 
             if (flow === 'outstation' && value === 'round_trip_service') return 'Outstation Intercity';
-            if (flow === 'day_trips' && value === 'city_local_trip') return 'Hourly Rental Service';
+            if (flow === 'day_trips' && value === 'city_local_trip') return 'Day Plan Service';
             if (flow === 'airport' && value === 'airport_transfer') return 'Airport Transfer';
             if (flow === 'airport' && value === 'railway_station_transfer') return 'Railway Station Transfer';
             return baseLabel;
@@ -7894,7 +7893,9 @@
             const journeyMode = document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way';
             if (flow === 'day_trips') {
                 const currentPackage = document.getElementById('cabQuickPackageSelect')?.value || '';
-                return CAB_LOCAL_RENTAL_PACKAGE_VALUES.includes(currentPackage) ? currentPackage : 'rental_4h';
+                return CAB_DAY_PLAN_PACKAGE_VALUES.includes(currentPackage)
+                    ? currentPackage
+                    : (CAB_DAY_PLAN_PACKAGE_OPTIONS[0]?.value || '');
             }
             if (flow === 'outstation') return journeyMode === 'round_trip' ? 'outstation_round' : 'outstation_one_way';
             if (flow === 'airport' && isAirportPackageMode()) {
@@ -7917,7 +7918,7 @@
                 else updateBookingExperience();
                 return;
             }
-            if (CAB_LOCAL_RENTAL_PACKAGE_VALUES.includes(packageValue)) {
+            if (CAB_DAY_PLAN_PACKAGE_VALUES.includes(packageValue)) {
                 if (getActiveCabFlow() !== 'day_trips') {
                     setCabBookingMode('day_trips', { skipFare: true });
                 } else {
@@ -8135,7 +8136,7 @@
             const selectedLocalPackage = readSelectedOptionText('cabQuickPackageSelect', config.packageLabel);
             syncCabRoundTripUi(activeFlow);
             setTextIfPresent('cabQuickPackageLabel', activeFlow === 'day_trips'
-                ? 'Local Package'
+                ? 'Day Plan'
                 : airportPackageActive ? (getAirportServiceMode() === 'airport_day' ? 'Airport Days' : 'Airport Package') : 'Package');
             setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
             setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
@@ -8438,11 +8439,11 @@
                 baseLayers.splice(1, 1);
                 baseLayers.push({
                     key: 'package',
-                    label: 'Package',
+                    label: 'Day plan',
                     node: packageNode ? packageNode.closest('.cab-mini-field') : null,
                     complete: () => Boolean(packageNode?.value),
                     valueText: () => packageNode?.options?.[packageNode.selectedIndex]?.text || '',
-                    pendingText: 'Select rental package'
+                    pendingText: 'Select day plan'
                 });
             }
 
@@ -8854,7 +8855,7 @@
                 const pickupValue = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
                 const dropoffNode = document.getElementById('dropoff');
                 if (pickupValue && dropoffNode && !String(dropoffNode.value || '').trim()) {
-                    dropoffNode.value = `Hourly rental within ${pickupValue}`;
+                    dropoffNode.value = `Day plan within ${pickupValue}`;
                 }
             }
 
@@ -9331,12 +9332,12 @@
                 notes: 'Highway stop, hotel pickup, waiting, toll preference ya driver instruction yahan likhein.'
             },
             day_trips: {
-                location: 'Hourly rental ke liye pickup city/location fill karein. Drop city optional package flow me handle hota hai.',
-                when: 'Rental package start date and time choose karein.',
-                trip: 'Hourly package, city rental service, payment, coupon and required contact number yahin set hota hai.',
+                location: 'Day plan ke liye pickup city/location fill karein. Drop city optional package flow me handle hota hai.',
+                when: 'Day plan start date and time choose karein.',
+                trip: 'Day package, city service, payment, coupon and required contact number yahin set hota hai.',
                 ride: 'City rental ke liye hatchback, sedan, SUV ya premium vehicle choose karein.',
                 passengers: 'Passenger and luggage details city package ke liye set karein.',
-                route: 'Hourly rental me multi-stop city route yahin add karein.',
+                route: 'Day plan me multi-stop city route yahin add karein.',
                 requests: 'City travel comfort options select karein.',
                 safety: 'Live sharing, masked calling and safety preferences add karein.',
                 notes: 'Meeting stops, waiting instruction, office route or local sightseeing notes yahan likhein.'
@@ -12534,7 +12535,7 @@
                 : '';
             const intermediateStops = readRouteStops();
             if (activeFlow === 'day_trips' && pickup && !dropoff) {
-                dropoff = `Hourly rental within ${pickup}`;
+                dropoff = `Day plan within ${pickup}`;
                 const dropoffNode = document.getElementById('dropoff');
                 if (dropoffNode) dropoffNode.value = dropoff;
             }
