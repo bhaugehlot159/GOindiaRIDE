@@ -6378,9 +6378,10 @@
         ];
         const AIRPORT_FULL_DAY_PACKAGE_OPTIONS = Array.from({ length: 15 }, (_, index) => {
             const days = index + 1;
+            const includedKm = days * 300;
             return {
                 value: `airport_day_${days}d`,
-                label: `${days} ${days === 1 ? 'Day' : 'Days'} - Airport full-day duty`
+                label: `${days} ${days === 1 ? 'Day' : 'Days'} / ${includedKm} kms - Airport full-day duty`
             };
         });
         const AIRPORT_PACKAGE_OPTIONS = [
@@ -6453,7 +6454,7 @@
             },
             airport_day: {
                 label: 'Airport Full Day',
-                notice: 'Airport reporting with full-day cab reserve for guest duty, business visits or city coverage.',
+                notice: 'Airport full-day duty with 300 km included per day. Extra km, toll/parking/permit, and driver allowance are reviewed before assignment.',
                 pickupRole: 'airport',
                 dropRole: 'place',
                 journeyMode: 'one_way',
@@ -6463,7 +6464,7 @@
                 dropLabel: 'Day base',
                 pickupPlaceholder: 'Search airport in India',
                 dropPlaceholder: 'City/hotel base for full-day duty',
-                chips: ['Full day duty', 'Driver reserve', 'City coverage', 'Admin fare review']
+                chips: ['300 km/day included', 'Extra km billed', 'Driver allowance', 'Toll/parking review']
             },
             airport_multi: {
                 label: 'Airport Multi-stop',
