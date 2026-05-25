@@ -7026,11 +7026,44 @@
             if (!Ctor || !Ctor.prototype || typeof Ctor.prototype.positionSuggestions !== 'function') return false;
             if (Ctor.prototype.__goiBookingActionCapPatched) return true;
 
+            const bindBookingSuggestionSelection = (instance) => {
+                const input = instance?.input;
+                const suggestionsBox = instance?.suggestionsBox;
+                if (!input?.closest?.('#cabBookingConsole') || !suggestionsBox) return;
+                if (input.id !== 'cabQuickPickupInput' && input.id !== 'cabQuickDropoffInput') return;
+
+                suggestionsBox.querySelectorAll('.autocomplete-item').forEach((item) => {
+                    if (item.dataset.bookingPointerSelect === '1') return;
+                    item.dataset.bookingPointerSelect = '1';
+                    let selectionHandled = false;
+                    const selectVisibleItem = (event) => {
+                        if (event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        if (selectionHandled) return;
+                        const value = sanitizeInput(item.textContent || '').trim();
+                        if (!value) return;
+                        selectionHandled = true;
+                        instance.selectItem(value);
+                    };
+                    item.addEventListener('pointerdown', selectVisibleItem);
+                    item.addEventListener('click', selectVisibleItem);
+                });
+            };
+
             const originalPosition = Ctor.prototype.positionSuggestions;
             Ctor.prototype.positionSuggestions = function bookingActionCappedPositionSuggestions() {
                 originalPosition.call(this);
                 capBookingAutocompleteBox(this.input, this.suggestionsBox);
             };
+            if (typeof Ctor.prototype.displaySuggestions === 'function') {
+                const originalDisplaySuggestions = Ctor.prototype.displaySuggestions;
+                Ctor.prototype.displaySuggestions = function bookingSelectableDisplaySuggestions(suggestions) {
+                    originalDisplaySuggestions.call(this, suggestions);
+                    bindBookingSuggestionSelection(this);
+                };
+            }
             if (typeof Ctor.prototype.selectItem === 'function') {
                 const originalSelectItem = Ctor.prototype.selectItem;
                 Ctor.prototype.selectItem = function bookingTrackedSelectItem(value) {
@@ -7216,6 +7249,11 @@
                 if (getActiveCabFlow() === 'airport' && getAirportFieldRole(input.id) === 'airport') {
                     showAirportAutocomplete(input);
                 } else {
+                    const suggestionsBox = getBookingAutocompleteBox(input);
+                    if (suggestionsBox?.style.display === 'block' && suggestionsBox.querySelector('.autocomplete-item')) {
+                        positionBookingAutocompleteBox(input, suggestionsBox);
+                        return;
+                    }
                     showQuickGenericAutocomplete(input);
                 }
             }, 0);
