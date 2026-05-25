@@ -5138,6 +5138,148 @@
             font-size: 0.7rem !important;
         }
 
+        body.booking-page.professional-booking .booking-map-panel {
+            display: grid;
+            gap: 0.46rem;
+            margin-top: 0.46rem;
+            padding: 0.54rem;
+            border: 1px solid #cfe1ef;
+            border-radius: 12px;
+            background: #f7fbff;
+        }
+
+        body.booking-page.professional-booking .booking-map-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.62rem;
+            flex-wrap: wrap;
+        }
+
+        body.booking-page.professional-booking .booking-map-head span {
+            display: block;
+            color: #68788b;
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .booking-map-head strong {
+            display: block;
+            color: #0d2238;
+            font-size: 0.92rem;
+            font-weight: 900;
+            line-height: 1.18;
+        }
+
+        body.booking-page.professional-booking .booking-map-actions,
+        body.booking-page.professional-booking .booking-map-targets {
+            display: flex;
+            align-items: center;
+            gap: 0.36rem;
+            flex-wrap: wrap;
+        }
+
+        body.booking-page.professional-booking .booking-map-action,
+        body.booking-page.professional-booking .booking-map-target-btn,
+        body.booking-page.professional-booking .location-current-btn {
+            border: 1px solid #cfe1ef;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #173350;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.7rem;
+            font-weight: 900;
+            transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+        }
+
+        body.booking-page.professional-booking .booking-map-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.32rem;
+            min-height: 30px;
+            padding: 0.34rem 0.58rem;
+        }
+
+        body.booking-page.professional-booking .booking-map-action i,
+        body.booking-page.professional-booking .booking-map-target-btn i,
+        body.booking-page.professional-booking .location-current-btn i {
+            color: #1088c9;
+        }
+
+        body.booking-page.professional-booking .booking-map-action:hover,
+        body.booking-page.professional-booking .booking-map-target-btn:hover,
+        body.booking-page.professional-booking .location-current-btn:hover,
+        body.booking-page.professional-booking .booking-map-target-btn.is-active {
+            border-color: #24a4d4;
+            background: #eef8ff;
+            color: #0b7fc1;
+        }
+
+        body.booking-page.professional-booking .booking-map-targets {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        body.booking-page.professional-booking .booking-map-target-btn {
+            min-height: 30px;
+            padding: 0.32rem 0.5rem;
+            text-align: center;
+        }
+
+        body.booking-page.professional-booking .booking-map-canvas {
+            position: relative;
+            overflow: hidden;
+            min-height: 168px;
+            border: 1px solid #d8e5f0;
+            border-radius: 11px;
+            background: #eaf4fb;
+        }
+
+        body.booking-page.professional-booking .booking-map-canvas.is-ready .booking-map-placeholder {
+            display: none;
+        }
+
+        body.booking-page.professional-booking .booking-map-placeholder {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 0.85rem;
+            color: #526273;
+            font-size: 0.78rem;
+            font-weight: 800;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        body.booking-page.professional-booking .booking-map-status {
+            margin: 0;
+            color: #5f6f82;
+            font-size: 0.66rem;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        body.booking-page.professional-booking .booking-map-status[data-state="error"] {
+            color: #a04d09;
+        }
+
+        body.booking-page.professional-booking .location-current-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            align-self: stretch;
+            min-width: 46px;
+            padding: 0 0.72rem;
+        }
+
+        body.booking-page.professional-booking .location-group {
+            align-items: stretch;
+        }
+
         body.booking-page.professional-booking .cab-console-actions {
             gap: 0.42rem !important;
             margin-top: 0.46rem !important;
@@ -5721,6 +5863,36 @@
                         </button>
                     </div>
 
+                    <div class="booking-map-panel" id="bookingMapPanel" aria-label="Live Google map pickup and drop selector">
+                        <div class="booking-map-head">
+                            <div>
+                                <span>Google Map</span>
+                                <strong id="bookingMapTitle">Pickup and drop live map</strong>
+                            </div>
+                            <div class="booking-map-actions" aria-label="Use current location">
+                                <button type="button" class="booking-map-action" data-map-current-target="pickup">
+                                    <i class="fas fa-location-crosshairs"></i>
+                                    Pickup current
+                                </button>
+                                <button type="button" class="booking-map-action" data-map-current-target="dropoff">
+                                    <i class="fas fa-location-arrow"></i>
+                                    Drop current
+                                </button>
+                            </div>
+                        </div>
+                        <div class="booking-map-targets" role="group" aria-label="Choose map target">
+                            <button type="button" class="booking-map-target-btn is-active" data-map-target="pickup">Pickup</button>
+                            <button type="button" class="booking-map-target-btn" data-map-target="dropoff">Drop</button>
+                            <button type="button" class="booking-map-target-btn" data-map-target="stop">Stops</button>
+                        </div>
+                        <div class="booking-map-canvas" id="bookingGoogleMap" role="img" aria-label="Google map route preview">
+                            <div class="booking-map-placeholder" id="bookingMapPlaceholder">
+                                Add pickup/drop or use current location to preview the route on Google Map.
+                            </div>
+                        </div>
+                        <p class="booking-map-status" id="bookingMapStatus">Map is ready for pickup and drop updates.</p>
+                    </div>
+
                     <div class="cab-console-actions">
                         <button type="button" class="cab-step-back-btn" id="cabStepBackBtn">
                             <i class="fas fa-arrow-left"></i>
@@ -5789,6 +5961,9 @@
                                     required
                                     autocomplete="off"
                                 >
+                                <button type="button" class="location-current-btn" data-map-current-target="pickup" title="Use current location for pickup" aria-label="Use current location for pickup">
+                                    <i class="fas fa-location-crosshairs"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -5802,6 +5977,9 @@
                                     required
                                     autocomplete="off"
                                 >
+                                <button type="button" class="location-current-btn" data-map-current-target="dropoff" title="Use current location for dropoff" aria-label="Use current location for dropoff">
+                                    <i class="fas fa-location-arrow"></i>
+                                </button>
                                 <button type="button" class="swap-btn" onclick="swapLocations()" title="Swap locations">
                                     <i class="fas fa-exchange-alt"></i>
                                 </button>
@@ -7864,6 +8042,408 @@
             if (pairedInput && pairedInput.value !== value) {
                 pairedInput.value = value;
             }
+        }
+
+        const BOOKING_GOOGLE_MAP_STORAGE_KEY = 'goindiaride_google_maps_api_key';
+        const BOOKING_GOOGLE_MAP_DEFAULT_CENTER = { lat: 24.5854, lng: 73.7125 };
+        const bookingGoogleMapState = {
+            activeTarget: 'pickup',
+            coords: { pickup: null, dropoff: null, stop: null },
+            geocoder: null,
+            inputTimer: null,
+            map: null,
+            mapReady: false,
+            markers: { pickup: null, dropoff: null, stop: null },
+            routeLine: null
+        };
+
+        function getBookingGoogleMapsApiKey() {
+            const candidates = [];
+            if (typeof window.GOINDIARIDE_GOOGLE_MAPS_API_KEY === 'string') {
+                candidates.push(window.GOINDIARIDE_GOOGLE_MAPS_API_KEY);
+            }
+            if (typeof window.__GOINDIARIDE_GOOGLE_MAPS_API_KEY__ === 'string') {
+                candidates.push(window.__GOINDIARIDE_GOOGLE_MAPS_API_KEY__);
+            }
+            try {
+                candidates.push(window.localStorage?.getItem(BOOKING_GOOGLE_MAP_STORAGE_KEY));
+            } catch (error) {
+                // Storage can be unavailable in private browsing or file previews.
+            }
+            const metaKey = document.querySelector('meta[name="goindiaride-google-maps-api-key"]')?.content;
+            if (metaKey) candidates.push(metaKey);
+            return candidates
+                .map((key) => String(key || '').trim())
+                .find((key) => key && !/YOUR_API_KEY|PASTE_API_KEY/i.test(key)) || '';
+        }
+
+        function setBookingMapStatus(message, state = 'info') {
+            const statusNode = document.getElementById('bookingMapStatus');
+            if (!statusNode) return;
+            statusNode.textContent = message;
+            statusNode.dataset.state = state;
+        }
+
+        function setBookingMapActiveTarget(target = 'pickup') {
+            bookingGoogleMapState.activeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            document.querySelectorAll('[data-map-target]').forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.mapTarget === bookingGoogleMapState.activeTarget);
+            });
+        }
+
+        function bootstrapBookingGoogleMaps(apiKey) {
+            if (window.google?.maps?.importLibrary) return;
+            ((g) => {
+                let h;
+                let a;
+                let k;
+                const p = 'The Google Maps JavaScript API';
+                const c = 'google';
+                const l = 'importLibrary';
+                const q = '__ib__';
+                const m = document;
+                let b = window;
+                b = b[c] || (b[c] = {});
+                const d = b.maps || (b.maps = {});
+                const r = new Set();
+                const e = new URLSearchParams();
+                const u = () => h || (h = new Promise(async (f, n) => {
+                    a = m.createElement('script');
+                    e.set('libraries', [...r] + '');
+                    for (k in g) {
+                        e.set(k.replace(/[A-Z]/g, (t) => '_' + t[0].toLowerCase()), g[k]);
+                    }
+                    e.set('callback', `${c}.maps.${q}`);
+                    a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+                    d[q] = f;
+                    a.onerror = () => {
+                        h = n(Error(`${p} could not load.`));
+                    };
+                    a.nonce = m.querySelector('script[nonce]')?.nonce || '';
+                    m.head.append(a);
+                }));
+                if (!d[l]) {
+                    d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
+                }
+            })({
+                key: apiKey,
+                v: 'weekly',
+                region: 'IN'
+            });
+        }
+
+        async function ensureBookingGoogleMapReady() {
+            const mapNode = document.getElementById('bookingGoogleMap');
+            if (!mapNode) return false;
+            if (bookingGoogleMapState.mapReady && bookingGoogleMapState.map) return true;
+
+            const hasExistingGoogleLoader = Boolean(window.google?.maps?.importLibrary);
+            const apiKey = getBookingGoogleMapsApiKey();
+            if (!hasExistingGoogleLoader && !apiKey) {
+                setBookingMapStatus('Google Maps API key is not configured yet. Manual pickup/drop and current location still work.', 'error');
+                updateBookingGoogleMapRouteLink();
+                return false;
+            }
+
+            try {
+                if (!hasExistingGoogleLoader) bootstrapBookingGoogleMaps(apiKey);
+                const mapsLibrary = await window.google.maps.importLibrary('maps');
+                await window.google.maps.importLibrary('marker').catch(() => null);
+
+                bookingGoogleMapState.map = new mapsLibrary.Map(mapNode, {
+                    center: BOOKING_GOOGLE_MAP_DEFAULT_CENTER,
+                    zoom: 11,
+                    fullscreenControl: false,
+                    mapTypeControl: false,
+                    streetViewControl: false
+                });
+                bookingGoogleMapState.geocoder = new window.google.maps.Geocoder();
+                bookingGoogleMapState.mapReady = true;
+                mapNode.classList.add('is-ready');
+                bookingGoogleMapState.map.addListener('click', (event) => {
+                    const latLng = event?.latLng;
+                    if (!latLng) return;
+                    applyBookingMapCoordinates(bookingGoogleMapState.activeTarget, {
+                        lat: latLng.lat(),
+                        lng: latLng.lng()
+                    }, { source: 'map' });
+                });
+                setBookingMapStatus('Google Maps live preview is ready. Click on map or use current location.', 'info');
+                syncBookingMapFromInputs();
+                return true;
+            } catch (error) {
+                setBookingMapStatus('Google Map could not load right now. Booking fields remain usable.', 'error');
+                updateBookingGoogleMapRouteLink();
+                return false;
+            }
+        }
+
+        function getBookingMapInputValue(target) {
+            if (target === 'stop') {
+                return getRouteStopInputs()
+                    .map((input) => sanitizeInput(input.value || '').trim())
+                    .find(Boolean) || '';
+            }
+            const inputIds = target === 'dropoff'
+                ? ['dropoff', 'cabQuickDropoffInput']
+                : ['pickup', 'cabQuickPickupInput'];
+            return inputIds
+                .map((id) => sanitizeInput(document.getElementById(id)?.value || '').trim())
+                .find(Boolean) || '';
+        }
+
+        function getBookingMapRouteStops() {
+            return typeof readRouteStops === 'function' ? readRouteStops() : [];
+        }
+
+        function buildBookingGoogleMapsUrl() {
+            const pickup = getBookingMapInputValue('pickup');
+            const dropoff = getBookingMapInputValue('dropoff');
+            const stops = getBookingMapRouteStops();
+            if (pickup && dropoff) {
+                const params = new URLSearchParams({
+                    api: '1',
+                    origin: pickup,
+                    destination: dropoff,
+                    travelmode: 'driving'
+                });
+                if (stops.length) params.set('waypoints', stops.join('|'));
+                return `https://www.google.com/maps/dir/?${params.toString()}`;
+            }
+            const searchQuery = pickup || dropoff || stops[0] || '';
+            if (!searchQuery) return 'https://www.google.com/maps';
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`;
+        }
+
+        function updateBookingGoogleMapRouteLink() {
+            const linkNode = document.getElementById('routePreviewLink');
+            if (!linkNode) return;
+            const pickup = getBookingMapInputValue('pickup');
+            const dropoff = getBookingMapInputValue('dropoff');
+            if (pickup && dropoff) {
+                linkNode.href = buildBookingGoogleMapsUrl();
+                linkNode.style.display = 'inline-flex';
+            }
+        }
+
+        function formatBookingMapCoords(coords) {
+            return `Current location (${Number(coords.lat).toFixed(6)}, ${Number(coords.lng).toFixed(6)})`;
+        }
+
+        function reverseGeocodeBookingCoords(coords) {
+            return new Promise((resolve) => {
+                if (!bookingGoogleMapState.geocoder) {
+                    resolve(formatBookingMapCoords(coords));
+                    return;
+                }
+                bookingGoogleMapState.geocoder.geocode({ location: coords }, (results, status) => {
+                    const address = status === 'OK' && results?.[0]?.formatted_address
+                        ? results[0].formatted_address
+                        : formatBookingMapCoords(coords);
+                    resolve(address);
+                });
+            });
+        }
+
+        function setBookingMapMarker(target, coords) {
+            if (!bookingGoogleMapState.map || !window.google?.maps) return;
+            const marker = bookingGoogleMapState.markers[target];
+            if (!coords) {
+                if (marker?.setMap) marker.setMap(null);
+                bookingGoogleMapState.markers[target] = null;
+                return;
+            }
+            const markerConfig = {
+                map: bookingGoogleMapState.map,
+                position: coords,
+                title: target === 'dropoff' ? 'Drop location' : target === 'stop' ? 'Route stop' : 'Pickup location',
+                label: target === 'dropoff' ? 'D' : target === 'stop' ? 'S' : 'P'
+            };
+            if (marker?.setPosition) {
+                marker.setPosition(coords);
+                marker.setMap(bookingGoogleMapState.map);
+            } else if (window.google.maps.Marker) {
+                bookingGoogleMapState.markers[target] = new window.google.maps.Marker(markerConfig);
+            }
+        }
+
+        function updateBookingGoogleMapLine() {
+            if (!bookingGoogleMapState.map || !window.google?.maps) return;
+            const points = [
+                bookingGoogleMapState.coords.pickup,
+                bookingGoogleMapState.coords.stop,
+                bookingGoogleMapState.coords.dropoff
+            ].filter(Boolean);
+
+            if (bookingGoogleMapState.routeLine?.setMap) {
+                bookingGoogleMapState.routeLine.setMap(null);
+                bookingGoogleMapState.routeLine = null;
+            }
+            if (points.length >= 2 && window.google.maps.Polyline) {
+                bookingGoogleMapState.routeLine = new window.google.maps.Polyline({
+                    map: bookingGoogleMapState.map,
+                    path: points,
+                    geodesic: true,
+                    strokeColor: '#1088c9',
+                    strokeOpacity: 0.9,
+                    strokeWeight: 4
+                });
+            }
+            if (points.length && window.google.maps.LatLngBounds) {
+                const bounds = new window.google.maps.LatLngBounds();
+                points.forEach((point) => bounds.extend(point));
+                if (points.length === 1) {
+                    bookingGoogleMapState.map.setCenter(points[0]);
+                    bookingGoogleMapState.map.setZoom(14);
+                } else {
+                    bookingGoogleMapState.map.fitBounds(bounds, 48);
+                }
+            }
+        }
+
+        function updateBookingMapFieldValue(target, value, coords = null) {
+            const cleanValue = sanitizeInput(value || '').trim() || (coords ? formatBookingMapCoords(coords) : '');
+            if (!cleanValue) return;
+
+            if (target === 'stop') {
+                ensureRouteStopsReady();
+                const stopInput = getRouteStopInputs().find((input) => !String(input.value || '').trim()) || getRouteStopInputs()[0] || addRouteStop('', false);
+                if (stopInput) {
+                    stopInput.value = cleanValue;
+                    if (coords) {
+                        stopInput.dataset.googleMapLat = coords.lat;
+                        stopInput.dataset.googleMapLng = coords.lng;
+                    }
+                }
+                handleRouteStopInputChange();
+            } else {
+                const inputIds = target === 'dropoff'
+                    ? ['dropoff', 'cabQuickDropoffInput']
+                    : ['pickup', 'cabQuickPickupInput'];
+                inputIds.forEach((inputId) => {
+                    const input = document.getElementById(inputId);
+                    if (!input) return;
+                    input.value = cleanValue;
+                    if (coords) {
+                        input.dataset.googleMapLat = coords.lat;
+                        input.dataset.googleMapLng = coords.lng;
+                    }
+                });
+                handleLocationUpdated();
+                updateBookingExperience();
+            }
+
+            if (coords) {
+                bookingGoogleMapState.coords[target] = coords;
+                setBookingMapMarker(target, coords);
+                updateBookingGoogleMapLine();
+            }
+            updateBookingGoogleMapRouteLink();
+        }
+
+        async function applyBookingMapCoordinates(target, coords, options = {}) {
+            const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            setBookingMapActiveTarget(safeTarget);
+            const address = await reverseGeocodeBookingCoords(coords);
+            updateBookingMapFieldValue(safeTarget, address, coords);
+            const targetLabel = safeTarget === 'dropoff' ? 'Drop' : safeTarget === 'stop' ? 'Stop' : 'Pickup';
+            setBookingMapStatus(`${targetLabel} location updated from ${options.source === 'map' ? 'map pin' : 'current location'}.`, 'info');
+        }
+
+        function geocodeBookingMapInput(target, value) {
+            if (!bookingGoogleMapState.geocoder || !value) return;
+            const request = {
+                address: value,
+                componentRestrictions: { country: 'IN' }
+            };
+            bookingGoogleMapState.geocoder.geocode(request, (results, status) => {
+                if (status !== 'OK' || !results?.[0]?.geometry?.location) return;
+                const location = results[0].geometry.location;
+                const coords = {
+                    lat: typeof location.lat === 'function' ? location.lat() : location.lat,
+                    lng: typeof location.lng === 'function' ? location.lng() : location.lng
+                };
+                bookingGoogleMapState.coords[target] = coords;
+                setBookingMapMarker(target, coords);
+                updateBookingGoogleMapLine();
+            });
+        }
+
+        function syncBookingMapFromInputs() {
+            updateBookingGoogleMapRouteLink();
+            if (!bookingGoogleMapState.mapReady) return;
+            geocodeBookingMapInput('pickup', getBookingMapInputValue('pickup'));
+            geocodeBookingMapInput('dropoff', getBookingMapInputValue('dropoff'));
+            geocodeBookingMapInput('stop', getBookingMapInputValue('stop'));
+        }
+
+        function queueBookingMapSync() {
+            window.clearTimeout(bookingGoogleMapState.inputTimer);
+            bookingGoogleMapState.inputTimer = window.setTimeout(syncBookingMapFromInputs, 450);
+        }
+
+        async function requestBookingCurrentLocation(target = 'pickup') {
+            const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            setBookingMapActiveTarget(safeTarget);
+            if (!navigator.geolocation) {
+                setBookingMapStatus('Current location is not supported in this browser. Type the address manually.', 'error');
+                return;
+            }
+            setBookingMapStatus('Allow location permission to use current location.', 'info');
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const coords = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                await ensureBookingGoogleMapReady();
+                await applyBookingMapCoordinates(safeTarget, coords, { source: 'current' });
+            }, () => {
+                setBookingMapStatus('Location permission was blocked. Type the address manually or allow location access.', 'error');
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 30000,
+                timeout: 12000
+            });
+        }
+
+        function initGoogleMapBookingUI() {
+            const panel = document.getElementById('bookingMapPanel');
+            if (!panel) return;
+            if (document.body.dataset.bookingGoogleMapDelegated !== '1') {
+                document.addEventListener('click', (event) => {
+                    const currentButton = event.target.closest('[data-map-current-target]');
+                    if (currentButton) {
+                        event.preventDefault();
+                        requestBookingCurrentLocation(currentButton.dataset.mapCurrentTarget || 'pickup');
+                        return;
+                    }
+                    const targetButton = event.target.closest('[data-map-target]');
+                    if (targetButton) {
+                        event.preventDefault();
+                        setBookingMapActiveTarget(targetButton.dataset.mapTarget || 'pickup');
+                    }
+                });
+                document.addEventListener('input', (event) => {
+                    if (event.target.matches('#pickup, #dropoff, #cabQuickPickupInput, #cabQuickDropoffInput, [data-route-stop-input]')) {
+                        queueBookingMapSync();
+                    }
+                });
+                document.addEventListener('change', (event) => {
+                    if (event.target.matches('#pickup, #dropoff, #cabQuickPickupInput, #cabQuickDropoffInput, [data-route-stop-input]')) {
+                        queueBookingMapSync();
+                    }
+                });
+                document.body.dataset.bookingGoogleMapDelegated = '1';
+            }
+            window.GoIndiaRideBookingMap = {
+                init: initGoogleMapBookingUI,
+                refresh: syncBookingMapFromInputs,
+                requestCurrentLocation: requestBookingCurrentLocation,
+                setTarget: setBookingMapActiveTarget
+            };
+            setBookingMapActiveTarget(bookingGoogleMapState.activeTarget);
+            ensureBookingGoogleMapReady();
+            updateBookingGoogleMapRouteLink();
         }
 
         function resolveBookingLocationInputValue(input, options = {}) {
@@ -10244,6 +10824,7 @@
             initInternationalCabBookingUI();
             updateBookingExperience();
             initBookingBackGuard();
+            initGoogleMapBookingUI();
         }
 
         window.addEventListener('load', function() {
