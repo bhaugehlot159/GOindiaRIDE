@@ -2497,6 +2497,18 @@
                 linear-gradient(135deg, #11345e, #3f93c6 56%, #e7c98d);
         }
 
+        .cab-offer-local::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.82), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #0f4a5a, #3a8f78 56%, #e2bf75);
+        }
+
+        .cab-offer-day::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.84), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #203144, #5b7e74 52%, #d0a84e);
+        }
+
         .cab-offer-hourly::before {
             background:
                 linear-gradient(0deg, rgba(7, 24, 39, 0.84), rgba(7, 24, 39, 0.18)),
@@ -5263,7 +5275,16 @@
             border-radius: 12px !important;
         }
 
-        body.booking-page.professional-booking .cab-offer-rail,
+        body.booking-page.professional-booking .cab-offer-rail {
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 0.42rem !important;
+            overflow: hidden !important;
+            overflow-x: hidden !important;
+            scroll-snap-type: none !important;
+            padding-bottom: 0 !important;
+        }
+
         body.booking-page.professional-booking .cab-update-grid {
             display: grid !important;
             grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -6380,32 +6401,41 @@
                     </button>
                 </div>
                 <div class="cab-offer-rail">
-                    <article class="cab-offer-card cab-offer-outstation">
-                        <div class="cab-offer-visual" aria-hidden="true">
-                            <i class="fas fa-car-side"></i>
-                        </div>
-                        <span>Cabs</span>
-                        <h3>Fixed fares on outstation cabs</h3>
-                        <p>Use route-aware pricing, toll mapping, and admin fare review before assignment.</p>
-                        <button type="button" data-mode-shortcut="outstation">Book now <i class="fas fa-chevron-right"></i></button>
-                    </article>
                     <article class="cab-offer-card cab-offer-airport">
                         <div class="cab-offer-visual" aria-hidden="true">
                             <i class="fas fa-plane-departure"></i>
                         </div>
                         <span>Airport</span>
-                        <h3>Pre-book airport transfers</h3>
-                        <p>Domestic and international pickup support with meet and greet notes.</p>
+                        <h3>Airport cab transfers</h3>
+                        <p>Airport drop, pickup, transfer, full-day duty, and multi-stop support.</p>
                         <button type="button" data-mode-shortcut="airport">Book now <i class="fas fa-chevron-right"></i></button>
                     </article>
-                    <article class="cab-offer-card cab-offer-hourly">
+                    <article class="cab-offer-card cab-offer-local">
                         <div class="cab-offer-visual" aria-hidden="true">
-                            <i class="fas fa-clock"></i>
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <span>Hourly</span>
-                        <h3>City rentals by package</h3>
-                        <p>Choose hourly rentals for meetings, shopping, local sightseeing, and multi-stop work.</p>
+                        <span>Local</span>
+                        <h3>Local city cabs</h3>
+                        <p>City pickup and drop rides with fare review and driver assignment.</p>
+                        <button type="button" data-mode-shortcut="local">Book now <i class="fas fa-chevron-right"></i></button>
+                    </article>
+                    <article class="cab-offer-card cab-offer-day">
+                        <div class="cab-offer-visual" aria-hidden="true">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <span>Day Plan</span>
+                        <h3>Full-day cab plans</h3>
+                        <p>Day packages with city stops, km allowance, and extra km billing.</p>
                         <button type="button" data-mode-shortcut="day_trips">Book now <i class="fas fa-chevron-right"></i></button>
+                    </article>
+                    <article class="cab-offer-card cab-offer-outstation">
+                        <div class="cab-offer-visual" aria-hidden="true">
+                            <i class="fas fa-car-side"></i>
+                        </div>
+                        <span>Outstation</span>
+                        <h3>Outstation cab fares</h3>
+                        <p>Intercity rides with route-aware pricing, tolls, and admin fare review.</p>
+                        <button type="button" data-mode-shortcut="outstation">Book now <i class="fas fa-chevron-right"></i></button>
                     </article>
                 </div>
             </section>
