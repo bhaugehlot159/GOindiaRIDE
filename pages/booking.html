@@ -7146,6 +7146,7 @@
                 if (actions.dataset.bookingAutocompleteGap === '1') {
                     actions.style.removeProperty('margin-top');
                     delete actions.dataset.bookingAutocompleteGap;
+                    delete actions.dataset.bookingAutocompleteGapKey;
                 }
             });
         }
@@ -7159,12 +7160,19 @@
                 actions.dataset.bookingBaseMarginTop = window.getComputedStyle(actions).marginTop || '0px';
             }
 
+            const desiredHeight = Math.min(260, suggestionsBox.scrollHeight || 180);
+            const gapKey = `${input.id || 'input'}:${Math.round(desiredHeight)}`;
+            if (actions.dataset.bookingAutocompleteGap === '1'
+                && actions.dataset.bookingAutocompleteGapKey === gapKey) {
+                return;
+            }
+
             actions.style.removeProperty('margin-top');
             delete actions.dataset.bookingAutocompleteGap;
+            delete actions.dataset.bookingAutocompleteGapKey;
 
             const inputRect = input.getBoundingClientRect();
             const actionTop = actions.getBoundingClientRect().top;
-            const desiredHeight = Math.min(260, suggestionsBox.scrollHeight || 180);
             const requiredBottom = inputRect.bottom + desiredHeight + 12;
             const extraGap = Math.max(0, requiredBottom - actionTop);
             if (!extraGap) return;
@@ -7172,6 +7180,7 @@
             const baseGap = Number.parseFloat(actions.dataset.bookingBaseMarginTop || '0') || 0;
             actions.style.setProperty('margin-top', `${baseGap + extraGap}px`, 'important');
             actions.dataset.bookingAutocompleteGap = '1';
+            actions.dataset.bookingAutocompleteGapKey = gapKey;
         }
 
         function positionBookingAutocompleteBox(input, suggestionsBox) {
@@ -7243,6 +7252,11 @@
             suggestionsBox.style.borderRadius = '0 0 8px 8px';
         }
 
+        function isBookingAutocompleteInternalScroll(event) {
+            const target = event?.target;
+            return Boolean(target?.closest?.('.autocomplete-suggestions'));
+        }
+
         function patchBookingLocationAutocompletePositioner() {
             const Ctor = window.LocationAutocomplete;
             if (!Ctor || !Ctor.prototype || typeof Ctor.prototype.positionSuggestions !== 'function') return false;
@@ -7276,9 +7290,36 @@
 
             const originalPosition = Ctor.prototype.positionSuggestions;
             Ctor.prototype.positionSuggestions = function bookingActionCappedPositionSuggestions() {
+                if (this.input?.closest?.('#cabBookingConsole') && !this.__goiDownwardBound) {
+                    this.__goiDownwardBound = true;
+                }
                 originalPosition.call(this);
                 capBookingAutocompleteBox(this.input, this.suggestionsBox);
             };
+            if (typeof Ctor.prototype.init === 'function') {
+                const originalInit = Ctor.prototype.init;
+                Ctor.prototype.init = function bookingStableAutocompleteInit() {
+                    originalInit.call(this);
+                    if (!this.input?.closest?.('#cabBookingConsole') || this.__goiBookingStableScrollBound) return;
+                    document.removeEventListener('scroll', this.boundReposition, true);
+
+                    let scrollFrame = null;
+                    this.boundBookingReposition = (event) => {
+                        if (isBookingAutocompleteInternalScroll(event)) return;
+                        if (!this.suggestionsBox || this.suggestionsBox.style.display !== 'block') return;
+                        if (scrollFrame) return;
+
+                        scrollFrame = window.requestAnimationFrame(() => {
+                            scrollFrame = null;
+                            if (this.suggestionsBox && this.suggestionsBox.style.display === 'block') {
+                                this.positionSuggestions();
+                            }
+                        });
+                    };
+                    document.addEventListener('scroll', this.boundBookingReposition, true);
+                    this.__goiBookingStableScrollBound = true;
+                };
+            }
             if (typeof Ctor.prototype.displaySuggestions === 'function') {
                 const originalDisplaySuggestions = Ctor.prototype.displaySuggestions;
                 Ctor.prototype.displaySuggestions = function bookingSelectableDisplaySuggestions(suggestions) {
@@ -7643,9 +7684,13 @@
                     showAirportAutocomplete(input);
                 }
             });
-            document.addEventListener('scroll', () => {
+            document.addEventListener('scroll', (event) => {
+                if (isBookingAutocompleteInternalScroll(event)) return;
                 if (getActiveCabFlow() === 'airport' && document.activeElement === input) {
-                    showAirportAutocomplete(input);
+                    const box = document.getElementById(`${input.id}Autocomplete`);
+                    if (box?.style.display === 'block') {
+                        positionBookingAutocompleteBox(input, box);
+                    }
                 }
             }, true);
 
