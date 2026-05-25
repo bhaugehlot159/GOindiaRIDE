@@ -1949,7 +1949,7 @@
 
         .cab-mode-tabs {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             border: 1px solid #d5dfeb;
             border-radius: 18px;
             overflow: hidden;
@@ -3883,7 +3883,7 @@
 
         body.booking-page.professional-booking .cab-mode-tabs {
             display: grid !important;
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
             width: 100% !important;
             border: 1px solid #d4dde8 !important;
             border-radius: 18px !important;
@@ -5254,17 +5254,21 @@
             <div class="cab-console-grid">
                 <div class="cab-console-main">
                     <div class="cab-mode-tabs" id="cabModeTabs" role="tablist" aria-label="Cab service type">
-                        <button type="button" class="cab-mode-tab" data-flow-target="outstation" data-trip-plan-target="outstation" role="tab" aria-selected="false">
-                            <i class="fas fa-car-side"></i>
-                            <span>Outstation<br>Cabs</span>
-                        </button>
-                        <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
-                            <i class="fas fa-location-dot"></i>
-                            <span>Local<br>Cabs</span>
-                        </button>
                         <button type="button" class="cab-mode-tab is-active" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="true">
                             <i class="fas fa-plane-departure"></i>
-                            <span>Airport<br>Cabs</span>
+                            <span>1. Airport<br>Cabs</span>
+                        </button>
+                        <button type="button" class="cab-mode-tab" data-flow-target="local" data-trip-plan-target="city" role="tab" aria-selected="false">
+                            <i class="fas fa-location-dot"></i>
+                            <span>2. Local<br>Cabs</span>
+                        </button>
+                        <button type="button" class="cab-mode-tab" data-flow-target="day_trips" data-trip-plan-target="rental" role="tab" aria-selected="false">
+                            <i class="fas fa-calendar-day"></i>
+                            <span>3. Day<br>Plan</span>
+                        </button>
+                        <button type="button" class="cab-mode-tab" data-flow-target="outstation" data-trip-plan-target="outstation" role="tab" aria-selected="false">
+                            <i class="fas fa-car-side"></i>
+                            <span>4. Outstation<br>Cabs</span>
                         </button>
                     </div>
 
@@ -6343,6 +6347,14 @@
                 notice: 'Airport transfer made easy: add pickup/drop and schedule your ride.',
                 packageLabel: 'Airport transfer'
             },
+            local: {
+                label: 'Local Cabs',
+                shortLabel: 'Local',
+                tripPlan: 'city',
+                serviceType: 'city_local_trip',
+                notice: 'Book local city cabs for point-to-point pickup and drop.',
+                packageLabel: 'City ride'
+            },
             outstation: {
                 label: 'Outstation Cabs',
                 shortLabel: 'Outstation',
@@ -6352,8 +6364,8 @@
                 packageLabel: 'One way or round trip'
             },
             day_trips: {
-                label: 'Local Cabs',
-                shortLabel: 'Local',
+                label: 'Day Plan',
+                shortLabel: 'Day Plan',
                 tripPlan: 'rental',
                 serviceType: 'city_local_trip',
                 notice: 'Book local hourly rentals for city use: packages, local stops, extra km/hour billing, and driver preference.',
@@ -6362,11 +6374,13 @@
         };
         const CAB_FLOW_TRIP_PLAN_OPTIONS = {
             airport: ['airport'],
+            local: ['city'],
             outstation: ['outstation'],
             day_trips: ['rental']
         };
         const CAB_FLOW_SERVICE_TYPE_OPTIONS = {
             airport: ['airport_transfer'],
+            local: ['city_local_trip'],
             outstation: ['round_trip_service'],
             day_trips: ['city_local_trip']
         };
@@ -6736,7 +6750,8 @@
 
         function inferCabFlowFromTripPlan(tripPlan) {
             if (tripPlan === 'outstation') return 'outstation';
-            if (tripPlan === 'rental' || tripPlan === 'city') return tripPlan === 'rental' ? 'day_trips' : 'airport';
+            if (tripPlan === 'rental') return 'day_trips';
+            if (tripPlan === 'city') return 'local';
             return 'airport';
         }
 
@@ -8615,14 +8630,14 @@
             const airportConfig = getAirportServiceConfig();
             const consoleNode = document.getElementById('cabBookingConsole');
             if (consoleNode) {
-                consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly', 'is-airport-package', 'is-airport-multi', 'is-airport-transfer');
+                consoleNode.classList.remove('is-airport', 'is-local', 'is-outstation', 'is-hourly', 'is-airport-package', 'is-airport-multi', 'is-airport-transfer');
                 consoleNode.classList.add(activeFlow === 'day_trips' ? 'is-hourly' : `is-${activeFlow}`);
                 consoleNode.classList.toggle('is-airport-package', activeFlow === 'airport' && Boolean(airportConfig.requiresPackage));
                 consoleNode.classList.toggle('is-airport-multi', activeFlow === 'airport' && Boolean(airportConfig.routeAddons));
                 consoleNode.classList.toggle('is-airport-transfer', activeFlow === 'airport' && isMergedAirportTransferMode(getAirportServiceMode()));
             }
             if (document.body) {
-                document.body.classList.remove('cab-flow-airport', 'cab-flow-outstation', 'cab-flow-hourly');
+                document.body.classList.remove('cab-flow-airport', 'cab-flow-local', 'cab-flow-outstation', 'cab-flow-hourly');
                 document.body.classList.add(activeFlow === 'day_trips' ? 'cab-flow-hourly' : `cab-flow-${activeFlow}`);
             }
 
@@ -9278,6 +9293,7 @@
 
         const SERVICE_FOLDER_STEPS = {
             airport: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            local: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
             outstation: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
             day_trips: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes']
         };
@@ -9292,6 +9308,16 @@
                 requests: 'Meet and greet, AC, charger, WiFi jaise airport comfort options yahin select karein.',
                 safety: 'Live sharing, masked calling, child seat and accessibility options add karein.',
                 notes: 'Flight number, terminal, gate, or pickup instruction yahan likh sakte hain.'
+            },
+            local: {
+                location: 'Local cab ke liye pickup aur drop location fill karein.',
+                when: 'City ride pickup ke liye future date and time choose karein.',
+                trip: 'Local cab service, payment mode, coupon and required contact number yahin manage hota hai.',
+                ride: 'City ride ke liye hatchback, sedan, SUV ya premium vehicle choose karein.',
+                passengers: 'Passenger and luggage details local cab ke liye set karein.',
+                requests: 'City travel comfort options choose karein.',
+                safety: 'Live sharing, masked calling and safety preferences add karein.',
+                notes: 'Pickup note, waiting instruction ya local route detail yahan likhein.'
             },
             outstation: {
                 location: 'Outstation ke liye pickup city aur destination city/location fill karein.',
@@ -9319,6 +9345,7 @@
 
         const SERVICE_FOLDER_PROGRESS = {
             airport: 0,
+            local: 0,
             outstation: 0,
             day_trips: 0
         };
