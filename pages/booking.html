@@ -5269,6 +5269,80 @@
             }
         }
 
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .form-section-body {
+            gap: 0.38rem !important;
+            padding: 0.46rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .feature-pills {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .inline-grid-two {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 0.34rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .form-group > label {
+            font-size: 0.62rem !important;
+            margin-bottom: 0.12rem !important;
+            line-height: 1.08 !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section input,
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section select {
+            min-height: 32px !important;
+            padding: 0.34rem 0.48rem !important;
+            border-radius: 8px !important;
+            font-size: 0.72rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .special-requests {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 0.3rem !important;
+            margin-top: 0 !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .request-checkbox {
+            min-height: 32px !important;
+            padding: 0.28rem 0.42rem !important;
+            border-radius: 8px !important;
+            font-size: 0.62rem !important;
+            line-height: 1.08 !important;
+            gap: 0.28rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .request-checkbox input {
+            width: 13px !important;
+            height: 13px !important;
+            min-height: 13px !important;
+            flex: 0 0 13px !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .passenger-details-section .form-section-body {
+            gap: 0.42rem !important;
+            padding: 0.5rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .passenger-details-section .partner-preferences {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 0.34rem !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .passenger-details-section .preference-chip {
+            min-height: 34px !important;
+            padding: 0.32rem 0.46rem !important;
+            border-radius: 8px !important;
+            font-size: 0.66rem !important;
+            line-height: 1.08 !important;
+        }
+
+        body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .passenger-details-section .preference-chip input {
+            width: 14px !important;
+            height: 14px !important;
+            flex: 0 0 14px !important;
+        }
+
         @media (max-width: 760px) {
             body.booking-page.professional-booking .cab-airport-service-row {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -5280,6 +5354,15 @@
 
             body.booking-page.professional-booking .cab-local-scope-note,
             body.booking-page.professional-booking .cab-airport-scope-note {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .inline-grid-two,
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .travel-assurance-section .special-requests {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .passenger-details-section .partner-preferences {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
         }
@@ -5746,7 +5829,7 @@
                     </div>
 
                     <!-- Travel Assurance -->
-                    <div class="form-section">
+                    <div class="form-section travel-assurance-section">
                         <h3><i class="fas fa-clipboard-check"></i> Travel Assurance</h3>
                         <div class="feature-pills">
                             <span class="feature-pill"><i class="fas fa-plane-circle-check"></i> Flight aware</span>
@@ -5900,7 +5983,7 @@
                     </div>
 
                     <!-- Passenger Details -->
-                    <div class="form-section">
+                    <div class="form-section passenger-details-section">
                         <h3><i class="fas fa-users"></i> Passenger Details</h3>
 
                         <div class="form-group">
@@ -9546,10 +9629,10 @@
         };
 
         const SERVICE_FOLDER_STEPS = {
-            airport: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            local: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            outstation: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            day_trips: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes']
+            airport: ['assurance', 'trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            local: ['assurance', 'trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            outstation: ['assurance', 'trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            day_trips: ['assurance', 'trip', 'ride', 'passengers', 'requests', 'safety', 'notes']
         };
 
         const SERVICE_FOLDER_NOTES = {
@@ -9652,8 +9735,16 @@
         }
 
         function getServiceVisibleSections(flow = getActiveCabFlow()) {
-            const allowed = new Set(getServiceStepKeys(flow));
-            return getAllAccordionSections().filter((section) => allowed.has(section.dataset.stepKey || getSectionStepKey(section)));
+            const stepKeys = getServiceStepKeys(flow);
+            const allowed = new Set(stepKeys);
+            const stepOrder = new Map(stepKeys.map((key, index) => [key, index]));
+            return getAllAccordionSections()
+                .filter((section) => allowed.has(section.dataset.stepKey || getSectionStepKey(section)))
+                .sort((a, b) => {
+                    const aKey = a.dataset.stepKey || getSectionStepKey(a);
+                    const bKey = b.dataset.stepKey || getSectionStepKey(b);
+                    return (stepOrder.get(aKey) ?? 999) - (stepOrder.get(bKey) ?? 999);
+                });
         }
 
         function isBookingStepComplete(stepKey, flow = getActiveCabFlow()) {
