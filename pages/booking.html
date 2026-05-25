@@ -5263,6 +5263,85 @@
             border-radius: 12px !important;
         }
 
+        body.booking-page.professional-booking .cab-offer-rail,
+        body.booking-page.professional-booking .cab-update-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 0.42rem !important;
+            overflow: hidden !important;
+            overflow-x: hidden !important;
+            scroll-snap-type: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card,
+        body.booking-page.professional-booking .cab-update-card {
+            min-width: 0 !important;
+            scroll-snap-align: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card {
+            min-height: 102px !important;
+            padding: 0.48rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-visual {
+            width: 36px !important;
+            height: 36px !important;
+            top: 0.48rem !important;
+            right: 0.48rem !important;
+            border-radius: 9px !important;
+            font-size: 1rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card span {
+            padding: 0.12rem 0.36rem !important;
+            font-size: 0.58rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card h3 {
+            max-width: calc(100% - 38px) !important;
+            margin: 0.36rem 0 0.16rem !important;
+            font-size: 0.76rem !important;
+            line-height: 1.12 !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card p {
+            margin: 0 0 0.42rem !important;
+            font-size: 0.62rem !important;
+            line-height: 1.24 !important;
+        }
+
+        body.booking-page.professional-booking .cab-offer-card button {
+            min-height: 30px !important;
+            padding: 0.34rem 0.52rem !important;
+            font-size: 0.7rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-update-card {
+            min-height: 116px !important;
+            padding: 0.52rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-update-card i {
+            width: 34px !important;
+            height: 34px !important;
+            margin-bottom: 0.4rem !important;
+            border-radius: 9px !important;
+            font-size: 0.95rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-update-card h3 {
+            margin-bottom: 0.28rem !important;
+            font-size: 0.76rem !important;
+            line-height: 1.16 !important;
+        }
+
+        body.booking-page.professional-booking .cab-update-card p {
+            font-size: 0.62rem !important;
+            line-height: 1.24 !important;
+        }
+
         @media (min-width: 760px) {
             body.booking-page.professional-booking .container {
                 max-width: 760px !important;
@@ -5364,6 +5443,11 @@
 
             body.booking-page.professional-booking.booking-advanced-ready .advanced-booking-drawer.is-inline-flow .passenger-details-section .partner-preferences {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            body.booking-page.professional-booking .cab-offer-rail,
+            body.booking-page.professional-booking .cab-update-grid {
+                grid-template-columns: 1fr !important;
             }
         }
 
