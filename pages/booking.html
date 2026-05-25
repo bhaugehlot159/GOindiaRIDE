@@ -6459,6 +6459,7 @@
                 dropRole: 'place',
                 journeyMode: 'one_way',
                 requiresPackage: true,
+                optionalStops: true,
                 defaultPackage: 'airport_day_1d',
                 pickupLabel: 'Airport',
                 dropLabel: 'Day base',
@@ -8156,23 +8157,25 @@
         }
 
         function updateRouteStopLabels() {
+            const airportConfig = getActiveCabFlow() === 'airport' ? getAirportServiceConfig() : {};
+            const isAirportFullDayStops = Boolean(airportConfig.optionalStops);
             getRouteStopInputs().forEach((input, index) => {
                 const routeNumber = index + 1;
                 input.id = `stop${routeNumber}`;
                 input.name = `stops[]`;
-                input.placeholder = routeNumber === 1
-                    ? 'Add intermediate route / stop'
-                    : 'Add another route / stop';
+                input.placeholder = isAirportFullDayStops
+                    ? (routeNumber === 1 ? 'Add city stop, meeting, hotel or route point' : 'Add another full-day stop')
+                    : (routeNumber === 1 ? 'Add intermediate route / stop' : 'Add another route / stop');
                 const label = input.closest('[data-route-stop-row]')?.querySelector('label');
                 if (label) {
                     label.setAttribute('for', input.id);
-                    label.textContent = `Route ${routeNumber} (Optional)`;
+                    label.textContent = `${isAirportFullDayStops ? 'Stop' : 'Route'} ${routeNumber} (Optional)`;
                 }
                 const removeButton = input.closest('[data-route-stop-row]')?.querySelector('[data-route-stop-remove]');
                 if (removeButton) {
                     const hasValue = Boolean((input.value || '').trim());
                     removeButton.hidden = getRouteStopInputs().length <= 1 && !hasValue;
-                    removeButton.setAttribute('aria-label', `Remove route ${routeNumber}`);
+                    removeButton.setAttribute('aria-label', `Remove ${isAirportFullDayStops ? 'stop' : 'route'} ${routeNumber}`);
                 }
             });
         }
@@ -8473,10 +8476,13 @@
                 const routeTitle = routeAddons.querySelector('.cab-route-addons-title span');
                 const routeHint = routeAddons.querySelector('.cab-route-addons-title small');
                 const isLocalRental = activeFlow === 'day_trips';
-                const isAirportMulti = activeFlow === 'airport' && Boolean(getAirportServiceConfig().routeAddons);
+                const airportConfig = activeFlow === 'airport' ? getAirportServiceConfig() : {};
+                const isAirportFullDayStops = Boolean(airportConfig.optionalStops);
+                const isAirportMulti = activeFlow === 'airport' && Boolean(airportConfig.routeAddons);
+                const isAirportStopAddon = isAirportMulti || isAirportFullDayStops;
                 const showRouteAddons = isLocalRental
                     ? pickupReady
-                    : isAirportMulti
+                    : isAirportStopAddon
                         ? pickupReady && dropoffReady
                         : activeFlow === 'outstation'
                             && getCabJourneyMode() === 'multi_city'
@@ -8485,15 +8491,15 @@
                 if (routeTitle) {
                     routeTitle.innerHTML = isLocalRental
                         ? '<i class="fas fa-map-signs"></i> Local Stops'
-                        : isAirportMulti
-                            ? '<i class="fas fa-map-signs"></i> Airport Stops'
+                        : isAirportStopAddon
+                            ? (isAirportFullDayStops ? '<i class="fas fa-map-signs"></i> Full Day Stops' : '<i class="fas fa-map-signs"></i> Airport Stops')
                             : '<i class="fas fa-map-signs"></i> Route Add-ons';
                 }
                 if (routeHint) {
                     routeHint.textContent = isLocalRental
                         ? 'Shopping, meetings, sightseeing stops'
-                        : isAirportMulti
-                            ? 'Add hotel, meeting, terminal or route stops'
+                        : isAirportStopAddon
+                            ? (isAirportFullDayStops ? 'Optional: add meeting, hotel, city or route stops' : 'Add hotel, meeting, terminal or route stops')
                             : 'Add routes/stops as needed';
                 }
                 routeAddons.classList.toggle('is-visible', showRouteAddons);
