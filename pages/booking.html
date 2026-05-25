@@ -5745,6 +5745,101 @@
                         </div>
                     </div>
 
+                    <!-- Travel Assurance -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-clipboard-check"></i> Travel Assurance</h3>
+                        <div class="feature-pills">
+                            <span class="feature-pill"><i class="fas fa-plane-circle-check"></i> Flight aware</span>
+                            <span class="feature-pill"><i class="fas fa-file-invoice"></i> GST invoice</span>
+                            <span class="feature-pill"><i class="fas fa-clock"></i> Wait buffer</span>
+                            <span class="feature-pill"><i class="fas fa-rotate"></i> Reschedule ready</span>
+                        </div>
+
+                        <div class="inline-grid-two">
+                            <div class="form-group">
+                                <label for="flightNumber">Flight / Train Number</label>
+                                <input type="text" id="flightNumber" placeholder="Example: AI 245 or 12952">
+                            </div>
+                            <div class="form-group">
+                                <label for="airlineName">Airline / Carrier</label>
+                                <input type="text" id="airlineName" placeholder="Air India, IndiGo, Vistara, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="meetAndGreetName">Meet & Greet Name / Sign</label>
+                                <input type="text" id="meetAndGreetName" placeholder="Name to show on pickup placard">
+                            </div>
+                            <div class="form-group">
+                                <label for="waitingBuffer">Waiting Buffer</label>
+                                <select id="waitingBuffer">
+                                    <option value="standard_15">Standard - 15 min</option>
+                                    <option value="airport_30" selected>Airport / luggage - 30 min</option>
+                                    <option value="premium_45">Premium - 45 min</option>
+                                    <option value="extended_60">Extended - 60 min</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rescheduleWindow">Reschedule Preference</label>
+                                <select id="rescheduleWindow">
+                                    <option value="standard_policy" selected>Standard policy</option>
+                                    <option value="same_day_flexible">Same-day flexible if driver available</option>
+                                    <option value="flight_delay_adjust">Adjust for flight delay</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cancellationPreference">Cancellation Preference</label>
+                                <select id="cancellationPreference">
+                                    <option value="standard_policy" selected>Standard cancellation policy</option>
+                                    <option value="flexible_preferred">Flexible cancellation preferred</option>
+                                    <option value="admin_confirm_before_charge">Admin confirm before charge</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="driverCallPreference">Driver Call Preference</label>
+                                <select id="driverCallPreference">
+                                    <option value="call_30_min_before" selected>Call 30 min before pickup</option>
+                                    <option value="call_after_assignment">Call after driver assignment</option>
+                                    <option value="message_only">Message first, call if needed</option>
+                                    <option value="no_call_unless_urgent">No call unless urgent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="gstCompanyName">Company / GST Billing Name</label>
+                                <input type="text" id="gstCompanyName" placeholder="Company name for invoice">
+                            </div>
+                            <div class="form-group">
+                                <label for="gstNumber">GST Number</label>
+                                <input type="text" id="gstNumber" placeholder="Optional GSTIN">
+                            </div>
+                        </div>
+
+                        <div class="special-requests">
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="airportFlightTrackingConsent">
+                                <span>Use flight details for delay notes</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="gstInvoiceRequired">
+                                <span>GST invoice required</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="driverCallBeforeArrival" checked>
+                                <span>Driver should call before arrival</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="extraWaitApproval">
+                                <span>Approve extra waiting if needed</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="roofCarrierNeeded" onchange="updateFare()">
+                                <span>Roof carrier needed</span>
+                            </label>
+                            <label class="request-checkbox">
+                                <input type="checkbox" id="newVehicleGuarantee">
+                                <span>New vehicle preferred</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Ride Type Section -->
                     <div class="form-section">
                         <h3><i class="fas fa-car"></i> Ride Type *</h3>
@@ -9428,6 +9523,7 @@
             'location': 'Location',
             'when': 'When',
             'trip plan & payment': 'Trip & Pay',
+            'travel assurance': 'Assurance',
             'ride type *': 'Ride Type',
             'passenger details': 'Passengers',
             'special requests': 'Requests',
@@ -9440,6 +9536,7 @@
             'location': 'location',
             'when': 'when',
             'trip plan & payment': 'trip',
+            'travel assurance': 'assurance',
             'ride type *': 'ride',
             'passenger details': 'passengers',
             'special requests': 'requests',
@@ -9449,10 +9546,10 @@
         };
 
         const SERVICE_FOLDER_STEPS = {
-            airport: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            local: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            outstation: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes'],
-            day_trips: ['trip', 'ride', 'passengers', 'requests', 'safety', 'notes']
+            airport: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            local: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            outstation: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes'],
+            day_trips: ['trip', 'assurance', 'ride', 'passengers', 'requests', 'safety', 'notes']
         };
 
         const SERVICE_FOLDER_NOTES = {
@@ -9460,6 +9557,7 @@
                 location: 'Airport booking ke liye pickup aur airport/drop location fill karein.',
                 when: 'Flight ya pickup schedule ke hisaab se future date and time choose karein.',
                 trip: 'Airport transfer, payment mode, coupon and required contact number yahin manage hota hai.',
+                assurance: 'Flight number, meet-and-greet, wait buffer, GST invoice and cancellation/reschedule preference yahin save hota hai.',
                 ride: 'Airport luggage aur comfort ke hisaab se vehicle segment select karein.',
                 passengers: 'Passenger and luggage details se fare estimate accurate hota hai.',
                 requests: 'Meet and greet, AC, charger, WiFi jaise airport comfort options yahin select karein.',
@@ -9470,6 +9568,7 @@
                 location: 'Local cab ke liye pickup aur drop location fill karein.',
                 when: 'City ride pickup ke liye future date and time choose karein.',
                 trip: 'Local cab service, payment mode, coupon and required contact number yahin manage hota hai.',
+                assurance: 'City pickup ke liye driver call, wait buffer, invoice and reschedule/cancel preference set karein.',
                 ride: 'City ride ke liye hatchback, sedan, SUV ya premium vehicle choose karein.',
                 passengers: 'Passenger and luggage details local cab ke liye set karein.',
                 requests: 'City travel comfort options choose karein.',
@@ -9480,6 +9579,7 @@
                 location: 'Outstation ke liye pickup city aur destination city/location fill karein.',
                 when: 'Outstation journey start time future me hona chahiye.',
                 trip: 'One way, round trip, budget, payment, coupon and required contact number yahin set hota hai.',
+                assurance: 'Outstation trip ke liye wait buffer, invoice, roof carrier, driver call and reschedule/cancel preference set karein.',
                 ride: 'Long-route comfort ke liye sedan, SUV, traveller, coach ya premium segment select karein.',
                 passengers: 'Passenger count and luggage route planning ke liye important hai.',
                 route: 'Outstation me add stops, return route and intermediate city planning yahin rahega.',
@@ -9491,6 +9591,7 @@
                 location: 'Day plan ke liye pickup city/location fill karein. Drop city optional package flow me handle hota hai.',
                 when: 'Day plan start date and time choose karein.',
                 trip: 'Day package, city service, payment, coupon and required contact number yahin set hota hai.',
+                assurance: 'Day plan me waiting buffer, driver call, GST invoice and reschedule/cancel preference yahin save hota hai.',
                 ride: 'City rental ke liye hatchback, sedan, SUV ya premium vehicle choose karein.',
                 passengers: 'Passenger and luggage details city package ke liye set karein.',
                 route: 'Day plan me multi-stop city route yahin add karein.',
@@ -10023,8 +10124,39 @@
             return null;
         }
 
+        function readTravelAssuranceDetails() {
+            const readValue = (id, limit = 180) => sanitizeInput(document.getElementById(id)?.value || '', limit).trim();
+            const readChecked = (id) => Boolean(document.getElementById(id)?.checked);
+            return {
+                flightDetails: {
+                    flightNumber: readValue('flightNumber', 40).toUpperCase(),
+                    airlineName: readValue('airlineName', 120),
+                    meetAndGreetName: readValue('meetAndGreetName', 140),
+                    useFlightDelayNotes: readChecked('airportFlightTrackingConsent')
+                },
+                policyPreferences: {
+                    waitingBuffer: readValue('waitingBuffer', 60) || 'airport_30',
+                    rescheduleWindow: readValue('rescheduleWindow', 80) || 'standard_policy',
+                    cancellationPreference: readValue('cancellationPreference', 80) || 'standard_policy',
+                    driverCallPreference: readValue('driverCallPreference', 80) || 'call_30_min_before',
+                    driverCallBeforeArrival: readChecked('driverCallBeforeArrival'),
+                    extraWaitApproval: readChecked('extraWaitApproval')
+                },
+                billingDetails: {
+                    gstInvoiceRequired: readChecked('gstInvoiceRequired'),
+                    gstCompanyName: readValue('gstCompanyName', 160),
+                    gstNumber: readValue('gstNumber', 40).toUpperCase()
+                },
+                addOns: {
+                    roofCarrierNeeded: readChecked('roofCarrierNeeded'),
+                    newVehicleGuarantee: readChecked('newVehicleGuarantee')
+                }
+            };
+        }
+
         function readFareEstimateInputs() {
             const routeStops = readRouteStops();
+            const travelAssurance = readTravelAssuranceDetails();
 
             return {
                 pickup: sanitizeInput(document.getElementById('pickup').value).trim(),
@@ -10052,6 +10184,11 @@
                 distanceKm: Number.parseFloat(document.getElementById('distanceKm').textContent) || 0,
                 distanceSource: sanitizeInput(document.getElementById('distanceSource').textContent || 'fallback'),
                 stops: routeStops,
+                travelAssurance,
+                flightDetails: travelAssurance.flightDetails,
+                policyPreferences: travelAssurance.policyPreferences,
+                billingDetails: travelAssurance.billingDetails,
+                bookingAddOns: travelAssurance.addOns,
                 specialRequests: {
                     airCondition: document.getElementById('airCondition').checked,
                     wifi: document.getElementById('wifi').checked,
@@ -12461,6 +12598,11 @@
                 tripPlan: sanitizeInput(bookingRecord.tripPlan || ''),
                 tripServiceType: sanitizeInput(bookingRecord.tripServiceType || bookingRecord.serviceType || ''),
                 airportTerminalNote: sanitizeInput(bookingRecord.airportTerminalNote || ''),
+                travelAssurance: bookingRecord.travelAssurance || bookingRecord.customerFeatures?.travelAssurance || {},
+                flightDetails: bookingRecord.flightDetails || bookingRecord.customerFeatures?.flightDetails || {},
+                policyPreferences: bookingRecord.policyPreferences || bookingRecord.customerFeatures?.policyPreferences || {},
+                billingDetails: bookingRecord.billingDetails || bookingRecord.customerFeatures?.billingDetails || {},
+                bookingAddOns: bookingRecord.bookingAddOns || bookingRecord.customerFeatures?.addOns || {},
                 paymentMethod: sanitizeInput(bookingRecord.paymentMethod || ''),
                 vehicleType: sanitizeInput(bookingRecord.vehicleType || bookingRecord.rideType || ''),
                 vehicleModel: sanitizeInput(bookingRecord.vehicleModel || ''),
@@ -12690,6 +12832,7 @@
                 ? sanitizeInput(document.getElementById('cabQuickTerminalInput')?.value || '').trim()
                 : '';
             const intermediateStops = readRouteStops();
+            const travelAssurance = readTravelAssuranceDetails();
             if (activeFlow === 'day_trips' && pickup && !dropoff) {
                 dropoff = `Day plan within ${pickup}`;
                 const dropoffNode = document.getElementById('dropoff');
@@ -12731,6 +12874,15 @@
                     terminalField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     window.setTimeout(() => terminalField.focus({ preventScroll: true }), 40);
                 }
+                return;
+            }
+
+            if (
+                travelAssurance.billingDetails.gstInvoiceRequired
+                && (!travelAssurance.billingDetails.gstCompanyName || !travelAssurance.billingDetails.gstNumber)
+            ) {
+                showError('GST invoice ke liye company name aur GST number enter karein');
+                revealBookingField(!travelAssurance.billingDetails.gstCompanyName ? 'gstCompanyName' : 'gstNumber');
                 return;
             }
 
@@ -12843,7 +12995,12 @@
                 hasStops: intermediateStops.length > 0,
                 hasReturnTrip: isReturnTrip,
                 airportTerminalNote,
-                vehicleFuelPreference
+                vehicleFuelPreference,
+                travelAssurance,
+                flightDetails: travelAssurance.flightDetails,
+                policyPreferences: travelAssurance.policyPreferences,
+                billingDetails: travelAssurance.billingDetails,
+                addOns: travelAssurance.addOns
             };
 
             const booking = {
@@ -12875,6 +13032,11 @@
                 airportServiceMode: fareEstimateInputs.airportServiceMode || '',
                 airportServiceLabel: fareEstimateInputs.airportServiceLabel || '',
                 airportTerminalNote: airportTerminalNote || fareEstimateInputs.airportTerminalNote || '',
+                travelAssurance,
+                flightDetails: travelAssurance.flightDetails,
+                policyPreferences: travelAssurance.policyPreferences,
+                billingDetails: travelAssurance.billingDetails,
+                bookingAddOns: travelAssurance.addOns,
                 paymentMethod: paymentMethod,
                 budgetAmount: Number(fareEstimateInputs.budgetAmount || 0),
                 customerBidAmount: Number(fareEstimateInputs.budgetAmount || 0),
@@ -13030,6 +13192,11 @@
                     returnTime: isReturnTrip ? returnTime : '',
                     luggage,
                     stops: intermediateStops,
+                    travelAssurance,
+                    flightDetails: travelAssurance.flightDetails,
+                    policyPreferences: travelAssurance.policyPreferences,
+                    billingDetails: travelAssurance.billingDetails,
+                    bookingAddOns: travelAssurance.addOns,
                     specialRequests,
                     safetyAccessibility,
                     notes,
