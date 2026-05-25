@@ -2025,7 +2025,7 @@
 
         .cab-airport-service-row {
             display: none;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 0.5rem;
             margin-top: 0.7rem;
             padding: 0.52rem;
@@ -2081,6 +2081,59 @@
             border-color: #25a9dc;
             background: #eff9ff;
             box-shadow: inset 0 0 0 1px #25a9dc;
+        }
+
+        .cab-airport-transfer-row {
+            display: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.45rem;
+            margin-top: 0.5rem;
+            padding: 0.45rem;
+            border: 1px solid #d7e4ef;
+            border-radius: 12px;
+            background: #f7fbff;
+        }
+
+        .cab-booking-console.is-airport-transfer .cab-airport-transfer-row {
+            display: grid;
+        }
+
+        .cab-airport-transfer-chip {
+            border: 1px solid #cfdeea;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #18334c;
+            display: grid;
+            grid-template-columns: 22px minmax(0, 1fr);
+            align-items: center;
+            gap: 0.34rem 0.45rem;
+            padding: 0.48rem 0.6rem;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+        }
+
+        .cab-airport-transfer-chip i {
+            grid-row: 1 / span 2;
+            color: #1689bf;
+        }
+
+        .cab-airport-transfer-chip strong {
+            font-size: 0.78rem;
+            line-height: 1.05;
+        }
+
+        .cab-airport-transfer-chip small {
+            color: #657789;
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .cab-airport-transfer-chip.is-active {
+            border-color: #1689bf;
+            background: #eef8ff;
+            box-shadow: inset 0 0 0 1px #1689bf;
         }
 
         .cab-journey-row {
@@ -4663,7 +4716,7 @@
         }
 
         body.booking-page.professional-booking .cab-airport-service-row {
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
             gap: 0.34rem !important;
             margin-top: 0.42rem !important;
             padding: 0.36rem !important;
@@ -4727,6 +4780,46 @@
         body.booking-page.professional-booking .cab-airport-service-chip.is-active strong,
         body.booking-page.professional-booking .cab-airport-service-chip.is-active small {
             color: #ffffff !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-transfer-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 0.34rem !important;
+            margin-top: 0.34rem !important;
+            padding: 0.34rem !important;
+            border-radius: 10px !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-transfer-chip {
+            min-height: 34px !important;
+            grid-template-columns: 18px minmax(0, 1fr) !important;
+            gap: 0.15rem 0.28rem !important;
+            padding: 0.28rem 0.42rem !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            color: #203449 !important;
+            border: 1px solid #cfdce8 !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-transfer-chip i {
+            font-size: 0.72rem !important;
+            color: #0f86bd !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-transfer-chip strong {
+            font-size: 0.66rem !important;
+            color: #17263a !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-transfer-chip small {
+            font-size: 0.53rem !important;
+            color: #637488 !important;
+        }
+
+        body.booking-page.professional-booking .cab-airport-transfer-chip.is-active {
+            background: #eaf7ff !important;
+            border-color: #0f86bd !important;
+            box-shadow: inset 0 0 0 1px #0f86bd !important;
         }
 
         body.booking-page.professional-booking .cab-journey-row {
@@ -5066,6 +5159,10 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
 
+            body.booking-page.professional-booking .cab-airport-transfer-row {
+                grid-template-columns: 1fr !important;
+            }
+
             body.booking-page.professional-booking .cab-local-scope-note,
             body.booking-page.professional-booking .cab-airport-scope-note {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -5183,15 +5280,10 @@
                             <strong>Airport Pickup</strong>
                             <small>Airport to city</small>
                         </button>
-                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_to_airport">
-                            <i class="fas fa-plane"></i>
-                            <strong>Airport-to-Airport</strong>
-                            <small>One-way terminals</small>
-                        </button>
-                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_round">
-                            <i class="fas fa-repeat"></i>
-                            <strong>Airport Return</strong>
-                            <small>Drop + pickup back</small>
+                        <button type="button" class="cab-airport-service-chip" data-airport-service="airport_to_airport" data-airport-service-group="airport_transfer">
+                            <i class="fas fa-plane-circle-check"></i>
+                            <strong>Airport Transfer</strong>
+                            <small>Terminal / return</small>
                         </button>
                         <button type="button" class="cab-airport-service-chip" data-airport-service="airport_hourly">
                             <i class="fas fa-clock"></i>
@@ -5207,6 +5299,18 @@
                             <i class="fas fa-route"></i>
                             <strong>Multi-stop</strong>
                             <small>Airport + stops</small>
+                        </button>
+                    </div>
+                    <div class="cab-airport-transfer-row" id="airportTransferVariantRow" aria-label="Airport transfer trip type">
+                        <button type="button" class="cab-airport-transfer-chip is-active" data-airport-transfer-variant="airport_to_airport">
+                            <i class="fas fa-plane"></i>
+                            <strong>Terminal transfer</strong>
+                            <small>Airport to airport</small>
+                        </button>
+                        <button type="button" class="cab-airport-transfer-chip" data-airport-transfer-variant="airport_round">
+                            <i class="fas fa-repeat"></i>
+                            <strong>Return pickup</strong>
+                            <small>Drop + pickup back</small>
                         </button>
                     </div>
                     <input type="hidden" id="airportServiceMode" value="airport_drop">
@@ -6299,8 +6403,8 @@
                 chips: ['Arrival pickup', 'Flight delay ready', 'Meet & greet note', 'Luggage fit']
             },
             airport_to_airport: {
-                label: 'Airport-to-Airport',
-                notice: 'One-way transfer from one Indian airport or civil terminal to another. No return pickup in this mode.',
+                label: 'Airport Transfer - Terminal',
+                notice: 'Airport transfer covers terminal-to-terminal movement. Choose Return pickup below when the same booking needs a scheduled pickup back.',
                 pickupRole: 'airport',
                 dropRole: 'airport',
                 journeyMode: 'one_way',
@@ -6308,11 +6412,11 @@
                 dropLabel: 'Airport To',
                 pickupPlaceholder: 'Search departure airport in India',
                 dropPlaceholder: 'Search destination airport in India',
-                chips: ['One-way terminals', 'Airport from/to', 'Flight details', 'Luggage-ready cab']
+                chips: ['Terminal transfer', 'Airport from/to', 'Flight details', 'Luggage-ready cab']
             },
             airport_round: {
-                label: 'Airport Return Trip',
-                notice: 'City-to-airport drop with scheduled return pickup. Add return date and return time for the return leg.',
+                label: 'Airport Transfer - Return Pickup',
+                notice: 'Airport transfer with scheduled return pickup. Add return date and return time for the return leg.',
                 pickupRole: 'place',
                 dropRole: 'airport',
                 journeyMode: 'round_trip',
@@ -6629,6 +6733,10 @@
             return Boolean(getAirportServiceConfig(mode).requiresPackage);
         }
 
+        function isMergedAirportTransferMode(mode = getAirportServiceMode()) {
+            return mode === 'airport_to_airport' || mode === 'airport_round';
+        }
+
         function getAirportFieldRole(inputId, mode = getAirportServiceMode()) {
             const config = getAirportServiceConfig(mode);
             if (inputId === 'pickup' || inputId === 'cabQuickPickupInput') return config.pickupRole || 'place';
@@ -6669,7 +6777,14 @@
 
         function syncAirportServiceChips(mode = getAirportServiceMode()) {
             document.querySelectorAll('[data-airport-service]').forEach((button) => {
-                const isActive = button.dataset.airportService === mode;
+                const isTransferGroup = button.dataset.airportServiceGroup === 'airport_transfer';
+                const isActive = button.dataset.airportService === mode
+                    || (isTransferGroup && isMergedAirportTransferMode(mode));
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+            document.querySelectorAll('[data-airport-transfer-variant]').forEach((button) => {
+                const isActive = button.dataset.airportTransferVariant === mode;
                 button.classList.toggle('is-active', isActive);
                 button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
@@ -6685,7 +6800,9 @@
             if (hiddenNode) hiddenNode.value = safeMode;
 
             syncAirportServiceChips(safeMode);
-            if (getActiveCabFlow() !== 'airport') return;
+            const isAirportFlow = getActiveCabFlow() === 'airport';
+            document.getElementById('cabBookingConsole')?.classList.toggle('is-airport-transfer', isAirportFlow && isMergedAirportTransferMode(safeMode));
+            if (!isAirportFlow) return;
 
             if (modeChanged && options.preserveFields !== true) {
                 ['pickup', 'dropoff', 'cabQuickPickupInput', 'cabQuickDropoffInput', 'returnDate', 'returnTime', 'cabQuickReturnDateInput', 'cabQuickReturnTimeInput']
@@ -8384,10 +8501,11 @@
             const airportConfig = getAirportServiceConfig();
             const consoleNode = document.getElementById('cabBookingConsole');
             if (consoleNode) {
-                consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly', 'is-airport-package', 'is-airport-multi');
+                consoleNode.classList.remove('is-airport', 'is-outstation', 'is-hourly', 'is-airport-package', 'is-airport-multi', 'is-airport-transfer');
                 consoleNode.classList.add(activeFlow === 'day_trips' ? 'is-hourly' : `is-${activeFlow}`);
                 consoleNode.classList.toggle('is-airport-package', activeFlow === 'airport' && Boolean(airportConfig.requiresPackage));
                 consoleNode.classList.toggle('is-airport-multi', activeFlow === 'airport' && Boolean(airportConfig.routeAddons));
+                consoleNode.classList.toggle('is-airport-transfer', activeFlow === 'airport' && isMergedAirportTransferMode(getAirportServiceMode()));
             }
             if (document.body) {
                 document.body.classList.remove('cab-flow-airport', 'cab-flow-outstation', 'cab-flow-hourly');
@@ -8657,6 +8775,14 @@
                     setAirportServiceMode(button.dataset.airportService || 'airport_drop');
                 });
                 button.dataset.airportServiceBound = '1';
+            });
+
+            document.querySelectorAll('[data-airport-transfer-variant]').forEach((button) => {
+                if (button.dataset.airportTransferBound === '1') return;
+                button.addEventListener('click', () => {
+                    setAirportServiceMode(button.dataset.airportTransferVariant || 'airport_to_airport');
+                });
+                button.dataset.airportTransferBound = '1';
             });
 
             document.querySelectorAll('[data-reveal-field]').forEach((button) => {
