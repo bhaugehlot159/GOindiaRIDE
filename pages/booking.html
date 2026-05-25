@@ -6370,12 +6370,22 @@
             { value: 'rental_12h', label: '12 hrs / 120 kms - Long local duty' },
             { value: 'rental_24h', label: '24 hrs / 300 kms - Full day reserve' }
         ];
-        const AIRPORT_PACKAGE_OPTIONS = [
+        const AIRPORT_HOURLY_PACKAGE_OPTIONS = [
             { value: 'airport_2h', label: '2 hrs / 20 kms - Airport buffer' },
             { value: 'airport_4h', label: '4 hrs / 40 kms - Airport hourly' },
-            { value: 'airport_8h', label: '8 hrs / 80 kms - Airport full day' },
-            { value: 'airport_12h', label: '12 hrs / 120 kms - Long airport duty' },
-            { value: 'airport_full_day', label: 'Full day reserve - airport duty' }
+            { value: 'airport_8h', label: '8 hrs / 80 kms - Airport extended hourly' },
+            { value: 'airport_12h', label: '12 hrs / 120 kms - Long airport hourly' }
+        ];
+        const AIRPORT_FULL_DAY_PACKAGE_OPTIONS = Array.from({ length: 15 }, (_, index) => {
+            const days = index + 1;
+            return {
+                value: `airport_day_${days}d`,
+                label: `${days} ${days === 1 ? 'Day' : 'Days'} - Airport full-day duty`
+            };
+        });
+        const AIRPORT_PACKAGE_OPTIONS = [
+            ...AIRPORT_HOURLY_PACKAGE_OPTIONS,
+            ...AIRPORT_FULL_DAY_PACKAGE_OPTIONS
         ];
         const AIRPORT_SERVICE_CONFIG = {
             airport_drop: {
@@ -6448,7 +6458,7 @@
                 dropRole: 'place',
                 journeyMode: 'one_way',
                 requiresPackage: true,
-                defaultPackage: 'airport_8h',
+                defaultPackage: 'airport_day_1d',
                 pickupLabel: 'Airport',
                 dropLabel: 'Day base',
                 pickupPlaceholder: 'Search airport in India',
@@ -6737,6 +6747,10 @@
             return mode === 'airport_to_airport' || mode === 'airport_round';
         }
 
+        function getAirportPackageOptions(mode = getAirportServiceMode()) {
+            return mode === 'airport_day' ? AIRPORT_FULL_DAY_PACKAGE_OPTIONS : AIRPORT_HOURLY_PACKAGE_OPTIONS;
+        }
+
         function getAirportFieldRole(inputId, mode = getAirportServiceMode()) {
             const config = getAirportServiceConfig(mode);
             if (inputId === 'pickup' || inputId === 'cabQuickPickupInput') return config.pickupRole || 'place';
@@ -6750,8 +6764,8 @@
 
             const airportMode = getAirportServiceMode();
             const useAirportPackages = flow === 'airport' && isAirportPackageMode(airportMode);
-            const sourceOptions = useAirportPackages ? AIRPORT_PACKAGE_OPTIONS : CAB_LOCAL_RENTAL_PACKAGE_OPTIONS;
-            const desiredKey = useAirportPackages ? 'airport' : 'local';
+            const sourceOptions = useAirportPackages ? getAirportPackageOptions(airportMode) : CAB_LOCAL_RENTAL_PACKAGE_OPTIONS;
+            const desiredKey = useAirportPackages ? `airport:${airportMode}` : 'local';
 
             if (selectNode.dataset.packageOptionScope !== desiredKey) {
                 selectNode.innerHTML = sourceOptions
@@ -6762,9 +6776,9 @@
 
             if (useAirportPackages) {
                 const config = getAirportServiceConfig(airportMode);
-                const allowed = new Set(AIRPORT_PACKAGE_OPTIONS.map((option) => option.value));
+                const allowed = new Set(sourceOptions.map((option) => option.value));
                 if (!allowed.has(selectNode.value)) {
-                    selectNode.value = config.defaultPackage || AIRPORT_PACKAGE_OPTIONS[0].value;
+                    selectNode.value = config.defaultPackage || sourceOptions[0]?.value || '';
                 }
                 return;
             }
@@ -7777,10 +7791,11 @@
             if (flow === 'outstation') return journeyMode === 'round_trip' ? 'outstation_round' : 'outstation_one_way';
             if (flow === 'airport' && isAirportPackageMode()) {
                 const currentPackage = document.getElementById('cabQuickPackageSelect')?.value || '';
-                const airportPackageValues = AIRPORT_PACKAGE_OPTIONS.map((option) => option.value);
+                const airportPackageOptions = getAirportPackageOptions();
+                const airportPackageValues = airportPackageOptions.map((option) => option.value);
                 return airportPackageValues.includes(currentPackage)
                     ? currentPackage
-                    : (getAirportServiceConfig().defaultPackage || AIRPORT_PACKAGE_OPTIONS[0].value);
+                    : (getAirportServiceConfig().defaultPackage || airportPackageOptions[0]?.value || 'airport');
             }
             return 'airport';
         }
@@ -8013,7 +8028,7 @@
             syncCabRoundTripUi(activeFlow);
             setTextIfPresent('cabQuickPackageLabel', activeFlow === 'day_trips'
                 ? 'Local Package'
-                : airportPackageActive ? 'Airport Package' : 'Package');
+                : airportPackageActive ? (getAirportServiceMode() === 'airport_day' ? 'Airport Days' : 'Airport Package') : 'Package');
             setTextIfPresent('cabQuickFrom', pickup || 'Select pickup location');
             setTextIfPresent('cabQuickTo', dropoff || (activeFlow === 'day_trips' ? 'Within city rental area' : 'Select drop location'));
             setTextIfPresent('cabQuickStart', formatCabStartText(rideDate, rideTime));
@@ -8322,13 +8337,14 @@
             }
 
             if (flow === 'airport' && Boolean(getAirportServiceConfig().requiresPackage)) {
+                const isFullDayAirport = getAirportServiceMode() === 'airport_day';
                 baseLayers.push({
                     key: 'package',
-                    label: 'Airport package',
+                    label: isFullDayAirport ? 'Airport days' : 'Airport package',
                     node: packageNode ? packageNode.closest('.cab-mini-field') : null,
                     complete: () => Boolean(packageNode?.value),
                     valueText: () => packageNode?.options?.[packageNode.selectedIndex]?.text || '',
-                    pendingText: 'Select airport package'
+                    pendingText: isFullDayAirport ? 'Select duty days' : 'Select airport package'
                 });
             }
 
