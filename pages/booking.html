@@ -4981,7 +4981,7 @@
             grid-template-columns: 20px minmax(0, 1fr) !important;
             align-items: center !important;
             gap: 0.12rem 0.32rem !important;
-            padding: 0.32rem 0.5rem !important;
+            padding: 0.32rem 1.55rem 0.32rem 0.5rem !important;
             border: 1px solid #cfdce8 !important;
             border-radius: 9px !important;
             background: #ffffff !important;
@@ -4990,6 +4990,7 @@
             font-size: 0.69rem !important;
             font-weight: 900 !important;
             line-height: 1.12 !important;
+            position: relative !important;
             text-align: left !important;
             white-space: normal !important;
         }
@@ -5022,15 +5023,30 @@
         body.booking-page.professional-booking .cab-airport-service-chip.is-active,
         body.booking-page.professional-booking .cab-airport-transfer-chip.is-active,
         body.booking-page.professional-booking .cab-journey-chip.is-active {
-            border-color: #24a7db !important;
-            background: #eaf7ff !important;
-            color: #0f86bd !important;
-            box-shadow: inset 0 0 0 1px #24a7db !important;
-            transform: none !important;
+            border-color: #ffbc63 !important;
+            background: linear-gradient(100deg, #0788c6 0%, #0562f0 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 20px rgba(5, 98, 240, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.45) !important;
+            transform: translateY(-1px) !important;
         }
 
-        body.booking-page.professional-booking .cab-airport-service-chip.is-active::after {
-            display: none !important;
+        body.booking-page.professional-booking .cab-airport-service-chip.is-active::after,
+        body.booking-page.professional-booking .cab-airport-transfer-chip.is-active::after,
+        body.booking-page.professional-booking .cab-journey-chip.is-active::after {
+            content: "✓" !important;
+            position: absolute !important;
+            top: 5px !important;
+            right: 6px !important;
+            display: grid !important;
+            place-items: center !important;
+            width: 16px !important;
+            height: 16px !important;
+            border-radius: 999px !important;
+            background: #ffffff !important;
+            color: #0562f0 !important;
+            font-size: 0.58rem !important;
+            font-weight: 950 !important;
+            box-shadow: 0 3px 8px rgba(7, 47, 87, 0.18) !important;
         }
 
         body.booking-page.professional-booking .cab-airport-service-chip.is-active i,
@@ -5040,7 +5056,7 @@
         body.booking-page.professional-booking .cab-airport-transfer-chip.is-active strong,
         body.booking-page.professional-booking .cab-airport-transfer-chip.is-active small,
         body.booking-page.professional-booking .cab-journey-chip.is-active i {
-            color: #0f86bd !important;
+            color: #ffffff !important;
         }
 
         body.booking-page.professional-booking .cab-local-scope-note,
