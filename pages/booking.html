@@ -5143,15 +5143,17 @@
         }
 
         body.booking-page.professional-booking .cab-mini-field.has-current input {
-            padding-right: 2.15rem !important;
+            padding-right: 2.8rem !important;
         }
 
         body.booking-page.professional-booking .cab-mini-current-btn,
+        body.booking-page.professional-booking .route-stop-current-btn,
         body.booking-page.professional-booking .location-current-btn {
-            border: 1px solid #cfe1ef;
+            border: 0 !important;
             border-radius: 999px;
-            background: #ffffff;
-            color: #173350;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: #111827 !important;
             cursor: pointer;
             font: inherit;
             font-size: 0.7rem;
@@ -5161,11 +5163,12 @@
 
         body.booking-page.professional-booking .cab-mini-current-btn {
             position: absolute;
-            right: 0.7rem;
-            bottom: 0.58rem;
+            right: 0.52rem;
+            top: 50%;
+            transform: translateY(-50%);
             z-index: 3;
-            width: 30px;
-            height: 30px;
+            width: 42px;
+            height: 42px;
             display: grid;
             place-items: center;
             padding: 0;
@@ -5181,20 +5184,44 @@
         }
 
         body.booking-page.professional-booking .cab-mini-current-btn i,
+        body.booking-page.professional-booking .route-stop-current-btn i,
         body.booking-page.professional-booking .location-current-btn i {
             grid-row: auto !important;
             width: auto !important;
             height: auto !important;
             background: transparent !important;
-            color: #1088c9 !important;
-            font-size: 0.9rem !important;
+            color: #111827 !important;
+            font-size: 1.05rem !important;
         }
 
         body.booking-page.professional-booking .cab-mini-current-btn:hover,
+        body.booking-page.professional-booking .route-stop-current-btn:hover,
         body.booking-page.professional-booking .location-current-btn:hover {
-            border-color: #24a4d4;
-            background: #eef8ff;
-            color: #0b7fc1;
+            background: #eef2f7 !important;
+            color: #111827 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-current-btn.is-locating i,
+        body.booking-page.professional-booking .route-stop-current-btn.is-locating i,
+        body.booking-page.professional-booking .location-current-btn.is-locating i {
+            animation: cabLocationSpin 0.9s linear infinite;
+        }
+
+        body.booking-page.professional-booking .route-stop-input-wrap {
+            grid-template-columns: minmax(0, 1fr) auto auto !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-current-btn {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            padding: 0;
+        }
+
+        @keyframes cabLocationSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         body.booking-page.professional-booking .location-group {
@@ -5701,22 +5728,22 @@
                     </div>
 
                     <div class="cab-mini-form" aria-label="Quick cab booking form">
-                        <label class="cab-mini-field cab-mini-field-wide has-current">
+                        <div class="cab-mini-field cab-mini-field-wide has-current" role="group" aria-labelledby="cabQuickPickupLabel">
                             <i class="fas fa-circle-dot"></i>
-                            <span>From</span>
+                            <span id="cabQuickPickupLabel">From</span>
                             <input type="text" id="cabQuickPickupInput" placeholder="Pickup city / airport" autocomplete="off">
                             <button type="button" class="cab-mini-current-btn" data-map-current-target="pickup" title="Use current location for pickup" aria-label="Use current location for pickup">
-                                <i class="fas fa-location-crosshairs"></i>
+                                <i class="fas fa-location-arrow"></i>
                             </button>
-                        </label>
-                        <label class="cab-mini-field cab-drop-mini-field has-current">
+                        </div>
+                        <div class="cab-mini-field cab-drop-mini-field has-current" role="group" aria-labelledby="cabQuickDropoffLabel">
                             <i class="far fa-circle-dot"></i>
-                            <span>To</span>
+                            <span id="cabQuickDropoffLabel">To</span>
                             <input type="text" id="cabQuickDropoffInput" placeholder="Drop city / airport" autocomplete="off">
                             <button type="button" class="cab-mini-current-btn" data-map-current-target="dropoff" title="Use current location for dropoff" aria-label="Use current location for dropoff">
                                 <i class="fas fa-location-arrow"></i>
                             </button>
-                        </label>
+                        </div>
                         <label class="cab-mini-field cab-terminal-mini-field">
                             <i class="fas fa-plane-circle-check"></i>
                             <span>Terminal / Gate</span>
@@ -5779,6 +5806,9 @@
                                 <label for="stop1">Route 1 (Optional)</label>
                                 <div class="route-stop-input-wrap">
                                     <input type="text" id="stop1" class="route-stop-input" data-route-stop-input placeholder="Add intermediate route / stop" autocomplete="off" oninput="handleRouteStopInputChange()">
+                                    <button type="button" class="route-stop-current-btn" data-map-current-target="stop" aria-label="Use current location for this stop" title="Use current location for this stop">
+                                        <i class="fas fa-location-arrow"></i>
+                                    </button>
                                     <button type="button" class="route-stop-remove-btn" data-route-stop-remove aria-label="Remove route" onclick="removeRouteStop(this)">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -8135,28 +8165,62 @@
             return parts.join(', ');
         }
 
+        async function fetchBookingJsonWithTimeout(url, options = {}, timeoutMs = 4500) {
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller?.signal || options.signal
+                });
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (error) {
+                return null;
+            } finally {
+                if (timer) window.clearTimeout(timer);
+            }
+        }
+
+        function buildBigDataCloudAddress(data = {}) {
+            const parts = [
+                data.locality || data.principalSubdivisionCode || data.city,
+                data.city || data.localityInfo?.administrative?.[3]?.name,
+                data.principalSubdivision,
+                data.postcode,
+                data.countryName
+            ].filter(Boolean);
+            return [...new Set(parts)].join(', ');
+        }
+
         async function reverseGeocodeBookingCoordsFallback(coords) {
             const lat = Number(coords?.lat);
             const lng = Number(coords?.lng);
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '';
-            try {
-                const params = new URLSearchParams({
-                    format: 'jsonv2',
-                    lat: String(lat),
-                    lon: String(lng),
-                    zoom: '18',
-                    addressdetails: '1'
-                });
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
-                    method: 'GET',
-                    headers: { Accept: 'application/json' }
-                });
-                if (!response.ok) return '';
-                const data = await response.json();
-                return sanitizeInput(data.display_name || buildBookingReverseAddress(data.address || ''), 220).trim();
-            } catch (error) {
-                return '';
-            }
+            const osmParams = new URLSearchParams({
+                format: 'jsonv2',
+                lat: String(lat),
+                lon: String(lng),
+                zoom: '18',
+                addressdetails: '1'
+            });
+            const osmData = await fetchBookingJsonWithTimeout(`https://nominatim.openstreetmap.org/reverse?${osmParams.toString()}`, {
+                method: 'GET',
+                headers: { Accept: 'application/json' }
+            });
+            const osmAddress = sanitizeInput(osmData?.display_name || buildBookingReverseAddress(osmData?.address || {})).trim();
+            if (osmAddress) return osmAddress;
+
+            const cloudParams = new URLSearchParams({
+                latitude: String(lat),
+                longitude: String(lng),
+                localityLanguage: 'en'
+            });
+            const cloudData = await fetchBookingJsonWithTimeout(`https://api.bigdatacloud.net/data/reverse-geocode-client?${cloudParams.toString()}`, {
+                method: 'GET',
+                headers: { Accept: 'application/json' }
+            });
+            return sanitizeInput(cloudData?.localityInfo?.informative?.[0]?.name || buildBigDataCloudAddress(cloudData || {})).trim();
         }
 
         function reverseGeocodeBookingCoords(coords) {
@@ -8234,13 +8298,14 @@
             }
         }
 
-        function updateBookingMapFieldValue(target, value, coords = null) {
+        function updateBookingMapFieldValue(target, value, coords = null, options = {}) {
             const cleanValue = sanitizeInput(value || '').trim() || (coords ? formatBookingMapCoords(coords) : '');
             if (!cleanValue) return;
 
             if (target === 'stop') {
                 ensureRouteStopsReady();
-                const stopInput = getRouteStopInputs().find((input) => !String(input.value || '').trim()) || getRouteStopInputs()[0] || addRouteStop('', false);
+                const preferredStopInput = options.stopInput?.matches?.('[data-route-stop-input]') ? options.stopInput : null;
+                const stopInput = preferredStopInput || getRouteStopInputs().find((input) => !String(input.value || '').trim()) || getRouteStopInputs()[0] || addRouteStop('', false);
                 if (stopInput) {
                     stopInput.value = cleanValue;
                     if (coords) {
@@ -8278,7 +8343,7 @@
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
             setBookingMapActiveTarget(safeTarget);
             const address = await reverseGeocodeBookingCoords(coords);
-            updateBookingMapFieldValue(safeTarget, address, coords);
+            updateBookingMapFieldValue(safeTarget, address, coords, options);
             const targetLabel = safeTarget === 'dropoff' ? 'Drop' : safeTarget === 'stop' ? 'Stop' : 'Pickup';
             setBookingMapStatus(`${targetLabel} location updated from ${options.source === 'map' ? 'map pin' : 'current location'}.`, 'info');
         }
@@ -8315,23 +8380,44 @@
             bookingGoogleMapState.inputTimer = window.setTimeout(syncBookingMapFromInputs, 450);
         }
 
-        async function requestBookingCurrentLocation(target = 'pickup') {
+        function setBookingCurrentButtonBusy(button, isBusy) {
+            if (!button) return;
+            button.classList.toggle('is-locating', Boolean(isBusy));
+            button.disabled = Boolean(isBusy);
+        }
+
+        function showBookingLocationNotice(message, type = 'info') {
+            if (typeof showToast === 'function') {
+                showToast(message, type, 3500, type === 'error' ? 'Location' : 'Current location');
+            }
+        }
+
+        async function requestBookingCurrentLocation(target = 'pickup', options = {}) {
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            const sourceButton = options.sourceButton || null;
             setBookingMapActiveTarget(safeTarget);
             if (!navigator.geolocation) {
-                setBookingMapStatus('Current location is not supported in this browser. Type the address manually.', 'error');
+                showBookingLocationNotice('Current location is not supported in this browser. Type the address manually.', 'error');
                 return;
             }
-            setBookingMapStatus('Allow location permission to use current location.', 'info');
+            setBookingCurrentButtonBusy(sourceButton, true);
             navigator.geolocation.getCurrentPosition(async (position) => {
-                const coords = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                await ensureBookingGoogleMapReady();
-                await applyBookingMapCoordinates(safeTarget, coords, { source: 'current' });
+                try {
+                    const coords = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    await ensureBookingGoogleMapReady();
+                    await applyBookingMapCoordinates(safeTarget, coords, {
+                        source: 'current',
+                        stopInput: options.stopInput || null
+                    });
+                } finally {
+                    setBookingCurrentButtonBusy(sourceButton, false);
+                }
             }, () => {
-                setBookingMapStatus('Location permission was blocked. Type the address manually or allow location access.', 'error');
+                setBookingCurrentButtonBusy(sourceButton, false);
+                showBookingLocationNotice('Please allow location permission, then tap the location arrow again.', 'error');
             }, {
                 enableHighAccuracy: true,
                 maximumAge: 30000,
@@ -8346,7 +8432,12 @@
                     const currentButton = event.target.closest('[data-map-current-target]');
                     if (currentButton) {
                         event.preventDefault();
-                        requestBookingCurrentLocation(currentButton.dataset.mapCurrentTarget || 'pickup');
+                        event.stopPropagation();
+                        const stopInput = currentButton.closest('[data-route-stop-row]')?.querySelector('[data-route-stop-input]') || null;
+                        requestBookingCurrentLocation(currentButton.dataset.mapCurrentTarget || 'pickup', {
+                            sourceButton: currentButton,
+                            stopInput
+                        });
                         return;
                     }
                     const targetButton = event.target.closest('[data-map-target]');
@@ -9255,6 +9346,9 @@
                 <label></label>
                 <div class="route-stop-input-wrap">
                     <input type="text" class="route-stop-input" data-route-stop-input autocomplete="off" oninput="handleRouteStopInputChange()">
+                    <button type="button" class="route-stop-current-btn" data-map-current-target="stop" aria-label="Use current location for this stop" title="Use current location for this stop">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
                     <button type="button" class="route-stop-remove-btn" data-route-stop-remove aria-label="Remove route" onclick="removeRouteStop(this)">
                         <i class="fas fa-times"></i>
                     </button>
