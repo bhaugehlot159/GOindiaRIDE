@@ -8354,13 +8354,11 @@
         function buildCabQuickLayers(flow = getActiveCabFlow()) {
             const pickupNode = document.getElementById('cabQuickPickupInput');
             const dropoffNode = document.getElementById('cabQuickDropoffInput');
-            const terminalNode = document.getElementById('cabQuickTerminalInput');
             const dateNode = document.getElementById('cabQuickDateInput');
             const timeNode = document.getElementById('cabQuickTimeInput');
             const returnDateNode = document.getElementById('cabQuickReturnDateInput');
             const returnTimeNode = document.getElementById('cabQuickReturnTimeInput');
             const packageNode = document.getElementById('cabQuickPackageSelect');
-            const airportConfig = flow === 'airport' ? getAirportServiceConfig() : {};
 
             const baseLayers = [
                 {
@@ -8398,20 +8396,6 @@
                     pendingText: 'Select pickup time'
                 }
             ];
-
-            if (flow === 'airport') {
-                const terminalValue = () => sanitizeInput(terminalNode?.value || '').trim();
-                const terminalRequired = isAirportTerminalDetailRequired();
-                baseLayers.splice(2, 0, {
-                    key: 'terminal',
-                    label: `${airportConfig.terminalLabel || 'Terminal / Gate'}${terminalRequired ? '' : ' (optional)'}`,
-                    inputId: 'cabQuickTerminalInput',
-                    node: terminalNode ? terminalNode.closest('.cab-mini-field') : null,
-                    complete: () => !isAirportTerminalDetailRequired() || Boolean(terminalValue()),
-                    valueText: () => terminalValue() || (isAirportTerminalDetailRequired() ? '' : 'Optional for selected airport'),
-                    pendingText: terminalRequired ? 'Enter terminal / gate' : 'Optional for selected airport'
-                });
-            }
 
             if ((flow === 'outstation' && getCabJourneyMode() === 'round_trip')
                 || (flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn))) {
@@ -8826,6 +8810,19 @@
                 }
                 revealFieldFromShortcut(missingField);
                 return;
+            }
+
+            if (activeFlow === 'airport' && isAirportTerminalDetailRequired()) {
+                const terminalField = document.getElementById('cabQuickTerminalInput');
+                const terminalValue = sanitizeInput(terminalField?.value || '').trim();
+                if (!terminalValue) {
+                    showError('Please enter airport terminal, gate, pillar or pickup/drop point');
+                    if (terminalField) {
+                        terminalField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        window.setTimeout(() => terminalField.focus({ preventScroll: true }), 40);
+                    }
+                    return;
+                }
             }
 
             if (activeFlow === 'outstation' && journeyMode === 'multi_city' && !readRouteStops().length) {
