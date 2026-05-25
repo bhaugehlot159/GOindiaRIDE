@@ -5138,51 +5138,15 @@
             font-size: 0.7rem !important;
         }
 
-        body.booking-page.professional-booking .booking-map-panel {
-            display: grid;
-            gap: 0.46rem;
-            margin-top: 0.46rem;
-            padding: 0.54rem;
-            border: 1px solid #cfe1ef;
-            border-radius: 12px;
-            background: #f7fbff;
+        body.booking-page.professional-booking .cab-mini-field.has-current {
+            position: relative;
         }
 
-        body.booking-page.professional-booking .booking-map-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.62rem;
-            flex-wrap: wrap;
+        body.booking-page.professional-booking .cab-mini-field.has-current input {
+            padding-right: 2.15rem !important;
         }
 
-        body.booking-page.professional-booking .booking-map-head span {
-            display: block;
-            color: #68788b;
-            font-size: 0.62rem;
-            font-weight: 900;
-            line-height: 1;
-            text-transform: uppercase;
-        }
-
-        body.booking-page.professional-booking .booking-map-head strong {
-            display: block;
-            color: #0d2238;
-            font-size: 0.92rem;
-            font-weight: 900;
-            line-height: 1.18;
-        }
-
-        body.booking-page.professional-booking .booking-map-actions,
-        body.booking-page.professional-booking .booking-map-targets {
-            display: flex;
-            align-items: center;
-            gap: 0.36rem;
-            flex-wrap: wrap;
-        }
-
-        body.booking-page.professional-booking .booking-map-action,
-        body.booking-page.professional-booking .booking-map-target-btn,
+        body.booking-page.professional-booking .cab-mini-current-btn,
         body.booking-page.professional-booking .location-current-btn {
             border: 1px solid #cfe1ef;
             border-radius: 999px;
@@ -5195,76 +5159,16 @@
             transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
         }
 
-        body.booking-page.professional-booking .booking-map-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.32rem;
-            min-height: 30px;
-            padding: 0.34rem 0.58rem;
-        }
-
-        body.booking-page.professional-booking .booking-map-action i,
-        body.booking-page.professional-booking .booking-map-target-btn i,
-        body.booking-page.professional-booking .location-current-btn i {
-            color: #1088c9;
-        }
-
-        body.booking-page.professional-booking .booking-map-action:hover,
-        body.booking-page.professional-booking .booking-map-target-btn:hover,
-        body.booking-page.professional-booking .location-current-btn:hover,
-        body.booking-page.professional-booking .booking-map-target-btn.is-active {
-            border-color: #24a4d4;
-            background: #eef8ff;
-            color: #0b7fc1;
-        }
-
-        body.booking-page.professional-booking .booking-map-targets {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        body.booking-page.professional-booking .booking-map-target-btn {
-            min-height: 30px;
-            padding: 0.32rem 0.5rem;
-            text-align: center;
-        }
-
-        body.booking-page.professional-booking .booking-map-canvas {
-            position: relative;
-            overflow: hidden;
-            min-height: 168px;
-            border: 1px solid #d8e5f0;
-            border-radius: 11px;
-            background: #eaf4fb;
-        }
-
-        body.booking-page.professional-booking .booking-map-canvas.is-ready .booking-map-placeholder {
-            display: none;
-        }
-
-        body.booking-page.professional-booking .booking-map-placeholder {
+        body.booking-page.professional-booking .cab-mini-current-btn {
             position: absolute;
-            inset: 0;
+            right: 0.7rem;
+            bottom: 0.58rem;
+            z-index: 3;
+            width: 30px;
+            height: 30px;
             display: grid;
             place-items: center;
-            padding: 0.85rem;
-            color: #526273;
-            font-size: 0.78rem;
-            font-weight: 800;
-            line-height: 1.35;
-            text-align: center;
-        }
-
-        body.booking-page.professional-booking .booking-map-status {
-            margin: 0;
-            color: #5f6f82;
-            font-size: 0.66rem;
-            font-weight: 800;
-            line-height: 1.35;
-        }
-
-        body.booking-page.professional-booking .booking-map-status[data-state="error"] {
-            color: #a04d09;
+            padding: 0;
         }
 
         body.booking-page.professional-booking .location-current-btn {
@@ -5274,6 +5178,23 @@
             align-self: stretch;
             min-width: 46px;
             padding: 0 0.72rem;
+        }
+
+        body.booking-page.professional-booking .cab-mini-current-btn i,
+        body.booking-page.professional-booking .location-current-btn i {
+            grid-row: auto !important;
+            width: auto !important;
+            height: auto !important;
+            background: transparent !important;
+            color: #1088c9 !important;
+            font-size: 0.9rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-current-btn:hover,
+        body.booking-page.professional-booking .location-current-btn:hover {
+            border-color: #24a4d4;
+            background: #eef8ff;
+            color: #0b7fc1;
         }
 
         body.booking-page.professional-booking .location-group {
@@ -5780,15 +5701,21 @@
                     </div>
 
                     <div class="cab-mini-form" aria-label="Quick cab booking form">
-                        <label class="cab-mini-field cab-mini-field-wide">
+                        <label class="cab-mini-field cab-mini-field-wide has-current">
                             <i class="fas fa-circle-dot"></i>
                             <span>From</span>
                             <input type="text" id="cabQuickPickupInput" placeholder="Pickup city / airport" autocomplete="off">
+                            <button type="button" class="cab-mini-current-btn" data-map-current-target="pickup" title="Use current location for pickup" aria-label="Use current location for pickup">
+                                <i class="fas fa-location-crosshairs"></i>
+                            </button>
                         </label>
-                        <label class="cab-mini-field cab-drop-mini-field">
+                        <label class="cab-mini-field cab-drop-mini-field has-current">
                             <i class="far fa-circle-dot"></i>
                             <span>To</span>
                             <input type="text" id="cabQuickDropoffInput" placeholder="Drop city / airport" autocomplete="off">
+                            <button type="button" class="cab-mini-current-btn" data-map-current-target="dropoff" title="Use current location for dropoff" aria-label="Use current location for dropoff">
+                                <i class="fas fa-location-arrow"></i>
+                            </button>
                         </label>
                         <label class="cab-mini-field cab-terminal-mini-field">
                             <i class="fas fa-plane-circle-check"></i>
@@ -5861,36 +5788,6 @@
                         <button type="button" class="route-stop-add-btn" id="addRouteStopBtn" aria-label="Add another route">
                             <i class="fas fa-plus"></i>
                         </button>
-                    </div>
-
-                    <div class="booking-map-panel" id="bookingMapPanel" aria-label="Live Google map pickup and drop selector">
-                        <div class="booking-map-head">
-                            <div>
-                                <span>Google Map</span>
-                                <strong id="bookingMapTitle">Pickup and drop live map</strong>
-                            </div>
-                            <div class="booking-map-actions" aria-label="Use current location">
-                                <button type="button" class="booking-map-action" data-map-current-target="pickup">
-                                    <i class="fas fa-location-crosshairs"></i>
-                                    Pickup current
-                                </button>
-                                <button type="button" class="booking-map-action" data-map-current-target="dropoff">
-                                    <i class="fas fa-location-arrow"></i>
-                                    Drop current
-                                </button>
-                            </div>
-                        </div>
-                        <div class="booking-map-targets" role="group" aria-label="Choose map target">
-                            <button type="button" class="booking-map-target-btn is-active" data-map-target="pickup">Pickup</button>
-                            <button type="button" class="booking-map-target-btn" data-map-target="dropoff">Drop</button>
-                            <button type="button" class="booking-map-target-btn" data-map-target="stop">Stops</button>
-                        </div>
-                        <div class="booking-map-canvas" id="bookingGoogleMap" role="img" aria-label="Google map route preview">
-                            <div class="booking-map-placeholder" id="bookingMapPlaceholder">
-                                Add pickup/drop or use current location to preview the route on Google Map.
-                            </div>
-                        </div>
-                        <p class="booking-map-status" id="bookingMapStatus">Map is ready for pickup and drop updates.</p>
                     </div>
 
                     <div class="cab-console-actions">
@@ -8134,13 +8031,11 @@
 
         async function ensureBookingGoogleMapReady() {
             const mapNode = document.getElementById('bookingGoogleMap');
-            if (!mapNode) return false;
-            if (bookingGoogleMapState.mapReady && bookingGoogleMapState.map) return true;
+            if (bookingGoogleMapState.geocoder) return true;
 
             const hasExistingGoogleLoader = Boolean(window.google?.maps?.importLibrary);
             const apiKey = getBookingGoogleMapsApiKey();
             if (!hasExistingGoogleLoader && !apiKey) {
-                setBookingMapStatus('Google Maps API key is not configured yet. Manual pickup/drop and current location still work.', 'error');
                 updateBookingGoogleMapRouteLink();
                 return false;
             }
@@ -8148,31 +8043,30 @@
             try {
                 if (!hasExistingGoogleLoader) bootstrapBookingGoogleMaps(apiKey);
                 const mapsLibrary = await window.google.maps.importLibrary('maps');
-                await window.google.maps.importLibrary('marker').catch(() => null);
-
-                bookingGoogleMapState.map = new mapsLibrary.Map(mapNode, {
-                    center: BOOKING_GOOGLE_MAP_DEFAULT_CENTER,
-                    zoom: 11,
-                    fullscreenControl: false,
-                    mapTypeControl: false,
-                    streetViewControl: false
-                });
                 bookingGoogleMapState.geocoder = new window.google.maps.Geocoder();
-                bookingGoogleMapState.mapReady = true;
-                mapNode.classList.add('is-ready');
-                bookingGoogleMapState.map.addListener('click', (event) => {
-                    const latLng = event?.latLng;
-                    if (!latLng) return;
-                    applyBookingMapCoordinates(bookingGoogleMapState.activeTarget, {
-                        lat: latLng.lat(),
-                        lng: latLng.lng()
-                    }, { source: 'map' });
-                });
-                setBookingMapStatus('Google Maps live preview is ready. Click on map or use current location.', 'info');
+                if (mapNode) {
+                    await window.google.maps.importLibrary('marker').catch(() => null);
+                    bookingGoogleMapState.map = new mapsLibrary.Map(mapNode, {
+                        center: BOOKING_GOOGLE_MAP_DEFAULT_CENTER,
+                        zoom: 11,
+                        fullscreenControl: false,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
+                    bookingGoogleMapState.mapReady = true;
+                    mapNode.classList.add('is-ready');
+                    bookingGoogleMapState.map.addListener('click', (event) => {
+                        const latLng = event?.latLng;
+                        if (!latLng) return;
+                        applyBookingMapCoordinates(bookingGoogleMapState.activeTarget, {
+                            lat: latLng.lat(),
+                            lng: latLng.lng()
+                        }, { source: 'map' });
+                    });
+                }
                 syncBookingMapFromInputs();
                 return true;
             } catch (error) {
-                setBookingMapStatus('Google Map could not load right now. Booking fields remain usable.', 'error');
                 updateBookingGoogleMapRouteLink();
                 return false;
             }
@@ -8226,21 +8120,60 @@
             }
         }
 
-        function formatBookingMapCoords(coords) {
-            return `Current location (${Number(coords.lat).toFixed(6)}, ${Number(coords.lng).toFixed(6)})`;
+        function formatBookingMapCoords() {
+            return 'Current location';
+        }
+
+        function buildBookingReverseAddress(address = {}) {
+            const parts = [
+                address.house_number && address.road ? `${address.house_number}, ${address.road}` : (address.road || address.neighbourhood || address.suburb),
+                address.city || address.town || address.village || address.county,
+                address.state,
+                address.postcode,
+                address.country
+            ].filter(Boolean);
+            return parts.join(', ');
+        }
+
+        async function reverseGeocodeBookingCoordsFallback(coords) {
+            const lat = Number(coords?.lat);
+            const lng = Number(coords?.lng);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '';
+            try {
+                const params = new URLSearchParams({
+                    format: 'jsonv2',
+                    lat: String(lat),
+                    lon: String(lng),
+                    zoom: '18',
+                    addressdetails: '1'
+                });
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+                    method: 'GET',
+                    headers: { Accept: 'application/json' }
+                });
+                if (!response.ok) return '';
+                const data = await response.json();
+                return sanitizeInput(data.display_name || buildBookingReverseAddress(data.address || ''), 220).trim();
+            } catch (error) {
+                return '';
+            }
         }
 
         function reverseGeocodeBookingCoords(coords) {
             return new Promise((resolve) => {
+                const finish = async (address = '') => {
+                    const fallbackAddress = address || await reverseGeocodeBookingCoordsFallback(coords);
+                    resolve(fallbackAddress || formatBookingMapCoords(coords));
+                };
                 if (!bookingGoogleMapState.geocoder) {
-                    resolve(formatBookingMapCoords(coords));
+                    finish();
                     return;
                 }
                 bookingGoogleMapState.geocoder.geocode({ location: coords }, (results, status) => {
                     const address = status === 'OK' && results?.[0]?.formatted_address
-                        ? results[0].formatted_address
-                        : formatBookingMapCoords(coords);
-                    resolve(address);
+                        ? sanitizeInput(results[0].formatted_address, 220).trim()
+                        : '';
+                    finish(address);
                 });
             });
         }
@@ -8371,7 +8304,7 @@
 
         function syncBookingMapFromInputs() {
             updateBookingGoogleMapRouteLink();
-            if (!bookingGoogleMapState.mapReady) return;
+            if (!bookingGoogleMapState.geocoder) return;
             geocodeBookingMapInput('pickup', getBookingMapInputValue('pickup'));
             geocodeBookingMapInput('dropoff', getBookingMapInputValue('dropoff'));
             geocodeBookingMapInput('stop', getBookingMapInputValue('stop'));
@@ -8407,8 +8340,7 @@
         }
 
         function initGoogleMapBookingUI() {
-            const panel = document.getElementById('bookingMapPanel');
-            if (!panel) return;
+            if (!document.querySelector('[data-map-current-target]')) return;
             if (document.body.dataset.bookingGoogleMapDelegated !== '1') {
                 document.addEventListener('click', (event) => {
                     const currentButton = event.target.closest('[data-map-current-target]');
