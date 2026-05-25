@@ -4049,6 +4049,10 @@
             display: none !important;
         }
 
+        body.booking-page.professional-booking .cab-booking-console:not(.is-airport) .cab-terminal-mini-field {
+            display: none !important;
+        }
+
         body.booking-page.professional-booking #cabBookingConsole.is-airport-package .cab-package-field {
             display: grid !important;
         }
@@ -5341,6 +5345,11 @@
                             <span>To</span>
                             <input type="text" id="cabQuickDropoffInput" placeholder="Drop city / airport" autocomplete="off">
                         </label>
+                        <label class="cab-mini-field cab-terminal-mini-field">
+                            <i class="fas fa-plane-circle-check"></i>
+                            <span>Terminal / Gate</span>
+                            <input type="text" id="cabQuickTerminalInput" placeholder="Terminal, gate, pillar or pickup point" autocomplete="off">
+                        </label>
                         <label class="cab-mini-field">
                             <i class="far fa-calendar"></i>
                             <span>Pickup Date</span>
@@ -6399,6 +6408,8 @@
                 dropLabel: 'Airport',
                 pickupPlaceholder: 'City, hotel, station or address',
                 dropPlaceholder: 'Search destination airport in India',
+                terminalLabel: 'Drop terminal',
+                terminalPlaceholder: 'Drop terminal/gate, e.g. T1 departures or Gate 4',
                 chips: ['Airport drop', 'Reporting buffer', 'Driver details', 'Parking/toll review']
             },
             airport_pickup: {
@@ -6411,6 +6422,8 @@
                 dropLabel: 'Destination',
                 pickupPlaceholder: 'Search arrival airport in India',
                 dropPlaceholder: 'City, hotel, office or address',
+                terminalLabel: 'Pickup terminal',
+                terminalPlaceholder: 'Arrival terminal, gate, pillar or pickup point',
                 chips: ['Arrival pickup', 'Flight delay ready', 'Meet & greet note', 'Luggage fit']
             },
             airport_to_airport: {
@@ -6423,6 +6436,8 @@
                 dropLabel: 'Airport To',
                 pickupPlaceholder: 'Search departure airport in India',
                 dropPlaceholder: 'Search destination airport in India',
+                terminalLabel: 'Terminal details',
+                terminalPlaceholder: 'From terminal/gate and destination terminal/gate',
                 chips: ['Terminal transfer', 'Airport from/to', 'Flight details', 'Luggage-ready cab']
             },
             airport_round: {
@@ -6436,6 +6451,8 @@
                 dropLabel: 'Airport',
                 pickupPlaceholder: 'City, hotel, station or address',
                 dropPlaceholder: 'Search airport for round trip',
+                terminalLabel: 'Return terminal',
+                terminalPlaceholder: 'Drop terminal and return pickup terminal/gate',
                 chips: ['Drop + return pickup', 'Return date/time', 'Waiting ready', 'Same-route clarity']
             },
             airport_hourly: {
@@ -6450,6 +6467,8 @@
                 dropLabel: 'City base',
                 pickupPlaceholder: 'Search airport in India',
                 dropPlaceholder: 'City area, hotel or office base',
+                terminalLabel: 'Airport terminal',
+                terminalPlaceholder: 'Airport terminal/gate for pickup or drop',
                 chips: ['Hourly package', 'Extra km/hr billed', 'Multiple city stops', 'Layover support']
             },
             airport_day: {
@@ -6465,6 +6484,8 @@
                 dropLabel: 'Day base',
                 pickupPlaceholder: 'Search airport in India',
                 dropPlaceholder: 'City/hotel base for full-day duty',
+                terminalLabel: 'Airport terminal',
+                terminalPlaceholder: 'Terminal/gate where full-day duty starts',
                 chips: ['300 km/day included', 'Extra km billed', 'Driver allowance', 'Toll/parking review']
             },
             airport_multi: {
@@ -6478,6 +6499,8 @@
                 dropLabel: 'Final drop',
                 pickupPlaceholder: 'Search airport in India',
                 dropPlaceholder: 'Final destination after stops',
+                terminalLabel: 'Airport terminal',
+                terminalPlaceholder: 'Airport terminal/gate before route stops',
                 chips: ['Multi-stop', 'Route add-ons', 'Hotel/meeting stops', 'Route-aware fare']
             }
         };
@@ -6760,6 +6783,58 @@
             return 'place';
         }
 
+        const AIRPORT_TERMINAL_REQUIRED_CODES = new Set(['DEL', 'BOM', 'BLR', 'MAA', 'COK']);
+
+        function getAirportSelectionInputIdsForTerminal() {
+            return [
+                ['cabQuickPickupInput', 'pickup'],
+                ['cabQuickDropoffInput', 'dropoff']
+            ].flatMap(([quickInputId, formInputId]) => (
+                getAirportFieldRole(quickInputId) === 'airport' ? [quickInputId, formInputId] : []
+            ));
+        }
+
+        function getResolvedAirportFromInput(inputId) {
+            const input = document.getElementById(inputId);
+            const value = sanitizeInput(input?.value || '').trim();
+            if (!input || !value) return null;
+            return getResolvableAirport(value, {
+                contextText: getAirportContextTextForInput(input)
+            });
+        }
+
+        function getAirportTerminalRequirementState() {
+            if (getActiveCabFlow() !== 'airport') {
+                return { required: false, hasAirportSelection: false, airports: [], requiredAirports: [] };
+            }
+
+            const seenAirportKeys = new Set();
+            const airports = getAirportSelectionInputIdsForTerminal()
+                .map(getResolvedAirportFromInput)
+                .filter(Boolean)
+                .filter((airport) => {
+                    const key = String(airport.code || airport.name || '').toUpperCase();
+                    if (!key || seenAirportKeys.has(key)) return false;
+                    seenAirportKeys.add(key);
+                    return true;
+                });
+            const requiredAirports = airports.filter((airport) => {
+                const code = String(airport.code || '').toUpperCase();
+                return AIRPORT_TERMINAL_REQUIRED_CODES.has(code);
+            });
+
+            return {
+                required: requiredAirports.length > 0,
+                hasAirportSelection: airports.length > 0,
+                airports,
+                requiredAirports
+            };
+        }
+
+        function isAirportTerminalDetailRequired() {
+            return getAirportTerminalRequirementState().required;
+        }
+
         function syncPackageSelectOptions(flow = getActiveCabFlow()) {
             const selectNode = document.getElementById('cabQuickPackageSelect');
             if (!selectNode) return;
@@ -6821,7 +6896,7 @@
             if (!isAirportFlow) return;
 
             if (modeChanged && options.preserveFields !== true) {
-                ['pickup', 'dropoff', 'cabQuickPickupInput', 'cabQuickDropoffInput', 'returnDate', 'returnTime', 'cabQuickReturnDateInput', 'cabQuickReturnTimeInput']
+                ['pickup', 'dropoff', 'cabQuickPickupInput', 'cabQuickDropoffInput', 'cabQuickTerminalInput', 'returnDate', 'returnTime', 'cabQuickReturnDateInput', 'cabQuickReturnTimeInput']
                     .forEach((inputId) => {
                         const input = document.getElementById(inputId);
                         if (input) input.value = '';
@@ -7567,9 +7642,16 @@
             const isAirportFlow = flow === 'airport';
             if (isAirportFlow) closeAirportAutocompleteBoxes();
             const airportConfig = getAirportServiceConfig();
+            const terminalRequirement = getAirportTerminalRequirementState();
+            const terminalOptionalHint = isAirportFlow && terminalRequirement.hasAirportSelection && !terminalRequirement.required
+                ? ' (optional)'
+                : '';
             const placeholderMap = {
                 cabQuickPickupInput: isAirportFlow ? airportConfig.pickupPlaceholder : 'Pickup city / airport',
                 cabQuickDropoffInput: isAirportFlow ? airportConfig.dropPlaceholder : 'Drop city / airport',
+                cabQuickTerminalInput: isAirportFlow && terminalRequirement.hasAirportSelection && !terminalRequirement.required
+                    ? 'Optional for single-terminal airports'
+                    : (isAirportFlow ? airportConfig.terminalPlaceholder : 'Terminal, gate, pillar or pickup point'),
                 pickup: isAirportFlow ? airportConfig.pickupPlaceholder : 'Where are you? (Enter address or landmark)',
                 dropoff: isAirportFlow ? airportConfig.dropPlaceholder : 'Where to? (Enter address or landmark)'
             };
@@ -7581,8 +7663,17 @@
 
             const quickPickupLabel = document.getElementById('cabQuickPickupInput')?.closest('.cab-mini-field')?.querySelector('span');
             const quickDropoffLabel = document.getElementById('cabQuickDropoffInput')?.closest('.cab-mini-field')?.querySelector('span');
+            const quickTerminalLabel = document.getElementById('cabQuickTerminalInput')?.closest('.cab-mini-field')?.querySelector('span');
             if (quickPickupLabel) quickPickupLabel.textContent = isAirportFlow ? airportConfig.pickupLabel : 'From';
             if (quickDropoffLabel) quickDropoffLabel.textContent = isAirportFlow ? airportConfig.dropLabel : 'To';
+            if (quickTerminalLabel) quickTerminalLabel.textContent = isAirportFlow ? `${airportConfig.terminalLabel}${terminalOptionalHint}` : 'Terminal / Gate';
+            const terminalInput = document.getElementById('cabQuickTerminalInput');
+            if (terminalInput) {
+                const terminalIsRequired = isAirportFlow && terminalRequirement.required;
+                terminalInput.required = false;
+                terminalInput.dataset.cabTerminalRequired = terminalIsRequired ? '1' : '0';
+                terminalInput.setAttribute('aria-required', terminalIsRequired ? 'true' : 'false');
+            }
 
             const pickupLabel = document.querySelector('label[for="pickup"]');
             const dropLabel = document.querySelector('label[for="dropoff"]');
@@ -8263,11 +8354,13 @@
         function buildCabQuickLayers(flow = getActiveCabFlow()) {
             const pickupNode = document.getElementById('cabQuickPickupInput');
             const dropoffNode = document.getElementById('cabQuickDropoffInput');
+            const terminalNode = document.getElementById('cabQuickTerminalInput');
             const dateNode = document.getElementById('cabQuickDateInput');
             const timeNode = document.getElementById('cabQuickTimeInput');
             const returnDateNode = document.getElementById('cabQuickReturnDateInput');
             const returnTimeNode = document.getElementById('cabQuickReturnTimeInput');
             const packageNode = document.getElementById('cabQuickPackageSelect');
+            const airportConfig = flow === 'airport' ? getAirportServiceConfig() : {};
 
             const baseLayers = [
                 {
@@ -8305,6 +8398,20 @@
                     pendingText: 'Select pickup time'
                 }
             ];
+
+            if (flow === 'airport') {
+                const terminalValue = () => sanitizeInput(terminalNode?.value || '').trim();
+                const terminalRequired = isAirportTerminalDetailRequired();
+                baseLayers.splice(2, 0, {
+                    key: 'terminal',
+                    label: `${airportConfig.terminalLabel || 'Terminal / Gate'}${terminalRequired ? '' : ' (optional)'}`,
+                    inputId: 'cabQuickTerminalInput',
+                    node: terminalNode ? terminalNode.closest('.cab-mini-field') : null,
+                    complete: () => !isAirportTerminalDetailRequired() || Boolean(terminalValue()),
+                    valueText: () => terminalValue() || (isAirportTerminalDetailRequired() ? '' : 'Optional for selected airport'),
+                    pendingText: terminalRequired ? 'Enter terminal / gate' : 'Optional for selected airport'
+                });
+            }
 
             if ((flow === 'outstation' && getCabJourneyMode() === 'round_trip')
                 || (flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn))) {
@@ -8902,6 +9009,7 @@
 
             const pickupMini = document.getElementById('cabQuickPickupInput');
             const dropoffMini = document.getElementById('cabQuickDropoffInput');
+            const terminalMini = document.getElementById('cabQuickTerminalInput');
             const dateMini = document.getElementById('cabQuickDateInput');
             const timeMini = document.getElementById('cabQuickTimeInput');
             const returnDateMini = document.getElementById('cabQuickReturnDateInput');
@@ -8934,6 +9042,17 @@
 
             bindMiniLocation(pickupMini, 'pickup', 'pickup');
             bindMiniLocation(dropoffMini, 'dropoff', 'dropoff');
+
+            if (terminalMini && terminalMini.dataset.cabMiniBound !== '1') {
+                terminalMini.addEventListener('input', () => {
+                    updateBookingExperience();
+                });
+                terminalMini.addEventListener('change', () => {
+                    updateBookingExperience();
+                    advanceCabLayerIfCurrentComplete('terminal');
+                });
+                terminalMini.dataset.cabMiniBound = '1';
+            }
 
             const bindQuickAutocomplete = (attempt = 0) => {
                 if (typeof initializeAutocomplete === 'function') {
@@ -9742,6 +9861,9 @@
                 tripServiceType: document.getElementById('tripServiceType').value,
                 airportServiceMode: getActiveCabFlow() === 'airport' ? getAirportServiceMode() : '',
                 airportServiceLabel: getActiveCabFlow() === 'airport' ? getAirportServiceConfig().label : '',
+                airportTerminalNote: getActiveCabFlow() === 'airport'
+                    ? sanitizeInput(document.getElementById('cabQuickTerminalInput')?.value || '').trim()
+                    : '',
                 paymentMethod: document.getElementById('paymentMethod').value,
                 passengers: Number.parseInt(document.getElementById('passengers').value, 10) || 1,
                 luggage: document.getElementById('luggage').value,
@@ -12157,6 +12279,7 @@
                 returnTime: sanitizeInput(bookingRecord.returnTrip?.returnTime || ''),
                 tripPlan: sanitizeInput(bookingRecord.tripPlan || ''),
                 tripServiceType: sanitizeInput(bookingRecord.tripServiceType || bookingRecord.serviceType || ''),
+                airportTerminalNote: sanitizeInput(bookingRecord.airportTerminalNote || ''),
                 paymentMethod: sanitizeInput(bookingRecord.paymentMethod || ''),
                 vehicleType: sanitizeInput(bookingRecord.vehicleType || bookingRecord.rideType || ''),
                 vehicleModel: sanitizeInput(bookingRecord.vehicleModel || ''),
@@ -12382,6 +12505,9 @@
             const returnDate = document.getElementById('returnDate').value;
             const returnTime = document.getElementById('returnTime').value;
             const notes = sanitizeInput(document.getElementById('notes').value);
+            const airportTerminalNote = activeFlow === 'airport'
+                ? sanitizeInput(document.getElementById('cabQuickTerminalInput')?.value || '').trim()
+                : '';
             const intermediateStops = readRouteStops();
             if (activeFlow === 'day_trips' && pickup && !dropoff) {
                 dropoff = `Hourly rental within ${pickup}`;
@@ -12414,6 +12540,16 @@
             if (pickup === dropoff && activeFlow !== 'day_trips') {
                 showError('Pickup and dropoff cannot be same');
                 revealBookingField('dropoff');
+                return;
+            }
+
+            if (activeFlow === 'airport' && isAirportTerminalDetailRequired() && !airportTerminalNote) {
+                showError('Please enter airport terminal, gate, pillar or pickup/drop point');
+                const terminalField = document.getElementById('cabQuickTerminalInput');
+                if (terminalField) {
+                    terminalField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    window.setTimeout(() => terminalField.focus({ preventScroll: true }), 40);
+                }
                 return;
             }
 
@@ -12525,6 +12661,7 @@
                 safetyAccessibility,
                 hasStops: intermediateStops.length > 0,
                 hasReturnTrip: isReturnTrip,
+                airportTerminalNote,
                 vehicleFuelPreference
             };
 
@@ -12556,6 +12693,7 @@
                 tripServiceType: fareEstimateInputs.tripServiceType || '',
                 airportServiceMode: fareEstimateInputs.airportServiceMode || '',
                 airportServiceLabel: fareEstimateInputs.airportServiceLabel || '',
+                airportTerminalNote: airportTerminalNote || fareEstimateInputs.airportTerminalNote || '',
                 paymentMethod: paymentMethod,
                 budgetAmount: Number(fareEstimateInputs.budgetAmount || 0),
                 customerBidAmount: Number(fareEstimateInputs.budgetAmount || 0),
