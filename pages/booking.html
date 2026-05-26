@@ -7979,7 +7979,10 @@
         const BOOKING_GPS_FIRST_FIX_TIMEOUT_MS = 8000;
         const BOOKING_GPS_REFINE_WINDOW_MS = 6000;
         const BOOKING_GPS_QUICK_FIX_TIMEOUT_MS = 2500;
-        const BOOKING_GPS_QUICK_MAX_AGE_MS = 45000;
+        const BOOKING_GPS_QUICK_MAX_AGE_MS = 12000;
+        const BOOKING_GPS_QUICK_ACCEPT_ACCURACY_METERS = 85;
+        const BOOKING_GPS_REFINE_MAX_DRIFT_METERS = 3500;
+        const BOOKING_GPS_WARM_CACHE_MAX_AGE_MS = 180000;
         const BOOKING_REVERSE_GEOCODE_CACHE_STORAGE_KEY = 'goindiaride_booking_reverse_geocode_cache_v1';
         const BOOKING_REVERSE_GEOCODE_CACHE_MAX_ENTRIES = 80;
         const BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION = 5;
@@ -7995,7 +7998,9 @@
             routeLine: null,
             reverseGeocodeCacheLoaded: false,
             reverseGeocodeCache: new Map(),
-            reverseGeocodePending: new Map()
+            reverseGeocodePending: new Map(),
+            warmCurrentLocation: null,
+            warmCurrentLocationPromise: null
         };
 
         function getBookingGoogleMapsApiKey() {
@@ -8220,6 +8225,22 @@
             if (!point) return '';
             const accuracy = formatBookingMapAccuracy(point);
             return `${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}${accuracy ? ` (${accuracy})` : ''}`;
+        }
+
+        function getBookingDistanceMeters(basePoint, nextPoint) {
+            const base = normalizeBookingMapCoords(basePoint);
+            const next = normalizeBookingMapCoords(nextPoint);
+            if (!base || !next) return Number.POSITIVE_INFINITY;
+            const toRadians = (value) => (value * Math.PI) / 180;
+            const earthRadiusMeters = 6371000;
+            const dLat = toRadians(next.lat - base.lat);
+            const dLng = toRadians(next.lng - base.lng);
+            const lat1 = toRadians(base.lat);
+            const lat2 = toRadians(next.lat);
+            const a = (Math.sin(dLat / 2) ** 2)
+                + (Math.cos(lat1) * Math.cos(lat2) * (Math.sin(dLng / 2) ** 2));
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return earthRadiusMeters * c;
         }
 
         function getBookingMapDatasetCoords(input) {
@@ -8645,7 +8666,9 @@
             const isWeak = Number(cleanCoords.accuracy || 0) > BOOKING_GPS_WEAK_ACCURACY_METERS;
             const sourceLabel = options.source === 'map' ? 'map pin' : 'exact GPS';
             const actionLabel = options.background === true ? 'refined' : 'updated';
-            const weakHint = isWeak ? ' Signal weak hai; open area me retry karne se pin aur tight hoga.' : '';
+            const weakHint = isWeak
+                ? ' Signal weak hai; open area me retry karein aur browser me Precise location permission ON rakhein.'
+                : '';
             const shouldFastFill = options.source === 'current' && options.background !== true;
             const cachedAddress = shouldFastFill ? readBookingReverseGeocodeCache(cleanCoords) : '';
 
@@ -8775,8 +8798,16 @@
             return new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const point = normalizeBookingGeoPosition(position);
-                    if (point) resolve(point);
-                    else reject(new Error('invalid_position'));
+                    if (!point) {
+                        reject(new Error('invalid_position'));
+                        return;
+                    }
+                    const accuracy = Number(point.accuracy ?? Number.POSITIVE_INFINITY);
+                    if (!Number.isFinite(accuracy) || accuracy > BOOKING_GPS_QUICK_ACCEPT_ACCURACY_METERS) {
+                        reject(new Error('quick_accuracy_too_low'));
+                        return;
+                    }
+                    resolve(point);
                 }, reject, {
                     enableHighAccuracy: false,
                     maximumAge: BOOKING_GPS_QUICK_MAX_AGE_MS,
@@ -8831,23 +8862,74 @@
         }
 
         async function getBestBookingCurrentLocation() {
+            let quickPoint = null;
             try {
-                return await getBookingCurrentPositionQuick();
+                quickPoint = await getBookingCurrentPositionQuick();
+                if (Number(quickPoint?.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) {
+                    return quickPoint;
+                }
             } catch (_error) {
-                return getBookingCurrentPositionOnce();
+                quickPoint = null;
             }
+            const precisePoint = await getBookingCurrentPositionOnce();
+            if (!quickPoint) return precisePoint;
+            return isBetterBookingGeoPoint(precisePoint, quickPoint) ? precisePoint : quickPoint;
         }
 
         function pointsAreNearEnoughForRefinement(basePoint, nextPoint) {
-            const base = normalizeBookingMapCoords(basePoint);
-            const next = normalizeBookingMapCoords(nextPoint);
-            if (!base || !next) return false;
-            return Math.abs(base.lat - next.lat) <= 0.02 && Math.abs(base.lng - next.lng) <= 0.02;
+            return getBookingDistanceMeters(basePoint, nextPoint) <= BOOKING_GPS_REFINE_MAX_DRIFT_METERS;
+        }
+
+        function isBookingWarmCurrentLocationUsable(point) {
+            const normalized = normalizeBookingMapCoords(point);
+            if (!normalized) return false;
+            const accuracy = Number(normalized.accuracy ?? Number.POSITIVE_INFINITY);
+            if (!Number.isFinite(accuracy) || accuracy > BOOKING_GPS_TARGET_ACCURACY_METERS) return false;
+            const capturedAt = Date.parse(normalized.capturedAt || '');
+            if (!Number.isFinite(capturedAt)) return false;
+            return (Date.now() - capturedAt) <= BOOKING_GPS_WARM_CACHE_MAX_AGE_MS;
+        }
+
+        async function warmBookingCurrentLocationCache() {
+            if (!navigator.geolocation?.getCurrentPosition) return;
+            if (bookingGoogleMapState.warmCurrentLocationPromise) return;
+            bookingGoogleMapState.warmCurrentLocationPromise = (async () => {
+                try {
+                    if (navigator.permissions?.query) {
+                        const permission = await navigator.permissions.query({ name: 'geolocation' });
+                        const state = sanitizeInput(permission?.state || '', 20).toLowerCase();
+                        if (state !== 'granted') return;
+                    }
+                } catch (_error) {
+                    // Some browsers block permissions query; continue with non-blocking warm-up attempt.
+                }
+                try {
+                    let bestPoint = null;
+                    try {
+                        bestPoint = await getBookingCurrentPositionQuick(1800);
+                    } catch (_quickError) {
+                        bestPoint = null;
+                    }
+                    const precisePoint = await getBookingCurrentPositionOnce().catch(() => null);
+                    if (isBetterBookingGeoPoint(precisePoint, bestPoint)) {
+                        bestPoint = precisePoint;
+                    }
+                    if (!bestPoint) return;
+                    bookingGoogleMapState.warmCurrentLocation = bestPoint;
+                    await reverseGeocodeBookingCoords(bestPoint).catch(() => '');
+                } catch (_error) {
+                    // Warm-up is best effort only.
+                }
+            })().finally(() => {
+                bookingGoogleMapState.warmCurrentLocationPromise = null;
+            });
         }
 
         function canApplyBookingBackgroundRefinement(target, basePoint) {
             const currentPoint = getBookingMapCoordsForTarget(target);
-            return pointsAreNearEnoughForRefinement(basePoint, currentPoint);
+            if (!currentPoint) return true;
+            if (pointsAreNearEnoughForRefinement(basePoint, currentPoint)) return true;
+            return isBetterBookingGeoPoint(basePoint, currentPoint);
         }
 
         function startBookingCurrentLocationRefinement(target, initialPoint, options = {}) {
@@ -8858,7 +8940,7 @@
             let lastAppliedPoint = initialPoint;
             refineBookingCurrentPosition(initialPoint, (betterPoint) => {
                 if (!isBetterBookingGeoPoint(betterPoint, lastAppliedPoint)) return;
-                if (!canApplyBookingBackgroundRefinement(safeTarget, initialPoint)) return;
+                if (!canApplyBookingBackgroundRefinement(safeTarget, betterPoint)) return;
                 lastAppliedPoint = betterPoint;
                 applyBookingMapCoordinates(safeTarget, betterPoint, {
                     source: 'current',
@@ -8867,7 +8949,7 @@
                 }).catch(() => null);
             }).then((bestPoint) => {
                 if (!isBetterBookingGeoPoint(bestPoint, lastAppliedPoint)) return;
-                if (!canApplyBookingBackgroundRefinement(safeTarget, initialPoint)) return;
+                if (!canApplyBookingBackgroundRefinement(safeTarget, bestPoint)) return;
                 applyBookingMapCoordinates(safeTarget, bestPoint, {
                     source: 'current',
                     stopInput: options.stopInput || null,
@@ -8886,13 +8968,40 @@
             }
             setBookingCurrentButtonBusy(sourceButton, true);
             setBookingMapStatus('Getting GPS location...', 'info');
+            const warmedPoint = isBookingWarmCurrentLocationUsable(bookingGoogleMapState.warmCurrentLocation)
+                ? normalizeBookingMapCoords(bookingGoogleMapState.warmCurrentLocation)
+                : null;
+            if (warmedPoint) {
+                const warmAddress = readBookingReverseGeocodeCache(warmedPoint);
+                updateBookingMapFieldValue(
+                    safeTarget,
+                    warmAddress || formatBookingMapCoords(warmedPoint),
+                    warmedPoint,
+                    {
+                        source: 'current',
+                        stopInput: options.stopInput || null
+                    }
+                );
+                const warmAccuracy = formatBookingMapAccuracy(warmedPoint);
+                setBookingMapStatus(
+                    `Using recent GPS lock${warmAccuracy ? ` (${warmAccuracy})` : ''}. Fresh precise point verify ho raha hai...`,
+                    'info'
+                );
+            }
             try {
                 const coords = await getBestBookingCurrentLocation();
                 const mapReadyPromise = ensureBookingGoogleMapReady().catch(() => false);
-                await applyBookingMapCoordinates(safeTarget, coords, {
-                    source: 'current',
-                    stopInput: options.stopInput || null
-                });
+                const shouldReplaceWarmPoint = !warmedPoint
+                    || isBetterBookingGeoPoint(coords, warmedPoint)
+                    || getBookingDistanceMeters(coords, warmedPoint) > 20;
+                if (shouldReplaceWarmPoint) {
+                    await applyBookingMapCoordinates(safeTarget, coords, {
+                        source: 'current',
+                        stopInput: options.stopInput || null
+                    });
+                }
+                bookingGoogleMapState.warmCurrentLocation = coords;
+                reverseGeocodeBookingCoords(coords).catch(() => '');
                 mapReadyPromise.then(() => {
                     const latestPoint = getBookingMapCoordsForTarget(safeTarget) || normalizeBookingMapCoords(coords);
                     if (!latestPoint) return;
@@ -8957,6 +9066,7 @@
             setBookingMapActiveTarget(bookingGoogleMapState.activeTarget);
             ensureBookingGoogleMapReady();
             updateBookingGoogleMapRouteLink();
+            warmBookingCurrentLocationCache();
         }
 
         function resolveBookingLocationInputValue(input, options = {}) {
