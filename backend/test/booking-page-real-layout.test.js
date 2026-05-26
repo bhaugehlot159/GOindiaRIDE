@@ -48,3 +48,12 @@ test('booking current-location flow keeps exact GPS coordinates for maps and adm
   assert.doesNotMatch(html, /return 'Current location';/);
   assert.doesNotMatch(html, /maximumAge:\s*30000/);
 });
+
+test('booking secure fare estimate sends idempotency key before final booking create', () => {
+  const html = readRepoFile('pages/booking.html');
+  const estimateCall = html.match(/const fareEstimateResult = await fetchJsonAcrossApiBases\([\s\S]+?\/api\/bookings\/fare\/estimate[\s\S]+?\);/);
+
+  assert.ok(estimateCall, 'fare estimate call should exist');
+  assert.match(estimateCall[0], /includeIdempotency:\s*true/);
+  assert.match(estimateCall[0], /idPrefix:\s*'gir-booking-fare-estimate'/);
+});
