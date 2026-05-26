@@ -62,3 +62,19 @@ test('booking secure fare estimate sends idempotency key before final booking cr
   assert.match(estimateCall[0], /includeIdempotency:\s*true/);
   assert.match(estimateCall[0], /idPrefix:\s*'gir-booking-fare-estimate'/);
 });
+
+test('booking final submit refreshes expired tokens and falls back to admin review queue', () => {
+  const html = readRepoFile('pages/booking.html');
+
+  assert.match(html, /function getBackendRefreshToken\(/);
+  assert.match(html, /function refreshBookingBackendAccessToken\(/);
+  assert.match(html, /function resolveFreshBookingAccessToken\(/);
+  assert.match(html, /function isBookingAuthFailureReason\(/);
+  assert.match(html, /async function submitBookingThroughAdminReviewFallback\(/);
+  assert.match(html, /booking_create_auth_retry/);
+  assert.match(html, /auth_expired_admin_queue/);
+  assert.match(html, /token_missing_local_queue/);
+  assert.match(html, /clearBackendAccessTokens\(\)/);
+  assert.match(html, /Live booking auth expired; sent to admin review fallback/);
+  assert.doesNotMatch(html, /Secure login session missing\. Please login again to place a live booking\./);
+});

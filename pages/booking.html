@@ -12838,6 +12838,195 @@
             );
         }
 
+        function getBackendRefreshToken() {
+            const keys = [
+                'goindiaride_refresh_token_v1',
+                'goindiaride_refresh_token',
+                'refreshToken'
+            ];
+            for (const key of keys) {
+                try {
+                    const value = String(localStorage.getItem(key) || '').trim();
+                    if (value) return value;
+                } catch (_error) {
+                    // Keep scanning other token slots.
+                }
+            }
+            return '';
+        }
+
+        function persistBackendAccessToken(token) {
+            const normalized = String(token || '').trim();
+            if (!normalized) return;
+            ['accessToken', 'authToken', 'token'].forEach((key) => {
+                try {
+                    localStorage.setItem(key, normalized);
+                } catch (_error) {
+                    // Ignore storage restrictions.
+                }
+            });
+        }
+
+        function persistBackendRefreshToken(token) {
+            const normalized = String(token || '').trim();
+            if (!normalized) return;
+            ['goindiaride_refresh_token_v1', 'goindiaride_refresh_token', 'refreshToken'].forEach((key) => {
+                try {
+                    localStorage.setItem(key, normalized);
+                } catch (_error) {
+                    // Ignore storage restrictions.
+                }
+            });
+        }
+
+        function clearBackendAccessTokens() {
+            ['accessToken', 'authToken', 'token'].forEach((key) => {
+                try {
+                    localStorage.removeItem(key);
+                } catch (_error) {
+                    // Ignore storage restrictions.
+                }
+            });
+        }
+
+        function decodeBookingJwtPayload(token) {
+            const parts = String(token || '').split('.');
+            if (parts.length < 2) return null;
+            try {
+                const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                const padded = `${base64}${'='.repeat((4 - (base64.length % 4)) % 4)}`;
+                return JSON.parse(atob(padded));
+            } catch (_error) {
+                return null;
+            }
+        }
+
+        function isBackendAccessTokenExpired(token, skewMs = 60000) {
+            const payload = decodeBookingJwtPayload(token);
+            if (!payload || !payload.exp) return false;
+            return (Number(payload.exp) * 1000) <= Date.now() + Number(skewMs || 0);
+        }
+
+        function isBookingAuthFailureReason(reason, status = 0) {
+            const text = String(reason || '').toLowerCase();
+            return Number(status || 0) === 401
+                || text.includes('invalid or expired token')
+                || text.includes('jwt expired')
+                || text.includes('token expired')
+                || text.includes('invalid token')
+                || text.includes('missing_access_token')
+                || text.includes('unauthorized');
+        }
+
+        async function refreshBookingBackendAccessToken(reason = 'booking_submit') {
+            if (window.GoIndiaSessionContinuity && typeof window.GoIndiaSessionContinuity.restorePortalSession === 'function') {
+                try {
+                    const restored = await window.GoIndiaSessionContinuity.restorePortalSession({
+                        role: 'customer',
+                        preferFastLocal: false,
+                        backgroundRefresh: false
+                    });
+                    const restoredToken = String(getBackendAccessToken() || '').trim();
+                    if (restored?.ok && restoredToken && !isBackendAccessTokenExpired(restoredToken)) {
+                        return { ok: true, token: restoredToken, source: restored.source || 'session_continuity' };
+                    }
+                } catch (_error) {
+                    // Fall through to direct refresh endpoint.
+                }
+            }
+
+            const refreshToken = getBackendRefreshToken();
+            if (!refreshToken) {
+                return { ok: false, reason: 'missing_refresh_token' };
+            }
+
+            const apiBases = getBackendApiBaseCandidates();
+            const deviceFingerprint = getBookingDeviceFingerprint();
+            const paths = ['/api/auth/refresh-secure', '/api/auth/refresh', '/api/auth/refresh-token-v2'];
+            const attempts = [];
+            for (const apiBase of apiBases) {
+                if (isApiBaseQuarantined(apiBase)) {
+                    attempts.push({ apiBase, status: 0, reason: 'api_base_quarantined' });
+                    continue;
+                }
+                for (const path of paths) {
+                    try {
+                        const response = await fetchWithTimeout(`${apiBase}${path}`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            cache: 'no-store',
+                            headers: {
+                                Accept: 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-Refresh-Token': refreshToken,
+                                'X-Device-Fingerprint': deviceFingerprint,
+                                'x-request-id': createClientRequestId('gir-booking-token-refresh'),
+                                'x-timestamp': String(Date.now())
+                            },
+                            body: JSON.stringify({
+                                refreshToken,
+                                deviceFingerprint,
+                                reason: sanitizeInput(reason || 'booking_submit', 120)
+                            })
+                        }, 9000);
+                        const data = await parseJsonSafe(response);
+                        if (response.status === 404 || response.status === 405) {
+                            attempts.push({ apiBase, path, status: response.status, reason: 'refresh_endpoint_unavailable' });
+                            continue;
+                        }
+                        if (!response.ok || !data?.accessToken) {
+                            attempts.push({
+                                apiBase,
+                                path,
+                                status: Number(response.status || 0),
+                                reason: sanitizeInput(data?.message || data?.reason || 'refresh_failed', 140)
+                            });
+                            continue;
+                        }
+                        persistBackendAccessToken(data.accessToken);
+                        if (data.refreshToken) persistBackendRefreshToken(data.refreshToken);
+                        if (apiBase) {
+                            try {
+                                localStorage.setItem('goindiaride_api_base', apiBase);
+                            } catch (_error) {
+                                // Ignore storage restrictions.
+                            }
+                        }
+                        return { ok: true, token: String(data.accessToken || '').trim(), apiBase, path };
+                    } catch (error) {
+                        attempts.push({
+                            apiBase,
+                            path,
+                            status: 0,
+                            reason: classifyBrowserRequestFailure(apiBase, error)
+                        });
+                    }
+                }
+            }
+
+            return {
+                ok: false,
+                reason: attempts.length ? attempts[attempts.length - 1].reason : 'refresh_failed',
+                attempts
+            };
+        }
+
+        async function resolveFreshBookingAccessToken(reason = 'booking_submit') {
+            const token = String(getBackendAccessToken() || '').trim();
+            if (token && !isBackendAccessTokenExpired(token)) {
+                return { ok: true, token, source: 'stored_access_token' };
+            }
+            const refreshed = await refreshBookingBackendAccessToken(reason);
+            if (refreshed.ok && refreshed.token) {
+                return refreshed;
+            }
+            if (token && !isBackendAccessTokenExpired(token, 0)) {
+                return { ok: true, token, source: 'stored_access_token_unverified' };
+            }
+            clearBackendAccessTokens();
+            return refreshed.ok ? refreshed : { ok: false, reason: refreshed.reason || 'missing_or_expired_access_token' };
+        }
+
         async function warmBookingBackendConnections() {
             const candidates = getBackendApiBaseCandidates().slice(0, 2);
             await Promise.allSettled(candidates.map(async (apiBase) => {
@@ -13412,6 +13601,53 @@
             notifyAdminBookingReviewRequired(normalized);
             renderBookingSubmissionSuccess(normalized.id, toastMessage);
             return normalized;
+        }
+
+        async function submitBookingThroughAdminReviewFallback(booking, reason = 'customer_booking_submit', options = {}) {
+            const fallbackReason = sanitizeInput(reason || 'customer_booking_submit', 140);
+            const mode = sanitizeInput(options.mode || 'local_secure_fallback', 80);
+            const toastMessage = sanitizeInput(
+                options.toastMessage || `Booking ${booking?.bookingId || booking?.id || ''} submitted for admin review.`,
+                220
+            );
+
+            if (options.clearAccessToken === true) {
+                clearBackendAccessTokens();
+            }
+
+            const queuedBooking = queueBookingForAdminReview(
+                booking,
+                mode,
+                fallbackReason,
+                toastMessage
+            );
+
+            if (!queuedBooking) {
+                showError('Booking failed. Please try again.');
+                return { ok: false, reason: 'queue_booking_failed' };
+            }
+
+            const queueResult = await queueBookingRecordForBackendAdminReview(queuedBooking, fallbackReason);
+            if (!queueResult.ok) {
+                console.warn('Admin review queue sync pending:', queueResult.reason || 'queue_failed');
+            }
+
+            const emailResult = await sendAdminEmailForQueuedBooking(queuedBooking, fallbackReason);
+            if (emailResult.ok) {
+                removeAdminEmailRetry(emailResult.bookingId || queuedBooking.id);
+                handleBookingEmailDispatchFeedback(emailResult);
+            } else {
+                const pendingReason = getAdminEmailPendingReason(emailResult);
+                handleBookingEmailDispatchFeedback(emailResult, { silentAdminToast: true });
+                enqueueAdminEmailRetry(queuedBooking, pendingReason);
+            }
+
+            return {
+                ok: true,
+                bookingId: queuedBooking.id || queuedBooking.bookingId,
+                queueResult,
+                emailResult
+            };
         }
 
         function handleBookingEmailDispatchFeedback(emailResult, { silentAdminToast = false } = {}) {
@@ -14276,37 +14512,22 @@
                 ]
             };
 
-            const token = String(getBackendAccessToken() || '').trim();
+            let token = '';
+            const tokenResult = await resolveFreshBookingAccessToken('booking_submit');
+            if (tokenResult.ok && tokenResult.token) {
+                token = String(tokenResult.token || '').trim();
+            }
             if (!token) {
-                if (BOOKING_STRICT_LIVE_MODE) {
-                    showError('Secure login session missing. Please login again to place a live booking.');
-                    window.setTimeout(() => {
-                        window.location.href = './login.html';
-                    }, 900);
-                    return;
-                }
-                console.warn('Booking fallback activated: secure token missing, redirect prevented.');
-                const queuedBooking = queueBookingForAdminReview(
+                console.warn('Booking fallback activated: secure token missing or expired.', tokenResult.reason || 'missing_or_expired_access_token');
+                await submitBookingThroughAdminReviewFallback(
                     booking,
-                    'local_secure_fallback',
                     'token_missing_local_queue',
-                    `Booking ${bookingId} submitted for admin review. Live email dispatch is running (token_missing_local_queue).`
+                    {
+                        mode: 'local_secure_fallback',
+                        clearAccessToken: true,
+                        toastMessage: `Booking ${bookingId} submitted for admin review. Live email dispatch is running (token_missing_local_queue).`
+                    }
                 );
-                if (queuedBooking) {
-                    const queueResult = await queueBookingRecordForBackendAdminReview(queuedBooking, 'token_missing_local_queue');
-                    if (!queueResult.ok) {
-                        console.warn('Admin review queue sync pending:', queueResult.reason || 'queue_failed');
-                    }
-                    const emailResult = await sendAdminEmailForQueuedBooking(queuedBooking, 'token_missing_local_queue');
-                    if (emailResult.ok) {
-                        removeAdminEmailRetry(emailResult.bookingId || queuedBooking.id);
-                        handleBookingEmailDispatchFeedback(emailResult);
-                    } else {
-                        const pendingReason = getAdminEmailPendingReason(emailResult);
-                        handleBookingEmailDispatchFeedback(emailResult, { silentAdminToast: true });
-                        enqueueAdminEmailRetry(queuedBooking, pendingReason);
-                    }
-                }
                 return;
             }
 
@@ -14407,7 +14628,7 @@
                     }
                 };
 
-                const createResult = await fetchJsonAcrossApiBases('/api/bookings', {
+                let createResult = await fetchJsonAcrossApiBases('/api/bookings', {
                     method: 'POST',
                     token,
                     includeJson: true,
@@ -14420,8 +14641,41 @@
                     timeoutMs: 9000
                 });
 
+                if (!createResult.ok && isBookingAuthFailureReason(createResult.reason, createResult.status)) {
+                    clearBackendAccessTokens();
+                    const refreshedCreateToken = await refreshBookingBackendAccessToken('booking_create_auth_retry');
+                    if (refreshedCreateToken.ok && refreshedCreateToken.token) {
+                        token = String(refreshedCreateToken.token || '').trim();
+                        createResult = await fetchJsonAcrossApiBases('/api/bookings', {
+                            method: 'POST',
+                            token,
+                            includeJson: true,
+                            includeIdempotency: true,
+                            idPrefix: 'gir-booking-create-retry',
+                            extraHeaders: {
+                                'x-booking-client': 'goindiaride-web'
+                            },
+                            body: createPayload,
+                            timeoutMs: 9000
+                        });
+                    }
+                }
+
                 if (!createResult.ok) {
                     const createReason = formatApiReason(createResult.reason, 'live_booking_create_failed');
+                    if (isBookingAuthFailureReason(createReason, createResult.status)) {
+                        console.warn('Live booking auth expired; sent to admin review fallback.', createReason);
+                        await submitBookingThroughAdminReviewFallback(
+                            booking,
+                            `auth_expired_admin_queue:${createReason}`,
+                            {
+                                mode: 'local_secure_fallback',
+                                clearAccessToken: true,
+                                toastMessage: `Booking ${bookingId} submitted for admin review. Login session expired, so admin approval queue was used.`
+                            }
+                        );
+                        return;
+                    }
                     throw new Error(`Live booking create failed (${createReason})`);
                 }
 
@@ -14457,37 +14711,32 @@
                 console.log('✅ Live booking created:', liveBookingId, createData);
             } catch (error) {
                 console.error('Live booking failed', error);
+                const fallbackMessage = sanitizeInput(error.message || 'live_booking_failed');
+                if (isBookingAuthFailureReason(fallbackMessage)) {
+                    console.warn('Booking auth failed after submit; using admin review fallback.', fallbackMessage);
+                    await submitBookingThroughAdminReviewFallback(
+                        booking,
+                        `auth_expired_admin_queue:${fallbackMessage}`,
+                        {
+                            mode: 'local_secure_fallback',
+                            clearAccessToken: true,
+                            toastMessage: `Booking ${bookingId} submitted for admin review. Login session expired, so admin approval queue was used.`
+                        }
+                    );
+                    return;
+                }
                 if (BOOKING_STRICT_LIVE_MODE) {
                     showError(error?.message || 'Live booking server unavailable right now. Please retry in a moment.');
                     return;
                 }
-                const fallbackMessage = sanitizeInput(error.message || 'live_booking_failed');
-                const queued = queueBookingForAdminReview(
+                await submitBookingThroughAdminReviewFallback(
                     booking,
-                    'local_secure_fallback',
                     `live_error:${fallbackMessage}`,
-                    `Live server unavailable, but booking ${bookingId} saved and sent to admin queue.`
+                    {
+                        mode: 'local_secure_fallback',
+                        toastMessage: `Live server unavailable, but booking ${bookingId} saved and sent to admin queue.`
+                    }
                 );
-
-                if (!queued) {
-                    showError(error.message || 'Booking failed. Please try again.');
-                    return;
-                }
-
-                const queueResult = await queueBookingRecordForBackendAdminReview(queued, `live_error:${fallbackMessage}`);
-                if (!queueResult.ok) {
-                    console.warn('Admin review queue sync pending:', queueResult.reason || 'queue_failed');
-                }
-
-                const emailResult = await sendAdminEmailForQueuedBooking(queued, `live_error:${fallbackMessage}`);
-                if (emailResult.ok) {
-                    removeAdminEmailRetry(emailResult.bookingId || queued.id);
-                    handleBookingEmailDispatchFeedback(emailResult);
-                } else {
-                    const pendingReason = getAdminEmailPendingReason(emailResult);
-                    handleBookingEmailDispatchFeedback(emailResult, { silentAdminToast: true });
-                    enqueueAdminEmailRetry(queued, pendingReason);
-                }
             }
         }
 
