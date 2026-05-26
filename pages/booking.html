@@ -7976,7 +7976,8 @@
         const BOOKING_GOOGLE_MAP_DEFAULT_CENTER = { lat: 24.5854, lng: 73.7125 };
         const BOOKING_GPS_TARGET_ACCURACY_METERS = 35;
         const BOOKING_GPS_WEAK_ACCURACY_METERS = 120;
-        const BOOKING_GPS_REFINE_WINDOW_MS = 10000;
+        const BOOKING_GPS_FIRST_FIX_TIMEOUT_MS = 8000;
+        const BOOKING_GPS_REFINE_WINDOW_MS = 6000;
         const bookingGoogleMapState = {
             activeTarget: 'pickup',
             coords: { pickup: null, dropoff: null, stop: null },
@@ -8323,7 +8324,7 @@
             return parts.join(', ');
         }
 
-        async function fetchBookingJsonWithTimeout(url, options = {}, timeoutMs = 4500) {
+        async function fetchBookingJsonWithTimeout(url, options = {}, timeoutMs = 2200) {
             const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
             const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
             try {
@@ -8515,13 +8516,12 @@
             const accuracy = formatBookingMapAccuracy(cleanCoords);
             const isWeak = Number(cleanCoords.accuracy || 0) > BOOKING_GPS_WEAK_ACCURACY_METERS;
             const sourceLabel = options.source === 'map' ? 'map pin' : 'exact GPS';
+            const actionLabel = options.background === true ? 'refined' : 'updated';
+            const weakHint = isWeak ? ' Signal weak hai; open area me retry karne se pin aur tight hoga.' : '';
             setBookingMapStatus(
-                `${targetLabel} location updated from ${sourceLabel}${accuracy ? ` (${accuracy})` : ''}.`,
+                `${targetLabel} location ${actionLabel} from ${sourceLabel}${accuracy ? ` (${accuracy})` : ''}.${weakHint}`,
                 isWeak ? 'warning' : 'info'
             );
-            if (isWeak) {
-                showBookingLocationNotice(`${targetLabel} GPS signal weak hai (${accuracy}). Open area me jaakar location arrow dubara tap karein.`, 'warning');
-            }
         }
 
         function geocodeBookingMapInput(target, value) {
@@ -8596,7 +8596,7 @@
                 && nextAccuracy <= bestAccuracy + 10;
         }
 
-        function getBookingCurrentPositionOnce() {
+        function getBookingCurrentPositionOnce(timeoutMs = BOOKING_GPS_FIRST_FIX_TIMEOUT_MS) {
             return new Promise((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const point = normalizeBookingGeoPosition(position);
@@ -8605,12 +8605,12 @@
                 }, reject, {
                     enableHighAccuracy: true,
                     maximumAge: 0,
-                    timeout: 20000
+                    timeout: timeoutMs
                 });
             });
         }
 
-        function refineBookingCurrentPosition(initialPoint) {
+        function refineBookingCurrentPosition(initialPoint, onBetterPoint = null) {
             if (!navigator.geolocation?.watchPosition) {
                 return Promise.resolve(initialPoint);
             }
@@ -8637,6 +8637,7 @@
                         const nextPoint = normalizeBookingGeoPosition(position);
                         if (isBetterBookingGeoPoint(nextPoint, bestPoint)) {
                             bestPoint = nextPoint;
+                            if (typeof onBetterPoint === 'function') onBetterPoint(bestPoint);
                         }
                         if (Number(bestPoint?.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) {
                             finish();
@@ -8655,11 +8656,45 @@
         }
 
         async function getBestBookingCurrentLocation() {
-            const initialPoint = await getBookingCurrentPositionOnce();
-            if (Number(initialPoint.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) {
-                return initialPoint;
-            }
-            return refineBookingCurrentPosition(initialPoint);
+            return getBookingCurrentPositionOnce();
+        }
+
+        function pointsAreNearEnoughForRefinement(basePoint, nextPoint) {
+            const base = normalizeBookingMapCoords(basePoint);
+            const next = normalizeBookingMapCoords(nextPoint);
+            if (!base || !next) return false;
+            return Math.abs(base.lat - next.lat) <= 0.02 && Math.abs(base.lng - next.lng) <= 0.02;
+        }
+
+        function canApplyBookingBackgroundRefinement(target, basePoint) {
+            const currentPoint = getBookingMapCoordsForTarget(target);
+            return pointsAreNearEnoughForRefinement(basePoint, currentPoint);
+        }
+
+        function startBookingCurrentLocationRefinement(target, initialPoint, options = {}) {
+            if (!navigator.geolocation?.watchPosition) return;
+            if (Number(initialPoint?.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) return;
+
+            const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            let lastAppliedPoint = initialPoint;
+            refineBookingCurrentPosition(initialPoint, (betterPoint) => {
+                if (!isBetterBookingGeoPoint(betterPoint, lastAppliedPoint)) return;
+                if (!canApplyBookingBackgroundRefinement(safeTarget, initialPoint)) return;
+                lastAppliedPoint = betterPoint;
+                applyBookingMapCoordinates(safeTarget, betterPoint, {
+                    source: 'current',
+                    stopInput: options.stopInput || null,
+                    background: true
+                }).catch(() => null);
+            }).then((bestPoint) => {
+                if (!isBetterBookingGeoPoint(bestPoint, lastAppliedPoint)) return;
+                if (!canApplyBookingBackgroundRefinement(safeTarget, initialPoint)) return;
+                applyBookingMapCoordinates(safeTarget, bestPoint, {
+                    source: 'current',
+                    stopInput: options.stopInput || null,
+                    background: true
+                }).catch(() => null);
+            });
         }
 
         async function requestBookingCurrentLocation(target = 'pickup', options = {}) {
@@ -8671,12 +8706,15 @@
                 return;
             }
             setBookingCurrentButtonBusy(sourceButton, true);
-            setBookingMapStatus('Getting exact GPS location...', 'info');
+            setBookingMapStatus('Getting GPS location...', 'info');
             try {
-                const coords = await getBestBookingCurrentLocation();
+                const coords = await getBookingCurrentPositionOnce();
                 await ensureBookingGoogleMapReady();
                 await applyBookingMapCoordinates(safeTarget, coords, {
                     source: 'current',
+                    stopInput: options.stopInput || null
+                });
+                startBookingCurrentLocationRefinement(safeTarget, coords, {
                     stopInput: options.stopInput || null
                 });
             } catch (error) {

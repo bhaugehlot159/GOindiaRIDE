@@ -38,6 +38,9 @@ test('booking current-location flow keeps exact GPS coordinates for maps and adm
   assert.match(html, /enableHighAccuracy:\s*true/);
   assert.match(html, /maximumAge:\s*0/);
   assert.match(html, /watchPosition/);
+  assert.match(html, /BOOKING_GPS_FIRST_FIX_TIMEOUT_MS\s*=\s*8000/);
+  assert.match(html, /timeout:\s*timeoutMs/);
+  assert.match(html, /startBookingCurrentLocationRefinement/);
   assert.match(html, /coords\.accuracy/);
   assert.match(html, /buildBookingLocationSnapshot/);
   assert.match(html, /getBookingMapQueryValue\('pickup'\)/);
@@ -47,6 +50,8 @@ test('booking current-location flow keeps exact GPS coordinates for maps and adm
   assert.match(html, /https:\/\/www\.google\.com\/maps\?q=\$\{Number\(lat\.toFixed\(7\)\)\},\$\{Number\(lng\.toFixed\(7\)\)\}/);
   assert.doesNotMatch(html, /return 'Current location';/);
   assert.doesNotMatch(html, /maximumAge:\s*30000/);
+  assert.doesNotMatch(html, /showBookingLocationNotice\(`\$\{targetLabel\} GPS signal weak hai/);
+  assert.doesNotMatch(html, /showWeakToast/);
 });
 
 test('booking secure fare estimate sends idempotency key before final booking create', () => {
