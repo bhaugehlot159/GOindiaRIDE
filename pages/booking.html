@@ -7978,6 +7978,12 @@
         const BOOKING_GPS_WEAK_ACCURACY_METERS = 120;
         const BOOKING_GPS_FIRST_FIX_TIMEOUT_MS = 8000;
         const BOOKING_GPS_REFINE_WINDOW_MS = 6000;
+        const BOOKING_GPS_QUICK_FIX_TIMEOUT_MS = 2500;
+        const BOOKING_GPS_QUICK_MAX_AGE_MS = 45000;
+        const BOOKING_REVERSE_GEOCODE_CACHE_STORAGE_KEY = 'goindiaride_booking_reverse_geocode_cache_v1';
+        const BOOKING_REVERSE_GEOCODE_CACHE_MAX_ENTRIES = 80;
+        const BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION = 5;
+        const BOOKING_REVERSE_GEOCODE_FALLBACK_PRECISION = 4;
         const bookingGoogleMapState = {
             activeTarget: 'pickup',
             coords: { pickup: null, dropoff: null, stop: null },
@@ -7986,7 +7992,10 @@
             map: null,
             mapReady: false,
             markers: { pickup: null, dropoff: null, stop: null },
-            routeLine: null
+            routeLine: null,
+            reverseGeocodeCacheLoaded: false,
+            reverseGeocodeCache: new Map(),
+            reverseGeocodePending: new Map()
         };
 
         function getBookingGoogleMapsApiKey() {
@@ -8352,6 +8361,93 @@
             return [...new Set(parts)].join(', ');
         }
 
+        function buildBookingReverseGeocodeCacheKey(coords, precision = BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION) {
+            const point = normalizeBookingMapCoords(coords);
+            if (!point) return '';
+            return `${point.lat.toFixed(precision)},${point.lng.toFixed(precision)}`;
+        }
+
+        function loadBookingReverseGeocodeCache() {
+            if (bookingGoogleMapState.reverseGeocodeCacheLoaded) return;
+            bookingGoogleMapState.reverseGeocodeCacheLoaded = true;
+            try {
+                const raw = JSON.parse(localStorage.getItem(BOOKING_REVERSE_GEOCODE_CACHE_STORAGE_KEY) || '[]');
+                if (!Array.isArray(raw)) return;
+                raw.forEach((entry) => {
+                    const key = sanitizeInput(entry?.key || '', 120).trim();
+                    const address = sanitizeInput(entry?.address || '', 220).trim();
+                    if (!key || !address) return;
+                    bookingGoogleMapState.reverseGeocodeCache.set(key, {
+                        address,
+                        updatedAt: sanitizeInput(entry?.updatedAt || '', 60)
+                    });
+                });
+            } catch (error) {
+                // Ignore malformed cache entries and continue with a fresh in-memory cache.
+            }
+        }
+
+        function persistBookingReverseGeocodeCache() {
+            try {
+                const entries = Array.from(bookingGoogleMapState.reverseGeocodeCache.entries())
+                    .slice(-BOOKING_REVERSE_GEOCODE_CACHE_MAX_ENTRIES)
+                    .map(([key, value]) => ({
+                        key,
+                        address: sanitizeInput(value?.address || '', 220).trim(),
+                        updatedAt: sanitizeInput(value?.updatedAt || '', 60) || new Date().toISOString()
+                    }))
+                    .filter((entry) => entry.key && entry.address);
+                localStorage.setItem(BOOKING_REVERSE_GEOCODE_CACHE_STORAGE_KEY, JSON.stringify(entries));
+            } catch (error) {
+                // Storage can be unavailable in private browsing or strict modes.
+            }
+        }
+
+        function readBookingReverseGeocodeCache(coords) {
+            loadBookingReverseGeocodeCache();
+            const primaryKey = buildBookingReverseGeocodeCacheKey(coords, BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION);
+            const fallbackKey = buildBookingReverseGeocodeCacheKey(coords, BOOKING_REVERSE_GEOCODE_FALLBACK_PRECISION);
+            const keys = [primaryKey, fallbackKey].filter(Boolean);
+            for (const key of keys) {
+                const cached = bookingGoogleMapState.reverseGeocodeCache.get(key);
+                const address = sanitizeInput(cached?.address || '', 220).trim();
+                if (!address) continue;
+                // Touch entry to keep recent lookups hot.
+                bookingGoogleMapState.reverseGeocodeCache.delete(key);
+                bookingGoogleMapState.reverseGeocodeCache.set(key, {
+                    address,
+                    updatedAt: new Date().toISOString()
+                });
+                persistBookingReverseGeocodeCache();
+                return address;
+            }
+            return '';
+        }
+
+        function writeBookingReverseGeocodeCache(coords, address) {
+            const normalizedAddress = sanitizeInput(address || '', 220).trim();
+            if (!normalizedAddress) return;
+            loadBookingReverseGeocodeCache();
+            const primaryKey = buildBookingReverseGeocodeCacheKey(coords, BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION);
+            const fallbackKey = buildBookingReverseGeocodeCacheKey(coords, BOOKING_REVERSE_GEOCODE_FALLBACK_PRECISION);
+            const keys = [primaryKey, fallbackKey].filter(Boolean);
+            if (!keys.length) return;
+            const payload = {
+                address: normalizedAddress,
+                updatedAt: new Date().toISOString()
+            };
+            keys.forEach((key) => {
+                bookingGoogleMapState.reverseGeocodeCache.delete(key);
+                bookingGoogleMapState.reverseGeocodeCache.set(key, payload);
+            });
+            while (bookingGoogleMapState.reverseGeocodeCache.size > BOOKING_REVERSE_GEOCODE_CACHE_MAX_ENTRIES) {
+                const oldestKey = bookingGoogleMapState.reverseGeocodeCache.keys().next().value;
+                if (!oldestKey) break;
+                bookingGoogleMapState.reverseGeocodeCache.delete(oldestKey);
+            }
+            persistBookingReverseGeocodeCache();
+        }
+
         async function reverseGeocodeBookingCoordsFallback(coords) {
             const lat = Number(coords?.lat);
             const lng = Number(coords?.lng);
@@ -8363,42 +8459,76 @@
                 zoom: '18',
                 addressdetails: '1'
             });
-            const osmData = await fetchBookingJsonWithTimeout(`https://nominatim.openstreetmap.org/reverse?${osmParams.toString()}`, {
+            const osmPromise = fetchBookingJsonWithTimeout(`https://nominatim.openstreetmap.org/reverse?${osmParams.toString()}`, {
                 method: 'GET',
                 headers: { Accept: 'application/json' }
             });
-            const osmAddress = sanitizeInput(osmData?.display_name || buildBookingReverseAddress(osmData?.address || {})).trim();
-            if (osmAddress) return osmAddress;
 
             const cloudParams = new URLSearchParams({
                 latitude: String(lat),
                 longitude: String(lng),
                 localityLanguage: 'en'
             });
-            const cloudData = await fetchBookingJsonWithTimeout(`https://api.bigdatacloud.net/data/reverse-geocode-client?${cloudParams.toString()}`, {
+            const cloudPromise = fetchBookingJsonWithTimeout(`https://api.bigdatacloud.net/data/reverse-geocode-client?${cloudParams.toString()}`, {
                 method: 'GET',
                 headers: { Accept: 'application/json' }
             });
+
+            const [osmData, cloudData] = await Promise.all([osmPromise, cloudPromise]);
+            const osmAddress = sanitizeInput(osmData?.display_name || buildBookingReverseAddress(osmData?.address || {})).trim();
+            if (osmAddress) return osmAddress;
             return sanitizeInput(cloudData?.localityInfo?.informative?.[0]?.name || buildBigDataCloudAddress(cloudData || {})).trim();
         }
 
-        function reverseGeocodeBookingCoords(coords) {
+        function reverseGeocodeBookingCoordsViaGoogle(coords) {
             return new Promise((resolve) => {
-                const finish = async (address = '') => {
-                    const fallbackAddress = address || await reverseGeocodeBookingCoordsFallback(coords);
-                    resolve(fallbackAddress || formatBookingMapCoords(coords));
-                };
                 if (!bookingGoogleMapState.geocoder) {
-                    finish();
+                    resolve('');
                     return;
                 }
-                bookingGoogleMapState.geocoder.geocode({ location: coords }, (results, status) => {
-                    const address = status === 'OK' && results?.[0]?.formatted_address
-                        ? sanitizeInput(results[0].formatted_address, 220).trim()
-                        : '';
-                    finish(address);
-                });
+                try {
+                    bookingGoogleMapState.geocoder.geocode({ location: coords }, (results, status) => {
+                        const address = status === 'OK' && results?.[0]?.formatted_address
+                            ? sanitizeInput(results[0].formatted_address, 220).trim()
+                            : '';
+                        resolve(address);
+                    });
+                } catch (_error) {
+                    resolve('');
+                }
             });
+        }
+
+        function reverseGeocodeBookingCoords(coords) {
+            const point = normalizeBookingMapCoords(coords);
+            if (!point) return Promise.resolve('');
+            const pendingKey = buildBookingReverseGeocodeCacheKey(point, BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION);
+            if (!pendingKey) return Promise.resolve('');
+
+            const cachedAddress = readBookingReverseGeocodeCache(point);
+            if (cachedAddress) return Promise.resolve(cachedAddress);
+
+            const pendingRequest = bookingGoogleMapState.reverseGeocodePending.get(pendingKey);
+            if (pendingRequest) return pendingRequest;
+
+            const request = (async () => {
+                const [googleAddress, fallbackAddress] = await Promise.all([
+                    reverseGeocodeBookingCoordsViaGoogle(point),
+                    reverseGeocodeBookingCoordsFallback(point)
+                ]);
+                const finalAddress = sanitizeInput(googleAddress || fallbackAddress || '', 220).trim();
+                if (finalAddress) {
+                    writeBookingReverseGeocodeCache(point, finalAddress);
+                    return finalAddress;
+                }
+                return formatBookingMapCoords(point);
+            })()
+                .finally(() => {
+                    bookingGoogleMapState.reverseGeocodePending.delete(pendingKey);
+                });
+
+            bookingGoogleMapState.reverseGeocodePending.set(pendingKey, request);
+            return request;
         }
 
         function setBookingMapMarker(target, coords) {
@@ -8510,14 +8640,45 @@
                 return;
             }
             setBookingMapActiveTarget(safeTarget);
-            const address = await reverseGeocodeBookingCoords(cleanCoords);
-            updateBookingMapFieldValue(safeTarget, address, cleanCoords, options);
             const targetLabel = safeTarget === 'dropoff' ? 'Drop' : safeTarget === 'stop' ? 'Stop' : 'Pickup';
             const accuracy = formatBookingMapAccuracy(cleanCoords);
             const isWeak = Number(cleanCoords.accuracy || 0) > BOOKING_GPS_WEAK_ACCURACY_METERS;
             const sourceLabel = options.source === 'map' ? 'map pin' : 'exact GPS';
             const actionLabel = options.background === true ? 'refined' : 'updated';
             const weakHint = isWeak ? ' Signal weak hai; open area me retry karne se pin aur tight hoga.' : '';
+            const shouldFastFill = options.source === 'current' && options.background !== true;
+            const cachedAddress = shouldFastFill ? readBookingReverseGeocodeCache(cleanCoords) : '';
+
+            if (shouldFastFill) {
+                updateBookingMapFieldValue(
+                    safeTarget,
+                    cachedAddress || formatBookingMapCoords(cleanCoords),
+                    cleanCoords,
+                    options
+                );
+                if (!cachedAddress) {
+                    setBookingMapStatus(
+                        `${targetLabel} GPS lock ho gaya${accuracy ? ` (${accuracy})` : ''}. Exact address load ho raha hai...`,
+                        isWeak ? 'warning' : 'info'
+                    );
+                }
+            }
+
+            const address = sanitizeInput(
+                cachedAddress || await reverseGeocodeBookingCoords(cleanCoords) || '',
+                220
+            ).trim();
+
+            if (address) {
+                const currentPoint = getBookingMapCoordsForTarget(safeTarget);
+                const stillRelevant = options.background === true || pointsAreNearEnoughForRefinement(cleanCoords, currentPoint);
+                if (stillRelevant) {
+                    updateBookingMapFieldValue(safeTarget, address, cleanCoords, options);
+                }
+            } else if (!shouldFastFill) {
+                updateBookingMapFieldValue(safeTarget, formatBookingMapCoords(cleanCoords), cleanCoords, options);
+            }
+
             setBookingMapStatus(
                 `${targetLabel} location ${actionLabel} from ${sourceLabel}${accuracy ? ` (${accuracy})` : ''}.${weakHint}`,
                 isWeak ? 'warning' : 'info'
@@ -8610,6 +8771,20 @@
             });
         }
 
+        function getBookingCurrentPositionQuick(timeoutMs = BOOKING_GPS_QUICK_FIX_TIMEOUT_MS) {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const point = normalizeBookingGeoPosition(position);
+                    if (point) resolve(point);
+                    else reject(new Error('invalid_position'));
+                }, reject, {
+                    enableHighAccuracy: false,
+                    maximumAge: BOOKING_GPS_QUICK_MAX_AGE_MS,
+                    timeout: timeoutMs
+                });
+            });
+        }
+
         function refineBookingCurrentPosition(initialPoint, onBetterPoint = null) {
             if (!navigator.geolocation?.watchPosition) {
                 return Promise.resolve(initialPoint);
@@ -8656,7 +8831,11 @@
         }
 
         async function getBestBookingCurrentLocation() {
-            return getBookingCurrentPositionOnce();
+            try {
+                return await getBookingCurrentPositionQuick();
+            } catch (_error) {
+                return getBookingCurrentPositionOnce();
+            }
         }
 
         function pointsAreNearEnoughForRefinement(basePoint, nextPoint) {
@@ -8708,11 +8887,18 @@
             setBookingCurrentButtonBusy(sourceButton, true);
             setBookingMapStatus('Getting GPS location...', 'info');
             try {
-                const coords = await getBookingCurrentPositionOnce();
-                await ensureBookingGoogleMapReady();
+                const coords = await getBestBookingCurrentLocation();
+                const mapReadyPromise = ensureBookingGoogleMapReady().catch(() => false);
                 await applyBookingMapCoordinates(safeTarget, coords, {
                     source: 'current',
                     stopInput: options.stopInput || null
+                });
+                mapReadyPromise.then(() => {
+                    const latestPoint = getBookingMapCoordsForTarget(safeTarget) || normalizeBookingMapCoords(coords);
+                    if (!latestPoint) return;
+                    bookingGoogleMapState.coords[safeTarget] = latestPoint;
+                    setBookingMapMarker(safeTarget, latestPoint);
+                    updateBookingGoogleMapLine();
                 });
                 startBookingCurrentLocationRefinement(safeTarget, coords, {
                     stopInput: options.stopInput || null
