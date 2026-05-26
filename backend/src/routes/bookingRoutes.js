@@ -245,6 +245,83 @@ function sanitizeBooleanMap(value, maxKeys = 40) {
   }, {});
 }
 
+function normalizeCoordinatePoint(value) {
+  if (!value) return null;
+  const source = Array.isArray(value)
+    ? { lat: value[0], lng: value[1] }
+    : (typeof value === 'object' ? value : {});
+  const lat = Number(source.lat ?? source.latitude);
+  const lng = Number(source.lng ?? source.lon ?? source.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    return null;
+  }
+  const accuracy = Number(source.accuracy ?? source.accuracyMeters ?? source.horizontalAccuracy);
+  const point = {
+    lat: Number(lat.toFixed(7)),
+    lng: Number(lng.toFixed(7)),
+    source: sanitizeText(source.source || 'booking_coordinate', 80),
+    capturedAt: sanitizeText(source.capturedAt || '', 60)
+  };
+  if (Number.isFinite(accuracy) && accuracy >= 0) {
+    point.accuracy = Math.round(accuracy);
+  }
+  point.googleMapsUrl = `https://www.google.com/maps?q=${point.lat},${point.lng}`;
+  return point;
+}
+
+function normalizeLocationPins(body = {}) {
+  const rawPins = body.locationPins && typeof body.locationPins === 'object' ? body.locationPins : {};
+  const pickupCoordinates = normalizeCoordinatePoint(
+    body.pickupCoordinates
+      || body.pickupLocationCoordinates
+      || rawPins.pickup?.coordinates
+  );
+  const dropoffCoordinates = normalizeCoordinatePoint(
+    body.dropoffCoordinates
+      || body.dropCoordinates
+      || body.dropLocationCoordinates
+      || rawPins.dropoff?.coordinates
+  );
+  const rawStops = Array.isArray(body.routeStopLocations)
+    ? body.routeStopLocations
+    : (Array.isArray(rawPins.stops) ? rawPins.stops : []);
+  const routeStopLocations = rawStops
+    .map((item, index) => {
+      const coordinates = normalizeCoordinatePoint(item?.coordinates || item);
+      const address = sanitizeText(item?.address || '', 180);
+      if (!coordinates && !address) return null;
+      return {
+        index: Number(item?.index || index + 1),
+        address,
+        coordinates,
+        googleMapsUrl: coordinates ? coordinates.googleMapsUrl : sanitizeText(item?.googleMapsUrl || '', 240)
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+  return {
+    pickupCoordinates,
+    dropoffCoordinates,
+    pickupGoogleMapsUrl: sanitizeText(body.pickupGoogleMapsUrl || rawPins.pickup?.googleMapsUrl || pickupCoordinates?.googleMapsUrl || '', 240),
+    dropoffGoogleMapsUrl: sanitizeText(body.dropoffGoogleMapsUrl || rawPins.dropoff?.googleMapsUrl || dropoffCoordinates?.googleMapsUrl || '', 240),
+    routeStopLocations,
+    locationPins: {
+      pickup: {
+        address: sanitizeText(rawPins.pickup?.address || body.pickup || body.pickupLocation || '', 180),
+        coordinates: pickupCoordinates,
+        googleMapsUrl: sanitizeText(body.pickupGoogleMapsUrl || rawPins.pickup?.googleMapsUrl || pickupCoordinates?.googleMapsUrl || '', 240)
+      },
+      dropoff: {
+        address: sanitizeText(rawPins.dropoff?.address || body.dropoff || body.drop || body.dropLocation || '', 180),
+        coordinates: dropoffCoordinates,
+        googleMapsUrl: sanitizeText(body.dropoffGoogleMapsUrl || rawPins.dropoff?.googleMapsUrl || dropoffCoordinates?.googleMapsUrl || '', 240)
+      },
+      stops: routeStopLocations,
+      source: sanitizeText(rawPins.source || 'booking_google_map_exact_location', 80)
+    }
+  };
+}
+
 function normalizeInteger(value, fallback = 1, min = 1, max = 20) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return fallback;
@@ -359,9 +436,16 @@ function resolveCustomerBookingEditPolicy(booking) {
 }
 
 function buildBookingContext(body = {}) {
+  const locationPins = normalizeLocationPins(body);
   return {
     pickupLocation: sanitizeText(body.pickup || body.pickupLocation, 180),
-    dropLocation: sanitizeText(body.drop || body.dropLocation, 180),
+    dropLocation: sanitizeText(body.drop || body.dropoff || body.dropLocation, 180),
+    pickupCoordinates: locationPins.pickupCoordinates,
+    dropoffCoordinates: locationPins.dropoffCoordinates,
+    pickupGoogleMapsUrl: locationPins.pickupGoogleMapsUrl,
+    dropoffGoogleMapsUrl: locationPins.dropoffGoogleMapsUrl,
+    routeStopLocations: locationPins.routeStopLocations,
+    locationPins: locationPins.locationPins,
     rideDate: sanitizeText(body.rideDate, 40),
     rideTime: sanitizeText(body.rideTime, 40),
     returnDate: sanitizeText(body.returnDate, 40),
@@ -438,7 +522,13 @@ function normalizeLocalSyncBooking(raw = {}, user = {}, reqUser = {}) {
     budgetAmount: normalizePersistedAmount(raw.budgetAmount || fareBreakdown.budgetAmount),
     customerBidAmount: normalizePersistedAmount(raw.customerBidAmount || fareBreakdown.customerBidAmount),
     pickupLocation: context.pickupLocation,
+    pickupCoordinates: context.pickupCoordinates,
+    pickupGoogleMapsUrl: context.pickupGoogleMapsUrl,
     dropLocation: context.dropLocation,
+    dropoffCoordinates: context.dropoffCoordinates,
+    dropoffGoogleMapsUrl: context.dropoffGoogleMapsUrl,
+    locationPins: context.locationPins,
+    routeStopLocations: context.routeStopLocations,
     rideDate: context.rideDate,
     rideTime: context.rideTime,
     outboundDateTime: parseBookingRideStartDateTime({
@@ -475,7 +565,13 @@ function normalizeLocalSyncBooking(raw = {}, user = {}, reqUser = {}) {
     fareHash: sanitizeText(raw.fareHash || fareBreakdown.fareHash, 240),
     payment,
     promo,
-    customerFeatures,
+    customerFeatures: {
+      ...customerFeatures,
+      locationPins: customerFeatures.locationPins || context.locationPins,
+      pickupCoordinates: customerFeatures.pickupCoordinates || context.pickupCoordinates,
+      dropoffCoordinates: customerFeatures.dropoffCoordinates || context.dropoffCoordinates,
+      routeStopLocations: customerFeatures.routeStopLocations || context.routeStopLocations
+    },
     adminReviewStatus,
     status
   };
@@ -820,9 +916,15 @@ function normalizeFallbackQueueBooking(raw = {}, options = {}) {
     },
     pickup: context.pickupLocation,
     pickupLocation: context.pickupLocation,
+    pickupCoordinates: context.pickupCoordinates,
+    pickupGoogleMapsUrl: context.pickupGoogleMapsUrl,
     dropoff: context.dropLocation,
     drop: context.dropLocation,
     dropLocation: context.dropLocation,
+    dropoffCoordinates: context.dropoffCoordinates,
+    dropoffGoogleMapsUrl: context.dropoffGoogleMapsUrl,
+    locationPins: context.locationPins,
+    routeStopLocations: context.routeStopLocations,
     rideDate: context.rideDate,
     rideTime: context.rideTime,
     outboundDateTime: parseBookingRideStartDateTime({
@@ -875,14 +977,20 @@ function normalizeFallbackQueueBooking(raw = {}, options = {}) {
     promo: raw.promo && typeof raw.promo === 'object' ? raw.promo : {},
     specialRequests: context.specialRequests,
     safetyAccessibility: context.safetyAccessibility,
-    customerFeatures: raw.customerFeatures && typeof raw.customerFeatures === 'object'
-      ? raw.customerFeatures
-      : {
-          specialRequests: context.specialRequests,
-          safetyAccessibility: context.safetyAccessibility,
-          hasStops: context.stops.length > 0,
-          hasReturnTrip: Boolean(context.returnDate)
-        },
+    customerFeatures: {
+      ...(raw.customerFeatures && typeof raw.customerFeatures === 'object'
+        ? raw.customerFeatures
+        : {
+            specialRequests: context.specialRequests,
+            safetyAccessibility: context.safetyAccessibility,
+            hasStops: context.stops.length > 0,
+            hasReturnTrip: Boolean(context.returnDate)
+          }),
+      locationPins: (raw.customerFeatures && typeof raw.customerFeatures === 'object' && raw.customerFeatures.locationPins) || context.locationPins,
+      pickupCoordinates: (raw.customerFeatures && typeof raw.customerFeatures === 'object' && raw.customerFeatures.pickupCoordinates) || context.pickupCoordinates,
+      dropoffCoordinates: (raw.customerFeatures && typeof raw.customerFeatures === 'object' && raw.customerFeatures.dropoffCoordinates) || context.dropoffCoordinates,
+      routeStopLocations: (raw.customerFeatures && typeof raw.customerFeatures === 'object' && raw.customerFeatures.routeStopLocations) || context.routeStopLocations
+    },
     adminEmailDispatch: raw.adminEmailDispatch && typeof raw.adminEmailDispatch === 'object' ? raw.adminEmailDispatch : {},
     customerEmailDispatch: raw.customerEmailDispatch && typeof raw.customerEmailDispatch === 'object' ? raw.customerEmailDispatch : {},
     createdAt: raw.createdAt || new Date().toISOString(),
@@ -1250,9 +1358,18 @@ function buildFareBreakdownText(booking = {}) {
     .join('\n');
 }
 
+function formatCoordinateSummary(point) {
+  const normalized = normalizeCoordinatePoint(point);
+  if (!normalized) return '';
+  const accuracy = Number.isFinite(Number(normalized.accuracy)) ? ` GPS ±${normalized.accuracy}m` : '';
+  return `${normalized.lat},${normalized.lng}${accuracy}`;
+}
+
 function buildBookingAdminEmailText({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
   const customerPhone = formatCustomerPhoneForEmail(customer.phone);
+  const pickupCoords = formatCoordinateSummary(context.pickupCoordinates);
+  const dropoffCoords = formatCoordinateSummary(context.dropoffCoordinates);
   return [
     `New booking pending admin review`,
     `Booking ID: ${booking.bookingId}`,
@@ -1261,7 +1378,11 @@ function buildBookingAdminEmailText({ booking, context, customer }) {
     `Amount: INR ${Number(booking.amount || 0).toFixed(2)}`,
     `Distance: ${Number(booking.distanceKm || 0).toFixed(2)} km`,
     `Pickup: ${context.pickupLocation || 'N/A'}`,
+    `Pickup GPS: ${pickupCoords || 'N/A'}`,
+    `Pickup Map: ${context.pickupGoogleMapsUrl || 'N/A'}`,
     `Drop: ${context.dropLocation || 'N/A'}`,
+    `Drop GPS: ${dropoffCoords || 'N/A'}`,
+    `Drop Map: ${context.dropoffGoogleMapsUrl || 'N/A'}`,
     `Stops: ${stopsText}`,
     `Ride Date/Time: ${(context.rideDate || 'N/A')} ${(context.rideTime || '')}`.trim(),
     `Return Date/Time: ${(context.returnDate || 'N/A')} ${(context.returnTime || '')}`.trim(),
@@ -1285,6 +1406,8 @@ function buildBookingAdminEmailText({ booking, context, customer }) {
 function buildBookingAdminWhatsAppText({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(' | ') : 'None';
   const customerPhone = formatCustomerPhoneForEmail(customer.phone);
+  const pickupCoords = formatCoordinateSummary(context.pickupCoordinates);
+  const dropoffCoords = formatCoordinateSummary(context.dropoffCoordinates);
   return [
     '[GO India RIDE] New Booking Pending Admin Review',
     `Booking ID: ${booking.bookingId}`,
@@ -1294,7 +1417,11 @@ function buildBookingAdminWhatsAppText({ booking, context, customer }) {
     `Customer Bid / Budget: ${Number(booking.customerBidAmount || booking.budgetAmount || 0) > 0 ? formatMoney(booking.customerBidAmount || booking.budgetAmount || 0) : 'N/A'}`,
     `Distance: ${Number(booking.distanceKm || 0).toFixed(2)} km`,
     `Pickup: ${context.pickupLocation || 'N/A'}`,
+    `Pickup GPS: ${pickupCoords || 'N/A'}`,
+    `Pickup Map: ${context.pickupGoogleMapsUrl || 'N/A'}`,
     `Drop: ${context.dropLocation || 'N/A'}`,
+    `Drop GPS: ${dropoffCoords || 'N/A'}`,
+    `Drop Map: ${context.dropoffGoogleMapsUrl || 'N/A'}`,
     `Stops: ${stopsText}`,
     `Ride Date/Time: ${(context.rideDate || 'N/A')} ${(context.rideTime || '')}`.trim(),
     `Return Date/Time: ${(context.returnDate || 'N/A')} ${(context.returnTime || '')}`.trim(),
@@ -1317,6 +1444,8 @@ function buildBookingAdminWhatsAppText({ booking, context, customer }) {
 function buildBookingAdminEmailHtml({ booking, context, customer }) {
   const stopsText = context.stops.length ? context.stops.join(', ') : 'None';
   const customerPhone = formatCustomerPhoneForEmail(customer.phone);
+  const pickupCoords = formatCoordinateSummary(context.pickupCoordinates);
+  const dropoffCoords = formatCoordinateSummary(context.dropoffCoordinates);
   const dataRows = [
     ['Booking ID', booking.bookingId],
     ['Status', booking.status],
@@ -1324,7 +1453,11 @@ function buildBookingAdminEmailHtml({ booking, context, customer }) {
     ['Amount', `INR ${Number(booking.amount || 0).toFixed(2)}`],
     ['Distance', `${Number(booking.distanceKm || 0).toFixed(2)} km`],
     ['Pickup', context.pickupLocation || 'N/A'],
+    ['Pickup GPS', pickupCoords || 'N/A'],
+    ['Pickup Map', context.pickupGoogleMapsUrl || 'N/A'],
     ['Drop', context.dropLocation || 'N/A'],
+    ['Drop GPS', dropoffCoords || 'N/A'],
+    ['Drop Map', context.dropoffGoogleMapsUrl || 'N/A'],
     ['Stops', stopsText],
     ['Ride Date/Time', `${context.rideDate || 'N/A'} ${context.rideTime || ''}`.trim()],
     ['Return Date/Time', `${context.returnDate || 'N/A'} ${context.returnTime || ''}`.trim()],
@@ -2019,7 +2152,13 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
       distanceKm: booking.distanceKm,
       customerId: sanitizeText(req.body.customerId, 120) || null,
       pickup: bookingContext.pickupLocation,
+      pickupCoordinates: bookingContext.pickupCoordinates,
+      pickupGoogleMapsUrl: bookingContext.pickupGoogleMapsUrl,
       drop: bookingContext.dropLocation,
+      dropoffCoordinates: bookingContext.dropoffCoordinates,
+      dropoffGoogleMapsUrl: bookingContext.dropoffGoogleMapsUrl,
+      locationPins: bookingContext.locationPins,
+      routeStopLocations: bookingContext.routeStopLocations,
       vehicleType: bookingContext.vehicleType,
       rideDate: bookingContext.rideDate,
       rideTime: bookingContext.rideTime,
@@ -2214,7 +2353,13 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
       routeCategory: fareEstimate.routeCategory
     },
     pickupLocation: bookingContext.pickupLocation,
+    pickupCoordinates: bookingContext.pickupCoordinates,
+    pickupGoogleMapsUrl: bookingContext.pickupGoogleMapsUrl,
     dropLocation: bookingContext.dropLocation,
+    dropoffCoordinates: bookingContext.dropoffCoordinates,
+    dropoffGoogleMapsUrl: bookingContext.dropoffGoogleMapsUrl,
+    locationPins: bookingContext.locationPins,
+    routeStopLocations: bookingContext.routeStopLocations,
     rideDate: bookingContext.rideDate,
     rideTime: bookingContext.rideTime,
     outboundDateTime: parseBookingRideStartDateTime({
@@ -2242,10 +2387,15 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
       discount: fareEstimate.promoDiscount
     },
     customerFeatures: {
+      ...safeMixedObject(req.body.customerFeatures),
       specialRequests: bookingContext.specialRequests,
       safetyAccessibility: bookingContext.safetyAccessibility,
       hasStops: bookingContext.stops.length > 0,
-      hasReturnTrip: Boolean(bookingContext.returnDate)
+      hasReturnTrip: Boolean(bookingContext.returnDate),
+      locationPins: bookingContext.locationPins,
+      pickupCoordinates: bookingContext.pickupCoordinates,
+      dropoffCoordinates: bookingContext.dropoffCoordinates,
+      routeStopLocations: bookingContext.routeStopLocations
     },
     status: 'created'
   });
@@ -2296,7 +2446,13 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
       distanceKm: booking.distanceKm,
       customerId: req.user.id,
       pickup: bookingContext.pickupLocation,
+      pickupCoordinates: bookingContext.pickupCoordinates,
+      pickupGoogleMapsUrl: bookingContext.pickupGoogleMapsUrl,
       drop: bookingContext.dropLocation,
+      dropoffCoordinates: bookingContext.dropoffCoordinates,
+      dropoffGoogleMapsUrl: bookingContext.dropoffGoogleMapsUrl,
+      locationPins: bookingContext.locationPins,
+      routeStopLocations: bookingContext.routeStopLocations,
       vehicleType: bookingContext.vehicleType,
       rideDate: bookingContext.rideDate,
       rideTime: bookingContext.rideTime,
@@ -2386,7 +2542,13 @@ router.get('/my', authenticate, continuousRiskGate, async (req, res) => {
     adminReviewedBy: row.adminReviewedBy || null,
     adminReviewNote: row.adminReviewNote || null,
     pickupLocation: row.pickupLocation || '',
+    pickupCoordinates: row.pickupCoordinates || row.customerFeatures?.pickupCoordinates || row.locationPins?.pickup?.coordinates || null,
+    pickupGoogleMapsUrl: row.pickupGoogleMapsUrl || row.locationPins?.pickup?.googleMapsUrl || '',
     dropLocation: row.dropLocation || '',
+    dropoffCoordinates: row.dropoffCoordinates || row.customerFeatures?.dropoffCoordinates || row.locationPins?.dropoff?.coordinates || null,
+    dropoffGoogleMapsUrl: row.dropoffGoogleMapsUrl || row.locationPins?.dropoff?.googleMapsUrl || '',
+    locationPins: row.locationPins && typeof row.locationPins === 'object' ? row.locationPins : (row.customerFeatures?.locationPins || {}),
+    routeStopLocations: Array.isArray(row.routeStopLocations) ? row.routeStopLocations : (row.customerFeatures?.routeStopLocations || []),
     rideDate: row.rideDate || '',
     rideTime: row.rideTime || '',
     outboundDateTime: row.outboundDateTime || null,

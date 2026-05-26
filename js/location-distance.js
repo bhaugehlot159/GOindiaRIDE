@@ -45,6 +45,31 @@
             .replace(/[^a-z0-9]/g, '');
     }
 
+    function parseCoordinatePoint(value) {
+        if (!value) return null;
+        if (Array.isArray(value) && value.length >= 2) {
+            const lat = Number(value[0]);
+            const lon = Number(value[1]);
+            return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+                ? { lat, lon, source: 'browser_coordinate' }
+                : null;
+        }
+        if (typeof value === 'object') {
+            const lat = Number(value.lat ?? value.latitude);
+            const lon = Number(value.lon ?? value.lng ?? value.longitude);
+            return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+                ? { lat, lon, source: value.source || 'browser_coordinate' }
+                : null;
+        }
+        const text = normalizeQuery(value);
+        const match = text.match(/(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/);
+        if (!match) return null;
+        const lat = Number(match[1]);
+        const lon = Number(match[2]);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+        return { lat, lon, source: 'browser_coordinate' };
+    }
+
     const STATIC_LOCATION_COORDINATES = {
         Jaipur: { lat: 26.9124, lon: 75.7873 },
         Jodhpur: { lat: 26.2389, lon: 73.0243 },
@@ -322,6 +347,16 @@
             };
         }
 
+        const directFromPoint = parseCoordinatePoint(from);
+        const directToPoint = parseCoordinatePoint(to);
+        if (directFromPoint && directToPoint) {
+            const straightLineKm = haversineKm(directFromPoint, directToPoint);
+            return {
+                km: Math.max(straightLineKm * estimateRoadMultiplier(straightLineKm, fromText, toText), 1),
+                source: 'browser_coordinate'
+            };
+        }
+
         const routeKm = parseRouteDistanceKm(fromText, toText);
         if (routeKm) {
             return {
@@ -332,9 +367,10 @@
 
         const staticFrom = resolveCoordinate(fromText);
         const staticTo = resolveCoordinate(toText);
-        let fromPoint = staticFrom ? { lat: staticFrom.lat, lon: staticFrom.lon } : null;
-        let toPoint = staticTo ? { lat: staticTo.lat, lon: staticTo.lon } : null;
+        let fromPoint = directFromPoint || (staticFrom ? { lat: staticFrom.lat, lon: staticFrom.lon } : null);
+        let toPoint = directToPoint || (staticTo ? { lat: staticTo.lat, lon: staticTo.lon } : null);
         let usedStatic = Boolean(staticFrom || staticTo);
+        let usedDirectCoordinate = Boolean(directFromPoint || directToPoint);
         let usedLive = false;
 
         try {
@@ -360,7 +396,9 @@
             const roadEstimateKm = Math.max(straightLineKm * estimateRoadMultiplier(straightLineKm, fromText, toText), 1);
             return {
                 km: roadEstimateKm,
-                source: usedStatic && usedLive
+                source: usedDirectCoordinate
+                    ? (directFromPoint && directToPoint ? 'browser_coordinate' : 'hybrid_browser_coordinate')
+                    : usedStatic && usedLive
                     ? 'hybrid_geo'
                     : usedStatic
                         ? 'district_geo'

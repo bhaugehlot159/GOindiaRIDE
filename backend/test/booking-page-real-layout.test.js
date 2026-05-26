@@ -30,3 +30,21 @@ test('booking page starts in live route state instead of demo fare or driver dat
   assert.doesNotMatch(html, /id="driverName">Driver Name/);
   assert.doesNotMatch(html, /RJ 01 AB 1234/);
 });
+
+test('booking current-location flow keeps exact GPS coordinates for maps and admin review', () => {
+  const html = readRepoFile('pages/booking.html');
+
+  assert.match(html, /BOOKING_EXACT_LOCATION_STORAGE_KEY/);
+  assert.match(html, /enableHighAccuracy:\s*true/);
+  assert.match(html, /maximumAge:\s*0/);
+  assert.match(html, /watchPosition/);
+  assert.match(html, /coords\.accuracy/);
+  assert.match(html, /buildBookingLocationSnapshot/);
+  assert.match(html, /getBookingMapQueryValue\('pickup'\)/);
+  assert.match(html, /pickupCoordinates:\s*locationPins\.pickup\.coordinates/);
+  assert.match(html, /dropoffCoordinates:\s*locationPins\.dropoff\.coordinates/);
+  assert.match(html, /routeStopLocations:\s*locationPins\.stops/);
+  assert.match(html, /https:\/\/www\.google\.com\/maps\?q=\$\{Number\(lat\.toFixed\(7\)\)\},\$\{Number\(lng\.toFixed\(7\)\)\}/);
+  assert.doesNotMatch(html, /return 'Current location';/);
+  assert.doesNotMatch(html, /maximumAge:\s*30000/);
+});

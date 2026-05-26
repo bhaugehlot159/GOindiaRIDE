@@ -652,12 +652,19 @@ function playDriverBookingAlarm() {
 
 function buildDriverBookingFromNotification(notification) {
     const metadata = (notification && typeof notification.metadata === 'object' && notification.metadata) || {};
+    const bookingPayload = (notification && typeof notification.booking === 'object' && notification.booking) || {};
     const fare = Number(metadata.amount || 0);
+    const locationPins = metadata.locationPins || bookingPayload.locationPins || bookingPayload.customerFeatures?.locationPins || {};
 
     return {
         id: notification.bookingId || metadata.bookingId || (`BK${Date.now()}`),
         pickup: metadata.pickup || metadata.pickupLocation || 'Pickup pending',
         drop: metadata.drop || metadata.dropLocation || 'Drop pending',
+        pickupCoordinates: metadata.pickupCoordinates || locationPins.pickup?.coordinates || bookingPayload.pickupCoordinates || bookingPayload.customerFeatures?.pickupCoordinates || null,
+        dropoffCoordinates: metadata.dropoffCoordinates || locationPins.dropoff?.coordinates || bookingPayload.dropoffCoordinates || bookingPayload.customerFeatures?.dropoffCoordinates || null,
+        pickupGoogleMapsUrl: metadata.pickupGoogleMapsUrl || locationPins.pickup?.googleMapsUrl || bookingPayload.pickupGoogleMapsUrl || '',
+        dropoffGoogleMapsUrl: metadata.dropoffGoogleMapsUrl || locationPins.dropoff?.googleMapsUrl || bookingPayload.dropoffGoogleMapsUrl || '',
+        locationPins,
         fare: Number.isFinite(fare) ? fare : 0,
         finalFare: Number.isFinite(fare) ? fare : 0,
         distanceKm: Number(metadata.distanceKm || 0),
@@ -676,6 +683,25 @@ function formatDriverBookingAlert(notification) {
     }
 
     return notification.message || `New booking ${notification.bookingId || ''}`.trim();
+}
+
+function normalizeDriverCoordinatePoint(value) {
+    if (!value || typeof value !== 'object') return null;
+    const lat = Number(value.lat ?? value.latitude);
+    const lng = Number(value.lng ?? value.lon ?? value.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+    return {
+        lat: Number(lat.toFixed(7)),
+        lng: Number(lng.toFixed(7)),
+        accuracy: Number.isFinite(Number(value.accuracy)) ? Math.round(Number(value.accuracy)) : null
+    };
+}
+
+function getDriverNavigationPoint(ride, target = 'pickup') {
+    const point = target === 'dropoff'
+        ? normalizeDriverCoordinatePoint(ride?.dropoffCoordinates || ride?.locationPins?.dropoff?.coordinates)
+        : normalizeDriverCoordinatePoint(ride?.pickupCoordinates || ride?.locationPins?.pickup?.coordinates);
+    return point ? `${point.lat},${point.lng}` : '';
 }
 
 async function fetchDriverUnreadNotifications() {
@@ -847,6 +873,11 @@ function acceptRequest() {
         id: acceptedBooking && acceptedBooking.id ? acceptedBooking.id : ('#' + Math.floor(Math.random() * 100000)),
         pickup: document.getElementById('requestPickup').textContent,
         drop: document.getElementById('requestDrop').textContent,
+        pickupCoordinates: acceptedBooking?.pickupCoordinates || acceptedBooking?.locationPins?.pickup?.coordinates || null,
+        dropoffCoordinates: acceptedBooking?.dropoffCoordinates || acceptedBooking?.locationPins?.dropoff?.coordinates || null,
+        pickupGoogleMapsUrl: acceptedBooking?.pickupGoogleMapsUrl || acceptedBooking?.locationPins?.pickup?.googleMapsUrl || '',
+        dropoffGoogleMapsUrl: acceptedBooking?.dropoffGoogleMapsUrl || acceptedBooking?.locationPins?.dropoff?.googleMapsUrl || '',
+        locationPins: acceptedBooking?.locationPins || {},
         fare: document.getElementById('requestFare').textContent,
         status: 'Accepted',
         startTime: Date.now()
@@ -933,7 +964,9 @@ function navigateRoute() {
         return;
     }
     
-    const destination = driverState.currentRide.drop;
+    const destination = getDriverNavigationPoint(driverState.currentRide, 'pickup')
+        || driverState.currentRide.pickup
+        || driverState.currentRide.drop;
     
     // Open Google Maps
     const url = `https://www.google.com/maps/dir/?api=1&origin=${driverState.location.lat},${driverState.location.lng}&destination=${encodeURIComponent(destination)}`;

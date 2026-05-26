@@ -7972,7 +7972,11 @@
         }
 
         const BOOKING_GOOGLE_MAP_STORAGE_KEY = 'goindiaride_google_maps_api_key';
+        const BOOKING_EXACT_LOCATION_STORAGE_KEY = 'goindiaride_booking_exact_locations_v1';
         const BOOKING_GOOGLE_MAP_DEFAULT_CENTER = { lat: 24.5854, lng: 73.7125 };
+        const BOOKING_GPS_TARGET_ACCURACY_METERS = 35;
+        const BOOKING_GPS_WEAK_ACCURACY_METERS = 120;
+        const BOOKING_GPS_REFINE_WINDOW_MS = 10000;
         const bookingGoogleMapState = {
             activeTarget: 'pickup',
             coords: { pickup: null, dropoff: null, stop: null },
@@ -8121,9 +8125,14 @@
         }
 
         function buildBookingGoogleMapsUrl() {
-            const pickup = getBookingMapInputValue('pickup');
-            const dropoff = getBookingMapInputValue('dropoff');
-            const stops = getBookingMapRouteStops();
+            const pickup = getBookingMapQueryValue('pickup');
+            const dropoff = getBookingMapQueryValue('dropoff');
+            const stops = getRouteStopInputs()
+                .map((input) => {
+                    const point = getBookingMapDatasetCoords(input);
+                    return point ? `${point.lat},${point.lng}` : sanitizeInput(input.value || '').trim();
+                })
+                .filter(Boolean);
             if (pickup && dropoff) {
                 const params = new URLSearchParams({
                     api: '1',
@@ -8150,8 +8159,157 @@
             }
         }
 
-        function formatBookingMapCoords() {
-            return 'Current location';
+        function normalizeBookingMapCoords(raw = {}, defaults = {}) {
+            const source = raw && typeof raw === 'object' ? raw : {};
+            const lat = Number(source.lat ?? source.latitude);
+            const lng = Number(source.lng ?? source.lon ?? source.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+            const accuracyValue = Number(source.accuracy ?? source.accuracyMeters ?? source.horizontalAccuracy);
+            const altitudeAccuracyValue = Number(source.altitudeAccuracy);
+            const capturedAt = sanitizeInput(
+                source.capturedAt
+                    || defaults.capturedAt
+                    || (source.timestamp ? new Date(source.timestamp).toISOString() : '')
+                    || new Date().toISOString(),
+                60
+            );
+            const point = {
+                lat: Number(lat.toFixed(7)),
+                lng: Number(lng.toFixed(7)),
+                source: sanitizeInput(source.source || defaults.source || 'map_pin', 80),
+                capturedAt,
+                googleMapsUrl: ''
+            };
+            if (Number.isFinite(accuracyValue) && accuracyValue >= 0) {
+                point.accuracy = Math.round(accuracyValue);
+            }
+            if (Number.isFinite(altitudeAccuracyValue) && altitudeAccuracyValue >= 0) {
+                point.altitudeAccuracy = Math.round(altitudeAccuracyValue);
+            }
+            point.googleMapsUrl = buildBookingMapPointUrl(point);
+            return point;
+        }
+
+        function buildBookingMapPointUrl(coords) {
+            const lat = Number(coords?.lat ?? coords?.latitude);
+            const lng = Number(coords?.lng ?? coords?.lon ?? coords?.longitude);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '';
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return '';
+            return `https://www.google.com/maps?q=${Number(lat.toFixed(7))},${Number(lng.toFixed(7))}`;
+        }
+
+        function formatBookingMapAccuracy(coords) {
+            const point = normalizeBookingMapCoords(coords);
+            if (!point || !Number.isFinite(Number(point.accuracy))) return '';
+            return `GPS ±${Math.max(1, Math.round(Number(point.accuracy)))}m`;
+        }
+
+        function formatBookingMapCoords(coords) {
+            const point = normalizeBookingMapCoords(coords);
+            if (!point) return '';
+            const accuracy = formatBookingMapAccuracy(point);
+            return `${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}${accuracy ? ` (${accuracy})` : ''}`;
+        }
+
+        function getBookingMapDatasetCoords(input) {
+            if (!input || !input.dataset) return null;
+            return normalizeBookingMapCoords({
+                lat: input.dataset.googleMapLat,
+                lng: input.dataset.googleMapLng,
+                accuracy: input.dataset.googleMapAccuracy,
+                capturedAt: input.dataset.googleMapCapturedAt,
+                source: input.dataset.googleMapSource
+            });
+        }
+
+        function getBookingMapCoordsForTarget(target) {
+            const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            const statePoint = normalizeBookingMapCoords(bookingGoogleMapState.coords[safeTarget]);
+            if (statePoint) return statePoint;
+
+            if (safeTarget === 'stop') {
+                const stopInput = getRouteStopInputs().find((input) => getBookingMapDatasetCoords(input));
+                return getBookingMapDatasetCoords(stopInput);
+            }
+
+            const inputIds = safeTarget === 'dropoff'
+                ? ['dropoff', 'cabQuickDropoffInput']
+                : ['pickup', 'cabQuickPickupInput'];
+            for (const inputId of inputIds) {
+                const point = getBookingMapDatasetCoords(document.getElementById(inputId));
+                if (point) return point;
+            }
+            return null;
+        }
+
+        function getBookingMapQueryValue(target) {
+            const point = getBookingMapCoordsForTarget(target);
+            if (point) return `${point.lat},${point.lng}`;
+            return getBookingMapInputValue(target);
+        }
+
+        function saveBookingExactLocationSnapshot() {
+            try {
+                const snapshot = buildBookingLocationSnapshot();
+                localStorage.setItem(BOOKING_EXACT_LOCATION_STORAGE_KEY, JSON.stringify({
+                    ...snapshot,
+                    updatedAt: new Date().toISOString()
+                }));
+            } catch (error) {
+                // Storage can be unavailable in private browsing or strict mode.
+            }
+        }
+
+        function setBookingExactLocationDataset(input, coords, address = '') {
+            if (!input || !input.dataset) return;
+            const point = normalizeBookingMapCoords(coords);
+            if (!point) return;
+            input.dataset.googleMapLat = String(point.lat);
+            input.dataset.googleMapLng = String(point.lng);
+            input.dataset.googleMapAccuracy = Number.isFinite(Number(point.accuracy)) ? String(point.accuracy) : '';
+            input.dataset.googleMapCapturedAt = point.capturedAt || '';
+            input.dataset.googleMapSource = point.source || '';
+            input.dataset.googleMapUrl = point.googleMapsUrl || buildBookingMapPointUrl(point);
+            input.dataset.googleMapAddress = sanitizeInput(address || input.value || '', 220);
+        }
+
+        function clearBookingExactLocationDataset(input) {
+            if (!input || !input.dataset) return;
+            delete input.dataset.googleMapLat;
+            delete input.dataset.googleMapLng;
+            delete input.dataset.googleMapAccuracy;
+            delete input.dataset.googleMapCapturedAt;
+            delete input.dataset.googleMapSource;
+            delete input.dataset.googleMapUrl;
+            delete input.dataset.googleMapAddress;
+        }
+
+        function clearBookingMapCoordinatesForInput(input) {
+            if (!input || !input.matches?.('#pickup, #dropoff, #cabQuickPickupInput, #cabQuickDropoffInput, [data-route-stop-input]')) return;
+            const target = input.matches('[data-route-stop-input]')
+                ? 'stop'
+                : (input.id === 'dropoff' || input.id === 'cabQuickDropoffInput' ? 'dropoff' : 'pickup');
+            const previousAddress = sanitizeInput(input.dataset?.googleMapAddress || '').trim();
+            const nextValue = sanitizeInput(input.value || '').trim();
+            const hasDatasetCoords = Boolean(getBookingMapDatasetCoords(input));
+            const hasStateCoords = Boolean(normalizeBookingMapCoords(bookingGoogleMapState.coords[target]));
+            if (!hasDatasetCoords && !hasStateCoords) return;
+            if (hasDatasetCoords && previousAddress === nextValue) return;
+
+            if (target === 'stop') {
+                clearBookingExactLocationDataset(input);
+                bookingGoogleMapState.coords[target] = null;
+            } else {
+                const inputIds = target === 'dropoff'
+                    ? ['dropoff', 'cabQuickDropoffInput']
+                    : ['pickup', 'cabQuickPickupInput'];
+                inputIds.forEach((inputId) => clearBookingExactLocationDataset(document.getElementById(inputId)));
+                bookingGoogleMapState.coords[target] = null;
+                setBookingMapMarker(target, null);
+            }
+            updateBookingGoogleMapLine();
+            saveBookingExactLocationSnapshot();
         }
 
         function buildBookingReverseAddress(address = {}) {
@@ -8299,7 +8457,10 @@
         }
 
         function updateBookingMapFieldValue(target, value, coords = null, options = {}) {
-            const cleanValue = sanitizeInput(value || '').trim() || (coords ? formatBookingMapCoords(coords) : '');
+            const cleanCoords = normalizeBookingMapCoords(coords, {
+                source: options.source === 'current' ? 'browser_gps_high_accuracy' : (options.source || 'map_pin')
+            });
+            const cleanValue = sanitizeInput(value || '').trim() || (cleanCoords ? formatBookingMapCoords(cleanCoords) : '');
             if (!cleanValue) return;
 
             if (target === 'stop') {
@@ -8308,9 +8469,8 @@
                 const stopInput = preferredStopInput || getRouteStopInputs().find((input) => !String(input.value || '').trim()) || getRouteStopInputs()[0] || addRouteStop('', false);
                 if (stopInput) {
                     stopInput.value = cleanValue;
-                    if (coords) {
-                        stopInput.dataset.googleMapLat = coords.lat;
-                        stopInput.dataset.googleMapLng = coords.lng;
+                    if (cleanCoords) {
+                        setBookingExactLocationDataset(stopInput, cleanCoords, cleanValue);
                     }
                 }
                 handleRouteStopInputChange();
@@ -8322,30 +8482,46 @@
                     const input = document.getElementById(inputId);
                     if (!input) return;
                     input.value = cleanValue;
-                    if (coords) {
-                        input.dataset.googleMapLat = coords.lat;
-                        input.dataset.googleMapLng = coords.lng;
+                    if (cleanCoords) {
+                        setBookingExactLocationDataset(input, cleanCoords, cleanValue);
                     }
                 });
                 handleLocationUpdated();
                 updateBookingExperience();
             }
 
-            if (coords) {
-                bookingGoogleMapState.coords[target] = coords;
-                setBookingMapMarker(target, coords);
+            if (cleanCoords) {
+                bookingGoogleMapState.coords[target] = cleanCoords;
+                setBookingMapMarker(target, cleanCoords);
                 updateBookingGoogleMapLine();
+                saveBookingExactLocationSnapshot();
             }
             updateBookingGoogleMapRouteLink();
         }
 
         async function applyBookingMapCoordinates(target, coords, options = {}) {
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            const cleanCoords = normalizeBookingMapCoords(coords, {
+                source: options.source === 'current' ? 'browser_gps_high_accuracy' : (options.source || 'map_pin')
+            });
+            if (!cleanCoords) {
+                showBookingLocationNotice('Location coordinates were not valid. Please try again.', 'error');
+                return;
+            }
             setBookingMapActiveTarget(safeTarget);
-            const address = await reverseGeocodeBookingCoords(coords);
-            updateBookingMapFieldValue(safeTarget, address, coords, options);
+            const address = await reverseGeocodeBookingCoords(cleanCoords);
+            updateBookingMapFieldValue(safeTarget, address, cleanCoords, options);
             const targetLabel = safeTarget === 'dropoff' ? 'Drop' : safeTarget === 'stop' ? 'Stop' : 'Pickup';
-            setBookingMapStatus(`${targetLabel} location updated from ${options.source === 'map' ? 'map pin' : 'current location'}.`, 'info');
+            const accuracy = formatBookingMapAccuracy(cleanCoords);
+            const isWeak = Number(cleanCoords.accuracy || 0) > BOOKING_GPS_WEAK_ACCURACY_METERS;
+            const sourceLabel = options.source === 'map' ? 'map pin' : 'exact GPS';
+            setBookingMapStatus(
+                `${targetLabel} location updated from ${sourceLabel}${accuracy ? ` (${accuracy})` : ''}.`,
+                isWeak ? 'warning' : 'info'
+            );
+            if (isWeak) {
+                showBookingLocationNotice(`${targetLabel} GPS signal weak hai (${accuracy}). Open area me jaakar location arrow dubara tap karein.`, 'warning');
+            }
         }
 
         function geocodeBookingMapInput(target, value) {
@@ -8357,10 +8533,12 @@
             bookingGoogleMapState.geocoder.geocode(request, (results, status) => {
                 if (status !== 'OK' || !results?.[0]?.geometry?.location) return;
                 const location = results[0].geometry.location;
-                const coords = {
+                const coords = normalizeBookingMapCoords({
                     lat: typeof location.lat === 'function' ? location.lat() : location.lat,
-                    lng: typeof location.lng === 'function' ? location.lng() : location.lng
-                };
+                    lng: typeof location.lng === 'function' ? location.lng() : location.lng,
+                    source: 'google_geocode'
+                });
+                if (!coords) return;
                 bookingGoogleMapState.coords[target] = coords;
                 setBookingMapMarker(target, coords);
                 updateBookingGoogleMapLine();
@@ -8392,6 +8570,98 @@
             }
         }
 
+        function normalizeBookingGeoPosition(position) {
+            const coords = position?.coords || {};
+            return normalizeBookingMapCoords({
+                lat: coords.latitude,
+                lng: coords.longitude,
+                accuracy: coords.accuracy,
+                altitudeAccuracy: coords.altitudeAccuracy,
+                source: 'browser_gps_high_accuracy',
+                timestamp: position?.timestamp
+            });
+        }
+
+        function isBetterBookingGeoPoint(candidate, currentBest) {
+            if (!candidate) return false;
+            if (!currentBest) return true;
+            const nextAccuracy = Number.isFinite(Number(candidate.accuracy)) ? Number(candidate.accuracy) : Number.POSITIVE_INFINITY;
+            const bestAccuracy = Number.isFinite(Number(currentBest.accuracy)) ? Number(currentBest.accuracy) : Number.POSITIVE_INFINITY;
+            if (nextAccuracy + 3 < bestAccuracy) return true;
+            const nextTime = Date.parse(candidate.capturedAt || '');
+            const bestTime = Date.parse(currentBest.capturedAt || '');
+            return Number.isFinite(nextTime)
+                && Number.isFinite(bestTime)
+                && nextTime > bestTime + 2500
+                && nextAccuracy <= bestAccuracy + 10;
+        }
+
+        function getBookingCurrentPositionOnce() {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const point = normalizeBookingGeoPosition(position);
+                    if (point) resolve(point);
+                    else reject(new Error('invalid_position'));
+                }, reject, {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 20000
+                });
+            });
+        }
+
+        function refineBookingCurrentPosition(initialPoint) {
+            if (!navigator.geolocation?.watchPosition) {
+                return Promise.resolve(initialPoint);
+            }
+            return new Promise((resolve) => {
+                let bestPoint = initialPoint;
+                let settled = false;
+                let watchId = null;
+                const finish = () => {
+                    if (settled) return;
+                    settled = true;
+                    if (watchId !== null) {
+                        try {
+                            navigator.geolocation.clearWatch(watchId);
+                        } catch (error) {
+                            // Ignore clearWatch issues; bestPoint is already captured.
+                        }
+                    }
+                    window.clearTimeout(timer);
+                    resolve(bestPoint);
+                };
+                const timer = window.setTimeout(finish, BOOKING_GPS_REFINE_WINDOW_MS);
+                try {
+                    watchId = navigator.geolocation.watchPosition((position) => {
+                        const nextPoint = normalizeBookingGeoPosition(position);
+                        if (isBetterBookingGeoPoint(nextPoint, bestPoint)) {
+                            bestPoint = nextPoint;
+                        }
+                        if (Number(bestPoint?.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) {
+                            finish();
+                        }
+                    }, () => {
+                        finish();
+                    }, {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: BOOKING_GPS_REFINE_WINDOW_MS
+                    });
+                } catch (error) {
+                    finish();
+                }
+            });
+        }
+
+        async function getBestBookingCurrentLocation() {
+            const initialPoint = await getBookingCurrentPositionOnce();
+            if (Number(initialPoint.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) {
+                return initialPoint;
+            }
+            return refineBookingCurrentPosition(initialPoint);
+        }
+
         async function requestBookingCurrentLocation(target = 'pickup', options = {}) {
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
             const sourceButton = options.sourceButton || null;
@@ -8401,28 +8671,21 @@
                 return;
             }
             setBookingCurrentButtonBusy(sourceButton, true);
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                try {
-                    const coords = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    await ensureBookingGoogleMapReady();
-                    await applyBookingMapCoordinates(safeTarget, coords, {
-                        source: 'current',
-                        stopInput: options.stopInput || null
-                    });
-                } finally {
-                    setBookingCurrentButtonBusy(sourceButton, false);
-                }
-            }, () => {
+            setBookingMapStatus('Getting exact GPS location...', 'info');
+            try {
+                const coords = await getBestBookingCurrentLocation();
+                await ensureBookingGoogleMapReady();
+                await applyBookingMapCoordinates(safeTarget, coords, {
+                    source: 'current',
+                    stopInput: options.stopInput || null
+                });
+            } catch (error) {
                 setBookingCurrentButtonBusy(sourceButton, false);
                 showBookingLocationNotice('Please allow location permission, then tap the location arrow again.', 'error');
-            }, {
-                enableHighAccuracy: true,
-                maximumAge: 30000,
-                timeout: 12000
-            });
+                setBookingMapStatus('Location permission needed. Please allow precise location and try again.', 'error');
+                return;
+            }
+            setBookingCurrentButtonBusy(sourceButton, false);
         }
 
         function initGoogleMapBookingUI() {
@@ -8448,11 +8711,13 @@
                 });
                 document.addEventListener('input', (event) => {
                     if (event.target.matches('#pickup, #dropoff, #cabQuickPickupInput, #cabQuickDropoffInput, [data-route-stop-input]')) {
+                        clearBookingMapCoordinatesForInput(event.target);
                         queueBookingMapSync();
                     }
                 });
                 document.addEventListener('change', (event) => {
                     if (event.target.matches('#pickup, #dropoff, #cabQuickPickupInput, #cabQuickDropoffInput, [data-route-stop-input]')) {
+                        clearBookingMapCoordinatesForInput(event.target);
                         queueBookingMapSync();
                     }
                 });
@@ -8460,6 +8725,7 @@
             }
             window.GoIndiaRideBookingMap = {
                 init: initGoogleMapBookingUI,
+                getLocationPins: buildBookingLocationSnapshot,
                 refresh: syncBookingMapFromInputs,
                 requestCurrentLocation: requestBookingCurrentLocation,
                 setTarget: setBookingMapActiveTarget
@@ -9312,6 +9578,48 @@
             return getRouteStopInputs()
                 .map((input) => sanitizeInput(input.value || '').trim())
                 .filter(Boolean);
+        }
+
+        function buildBookingRouteStopLocationSnapshot() {
+            return getRouteStopInputs()
+                .map((input, index) => {
+                    const address = sanitizeInput(input.value || '').trim();
+                    const point = getBookingMapDatasetCoords(input);
+                    if (!address && !point) return null;
+                    return {
+                        index: index + 1,
+                        address,
+                        coordinates: point || null,
+                        googleMapsUrl: point ? buildBookingMapPointUrl(point) : ''
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        function buildBookingLocationSnapshot() {
+            const pickupInput = document.getElementById('pickup');
+            const dropoffInput = document.getElementById('dropoff');
+            const pickupPoint = getBookingMapCoordsForTarget('pickup');
+            const dropoffPoint = getBookingMapCoordsForTarget('dropoff');
+            const stops = buildBookingRouteStopLocationSnapshot();
+            return {
+                pickup: {
+                    address: sanitizeInput(pickupInput?.value || '').trim(),
+                    coordinates: pickupPoint || null,
+                    googleMapsUrl: pickupPoint ? buildBookingMapPointUrl(pickupPoint) : ''
+                },
+                dropoff: {
+                    address: sanitizeInput(dropoffInput?.value || '').trim(),
+                    coordinates: dropoffPoint || null,
+                    googleMapsUrl: dropoffPoint ? buildBookingMapPointUrl(dropoffPoint) : ''
+                },
+                stops,
+                accuracy: {
+                    pickup: Number.isFinite(Number(pickupPoint?.accuracy)) ? Number(pickupPoint.accuracy) : null,
+                    dropoff: Number.isFinite(Number(dropoffPoint?.accuracy)) ? Number(dropoffPoint.accuracy) : null
+                },
+                source: 'booking_google_map_exact_location'
+            };
         }
 
         function updateRouteStopLabels() {
@@ -10969,10 +11277,15 @@
         function readFareEstimateInputs() {
             const routeStops = readRouteStops();
             const travelAssurance = readTravelAssuranceDetails();
+            const locationPins = buildBookingLocationSnapshot();
 
             return {
                 pickup: sanitizeInput(document.getElementById('pickup').value).trim(),
                 drop: sanitizeInput(document.getElementById('dropoff').value).trim(),
+                pickupCoordinates: locationPins.pickup.coordinates,
+                dropoffCoordinates: locationPins.dropoff.coordinates,
+                routeStopLocations: locationPins.stops,
+                locationPins,
                 rideDate: document.getElementById('rideDate').value,
                 rideTime: document.getElementById('rideTime').value,
                 returnDate: document.getElementById('returnDate').value,
@@ -11254,13 +11567,17 @@
             const cleanedSource = source && source !== 'Awaiting route' ? ` • ${source}` : '';
             titleNode.textContent = `${pickup} to ${dropoff}`;
             textNode.textContent = statusText || `${distance || '0'} km route ready${cleanedSource}`;
-            linkNode.href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
+            const origin = getBookingMapQueryValue('pickup') || pickup;
+            const destination = getBookingMapQueryValue('dropoff') || dropoff;
+            linkNode.href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
             linkNode.style.display = 'inline-flex';
         }
 
         async function updateDistanceEstimate() {
             const pickup = sanitizeInput(document.getElementById('pickup').value).trim();
             const dropoff = sanitizeInput(document.getElementById('dropoff').value).trim();
+            const pickupQuery = getBookingMapQueryValue('pickup') || pickup;
+            const dropoffQuery = getBookingMapQueryValue('dropoff') || dropoff;
             const sourceNode = document.getElementById('distanceSource');
 
             if (!pickup || !dropoff) {
@@ -11278,7 +11595,7 @@
 
             try {
                 if (window.LocationDistanceEstimator && typeof LocationDistanceEstimator.estimateDistanceKm === 'function') {
-                    const estimate = await LocationDistanceEstimator.estimateDistanceKm(pickup, dropoff);
+                    const estimate = await LocationDistanceEstimator.estimateDistanceKm(pickupQuery, dropoffQuery);
                     if (token !== distanceEstimateToken) return;
 
                     const km = Number(estimate && estimate.km);
@@ -13297,9 +13614,15 @@
                 customerPhone: resolvedCustomerPhone,
                 pickup: pickupValue,
                 pickupLocation: pickupValue,
+                pickupCoordinates: bookingRecord.pickupCoordinates || bookingRecord.locationPins?.pickup?.coordinates || bookingRecord.customerFeatures?.pickupCoordinates || null,
+                pickupGoogleMapsUrl: sanitizeInput(bookingRecord.pickupGoogleMapsUrl || bookingRecord.locationPins?.pickup?.googleMapsUrl || '', 240),
                 dropoff: dropValue,
                 drop: dropValue,
                 dropLocation: dropValue,
+                dropoffCoordinates: bookingRecord.dropoffCoordinates || bookingRecord.locationPins?.dropoff?.coordinates || bookingRecord.customerFeatures?.dropoffCoordinates || null,
+                dropoffGoogleMapsUrl: sanitizeInput(bookingRecord.dropoffGoogleMapsUrl || bookingRecord.locationPins?.dropoff?.googleMapsUrl || '', 240),
+                locationPins: bookingRecord.locationPins || bookingRecord.customerFeatures?.locationPins || {},
+                routeStopLocations: Array.isArray(bookingRecord.routeStopLocations) ? bookingRecord.routeStopLocations : (bookingRecord.locationPins?.stops || []),
                 amount: Number(bookingRecord.amount || bookingRecord.totalFare || bookingRecord.fare || 0),
                 totalFare: Number(bookingRecord.totalFare || bookingRecord.amount || bookingRecord.fare || 0),
                 sourceKey: 'customer_booking_submit',
@@ -13403,6 +13726,11 @@
                 customerPhone: resolvedCustomerPhone,
                 pickup: sanitizeInput(bookingRecord.pickup || ''),
                 drop: sanitizeInput(bookingRecord.dropoff || bookingRecord.drop || ''),
+                pickupCoordinates: bookingRecord.pickupCoordinates || bookingRecord.locationPins?.pickup?.coordinates || bookingRecord.customerFeatures?.pickupCoordinates || null,
+                dropoffCoordinates: bookingRecord.dropoffCoordinates || bookingRecord.locationPins?.dropoff?.coordinates || bookingRecord.customerFeatures?.dropoffCoordinates || null,
+                pickupGoogleMapsUrl: sanitizeInput(bookingRecord.pickupGoogleMapsUrl || bookingRecord.locationPins?.pickup?.googleMapsUrl || '', 240),
+                dropoffGoogleMapsUrl: sanitizeInput(bookingRecord.dropoffGoogleMapsUrl || bookingRecord.locationPins?.dropoff?.googleMapsUrl || '', 240),
+                locationPins: bookingRecord.locationPins || bookingRecord.customerFeatures?.locationPins || {},
                 rideDate: sanitizeInput(bookingRecord.rideDate || ''),
                 rideTime: sanitizeInput(bookingRecord.rideTime || ''),
                 returnDate: sanitizeInput(bookingRecord.returnTrip?.returnDate || ''),
@@ -13423,6 +13751,7 @@
                 luggage: sanitizeInput(bookingRecord.luggage || ''),
                 notes: sanitizeInput(bookingRecord.notes || ''),
                 stops: Array.isArray(bookingRecord.stops) ? bookingRecord.stops : [],
+                routeStopLocations: Array.isArray(bookingRecord.routeStopLocations) ? bookingRecord.routeStopLocations : (bookingRecord.locationPins?.stops || []),
                 specialRequests: bookingRecord.customerFeatures?.specialRequests || {},
                 safetyAccessibility: bookingRecord.customerFeatures?.safetyAccessibility || {},
                 distanceKm: Number(bookingRecord.distanceKm || bookingRecord.distance || 0),
@@ -13650,6 +13979,7 @@
                 const dropoffNode = document.getElementById('dropoff');
                 if (dropoffNode) dropoffNode.value = dropoff;
             }
+            const locationPins = buildBookingLocationSnapshot();
 
             const specialRequests = {
                 airCondition: document.getElementById('airCondition').checked,
@@ -13808,6 +14138,10 @@
                 hasReturnTrip: isReturnTrip,
                 airportTerminalNote,
                 vehicleFuelPreference,
+                locationPins,
+                pickupCoordinates: locationPins.pickup.coordinates,
+                dropoffCoordinates: locationPins.dropoff.coordinates,
+                routeStopLocations: locationPins.stops,
                 travelAssurance,
                 flightDetails: travelAssurance.flightDetails,
                 policyPreferences: travelAssurance.policyPreferences,
@@ -13829,7 +14163,13 @@
                 },
                 pickup: pickup,
                 dropoff: dropoff,
+                pickupCoordinates: locationPins.pickup.coordinates,
+                dropoffCoordinates: locationPins.dropoff.coordinates,
+                pickupGoogleMapsUrl: locationPins.pickup.googleMapsUrl,
+                dropoffGoogleMapsUrl: locationPins.dropoff.googleMapsUrl,
+                locationPins,
                 stops: intermediateStops,
+                routeStopLocations: locationPins.stops,
                 rideType: rideType,
                 vehicleType: rideType,
                 vehicleModel: fareEstimateInputs.vehicleModel || '',
@@ -13988,6 +14328,11 @@
                     promoCode: activePromoCode || '',
                     pickup,
                     drop: dropoff,
+                    pickupCoordinates: locationPins.pickup.coordinates,
+                    dropoffCoordinates: locationPins.dropoff.coordinates,
+                    pickupGoogleMapsUrl: locationPins.pickup.googleMapsUrl,
+                    dropoffGoogleMapsUrl: locationPins.dropoff.googleMapsUrl,
+                    locationPins,
                     vehicleType: rideType,
                     vehicleModel: fareEstimateInputs.vehicleModel || '',
                     vehicleFuelPreference: fareEstimateInputs.vehicleFuelPreference || vehicleFuelPreference,
@@ -14004,6 +14349,7 @@
                     returnTime: isReturnTrip ? returnTime : '',
                     luggage,
                     stops: intermediateStops,
+                    routeStopLocations: locationPins.stops,
                     travelAssurance,
                     flightDetails: travelAssurance.flightDetails,
                     policyPreferences: travelAssurance.policyPreferences,
@@ -14011,6 +14357,7 @@
                     bookingAddOns: travelAssurance.addOns,
                     specialRequests,
                     safetyAccessibility,
+                    customerFeatures,
                     notes,
                     distanceSource,
                     fareBreakdown: secureEstimate,
@@ -14429,7 +14776,9 @@ Thank you for your generosity! ❤️
                 showError('Pickup/drop missing for live route tracking.');
                 return;
             }
-            const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(dropoff)}&travelmode=driving`;
+            const origin = getBookingMapQueryValue('pickup') || pickup;
+            const destination = getBookingMapQueryValue('dropoff') || dropoff;
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
             window.open(url, '_blank', 'noopener');
         }
 

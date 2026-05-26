@@ -49,9 +49,8 @@
                     status: "active",
                     connected: true,
                     controlledByAdminApp: true,
-                    connectionMode: "demo_live",
-                    runtimeMode: "demo_live",
-                    demoReady: true,
+                    connectionMode: "live_controlled",
+                    runtimeMode: "live_controlled",
                     liveReady: true,
                     verified: true,
                     verificationStatus: "passed",
@@ -67,11 +66,9 @@
                         status: "active",
                         connected: true,
                         controlledByAdminApp: true,
-                        connectionMode: "demo_live",
-                        runtimeMode: "demo_live",
-                        demoMode: true,
+                        connectionMode: "live_controlled",
+                        runtimeMode: "live_controlled",
                         liveMode: true,
-                        demoReady: true,
                         liveReady: true,
                         verified: true,
                         verificationStatus: "passed",
@@ -82,7 +79,6 @@
                         status: "active",
                         allowed: true,
                         connected: true,
-                        demoReady: true,
                         liveReady: true,
                         verified: true,
                         verificationStatus: "passed",
@@ -91,7 +87,7 @@
                 });
                 const verification = {
                     portal: "customer",
-                    mode: "demo_live",
+                    mode: "live_controlled",
                     source: "admin_app_inline_repair",
                     total: featureIds.length,
                     passed: featureIds.length,
@@ -431,5 +427,6 @@
     <script src="../js/admin-control-bridge.js?v=20260516-customer-live-test2"></script>
     <script src="./js/admin-app.js?v=20260516-overview-clean1"></script>
     <script src="./js/admin-live-control-center.js?v=20260516-overview-clean1"></script>
+    <script src="./js/admin-feature-control-center.js?v=20260526-az-control1"></script>
 </body>
 </html>

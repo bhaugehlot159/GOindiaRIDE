@@ -910,7 +910,11 @@
             ]),
             renderDetailSection("Trip", [
                 ["Pickup", booking.pickup || booking.pickupLocation || booking.from],
+                ["Pickup GPS", formatObjectSummary(booking.pickupCoordinates || booking.locationPins?.pickup?.coordinates || booking.customerFeatures?.pickupCoordinates)],
+                ["Pickup map", booking.pickupGoogleMapsUrl || booking.locationPins?.pickup?.googleMapsUrl],
                 ["Drop", booking.dropoff || booking.dropLocation || booking.drop || booking.to],
+                ["Drop GPS", formatObjectSummary(booking.dropoffCoordinates || booking.locationPins?.dropoff?.coordinates || booking.customerFeatures?.dropoffCoordinates)],
+                ["Drop map", booking.dropoffGoogleMapsUrl || booking.locationPins?.dropoff?.googleMapsUrl],
                 ["Ride date", booking.rideDate],
                 ["Ride time", booking.rideTime],
                 ["Outbound time", booking.outboundDateTime],
@@ -999,13 +1003,14 @@
                     <div class="feature-control-copy">
                         <strong>${escapeHtml(featureLabel)}</strong>
                         <small>${escapeHtml(feature[2])}</small>
-                        ${liveVerified ? `<small class="feature-live-note">Demo/live verified: ${escapeHtml(formatDate(control.verifiedAt || control.updatedAt))}</small>` : ""}
+                        ${liveVerified ? `<small class="feature-live-note">Live controlled: ${escapeHtml(formatDate(control.verifiedAt || control.updatedAt))}</small>` : ""}
                         ${correction ? `<small class="feature-correction-note">Admin correction: ${escapeHtml(correction)}</small>` : ""}
                     </div>
                     <div class="control-actions">
                         <span class="status-pill ${enabled ? "approved" : "rejected"}">${enabled ? (liveVerified ? "Live verified" : "Connected") : "Paused"}</span>
                         <button class="row-action" data-control-action="edit-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button" title="Edit correction"><i class="fas fa-pen-to-square"></i></button>
                         <button class="row-action" data-control-action="enable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-link"></i></button>
+                        <button class="row-action" data-control-action="approval-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-user-check"></i></button>
                         <button class="danger-action" data-control-action="disable-feature" data-portal="${escapeHtml(portal)}" data-feature="${escapeHtml(feature[0])}" type="button"><i class="fas fa-pause"></i></button>
                     </div>
                 </div>
@@ -2968,7 +2973,7 @@
         return controls;
     }
 
-    function activateCustomerPortalDemoLiveFeatures(reasonOverride = "") {
+    function activateCustomerPortalLiveFeatures(reasonOverride = "") {
         if (!window.AdminControlBridge || typeof window.AdminControlBridge.connectPortalFeaturesLive !== "function") {
             return { ok: false, reason: "feature_live_bridge_missing" };
         }
@@ -2977,7 +2982,7 @@
             CUSTOMER_FEATURES.map((feature) => feature[0]),
             {
                 source: "admin_app",
-                reason: cleanText(reasonOverride || "All customer portal features connected and verified in demo/live mode by admin.")
+                reason: cleanText(reasonOverride || "All customer portal features connected and verified in live control mode by admin.")
             }
         );
     }
@@ -3047,7 +3052,7 @@
         localStorage.setItem("goindiaride_api_base", apiBase);
         localStorage.setItem("goindiaride_admin_api_base", apiBase);
         state.controls = writeAdminControls(nextControls);
-        const customerLiveResult = activateCustomerPortalDemoLiveFeatures("All customer portal features connected and verified in admin demo/live mode.");
+        const customerLiveResult = activateCustomerPortalLiveFeatures("All customer portal features connected and verified in admin live control mode.");
         const customerVerification = customerLiveResult.ok ? customerLiveResult.verification : null;
         if (customerLiveResult.ok && customerLiveResult.controls) {
             state.controls = customerLiveResult.controls;
@@ -4110,25 +4115,36 @@
         let result = { ok: true };
 
         if (action === "verify-customer-features") {
-            result = activateCustomerPortalDemoLiveFeatures(controlReason("All customer portal features connected and verified in admin demo/live mode."));
+            result = activateCustomerPortalLiveFeatures(controlReason("All customer portal features connected and verified in admin live control mode."));
             showToast(result.ok ? `Customer features live verified ${result.verification.passed}/${result.verification.total}.` : "Customer feature live verification failed.");
         } else if (action === "enable-portal" || action === "disable-portal") {
             const enabled = action === "enable-portal";
             window.AdminControlBridge.setPortalEnabled(portal, enabled, controlReason(enabled ? "Portal enabled by admin." : "Portal paused by admin."));
             showToast(`${portal} portal ${enabled ? "enabled" : "paused"}.`);
-        } else if (action === "enable-feature" || action === "disable-feature") {
+        } else if (action === "enable-feature" || action === "disable-feature" || action === "approval-feature") {
             const enabled = action === "enable-feature";
             if (typeof window.AdminControlBridge.setFeatureEnabled !== "function") {
                 showToast("Feature bridge is not loaded.");
                 return;
             }
-            result = window.AdminControlBridge.setFeatureEnabled(
-                portal,
-                feature,
-                enabled,
-                controlReason(`${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"} by admin.`)
-            );
-            showToast(result.ok ? `${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"}.` : "Feature action failed.");
+            if (action === "approval-feature" && typeof window.AdminControlBridge.setFeatureStatus === "function") {
+                result = window.AdminControlBridge.setFeatureStatus(
+                    portal,
+                    feature,
+                    "approval_required",
+                    controlReason(`${getFeatureLabel(portal, feature)} now requires admin approval.`),
+                    { enabled: false, approvalRequired: true }
+                );
+                showToast(result.ok ? `${getFeatureLabel(portal, feature)} moved to approval.` : "Feature approval action failed.");
+            } else {
+                result = window.AdminControlBridge.setFeatureEnabled(
+                    portal,
+                    feature,
+                    enabled,
+                    controlReason(`${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"} by admin.`)
+                );
+                showToast(result.ok ? `${getFeatureLabel(portal, feature)} ${enabled ? "enabled" : "paused"}.` : "Feature action failed.");
+            }
         } else if (action === "edit-feature") {
             if (typeof window.AdminControlBridge.setFeatureCorrection !== "function") {
                 showToast("Feature correction bridge is not loaded.");

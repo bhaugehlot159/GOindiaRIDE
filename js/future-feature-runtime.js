@@ -7,10 +7,20 @@
   window.__GOINDIARIDE_FUTURE_RUNTIME_LOADED__ = true;
 
   var EVENT_NAME = 'goindiaride:future-feature-item-ready';
+  var ADMIN_UNIVERSAL_CONTROL_KEY = 'goindiaride_admin_universal_feature_controls_v1';
+  var ADMIN_UNIVERSAL_CONTROL_EVENT = 'goindiaride:admin-universal-feature-control-update';
+  var ADMIN_BLOCKING_STATUSES = {
+    disabled: true,
+    paused: true,
+    blocked: true,
+    approval_required: true,
+    pending_approval: true
+  };
   var registry = window.__GOINDIARIDE_FUTURE_FEATURES || {};
   var state = window.__GOINDIARIDE_FUTURE_RUNTIME_STATE || {
     activeFeatureKeys: {},
-    activeFeatures: []
+    activeFeatures: [],
+    blockedFeatureKeys: {}
   };
   window.__GOINDIARIDE_FUTURE_RUNTIME_STATE = state;
 
@@ -77,6 +87,43 @@
 
   function normalize(value) {
     return String(value || '').toLowerCase().trim();
+  }
+
+  function parseJson(raw, fallback) {
+    try {
+      var parsed = JSON.parse(raw || '');
+      return parsed === null || parsed === undefined ? fallback : parsed;
+    } catch (_error) {
+      return fallback;
+    }
+  }
+
+  function readAdminUniversalControls() {
+    try {
+      var parsed = parseJson(window.localStorage && window.localStorage.getItem(ADMIN_UNIVERSAL_CONTROL_KEY), {});
+      return parsed && typeof parsed === 'object' && parsed.features && typeof parsed.features === 'object'
+        ? parsed.features
+        : {};
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  function adminFeatureControlKey(feature) {
+    return normalize((feature && feature.category) || 'general') + ':' + normalize((feature && feature.featureId) || '');
+  }
+
+  function getAdminUniversalControl(feature) {
+    var controls = readAdminUniversalControls();
+    var key = adminFeatureControlKey(feature);
+    return controls[key] || controls[normalize((feature && feature.featureId) || '')] || null;
+  }
+
+  function isFeatureBlockedByAdmin(feature) {
+    var control = getAdminUniversalControl(feature);
+    if (!control || typeof control !== 'object') return false;
+    var status = normalize(control.status || 'active');
+    return control.enabled === false || control.approvalRequired === true || !!ADMIN_BLOCKING_STATUSES[status];
   }
 
   function hasAny(text, keywords) {
@@ -169,6 +216,17 @@
     li.innerHTML = '<span class="ff-runtime-chip">' + featureId + '</span>' +
       '<strong>[' + category + ']</strong> ' + description;
     list.appendChild(li);
+  }
+
+  function removePanelItem(feature) {
+    if (!SHOW_FLOATING_PANEL || !feature) {
+      return;
+    }
+    var id = 'ff-runtime-item-' + (feature.featureId || 'unknown');
+    var item = document.getElementById(id);
+    if (item && item.parentNode) {
+      item.parentNode.removeChild(item);
+    }
   }
 
   function ensureSelectOption(selectEl, optionValue, optionLabel) {
@@ -274,7 +332,7 @@
       if (phoneButton) {
         window.location.href = 'tel:' + phoneButton.getAttribute('data-phone');
       } else if (sosButton) {
-        window.alert('SOS alert has been triggered for this demo block.');
+        window.alert('SOS alert has been triggered for this live feature block.');
       }
     });
 
@@ -428,6 +486,12 @@
       return;
     }
 
+    if (isFeatureBlockedByAdmin(feature)) {
+      state.blockedFeatureKeys[adminFeatureControlKey(feature)] = true;
+      removePanelItem(feature);
+      return;
+    }
+
     var uniqueKey = (feature.category || 'general') + ':' + (feature.featureId || 'NA') + ':' + (detail.blockKey || 'block');
     if (state.activeFeatureKeys[uniqueKey]) {
       return;
@@ -456,6 +520,20 @@
   window.addEventListener(EVENT_NAME, function (event) {
     activateFeature((event && event.detail) || {});
   });
+
+  function replayAfterAdminControlChange() {
+    state.activeFeatureKeys = {};
+    state.activeFeatures = [];
+    state.blockedFeatureKeys = {};
+    replayExisting();
+  }
+
+  window.addEventListener('storage', function (event) {
+    if (event && event.key === ADMIN_UNIVERSAL_CONTROL_KEY) {
+      replayAfterAdminControlChange();
+    }
+  });
+  window.addEventListener(ADMIN_UNIVERSAL_CONTROL_EVENT, replayAfterAdminControlChange);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', replayExisting);

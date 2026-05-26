@@ -66,3 +66,23 @@ test('fare calculator falls back only when a route has no mapped toll corridor',
   assert.equal(estimate.tollPlazaCount, 0);
   assert.ok(estimate.tollCharge > 0);
 });
+
+test('fare calculator trusts exact booking coordinates from current location', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Customer exact pickup',
+    drop: 'Airport exact drop',
+    pickupCoordinates: { lat: 24.5854, lng: 73.7125, accuracy: 18, source: 'browser_gps_high_accuracy' },
+    dropoffCoordinates: { lat: 24.6177, lng: 73.8961, accuracy: 25, source: 'google_geocode' },
+    tripPlan: 'airport',
+    tripServiceType: 'airport_transfer',
+    vehicleType: 'economy',
+    vehicleModel: 'hatchback_car',
+    passengers: 1,
+    luggage: 'none',
+    enforceTrustedDistance: true
+  });
+
+  assert.equal(estimate.distanceTrusted, true);
+  assert.equal(estimate.distanceSource, 'booking_coordinate');
+  assert.ok(estimate.distanceKm > 0);
+});

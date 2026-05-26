@@ -269,7 +269,7 @@ test('admin corrections and action wrappers reach customer actions', () => {
   assert.equal(topupCalls, 1);
 });
 
-test('admin demo/live connect force-verifies every customer feature on both saved stores', () => {
+test('admin live connect force-verifies every customer feature on both saved stores', () => {
   const sandbox = loadBridge();
   const bridge = sandbox.AdminControlBridge;
 
@@ -287,7 +287,7 @@ test('admin demo/live connect force-verifies every customer feature on both save
 
   const result = bridge.connectPortalFeaturesLive('customer', CUSTOMER_FEATURES, {
     source: 'test',
-    reason: 'Automated demo/live verification'
+    reason: 'Automated live verification'
   });
   const controls = bridge.readControls();
   const verification = bridge.getPortalFeatureVerification('customer');
@@ -298,11 +298,11 @@ test('admin demo/live connect force-verifies every customer feature on both save
   assert.equal(result.verification.passed, CUSTOMER_FEATURES.length);
   assert.equal(controls.portals.customer.enabled, true);
   assert.equal(controls.portals.customer.status, 'active');
-  assert.equal(controls.portals.customer.connectionMode, 'demo_live');
+  assert.equal(controls.portals.customer.connectionMode, 'live_controlled');
   assert.equal(controls.portalFeatures.customer.booking.enabled, true);
   assert.equal(controls.portalFeatures.customer.booking.verificationStatus, 'passed');
   assert.equal(controls.portalFeatures.customer.wallet_topup.enabled, true);
-  assert.equal(controls.portalFeatures.customer.wallet_topup.connectionMode, 'demo_live');
+  assert.equal(controls.portalFeatures.customer.wallet_topup.connectionMode, 'live_controlled');
   assert.equal(controls.portalFeatureVerification.customer.ok, true);
   assert.equal(verification.ok, true);
   assert.equal(savedVerification.admin.customer.ok, true);
@@ -311,7 +311,6 @@ test('admin demo/live connect force-verifies every customer feature on both save
   CUSTOMER_FEATURES.forEach((featureId) => {
     const control = controls.portalFeatures.customer[featureId];
     assert.equal(control.enabled, true, `${featureId} should be enabled`);
-    assert.equal(control.demoReady, true, `${featureId} should be demo-ready`);
     assert.equal(control.liveReady, true, `${featureId} should be live-ready`);
     assert.equal(control.verificationStatus, 'passed', `${featureId} should be verified`);
   });

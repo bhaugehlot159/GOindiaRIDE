@@ -7,6 +7,7 @@
     const POLICY_EVENT = "goindiaride:admin-control-policy";
     const FEATURE_BLOCK_EVENT = "goindiaride:admin-control-feature-blocked";
     const FEATURE_VERIFY_KEY = "goindiaride_admin_portal_feature_live_verification_v1";
+    const FEATURE_BLOCKING_STATUSES = ["disabled", "paused", "blocked", "approval_required", "pending_approval"];
     const BOOKING_KEYS = [
         "bookings",
         "goride_bookings",
@@ -245,17 +246,15 @@
         ids.forEach((featureId) => {
             const feature = portalFeatures[featureId] || {};
             const status = cleanText(feature.status || "active").toLowerCase();
-            const active = feature.enabled !== false && !["disabled", "paused", "blocked"].includes(status);
-            const demoReady = feature.demoReady === true || feature.demoMode === true || feature.connectionMode === "demo_live";
-            const liveReady = feature.liveReady === true || feature.liveMode === true || feature.connectionMode === "demo_live";
-            const connected = feature.connected === true || feature.controlledByAdminApp === true || feature.connectionMode === "demo_live";
-            const verified = active && connected && demoReady && liveReady;
+            const active = feature.enabled !== false && FEATURE_BLOCKING_STATUSES.indexOf(status) === -1;
+            const liveReady = feature.liveReady === true || feature.liveMode === true || feature.connectionMode === "live_controlled";
+            const connected = feature.connected === true || feature.controlledByAdminApp === true || feature.connectionMode === "live_controlled";
+            const verified = active && connected && liveReady;
             if (verified) passed += 1;
             features[featureId] = {
                 status: feature.status || "active",
                 allowed: active,
                 connected,
-                demoReady,
                 liveReady,
                 verified,
                 verificationStatus: verified ? "passed" : "failed",
@@ -267,7 +266,7 @@
 
         return {
             portal: safePortal,
-            mode: "demo_live",
+            mode: "live_controlled",
             source: cleanText(settings.source || "admin_control_bridge"),
             total: ids.length,
             passed,
@@ -283,7 +282,7 @@
         const settings = options && typeof options === "object" ? options : {};
         const now = nowIso();
         const ids = portalFeatureIds(safePortal, featureIds);
-        const reason = cleanText(settings.reason || `${safePortal} portal demo/live features connected and verified by admin.`);
+        const reason = cleanText(settings.reason || `${safePortal} portal live features connected and verified by admin.`);
         const controls = readControls();
         controls.portals = controls.portals || {};
         controls.portalFeatures = controls.portalFeatures || {};
@@ -301,11 +300,9 @@
                 reason,
                 connected: true,
                 controlledByAdminApp: true,
-                connectionMode: "demo_live",
-                runtimeMode: "demo_live",
-                demoMode: true,
+                connectionMode: "live_controlled",
+                runtimeMode: "live_controlled",
                 liveMode: true,
-                demoReady: true,
                 liveReady: true,
                 verified: true,
                 verificationStatus: "passed",
@@ -321,11 +318,9 @@
             reason,
             connected: true,
             controlledByAdminApp: true,
-            connectionMode: "demo_live",
-            runtimeMode: "demo_live",
-            demoMode: true,
+            connectionMode: "live_controlled",
+            runtimeMode: "live_controlled",
             liveMode: true,
-            demoReady: true,
             liveReady: true,
             verified: true,
             verificationStatus: "passed",
@@ -346,19 +341,19 @@
 
         const next = writeControls(controls);
         writeFeatureVerificationSnapshot(safePortal, verification, "admin");
-        addAudit("PORTAL_FEATURE_DEMO_LIVE_VERIFIED", `${safePortal} portal ${verification.passed}/${verification.total} features verified in demo/live mode`, {
+        addAudit("PORTAL_FEATURE_LIVE_VERIFIED", `${safePortal} portal ${verification.passed}/${verification.total} features verified in live control mode`, {
             portal: safePortal,
-            mode: "demo_live",
+            mode: "live_controlled",
             passed: verification.passed,
             total: verification.total
         });
         notify({
-            type: "portal_feature_demo_live_verified",
-            title: "Admin Demo/Live Verification",
+            type: "portal_feature_live_verified",
+            title: "Admin Live Verification",
             message: reason,
             sourcePortal: "admin",
             targetPortals: [safePortal, "admin"],
-            metadata: { portal: safePortal, mode: "demo_live", passed: verification.passed, total: verification.total }
+            metadata: { portal: safePortal, mode: "live_controlled", passed: verification.passed, total: verification.total }
         });
         return { ok: verification.ok, controls: next, verification };
     }
@@ -505,13 +500,14 @@
         const controls = readControls();
         const feature = (((controls.portalFeatures || {})[safePortal]) || {})[safeFeature] || {};
         const status = cleanText(feature.status || "active").toLowerCase();
-        const featureAllowed = feature.enabled !== false && !["disabled", "paused", "blocked"].includes(status);
+        const featureAllowed = feature.enabled !== false && FEATURE_BLOCKING_STATUSES.indexOf(status) === -1;
         return {
             portal: safePortal,
             feature: safeFeature,
             allowed: portalPolicy.allowed && featureAllowed,
             portalAllowed: portalPolicy.allowed,
             status,
+            approvalRequired: feature.approvalRequired === true || status === "approval_required" || status === "pending_approval",
             reason: cleanText(feature.reason || portalPolicy.reason || ""),
             correction: cleanText(feature.correction || ""),
             labelOverride: cleanText(feature.labelOverride || ""),
@@ -543,10 +539,16 @@
         return next;
     }
 
-    function setFeatureEnabled(portalType, featureId, enabled, reason) {
+    function setFeatureStatus(portalType, featureId, status, reason, options) {
         const safePortal = cleanText(portalType).toLowerCase() === "driver" ? "driver" : "customer";
         const safeFeature = cleanText(featureId).toLowerCase();
         if (!safeFeature) return { ok: false, reason: "missing_feature" };
+        const safeStatus = cleanText(status || "active").toLowerCase() || "active";
+        const settings = options && typeof options === "object" ? options : {};
+        const approvalRequired = settings.approvalRequired === true || safeStatus === "approval_required" || safeStatus === "pending_approval";
+        const enabled = Object.prototype.hasOwnProperty.call(settings, "enabled")
+            ? Boolean(settings.enabled)
+            : FEATURE_BLOCKING_STATUSES.indexOf(safeStatus) === -1;
         const controls = readControls();
         controls.portalFeatures = controls.portalFeatures || {};
         controls.portalFeatures[safePortal] = {
@@ -555,27 +557,39 @@
         };
         controls.portalFeatures[safePortal][safeFeature] = {
             ...(controls.portalFeatures[safePortal][safeFeature] || {}),
-            enabled: Boolean(enabled),
-            status: enabled ? "active" : "disabled",
+            enabled,
+            status: safeStatus,
+            approvalRequired,
             reason: cleanText(reason),
+            labelOverride: cleanText(settings.labelOverride || controls.portalFeatures[safePortal][safeFeature]?.labelOverride || ""),
+            correction: cleanText(settings.correction || controls.portalFeatures[safePortal][safeFeature]?.correction || ""),
             updatedAt: nowIso()
         };
         const next = writeControls(controls);
-        addAudit("PORTAL_FEATURE_CHANGED", `${safePortal} feature ${safeFeature} ${enabled ? "enabled" : "disabled"}`, {
+        addAudit("PORTAL_FEATURE_CHANGED", `${safePortal} feature ${safeFeature} set to ${safeStatus}`, {
             portal: safePortal,
             feature: safeFeature,
-            enabled: Boolean(enabled),
+            enabled,
+            status: safeStatus,
+            approvalRequired,
             reason: cleanText(reason)
         });
         notify({
             type: "portal_feature_control_update",
             title: "Admin Feature Control",
-            message: reason || `${safeFeature.replace(/_/g, " ")} ${enabled ? "enabled" : "paused"} by admin.`,
+            message: reason || `${safeFeature.replace(/_/g, " ")} set to ${safeStatus.replace(/_/g, " ")} by admin.`,
             sourcePortal: "admin",
             targetPortals: [safePortal, "admin"],
-            metadata: { portal: safePortal, feature: safeFeature, enabled: Boolean(enabled), reason: cleanText(reason) }
+            metadata: { portal: safePortal, feature: safeFeature, enabled, status: safeStatus, approvalRequired, reason: cleanText(reason) }
         });
         return { ok: true, controls: next };
+    }
+
+    function setFeatureEnabled(portalType, featureId, enabled, reason) {
+        return setFeatureStatus(portalType, featureId, enabled ? "active" : "disabled", reason, {
+            enabled: Boolean(enabled),
+            approvalRequired: false
+        });
     }
 
     function setFeatureCorrection(portalType, featureId, correction, options) {
@@ -1095,6 +1109,7 @@
         getPortalPolicy,
         getFeaturePolicy,
         setPortalEnabled,
+        setFeatureStatus,
         setFeatureEnabled,
         setFeatureCorrection,
         connectPortalFeaturesLive,

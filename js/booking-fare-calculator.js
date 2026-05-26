@@ -489,6 +489,34 @@
     return null;
   }
 
+  function parseCoordinatePoint(value) {
+    if (!value) return null;
+    if (Array.isArray(value) && value.length >= 2) {
+      const lat = Number(value[0]);
+      const lon = Number(value[1]);
+      return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+        ? { lat, lon, source: 'booking_coordinate' }
+        : null;
+    }
+    if (typeof value === 'object') {
+      const lat = Number(value.lat ?? value.latitude);
+      const lon = Number(value.lon ?? value.lng ?? value.longitude);
+      return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+        ? { lat, lon, source: sanitizeText(value.source || 'booking_coordinate', 80) || 'booking_coordinate' }
+        : null;
+    }
+    const match = sanitizeText(value, 160).match(/(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (!match) return null;
+    const lat = Number(match[1]);
+    const lon = Number(match[2]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    return { lat, lon, source: 'booking_coordinate' };
+  }
+
+  function resolveBookingCoordinatePoint(coordValue, textValue) {
+    return parseCoordinatePoint(coordValue) || parseCoordinatePoint(textValue) || resolveCoordinate(textValue);
+  }
+
   function toRadians(value) {
     return (value * Math.PI) / 180;
   }
@@ -516,9 +544,11 @@
     return 1.28;
   }
 
-  function estimateTrustedCoordinateDistanceKm(pickup, dropoff) {
-    const pickupPoint = resolveCoordinate(pickup);
-    const dropoffPoint = resolveCoordinate(dropoff);
+  function estimateTrustedCoordinateDistanceKm(pickup, dropoff, pickupCoordinates = null, dropoffCoordinates = null) {
+    const directPickup = parseCoordinatePoint(pickupCoordinates) || parseCoordinatePoint(pickup);
+    const directDropoff = parseCoordinatePoint(dropoffCoordinates) || parseCoordinatePoint(dropoff);
+    const pickupPoint = directPickup || resolveBookingCoordinatePoint(null, pickup);
+    const dropoffPoint = directDropoff || resolveBookingCoordinatePoint(null, dropoff);
     if (!pickupPoint || !dropoffPoint) {
       return { km: 0, source: '' };
     }
@@ -527,7 +557,7 @@
     const roadKm = Math.max(1, straightLineKm * estimateRoadMultiplier(straightLineKm, pickup, dropoff));
     return {
       km: roadKm,
-      source: 'server_coordinate'
+      source: directPickup || directDropoff ? 'booking_coordinate' : 'server_coordinate'
     };
   }
 
@@ -990,7 +1020,12 @@
     const routeDistanceKm = routeData ? parseDistanceValue(routeData.distance) : 0;
     const coordinateDistance = routeDistanceKm > 0
       ? { km: 0, source: '' }
-      : estimateTrustedCoordinateDistanceKm(pickup, dropoff);
+      : estimateTrustedCoordinateDistanceKm(
+        pickup,
+        dropoff,
+        rawInput.pickupCoordinates || rawInput.pickupLocationCoordinates || rawInput.locationPins?.pickup?.coordinates,
+        rawInput.dropoffCoordinates || rawInput.dropCoordinates || rawInput.dropLocationCoordinates || rawInput.locationPins?.dropoff?.coordinates
+      );
     const trustedDistanceKm = routeDistanceKm || coordinateDistance.km || 0;
     const distanceTrusted = trustedDistanceKm > 0;
     const distanceSource = routeDistanceKm > 0
