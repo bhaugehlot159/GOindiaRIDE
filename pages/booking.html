@@ -434,14 +434,11 @@
         /* Map Placeholder */
         .map-container {
             background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
-            padding: 2rem;
+            padding: 1rem;
             border-radius: 12px;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 1rem;
+            min-height: 300px;
+            height: auto;
+            display: block;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
@@ -1789,6 +1786,63 @@
             color: #17416a;
             font-weight: 800;
             text-decoration: none;
+        }
+
+        .booking-osm-shell {
+            width: 100%;
+            display: grid;
+            gap: 0.72rem;
+        }
+
+        .booking-osm-map {
+            width: 100%;
+            height: 220px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(16, 136, 201, 0.24);
+            background: #d9e9f7;
+        }
+
+        .booking-osm-map.is-ready {
+            background: #ffffff;
+        }
+
+        .booking-osm-status {
+            margin: 0;
+            font-size: 0.76rem;
+            color: #35586f;
+            line-height: 1.35;
+        }
+
+        .booking-osm-status[data-state="warning"] {
+            color: #8b5f06;
+        }
+
+        .booking-osm-status[data-state="error"] {
+            color: #b42318;
+        }
+
+        .booking-osm-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .booking-osm-marker span {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            display: block;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background: #1088c9;
+        }
+
+        .booking-osm-marker-dropoff span {
+            background: #d92d20;
+        }
+
+        .booking-osm-marker-stop span {
+            background: #f79009;
         }
 
         body.booking-page.professional-booking .market-highlights {
@@ -6468,15 +6522,19 @@
 
                 <!-- Map -->
                 <div class="map-container" id="mapContainer">
-                    <div class="route-preview-card">
-                        <div class="route-preview-icon"><i class="fas fa-route"></i></div>
-                        <div class="route-preview-content">
-                            <strong id="routePreviewTitle">Live route preview</strong>
-                            <span id="routePreviewText">Enter pickup and dropoff to calculate fare and route.</span>
-                            <a id="routePreviewLink" href="#" target="_blank" rel="noopener" style="display: none;">
-                                <i class="fas fa-arrow-up-right-from-square"></i> Open route
-                            </a>
+                    <div class="booking-osm-shell">
+                        <div class="route-preview-card">
+                            <div class="route-preview-icon"><i class="fas fa-route"></i></div>
+                            <div class="route-preview-content">
+                                <strong id="routePreviewTitle">Live route preview</strong>
+                                <span id="routePreviewText">Enter pickup and dropoff to calculate fare and route.</span>
+                                <a id="routePreviewLink" href="#" target="_blank" rel="noopener" style="display: none;">
+                                    <i class="fas fa-arrow-up-right-from-square"></i> Open route
+                                </a>
+                            </div>
                         </div>
+                        <div class="booking-osm-map" id="bookingGoogleMap" aria-label="OpenStreetMap route preview"></div>
+                        <p class="booking-osm-status" id="bookingMapStatus" data-state="info">OpenStreetMap preview initializes automatically for pickup, drop, and route pins.</p>
                     </div>
                 </div>
 
@@ -7971,7 +8029,11 @@
             }
         }
 
-        const BOOKING_GOOGLE_MAP_STORAGE_KEY = 'goindiaride_google_maps_api_key';
+        const BOOKING_OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const BOOKING_OSM_TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>';
+        const BOOKING_OSM_GEOCODE_ENDPOINT = 'https://nominatim.openstreetmap.org/search';
+        const BOOKING_OSM_GEOCODE_MIN_GAP_MS = 1100;
+        const BOOKING_OSM_GEOCODE_CACHE_MAX_ENTRIES = 120;
         const BOOKING_EXACT_LOCATION_STORAGE_KEY = 'goindiaride_booking_exact_locations_v1';
         const BOOKING_GOOGLE_MAP_DEFAULT_CENTER = { lat: 24.5854, lng: 73.7125 };
         const BOOKING_GPS_TARGET_ACCURACY_METERS = 35;
@@ -7995,6 +8057,11 @@
             coords: { pickup: null, dropoff: null, stop: null },
             geocoder: null,
             placesService: null,
+            leafletLoadingPromise: null,
+            osmGeocodeQueue: Promise.resolve(),
+            osmGeocodeLastRequestAt: 0,
+            osmGeocodeCache: new Map(),
+            osmGeocodePending: new Map(),
             inputTimer: null,
             map: null,
             mapReady: false,
@@ -8006,26 +8073,6 @@
             warmCurrentLocation: null,
             warmCurrentLocationPromise: null
         };
-
-        function getBookingGoogleMapsApiKey() {
-            const candidates = [];
-            if (typeof window.GOINDIARIDE_GOOGLE_MAPS_API_KEY === 'string') {
-                candidates.push(window.GOINDIARIDE_GOOGLE_MAPS_API_KEY);
-            }
-            if (typeof window.__GOINDIARIDE_GOOGLE_MAPS_API_KEY__ === 'string') {
-                candidates.push(window.__GOINDIARIDE_GOOGLE_MAPS_API_KEY__);
-            }
-            try {
-                candidates.push(window.localStorage?.getItem(BOOKING_GOOGLE_MAP_STORAGE_KEY));
-            } catch (error) {
-                // Storage can be unavailable in private browsing or file previews.
-            }
-            const metaKey = document.querySelector('meta[name="goindiaride-google-maps-api-key"]')?.content;
-            if (metaKey) candidates.push(metaKey);
-            return candidates
-                .map((key) => String(key || '').trim())
-                .find((key) => key && !/YOUR_API_KEY|PASTE_API_KEY/i.test(key)) || '';
-        }
 
         function setBookingMapStatus(message, state = 'info') {
             const statusNode = document.getElementById('bookingMapStatus');
@@ -8041,92 +8088,105 @@
             });
         }
 
-        function bootstrapBookingGoogleMaps(apiKey) {
-            if (window.google?.maps?.importLibrary) return;
-            ((g) => {
-                let h;
-                let a;
-                let k;
-                const p = 'The Google Maps JavaScript API';
-                const c = 'google';
-                const l = 'importLibrary';
-                const q = '__ib__';
-                const m = document;
-                let b = window;
-                b = b[c] || (b[c] = {});
-                const d = b.maps || (b.maps = {});
-                const r = new Set();
-                const e = new URLSearchParams();
-                const u = () => h || (h = new Promise(async (f, n) => {
-                    a = m.createElement('script');
-                    e.set('libraries', [...r] + '');
-                    for (k in g) {
-                        e.set(k.replace(/[A-Z]/g, (t) => '_' + t[0].toLowerCase()), g[k]);
+        function queueBookingOsmGeocodeTask(task) {
+            const safeTask = typeof task === 'function' ? task : null;
+            if (!safeTask) return Promise.resolve(null);
+            bookingGoogleMapState.osmGeocodeQueue = bookingGoogleMapState.osmGeocodeQueue
+                .catch(() => null)
+                .then(async () => {
+                    const elapsed = Date.now() - Number(bookingGoogleMapState.osmGeocodeLastRequestAt || 0);
+                    if (elapsed < BOOKING_OSM_GEOCODE_MIN_GAP_MS) {
+                        await new Promise((resolve) => window.setTimeout(resolve, BOOKING_OSM_GEOCODE_MIN_GAP_MS - elapsed));
                     }
-                    e.set('callback', `${c}.maps.${q}`);
-                    a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
-                    d[q] = f;
-                    a.onerror = () => {
-                        h = n(Error(`${p} could not load.`));
-                    };
-                    a.nonce = m.querySelector('script[nonce]')?.nonce || '';
-                    m.head.append(a);
-                }));
-                if (!d[l]) {
-                    d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
+                    bookingGoogleMapState.osmGeocodeLastRequestAt = Date.now();
+                    return safeTask();
+                });
+            return bookingGoogleMapState.osmGeocodeQueue;
+        }
+
+        async function ensureBookingLeafletRuntime() {
+            if (window.L?.map) return true;
+            if (bookingGoogleMapState.leafletLoadingPromise) return bookingGoogleMapState.leafletLoadingPromise;
+            bookingGoogleMapState.leafletLoadingPromise = new Promise((resolve) => {
+                const done = () => resolve(Boolean(window.L?.map));
+                if (!document.querySelector('link[data-booking-leaflet-css="1"]')) {
+                    const css = document.createElement('link');
+                    css.rel = 'stylesheet';
+                    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    css.dataset.bookingLeafletCss = '1';
+                    document.head.appendChild(css);
                 }
-            })({
-                key: apiKey,
-                v: 'weekly',
-                region: 'IN'
+                if (window.L?.map) {
+                    done();
+                    return;
+                }
+                const existingScript = document.querySelector('script[data-booking-leaflet-js="1"]');
+                if (existingScript) {
+                    existingScript.addEventListener('load', done, { once: true });
+                    existingScript.addEventListener('error', () => resolve(false), { once: true });
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                script.async = true;
+                script.dataset.bookingLeafletJs = '1';
+                script.onload = done;
+                script.onerror = () => resolve(false);
+                document.head.appendChild(script);
             });
+            return bookingGoogleMapState.leafletLoadingPromise;
         }
 
         async function ensureBookingGoogleMapReady() {
             const mapNode = document.getElementById('bookingGoogleMap');
-            if (bookingGoogleMapState.geocoder) return true;
+            if (bookingGoogleMapState.geocoder && (bookingGoogleMapState.mapReady || !mapNode)) return true;
+            bookingGoogleMapState.geocoder = { provider: 'osm_nominatim' };
+            bookingGoogleMapState.placesService = null;
 
-            const hasExistingGoogleLoader = Boolean(window.google?.maps?.importLibrary);
-            const apiKey = getBookingGoogleMapsApiKey();
-            if (!hasExistingGoogleLoader && !apiKey) {
+            if (!mapNode) {
                 updateBookingGoogleMapRouteLink();
-                return false;
+                return true;
             }
-
             try {
-                if (!hasExistingGoogleLoader) bootstrapBookingGoogleMaps(apiKey);
-                const mapsLibrary = await window.google.maps.importLibrary('maps');
-                bookingGoogleMapState.geocoder = new window.google.maps.Geocoder();
-                await window.google.maps.importLibrary('places').catch(() => null);
-                if (mapNode) {
-                    await window.google.maps.importLibrary('marker').catch(() => null);
-                    bookingGoogleMapState.map = new mapsLibrary.Map(mapNode, {
-                        center: BOOKING_GOOGLE_MAP_DEFAULT_CENTER,
-                        zoom: 11,
-                        fullscreenControl: false,
-                        mapTypeControl: false,
-                        streetViewControl: false
-                    });
-                    bookingGoogleMapState.mapReady = true;
-                    mapNode.classList.add('is-ready');
-                    bookingGoogleMapState.map.addListener('click', (event) => {
-                        const latLng = event?.latLng;
-                        if (!latLng) return;
+                const ready = await ensureBookingLeafletRuntime();
+                if (!ready || !window.L?.map) {
+                    setBookingMapStatus('Map preview unavailable. Location features are still active.', 'warning');
+                    updateBookingGoogleMapRouteLink();
+                    return true;
+                }
+
+                if (!bookingGoogleMapState.map) {
+                    bookingGoogleMapState.map = window.L.map(mapNode, {
+                        zoomControl: true,
+                        attributionControl: true
+                    }).setView([BOOKING_GOOGLE_MAP_DEFAULT_CENTER.lat, BOOKING_GOOGLE_MAP_DEFAULT_CENTER.lng], 11);
+                    window.L.tileLayer(BOOKING_OSM_TILE_URL, {
+                        attribution: BOOKING_OSM_TILE_ATTRIBUTION,
+                        maxZoom: 19
+                    }).addTo(bookingGoogleMapState.map);
+                    bookingGoogleMapState.map.on('click', (event) => {
+                        const latlng = event?.latlng;
+                        if (!latlng) return;
                         applyBookingMapCoordinates(bookingGoogleMapState.activeTarget, {
-                            lat: latLng.lat(),
-                            lng: latLng.lng()
+                            lat: latlng.lat,
+                            lng: latlng.lng
                         }, { source: 'map' });
                     });
                 }
-                if (window.google?.maps?.places?.PlacesService) {
-                    const placesHost = bookingGoogleMapState.map || document.createElement('div');
-                    bookingGoogleMapState.placesService = new window.google.maps.places.PlacesService(placesHost);
-                }
+                bookingGoogleMapState.mapReady = true;
+                mapNode.classList.add('is-ready');
+                window.setTimeout(() => {
+                    if (bookingGoogleMapState.map?.invalidateSize) {
+                        bookingGoogleMapState.map.invalidateSize();
+                    }
+                }, 120);
+                setBookingMapStatus('OpenStreetMap ready. Tap map to set exact pickup/drop.', 'info');
                 syncBookingMapFromInputs();
                 return true;
-            } catch (error) {
+            } catch (_error) {
+                setBookingMapStatus('Map preview unavailable. Location features are still active.', 'warning');
                 updateBookingGoogleMapRouteLink();
-                return false;
+                return true;
             }
         }
 
@@ -8148,6 +8208,17 @@
             return typeof readRouteStops === 'function' ? readRouteStops() : [];
         }
 
+        function parseBookingMapLatLngToken(value) {
+            const text = sanitizeInput(value || '').trim();
+            const match = text.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+            if (!match) return null;
+            const lat = Number(match[1]);
+            const lng = Number(match[2]);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+            return { lat: Number(lat.toFixed(7)), lng: Number(lng.toFixed(7)) };
+        }
+
         function buildBookingGoogleMapsUrl() {
             const pickup = getBookingMapQueryValue('pickup');
             const dropoff = getBookingMapQueryValue('dropoff');
@@ -8157,19 +8228,23 @@
                     return point ? `${point.lat},${point.lng}` : sanitizeInput(input.value || '').trim();
                 })
                 .filter(Boolean);
-            if (pickup && dropoff) {
-                const params = new URLSearchParams({
-                    api: '1',
-                    origin: pickup,
-                    destination: dropoff,
-                    travelmode: 'driving'
+
+            const pickupPoint = parseBookingMapLatLngToken(pickup);
+            const dropoffPoint = parseBookingMapLatLngToken(dropoff);
+            if (pickupPoint && dropoffPoint) {
+                const routePoints = [pickupPoint];
+                stops.forEach((stopValue) => {
+                    const stopPoint = parseBookingMapLatLngToken(stopValue);
+                    if (stopPoint) routePoints.push(stopPoint);
                 });
-                if (stops.length) params.set('waypoints', stops.join('|'));
-                return `https://www.google.com/maps/dir/?${params.toString()}`;
+                routePoints.push(dropoffPoint);
+                const route = routePoints.map((point) => `${point.lat},${point.lng}`).join(';');
+                return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${encodeURIComponent(route)}`;
             }
+
             const searchQuery = pickup || dropoff || stops[0] || '';
-            if (!searchQuery) return 'https://www.google.com/maps';
-            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`;
+            if (!searchQuery) return 'https://www.openstreetmap.org';
+            return `https://www.openstreetmap.org/search?query=${encodeURIComponent(searchQuery)}`;
         }
 
         function updateBookingGoogleMapRouteLink() {
@@ -8180,7 +8255,9 @@
             if (pickup && dropoff) {
                 linkNode.href = buildBookingGoogleMapsUrl();
                 linkNode.style.display = 'inline-flex';
+                return;
             }
+            linkNode.style.display = 'none';
         }
 
         function normalizeBookingMapCoords(raw = {}, defaults = {}) {
@@ -8220,7 +8297,9 @@
             const lng = Number(coords?.lng ?? coords?.lon ?? coords?.longitude);
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return '';
             if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return '';
-            return `https://www.google.com/maps?q=${Number(lat.toFixed(7))},${Number(lng.toFixed(7))}`;
+            const safeLat = Number(lat.toFixed(7));
+            const safeLng = Number(lng.toFixed(7));
+            return `https://www.openstreetmap.org/?mlat=${safeLat}&mlon=${safeLng}#map=17/${safeLat}/${safeLng}`;
         }
 
         function formatBookingMapAccuracy(coords) {
@@ -8581,96 +8660,6 @@
             return pickBestBookingAddressCandidate([osmAddress, osmStructured, cloudLabel], coords);
         }
 
-        function scoreGoogleGeocodeResultCandidate(result = {}) {
-            const types = Array.isArray(result?.types) ? result.types : [];
-            let score = scoreBookingAddressCandidate(result?.formatted_address || '');
-
-            if (types.includes('street_address')) score += 16;
-            if (types.includes('premise')) score += 13;
-            if (types.includes('subpremise')) score += 11;
-            if (types.includes('establishment')) score += 10;
-            if (types.includes('point_of_interest')) score += 9;
-            if (types.includes('route')) score += 6;
-            if (types.includes('intersection')) score += 5;
-            if (types.includes('sublocality') || types.includes('sublocality_level_1')) score += 2;
-            if (types.includes('plus_code')) score -= 8;
-            if (types.includes('administrative_area_level_1') || types.includes('country')) score -= 5;
-
-            return score;
-        }
-
-        function reverseGeocodeBookingCoordsViaGoogle(coords) {
-            return new Promise((resolve) => {
-                if (!bookingGoogleMapState.geocoder) {
-                    resolve('');
-                    return;
-                }
-                try {
-                    bookingGoogleMapState.geocoder.geocode({ location: coords }, (results, status) => {
-                        if (status !== 'OK' || !Array.isArray(results) || !results.length) {
-                            resolve('');
-                            return;
-                        }
-                        const candidates = results
-                            .map((result) => ({
-                                address: normalizeBookingAddressCandidate(result?.formatted_address || ''),
-                                score: scoreGoogleGeocodeResultCandidate(result)
-                            }))
-                            .filter((candidate) => Boolean(candidate.address));
-                        if (!candidates.length) {
-                            resolve('');
-                            return;
-                        }
-                        candidates.sort((left, right) => {
-                            const scoreDelta = right.score - left.score;
-                            if (scoreDelta !== 0) return scoreDelta;
-                            return left.address.length - right.address.length;
-                        });
-                        const address = candidates[0]?.address || '';
-                        resolve(address);
-                    });
-                } catch (_error) {
-                    resolve('');
-                }
-            });
-        }
-
-        function reverseGeocodeBookingCoordsViaGooglePlaces(coords) {
-            return new Promise((resolve) => {
-                const service = bookingGoogleMapState.placesService;
-                const statusEnum = window.google?.maps?.places?.PlacesServiceStatus;
-                if (!service || !statusEnum) {
-                    resolve('');
-                    return;
-                }
-                const timeout = window.setTimeout(() => resolve(''), 1800);
-                const finish = (value = '') => {
-                    window.clearTimeout(timeout);
-                    resolve(normalizeBookingAddressCandidate(value));
-                };
-                try {
-                    service.nearbySearch({
-                        location: coords,
-                        radius: 70
-                    }, (results, status) => {
-                        if (status !== statusEnum.OK || !Array.isArray(results) || !results.length) {
-                            finish('');
-                            return;
-                        }
-                        const first = results[0] || {};
-                        const name = normalizeBookingAddressCandidate(first.name || '');
-                        const vicinity = normalizeBookingAddressCandidate(first.vicinity || first.formatted_address || '');
-                        const placeLabel = name && vicinity && normalizeAirportSearchText(name) !== normalizeAirportSearchText(vicinity)
-                            ? `${name}, ${vicinity}`
-                            : (name || vicinity || '');
-                        finish(placeLabel);
-                    });
-                } catch (_error) {
-                    finish('');
-                }
-            });
-        }
-
         function reverseGeocodeBookingCoords(coords) {
             const point = normalizeBookingMapCoords(coords);
             if (!point) return Promise.resolve('');
@@ -8684,16 +8673,8 @@
             if (pendingRequest) return pendingRequest;
 
             const request = (async () => {
-                const [googleAddress, googlePlacesAddress, fallbackAddress] = await Promise.all([
-                    reverseGeocodeBookingCoordsViaGoogle(point),
-                    reverseGeocodeBookingCoordsViaGooglePlaces(point),
-                    reverseGeocodeBookingCoordsFallback(point)
-                ]);
-                const finalAddress = pickBestBookingAddressCandidate([
-                    googleAddress,
-                    googlePlacesAddress,
-                    fallbackAddress
-                ], point);
+                const fallbackAddress = await reverseGeocodeBookingCoordsFallback(point);
+                const finalAddress = pickBestBookingAddressCandidate([fallbackAddress], point);
                 if (finalAddress) {
                     writeBookingReverseGeocodeCache(point, finalAddress);
                     return finalAddress;
@@ -8709,57 +8690,65 @@
         }
 
         function setBookingMapMarker(target, coords) {
-            if (!bookingGoogleMapState.map || !window.google?.maps) return;
+            if (!bookingGoogleMapState.map || !window.L) return;
             const marker = bookingGoogleMapState.markers[target];
             if (!coords) {
-                if (marker?.setMap) marker.setMap(null);
+                if (marker?.remove) marker.remove();
                 bookingGoogleMapState.markers[target] = null;
                 return;
             }
-            const markerConfig = {
-                map: bookingGoogleMapState.map,
-                position: coords,
-                title: target === 'dropoff' ? 'Drop location' : target === 'stop' ? 'Route stop' : 'Pickup location',
-                label: target === 'dropoff' ? 'D' : target === 'stop' ? 'S' : 'P'
-            };
-            if (marker?.setPosition) {
-                marker.setPosition(coords);
-                marker.setMap(bookingGoogleMapState.map);
-            } else if (window.google.maps.Marker) {
-                bookingGoogleMapState.markers[target] = new window.google.maps.Marker(markerConfig);
+            const latLng = [coords.lat, coords.lng];
+            const markerClass = target === 'dropoff'
+                ? 'booking-osm-marker booking-osm-marker-dropoff'
+                : target === 'stop'
+                    ? 'booking-osm-marker booking-osm-marker-stop'
+                    : 'booking-osm-marker booking-osm-marker-pickup';
+            const icon = window.L.divIcon({
+                className: markerClass,
+                html: '<span></span>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+            if (marker?.setLatLng) {
+                marker.setLatLng(latLng);
+                marker.setIcon(icon);
+            } else {
+                bookingGoogleMapState.markers[target] = window.L.marker(latLng, {
+                    icon,
+                    title: target === 'dropoff' ? 'Drop location' : target === 'stop' ? 'Route stop' : 'Pickup location'
+                }).addTo(bookingGoogleMapState.map);
             }
         }
 
         function updateBookingGoogleMapLine() {
-            if (!bookingGoogleMapState.map || !window.google?.maps) return;
+            if (!bookingGoogleMapState.map || !window.L) return;
             const points = [
                 bookingGoogleMapState.coords.pickup,
                 bookingGoogleMapState.coords.stop,
                 bookingGoogleMapState.coords.dropoff
             ].filter(Boolean);
 
-            if (bookingGoogleMapState.routeLine?.setMap) {
-                bookingGoogleMapState.routeLine.setMap(null);
+            if (bookingGoogleMapState.routeLine?.remove) {
+                bookingGoogleMapState.routeLine.remove();
                 bookingGoogleMapState.routeLine = null;
             }
-            if (points.length >= 2 && window.google.maps.Polyline) {
-                bookingGoogleMapState.routeLine = new window.google.maps.Polyline({
-                    map: bookingGoogleMapState.map,
-                    path: points,
-                    geodesic: true,
-                    strokeColor: '#1088c9',
-                    strokeOpacity: 0.9,
-                    strokeWeight: 4
-                });
+            if (points.length >= 2) {
+                bookingGoogleMapState.routeLine = window.L.polyline(
+                    points.map((point) => [point.lat, point.lng]),
+                    {
+                        color: '#1088c9',
+                        opacity: 0.9,
+                        weight: 4
+                    }
+                ).addTo(bookingGoogleMapState.map);
             }
-            if (points.length && window.google.maps.LatLngBounds) {
-                const bounds = new window.google.maps.LatLngBounds();
-                points.forEach((point) => bounds.extend(point));
+            if (points.length) {
+                const latLngPoints = points.map((point) => [point.lat, point.lng]);
+                const bounds = window.L.latLngBounds(latLngPoints);
                 if (points.length === 1) {
-                    bookingGoogleMapState.map.setCenter(points[0]);
-                    bookingGoogleMapState.map.setZoom(14);
+                    bookingGoogleMapState.map.setView(latLngPoints[0], 14);
                 } else {
-                    bookingGoogleMapState.map.fitBounds(bounds, 48);
+                    bookingGoogleMapState.map.fitBounds(bounds, { padding: [48, 48] });
                 }
             }
         }
@@ -8864,25 +8853,93 @@
             );
         }
 
+        function buildBookingOsmGeocodeCacheKey(value) {
+            return normalizeAirportSearchText(value || '').slice(0, 180);
+        }
+
+        function readBookingOsmGeocodeCache(value) {
+            const key = buildBookingOsmGeocodeCacheKey(value);
+            if (!key) return null;
+            const cached = bookingGoogleMapState.osmGeocodeCache.get(key) || null;
+            if (!cached) return null;
+            bookingGoogleMapState.osmGeocodeCache.delete(key);
+            bookingGoogleMapState.osmGeocodeCache.set(key, cached);
+            return cached;
+        }
+
+        function writeBookingOsmGeocodeCache(value, coords) {
+            const key = buildBookingOsmGeocodeCacheKey(value);
+            if (!key) return;
+            const point = normalizeBookingMapCoords(coords);
+            if (!point) return;
+            bookingGoogleMapState.osmGeocodeCache.delete(key);
+            bookingGoogleMapState.osmGeocodeCache.set(key, point);
+            while (bookingGoogleMapState.osmGeocodeCache.size > BOOKING_OSM_GEOCODE_CACHE_MAX_ENTRIES) {
+                const oldestKey = bookingGoogleMapState.osmGeocodeCache.keys().next().value;
+                if (!oldestKey) break;
+                bookingGoogleMapState.osmGeocodeCache.delete(oldestKey);
+            }
+        }
+
         function geocodeBookingMapInput(target, value) {
             if (!bookingGoogleMapState.geocoder || !value) return;
-            const request = {
-                address: value,
-                componentRestrictions: { country: 'IN' }
-            };
-            bookingGoogleMapState.geocoder.geocode(request, (results, status) => {
-                if (status !== 'OK' || !results?.[0]?.geometry?.location) return;
-                const location = results[0].geometry.location;
-                const coords = normalizeBookingMapCoords({
-                    lat: typeof location.lat === 'function' ? location.lat() : location.lat,
-                    lng: typeof location.lng === 'function' ? location.lng() : location.lng,
-                    source: 'google_geocode'
+            const query = sanitizeInput(value || '', 220).trim();
+            if (query.length < 3) return;
+
+            const cachedCoords = readBookingOsmGeocodeCache(query);
+            if (cachedCoords) {
+                bookingGoogleMapState.coords[target] = cachedCoords;
+                setBookingMapMarker(target, cachedCoords);
+                updateBookingGoogleMapLine();
+                return;
+            }
+
+            const pendingKey = buildBookingOsmGeocodeCacheKey(query);
+            if (!pendingKey) return;
+            const pendingRequest = bookingGoogleMapState.osmGeocodePending.get(pendingKey);
+            if (pendingRequest) return;
+
+            const request = queueBookingOsmGeocodeTask(async () => {
+                const params = new URLSearchParams({
+                    q: query,
+                    format: 'jsonv2',
+                    addressdetails: '1',
+                    limit: '1',
+                    countrycodes: 'in'
                 });
+                const response = await fetchBookingJsonWithTimeout(
+                    `${BOOKING_OSM_GEOCODE_ENDPOINT}?${params.toString()}`,
+                    {
+                        method: 'GET',
+                        headers: { Accept: 'application/json' }
+                    },
+                    2600
+                );
+                return Array.isArray(response) ? response[0] : null;
+            })
+                .then((result) => {
+                    const coords = normalizeBookingMapCoords({
+                        lat: result?.lat,
+                        lng: result?.lon,
+                        source: 'osm_geocode'
+                    });
+                    if (!coords) return null;
+                    writeBookingOsmGeocodeCache(query, coords);
+                    return coords;
+                })
+                .finally(() => {
+                    bookingGoogleMapState.osmGeocodePending.delete(pendingKey);
+                });
+
+            bookingGoogleMapState.osmGeocodePending.set(pendingKey, request);
+            request.then((coords) => {
                 if (!coords) return;
+                const latestValue = getBookingMapInputValue(target);
+                if (normalizeAirportSearchText(latestValue) !== normalizeAirportSearchText(query)) return;
                 bookingGoogleMapState.coords[target] = coords;
                 setBookingMapMarker(target, coords);
                 updateBookingGoogleMapLine();
-            });
+            }).catch(() => null);
         }
 
         function syncBookingMapFromInputs() {
