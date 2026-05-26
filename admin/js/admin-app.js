@@ -124,6 +124,8 @@
         ["pending_admin_review", "Pending Admin Review"],
         ["approved", "Approved"],
         ["rejected", "Rejected"],
+        ["blocked_by_admin", "Blocked By Admin"],
+        ["deleted_by_admin", "Deleted By Admin"],
         ["driver_assigned", "Driver Assigned"],
         ["pending_reassignment", "Pending Reassignment"],
         ["completed", "Completed"],
@@ -3103,10 +3105,12 @@
     }
 
     function isRejected(booking) {
-        return booking.adminReviewStatus === "rejected" || ["rejected", "cancelled", "cancelled_by_admin"].includes(booking.status);
+        return booking.adminReviewStatus === "rejected" || ["rejected", "cancelled", "cancelled_by_admin", "blocked_by_admin", "deleted_by_admin"].includes(booking.status);
     }
 
     function getStatusLabel(booking) {
+        if (booking.status === "blocked_by_admin") return "Blocked";
+        if (booking.status === "deleted_by_admin") return "Deleted";
         if (isApproved(booking)) return "Approved";
         if (isRejected(booking)) return "Rejected";
         if (booking.status === "completed") return "Completed";
@@ -3269,6 +3273,27 @@
         if (node) node.textContent = String(value);
     }
 
+    function renderBookingActionButtons(booking, compact = false) {
+        const bookingId = escapeHtml(booking.bookingId || "");
+        const status = cleanText(booking.status || "").toLowerCase();
+        const completed = status === "completed";
+        const blocked = status === "blocked_by_admin";
+        const deleted = status === "deleted_by_admin";
+        const approveDisabled = deleted || completed;
+        const rejectDisabled = deleted;
+        const blockDisabled = deleted || blocked;
+        const deleteDisabled = deleted;
+        const label = compact ? "" : " ";
+
+        return `
+            <button class="secondary-action" data-booking-edit="${bookingId}" type="button"><i class="fas fa-pen-to-square"></i>${label}${compact ? "<span>Edit</span>" : "Edit"}</button>
+            <button class="row-action" data-action="approve" data-booking-id="${bookingId}" type="button" title="Approve booking" ${approveDisabled ? "disabled" : ""}><i class="fas fa-check"></i></button>
+            <button class="danger-action" data-action="reject" data-booking-id="${bookingId}" type="button" title="Reject booking" ${rejectDisabled ? "disabled" : ""}><i class="fas fa-xmark"></i></button>
+            <button class="danger-action" data-action="block" data-booking-id="${bookingId}" type="button" title="Block booking" ${blockDisabled ? "disabled" : ""}><i class="fas fa-ban"></i></button>
+            <button class="danger-action" data-action="delete" data-booking-id="${bookingId}" type="button" title="Soft delete booking" ${deleteDisabled ? "disabled" : ""}><i class="fas fa-trash-can"></i></button>
+        `;
+    }
+
     function renderQueue() {
         const host = $("#overviewQueue");
         if (!host) return;
@@ -3291,9 +3316,7 @@
                     ${renderBookingCompactDetails(booking)}
                 </div>
                 <div class="queue-actions">
-                    <button class="secondary-action" data-booking-edit="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-pen-to-square"></i><span>Edit</span></button>
-                    <button class="row-action" data-action="approve" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-check"></i></button>
-                    <button class="danger-action" data-action="reject" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-xmark"></i></button>
+                    ${renderBookingActionButtons(booking, true)}
                 </div>
             </article>
         `).join("");
@@ -3387,9 +3410,7 @@
                 <td>${formatMoney(booking.fare)}<br><small>${escapeHtml(booking.distanceKm ? `${Math.round(booking.distanceKm)} km` : "Distance pending")}</small></td>
                 <td><span class="status-pill ${getStatusClass(booking)}">${escapeHtml(getStatusLabel(booking))}</span></td>
                 <td>
-                    <button class="secondary-action" data-booking-edit="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-pen-to-square"></i> Edit</button>
-                    <button class="row-action" data-action="approve" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-check"></i></button>
-                    <button class="danger-action" data-action="reject" data-booking-id="${escapeHtml(booking.bookingId)}" type="button"><i class="fas fa-xmark"></i></button>
+                    ${renderBookingActionButtons(booking)}
                 </td>
             </tr>
             <tr class="booking-detail-row">
@@ -4282,18 +4303,37 @@
             showToast("Booking not found.");
             return;
         }
-        const approved = decision === "approve";
+        const safeDecision = cleanText(decision).toLowerCase();
+        if (!["approve", "reject", "block", "delete"].includes(safeDecision)) {
+            showToast("Unsupported booking action.");
+            return;
+        }
+        if (safeDecision === "delete" && !window.confirm(`Soft delete booking ${bookingId}? This keeps audit history.`)) {
+            return;
+        }
+        const now = new Date().toISOString();
+        const approved = safeDecision === "approve";
+        const blocked = safeDecision === "block";
+        const deleted = safeDecision === "delete";
         const updates = {
             adminReviewStatus: approved ? "approved" : "rejected",
-            status: approved ? "approved" : "rejected",
-            adminDecision: approved ? "approved_from_admin_app" : "rejected_from_admin_app",
-            adminDecisionAt: new Date().toISOString()
+            status: approved ? "approved" : (blocked ? "blocked_by_admin" : (deleted ? "deleted_by_admin" : "rejected")),
+            adminDecision: approved ? "approved_from_admin_app" : (blocked ? "blocked_from_admin_app" : (deleted ? "deleted_from_admin_app" : "rejected_from_admin_app")),
+            adminDecisionAt: now,
+            adminBlockedAt: blocked ? now : booking.adminBlockedAt || "",
+            adminDeleted: deleted ? true : Boolean(booking.adminDeleted),
+            adminDeletedAt: deleted ? now : booking.adminDeletedAt || "",
+            adminArchivedAt: deleted ? now : booking.adminArchivedAt || ""
         };
 
         const syncResult = updateBookingAcrossStores(bookingId, updates, booking);
         const customerMessage = approved
             ? `Booking ${bookingId} approved by admin. Driver assignment will start shortly.`
-            : `Booking ${bookingId} was not approved by admin. Please check booking details or contact support.`;
+            : (blocked
+                ? `Booking ${bookingId} has been blocked by admin for security review.`
+                : (deleted
+                    ? `Booking ${bookingId} has been removed from active queue by admin.`
+                    : `Booking ${bookingId} was not approved by admin. Please check booking details or contact support.`));
         let bridgeNotified = false;
         if (window.AdminControlBridge && typeof window.AdminControlBridge.setBookingStatus === "function") {
             const bridgeResult = window.AdminControlBridge.setBookingStatus(bookingId, approved ? "approved" : "rejected", {
@@ -4302,18 +4342,32 @@
             });
             bridgeNotified = Boolean(bridgeResult && bridgeResult.ok);
         }
-        const message = `${bookingId} ${approved ? "approved" : "rejected"} from standalone admin app.`;
-        const backendReview = await reviewBackendBooking(bookingId, decision, customerMessage);
-        addAudit(approved ? "BOOKING_APPROVED" : "BOOKING_REJECTED", message);
+        const actionLabel = approved ? "approved" : (blocked ? "blocked" : (deleted ? "soft_deleted" : "rejected"));
+        const message = `${bookingId} ${actionLabel} from standalone admin app.`;
+        const backendReview = await reviewBackendBooking(bookingId, approved ? "approve" : "reject", customerMessage);
+        addAudit(
+            approved ? "BOOKING_APPROVED" : (blocked ? "BOOKING_BLOCKED" : (deleted ? "BOOKING_SOFT_DELETED" : "BOOKING_REJECTED")),
+            message
+        );
         if (!bridgeNotified) {
-            notifyPortal(approved ? "booking_approved" : "booking_rejected", syncResult.booking || { ...booking, ...updates }, customerMessage, ["customer", "driver", "admin"]);
+            notifyPortal(
+                approved ? "booking_approved" : (blocked ? "booking_blocked_by_admin" : (deleted ? "booking_deleted_by_admin" : "booking_rejected")),
+                syncResult.booking || { ...booking, ...updates },
+                customerMessage,
+                ["customer", "driver", "admin"]
+            );
         }
-        broadcastAdminBookingCustomerSync(syncResult.booking || { ...booking, ...updates }, approved ? "admin_approve" : "admin_reject", ["adminReviewStatus", "status"], customerMessage);
+        broadcastAdminBookingCustomerSync(
+            syncResult.booking || { ...booking, ...updates },
+            approved ? "admin_approve" : (blocked ? "admin_block" : (deleted ? "admin_soft_delete" : "admin_reject")),
+            ["adminReviewStatus", "status", "adminDecision"],
+            customerMessage
+        );
         const fallbackDecision = await syncAdminBookingUpdateToFallbackQueue(
             syncResult.booking || { ...booking, ...updates, bookingId },
-            approved ? "admin_approve" : "admin_reject",
+            approved ? "admin_approve" : (blocked ? "admin_block" : (deleted ? "admin_soft_delete" : "admin_reject")),
             customerMessage,
-            ["adminReviewStatus", "status"]
+            ["adminReviewStatus", "status", "adminDecision"]
         );
         refreshData();
         showToast(backendReview.ok || fallbackDecision.ok || syncResult.touched ? message : "Decision recorded locally; backend review sync is still pending.");

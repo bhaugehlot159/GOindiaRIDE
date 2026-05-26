@@ -734,7 +734,10 @@
       .filter(function (row) { return bookingBelongsToUser(row, user); })
       .filter(shouldSyncLocalBooking)
       .slice(0, 150);
-    if (!candidates.length) return { ok: true, synced: 0, existing: 0 };
+    if (!candidates.length) {
+      await syncLocalBookingsToPublicAdminQueue(user, 'backend_synced_queue_mirror');
+      return { ok: true, synced: 0, existing: 0, publicQueueSynced: true };
+    }
 
     bridge.localBookingSyncInFlight = (async function () {
       var apiBases = getDashboardApiBasesSafe();
@@ -754,7 +757,8 @@
           var data = await response.json().catch(function () { return null; });
           if (response.ok && data && data.ok !== false) {
             markLocalBookingSyncResults(data.items || [], user);
-            return data;
+            await syncLocalBookingsToPublicAdminQueue(user, 'backend_synced_queue_mirror');
+            return Object.assign({}, data, { publicQueueSynced: true });
           }
         } catch (_error) {}
       }
