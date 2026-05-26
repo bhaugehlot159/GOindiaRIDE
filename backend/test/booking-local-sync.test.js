@@ -323,6 +323,107 @@ test('fallback admin review queue bridges tokenless customer bookings into admin
   assert.equal(afterReviewResponse.body.items.some((item) => item.bookingId === 'RIDPUBLIC123'), false);
 });
 
+test('fallback admin review queue exposes every customer booking feature type to admin portal', async (t) => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gir-feature-queue-'));
+  process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE = path.join(tempDir, 'queue.json');
+  t.after(() => {
+    delete process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE;
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  const BookingMock = createBookingModelMock();
+  const app = createApp(loadBookingRouter(BookingMock, {
+    id: '65f0b7d6f3a9a1b2c3d4e5a1',
+    email: 'admin@example.com',
+    accountType: 'admin',
+    role: 'admin'
+  }));
+  const base = createLocalBookingPayload();
+  const featureBookings = [
+    {
+      ...base,
+      bookingId: 'RIDFEATUREAIR1',
+      pickup: 'SH32, Bargaon, Udaipur',
+      dropoff: 'Maharana Pratap Airport UDR',
+      tripPlan: 'airport',
+      tripServiceType: 'airport_drop',
+      airportServiceMode: 'airport_drop',
+      amount: 477,
+      distanceKm: 24
+    },
+    {
+      ...base,
+      bookingId: 'RIDFEATURELOC1',
+      pickup: 'Udaipur City Palace',
+      dropoff: 'Fateh Sagar Lake',
+      tripPlan: 'local',
+      tripServiceType: 'local_city',
+      amount: 320,
+      distanceKm: 8
+    },
+    {
+      ...base,
+      bookingId: 'RIDFEATUREDAY1',
+      pickup: 'Jaipur Hotel',
+      dropoff: 'Jaipur Full Day Plan',
+      tripPlan: 'day_plan',
+      tripServiceType: 'full_day',
+      amount: 2400,
+      distanceKm: 80
+    },
+    {
+      ...base,
+      bookingId: 'RIDFEATUREOUT1',
+      pickup: 'Udaipur, Rajasthan',
+      dropoff: 'Jaipur, Rajasthan',
+      tripPlan: 'outstation',
+      tripServiceType: 'one_way',
+      amount: 6129,
+      distanceKm: 395
+    }
+  ];
+
+  const queueResponse = await request(app)
+    .post('/api/bookings/fallback/admin-review-queue')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web')
+    .send({ source: 'customer_booking_submit', bookings: featureBookings });
+
+  assert.equal(queueResponse.status, 200);
+  assert.equal(queueResponse.body.ok, true);
+  assert.equal(queueResponse.body.queued, 4);
+
+  const publicQueueResponse = await request(app)
+    .get('/api/bookings/fallback/admin-review-queue?limit=50')
+    .set('Origin', 'https://goindiaride.in')
+    .set('x-booking-client', 'goindiaride-web');
+
+  assert.equal(publicQueueResponse.status, 200);
+  for (const booking of featureBookings) {
+    const queued = publicQueueResponse.body.items.find((item) => item.bookingId === booking.bookingId);
+    assert.ok(queued, `${booking.bookingId} should be in public admin queue`);
+    assert.equal(queued.adminReviewStatus, 'pending');
+    assert.equal(queued.sourceKey, 'customer_booking_submit');
+    assert.equal(queued.customerName, 'Test Rider');
+    assert.equal(queued.pickupLocation, booking.pickup);
+    assert.equal(queued.dropLocation, booking.dropoff);
+  }
+
+  const pendingResponse = await request(app)
+    .get('/api/bookings/admin/pending?limit=50')
+    .set('Authorization', 'Bearer admin-token');
+
+  assert.equal(pendingResponse.status, 200);
+  assert.equal(pendingResponse.body.pendingCount, 4);
+  for (const booking of featureBookings) {
+    const pending = pendingResponse.body.items.find((item) => item.bookingId === booking.bookingId);
+    assert.ok(pending, `${booking.bookingId} should be visible in admin pending bookings`);
+    assert.equal(pending.pickupLocation, booking.pickup);
+    assert.equal(pending.dropLocation, booking.dropoff);
+    assert.equal(pending.adminReviewStatus, 'pending');
+  }
+});
+
 test('public admin review queue includes live backend pending bookings without admin JWT', async (t) => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gir-live-pending-queue-'));
   process.env.FALLBACK_BOOKING_REVIEW_QUEUE_FILE = path.join(tempDir, 'queue.json');

@@ -14,6 +14,7 @@
         "goindiaride_ride_history",
         "customerBookings",
         "customer_bookings",
+        "goindiaride_live_customer_booking_queue_v1",
         "adminDemoBookings"
     ];
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
@@ -48,7 +49,8 @@
         "goride_bookings",
         "goindiaride_active_bookings",
         "customerBookings",
-        "customer_bookings"
+        "customer_bookings",
+        "goindiaride_live_customer_booking_queue_v1"
     ];
     const ADMIN_LOGOUT_KEYS = [
         "currentAdmin",
@@ -2497,21 +2499,29 @@
 
     async function fetchPublicFallbackBookingRows({ apiBase }) {
         try {
-            const response = await fetch(`${apiBase}/api/bookings/fallback/admin-review-queue?limit=500`, {
-                method: "GET",
-                headers: {
-                    Accept: "application/json",
-                    "x-booking-client": "goindiaride-web"
-                },
-                credentials: "include",
-                cache: "no-store"
-            });
-            if (!response.ok) return { ok: false, rows: [] };
-            const payload = await response.json().catch(() => ({}));
-            const rows = extractBackendPayloadRows(payload)
-                .map((row) => mapBackendBookingRow(row, "backend_fallback_admin_review_queue"))
-                .filter((row) => cleanText(row.bookingId || row.id));
-            return { ok: true, rows };
+            const statuses = ["pending", "approved", "rejected"];
+            let rows = [];
+            let ok = false;
+            for (const status of statuses) {
+                const response = await fetch(`${apiBase}/api/bookings/fallback/admin-review-queue?limit=500&status=${encodeURIComponent(status)}`, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        "x-booking-client": "goindiaride-web"
+                    },
+                    credentials: "include",
+                    cache: "no-store"
+                });
+                if (!response.ok) continue;
+                ok = true;
+                const payload = await response.json().catch(() => ({}));
+                rows = rows.concat(
+                    extractBackendPayloadRows(payload)
+                        .map((row) => mapBackendBookingRow(row, "backend_fallback_admin_review_queue"))
+                        .filter((row) => cleanText(row.bookingId || row.id))
+                );
+            }
+            return { ok, rows: mergeById(rows) };
         } catch (_error) {
             return { ok: false, rows: [] };
         }

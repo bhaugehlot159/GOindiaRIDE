@@ -9,7 +9,8 @@
     'goindiaride_active_bookings',
     'customerBookings',
     'customer_bookings',
-    'goindiaride_admin_customer_bookings_current_v1'
+    'goindiaride_admin_customer_bookings_current_v1',
+    'goindiaride_live_customer_booking_queue_v1'
   ];
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
   window.__GOINDIARIDE_DISABLE_DEMO_CHAT__ = true;
@@ -242,6 +243,10 @@
       );
       localStorage.setItem('bookings', JSON.stringify(mergedLocal));
       localStorage.setItem('goride_bookings', JSON.stringify(mergedShared));
+      localStorage.setItem('goindiaride_active_bookings', JSON.stringify(mergedLocal));
+      localStorage.setItem('customerBookings', JSON.stringify(mergedLocal));
+      localStorage.setItem('customer_bookings', JSON.stringify(mergedLocal));
+      localStorage.setItem('goindiaride_live_customer_booking_queue_v1', JSON.stringify(mergedLocal.slice(0, 250)));
     } catch (_error) {}
   }
 
@@ -614,7 +619,8 @@
     var status = String((row && row.status) || '').trim().toLowerCase();
     if (status === 'completed' || status === 'cancelled') return false;
     var backendStatus = String((row && row.backendSyncStatus) || '').trim().toLowerCase();
-    if (backendStatus === 'synced') return false;
+    var adminQueueStatus = String((row && row.adminQueueSyncStatus) || '').trim().toLowerCase();
+    if (backendStatus === 'synced' && (adminQueueStatus === 'queued' || adminQueueStatus === 'existing')) return false;
     return syncState[ref] !== getPublicAdminQueueFingerprint(row);
   }
 

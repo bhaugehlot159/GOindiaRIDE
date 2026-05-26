@@ -13319,6 +13319,14 @@
         const ADMIN_EMAIL_RETRY_THROTTLE_COOLDOWN_MS = 5 * 60 * 1000;
         const LAST_ADMIN_EMAIL_DISPATCH_KEY = 'goindiaride_last_admin_email_dispatch_v1';
         const ADMIN_REVIEW_INBOX_KEY = 'goindiaride_admin_review_inbox_v1';
+        const CUSTOMER_BOOKING_LOCAL_STORE_KEYS = [
+            'bookings',
+            'goride_bookings',
+            'goindiaride_active_bookings',
+            'customerBookings',
+            'customer_bookings',
+            'goindiaride_live_customer_booking_queue_v1'
+        ];
         let bookingSubmitInProgress = false;
         let adminEmailRetryIntervalRef = null;
         let adminEmailFlushInProgress = false;
@@ -13354,10 +13362,10 @@
             const normalized = Array.isArray(bookings)
                 ? bookings.filter((item) => item && typeof item === 'object')
                 : [];
-            const mergedLocal = mergeBookingCollections(readBookingStoreArray('bookings'), normalized);
-            const mergedShared = mergeBookingCollections(readBookingStoreArray('goride_bookings'), normalized);
-            localStorage.setItem('bookings', JSON.stringify(mergedLocal));
-            localStorage.setItem('goride_bookings', JSON.stringify(mergedShared));
+            CUSTOMER_BOOKING_LOCAL_STORE_KEYS.forEach((key) => {
+                const mergedRows = mergeBookingCollections(readBookingStoreArray(key), normalized);
+                localStorage.setItem(key, JSON.stringify(mergedRows));
+            });
         }
 
         function loadAdminReviewInboxStore() {
@@ -13519,8 +13527,21 @@
                 ...bookingRecord,
                 id: bookingId,
                 bookingId: bookingId,
-                status: bookingRecord.status || 'pending_admin_review',
+                status: bookingRecord.status === 'pending' ? 'pending_admin_review' : (bookingRecord.status || 'pending_admin_review'),
                 adminReviewStatus: bookingRecord.adminReviewStatus || 'pending',
+                adminBookingScope: bookingRecord.adminBookingScope || 'customer',
+                sourceKey: bookingRecord.sourceKey || 'customer_booking_submit',
+                pickupLocation: bookingRecord.pickupLocation || bookingRecord.pickup || '',
+                dropoff: bookingRecord.dropoff || bookingRecord.drop || bookingRecord.dropLocation || '',
+                drop: bookingRecord.drop || bookingRecord.dropoff || bookingRecord.dropLocation || '',
+                dropLocation: bookingRecord.dropLocation || bookingRecord.dropoff || bookingRecord.drop || '',
+                totalFare: Number(bookingRecord.totalFare || bookingRecord.amount || bookingRecord.fare || 0),
+                amount: Number(bookingRecord.amount || bookingRecord.totalFare || bookingRecord.fare || 0),
+                customerSnapshot: {
+                    name: sanitizeInput(bookingRecord.customerSnapshot?.name || bookingRecord.customerName || 'Customer', 140),
+                    email: sanitizeInput(bookingRecord.customerSnapshot?.email || bookingRecord.customerEmail || '', 180),
+                    phone: sanitizeInput(bookingRecord.customerSnapshot?.phone || bookingRecord.customerPhone || '', 40)
+                },
                 createdAt: bookingRecord.createdAt || new Date().toISOString(),
                 adminEmailDispatch: mergeEmailDispatchState(
                     bookingRecord.adminEmailDispatch,

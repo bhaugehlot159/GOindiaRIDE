@@ -66,6 +66,14 @@ test('booking secure fare estimate sends idempotency key before final booking cr
 test('booking final submit refreshes expired tokens and falls back to admin review queue', () => {
   const html = readRepoFile('pages/booking.html');
 
+  assert.match(html, /CUSTOMER_BOOKING_LOCAL_STORE_KEYS/);
+  assert.match(html, /'goindiaride_active_bookings'/);
+  assert.match(html, /'customerBookings'/);
+  assert.match(html, /'customer_bookings'/);
+  assert.match(html, /'goindiaride_live_customer_booking_queue_v1'/);
+  assert.match(html, /adminBookingScope:\s*bookingRecord\.adminBookingScope \|\| 'customer'/);
+  assert.match(html, /sourceKey:\s*bookingRecord\.sourceKey \|\| 'customer_booking_submit'/);
+  assert.match(html, /customerSnapshot:\s*\{/);
   assert.match(html, /function getBackendRefreshToken\(/);
   assert.match(html, /function refreshBookingBackendAccessToken\(/);
   assert.match(html, /function resolveFreshBookingAccessToken\(/);

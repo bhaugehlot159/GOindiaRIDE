@@ -295,6 +295,65 @@ function getBackendAccessToken() {
     );
 }
 
+function readBookingStoredObject(key) {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (_error) {
+        return {};
+    }
+}
+
+function getBookingCustomerSnapshot() {
+    const user = (
+        (window.currentUser && typeof window.currentUser === 'object' ? window.currentUser : null) ||
+        readBookingStoredObject('currentUser') ||
+        readBookingStoredObject('goindiaride_user') ||
+        readBookingStoredObject('goindiaride.profile.runtime')
+    );
+
+    const name = cleanBookingText(user.fullname || user.name || user.customerName || 'Customer', 140);
+    const email = cleanBookingText(user.email || user.userEmail || user.customerEmail || '', 180).toLowerCase();
+    const phone = cleanBookingText(user.phone || user.mobile || user.contact || user.customerPhone || '', 40);
+    const id = cleanBookingText(user.id || user.userId || user.customerId || user.backendUserId || user._id || email || phone || '', 120);
+
+    return {
+        id,
+        name,
+        email,
+        phone,
+        user
+    };
+}
+
+function applyBookingCustomerSnapshot(booking, snapshot = getBookingCustomerSnapshot()) {
+    if (!booking || typeof booking !== 'object') return booking;
+    const customerName = cleanBookingText(booking.customerName || snapshot.name || 'Customer', 140);
+    const customerEmail = cleanBookingText(booking.customerEmail || snapshot.email || '', 180).toLowerCase();
+    const customerPhone = cleanBookingText(booking.customerPhone || booking.phone || snapshot.phone || '', 40);
+    const customerId = cleanBookingText(booking.customerId || booking.userId || snapshot.id || customerEmail || customerPhone || '', 120);
+
+    return {
+        ...booking,
+        customerId,
+        backendUserId: cleanBookingText(booking.backendUserId || snapshot.user?.backendUserId || snapshot.user?._id || '', 120),
+        userId: cleanBookingText(booking.userId || customerId, 120),
+        customerName,
+        customerEmail,
+        customerPhone,
+        phone: cleanBookingText(booking.phone || customerPhone, 40),
+        customerSnapshot: {
+            ...(booking.customerSnapshot && typeof booking.customerSnapshot === 'object' ? booking.customerSnapshot : {}),
+            id: customerId,
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone
+        },
+        adminBookingScope: booking.adminBookingScope || 'customer',
+        sourceKey: booking.sourceKey || 'customer_live_booking_flow'
+    };
+}
+
 function normalizeBookingLifecycleStatus(booking = {}) {
     const adminReviewStatus = String(booking.adminReviewStatus || '').toLowerCase();
     const backendStatus = String(booking.backendStatus || booking.status || '').toLowerCase();
@@ -446,7 +505,8 @@ async function createFallbackAdminReviewBooking({
     const bookingId = generateLiveBookingId();
     const now = new Date().toISOString();
     const amount = Number(fareBreakdown?.totalFare || calculateFare(pickup, drop, vehicleType, distanceKm, bookingMode, bookingModeDuration));
-    const booking = {
+    const customerSnapshot = getBookingCustomerSnapshot();
+    const booking = applyBookingCustomerSnapshot({
         id: bookingId,
         bookingId,
         pickup: cleanBookingText(pickup),
@@ -472,7 +532,7 @@ async function createFallbackAdminReviewBooking({
         referralCode: cleanBookingText(referralCode, 40),
         createdAt: now,
         updatedAt: now
-    };
+    }, customerSnapshot);
 
     const apiBase = getBackendApiBase();
     try {
@@ -588,10 +648,15 @@ async function handleBookingSubmit() {
             referralCode: ''
         });
 
-        const booking = {
-            id: bookingResponse.bookingId || ('BOOK' + Date.now()),
+        const customerSnapshot = getBookingCustomerSnapshot();
+        const localBookingId = bookingResponse.bookingId || ('BOOK' + Date.now());
+        const booking = applyBookingCustomerSnapshot({
+            id: localBookingId,
+            bookingId: localBookingId,
             pickup,
             drop,
+            pickupLocation: pickup,
+            dropLocation: drop,
             vehicleType,
             bookingMode,
             bookingModeDuration,
@@ -609,9 +674,14 @@ async function handleBookingSubmit() {
             otp: '----',
             backendStatus: String(bookingResponse.status || 'created'),
             adminReviewStatus: String(bookingResponse.adminReviewStatus || 'pending'),
+            source: bookingResponse.source || 'customer_live_booking_flow',
+            sourceKey: bookingResponse.source || 'customer_live_booking_flow',
+            fallbackQueued: Boolean(bookingResponse.fallbackQueue || bookingResponse.localLiveQueued),
+            adminQueueSyncStatus: bookingResponse.fallbackQueue ? 'queued' : '',
+            adminQueueSyncedAt: bookingResponse.fallbackQueue ? new Date().toISOString() : '',
             driverId: null,
             driverName: ''
-        };
+        }, customerSnapshot);
         
         booking.finalFare = fareBreakdown.totalFare;
         if (isFirstBooking) localStorage.setItem('goindiaride_user_type', 'existing');
@@ -775,6 +845,15 @@ function mergeBookingRowsForAdmin(keys, booking) {
             bookingId,
             status: booking.status || existing.status || 'pending_admin_review',
             adminReviewStatus: booking.adminReviewStatus || existing.adminReviewStatus || 'pending',
+            adminBookingScope: booking.adminBookingScope || existing.adminBookingScope || 'customer',
+            sourceKey: booking.sourceKey || existing.sourceKey || 'customer_live_booking_flow',
+            customerId: booking.customerId || booking.userId || existing.customerId || existing.userId || '',
+            backendUserId: booking.backendUserId || existing.backendUserId || '',
+            userId: booking.userId || booking.customerId || existing.userId || existing.customerId || '',
+            customerName: booking.customerName || existing.customerName || 'Customer',
+            customerEmail: booking.customerEmail || existing.customerEmail || '',
+            customerPhone: booking.customerPhone || booking.phone || existing.customerPhone || existing.phone || '',
+            customerSnapshot: booking.customerSnapshot || existing.customerSnapshot || {},
             pickupLocation: booking.pickupLocation || booking.pickup || existing.pickupLocation || existing.pickup || '',
             dropLocation: booking.dropLocation || booking.drop || booking.dropoff || existing.dropLocation || existing.drop || existing.dropoff || '',
             totalFare: Number(booking.totalFare || booking.finalFare || booking.fare || booking.amount || existing.totalFare || existing.fare || 0),
@@ -804,7 +883,10 @@ function saveBooking(booking) {
         'bookings',
         'goride_bookings',
         'goindiaride_admin_review_inbox_v1',
-        'goindiaride_active_bookings'
+        'goindiaride_active_bookings',
+        'customerBookings',
+        'customer_bookings',
+        LIVE_CUSTOMER_BOOKING_QUEUE_KEY
     ], booking);
     window.dispatchEvent(new CustomEvent('goindiaride:customer-bookings-updated', {
         detail: { bookingId: key, booking }

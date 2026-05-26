@@ -316,6 +316,9 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
 
   assert.match(runtimeBridge, /LOCAL_BOOKING_KEYS/);
   assert.match(runtimeBridge, /goindiaride_admin_customer_bookings_current_v1/);
+  assert.match(runtimeBridge, /goindiaride_live_customer_booking_queue_v1/);
+  assert.match(runtimeBridge, /localStorage\.setItem\('goindiaride_active_bookings'/);
+  assert.match(runtimeBridge, /adminQueueSyncStatus/);
   assert.match(runtimeBridge, /function mergeBookingRowSnapshots\(/);
   assert.match(runtimeBridge, /function fetchFallbackAdminQueueBookings\(/);
   assert.match(runtimeBridge, /fallback\/admin-review-queue\?limit=220&status=/);
@@ -326,6 +329,9 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(runtimeBridge, /localRowLooksFresher\(existing,\s*mapped\)/);
   assert.match(runtimeBridge, /editSyncStatus:\s*'synced'/);
   assert.match(runtimeBridge, /editSyncConflict:\s*false/);
+  assert.match(adminApp, /goindiaride_live_customer_booking_queue_v1/);
+  assert.match(adminApp, /const statuses = \["pending", "approved", "rejected"\]/);
+  assert.match(adminApp, /status=\$\{encodeURIComponent\(status\)\}/);
 });
 
 test('changed inline scripts still compile', () => {
