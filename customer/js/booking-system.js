@@ -164,6 +164,12 @@ function generateLiveBookingId() {
     return `RID${stamp}${suffix}`;
 }
 
+function createBookingIdempotencyKey(prefix, bookingId = '') {
+    const safePrefix = cleanBookingText(prefix || 'gir-booking', 80).replace(/[^A-Za-z0-9:_-]/g, '_') || 'gir-booking';
+    const safeBookingId = cleanBookingText(bookingId || '', 120).replace(/[^A-Za-z0-9:_-]/g, '_');
+    return `${safePrefix}:${safeBookingId || Date.now().toString(36)}:${Date.now()}:${Math.random().toString(36).slice(2, 12)}`;
+}
+
 function getRidePaymentMethod() {
     const node = document.getElementById('ridePaymentMethod');
     return node ? String(node.value || 'upi_intent') : 'upi_intent';
@@ -540,7 +546,8 @@ async function createFallbackAdminReviewBooking({
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-booking-client': 'goindiaride-web'
+                'x-booking-client': 'goindiaride-web',
+                'x-idempotency-key': createBookingIdempotencyKey('gir-booking-fallback-admin-queue', bookingId)
             },
             credentials: 'include',
             body: JSON.stringify({
