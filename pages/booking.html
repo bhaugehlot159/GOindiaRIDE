@@ -8500,12 +8500,17 @@
                 'market', 'mall', 'hospital', 'hotel', 'temple', 'chowk', 'circle', 'gate',
                 'station', 'airport', 'school', 'shop'
             ];
-            if (detailHints.some((hint) => new RegExp(`\\b${hint}\\b`, 'i').test(address))) {
+            const hasDetailHint = detailHints.some((hint) => new RegExp(`\\b${hint}\\b`, 'i').test(address));
+            if (hasDetailHint) {
                 score += 4;
+            } else {
+                score -= 2;
             }
 
-            const broadHints = ['tehsil', 'district', 'state', 'india'];
-            score -= broadHints.reduce((count, hint) => count + (lower.includes(hint) ? 1 : 0), 0);
+            const strongBroadHints = ['tehsil', 'district', 'taluka', 'block'];
+            score -= strongBroadHints.reduce((count, hint) => count + (lower.includes(hint) ? 4 : 0), 0);
+            if (lower.includes('state')) score -= 2;
+            if (lower.includes('india')) score -= 1;
 
             if (lower.includes('current location')) score -= 2;
             return score;
@@ -8523,12 +8528,18 @@
                 unique.push(normalized);
             });
             if (!unique.length) return formatBookingMapCoords(coords);
-            unique.sort((left, right) => {
-                const scoreDelta = scoreBookingAddressCandidate(right) - scoreBookingAddressCandidate(left);
+            const ranked = unique.map((address) => ({
+                address,
+                score: scoreBookingAddressCandidate(address)
+            }));
+            ranked.sort((left, right) => {
+                const scoreDelta = right.score - left.score;
                 if (scoreDelta !== 0) return scoreDelta;
-                return left.length - right.length;
+                return left.address.length - right.address.length;
             });
-            return unique[0];
+            const best = ranked[0] || null;
+            if (!best || best.score < 2) return formatBookingMapCoords(coords);
+            return best.address;
         }
 
         async function reverseGeocodeBookingCoordsFallback(coords) {
