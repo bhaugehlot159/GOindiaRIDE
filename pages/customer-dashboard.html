@@ -3224,6 +3224,7 @@
 
             // Load messages
             loadMessages();
+            openRequestedCustomerTabFromUrl();
 
             // Check for completed rides immediately
             checkForCompletedRides();
@@ -5345,6 +5346,32 @@ Thank you for helping! ❤️
                     .then(() => renderWalletPanel({ forceSync: true }))
                     .catch((error) => console.warn('Wallet render failed:', error));
             }
+        }
+
+        function resolveDashboardTabFromNavigation() {
+            const query = new URLSearchParams(window.location.search || '');
+            const hashValue = String(window.location.hash || '').replace(/^#/, '').trim().toLowerCase();
+            const requested = String(query.get('tab') || query.get('view') || hashValue || '').trim().toLowerCase();
+            const tabAliases = {
+                active: 'active',
+                rides: 'active',
+                history: 'history',
+                'ride-history': 'history',
+                'booking-history': 'history',
+                ride_history: 'history',
+                booking_history: 'history',
+                wallet: 'wallet',
+                messages: 'messages',
+                donations: 'donations',
+                profile: 'profile'
+            };
+            return tabAliases[requested] || '';
+        }
+
+        function openRequestedCustomerTabFromUrl() {
+            const requestedTab = resolveDashboardTabFromNavigation();
+            if (!requestedTab) return;
+            switchTab(requestedTab);
         }
 
         // ============================================

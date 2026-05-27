@@ -6739,7 +6739,7 @@
                 Booking is sent to admin for live review. Driver assignment will start only after admin approval.
             </div>
             <button class="modal-btn" onclick="closeSuccessModal()">
-                View Booking
+                View Booking History
             </button>
         </div>
     </div>
@@ -10622,7 +10622,7 @@
                     searchButton.disabled = !advancedCurrentComplete;
                     searchButton.classList.toggle('is-layer-locked', !advancedCurrentComplete);
                     searchButton.setAttribute('aria-disabled', advancedCurrentComplete ? 'false' : 'true');
-                    searchButton.textContent = isAdvancedFinal ? 'SEARCH' : 'NEXT';
+                    searchButton.textContent = isAdvancedFinal ? 'FINAL SUBMIT' : 'NEXT';
                 } else {
                     searchButton.disabled = !currentLayerReady;
                     searchButton.classList.toggle('is-layer-locked', !currentLayerReady);
@@ -14267,6 +14267,13 @@
             document.getElementById('matchingCard').style.display = 'none';
             document.getElementById('driverDetails').classList.remove('show');
             document.getElementById('successModal').classList.add('active');
+            bookingSuccessRedirectIssued = false;
+            if (bookingSuccessRedirectTimer) {
+                window.clearTimeout(bookingSuccessRedirectTimer);
+            }
+            bookingSuccessRedirectTimer = window.setTimeout(() => {
+                redirectToBookingHistory();
+            }, 900);
         }
 
         function queueBookingForAdminReview(booking, mode, backendStatus, toastMessage) {
@@ -15868,8 +15875,23 @@ Thank you for your generosity! ❤️
             }
         }
 
+        const BOOKING_HISTORY_REDIRECT_URL = './customer-dashboard.html?tab=history#history';
+        let bookingSuccessRedirectTimer = null;
+        let bookingSuccessRedirectIssued = false;
+
+        function redirectToBookingHistory() {
+            if (bookingSuccessRedirectIssued) return;
+            bookingSuccessRedirectIssued = true;
+            if (bookingSuccessRedirectTimer) {
+                window.clearTimeout(bookingSuccessRedirectTimer);
+                bookingSuccessRedirectTimer = null;
+            }
+            window.location.href = BOOKING_HISTORY_REDIRECT_URL;
+        }
+
         function closeSuccessModal() {
             document.getElementById('successModal').classList.remove('active');
+            redirectToBookingHistory();
         }
 
         window.GOINDIARIDE_FORCE_STATIC_FIREBASE_CONFIG = 'false';
