@@ -14267,13 +14267,6 @@
             document.getElementById('matchingCard').style.display = 'none';
             document.getElementById('driverDetails').classList.remove('show');
             document.getElementById('successModal').classList.add('active');
-            bookingSuccessRedirectIssued = false;
-            if (bookingSuccessRedirectTimer) {
-                window.clearTimeout(bookingSuccessRedirectTimer);
-            }
-            bookingSuccessRedirectTimer = window.setTimeout(() => {
-                redirectToBookingHistory();
-            }, 900);
         }
 
         function queueBookingForAdminReview(booking, mode, backendStatus, toastMessage) {
@@ -15876,16 +15869,11 @@ Thank you for your generosity! ❤️
         }
 
         const BOOKING_HISTORY_REDIRECT_URL = './customer-dashboard.html?tab=history#history';
-        let bookingSuccessRedirectTimer = null;
         let bookingSuccessRedirectIssued = false;
 
         function redirectToBookingHistory() {
             if (bookingSuccessRedirectIssued) return;
             bookingSuccessRedirectIssued = true;
-            if (bookingSuccessRedirectTimer) {
-                window.clearTimeout(bookingSuccessRedirectTimer);
-                bookingSuccessRedirectTimer = null;
-            }
             window.location.href = BOOKING_HISTORY_REDIRECT_URL;
         }
 
