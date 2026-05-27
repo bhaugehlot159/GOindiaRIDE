@@ -146,6 +146,7 @@
             <nav class="app-nav" aria-label="Admin sections">
                 <button class="nav-item active" data-view="overview" type="button"><i class="fas fa-table-columns"></i><span>Overview</span></button>
                 <button class="nav-item" data-view="portals" type="button"><i class="fas fa-network-wired"></i><span>Portals</span><strong id="navPortalCount">2</strong></button>
+                <button class="nav-item" data-view="benchmark" type="button"><i class="fas fa-chart-line"></i><span>Benchmark</span><strong id="navBenchmarkGapCount">0</strong></button>
                 <button class="nav-item" data-view="bookings" type="button"><i class="fas fa-clipboard-list"></i><span>Customer Bookings</span><strong id="navPendingCount">0</strong></button>
                 <a class="nav-item" href="./driver-bookings/"><i class="fas fa-car-side"></i><span>Driver Bookings</span><strong id="navDriverBookingCount">0</strong></a>
                 <button class="nav-item" data-view="drivers" type="button"><i class="fas fa-id-card"></i><span>Drivers</span></button>
@@ -261,6 +262,46 @@
                         <div class="activity-feed" id="activityFeed"></div>
                     </section>
                 </div>
+            </section>
+
+            <section class="view-panel" id="view-benchmark">
+                <div class="benchmark-grid">
+                    <section class="workspace-panel benchmark-overview-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Verified market check</span>
+                                <h2>Admin Feature Benchmark</h2>
+                            </div>
+                            <div class="control-actions">
+                                <button class="secondary-action" data-benchmark-action="refresh" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+                                <button class="primary-action" data-benchmark-action="apply" type="button"><i class="fas fa-link"></i> Connect baseline</button>
+                            </div>
+                        </div>
+                        <div class="benchmark-summary-grid" id="benchmarkSummaryGrid"></div>
+                        <div class="benchmark-list" id="benchmarkMatrixList"></div>
+                    </section>
+
+                    <section class="workspace-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Live wiring</span>
+                                <h2>Connection Checklist</h2>
+                            </div>
+                            <span class="status-pill" id="benchmarkLastSaved">Not saved</span>
+                        </div>
+                        <div class="benchmark-check-list" id="benchmarkConnectionList"></div>
+                    </section>
+                </div>
+
+                <section class="workspace-panel benchmark-source-panel">
+                    <div class="panel-title-row">
+                        <div>
+                            <span class="section-kicker">Source notes</span>
+                            <h2>Public Reference Map</h2>
+                        </div>
+                    </div>
+                    <div class="benchmark-source-list" id="benchmarkSourcesList"></div>
+                </section>
             </section>
 
             <section class="view-panel" id="view-portals">

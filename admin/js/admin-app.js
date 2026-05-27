@@ -42,6 +42,117 @@
     ]);
     const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
     const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
+    const BENCHMARK_REVIEW_KEY = "goindiaride_admin_benchmark_readiness_v1";
+    const BENCHMARK_RESEARCH_DATE = "2026-05-27";
+    const BENCHMARK_SOURCE_NOTES = [
+        {
+            brand: "Uber for Business",
+            url: "https://www.uber.com/us/en/business/products/business-hub/",
+            finding: "Business dashboard covers billing, account privileges, program spending, policies, reporting, integrations, vouchers and Central rides."
+        },
+        {
+            brand: "Uber Fleet",
+            url: "https://help.uber.com/en/driving-and-delivering/article/fleet-portal?nodeId=858519de-ca02-424a-b8be-0f60eed9e49b",
+            finding: "Fleet portal covers drivers, vehicles, documents, trip history, driver quality, payments, invoices and live map."
+        },
+        {
+            brand: "Ola Corporate",
+            url: "https://corporate.olacabs.com/tutorial.html",
+            finding: "Corporate dashboard covers employee groups, admin/travel desk roles, ride approvals, ride reports, invoices, spend and budget analytics."
+        },
+        {
+            brand: "Rapido Corporate",
+            url: "https://www.rapido.bike/CorporatePartners",
+            finding: "Corporate console covers employee onboarding, cashless corporate wallet rides, app/API booking, expense statements, invoices and spend tracking."
+        },
+        {
+            brand: "Rapido Safety/Captain",
+            url: "https://rapido.bike/CaptainTerms",
+            finding: "Captain requirements include documents, background/police verification, duty-hour limits, medical checks, training and fraud/safety conduct controls."
+        }
+    ];
+    const BENCHMARK_MATRIX = [
+        {
+            id: "admin_booked_rides",
+            title: "Admin-booked rides",
+            competitors: "Uber Central, Rapido Corporate",
+            current: "Customer booking creation, edit, approve/reject/block/delete and fallback backend queue are wired in admin app.",
+            next: "Keep backend auth token valid so cloud sync can promote local/fallback rows.",
+            statusType: "live"
+        },
+        {
+            id: "policy_budget_controls",
+            title: "Policy, approval and budget controls",
+            competitors: "Uber Business, Ola Corporate",
+            current: "Booking approvals and A-Z feature controls are live; corporate budget limits are not a dedicated module yet.",
+            next: "Add dedicated company/group budget rules before enterprise rollout.",
+            statusType: "partial"
+        },
+        {
+            id: "employee_groups_roles",
+            title: "Employee groups and admin roles",
+            competitors: "Ola Corporate, Uber Business",
+            current: "Admin, customer and driver access controls exist; company employee groups/travel-desk roles are not separated yet.",
+            next: "Create corporate groups, travel desk users and per-group permissions.",
+            statusType: "gap"
+        },
+        {
+            id: "corporate_wallet_billing",
+            title: "Corporate wallet and billing",
+            competitors: "Rapido Corporate, Uber Business",
+            current: "Wallet core and finance cards exist; company wallet, monthly statement and invoice PDF flow are not fully separate.",
+            next: "Build corporate wallet ledger, monthly statement export and invoice pack.",
+            statusType: "partial"
+        },
+        {
+            id: "reports_insights",
+            title: "Reports and spend insights",
+            competitors: "Uber Insights, Ola Analytics",
+            current: "Finance cards, booking export and fare audit are live; deeper filters by group/location/ride type are not complete.",
+            next: "Add date, city, ride type and group filters with downloadable reports.",
+            statusType: "partial"
+        },
+        {
+            id: "fleet_driver_vehicle_docs",
+            title: "Fleet, driver and vehicle documents",
+            competitors: "Uber Fleet, Rapido Captain",
+            current: "Driver approval, KYC hooks and compliance docs are present; vehicle document lifecycle needs stronger admin workflow.",
+            next: "Add vehicle records, expiry alerts, renewal status and document approval queues.",
+            statusType: "partial"
+        },
+        {
+            id: "fleet_live_map",
+            title: "Fleet live map and status",
+            competitors: "Uber Fleet, Rapido customer app",
+            current: "Driver status controls are present; real GPS telemetry/live map feed is not connected in this admin app.",
+            next: "Connect driver location feed and show live vehicle map with stale-location alerts.",
+            statusType: "gap"
+        },
+        {
+            id: "safety_compliance",
+            title: "Safety, SOS and compliance",
+            competitors: "Rapido Safety, Uber Fleet",
+            current: "Safety inbox cards, portal alerts and incident storage exist; duty-hour/medical/background compliance needs dedicated live rules.",
+            next: "Add duty-hour caps, mandatory break checks, background verification and medical expiry controls.",
+            statusType: "partial"
+        },
+        {
+            id: "vouchers_programs",
+            title: "Vouchers, commute and travel programs",
+            competitors: "Uber Business, Rapido Corporate",
+            current: "Promo offers exist in the legacy portal; structured voucher/program builder is not wired into the standalone admin app.",
+            next: "Create program builder for commute, field visits, guest rides, vouchers and eligibility rules.",
+            statusType: "gap"
+        },
+        {
+            id: "expense_carbon_integrations",
+            title: "Expense and sustainability integrations",
+            competitors: "Uber Business",
+            current: "No live expense-provider or carbon reporting integration found in admin app.",
+            next: "Add expense export adapters and low-emission/carbon metrics when fleet data is available.",
+            statusType: "gap"
+        }
+    ];
     const ADMIN_AUTO_REFRESH_INTERVAL_MS = 10 * 1000;
     const ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS = 60 * 1000;
     const CUSTOMER_BOOKING_SYNC_KEYS = [
@@ -144,6 +255,7 @@
         users: [],
         notifications: [],
         connection: loadConnectionState(),
+        benchmarkReview: loadBenchmarkReview(),
         controls: null,
         query: "",
         bookingQuery: "",
@@ -169,6 +281,7 @@
     const viewTitles = {
         overview: "Operations Overview",
         portals: "Portal Control",
+        benchmark: "Benchmark & Live Readiness",
         bookings: "Booking Control",
         drivers: "Driver Operations",
         finance: "Finance Control",
@@ -2371,6 +2484,11 @@
         return parsed && typeof parsed === "object" ? parsed : {};
     }
 
+    function loadBenchmarkReview() {
+        const parsed = parseJson(localStorage.getItem(BENCHMARK_REVIEW_KEY), {});
+        return parsed && typeof parsed === "object" ? parsed : {};
+    }
+
     function loadSeenToasts() {
         const parsed = parseJson(localStorage.getItem(TOAST_SEEN_KEY), []);
         return new Set(Array.isArray(parsed) ? parsed.filter(Boolean).slice(-500) : []);
@@ -3108,6 +3226,146 @@
         return booking.adminReviewStatus === "rejected" || ["rejected", "cancelled", "cancelled_by_admin", "blocked_by_admin", "deleted_by_admin"].includes(booking.status);
     }
 
+    function getBenchmarkStatus(item) {
+        const baseStatus = cleanText(item.statusType || "gap").toLowerCase();
+        if (item.id === "admin_booked_rides") {
+            const hasCreateButton = Boolean($("#addBookingForCustomerBtn"));
+            const hasFallbackSync = Boolean(state.connection && state.connection.bookingKeys && state.connection.bookingKeys.length);
+            return hasCreateButton && hasFallbackSync ? "live" : "partial";
+        }
+        if (item.id === "fleet_driver_vehicle_docs") {
+            return state.drivers.length ? "partial" : baseStatus;
+        }
+        if (item.id === "reports_insights") {
+            return state.bookings.length ? "partial" : baseStatus;
+        }
+        if (item.id === "fleet_live_map") {
+            const liveDrivers = state.drivers.filter((driver) => /(online|available|active|approved)/i.test(driver.status)).length;
+            return liveDrivers ? "partial" : "gap";
+        }
+        return ["live", "partial", "gap"].includes(baseStatus) ? baseStatus : "gap";
+    }
+
+    function benchmarkStatusLabel(status) {
+        if (status === "live") return "Live";
+        if (status === "partial") return "Partial";
+        return "Gap";
+    }
+
+    function benchmarkStatusClass(status) {
+        if (status === "live") return "approved";
+        if (status === "partial") return "pending";
+        return "rejected";
+    }
+
+    function getBenchmarkRows() {
+        return BENCHMARK_MATRIX.map((item) => ({
+            ...item,
+            status: getBenchmarkStatus(item)
+        }));
+    }
+
+    function getBenchmarkSummary(rows = getBenchmarkRows()) {
+        return rows.reduce((acc, item) => {
+            acc.total += 1;
+            acc[item.status] += 1;
+            return acc;
+        }, { total: 0, live: 0, partial: 0, gap: 0 });
+    }
+
+    function getBenchmarkChecklist() {
+        const controls = state.controls || loadAdminControls();
+        const customerVerification = getStoredPortalVerification(controls, "customer");
+        const driverPortal = ((controls.portals || {}).driver) || {};
+        const token = getBackendAccessToken();
+        const tokenReady = isBackendAccessTokenUsable(token);
+        const apiBase = resolveAdminApiBase(state.settings.apiBase || DEFAULT_API_BASE);
+        const localBookingSources = BOOKING_KEYS.filter((key) => readArray(key).length > 0).length;
+        const universalFeatureStore = parseJson(localStorage.getItem("goindiaride_admin_universal_feature_controls_v1"), {});
+        const universalFeatureCount = Object.keys((universalFeatureStore && universalFeatureStore.features) || {}).length;
+
+        return [
+            {
+                title: "Customer portal live controls",
+                status: customerVerification && customerVerification.ok ? "live" : "partial",
+                detail: customerVerification && customerVerification.total
+                    ? `${customerVerification.passed}/${customerVerification.total} customer features verified`
+                    : "Admin bridge is ready; run Connect baseline to refresh verification."
+            },
+            {
+                title: "Driver portal controls",
+                status: driverPortal.connected || driverPortal.controlledByAdminApp ? "live" : "partial",
+                detail: driverPortal.controlledFeatures && driverPortal.controlledFeatures.length
+                    ? `${driverPortal.controlledFeatures.length} driver controls connected`
+                    : `${DRIVER_FEATURES.length} driver controls available for admin connection`
+            },
+            {
+                title: "Booking review and fallback queue",
+                status: "live",
+                detail: `${BOOKING_KEYS.length} booking stores scanned; ${localBookingSources} currently contain rows`
+            },
+            {
+                title: "Backend authenticated sync",
+                status: tokenReady ? "live" : "partial",
+                detail: tokenReady ? `Token ready for ${apiBase}` : `API base set to ${apiBase}; admin login token required for protected endpoints`
+            },
+            {
+                title: "Finance and fare audit",
+                status: state.bookings.length ? "live" : "partial",
+                detail: state.bookings.length ? `${state.bookings.length} customer bookings included in finance cards` : "Finance cards are wired; no booking rows loaded yet"
+            },
+            {
+                title: "A-Z universal feature control",
+                status: universalFeatureCount ? "live" : "partial",
+                detail: universalFeatureCount ? `${universalFeatureCount} stored feature control overrides` : "Catalog loads locally and can sync to backend after admin auth"
+            }
+        ];
+    }
+
+    function persistBenchmarkReview(action = "saved") {
+        const rows = getBenchmarkRows();
+        const summary = getBenchmarkSummary(rows);
+        const checklist = getBenchmarkChecklist();
+        const payload = {
+            version: 1,
+            action,
+            researchedAt: BENCHMARK_RESEARCH_DATE,
+            updatedAt: new Date().toISOString(),
+            privateCompetitorAdminAccess: false,
+            note: "Public official pages were used because competitor private admin portals require owned accounts.",
+            summary,
+            items: rows,
+            checklist,
+            sources: BENCHMARK_SOURCE_NOTES
+        };
+        localStorage.setItem(BENCHMARK_REVIEW_KEY, JSON.stringify(payload));
+        state.benchmarkReview = payload;
+        addAudit("ADMIN_BENCHMARK_REVIEW_RECORDED", `Benchmark saved: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`, {
+            action,
+            summary
+        });
+        return payload;
+    }
+
+    function applyBenchmarkBaseline() {
+        connectAllPortalFeatures({ audit: true });
+        const controls = state.controls || loadAdminControls();
+        controls.benchmarkReadiness = {
+            researchedAt: BENCHMARK_RESEARCH_DATE,
+            updatedAt: new Date().toISOString(),
+            items: getBenchmarkRows().map((item) => ({
+                id: item.id,
+                title: item.title,
+                status: item.status,
+                next: item.next
+            }))
+        };
+        state.controls = writeAdminControls(controls);
+        const review = persistBenchmarkReview("baseline_connected");
+        renderAll();
+        showToast(`Benchmark baseline connected. ${review.summary.gap} gaps still need dedicated modules.`);
+    }
+
     function getStatusLabel(booking) {
         if (booking.status === "blocked_by_admin") return "Blocked";
         if (booking.status === "deleted_by_admin") return "Deleted";
@@ -3134,6 +3392,7 @@
         state.notifications = loadNotifications();
         state.controls = loadAdminControls();
         state.connection = loadConnectionState();
+        state.benchmarkReview = loadBenchmarkReview();
         renderAll();
         if (!options.skipBackendSync) {
             syncBackendBookings().then((changed) => {
@@ -3257,6 +3516,7 @@
         const approved = state.bookings.filter(isApproved).length;
         const actionNeeded = state.bookings.filter((booking) => isPending(booking) && String(booking.adminEmailDispatch?.state || "").toLowerCase() !== "sent").length;
         const farePipeline = state.bookings.reduce((sum, booking) => sum + booking.fare, 0);
+        const benchmarkSummary = getBenchmarkSummary();
 
         setText("#metricPending", pending);
         setText("#metricApproved", approved);
@@ -3266,6 +3526,7 @@
         const controlCount = Object.keys((state.controls && state.controls.customers) || {}).length
             + Object.keys((state.controls && state.controls.drivers) || {}).length;
         setText("#navPortalCount", Math.max(2, controlCount));
+        setText("#navBenchmarkGapCount", benchmarkSummary.gap);
     }
 
     function setText(selector, value) {
@@ -3552,6 +3813,77 @@
         `).join("");
     }
 
+    function renderBenchmark() {
+        const summaryHost = $("#benchmarkSummaryGrid");
+        const matrixHost = $("#benchmarkMatrixList");
+        const checklistHost = $("#benchmarkConnectionList");
+        const sourceHost = $("#benchmarkSourcesList");
+        const lastSaved = $("#benchmarkLastSaved");
+        if (!summaryHost && !matrixHost && !checklistHost && !sourceHost) return;
+
+        const rows = getBenchmarkRows();
+        const summary = getBenchmarkSummary(rows);
+        setText("#navBenchmarkGapCount", summary.gap);
+
+        if (summaryHost) {
+            summaryHost.innerHTML = [
+                ["Live", summary.live, "Matched and connected in admin"],
+                ["Partial", summary.partial, "Works but needs deeper module"],
+                ["Gaps", summary.gap, "Not fully built yet"],
+                ["Sources", BENCHMARK_SOURCE_NOTES.length, "Public official references"]
+            ].map((item) => `
+                <article class="benchmark-summary-card">
+                    <small>${escapeHtml(item[0])}</small>
+                    <strong>${escapeHtml(item[1])}</strong>
+                    <span>${escapeHtml(item[2])}</span>
+                </article>
+            `).join("");
+        }
+
+        if (matrixHost) {
+            matrixHost.innerHTML = rows.map((item) => `
+                <article class="benchmark-row">
+                    <div class="benchmark-copy">
+                        <strong>${escapeHtml(item.title)}</strong>
+                        <small>${escapeHtml(item.competitors)}</small>
+                        <p>${escapeHtml(item.current)}</p>
+                        <em>${escapeHtml(item.next)}</em>
+                    </div>
+                    <span class="status-pill ${benchmarkStatusClass(item.status)}">${benchmarkStatusLabel(item.status)}</span>
+                </article>
+            `).join("");
+        }
+
+        if (checklistHost) {
+            checklistHost.innerHTML = getBenchmarkChecklist().map((item) => `
+                <article class="benchmark-check-row">
+                    <i class="fas ${item.status === "live" ? "fa-circle-check" : "fa-triangle-exclamation"}"></i>
+                    <div>
+                        <strong>${escapeHtml(item.title)}</strong>
+                        <small>${escapeHtml(item.detail)}</small>
+                    </div>
+                    <span class="status-pill ${benchmarkStatusClass(item.status)}">${benchmarkStatusLabel(item.status)}</span>
+                </article>
+            `).join("");
+        }
+
+        if (sourceHost) {
+            sourceHost.innerHTML = BENCHMARK_SOURCE_NOTES.map((source) => `
+                <article class="benchmark-source-row">
+                    <strong>${escapeHtml(source.brand)}</strong>
+                    <span>${escapeHtml(source.finding)}</span>
+                    <a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.url.replace(/^https?:\/\//, ""))}</a>
+                </article>
+            `).join("");
+        }
+
+        if (lastSaved) {
+            const savedAt = state.benchmarkReview && state.benchmarkReview.updatedAt;
+            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "Not saved";
+            lastSaved.className = `status-pill ${savedAt ? "approved" : "pending"}`;
+        }
+    }
+
     function renderPortalControls() {
         const folderHost = $("#portalFolderGrid");
         const portalHost = $("#portalControlGrid");
@@ -3773,6 +4105,7 @@
         renderDrivers();
         renderFinance();
         renderSafety();
+        renderBenchmark();
         renderPortalControls();
         renderSettings();
     }
@@ -4570,6 +4903,19 @@
                 const booking = state.bookings.find((item) => item.bookingId === bookingId);
                 const result = applyEditFormAutofill(form, booking, { fillMissingOnly: false });
                 showToast(result.changed ? "Full booking form auto-filled from recent data." : "Booking form is already fully auto-filled.");
+                return;
+            }
+
+            const benchmarkButton = event.target.closest("[data-benchmark-action]");
+            if (benchmarkButton) {
+                const action = benchmarkButton.getAttribute("data-benchmark-action");
+                if (action === "apply") {
+                    applyBenchmarkBaseline();
+                } else {
+                    state.benchmarkReview = persistBenchmarkReview("manual_refresh");
+                    renderBenchmark();
+                    showToast("Benchmark readiness refreshed and saved.");
+                }
                 return;
             }
 

@@ -185,6 +185,25 @@ test('admin booking table has a dedicated all-detail search control', () => {
   assert.match(adminApp, /renderBookingTable\(\)/);
 });
 
+test('admin app exposes competitor benchmark and live readiness controls', () => {
+  const appHtml = readRepoFile('admin/app.html');
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+  const adminCss = readRepoFile('admin/css/admin-app.css');
+
+  assert.match(appHtml, /data-view="benchmark"/);
+  assert.match(appHtml, /id="benchmarkMatrixList"/);
+  assert.match(appHtml, /id="benchmarkConnectionList"/);
+  assert.match(appHtml, /data-benchmark-action="apply"/);
+  assert.match(adminApp, /BENCHMARK_REVIEW_KEY/);
+  assert.match(adminApp, /BENCHMARK_SOURCE_NOTES/);
+  assert.match(adminApp, /function applyBenchmarkBaseline\(/);
+  assert.match(adminApp, /function renderBenchmark\(/);
+  assert.match(adminApp, /privateCompetitorAdminAccess:\s*false/);
+  assert.match(adminApp, /connectAllPortalFeatures\(\{ audit: true \}\)/);
+  assert.match(adminCss, /\.benchmark-grid/);
+  assert.match(adminCss, /\.benchmark-check-row/);
+});
+
 test('admin customer booking creator only targets real customer records', () => {
   const adminApp = readRepoFile('admin/js/admin-app.js');
 

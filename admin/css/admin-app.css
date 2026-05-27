@@ -1140,6 +1140,130 @@ button {
     gap: 12px;
 }
 
+.benchmark-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+    gap: 14px;
+}
+
+.benchmark-source-panel {
+    margin-top: 14px;
+}
+
+.benchmark-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.benchmark-summary-card,
+.benchmark-row,
+.benchmark-check-row,
+.benchmark-source-row {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.benchmark-summary-card {
+    min-height: 82px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    padding: 12px;
+}
+
+.benchmark-summary-card small,
+.benchmark-summary-card span,
+.benchmark-copy small,
+.benchmark-copy p,
+.benchmark-copy em,
+.benchmark-check-row small,
+.benchmark-source-row span {
+    color: var(--muted);
+}
+
+.benchmark-summary-card strong {
+    color: var(--text);
+    font-size: 1.38rem;
+}
+
+.benchmark-list,
+.benchmark-check-list,
+.benchmark-source-list {
+    display: grid;
+    gap: 10px;
+}
+
+.benchmark-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+    padding: 12px;
+}
+
+.benchmark-copy {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.benchmark-copy strong,
+.benchmark-source-row strong {
+    color: var(--text);
+}
+
+.benchmark-copy p,
+.benchmark-copy em {
+    margin: 0;
+    line-height: 1.35;
+}
+
+.benchmark-copy em {
+    color: var(--blue);
+    font-style: normal;
+    font-weight: 800;
+}
+
+.benchmark-check-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+}
+
+.benchmark-check-row i {
+    color: var(--teal);
+}
+
+.benchmark-check-row strong,
+.benchmark-check-row small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.benchmark-source-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 0.32fr) minmax(0, 1fr) minmax(220px, 0.34fr);
+    gap: 10px;
+    align-items: start;
+    padding: 12px;
+}
+
+.benchmark-source-row a {
+    color: var(--blue);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.benchmark-source-row a:hover,
+.benchmark-source-row a:focus-visible {
+    text-decoration: underline;
+}
+
 .portal-control-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1664,8 +1788,14 @@ button {
 
     .overview-grid,
     .overview-grid.bottom,
+    .benchmark-grid,
     .portal-control-grid {
         grid-template-columns: 1fr;
+    }
+
+    .benchmark-summary-grid,
+    .benchmark-source-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .portal-folder-grid {
@@ -1735,6 +1865,8 @@ button {
     .fare-audit-grid,
     .finance-grid,
     .safety-grid,
+    .benchmark-summary-grid,
+    .benchmark-source-row,
     .driver-control-list,
     .portal-folder-grid,
     .settings-grid {
@@ -1791,6 +1923,11 @@ button {
 
     .pulse-item span {
         grid-column: 2;
+    }
+
+    .benchmark-row,
+    .benchmark-check-row {
+        grid-template-columns: 1fr;
     }
 
     .feature-control-row {
