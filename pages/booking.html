@@ -8052,7 +8052,8 @@
             'goindiaride_booking_reverse_geocode_cache_v1',
             'goindiaride_booking_reverse_geocode_cache_v2'
         ];
-        const BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE = 4;
+        const BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE = 6;
+        const BOOKING_REVERSE_GEOCODE_PRIMARY_ACCEPT_SCORE = 8;
         const BOOKING_REVERSE_GEOCODE_CACHE_MAX_ENTRIES = 80;
         const BOOKING_REVERSE_GEOCODE_PRIMARY_PRECISION = 5;
         const BOOKING_REVERSE_GEOCODE_FALLBACK_PRECISION = 4;
@@ -8495,6 +8496,10 @@
             const normalized = normalizeBookingAddressCandidate(address);
             if (!normalized) return false;
             if (/^-?\d+\.\d{4,}\s*,\s*-?\d+\.\d{4,}/.test(normalized)) return true;
+            const parts = normalized.split(',').map((part) => part.trim()).filter(Boolean);
+            const hasStreetLevelHint = /\b(\d+[a-z0-9\-\/]*|road|rd|street|st|lane|ln|gali|chowk|circle|sector|colony|nagar|market|shop|mall|gate|hospital|hotel|temple|station|airport|flat|apt|apartment|building|plot|house|society)\b/i.test(normalized);
+            const isLikelyCityOnly = parts.length <= 4 && !hasStreetLevelHint;
+            if (isLikelyCityOnly) return false;
             if (isBookingBroadAdministrativeAddress(normalized)) return false;
             return scoreBookingAddressCandidate(normalized) >= BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE;
         }
@@ -8662,7 +8667,7 @@
                 return left.address.length - right.address.length;
             });
             const best = ranked[0] || null;
-            if (!best || best.score < 2) return formatBookingMapCoords(coords);
+            if (!best || best.score < BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE) return formatBookingMapCoords(coords);
             return best.address;
         }
 
@@ -8709,7 +8714,10 @@
             const osmAddress = normalizeBookingAddressCandidate(osmData?.display_name);
             const osmStructured = normalizeBookingAddressCandidate(buildBookingReverseAddress(osmData?.address || {}));
             const primaryAddress = pickBestBookingAddressCandidate([osmStructured, osmAddress], coords);
-            if (primaryAddress && shouldAcceptBookingReverseAddress(primaryAddress)) {
+            const primaryScore = primaryAddress ? scoreBookingAddressCandidate(primaryAddress) : Number.NEGATIVE_INFINITY;
+            if (primaryAddress
+                && shouldAcceptBookingReverseAddress(primaryAddress)
+                && primaryScore >= BOOKING_REVERSE_GEOCODE_PRIMARY_ACCEPT_SCORE) {
                 return primaryAddress;
             }
 
@@ -8900,7 +8908,8 @@
                 ? ' Signal weak hai; open area me retry karein aur browser me Precise location permission ON rakhein.'
                 : '';
             const shouldFastFill = options.source === 'current' && options.background !== true;
-            const cachedAddress = shouldFastFill ? readBookingReverseGeocodeCache(cleanCoords) : '';
+            const preferCoordinatesFirst = shouldFastFill && options.preferCoordinatesFirst !== false;
+            const cachedAddress = shouldFastFill && !preferCoordinatesFirst ? readBookingReverseGeocodeCache(cleanCoords) : '';
 
             if (shouldFastFill) {
                 updateBookingMapFieldValue(
@@ -9273,6 +9282,7 @@
                 lastAppliedPoint = betterPoint;
                 applyBookingMapCoordinates(safeTarget, betterPoint, {
                     source: 'current',
+                    preferCoordinatesFirst: true,
                     stopInput: options.stopInput || null,
                     background: true
                 }).catch(() => null);
@@ -9281,6 +9291,7 @@
                 if (!canApplyBookingBackgroundRefinement(safeTarget, bestPoint)) return;
                 applyBookingMapCoordinates(safeTarget, bestPoint, {
                     source: 'current',
+                    preferCoordinatesFirst: true,
                     stopInput: options.stopInput || null,
                     background: true
                 }).catch(() => null);
@@ -9290,6 +9301,12 @@
         async function requestBookingCurrentLocation(target = 'pickup', options = {}) {
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
             const sourceButton = options.sourceButton || null;
+            let busyReleased = false;
+            const releaseBusy = () => {
+                if (busyReleased) return;
+                busyReleased = true;
+                setBookingCurrentButtonBusy(sourceButton, false);
+            };
             setBookingMapActiveTarget(safeTarget);
             if (!navigator.geolocation) {
                 showBookingLocationNotice('Current location is not supported in this browser. Type the address manually.', 'error');
@@ -9301,16 +9318,17 @@
                 ? normalizeBookingMapCoords(bookingGoogleMapState.warmCurrentLocation)
                 : null;
             if (warmedPoint) {
-                const warmAddress = readBookingReverseGeocodeCache(warmedPoint);
                 updateBookingMapFieldValue(
                     safeTarget,
-                    warmAddress || formatBookingMapCoords(warmedPoint),
+                    formatBookingMapCoords(warmedPoint),
                     warmedPoint,
                     {
                         source: 'current',
+                        preferCoordinatesFirst: true,
                         stopInput: options.stopInput || null
                     }
                 );
+                releaseBusy();
                 const warmAccuracy = formatBookingMapAccuracy(warmedPoint);
                 setBookingMapStatus(
                     `Using recent GPS lock${warmAccuracy ? ` (${warmAccuracy})` : ''}. Fresh precise point verify ho raha hai...`,
@@ -9326,9 +9344,11 @@
                     if (instantPoint) {
                         await applyBookingMapCoordinates(safeTarget, instantPoint, {
                             source: 'current',
+                            preferCoordinatesFirst: true,
                             stopInput: options.stopInput || null
                         });
                         lastAppliedPoint = instantPoint;
+                        releaseBusy();
                     }
                 }
 
@@ -9339,9 +9359,11 @@
                 if (shouldReplaceWarmPoint) {
                     await applyBookingMapCoordinates(safeTarget, coords, {
                         source: 'current',
+                        preferCoordinatesFirst: true,
                         stopInput: options.stopInput || null
                     });
                     lastAppliedPoint = coords;
+                    releaseBusy();
                 }
                 bookingGoogleMapState.warmCurrentLocation = coords;
                 reverseGeocodeBookingCoords(coords).catch(() => '');
@@ -9357,12 +9379,12 @@
                     stopInput: options.stopInput || null
                 });
             } catch (error) {
-                setBookingCurrentButtonBusy(sourceButton, false);
+                releaseBusy();
                 showBookingLocationNotice('Please allow location permission, then tap the location arrow again.', 'error');
                 setBookingMapStatus('Location permission needed. Please allow precise location and try again.', 'error');
                 return;
             }
-            setBookingCurrentButtonBusy(sourceButton, false);
+            releaseBusy();
         }
 
         function initGoogleMapBookingUI() {
