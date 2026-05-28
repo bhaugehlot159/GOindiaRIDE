@@ -5,6 +5,13 @@
     const AUDIT_KEY = "adminAuditLogs";
     const LOCAL_EVENT = "goindiaride:admin-universal-feature-control-update";
     const CATALOG_URL = "../js/ultimate/feature-index.json";
+    const CATALOG_SHARD_URLS = [
+        "../js/ultimate/feature-index/customer.json",
+        "../js/ultimate/feature-index/driver.json",
+        "../js/ultimate/feature-index/admin.json",
+        "../js/ultimate/feature-index/security.json",
+        "../js/ultimate/feature-index/additional.json"
+    ];
     const BACKEND_PATH = "/api/admin/feature-control";
     const MAX_RENDER_ROWS = 160;
     const BLOCKED_STATUSES = ["disabled", "paused", "blocked", "approval_required", "pending_approval"];
@@ -229,10 +236,20 @@
         })).filter((item) => item.featureId);
     }
 
-    async function fetchStaticCatalog() {
-        const response = await fetch(CATALOG_URL, { cache: "no-store" });
+    async function fetchStaticCatalogUrl(url, seen = new Set()) {
+        const absoluteUrl = new URL(url, window.location.href).toString();
+        if (seen.has(absoluteUrl)) return [];
+        seen.add(absoluteUrl);
+
+        const response = await fetch(absoluteUrl, { cache: "no-store" });
         if (!response.ok) return [];
         const payload = await response.json().catch(() => ({}));
+        if (Array.isArray(payload.parts) && payload.parts.length) {
+            const partResults = await Promise.all(payload.parts.map((partUrl) => (
+                fetchStaticCatalogUrl(new URL(partUrl, absoluteUrl).toString(), seen).catch(() => [])
+            )));
+            return [].concat(...partResults);
+        }
         const items = Array.isArray(payload.items) ? payload.items : [];
         return items.map((item) => ({
             featureId: cleanText(item.featureId),
@@ -242,6 +259,15 @@
             blockKey: cleanText(item.blockKey || ""),
             sourceLine: item.sourceLine || null
         })).filter((item) => item.featureId);
+    }
+
+    async function fetchStaticCatalog() {
+        const shardResults = await Promise.all(CATALOG_SHARD_URLS.map((url) => (
+            fetchStaticCatalogUrl(url).catch(() => [])
+        )));
+        const shardItems = [].concat(...shardResults);
+        if (shardItems.length) return shardItems;
+        return fetchStaticCatalogUrl(CATALOG_URL);
     }
 
     function mergeBackendControls(items) {

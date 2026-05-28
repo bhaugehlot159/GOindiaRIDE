@@ -9,8 +9,34 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
+function readRepoFilesUnder(relativeDir, extension = '.js') {
+  const baseDir = path.join(root, relativeDir);
+  if (!fs.existsSync(baseDir)) return [];
+  const rows = [];
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(extension)) {
+        rows.push(fs.readFileSync(fullPath, 'utf8'));
+      }
+    }
+  }
+  walk(baseDir);
+  return rows;
+}
+
+function readBookingPageSource() {
+  return [
+    readRepoFile('pages/booking.html'),
+    ...readRepoFilesUnder('customer/chunks/booking/scripts', '.js'),
+    ...readRepoFilesUnder('customer/chunks/booking/styles', '.css')
+  ].join('\n');
+}
+
 test('booking page starts in live route state instead of demo fare or driver data', () => {
-  const html = readRepoFile('pages/booking.html');
+  const html = readBookingPageSource();
 
   assert.match(html, /id="routePreviewLink"/);
   assert.match(html, /google\.com\/maps\/dir/);
@@ -32,7 +58,7 @@ test('booking page starts in live route state instead of demo fare or driver dat
 });
 
 test('booking current-location flow keeps exact GPS coordinates for maps and admin review', () => {
-  const html = readRepoFile('pages/booking.html');
+  const html = readBookingPageSource();
 
   assert.match(html, /BOOKING_EXACT_LOCATION_STORAGE_KEY/);
   assert.match(html, /enableHighAccuracy:\s*true/);
@@ -47,7 +73,9 @@ test('booking current-location flow keeps exact GPS coordinates for maps and adm
   assert.match(html, /pickupCoordinates:\s*locationPins\.pickup\.coordinates/);
   assert.match(html, /dropoffCoordinates:\s*locationPins\.dropoff\.coordinates/);
   assert.match(html, /routeStopLocations:\s*locationPins\.stops/);
-  assert.match(html, /https:\/\/www\.google\.com\/maps\?q=\$\{Number\(lat\.toFixed\(7\)\)\},\$\{Number\(lng\.toFixed\(7\)\)\}/);
+  assert.match(html, /const safeLat = Number\(lat\.toFixed\(7\)\);/);
+  assert.match(html, /const safeLng = Number\(lng\.toFixed\(7\)\);/);
+  assert.match(html, /https:\/\/www\.openstreetmap\.org\/\?mlat=\$\{safeLat\}&mlon=\$\{safeLng\}#map=17\/\$\{safeLat\}\/\$\{safeLng\}/);
   assert.doesNotMatch(html, /return 'Current location';/);
   assert.doesNotMatch(html, /maximumAge:\s*30000/);
   assert.doesNotMatch(html, /showBookingLocationNotice\(`\$\{targetLabel\} GPS signal weak hai/);
@@ -55,7 +83,7 @@ test('booking current-location flow keeps exact GPS coordinates for maps and adm
 });
 
 test('booking secure fare estimate sends idempotency key before final booking create', () => {
-  const html = readRepoFile('pages/booking.html');
+  const html = readBookingPageSource();
   const estimateCall = html.match(/const fareEstimateResult = await fetchJsonAcrossApiBases\([\s\S]+?\/api\/bookings\/fare\/estimate[\s\S]+?\);/);
 
   assert.ok(estimateCall, 'fare estimate call should exist');
@@ -64,7 +92,7 @@ test('booking secure fare estimate sends idempotency key before final booking cr
 });
 
 test('booking final submit refreshes expired tokens and falls back to admin review queue', () => {
-  const html = readRepoFile('pages/booking.html');
+  const html = readBookingPageSource();
 
   assert.match(html, /CUSTOMER_BOOKING_LOCAL_STORE_KEYS/);
   assert.match(html, /'goindiaride_active_bookings'/);

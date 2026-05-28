@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "driver",
+  "part": 2,
+  "totalParts": 3,
+  "totalFeatureItems": 244,
+  "items": [
+    {
+      "featureId": "U00552",
+      "sourceLine": 555,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पुलिस वेरिफिकेशन: हर ड्राइवर का आधिकारिक क्लीयरेंस सर्टिफिकेट।",
+      "blockKey": "driver-ultimate-u00555-line-555"
+    },
+    {
+      "featureId": "U00558",
+      "sourceLine": 561,
+      "category": "driver",
+      "bucket": "general",
+      "text": "आधिकारिक आईडी: हर ड्राइवर के पास वेबसाइट का डिजिटल पहचान पत्र।",
+      "blockKey": "driver-ultimate-u00561-line-561"
+    },
+    {
+      "featureId": "U00567",
+      "sourceLine": 570,
+      "category": "driver",
+      "bucket": "general",
+      "text": "बैकग्राउंड चेक: ड्राइवरों के पिछले 5 साल के रिकॉर्ड की जांच।",
+      "blockKey": "driver-ultimate-u00570-line-570"
+    },
+    {
+      "featureId": "U00574",
+      "sourceLine": 577,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ट्रेनिंग सर्टिफिकेट: ड्राइवर के व्यवहार और गाइड स्किल्स का प्रमाण।",
+      "blockKey": "driver-ultimate-u00577-line-577"
+    },
+    {
+      "featureId": "U00610",
+      "sourceLine": 613,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर रेटिंग फिल्टर: केवल 4.5+ रेटिंग वाले ड्राइवरों का चयन।",
+      "blockKey": "driver-ultimate-u00613-line-613"
+    },
+    {
+      "featureId": "U00630",
+      "sourceLine": 634,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्मार्ट रेडियस अलर्ट: ग्राहक के 200 मीटर करीब आते ही ड्राइवर को बीप भेजना।",
+      "blockKey": "driver-ultimate-u00634-line-634"
+    },
+    {
+      "featureId": "U00633",
+      "sourceLine": 637,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नो-पार्किंग अलर्ट: ड्राइवर को ऐप पर ही लाल रंग से वर्जित क्षेत्रों की चेतावनी।",
+      "blockKey": "driver-ultimate-u00637-line-637"
+    },
+    {
+      "featureId": "U00638",
+      "sourceLine": 642,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर लाइव फोटो: खड़ी गाड़ी और ड्राइवर की वर्तमान लोकेशन की फोटो ग्राहक को भेजना।",
+      "blockKey": "driver-ultimate-u00642-line-642"
+    },
+    {
+      "featureId": "U00639",
+      "sourceLine": 643,
+      "category": "driver",
+      "bucket": "general",
+      "text": "क्लाइंट लाइव फोटो: ग्राहक अपनी ड्रेस या बैग का फोटो भेज सके ताकि ड्राइवर पहचान ले।",
+      "blockKey": "driver-ultimate-u00643-line-643"
+    },
+    {
+      "featureId": "U00650",
+      "sourceLine": 654,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर स्टेटस मोड: क्या ड्राइवर खाना खा रहा है या गाड़ी धो रहा है, इसकी रीयल सूचना।",
+      "blockKey": "driver-ultimate-u00654-line-654"
+    },
+    {
+      "featureId": "U00654",
+      "sourceLine": 658,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पिकअप टाइमिंग सिंक: ट्रेन प्लेटफॉर्म पर लगने के ठीक 5 मिनट बाद ड्राइवर का कॉल जाना।",
+      "blockKey": "driver-ultimate-u00658-line-658"
+    },
+    {
+      "featureId": "U00662",
+      "sourceLine": 666,
+      "category": "driver",
+      "bucket": "general",
+      "text": "शेड्यूल री-चेक: यात्रा से 1 घंटा पहले ड्राइवर का कन्फर्मेशन अनिवार्य।",
+      "blockKey": "driver-ultimate-u00666-line-666"
+    },
+    {
+      "featureId": "U00664",
+      "sourceLine": 668,
+      "category": "driver",
+      "bucket": "general",
+      "text": "मल्टी-डे टूर बफर: लंबी यात्रा में ड्राइवर के आराम के लिए हर 4 घंटे पर स्टॉप।",
+      "blockKey": "driver-ultimate-u00668-line-668"
+    },
+    {
+      "featureId": "U00707",
+      "sourceLine": 711,
+      "category": "driver",
+      "bucket": "general",
+      "text": "भाषा और बोलियां: उस जिले की स्थानीय भाषा में ड्राइवर का अभिवादन।",
+      "blockKey": "driver-ultimate-u00711-line-711"
+    },
+    {
+      "featureId": "U00785",
+      "sourceLine": 790,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंस्टेंट प्रीव्यू: बुकिंग से पहले गाड़ी की चमक और ड्राइवर का चेहरा दिखाना।",
+      "blockKey": "driver-ultimate-u00790-line-790"
+    },
+    {
+      "featureId": "U00788",
+      "sourceLine": 793,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इकोनॉमी वाहन: बजट यात्रियों के लिए साफ़-सुथरी कॉम्पैक्ट गाड़ियाँ।",
+      "blockKey": "driver-ultimate-u00793-line-793"
+    },
+    {
+      "featureId": "U00797",
+      "sourceLine": 802,
+      "category": "driver",
+      "bucket": "general",
+      "text": "महिला ड्राइवर: महिला यात्रियों के लिए सुरक्षित महिला चालक का विकल्प।",
+      "blockKey": "driver-ultimate-u00802-line-802"
+    },
+    {
+      "featureId": "U00799",
+      "sourceLine": 804,
+      "category": "driver",
+      "bucket": "general",
+      "text": "व्हीलचेयर एक्सेस: बुजुर्गों और दिव्यांगों के लिए सुलभ वाहन (Ramp)।",
+      "blockKey": "driver-ultimate-u00804-line-804"
+    },
+    {
+      "featureId": "U00802",
+      "sourceLine": 807,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन फिटनेस: हर यात्रा से पहले गाड़ी की सफाई का 'लाइव स्टेटस' अपडेट।",
+      "blockKey": "driver-ultimate-u00807-line-807"
+    },
+    {
+      "featureId": "U00811",
+      "sourceLine": 816,
+      "category": "driver",
+      "bucket": "general",
+      "text": "छतरी सेवा: बारिश या धूप में ड्राइवर द्वारा छतरी प्रदान करना।",
+      "blockKey": "driver-ultimate-u00816-line-816"
+    },
+    {
+      "featureId": "U00817",
+      "sourceLine": 823,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर का डिजिटल परिचय: बुकिंग होते ही ड्राइवर का नाम, फोटो और उसकी रेटिंग का विवरण।",
+      "blockKey": "driver-ultimate-u00823-line-823"
+    },
+    {
+      "featureId": "U00818",
+      "sourceLine": 824,
+      "category": "driver",
+      "bucket": "general",
+      "text": "शाही वर्दी नियम: ड्राइवर के लिए साफ़-सुथरी वर्दी और राजस्थानी साफ़ा (पगड़ी) पहनना अनिवार्य।",
+      "blockKey": "driver-ultimate-u00824-line-824"
+    },
+    {
+      "featureId": "U00821",
+      "sourceLine": 827,
+      "category": "driver",
+      "bucket": "general",
+      "text": "सेंसिटिव लगेज हैंडलिंग: कांच या कीमती सामान के लिए ड्राइवर को विशेष ट्रेनिंग और निर्देश।",
+      "blockKey": "driver-ultimate-u00827-line-827"
+    },
+    {
+      "featureId": "U00828",
+      "sourceLine": 834,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विंडशील्ड नेविगेशन: ड्राइवर के लिए मैप का शीशे पर रिफ्लेक्शन (Heads-up Display)।",
+      "blockKey": "driver-ultimate-u00834-line-834"
+    },
+    {
+      "featureId": "U00833",
+      "sourceLine": 839,
+      "category": "driver",
+      "bucket": "general",
+      "text": "लाइव ट्रांसलेटर: विदेशी ग्राहकों और ड्राइवर के बीच बातचीत के लिए लाइव अनुवाद।",
+      "blockKey": "driver-ultimate-u00839-line-839"
+    },
+    {
+      "featureId": "U00839",
+      "sourceLine": 845,
+      "category": "driver",
+      "bucket": "general",
+      "text": "फेस रिकग्निशन: ड्राइवर की पहचान सुनिश्चित करने के लिए चेहरे की डिजिटल जांच।",
+      "blockKey": "driver-ultimate-u00845-line-845"
+    },
+    {
+      "featureId": "U00846",
+      "sourceLine": 852,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्मार्ट असाइनमेंट: सबसे पास और सबसे अच्छी रेटिंग वाले ड्राइवर को पहले बुकिंग देना।",
+      "blockKey": "driver-ultimate-u00852-line-852"
+    },
+    {
+      "featureId": "U00847",
+      "sourceLine": 853,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वर्चुअल एडमिन: सिस्टम की सुरक्षा और मेंटेनेंस की आटोमेटिक निगरानी।",
+      "blockKey": "driver-ultimate-u00853-line-853"
+    },
+    {
+      "featureId": "U00850",
+      "sourceLine": 856,
+      "category": "driver",
+      "bucket": "general",
+      "text": "फ्यूल स्टेशन गाइड: ड्राइवर को रास्ते में सबसे अच्छे और सस्ते पेट्रोल पंप बताना।",
+      "blockKey": "driver-ultimate-u00856-line-856"
+    },
+    {
+      "featureId": "U00851",
+      "sourceLine": 857,
+      "category": "driver",
+      "bucket": "auto-suggestion",
+      "text": "थकान पहचान प्रणाली: ड्राइवर को लम्बे समय बाद आराम करने का सुझाव देना।",
+      "blockKey": "driver-ultimate-u00857-line-857"
+    },
+    {
+      "featureId": "U00856",
+      "sourceLine": 862,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर आचरण मॉनिटर: तेज़ गाड़ी चलाने या कठोर ब्रेक मारने पर एडमिन को अलर्ट।",
+      "blockKey": "driver-ultimate-u00862-line-862"
+    },
+    {
+      "featureId": "U00860",
+      "sourceLine": 866,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंस्टेंट पेआउट: ट्रिप खत्म होते ही ड्राइवर के बैंक में पैसे ट्रांसफर होना।",
+      "blockKey": "driver-ultimate-u00866-line-866"
+    },
+    {
+      "featureId": "U00864",
+      "sourceLine": 870,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस: गाड़ी में खराबी आने से पहले ही सर्विसिंग का अलर्ट।",
+      "blockKey": "driver-ultimate-u00870-line-870"
+    },
+    {
+      "featureId": "U00869",
+      "sourceLine": 875,
+      "category": "driver",
+      "bucket": "general",
+      "text": "यूनिफॉर्म अटेंडेंस: ड्राइवर की ड्यूटी शुरू होने से पहले वर्दी और गाड़ी की फोटो।",
+      "blockKey": "driver-ultimate-u00875-line-875"
+    },
+    {
+      "featureId": "U00876",
+      "sourceLine": 882,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नाइट स्टे नियम: रात की यात्राओं में ड्राइवर के रुकने का पारदर्शी भत्ता।",
+      "blockKey": "driver-ultimate-u00882-line-882"
+    },
+    {
+      "featureId": "U00877",
+      "sourceLine": 883,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर ड्यूटी लिमिट: ड्राइवर के काम के घंटों पर सुरक्षा हेतु सीमा लगाना।",
+      "blockKey": "driver-ultimate-u00883-line-883"
+    },
+    {
+      "featureId": "U00882",
+      "sourceLine": 888,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पुलिस क्लीयरेंस: हर ड्राइवर का पुलिस वेरिफिकेशन डेटाबेस में होना।",
+      "blockKey": "driver-ultimate-u00888-line-888"
+    },
+    {
+      "featureId": "U00888",
+      "sourceLine": 894,
+      "category": "driver",
+      "bucket": "general",
+      "text": "आधिकारिक ड्राइवर आईडी: हर चालक के पास कंपनी का डिजिटल पहचान पत्र।",
+      "blockKey": "driver-ultimate-u00894-line-894"
+    },
+    {
+      "featureId": "U00897",
+      "sourceLine": 903,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बैकग्राउंड चेक: पिछले 5 साल के रिकॉर्ड की विस्तृत जांच।",
+      "blockKey": "driver-ultimate-u00903-line-903"
+    },
+    {
+      "featureId": "U00904",
+      "sourceLine": 910,
+      "category": "driver",
+      "bucket": "general",
+      "text": "व्यवहार ट्रेनिंग: ड्राइवरों को अतिथि सत्कार की विशेष ट्रेनिंग का प्रमाण।",
+      "blockKey": "driver-ultimate-u00910-line-910"
+    },
+    {
+      "featureId": "U00938",
+      "sourceLine": 946,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर रेटिंग फिल्टर: एडमिन पैनल पर केवल बेस्ट ड्राइवरों को ही काम देना।",
+      "blockKey": "driver-ultimate-u00946-line-946"
+    },
+    {
+      "featureId": "U00945",
+      "sourceLine": 953,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर लाइसेंस सिंक: लाइसेंस एक्सपायर होने से पहले ऑटो-रिमूवल सिस्टम।",
+      "blockKey": "driver-ultimate-u00953-line-953"
+    },
+    {
+      "featureId": "U00949",
+      "sourceLine": 957,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एआई पिकअप गाइड: भीड़ में ग्राहक को ड्राइवर तक ले जाने वाला एआर मैप।",
+      "blockKey": "driver-ultimate-u00957-line-957"
+    },
+    {
+      "featureId": "U00953",
+      "sourceLine": 961,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर रेटिंग बैज: 'गोल्डन ड्राइवर' या 'सिल्वर ड्राइवर' का तमगा।",
+      "blockKey": "driver-ultimate-u00961-line-961"
+    },
+    {
+      "featureId": "U00963",
+      "sourceLine": 971,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर मेडिकल चेकअप: हर 6 महीने में ड्राइवर के स्वास्थ्य की डिजिटल रिपोर्ट।",
+      "blockKey": "driver-ultimate-u00971-line-971"
+    },
+    {
+      "featureId": "U00973",
+      "sourceLine": 981,
+      "category": "driver",
+      "bucket": "general",
+      "text": "शाही शिष्टाचार ट्रेनिंग: ड्राइवरों के लिए हर महीने व्यवहार की क्लास।",
+      "blockKey": "driver-ultimate-u00981-line-981"
+    },
+    {
+      "featureId": "U00983",
+      "sourceLine": 991,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्मार्ट ड्राइवर लॉग: ड्राइवर ने आज कितनी मेहनत की, उसका पूरा चार्ट।",
+      "blockKey": "driver-ultimate-u00991-line-991"
+    },
+    {
+      "featureId": "U00993",
+      "sourceLine": 1001,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर सेल्फी: वर्दी में ड्राइवर की ताजा फोटो ग्राहक को भेजना।",
+      "blockKey": "driver-ultimate-u01001-line-1001"
+    },
+    {
+      "featureId": "U01010",
+      "sourceLine": 1018,
+      "category": "driver",
+      "bucket": "general",
+      "text": "शाही शिष्टाचार: ड्राइवर द्वारा दरवाजा खोलने का विशेष नियम।",
+      "blockKey": "driver-ultimate-u01018-line-1018"
+    },
+    {
+      "featureId": "U01011",
+      "sourceLine": 1019,
+      "category": "driver",
+      "bucket": "general",
+      "text": "राजस्थानी बोलियां: ड्राइवर का उसी जिले की बोली में बात करना।",
+      "blockKey": "driver-ultimate-u01019-line-1019"
+    },
+    {
+      "featureId": "U01019",
+      "sourceLine": 1028,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर कमीशन पारदर्शी चार्ट: एडमिन पैनल पर ड्राइवर के हिस्से और कंपनी के मुनाफे का साफ़ हिसाब।",
+      "blockKey": "driver-ultimate-u01028-line-1028"
+    },
+    {
+      "featureId": "U01020",
+      "sourceLine": 1029,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंस्टेंट पे-आउट बटन: बटन दबाते ही ड्राइवर के बैंक खाते में पैसा भेजने की व्यवस्था।",
+      "blockKey": "driver-ultimate-u01029-line-1029"
+    },
+    {
+      "featureId": "U01058",
+      "sourceLine": 1067,
+      "category": "driver",
+      "bucket": "general",
+      "text": "बेस्ट ड्राइवर रिवॉर्ड: सबसे अच्छी रेटिंग वाले ड्राइवर को 'शाही सारथी' का बैज।",
+      "blockKey": "driver-ultimate-u01067-line-1067"
+    },
+    {
+      "featureId": "U01065",
+      "sourceLine": 1074,
+      "category": "driver",
+      "bucket": "general",
+      "text": "लाइसेंस एक्सपायरी अलर्ट: ड्राइवर का लाइसेंस खत्म होने से पहले ही एडमिन को चेतावनी।",
+      "blockKey": "driver-ultimate-u01074-line-1074"
+    },
+    {
+      "featureId": "U01073",
+      "sourceLine": 1082,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर बैज: शांत और सुरक्षित चलाने वालों के लिए 'गोल्डन व्हील' सम्मान।",
+      "blockKey": "driver-ultimate-u01082-line-1082"
+    },
+    {
+      "featureId": "U01083",
+      "sourceLine": 1092,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर आई-चेकअप: हर 6 महीने में ड्राइवर के आँखों की जांच की डिजिटल रिपोर्ट।",
+      "blockKey": "driver-ultimate-u01092-line-1092"
+    },
+    {
+      "featureId": "U01088",
+      "sourceLine": 1097,
+      "category": "driver",
+      "bucket": "general",
+      "text": "चैट एन्क्रिप्शन: ग्राहक और ड्राइवर के बीच होने वाली बातचीत की पूरी गोपनीयता।",
+      "blockKey": "driver-ultimate-u01097-line-1097"
+    },
+    {
+      "featureId": "U01093",
+      "sourceLine": 1102,
+      "category": "driver",
+      "bucket": "general",
+      "text": "व्यवहार कुशलता ट्रेनिंग: ड्राइवरों के लिए हर 3 महीने में 'शाही आतिथ्य' कार्यशाला।",
+      "blockKey": "driver-ultimate-u01102-line-1102"
+    },
+    {
+      "featureId": "U01103",
+      "sourceLine": 1112,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्क लॉग: ड्राइवर ने आज कितने घंटे और कितने किमी ड्राइव किया, इसका चार्ट।",
+      "blockKey": "driver-ultimate-u01112-line-1112"
+    },
+    {
+      "featureId": "U01110",
+      "sourceLine": 1119,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ओवरस्पीडिंग सायरन: 80 की गति पार करते ही ड्राइवर और एडमिन को अलर्ट।",
+      "blockKey": "driver-ultimate-u01119-line-1119"
+    },
+    {
+      "featureId": "U01113",
+      "sourceLine": 1122,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्दी सेल्फी: ड्यूटी पर आने से पहले ड्राइवर की ताजा फोटो का अनिवार्य अपडेट।",
+      "blockKey": "driver-ultimate-u01122-line-1122"
+    },
+    {
+      "featureId": "U01116",
+      "sourceLine": 1126,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विषय: वाहन स्वच्छता मानक, ड्राइवर आचरण एवं ग्लोबल यूजर एक्सपीरियंस",
+      "blockKey": "driver-ultimate-u01126-line-1126"
+    },
+    {
+      "featureId": "U01117",
+      "sourceLine": 1127,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्वच्छता शपथ: हर सुबह गाड़ी की सफाई के बाद ड्राइवर द्वारा 'क्लीन्लीनेस चेकलिस्ट' भरना।",
+      "blockKey": "driver-ultimate-u01127-line-1127"
+    },
+    {
+      "featureId": "U01125",
+      "sourceLine": 1135,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर ग्रूमिंग: ड्राइवर के नाखूनों, दाढ़ी और बालों का साफ-सुथरा (Well Groomed) होना।",
+      "blockKey": "driver-ultimate-u01135-line-1135"
+    },
+    {
+      "featureId": "U01126",
+      "sourceLine": 1136,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नेम प्लेट प्रदर्शन: डैशबोर्ड पर ड्राइवर का नाम और फोटो स्पष्ट रूप से प्रदर्शित करना।",
+      "blockKey": "driver-ultimate-u01136-line-1136"
+    },
+    {
+      "featureId": "U01127",
+      "sourceLine": 1137,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नो-टिप पॉलिसी: वेबसाइट पर स्पष्ट उल्लेख कि अजय भाई की कंपनी में ड्राइवर को टिप मांगना वर्जित है।",
+      "blockKey": "driver-ultimate-u01137-line-1137"
+    },
+    {
+      "featureId": "U01128",
+      "sourceLine": 1138,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पॉलाइट कम्युनिकेशन: ड्राइवर द्वारा \"जी हुकुम\" और \"पधारो\" जैसे शब्दों का सम्मानजनक उपयोग।",
+      "blockKey": "driver-ultimate-u01138-line-1138"
+    },
+    {
+      "featureId": "U01130",
+      "sourceLine": 1140,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर साइलेंस मोड: यदि ग्राहक बात नहीं करना चाहता, तो ड्राइवर का केवल ड्राइविंग पर ध्यान देना।",
+      "blockKey": "driver-ultimate-u01140-line-1140"
+    },
+    {
+      "featureId": "U01131",
+      "sourceLine": 1141,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रास्ते का ज्ञान: ड्राइवर को बिना गूगल मैप देखे भी शहर की प्रमुख गलियों का मौखिक ज्ञान होना।",
+      "blockKey": "driver-ultimate-u01141-line-1141"
+    },
+    {
+      "featureId": "U01132",
+      "sourceLine": 1142,
+      "category": "driver",
+      "bucket": "general",
+      "text": "सामान की मदद: यात्री का सामान गाड़ी में रखने और उतारने में ड्राइवर द्वारा पहल करना।",
+      "blockKey": "driver-ultimate-u01142-line-1142"
+    },
+    {
+      "featureId": "U01141",
+      "sourceLine": 1151,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर स्लीप ट्रैक: रात की लंबी ड्यूटी के बाद ड्राइवर को 8 घंटे की अनिवार्य नींद का डिजिटल लॉक।",
+      "blockKey": "driver-ultimate-u01151-line-1151"
+    },
+    {
+      "featureId": "U01142",
+      "sourceLine": 1152,
+      "category": "driver",
+      "bucket": "general",
+      "text": "भाषा कुशलता ट्रेनिंग: ड्राइवर को बेसिक अंग्रेजी शब्दों (Hello, Welcome, Thank you) की ट्रेनिंग।",
+      "blockKey": "driver-ultimate-u01152-line-1152"
+    },
+    {
+      "featureId": "U01143",
+      "sourceLine": 1153,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विदेशी सैलानी गाइड: विदेशी ग्राहकों को राजस्थान के कल्चर के बारे में बताने के लिएDriver 'Cheat-sheet'।",
+      "blockKey": "driver-ultimate-u01153-line-1153"
+    },
+    {
+      "featureId": "U01145",
+      "sourceLine": 1155,
+      "category": "driver",
+      "bucket": "general",
+      "text": "लोकल सिम कार्ड मदद: विदेशी पर्यटकों को स्थानीय सिम कार्ड दिलाने में ड्राइवर द्वारा सहायता।",
+      "blockKey": "driver-ultimate-u01155-line-1155"
+    },
+    {
+      "featureId": "U01150",
+      "sourceLine": 1160,
+      "category": "driver",
+      "bucket": "general",
+      "text": "डिजिटल इन्वेंट्री पिंग: गाड़ी में पानी की बोतल खत्म होने पर ड्राइवर को अगली दुकान का अलर्ट।",
+      "blockKey": "driver-ultimate-u01160-line-1160"
+    },
+    {
+      "featureId": "U01154",
+      "sourceLine": 1164,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रूट डेविएशन चेक: यदि ड्राइवर रास्ता बदलता है, तो ग्राहक के पास 'क्या सब ठीक है?' का नोटिफिकेशन।",
+      "blockKey": "driver-ultimate-u01164-line-1164"
+    },
+    {
+      "featureId": "U01156",
+      "sourceLine": 1166,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर रेटिंग विजिबिलिटी: ग्राहक देख सके कि उसके ड्राइवर को पिछले 10 ग्राहकों ने क्या रिव्यू दिए।",
+      "blockKey": "driver-ultimate-u01166-line-1166"
+    },
+    {
+      "featureId": "U01180",
+      "sourceLine": 1190,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर सेल्फी अनिवार्य: ड्यूटी शुरू करने से पहले साफ वर्दी में ड्राइवर की सेल्फी।",
+      "blockKey": "driver-ultimate-u01190-line-1190"
+    },
+    {
+      "featureId": "U01186",
+      "sourceLine": 1196,
+      "category": "driver",
+      "bucket": "general",
+      "text": "कार मेंटेनेंस ग्राफ: पिछले 12 महीनों के मेंटेनेंस का डेटा एडमिन हेतु।",
+      "blockKey": "driver-ultimate-u01196-line-1196"
+    },
+    {
+      "featureId": "U01189",
+      "sourceLine": 1199,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर रेटिंग बैज: बेस्ट ड्राइवरों के लिए 'शाही रत्न' का डिजिटल बैज।",
+      "blockKey": "driver-ultimate-u01199-line-1199"
+    },
+    {
+      "featureId": "U01195",
+      "sourceLine": 1205,
+      "category": "driver",
+      "bucket": "general",
+      "text": "लाइसेंस एक्सपायरी पिंग: लाइसेंस रिन्यूअल के लिए ड्राइवर को 30 दिन पहले अलर्ट।",
+      "blockKey": "driver-ultimate-u01205-line-1205"
+    },
+    {
+      "featureId": "U01199",
+      "sourceLine": 1209,
+      "category": "driver",
+      "bucket": "general",
+      "text": "AR पिकअप गाइड: भीड़ में ग्राहक को ड्राइवर तक पहुँचाने वाला वर्चुअल तीर।",
+      "blockKey": "driver-ultimate-u01209-line-1209"
+    },
+    {
+      "featureId": "U01203",
+      "sourceLine": 1213,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर स्कोर: शांत ड्राइविंग करने वालों के लिए एक्स्ट्रा इंसेंटिव।",
+      "blockKey": "driver-ultimate-u01213-line-1213"
+    },
+    {
+      "featureId": "U01213",
+      "sourceLine": 1223,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर विज़न टेस्ट: हर 6 महीने में ड्राइवरों के आंखों की जांच का डिजिटल रिकॉर्ड।",
+      "blockKey": "driver-ultimate-u01223-line-1223"
+    },
+    {
+      "featureId": "U01237",
+      "sourceLine": 1248,
+      "category": "driver",
+      "bucket": "general",
+      "text": "थार का रेगिस्तान: मरुस्थल के बढ़ते हुए कदम (March of Desert) और उसे रोकने के सरकारी प्रयास।",
+      "blockKey": "driver-ultimate-u01248-line-1248"
+    },
+    {
+      "featureId": "U01317",
+      "sourceLine": 1329,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एडमिन सुपर-कंट्रोल: अजय भाई के लिए एक क्लिक पर पूरी वेबसाइट को 'Maintenance Mode' में डालने की सुविधा।",
+      "blockKey": "driver-ultimate-u01329-line-1329"
+    },
+    {
+      "featureId": "U01319",
+      "sourceLine": 1331,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर कमीशन स्लैब: अलग-अलग गाड़ियों और रूट्स के हिसाब से कमीशन सेट करने का पैनल।",
+      "blockKey": "driver-ultimate-u01331-line-1331"
+    },
+    {
+      "featureId": "U01320",
+      "sourceLine": 1332,
+      "category": "driver",
+      "bucket": "general",
+      "text": "धोखाधड़ी अलर्ट: यदि कोई ड्राइवर ऐप बंद कर रास्ता बदलता है, तो एडमिन को तुरंत रेड पिंग।",
+      "blockKey": "driver-ultimate-u01332-line-1332"
+    },
+    {
+      "featureId": "U01325",
+      "sourceLine": 1337,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर डॉक्यूमेंट एक्सपायरी: आरसी, इंश्योरेंस और परमिट खत्म होने से 15 दिन पहले ऑटो-वार्निंग।",
+      "blockKey": "driver-ultimate-u01337-line-1337"
+    },
+    {
+      "featureId": "U01332",
+      "sourceLine": 1344,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वर्चुअल ट्रेनिंग रूम: नए ड्राइवरों के लिए वेबसाइट पर ही 'सत्कार और व्यवहार' की वीडियो क्लास।",
+      "blockKey": "driver-ultimate-u01344-line-1344"
+    }
+  ]
+}

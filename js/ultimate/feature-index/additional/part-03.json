@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "additional",
+  "part": 3,
+  "totalParts": 4,
+  "totalFeatureItems": 294,
+  "items": [
+    {
+      "featureId": "U01553",
+      "sourceLine": 1569,
+      "category": "additional",
+      "bucket": "general",
+      "text": "जैसलमेर के धोरे: 'सम' के अलावा 'खुरी' के शांत और अनसुने धोरों का मैप।",
+      "blockKey": "additional-ultimate-u01569-line-1569"
+    },
+    {
+      "featureId": "U01554",
+      "sourceLine": 1570,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बाड़मेर की नक्काशी: किराडू मंदिरों के पत्थर पर उकेरी गई सूक्ष्म कला का इतिहास।",
+      "blockKey": "additional-ultimate-u01570-line-1570"
+    },
+    {
+      "featureId": "U01555",
+      "sourceLine": 1571,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बीकानेर की उस्ता कला: ऊंट की खाल पर सोने की चित्रकारी के उस्तादों की लिस्ट।",
+      "blockKey": "additional-ultimate-u01571-line-1571"
+    },
+    {
+      "featureId": "U01556",
+      "sourceLine": 1572,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मेवाड़ की पिछवाई: नाथद्वारा की प्राचीन पिछवाई पेंटिंग के रंगों का निर्माण कैसे होता है।",
+      "blockKey": "additional-ultimate-u01572-line-1572"
+    },
+    {
+      "featureId": "U01557",
+      "sourceLine": 1573,
+      "category": "additional",
+      "bucket": "general",
+      "text": "अजय भाई विज़न: राजस्थान की विरासत को तकनीक से जोड़कर दुनिया तक पहुँचाने का संकल्प।",
+      "blockKey": "additional-ultimate-u01573-line-1573"
+    },
+    {
+      "featureId": "U01558",
+      "sourceLine": 1574,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 6: डिजिटल भुगतान एवं वॉलेट (Financial Ecosystem)",
+      "blockKey": "additional-ultimate-u01574-line-1574"
+    },
+    {
+      "featureId": "U01559",
+      "sourceLine": 1575,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मल्टी-करेंसी वॉलेट: एक ही वॉलेट में रुपये और डॉलर दोनों रखने की सुविधा।",
+      "blockKey": "additional-ultimate-u01575-line-1575"
+    },
+    {
+      "featureId": "U01561",
+      "sourceLine": 1577,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-रिफंड विंडो: पेमेंट फेल होने पर 10 मिनट के अंदर वॉलेट में पैसा वापस आना।",
+      "blockKey": "additional-ultimate-u01577-line-1577"
+    },
+    {
+      "featureId": "U01562",
+      "sourceLine": 1578,
+      "category": "additional",
+      "bucket": "general",
+      "text": "शाही कैशबैक: हर 1000 रुपये के खर्च पर 50 'रॉयल पॉइंट्स' की प्राप्ति।",
+      "blockKey": "additional-ultimate-u01578-line-1578"
+    },
+    {
+      "featureId": "U01563",
+      "sourceLine": 1579,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मर्चेंट पेमेंट सिंक: पार्टनर रेस्टोरेंट्स पर आपके वॉलेट से पेमेंट करने की सुविधा।",
+      "blockKey": "additional-ultimate-u01579-line-1579"
+    },
+    {
+      "featureId": "U01588",
+      "sourceLine": 1605,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 2: AI, कोडिंग एवं स्मार्ट ऑटोमेशन (1301 - 1400)",
+      "blockKey": "additional-ultimate-u01605-line-1605"
+    },
+    {
+      "featureId": "U01589",
+      "sourceLine": 1606,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI वॉयस क्लोनिंग: एआई महाराजा की आवाज़ को अजय भाई की आवाज़ के साथ पूरी तरह सिंक करना।",
+      "blockKey": "additional-ultimate-u01606-line-1606"
+    },
+    {
+      "featureId": "U01591",
+      "sourceLine": 1608,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव ट्रैफिक डेटा: अगले 1 घंटे में किस रास्ते पर जाम लगेगा, इसका 95% सटीक अनुमान।",
+      "blockKey": "additional-ultimate-u01608-line-1608"
+    },
+    {
+      "featureId": "U01593",
+      "sourceLine": 1610,
+      "category": "additional",
+      "bucket": "auto-suggestion",
+      "text": "स्मार्ट लगेज डिटेक्टर: कैमरा द्वारा सामान का साइज देख कर सही गाड़ी का स्वतः सुझाव।",
+      "blockKey": "additional-ultimate-u01610-line-1610"
+    },
+    {
+      "featureId": "U01594",
+      "sourceLine": 1611,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-रिफंड गेटवे: पेमेंट फेल होने पर बिना किसी हस्तक्षेप के रिफंड प्रक्रिया शुरू करना।",
+      "blockKey": "additional-ultimate-u01611-line-1611"
+    },
+    {
+      "featureId": "U01596",
+      "sourceLine": 1613,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI कंटेंट अपडेटर: राजस्थान के नए जिलों और पर्यटन स्थलों के बदलावों को साइट पर स्वतः लिखना।",
+      "blockKey": "additional-ultimate-u01613-line-1613"
+    },
+    {
+      "featureId": "U01597",
+      "sourceLine": 1614,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट इमेज लोडिंग: 2G नेटवर्क पर भी वेबसाइट की फोटो का तेज़ और साफ़ प्रदर्शन।",
+      "blockKey": "additional-ultimate-u01614-line-1614"
+    },
+    {
+      "featureId": "U01601",
+      "sourceLine": 1618,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मल्टी-करेंसी वॉलेट: एक ही वॉलेट में रुपये और डॉलर दोनों स्वीकार करने की कोडिंग।",
+      "blockKey": "additional-ultimate-u01618-line-1618"
+    },
+    {
+      "featureId": "U01604",
+      "sourceLine": 1621,
+      "category": "additional",
+      "bucket": "general",
+      "text": "(पॉइंट 1316 से 1400 तक तकनीकी सूक्ष्मताओं का विस्तार)",
+      "blockKey": "additional-ultimate-u01621-line-1621"
+    },
+    {
+      "featureId": "U01605",
+      "sourceLine": 1622,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 3: VVIP शाही आतिथ्य एवं सूक्ष्म सुविधाएं (1401 - 1500)",
+      "blockKey": "additional-ultimate-u01622-line-1622"
+    },
+    {
+      "featureId": "U01607",
+      "sourceLine": 1624,
+      "category": "additional",
+      "bucket": "general",
+      "text": "गाड़ी में मिनी-फ्रिज: लग्जरी सेगमेंट में ठंडी मसाला छाछ और मिनरल वाटर का ताज़ा स्टॉक।",
+      "blockKey": "additional-ultimate-u01624-line-1624"
+    },
+    {
+      "featureId": "U01609",
+      "sourceLine": 1626,
+      "category": "additional",
+      "bucket": "general",
+      "text": "डिजिटल ऑडियो गाइड: किलों के पास पहुँचते ही गाड़ी के स्पीकर्स पर रीयल-टाइम इतिहास का वर्णन।",
+      "blockKey": "additional-ultimate-u01626-line-1626"
+    },
+    {
+      "featureId": "U01610",
+      "sourceLine": 1627,
+      "category": "additional",
+      "bucket": "general",
+      "text": "शाही विदाई किट: सफर के अंत में एक छोटा राजस्थानी स्मृति चिन्ह (कठपुतली या साफ़ा)।",
+      "blockKey": "additional-ultimate-u01627-line-1627"
+    },
+    {
+      "featureId": "U01611",
+      "sourceLine": 1628,
+      "category": "additional",
+      "bucket": "general",
+      "text": "कस्टम एम्बिएंट लाइटिंग: रात के सफर में सोने या नीले रंग की राजसी रोशनी का चयन।",
+      "blockKey": "additional-ultimate-u01628-line-1628"
+    },
+    {
+      "featureId": "U01612",
+      "sourceLine": 1629,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मैगजीन रैक: राजस्थान के किलों और शाही जीवनशैली की प्रीमियम रंगीन पत्रिकाएं।",
+      "blockKey": "additional-ultimate-u01629-line-1629"
+    },
+    {
+      "featureId": "U01614",
+      "sourceLine": 1631,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट चार्जिंग पोर्ट्स: हर सीट पर टाइप-C और लैपटॉप के लिए पावर सॉकेट्स की सुविधा।",
+      "blockKey": "additional-ultimate-u01631-line-1631"
+    },
+    {
+      "featureId": "U01616",
+      "sourceLine": 1633,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ठंडा पानी और मसाला छाछ: गर्मियों में यात्रियों के लिए मिट्टी के मटके जैसा ठंडा पानी।",
+      "blockKey": "additional-ultimate-u01633-line-1633"
+    },
+    {
+      "featureId": "U01617",
+      "sourceLine": 1634,
+      "category": "additional",
+      "bucket": "general",
+      "text": "शाही चाय ब्रेक: रास्ते के उन ढाबों की लिस्ट जहाँ मिट्टी के कुल्हड़ में चाय मिलती है।",
+      "blockKey": "additional-ultimate-u01634-line-1634"
+    },
+    {
+      "featureId": "U01618",
+      "sourceLine": 1635,
+      "category": "additional",
+      "bucket": "general",
+      "text": "सन-ब्लाइंड्स: राजस्थान की तेज़ धूप से बचने के लिए खिड़कियों पर शाही पर्दे।",
+      "blockKey": "additional-ultimate-u01635-line-1635"
+    },
+    {
+      "featureId": "U01635",
+      "sourceLine": 1653,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 2: राजस्थान की अनसुनी विरासत एवं ऐतिहासिक डेटा (1626 - 1750)",
+      "blockKey": "additional-ultimate-u01653-line-1653"
+    },
+    {
+      "featureId": "U01636",
+      "sourceLine": 1654,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बावड़ियों का वास्तु विज्ञान: आभानेरी की चाँद बावड़ी की 3500 सीढ़ियों का गणितीय और भूलभुलैया इतिहास।",
+      "blockKey": "additional-ultimate-u01654-line-1654"
+    },
+    {
+      "featureId": "U01637",
+      "sourceLine": 1655,
+      "category": "additional",
+      "bucket": "general",
+      "text": "अनसुने जनजातीय नायक: हल्दीघाटी में महाराणा प्रताप के साथ लड़ने वाले भील और गरासिया योद्धाओं का डेटा।",
+      "blockKey": "additional-ultimate-u01655-line-1655"
+    },
+    {
+      "featureId": "U01638",
+      "sourceLine": 1656,
+      "category": "additional",
+      "bucket": "general",
+      "text": "झीलों की लाइव स्थिति: पिछोला, फतेहसागर और राजसमंद झील की रीयल-टाइम गहराई और जलस्तर की जानकारी।",
+      "blockKey": "additional-ultimate-u01656-line-1656"
+    },
+    {
+      "featureId": "U01639",
+      "sourceLine": 1657,
+      "category": "additional",
+      "bucket": "general",
+      "text": "राजस्थानी हस्तशिल्प पहचान: असली और नकली सांगानेरी प्रिंट व ब्लू पॉटरी की पहचान करने का डिजिटल गाइड।",
+      "blockKey": "additional-ultimate-u01657-line-1657"
+    },
+    {
+      "featureId": "U01640",
+      "sourceLine": 1658,
+      "category": "additional",
+      "bucket": "general",
+      "text": "लोक वाद्ययंत्र सारंगी: सारंगी की रूहानी आवाज़ और उसे बनाने वाले कलाकारों की सूक्ष्म कहानियाँ।",
+      "blockKey": "additional-ultimate-u01658-line-1658"
+    },
+    {
+      "featureId": "U01641",
+      "sourceLine": 1659,
+      "category": "additional",
+      "bucket": "general",
+      "text": "जैसलमेर के गुप्त धोरे: सम (Sam) के अलावा शांत और अनसुने धोरों (जैसे खुरी और लोंगेवाला) का मैप।",
+      "blockKey": "additional-ultimate-u01659-line-1659"
+    },
+    {
+      "featureId": "U01642",
+      "sourceLine": 1660,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बीकानेर की उस्ता कला: ऊंट की खाल पर सोने की बारीक नक्काशी करने वाले 'उस्ता' कलाकारों का डेटाबेस।",
+      "blockKey": "additional-ultimate-u01660-line-1660"
+    },
+    {
+      "featureId": "U01643",
+      "sourceLine": 1661,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मेवाड़ की पिछवाई: नाथद्वारा की पेंटिंग्स में इस्तेमाल होने वाले 'प्राकृतिक और पत्थर के रंगों' का निर्माण डेटा।",
+      "blockKey": "additional-ultimate-u01661-line-1661"
+    },
+    {
+      "featureId": "U01644",
+      "sourceLine": 1662,
+      "category": "additional",
+      "bucket": "general",
+      "text": "राजस्थानी बोलियों का शब्दकोश: किस जिले (जैसे ढूंढाड़ी या बागड़ी) में स्वागत के लिए कौन से शब्द बोलें।",
+      "blockKey": "additional-ultimate-u01662-line-1662"
+    },
+    {
+      "featureId": "U01645",
+      "sourceLine": 1663,
+      "category": "additional",
+      "bucket": "general",
+      "text": "महाराणा कुंभा की वास्तुकला: उनके द्वारा निर्मित 32 किलों के रक्षा तंत्र और वास्तुकला का वैज्ञानिक विवरण।",
+      "blockKey": "additional-ultimate-u01663-line-1663"
+    },
+    {
+      "featureId": "U01646",
+      "sourceLine": 1664,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 3: डिजिटल भुगतान, वॉलेट एवं फाइनेंशियल कोडिंग (1751 - 1875)",
+      "blockKey": "additional-ultimate-u01664-line-1664"
+    },
+    {
+      "featureId": "U01647",
+      "sourceLine": 1665,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मल्टी-करेंसी वॉलेट: एक ही डिजिटल वॉलेट में रुपये, डॉलर और यूरो एक साथ स्वीकार करने की कोडिंग।",
+      "blockKey": "additional-ultimate-u01665-line-1665"
+    },
+    {
+      "featureId": "U01650",
+      "sourceLine": 1668,
+      "category": "additional",
+      "bucket": "general",
+      "text": "पार्टनर मर्चेंट सिंक: आपके वॉलेट के पैसे से राजस्थान के चुनिंदा हस्तशिल्प केंद्रों पर भुगतान की सुविधा।",
+      "blockKey": "additional-ultimate-u01668-line-1668"
+    },
+    {
+      "featureId": "U01653",
+      "sourceLine": 1671,
+      "category": "additional",
+      "bucket": "general",
+      "text": "क्रिप्टो-फ्रेंडली गेटवे: अंतरराष्ट्रीय सैलानियों के लिए भविष्य की पेमेंट तकनीकों का प्रारंभिक ढांचा।",
+      "blockKey": "additional-ultimate-u01671-line-1671"
+    },
+    {
+      "featureId": "U01663",
+      "sourceLine": 1682,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बहुभाषी AI महाराजा: 25 अंतरराष्ट्रीय भाषाओं में रीयल-टाइम अनुवाद और वॉइस सपोर्ट।",
+      "blockKey": "additional-ultimate-u01682-line-1682"
+    },
+    {
+      "featureId": "U01677",
+      "sourceLine": 1696,
+      "category": "additional",
+      "bucket": "general",
+      "text": "डायनेमिक प्राइसिंग एल्गोरिदम: मांग और समय (सीजन) के अनुसार किराये को ऑटोमैटिक बैलेंस करना।",
+      "blockKey": "additional-ultimate-u01696-line-1696"
+    },
+    {
+      "featureId": "U01682",
+      "sourceLine": 1701,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI कंटेंट क्रिएटर: राजस्थान के नए जिलों और पर्यटन स्थलों की जानकारी को स्वतः अपडेट करना।",
+      "blockKey": "additional-ultimate-u01701-line-1701"
+    },
+    {
+      "featureId": "U01684",
+      "sourceLine": 1703,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 3: राजस्थान के 50 जिलों की सूक्ष्म जानकारी (2501 - 2800)",
+      "blockKey": "additional-ultimate-u01703-line-1703"
+    },
+    {
+      "featureId": "U01691",
+      "sourceLine": 1710,
+      "category": "additional",
+      "bucket": "general",
+      "text": "नीम का थाना: ताम्रयुगीन गणेश्वर सभ्यता के अवशेषों और अरावली की पहाड़ियों का पर्यटन मैप।",
+      "blockKey": "additional-ultimate-u01710-line-1710"
+    },
+    {
+      "featureId": "U01694",
+      "sourceLine": 1713,
+      "category": "additional",
+      "bucket": "general",
+      "text": "कोटपुतली-बहरोड़: दिल्ली-जयपुर मार्ग के औद्योगिक और पर्यटन ढांचों की जानकारी।",
+      "blockKey": "additional-ultimate-u01713-line-1713"
+    },
+    {
+      "featureId": "U01695",
+      "sourceLine": 1714,
+      "category": "additional",
+      "bucket": "general",
+      "text": "(इसी तरह राजस्थान के सभी 50 जिलों के अनसुने पर्यटन स्थलों का 2800 तक विस्तार)",
+      "blockKey": "additional-ultimate-u01714-line-1714"
+    },
+    {
+      "featureId": "U01696",
+      "sourceLine": 1715,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 4: VVIP अनुभव एवं विशेष सेवाएं (2801 - 3000)",
+      "blockKey": "additional-ultimate-u01715-line-1715"
+    },
+    {
+      "featureId": "U01698",
+      "sourceLine": 1717,
+      "category": "additional",
+      "bucket": "general",
+      "text": "गाड़ी में मिनी-कैफे: वीआईपी गाड़ियों में गर्म मसाला चाय या ठंडी छाछ का रीयल-टाइम ऑर्डर।",
+      "blockKey": "additional-ultimate-u01717-line-1717"
+    },
+    {
+      "featureId": "U01699",
+      "sourceLine": 1718,
+      "category": "additional",
+      "bucket": "general",
+      "text": "पर्सनलाइज्ड ऑडियो गाइड: किलों के पास पहुँचते ही आपकी पसंद की भाषा में इतिहास बजना।",
+      "blockKey": "additional-ultimate-u01718-line-1718"
+    },
+    {
+      "featureId": "U01700",
+      "sourceLine": 1719,
+      "category": "additional",
+      "bucket": "general",
+      "text": "शाही विदाई किट: सफर के अंत में एक छोटा राजस्थानी स्मृति चिन्ह और अजय भाई का धन्यवाद पत्र।",
+      "blockKey": "additional-ultimate-u01719-line-1719"
+    },
+    {
+      "featureId": "U01701",
+      "sourceLine": 1720,
+      "category": "additional",
+      "bucket": "general",
+      "text": "कस्टम एम्बिएंट लाइटिंग: रात के सफर में सोने या नीले रंग की राजसी रोशनी का डिजिटल कंट्रोल।",
+      "blockKey": "additional-ultimate-u01720-line-1720"
+    },
+    {
+      "featureId": "U01702",
+      "sourceLine": 1721,
+      "category": "additional",
+      "bucket": "general",
+      "text": "इमरजेंसी मेडिकल किट (VVIP): बीपी मशीन, शुगर चेक और जरूरी दवाइयों का शाही बॉक्स।",
+      "blockKey": "additional-ultimate-u01721-line-1721"
+    },
+    {
+      "featureId": "U01703",
+      "sourceLine": 1722,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट चार्जिंग पोर्ट्स: हर सीट पर टाइप-C और लैपटॉप के लिए पावर सॉकेट्स की सुविधा।",
+      "blockKey": "additional-ultimate-u01722-line-1722"
+    },
+    {
+      "featureId": "U01705",
+      "sourceLine": 1724,
+      "category": "additional",
+      "bucket": "general",
+      "text": "शाही चाय ब्रेक: रास्ते के उन ढाबों की लिस्ट जहाँ मिट्टी के कुल्हड़ में प्रसिद्ध चाय मिलती है।",
+      "blockKey": "additional-ultimate-u01724-line-1724"
+    },
+    {
+      "featureId": "U01707",
+      "sourceLine": 1726,
+      "category": "additional",
+      "bucket": "general",
+      "text": "हुकुम, हमने 3000 पॉइंट्स का विशाल पड़ाव पार कर लिया है! अब आपकी वेबसाइट एक पूर्ण \"डिजिटल एन्साइक्लोपीडिया\" और \"स्मार्ट टैक्सी सर्विस\" का मिश्रण बन चुकी है।",
+      "blockKey": "additional-ultimate-u01726-line-1726"
+    },
+    {
+      "featureId": "U01708",
+      "sourceLine": 1728,
+      "category": "additional",
+      "bucket": "general",
+      "text": "\"Padharo Rajasthan Journey\" महा-ब्लूप्रिंट: विषय-वार रूपरेखा (3001 - 4000)",
+      "blockKey": "additional-ultimate-u01728-line-1728"
+    },
+    {
+      "featureId": "U01711",
+      "sourceLine": 1731,
+      "category": "additional",
+      "bucket": "general",
+      "text": "3201-3300: राजस्थान के अनसुने किले एवं गढ़: 50 जिलों के 'ऑफ-बीट' किलों का डेटा।",
+      "blockKey": "additional-ultimate-u01731-line-1731"
+    },
+    {
+      "featureId": "U01713",
+      "sourceLine": 1733,
+      "category": "additional",
+      "bucket": "general",
+      "text": "3401-3500: शाही खान-पान मार्गदर्शिका: हाईवे के सबसे शुद्ध और प्रामाणिक राजस्थानी ढाबों की लिस्ट।",
+      "blockKey": "additional-ultimate-u01733-line-1733"
+    },
+    {
+      "featureId": "U01715",
+      "sourceLine": 1735,
+      "category": "additional",
+      "bucket": "general",
+      "text": "3601-3700: मरुस्थलीय पारिस्थितिकी तंत्र (Ecology): रेगिस्तान के वन्यजीव और वनस्पतियों का डेटाबेस।",
+      "blockKey": "additional-ultimate-u01735-line-1735"
+    },
+    {
+      "featureId": "U01716",
+      "sourceLine": 1736,
+      "category": "additional",
+      "bucket": "general",
+      "text": "3701-3800: स्मार्ट इन्वेंट्री कंट्रोल: गाड़ी में रखे VVIP सामान (पानी, इत्र, स्नैक्स) का रीयल-टाइम स्टॉक।",
+      "blockKey": "additional-ultimate-u01736-line-1736"
+    },
+    {
+      "featureId": "U01717",
+      "sourceLine": 1737,
+      "category": "additional",
+      "bucket": "general",
+      "text": "3801-3900: डिजिटल विरासत संरक्षण: लुप्त होती लोक कलाओं (जैसे मोलेला, कठपुतली) का वीडियो आर्काइव।",
+      "blockKey": "additional-ultimate-u01737-line-1737"
+    },
+    {
+      "featureId": "U01719",
+      "sourceLine": 1740,
+      "category": "additional",
+      "bucket": "general",
+      "text": "महा-ब्लूप्रिंट: विषय रूपरेखा (4001 - 6000)",
+      "blockKey": "additional-ultimate-u01740-line-1740"
+    },
+    {
+      "featureId": "U01722",
+      "sourceLine": 1743,
+      "category": "additional",
+      "bucket": "general",
+      "text": "4201-4300: राजस्थानी मुहावरा डेटाबेस: 1000 स्थानीय कहावतों और उनके अर्थों का डिजिटल संग्रह (सफर को रोचक बनाने हेतु)।",
+      "blockKey": "additional-ultimate-u01743-line-1743"
+    },
+    {
+      "featureId": "U01725",
+      "sourceLine": 1746,
+      "category": "additional",
+      "bucket": "general",
+      "text": "4501-4600: झीलों का सूक्ष्म डेटा: राजस्थान की हर छोटी-बड़ी झील की गहराई, इतिहास और बोटिंग समय की जानकारी।",
+      "blockKey": "additional-ultimate-u01746-line-1746"
+    },
+    {
+      "featureId": "U01727",
+      "sourceLine": 1748,
+      "category": "additional",
+      "bucket": "general",
+      "text": "4701-4800: ऐतिहासिक युद्ध क्षेत्र (Battlefields): हल्दीघाटी से लेकर खानवा तक के युद्ध मैदानों का डिजिटल 3D मैप।",
+      "blockKey": "additional-ultimate-u01748-line-1748"
+    },
+    {
+      "featureId": "U01732",
+      "sourceLine": 1753,
+      "category": "additional",
+      "bucket": "general",
+      "text": "5201-5300: लोक देवता एवं तीर्थ: रामदेवजी, पाबूजी और तेजाजी जैसे लोक देवताओं के मंदिरों का सूक्ष्म मार्ग।",
+      "blockKey": "additional-ultimate-u01753-line-1753"
+    },
+    {
+      "featureId": "U01733",
+      "sourceLine": 1754,
+      "category": "additional",
+      "bucket": "general",
+      "text": "5301-5400: विदेशी सैलानी सहायता: वीजा नियमों, दूतावास संपर्क और अंतरराष्ट्रीय सिम कार्ड की विस्तृत गाइड।",
+      "blockKey": "additional-ultimate-u01754-line-1754"
+    },
+    {
+      "featureId": "U01734",
+      "sourceLine": 1755,
+      "category": "additional",
+      "bucket": "general",
+      "text": "5401-5500: राजस्थानी बोलियों का शब्दकोश: मेवाड़ी, मारवाड़ी, और हाड़ौती की सामान्य बोलचाल के शब्दों का डेटा।",
+      "blockKey": "additional-ultimate-u01755-line-1755"
+    },
+    {
+      "featureId": "U01738",
+      "sourceLine": 1759,
+      "category": "additional",
+      "bucket": "general",
+      "text": "5801-5900: राजस्थानी हस्तशिल्प बाजार: असली हस्तशिल्प और नकली की पहचान करने के लिए 'आर्ट-चेक' फीचर।",
+      "blockKey": "additional-ultimate-u01759-line-1759"
+    },
+    {
+      "featureId": "U01741",
+      "sourceLine": 1763,
+      "category": "additional",
+      "bucket": "general",
+      "text": "अजय भाई के लिए 50 जिलों का \"लाइव फ्लीट ऑक्यूपेंसी\" मैप।",
+      "blockKey": "additional-ultimate-u01763-line-1763"
+    },
+    {
+      "featureId": "U01744",
+      "sourceLine": 1766,
+      "category": "additional",
+      "bucket": "general",
+      "text": "पेपाल (PayPal) और अंतरराष्ट्रीय गेटवे के लिए \"फ्रॉड-डिटेक्शन\" कोडिंग।",
+      "blockKey": "additional-ultimate-u01766-line-1766"
+    },
+    {
+      "featureId": "U01745",
+      "sourceLine": 1767,
+      "category": "additional",
+      "bucket": "general",
+      "text": "6501-7000: एआई महाराजा एवं स्मार्ट ऑटोमेशन (AI & Tech)",
+      "blockKey": "additional-ultimate-u01767-line-1767"
+    },
+    {
+      "featureId": "U01747",
+      "sourceLine": 1769,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव ट्रैफिक: अगले 2 घंटे में किस हाईवे पर जाम होगा, इसका 99% सटीक अनुमान।",
+      "blockKey": "additional-ultimate-u01769-line-1769"
+    },
+    {
+      "featureId": "U01748",
+      "sourceLine": 1770,
+      "category": "additional",
+      "bucket": "general",
+      "text": "गाड़ी के इंजन की आवाज़ से खराबी पहचानने वाला एआई डायग्नोस्टिक टूल।",
+      "blockKey": "additional-ultimate-u01770-line-1770"
+    },
+    {
+      "featureId": "U01750",
+      "sourceLine": 1772,
+      "category": "additional",
+      "bucket": "general",
+      "text": "7001-7500: VVIP शाही आतिथ्य एवं सुविधाएं (Luxury Experience)",
+      "blockKey": "additional-ultimate-u01772-line-1772"
+    },
+    {
+      "featureId": "U01751",
+      "sourceLine": 1773,
+      "category": "additional",
+      "bucket": "general",
+      "text": "गाड़ी में \"मिट्टी की खुशबू\" और \"केसर\" इत्र का स्वचालित छिड़काव।",
+      "blockKey": "additional-ultimate-u01773-line-1773"
+    },
+    {
+      "featureId": "U01752",
+      "sourceLine": 1774,
+      "category": "additional",
+      "bucket": "general",
+      "text": "सफर के दौरान ठंडी मसाला छाछ और राजस्थानी स्नैक्स का रीयल-टाइम स्टॉक अपडेट।",
+      "blockKey": "additional-ultimate-u01774-line-1774"
+    },
+    {
+      "featureId": "U01753",
+      "sourceLine": 1775,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्रीमियम ऑडियो गाइड: हर 5 किमी पर उस क्षेत्र के इतिहास का प्रोफेशनल वॉइस-ओवर।",
+      "blockKey": "additional-ultimate-u01775-line-1775"
+    },
+    {
+      "featureId": "U01755",
+      "sourceLine": 1777,
+      "category": "additional",
+      "bucket": "general",
+      "text": "7501-8500: राजस्थान का सूक्ष्म एन्साइक्लोपीडिया (Heritage Database)",
+      "blockKey": "additional-ultimate-u01777-line-1777"
+    },
+    {
+      "featureId": "U01756",
+      "sourceLine": 1778,
+      "category": "additional",
+      "bucket": "general",
+      "text": "राजस्थान के 50 जिलों के \"अनसुने और गुप्त\" किलों का नक्शा और इतिहास।",
+      "blockKey": "additional-ultimate-u01778-line-1778"
+    },
+    {
+      "featureId": "U01757",
+      "sourceLine": 1779,
+      "category": "additional",
+      "bucket": "general",
+      "text": "झीलों का वैज्ञानिक डेटा: पानी की गहराई, जलग्रहण क्षेत्र और प्राचीन जल निकास प्रणाली।",
+      "blockKey": "additional-ultimate-u01779-line-1779"
+    },
+    {
+      "featureId": "U01758",
+      "sourceLine": 1780,
+      "category": "additional",
+      "bucket": "general",
+      "text": "हस्तशिल्प पहचान: असली सांगानेरी प्रिंट और ब्लू पॉटरी पहचानने का \"आर्ट-स्कैनर\"।",
+      "blockKey": "additional-ultimate-u01780-line-1780"
+    },
+    {
+      "featureId": "U01759",
+      "sourceLine": 1781,
+      "category": "additional",
+      "bucket": "general",
+      "text": "युद्ध क्षेत्र प्रिसिजन: हल्दीघाटी से खानवा तक के मैदानों का ऐतिहासिक और सामरिक विश्लेषण।",
+      "blockKey": "additional-ultimate-u01781-line-1781"
+    },
+    {
+      "featureId": "U01762",
+      "sourceLine": 1784,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विदेशी सैलानियों के लिए ई-वीजा, सिम कार्ड और अंतरराष्ट्रीय दूतावासों की सीधी लिंक।",
+      "blockKey": "additional-ultimate-u01784-line-1784"
+    },
+    {
+      "featureId": "U01765",
+      "sourceLine": 1787,
+      "category": "additional",
+      "bucket": "general",
+      "text": "9001-10,000: भविष्य का विस्तार एवं B2B (Business Growth)",
+      "blockKey": "additional-ultimate-u01787-line-1787"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "generatedAt": "2026-05-27T18:46:21.351Z",
+  "source": "customer/chunks/dashboard/scripts/page/part-01.js",
+  "totalParts": 2,
+  "parts": [
+    "customer/chunks/dashboard/scripts/page/part-01.js",
+    "customer/chunks/dashboard/scripts/page/part-02.js"
+  ]
+}

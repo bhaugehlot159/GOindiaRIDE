@@ -10,6 +10,35 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
+function readRepoFileIfExists(relativePath) {
+  const fullPath = path.join(root, relativePath);
+  return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, 'utf8') : '';
+}
+
+function readRepoFilesUnder(relativeDir, extension = '.js') {
+  const baseDir = path.join(root, relativeDir);
+  if (!fs.existsSync(baseDir)) return [];
+  const rows = [];
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(extension)) {
+        rows.push(fs.readFileSync(fullPath, 'utf8'));
+      }
+    }
+  }
+  walk(baseDir);
+  return rows;
+}
+
+function readCustomerDashboardRuntimeChunks() {
+  const legacyBundle = readRepoFileIfExists('customer/chunks/dashboard/scripts/dashboard-page.js');
+  if (legacyBundle) return legacyBundle;
+  return readRepoFilesUnder('customer/chunks/dashboard/scripts', '.js').join('\n');
+}
+
 function createLocalStorage() {
   const store = new Map();
   return {
@@ -90,6 +119,7 @@ function runAdminAppWithBookingRows(rows) {
 
   const localStorage = createLocalStorage();
   localStorage.setItem('goindiaride_active_bookings', JSON.stringify(rows));
+  localStorage.setItem('accessToken', 'live-admin-token');
   const domListeners = {};
   const sandbox = {
     console,
@@ -152,6 +182,8 @@ function runAdminAppWithBookingRows(rows) {
   domListeners.DOMContentLoaded();
 
   return {
+    localStorage,
+    domListeners,
     customerHtml: byId('bookingTableBody').innerHTML,
     customerSplit: JSON.parse(localStorage.getItem('goindiaride_admin_customer_bookings_current_v1') || '[]'),
     driverSplit: JSON.parse(localStorage.getItem('goindiaride_admin_driver_bookings_current_v1') || '[]')
@@ -202,6 +234,100 @@ test('admin app exposes competitor benchmark and live readiness controls', () =>
   assert.match(adminApp, /connectAllPortalFeatures\(\{ audit: true \}\)/);
   assert.match(adminCss, /\.benchmark-grid/);
   assert.match(adminCss, /\.benchmark-check-row/);
+});
+
+test('admin app exposes enterprise and fleet parity controls', () => {
+  const appHtml = readRepoFile('admin/app.html');
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+  const adminCss = readRepoFile('admin/css/admin-app.css');
+
+  assert.match(appHtml, /data-view="enterprise"/);
+  assert.match(appHtml, /id="enterpriseModuleList"/);
+  assert.match(appHtml, /id="enterpriseReadinessList"/);
+  assert.match(appHtml, /data-enterprise-action="connect-all"/);
+  assert.match(appHtml, /data-enterprise-action="run-live-test"/);
+  assert.match(adminApp, /ENTERPRISE_CONTROL_KEY/);
+  assert.match(adminApp, /ENTERPRISE_MODULES/);
+  assert.match(adminApp, /ENTERPRISE_BACKEND_ENDPOINTS/);
+  assert.match(adminApp, /function connectEnterpriseModules\(/);
+  assert.match(adminApp, /function runEnterpriseLiveTest\(/);
+  assert.match(adminApp, /function renderEnterprise\(/);
+  assert.match(adminApp, /corporate_wallet_billing/);
+  assert.match(adminApp, /live_map_dispatch/);
+  assert.match(adminApp, /support_expense_integrations/);
+  assert.match(adminCss, /\.enterprise-grid/);
+  assert.match(adminCss, /\.enterprise-module-row/);
+});
+
+test('admin enterprise connect-all stores live controlled modules', () => {
+  const result = runAdminAppWithBookingRows([
+    {
+      bookingId: 'BKT-ENT-1',
+      pickup: 'Jaipur Airport',
+      dropoff: 'MI Road',
+      customerName: 'Corporate Rider',
+      customerPhone: '+919999999999',
+      paymentMethod: 'corporate_wallet',
+      totalFare: 1250,
+      status: 'pending_admin_review',
+      locationPins: {
+        pickup: { coordinates: { lat: 26.8242, lng: 75.8122 } }
+      }
+    }
+  ]);
+
+  result.domListeners.click({
+    target: {
+      closest(selector) {
+        if (selector === '[data-enterprise-action]') {
+          return {
+            getAttribute(name) {
+              return name === 'data-enterprise-action' ? 'connect-all' : '';
+            }
+          };
+        }
+        return null;
+      }
+    }
+  });
+
+  const enterprise = JSON.parse(result.localStorage.getItem('goindiaride_admin_enterprise_fleet_controls_v1') || '{}');
+  const modules = enterprise.modules || {};
+  assert.equal(Object.keys(modules).length, 12);
+  assert.equal(modules.corporate_wallet_billing.status, 'live');
+  assert.equal(modules.live_map_dispatch.runtimeMode, 'live_controlled');
+  assert.equal(enterprise.lastLiveTest.summary.gap, 0);
+  assert.equal(enterprise.lastLiveTest.rows.every((row) => row.status === 'live'), true);
+  assert.equal(enterprise.wallet.corporateWalletEnabled, true);
+  assert.equal(enterprise.fleet.liveMapEnabled, true);
+  assert.equal(Array.isArray(enterprise.reports), true);
+  assert.doesNotMatch(JSON.stringify(enterprise), /demo/i);
+});
+
+test('enterprise live modules map to existing protected backend routes', () => {
+  const bookingRoutes = readRepoFile('backend/src/routes/bookingRoutes.js');
+  const walletRoutes = readRepoFile('backend/src/routes/walletRoutes.js');
+  const securityRoutes = readRepoFile('backend/src/routes/securityRoutes.js');
+  const notificationRoutes = readRepoFile('backend/src/routes/notificationRoutes.js');
+  const futureBusinessRoutes = readRepoFile('backend/src/routes/futureBusinessRoutes.js');
+
+  assert.match(bookingRoutes, /['"]\/fallback\/admin-review-queue['"]/);
+  assert.match(bookingRoutes, /['"]\/:id\/admin\/review['"]/);
+  assert.match(bookingRoutes, /['"]\/:id\/admin\/edit['"]/);
+  assert.match(bookingRoutes, /['"]\/admin\/pending['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/overview['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/topups['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/withdrawals['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/payment-modes['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/commissions\/summary['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/driver-commissions\/summary['"]/);
+  assert.match(walletRoutes, /['"]\/admin\/withdrawals\/:requestId\/review['"]/);
+  assert.match(securityRoutes, /['"]\/incidents['"]/);
+  assert.match(securityRoutes, /['"]\/pulse['"]/);
+  assert.match(securityRoutes, /['"]\/sos['"]/);
+  assert.match(notificationRoutes, /router\.get\(['"]\/['"]/);
+  assert.match(futureBusinessRoutes, /['"]\/support\/ticket['"]/);
+  assert.match(futureBusinessRoutes, /['"]\/partner\/webhook\/logs['"]/);
 });
 
 test('admin customer booking creator only targets real customer records', () => {
@@ -303,14 +429,16 @@ test('admin customer and driver split stores are protected by data preservation'
 test('admin edit/create sync reaches customer portal without depending on PortalConnector', () => {
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const customerDashboard = readRepoFile('pages/customer-dashboard.html');
+  const customerLiveHelpers = readRepoFile('customer/chunks/dashboard/scripts/customer-live-helpers.js');
 
   assert.match(adminApp, /new BroadcastChannel\("goindiaride-admin-booking-sync"\)/);
-  assert.match(customerDashboard, /new BroadcastChannel\('goindiaride-admin-booking-sync'\)/);
-  assert.match(customerDashboard, /handleAdminBookingSyncSignal/);
-  assert.match(customerDashboard, /booking_created_by_admin/);
+  assert.match(customerDashboard, /customer\/chunks\/dashboard\/scripts\/customer-live-helpers\.js/);
+  assert.match(customerLiveHelpers, /new BroadcastChannel\('goindiaride-admin-booking-sync'\)/);
+  assert.match(customerLiveHelpers, /handleAdminBookingSyncSignal/);
+  assert.match(customerLiveHelpers, /booking_created_by_admin/);
 
-  const storageListenerIndex = customerDashboard.indexOf("window.addEventListener('storage'");
-  const portalConnectorReturnIndex = customerDashboard.indexOf("if (!window.PortalConnector) return;");
+  const storageListenerIndex = customerLiveHelpers.indexOf("window.addEventListener('storage'");
+  const portalConnectorReturnIndex = customerLiveHelpers.indexOf("if (!window.PortalConnector) return;");
   assert.ok(storageListenerIndex > -1, 'customer dashboard should listen for storage sync events');
   assert.ok(portalConnectorReturnIndex > -1, 'customer dashboard should still guard PortalConnector usage');
   assert.ok(
@@ -322,6 +450,7 @@ test('admin edit/create sync reaches customer portal without depending on Portal
 test('customer runtime bridge preserves fresher admin-edited rows until backend catches up', () => {
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const customerDashboard = readRepoFile('pages/customer-dashboard.html');
+  const customerDashboardPage = readRepoFile('customer/chunks/dashboard/scripts/page/core/auth-state-storage.js');
   const runtimeBridge = readRepoFile('js/customer-dashboard-live-bridge.js');
 
   assert.match(adminApp, /backendSyncStatus:\s*"retry"/);
@@ -330,7 +459,7 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(adminApp, /function syncAdminBookingUpdateToFallbackQueue\(/);
   assert.match(adminApp, /mode:\s*cleanText\(mode \|\| "admin_edit"/);
   assert.match(adminApp, /syncAdminBookingUpdateToFallbackQueue\(updatedBooking,\s*"admin_edit"/);
-  assert.match(customerDashboard, /goindiaride_admin_customer_bookings_current_v1/);
+  assert.match(customerDashboardPage, /goindiaride_admin_customer_bookings_current_v1/);
   assert.match(customerDashboard, /customer-dashboard-live-bridge\.js\?v=20260516-admin-full-field-sync\d+/);
 
   assert.match(runtimeBridge, /LOCAL_BOOKING_KEYS/);

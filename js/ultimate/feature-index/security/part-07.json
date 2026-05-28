@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "security",
+  "part": 7,
+  "totalParts": 9,
+  "totalFeatureItems": 727,
+  "items": [
+    {
+      "featureId": "U01241",
+      "sourceLine": 1252,
+      "category": "security",
+      "bucket": "general",
+      "text": "अजमेर दरगाह की देग: सम्राट अकबर द्वारा भेंट की गई विशाल देग (खाना बनाने का बर्तन) की क्षमता।",
+      "blockKey": "security-ultimate-u01252-line-1252"
+    },
+    {
+      "featureId": "U01242",
+      "sourceLine": 1253,
+      "category": "security",
+      "bucket": "general",
+      "text": "तारागढ़ की सुरंगें: बूंदी और अजमेर के किलों के बीच की गुप्त संचार प्रणाली।",
+      "blockKey": "security-ultimate-u01253-line-1253"
+    },
+    {
+      "featureId": "U01243",
+      "sourceLine": 1254,
+      "category": "security",
+      "bucket": "general",
+      "text": "जयपुर का 'जंतर मंतर': सम्राट यंत्र द्वारा समय की 2 सेकंड की सटीकता मापने का विज्ञान।",
+      "blockKey": "security-ultimate-u01254-line-1254"
+    },
+    {
+      "featureId": "U01244",
+      "sourceLine": 1255,
+      "category": "security",
+      "bucket": "general",
+      "text": "हवा महल की खिड़कियाँ: 953 झरोखों के पीछे का वैज्ञानिक वेंटिलेशन (Venturi Effect) सिद्धांत।",
+      "blockKey": "security-ultimate-u01255-line-1255"
+    },
+    {
+      "featureId": "U01245",
+      "sourceLine": 1256,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाहरगढ़ का जैविक उद्यान: वहां पाए जाने वाले एशियाई शेरों और बाघों का डेटा।",
+      "blockKey": "security-ultimate-u01256-line-1256"
+    },
+    {
+      "featureId": "U01246",
+      "sourceLine": 1257,
+      "category": "security",
+      "bucket": "general",
+      "text": "आमेर की 'शीला माता': मूर्ति के बंगाल से जयपुर आने का ऐतिहासिक मार्ग और कहानी।",
+      "blockKey": "security-ultimate-u01257-line-1257"
+    },
+    {
+      "featureId": "U01247",
+      "sourceLine": 1258,
+      "category": "security",
+      "bucket": "general",
+      "text": "केसर क्यारी: आमेर किले की झील में बनी केसर की खेती की पुरानी पद्धति।",
+      "blockKey": "security-ultimate-u01258-line-1258"
+    },
+    {
+      "featureId": "U01248",
+      "sourceLine": 1259,
+      "category": "security",
+      "bucket": "general",
+      "text": "जयबाण तोप: पहियों पर खड़ी दुनिया की सबसे बड़ी तोप के एक बार चलने का इतिहास।",
+      "blockKey": "security-ultimate-u01259-line-1259"
+    },
+    {
+      "featureId": "U01249",
+      "sourceLine": 1260,
+      "category": "security",
+      "bucket": "general",
+      "text": "पन्ना मीणा का कुंड: जयपुर की इस अनूठी बावड़ी की सीढ़ियों का गणितीय डिज़ाइन।",
+      "blockKey": "security-ultimate-u01260-line-1260"
+    },
+    {
+      "featureId": "U01250",
+      "sourceLine": 1261,
+      "category": "security",
+      "bucket": "general",
+      "text": "गागरोन का जल दुर्ग: बिना नींव के चट्टान पर खड़े इस यूनेस्को धरोहर की विशेषता।",
+      "blockKey": "security-ultimate-u01261-line-1261"
+    },
+    {
+      "featureId": "U01251",
+      "sourceLine": 1262,
+      "category": "security",
+      "bucket": "general",
+      "text": "रणथंभौर का त्रिनेत्र गणेश: दुनिया का इकलौता मंदिर जहाँ गणेश जी के तीन नेत्र हैं।",
+      "blockKey": "security-ultimate-u01262-line-1262"
+    },
+    {
+      "featureId": "U01252",
+      "sourceLine": 1263,
+      "category": "security",
+      "bucket": "general",
+      "text": "हमीर की हठ: \"सिंह सवन सत्पुरुष वचन...\" वाली कहावत के पीछे का इतिहास।",
+      "blockKey": "security-ultimate-u01263-line-1263"
+    },
+    {
+      "featureId": "U01253",
+      "sourceLine": 1264,
+      "category": "security",
+      "bucket": "general",
+      "text": "ताल छापर अभयारण्य: काले हिरणों के लिए प्रसिद्ध इस घास के मैदान का पारिस्थितिक तंत्र।",
+      "blockKey": "security-ultimate-u01264-line-1264"
+    },
+    {
+      "featureId": "U01254",
+      "sourceLine": 1265,
+      "category": "security",
+      "bucket": "general",
+      "text": "करणी माता के सफेद चूहे: सावन-भादो कढ़ाई और मंदिर के प्रसाद की शुद्धता का डेटा।",
+      "blockKey": "security-ultimate-u01265-line-1265"
+    },
+    {
+      "featureId": "U01255",
+      "sourceLine": 1266,
+      "category": "security",
+      "bucket": "general",
+      "text": "जूनागढ़ का 'अनूप महल': सोने की कलम से की गई नक्काशी और कांच के काम का विवरण।",
+      "blockKey": "security-ultimate-u01266-line-1266"
+    },
+    {
+      "featureId": "U01257",
+      "sourceLine": 1268,
+      "category": "security",
+      "bucket": "general",
+      "text": "मथानिया की लाल मिर्च: जोधपुर के इस क्षेत्र की मिर्च के तीखेपन और रंग का वैश्विक महत्व।",
+      "blockKey": "security-ultimate-u01268-line-1268"
+    },
+    {
+      "featureId": "U01258",
+      "sourceLine": 1269,
+      "category": "security",
+      "bucket": "general",
+      "text": "सालासर बालाजी: दाढ़ी-मूंछ वाले हनुमान जी के विग्रह का प्राकट्य इतिहास।",
+      "blockKey": "security-ultimate-u01269-line-1269"
+    },
+    {
+      "featureId": "U01259",
+      "sourceLine": 1270,
+      "category": "security",
+      "bucket": "general",
+      "text": "खाटू श्याम जी: 'हारे का सहारा' और बर्बरीक के शीश दान की पौराणिक गाथा।",
+      "blockKey": "security-ultimate-u01270-line-1270"
+    },
+    {
+      "featureId": "U01260",
+      "sourceLine": 1271,
+      "category": "security",
+      "bucket": "general",
+      "text": "बेणेश्वर धाम: सोम, माही और जाखम नदियों के त्रिवेणी संगम का धार्मिक महत्व।",
+      "blockKey": "security-ultimate-u01271-line-1271"
+    },
+    {
+      "featureId": "U01261",
+      "sourceLine": 1272,
+      "category": "security",
+      "bucket": "general",
+      "text": "गवरी नृत्य: भील जनजाति द्वारा 40 दिनों तक किए जाने वाले इस लोक नाट्य का कैलेंडर।",
+      "blockKey": "security-ultimate-u01272-line-1272"
+    },
+    {
+      "featureId": "U01262",
+      "sourceLine": 1273,
+      "category": "security",
+      "bucket": "general",
+      "text": "तेजाजी की घोड़ी 'लीलन': लोक देवता तेजाजी के बलिदान और सांपों के रक्षक होने की कहानी।",
+      "blockKey": "security-ultimate-u01273-line-1273"
+    },
+    {
+      "featureId": "U01263",
+      "sourceLine": 1274,
+      "category": "security",
+      "bucket": "general",
+      "text": "पाबूजी की फड़: ऊंटों के बीमार होने पर बांची जाने वाली इस 'फड़' की चित्रकला।",
+      "blockKey": "security-ultimate-u01274-line-1274"
+    },
+    {
+      "featureId": "U01264",
+      "sourceLine": 1275,
+      "category": "security",
+      "bucket": "general",
+      "text": "देवनारायण जी की फड़: सबसे लंबी फड़ और उस पर डाक टिकट जारी होने का इतिहास।",
+      "blockKey": "security-ultimate-u01275-line-1275"
+    },
+    {
+      "featureId": "U01265",
+      "sourceLine": 1276,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थानी पगड़ी (साफ़ा): विवाह, शोक और युद्ध के समय पहनी जाने वाली पगड़ियों के रंगों का अर्थ।",
+      "blockKey": "security-ultimate-u01276-line-1276"
+    },
+    {
+      "featureId": "U01266",
+      "sourceLine": 1277,
+      "category": "security",
+      "bucket": "general",
+      "text": "कालबेलिया पोशाक: काले रंग के घाघरे पर की जाने वाली कसीदाकारी का महत्व।",
+      "blockKey": "security-ultimate-u01277-line-1277"
+    },
+    {
+      "featureId": "U01267",
+      "sourceLine": 1278,
+      "category": "security",
+      "bucket": "general",
+      "text": "घूमर के 'सवाई': नृत्य के दौरान लिए जाने वाले 8 विशेष चरणों का तकनीकी विवरण।",
+      "blockKey": "security-ultimate-u01278-line-1278"
+    },
+    {
+      "featureId": "U01268",
+      "sourceLine": 1279,
+      "category": "security",
+      "bucket": "general",
+      "text": "चरी नृत्य: सिर पर जलते हुए कपास के बीज रखकर किए जाने वाले इस नृत्य की कला।",
+      "blockKey": "security-ultimate-u01279-line-1279"
+    },
+    {
+      "featureId": "U01269",
+      "sourceLine": 1280,
+      "category": "security",
+      "bucket": "general",
+      "text": "कठपुतली का 'अरडू' की लकड़ी: कठपुतली निर्माण में इसी लकड़ी के चयन का वैज्ञानिक कारण।",
+      "blockKey": "security-ultimate-u01280-line-1280"
+    },
+    {
+      "featureId": "U01270",
+      "sourceLine": 1281,
+      "category": "security",
+      "bucket": "general",
+      "text": "रावणहत्था की बनावट: नारियल की आधी कटोरी और घोड़े के बालों से बने इस वाद्य का विज्ञान।",
+      "blockKey": "security-ultimate-u01281-line-1281"
+    },
+    {
+      "featureId": "U01271",
+      "sourceLine": 1282,
+      "category": "security",
+      "bucket": "general",
+      "text": "अलगोजा वादन: एक साथ दो बांसुरी फूँकने की कठिन तकनीक और उस्ताद कलाकार।",
+      "blockKey": "security-ultimate-u01282-line-1282"
+    },
+    {
+      "featureId": "U01272",
+      "sourceLine": 1283,
+      "category": "security",
+      "bucket": "general",
+      "text": "खड़ताल का जादू: लकड़ी के टुकड़ों से पैदा होने वाली अद्भुत ताल का परिचय।",
+      "blockKey": "security-ultimate-u01283-line-1283"
+    },
+    {
+      "featureId": "U01273",
+      "sourceLine": 1284,
+      "category": "security",
+      "bucket": "general",
+      "text": "मांड गायकी: \"पधारो म्हारे देश\" गीत की राग और उसकी वैश्विक पहचान।",
+      "blockKey": "security-ultimate-u01284-line-1284"
+    },
+    {
+      "featureId": "U01275",
+      "sourceLine": 1286,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थानी रसोई के मसाले: राई, मेथी, दाना और सूखी मिर्च के औषधीय गुण।",
+      "blockKey": "security-ultimate-u01286-line-1286"
+    },
+    {
+      "featureId": "U01276",
+      "sourceLine": 1287,
+      "category": "security",
+      "bucket": "general",
+      "text": "केर-सांगरी का महत्व: अकाल के समय मरुस्थल का सहारा बनने वाली इस सब्जी का पोषण डेटा।",
+      "blockKey": "security-ultimate-u01287-line-1287"
+    },
+    {
+      "featureId": "U01277",
+      "sourceLine": 1288,
+      "category": "security",
+      "bucket": "general",
+      "text": "घेवर का निर्माण: तीज के अवसर पर बनने वाली इस मिठाई की जालीदार बनावट का रहस्य।",
+      "blockKey": "security-ultimate-u01288-line-1288"
+    },
+    {
+      "featureId": "U01278",
+      "sourceLine": 1289,
+      "category": "security",
+      "bucket": "general",
+      "text": "जोधपुरी मावा कचौरी: इस शाही स्वाद के निर्माण की पारंपरिक विधि।",
+      "blockKey": "security-ultimate-u01289-line-1289"
+    },
+    {
+      "featureId": "U01279",
+      "sourceLine": 1290,
+      "category": "security",
+      "bucket": "general",
+      "text": "बीकानेरी भुजिया: वहां के पानी और मिट्टी के कारण आने वाले विशिष्ट स्वाद का वैज्ञानिक तर्क।",
+      "blockKey": "security-ultimate-u01290-line-1290"
+    },
+    {
+      "featureId": "U01280",
+      "sourceLine": 1291,
+      "category": "security",
+      "bucket": "general",
+      "text": "बाड़मेर का 'पनीर': ऊँटनी के दूध से बनने वाले उत्पादों का स्वास्थ्य लाभ।",
+      "blockKey": "security-ultimate-u01291-line-1291"
+    },
+    {
+      "featureId": "U01281",
+      "sourceLine": 1292,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थान के लोक खेल: 'मारदड़ी' और 'दड़ा' जैसे खेलों के लुप्त होने का डेटा।",
+      "blockKey": "security-ultimate-u01292-line-1292"
+    },
+    {
+      "featureId": "U01282",
+      "sourceLine": 1293,
+      "category": "security",
+      "bucket": "general",
+      "text": "रियासतकालीन डाक व्यवस्था: ऊंटों और हरकारों के जरिए संदेश भेजने की पुरानी पद्धति।",
+      "blockKey": "security-ultimate-u01293-line-1293"
+    },
+    {
+      "featureId": "U01283",
+      "sourceLine": 1294,
+      "category": "security",
+      "bucket": "general",
+      "text": "झरोखों का विज्ञान: प्राचीन इमारतों में ठंडी हवा के लिए बनाए गए 'कूलिंग चैनल्स'।",
+      "blockKey": "security-ultimate-u01294-line-1294"
+    },
+    {
+      "featureId": "U01284",
+      "sourceLine": 1295,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्राचीन रंगाई (Tie & Dye): लहरिया और बंधेज के पैटर्न बनाने की धागा पद्धति।",
+      "blockKey": "security-ultimate-u01295-line-1295"
+    },
+    {
+      "featureId": "U01285",
+      "sourceLine": 1296,
+      "category": "security",
+      "bucket": "general",
+      "text": "अकोला की प्रिंटिंग: चित्तौड़गढ़ के अकोला में 'दाबू' प्रिंटिंग की प्राकृतिक प्रक्रिया।",
+      "blockKey": "security-ultimate-u01296-line-1296"
+    },
+    {
+      "featureId": "U01286",
+      "sourceLine": 1297,
+      "category": "security",
+      "bucket": "general",
+      "text": "मोलेला की मृण्मय कला: राजसमंद के मोलेला गाँव में मिट्टी की मूर्तियाँ बनाने की कला।",
+      "blockKey": "security-ultimate-u01297-line-1297"
+    },
+    {
+      "featureId": "U01287",
+      "sourceLine": 1298,
+      "category": "security",
+      "bucket": "general",
+      "text": "टेराकोटा आर्ट: मिट्टी को पकाकर बनाई गई प्राचीन सिंधु घाटी सभ्यता जैसी आकृतियाँ।",
+      "blockKey": "security-ultimate-u01298-line-1298"
+    },
+    {
+      "featureId": "U01288",
+      "sourceLine": 1299,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्लू पॉटरी का इतिहास: फारस से जयपुर तक इस कला के सफर का कालक्रम।",
+      "blockKey": "security-ultimate-u01299-line-1299"
+    },
+    {
+      "featureId": "U01289",
+      "sourceLine": 1300,
+      "category": "security",
+      "bucket": "general",
+      "text": "थेवा कला: प्रतापगढ़ की कांच पर सोने की बारीक कारीगरी का गुप्त रहस्य।",
+      "blockKey": "security-ultimate-u01300-line-1300"
+    },
+    {
+      "featureId": "U01290",
+      "sourceLine": 1301,
+      "category": "security",
+      "bucket": "general",
+      "text": "कुंदन ज्वेलरी: बिना आग के सोने में रत्न जड़ने की प्राचीन तकनीक।",
+      "blockKey": "security-ultimate-u01301-line-1301"
+    },
+    {
+      "featureId": "U01291",
+      "sourceLine": 1302,
+      "category": "security",
+      "bucket": "general",
+      "text": "मीनाकारी की चमक: रंगों को धातुओं पर पकाने (Enameling) की विधि।",
+      "blockKey": "security-ultimate-u01302-line-1302"
+    },
+    {
+      "featureId": "U01292",
+      "sourceLine": 1303,
+      "category": "security",
+      "bucket": "general",
+      "text": "तारागढ़ की 'गर्भ गुंजन' तोप: इसकी भयंकर गर्जना से जुड़ी ऐतिहासिक किंवदंतियाँ।",
+      "blockKey": "security-ultimate-u01303-line-1303"
+    },
+    {
+      "featureId": "U01293",
+      "sourceLine": 1304,
+      "category": "security",
+      "bucket": "general",
+      "text": "बूंदी की चित्रशाला: उम्मेद महल की दीवारों पर बने 'लाइव' जैसे दिखने वाले चित्रों का डेटा।",
+      "blockKey": "security-ultimate-u01304-line-1304"
+    },
+    {
+      "featureId": "U01294",
+      "sourceLine": 1305,
+      "category": "security",
+      "bucket": "general",
+      "text": "चौरासी खंभों की छतरी: बूंदी की इस भव्य छतरी के वास्तुशिल्प का विवरण।",
+      "blockKey": "security-ultimate-u01305-line-1305"
+    },
+    {
+      "featureId": "U01295",
+      "sourceLine": 1306,
+      "category": "security",
+      "bucket": "general",
+      "text": "जैसलमेर की 'अकल वुड फॉसिल पार्क': 18 करोड़ साल पुराने जीवाश्मों का वैज्ञानिक डेटा।",
+      "blockKey": "security-ultimate-u01306-line-1306"
+    },
+    {
+      "featureId": "U01296",
+      "sourceLine": 1307,
+      "category": "security",
+      "bucket": "general",
+      "text": "मरुस्थल का जहाज (ऊंट): इसके कूबड़ (Hump) में वसा संचयन का जैविक तथ्य।",
+      "blockKey": "security-ultimate-u01307-line-1307"
+    },
+    {
+      "featureId": "U01297",
+      "sourceLine": 1308,
+      "category": "security",
+      "bucket": "general",
+      "text": "राज्य वृक्ष 'खेजड़ी': इसे 'मरुस्थल का कल्पवृक्ष' क्यों कहा जाता है, इसके 10 कारण।",
+      "blockKey": "security-ultimate-u01308-line-1308"
+    },
+    {
+      "featureId": "U01298",
+      "sourceLine": 1309,
+      "category": "security",
+      "bucket": "general",
+      "text": "राज्य पक्षी 'गोडावण': इसके लुप्तप्राय होने के कारण और संरक्षण के 'प्रोजेक्ट बस्टर्ड'।",
+      "blockKey": "security-ultimate-u01309-line-1309"
+    },
+    {
+      "featureId": "U01299",
+      "sourceLine": 1310,
+      "category": "security",
+      "bucket": "general",
+      "text": "रोहिड़ा का फूल: 'मरु शोभा' कहे जाने वाले इस फूल का औषधीय उपयोग।",
+      "blockKey": "security-ultimate-u01310-line-1310"
+    },
+    {
+      "featureId": "U01300",
+      "sourceLine": 1311,
+      "category": "security",
+      "bucket": "general",
+      "text": "राज्य पशु 'चिंकारा': इसकी तेज़ गति और रेगिस्तान में रहने की क्षमता का डेटा।",
+      "blockKey": "security-ultimate-u01311-line-1311"
+    },
+    {
+      "featureId": "U01301",
+      "sourceLine": 1312,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थान की नदियाँ: चंबल, बनास और लूनी के सूखने और बहने का चक्र।",
+      "blockKey": "security-ultimate-u01312-line-1312"
+    },
+    {
+      "featureId": "U01302",
+      "sourceLine": 1313,
+      "category": "security",
+      "bucket": "general",
+      "text": "लूनी नदी का खारापन: बालोतरा के बाद नदी का पानी खारा होने का भूगर्भीय कारण।",
+      "blockKey": "security-ultimate-u01313-line-1313"
+    },
+    {
+      "featureId": "U01303",
+      "sourceLine": 1314,
+      "category": "security",
+      "bucket": "general",
+      "text": "इंदिरा गांधी नहर: मरुस्थल की 'जीवन रेखा' के निर्माण और उसकी लंबाई का डेटा।",
+      "blockKey": "security-ultimate-u01314-line-1314"
+    },
+    {
+      "featureId": "U01304",
+      "sourceLine": 1315,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्राचीन बावड़ियाँ: रानी जी की बावड़ी और उसकी 350 सीढ़ियों का विवरण।",
+      "blockKey": "security-ultimate-u01315-line-1315"
+    },
+    {
+      "featureId": "U01305",
+      "sourceLine": 1316,
+      "category": "security",
+      "bucket": "general",
+      "text": "गणेश्वर सभ्यता: कांतली नदी के किनारे ताम्रयुगीन सभ्यता के अवशेष।",
+      "blockKey": "security-ultimate-u01316-line-1316"
+    },
+    {
+      "featureId": "U01306",
+      "sourceLine": 1317,
+      "category": "security",
+      "bucket": "general",
+      "text": "कालीबंगा की खुदाई: दुनिया के सबसे पुराने 'जुते हुए खेत' के प्रमाण।",
+      "blockKey": "security-ultimate-u01317-line-1317"
+    },
+    {
+      "featureId": "U01307",
+      "sourceLine": 1318,
+      "category": "security",
+      "bucket": "general",
+      "text": "आहड़ सभ्यता: उदयपुर की 'धुलकोट' सभ्यता और तांबा गलाने की भट्टियाँ।",
+      "blockKey": "security-ultimate-u01318-line-1318"
+    },
+    {
+      "featureId": "U01308",
+      "sourceLine": 1319,
+      "category": "security",
+      "bucket": "general",
+      "text": "बैराठ (विराट नगर): सम्राट अशोक के शिलालेख और बौद्ध मठों के अवशेष।",
+      "blockKey": "security-ultimate-u01319-line-1319"
+    },
+    {
+      "featureId": "U01309",
+      "sourceLine": 1320,
+      "category": "security",
+      "bucket": "general",
+      "text": "पाषाण कालीन गुफाएं: कोटा के निकट अलनिया नदी के किनारे शैल चित्र।",
+      "blockKey": "security-ultimate-u01320-line-1320"
+    },
+    {
+      "featureId": "U01310",
+      "sourceLine": 1321,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थान की जलवायु: 'अरावली' के कारण मानसूनी हवाओं के समानांतर बहने का भूगोल।",
+      "blockKey": "security-ultimate-u01321-line-1321"
+    },
+    {
+      "featureId": "U01311",
+      "sourceLine": 1322,
+      "category": "security",
+      "bucket": "general",
+      "text": "मरुस्थल की 'लू': गर्मियों में चलने वाली गर्म हवाओं से बचने के देसी तरीके।",
+      "blockKey": "security-ultimate-u01322-line-1322"
+    },
+    {
+      "featureId": "U01312",
+      "sourceLine": 1323,
+      "category": "security",
+      "bucket": "general",
+      "text": "आज का प्रशासन: राजस्थान के 50 जिलों के नए मुख्यालयों की सूची।",
+      "blockKey": "security-ultimate-u01323-line-1323"
+    },
+    {
+      "featureId": "U01313",
+      "sourceLine": 1324,
+      "category": "security",
+      "bucket": "general",
+      "text": "सलूंबर का इतिहास: हाड़ी रानी के बलिदान और सलूंबर रावत की शक्ति।",
+      "blockKey": "security-ultimate-u01324-line-1324"
+    },
+    {
+      "featureId": "U01314",
+      "sourceLine": 1325,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्यावर की स्थापना: कर्नल डिक्सन द्वारा बसाए गए इस शहर का इतिहास।",
+      "blockKey": "security-ultimate-u01325-line-1325"
+    },
+    {
+      "featureId": "U01315",
+      "sourceLine": 1326,
+      "category": "security",
+      "bucket": "general",
+      "text": "फलोदी का तापमान: राजस्थान के सबसे गर्म स्थान के रीयल-टाइम आँकड़े।",
+      "blockKey": "security-ultimate-u01326-line-1326"
+    },
+    {
+      "featureId": "U01318",
+      "sourceLine": 1330,
+      "category": "security",
+      "bucket": "general",
+      "text": "लाइव रेवेन्यू ट्रैकर: आज, इस हफ्ते और इस महीने की कुल कमाई का ग्राफिकल चार्ट।",
+      "blockKey": "security-ultimate-u01330-line-1330"
+    },
+    {
+      "featureId": "U01326",
+      "sourceLine": 1338,
+      "category": "security",
+      "bucket": "general",
+      "text": "पेमेंट गेटवे स्विच: यदि एक बैंक का सर्वर डाउन है, तो पेमेंट को दूसरे गेटवे पर स्वतः शिफ्ट करना।",
+      "blockKey": "security-ultimate-u01338-line-1338"
+    },
+    {
+      "featureId": "U01328",
+      "sourceLine": 1340,
+      "category": "security",
+      "bucket": "general",
+      "text": "इमरजेंसी रिस्पॉन्स लॉग: एसओएस बटन दबाने पर हुई कार्यवाही का पूरा लिखित रिकॉर्ड।",
+      "blockKey": "security-ultimate-u01340-line-1340"
+    },
+    {
+      "featureId": "U01329",
+      "sourceLine": 1341,
+      "category": "security",
+      "bucket": "general",
+      "text": "सर्वर लोड बैलेंसिंग: एक साथ 1 लाख लोग साइट खोलें तो भी हैंग न होने की तकनीक।",
+      "blockKey": "security-ultimate-u01341-line-1341"
+    },
+    {
+      "featureId": "U01330",
+      "sourceLine": 1342,
+      "category": "security",
+      "bucket": "general",
+      "text": "डेटा प्राइवेसी एन्क्रिप्शन: ग्राहक के आधार या आईडी कार्ड को देखने के बाद स्वतः डिलीट करना।",
+      "blockKey": "security-ultimate-u01342-line-1342"
+    },
+    {
+      "featureId": "U01335",
+      "sourceLine": 1347,
+      "category": "security",
+      "bucket": "general",
+      "text": "हीट मैप नेविगेशन: नक्शे पर वह क्षेत्र देखना जहाँ गाड़ियों की सबसे ज्यादा कमी है।",
+      "blockKey": "security-ultimate-u01347-line-1347"
+    },
+    {
+      "featureId": "U01337",
+      "sourceLine": 1349,
+      "category": "security",
+      "bucket": "general",
+      "text": "बाड़मेर के सफेद धोरे: जैसलमेर के अलावा बाड़मेर के उन धोरों की मैपिंग जहाँ भीड़ कम है।",
+      "blockKey": "security-ultimate-u01349-line-1349"
+    },
+    {
+      "featureId": "U01338",
+      "sourceLine": 1350,
+      "category": "security",
+      "bucket": "general",
+      "text": "किराडू मंदिर (बाड़मेर): राजस्थान का खजुराहो कहे जाने वाले इस मंदिर का शापित इतिहास।",
+      "blockKey": "security-ultimate-u01350-line-1350"
+    },
+    {
+      "featureId": "U01339",
+      "sourceLine": 1351,
+      "category": "security",
+      "bucket": "general",
+      "text": "पचपदरा झील: यहाँ के नमक के विशिष्ट क्रिस्टल्स और खारेपन का डेटा।",
+      "blockKey": "security-ultimate-u01351-line-1351"
+    },
+    {
+      "featureId": "U01340",
+      "sourceLine": 1352,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाकोड़ा जी तीर्थ: मेवानगर के इस प्रसिद्ध जैन मंदिर का सूक्ष्म मैप।",
+      "blockKey": "security-ultimate-u01352-line-1352"
+    },
+    {
+      "featureId": "U01341",
+      "sourceLine": 1353,
+      "category": "security",
+      "bucket": "general",
+      "text": "बालोतरा प्रिंट: अजरक और मलीर प्रिंट की रंगाई प्रक्रिया का विवरण।",
+      "blockKey": "security-ultimate-u01353-line-1353"
+    },
+    {
+      "featureId": "U01342",
+      "sourceLine": 1354,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्यावर की तिलपट्टी: यहाँ की प्रसिद्ध तिलपट्टी के निर्माण और इतिहास का डेटा।",
+      "blockKey": "security-ultimate-u01354-line-1354"
+    },
+    {
+      "featureId": "U01343",
+      "sourceLine": 1355,
+      "category": "security",
+      "bucket": "general",
+      "text": "सलूंबर की हाड़ी रानी: सेनानी मांगण वाली कहानी और उनके महल का इतिहास।",
+      "blockKey": "security-ultimate-u01355-line-1355"
+    },
+    {
+      "featureId": "U01344",
+      "sourceLine": 1356,
+      "category": "security",
+      "bucket": "general",
+      "text": "जयसमंद वन्यजीव अभयारण्य: झील के किनारे के बघेरों और जलीय जीवों का डेटा।",
+      "blockKey": "security-ultimate-u01356-line-1356"
+    },
+    {
+      "featureId": "U01345",
+      "sourceLine": 1357,
+      "category": "security",
+      "bucket": "general",
+      "text": "डूंगरपुर का जूना महल: इसकी अद्भुत भित्ति चित्रकारी और कांच के काम का विवरण।",
+      "blockKey": "security-ultimate-u01357-line-1357"
+    },
+    {
+      "featureId": "U01346",
+      "sourceLine": 1358,
+      "category": "security",
+      "bucket": "general",
+      "text": "देव सोमनाथ मंदिर: बिना सीमेंट/चूने के पत्थर पर पत्थर रखकर बने मंदिर का विज्ञान।",
+      "blockKey": "security-ultimate-u01358-line-1358"
+    },
+    {
+      "featureId": "U01347",
+      "sourceLine": 1359,
+      "category": "security",
+      "bucket": "general",
+      "text": "बांसवाड़ा का मानगढ़ धाम: आदिवासियों के जलियांवाला बाग के इतिहास का विवरण।",
+      "blockKey": "security-ultimate-u01359-line-1359"
+    }
+  ]
+}

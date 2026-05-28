@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "driver",
+  "totalFeatureItems": 244,
+  "parts": [
+    "driver/part-01.json",
+    "driver/part-02.json",
+    "driver/part-03.json"
+  ],
+  "items": []
+}

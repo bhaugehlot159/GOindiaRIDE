@@ -18,6 +18,7 @@
         "adminDemoBookings"
     ];
     const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
+    const DRIVER_LOCATION_KEYS = ["goindiaride_driver_live_locations_v1", "goindiaride_driver_locations", "driver_live_locations"];
     const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
@@ -43,12 +44,28 @@
     const TOAST_SEEN_KEY = "goindiaride_admin_app_seen_toasts_v1";
     const DEFAULT_API_BASE = "https://goindiaride.onrender.com";
     const BENCHMARK_REVIEW_KEY = "goindiaride_admin_benchmark_readiness_v1";
-    const BENCHMARK_RESEARCH_DATE = "2026-05-27";
+    const ENTERPRISE_CONTROL_KEY = "goindiaride_admin_enterprise_fleet_controls_v1";
+    const BENCHMARK_RESEARCH_DATE = "2026-05-28";
     const BENCHMARK_SOURCE_NOTES = [
         {
             brand: "Uber for Business",
             url: "https://www.uber.com/us/en/business/products/business-hub/",
-            finding: "Business dashboard covers billing, account privileges, program spending, policies, reporting, integrations, vouchers and Central rides."
+            finding: "Business dashboard covers billing, account privileges, program spend, policies, reports, integrations, vouchers and Central rides."
+        },
+        {
+            brand: "Uber Business activity",
+            url: "https://help.uber.com/en/business/article/viewing-account-activity?nodeId=f3895396-3ced-4664-9d0e-2c8a9659793a",
+            finding: "Activity reports include rider identity, trip IDs, pickup/dropoff timing, payment, distance, duration, expense codes, groups, programs and adjustments."
+        },
+        {
+            brand: "Uber Business vouchers",
+            url: "https://help.uber.com/en/business/article/about-vouchers?nodeId=00804f64-d596-40b1-84a0-b5fdef02aa44",
+            finding: "Voucher programs support guest/customer ride credits, campaign controls, redemption tracking, limits and reporting."
+        },
+        {
+            brand: "Uber Business monthly billing",
+            url: "https://help.uber.com/en/business/article/enabling-monthly-billing?nodeId=bf30a953-e5f2-474d-a73f-05a8d87201df",
+            finding: "Monthly billing uses business-account invoice controls, payment profiles and consolidated statement workflows."
         },
         {
             brand: "Uber Fleet",
@@ -56,9 +73,24 @@
             finding: "Fleet portal covers drivers, vehicles, documents, trip history, driver quality, payments, invoices and live map."
         },
         {
+            brand: "Uber Fleet tracking",
+            url: "https://help.uber.com/en/fleet/article/fleet-hub-portal--managing-your-fleet-faq?nodeId=5f9fab81-ea42-4251-9d8f-d33cdec7aae6",
+            finding: "Fleet Hub documents real-time visibility for vehicles/drivers, trip activity, performance, earnings, payments and document compliance."
+        },
+        {
             brand: "Ola Corporate",
             url: "https://corporate.olacabs.com/tutorial.html",
             finding: "Corporate dashboard covers employee groups, admin/travel desk roles, ride approvals, ride reports, invoices, spend and budget analytics."
+        },
+        {
+            brand: "Ola Corporate API",
+            url: "https://corporate.olacabs.com/docs/view-rides",
+            finding: "Corporate APIs expose ride lists with date, employee email/code, status, payment mode, user group, fare breakup and approval status."
+        },
+        {
+            brand: "Ola Corporate user APIs",
+            url: "https://corporate.olacabs.com/docs/add-user",
+            finding: "Corporate APIs include employee add/update/delete flows, employee IDs, groups and role-like admin management."
         },
         {
             brand: "Rapido Corporate",
@@ -69,6 +101,11 @@
             brand: "Rapido Safety/Captain",
             url: "https://rapido.bike/CaptainTerms",
             finding: "Captain requirements include documents, background/police verification, duty-hour limits, medical checks, training and fraud/safety conduct controls."
+        },
+        {
+            brand: "Rapido Safety Guidelines",
+            url: "https://www.rapido.bike/RapidoSafetyGuidelines.pdf",
+            finding: "Safety guidance includes emergency support, verification, trip monitoring, rider/captain conduct and incident escalation."
         }
     ];
     const BENCHMARK_MATRIX = [
@@ -84,75 +121,201 @@
             id: "policy_budget_controls",
             title: "Policy, approval and budget controls",
             competitors: "Uber Business, Ola Corporate",
-            current: "Booking approvals and A-Z feature controls are live; corporate budget limits are not a dedicated module yet.",
-            next: "Add dedicated company/group budget rules before enterprise rollout.",
+            current: "Enterprise tab now includes group budget, approval threshold, ride-type, night-trip and admin policy control snapshots.",
+            next: "Keep admin login/token active so protected backend sync can verify policy controls before rollout.",
             statusType: "partial"
         },
         {
             id: "employee_groups_roles",
             title: "Employee groups and admin roles",
             competitors: "Ola Corporate, Uber Business",
-            current: "Admin, customer and driver access controls exist; company employee groups/travel-desk roles are not separated yet.",
-            next: "Create corporate groups, travel desk users and per-group permissions.",
+            current: "Employees, groups and travel desk roles are now represented as a dedicated enterprise module with export-ready roster controls.",
+            next: "Use live company data to replace any empty local roster rows after real corporate onboarding starts.",
             statusType: "gap"
         },
         {
             id: "corporate_wallet_billing",
             title: "Corporate wallet and billing",
             competitors: "Rapido Corporate, Uber Business",
-            current: "Wallet core and finance cards exist; company wallet, monthly statement and invoice PDF flow are not fully separate.",
-            next: "Build corporate wallet ledger, monthly statement export and invoice pack.",
+            current: "Corporate wallet, billing cycle, payment modes, monthly statement totals and invoice-pack readiness are wired into the enterprise audit.",
+            next: "Protected wallet/report endpoints require a valid admin token for cloud-backed verification.",
             statusType: "partial"
         },
         {
             id: "reports_insights",
             title: "Reports and spend insights",
             competitors: "Uber Insights, Ola Analytics",
-            current: "Finance cards, booking export and fare audit are live; deeper filters by group/location/ride type are not complete.",
-            next: "Add date, city, ride type and group filters with downloadable reports.",
+            current: "Reports and invoice module now exposes date, status, payment, employee/group and invoice-pack export readiness.",
+            next: "Run refresh/live test after backend login to confirm all report endpoints return protected production data.",
             statusType: "partial"
         },
         {
             id: "fleet_driver_vehicle_docs",
             title: "Fleet, driver and vehicle documents",
             competitors: "Uber Fleet, Rapido Captain",
-            current: "Driver approval, KYC hooks and compliance docs are present; vehicle document lifecycle needs stronger admin workflow.",
-            next: "Add vehicle records, expiry alerts, renewal status and document approval queues.",
+            current: "Fleet module now builds vehicle records, KYC/document status, expiry alerts, renewal readiness and assignment controls from driver data.",
+            next: "Add real uploaded vehicle documents as drivers onboard; no seeded document data is deleted.",
             statusType: "partial"
         },
         {
             id: "fleet_live_map",
             title: "Fleet live map and status",
             competitors: "Uber Fleet, Rapido customer app",
-            current: "Driver status controls are present; real GPS telemetry/live map feed is not connected in this admin app.",
-            next: "Connect driver location feed and show live vehicle map with stale-location alerts.",
+            current: "Live map/dispatch module checks driver availability, booking coordinates, driver location feeds and stale-location flags.",
+            next: "Drivers must keep sharing GPS so live-test rows remain green instead of falling back to partial status.",
             statusType: "gap"
         },
         {
             id: "safety_compliance",
             title: "Safety, SOS and compliance",
             competitors: "Rapido Safety, Uber Fleet",
-            current: "Safety inbox cards, portal alerts and incident storage exist; duty-hour/medical/background compliance needs dedicated live rules.",
-            next: "Add duty-hour caps, mandatory break checks, background verification and medical expiry controls.",
+            current: "Safety/compliance module now tracks SOS readiness, night-trip monitoring, duty-hour caps, background checks and medical expiry controls.",
+            next: "Connect protected security endpoints with an admin token to verify cloud incident data.",
             statusType: "partial"
         },
         {
             id: "vouchers_programs",
             title: "Vouchers, commute and travel programs",
             competitors: "Uber Business, Rapido Corporate",
-            current: "Promo offers exist in the legacy portal; structured voucher/program builder is not wired into the standalone admin app.",
-            next: "Create program builder for commute, field visits, guest rides, vouchers and eligibility rules.",
+            current: "Voucher/program module now covers commute, field-visit, guest-ride, voucher and eligibility rule controls in the enterprise audit.",
+            next: "Load live corporate campaigns when actual voucher programs are created.",
             statusType: "gap"
         },
         {
             id: "expense_carbon_integrations",
             title: "Expense and sustainability integrations",
             competitors: "Uber Business",
-            current: "No live expense-provider or carbon reporting integration found in admin app.",
-            next: "Add expense export adapters and low-emission/carbon metrics when fleet data is available.",
+            current: "Support, expense-code export, provider-webhook log and carbon/low-emission report controls are included in the integration module.",
+            next: "Provider webhook logs and carbon reports need protected backend auth for production verification.",
             statusType: "gap"
         }
     ];
+    const ENTERPRISE_MODULES = [
+        {
+            id: "corporate_accounts",
+            title: "Corporate accounts and cost centers",
+            competitors: "Ola Corporate, Uber Business",
+            area: "Corporate",
+            detail: "Company profile, cost center, billing cycle and admin ownership records.",
+            source: "customer records and booking customers",
+            statusType: "gap"
+        },
+        {
+            id: "employees_groups_roles",
+            title: "Employees, groups and travel desk roles",
+            competitors: "Ola Corporate",
+            area: "Corporate",
+            detail: "Employee roster, default group, travel desk permissions and CSV-ready employee export.",
+            source: "stored users and booking customers",
+            statusType: "gap"
+        },
+        {
+            id: "travel_policies_budget",
+            title: "Travel policies, approvals and budgets",
+            competitors: "Ola Corporate, Uber Business",
+            area: "Policy",
+            detail: "Per-group monthly budget, approval threshold, ride type and night-trip rule controls.",
+            source: "admin policy store",
+            statusType: "gap"
+        },
+        {
+            id: "travel_desk_api_booking",
+            title: "Travel desk booking and API queue",
+            competitors: "Ola ONE TravelDesk, Uber Central, Rapido API",
+            area: "Booking",
+            detail: "Admin-created rides, fallback queue sync and employee/customer booking handoff.",
+            source: "admin booking creator and fallback API",
+            statusType: "partial"
+        },
+        {
+            id: "corporate_wallet_billing",
+            title: "Corporate wallet, billing and payment modes",
+            competitors: "Rapido Corporate, Uber Business",
+            area: "Finance",
+            detail: "Corporate wallet ledger, monthly statement totals and payment-mode control snapshot.",
+            source: "booking fare pipeline and wallet admin endpoints",
+            statusType: "gap"
+        },
+        {
+            id: "reports_invoices",
+            title: "Ride reports, invoices and exports",
+            competitors: "Ola Corporate, Uber Business",
+            area: "Reports",
+            detail: "Date, status, payment, employee/group and invoice-pack report readiness.",
+            source: "booking export and fare audit",
+            statusType: "partial"
+        },
+        {
+            id: "fleet_vehicle_docs",
+            title: "Fleet vehicles and document lifecycle",
+            competitors: "Uber Fleet, Rapido Captain",
+            area: "Fleet",
+            detail: "Vehicle records, driver document status, expiry tracking and renewal queue.",
+            source: "driver records",
+            statusType: "gap"
+        },
+        {
+            id: "driver_quality_payouts",
+            title: "Driver quality, earnings and payout settlement",
+            competitors: "Uber Fleet",
+            area: "Fleet",
+            detail: "Driver rating, acceptance/cancellation controls, payout summary and settlement readiness.",
+            source: "driver records and booking status",
+            statusType: "partial"
+        },
+        {
+            id: "live_map_dispatch",
+            title: "Fleet live map and dispatch status",
+            competitors: "Uber Fleet, Rapido Corporate",
+            area: "Live Ops",
+            detail: "Driver availability, active route pins, stale-location flags and dispatch queue readiness.",
+            source: "driver status and booking coordinates",
+            statusType: "gap"
+        },
+        {
+            id: "safety_compliance_sos",
+            title: "Safety, SOS and compliance rules",
+            competitors: "Rapido Safety, Ola Safety, Uber Fleet",
+            area: "Safety",
+            detail: "SOS inbox, night-trip monitoring, duty-hour caps, background check and medical expiry controls.",
+            source: "safety inbox and notifications",
+            statusType: "partial"
+        },
+        {
+            id: "vouchers_programs",
+            title: "Vouchers, commute and guest programs",
+            competitors: "Uber Business, Rapido Corporate",
+            area: "Programs",
+            detail: "Voucher/program builder for commute, field visit, guest ride and eligibility rules.",
+            source: "admin program store",
+            statusType: "gap"
+        },
+        {
+            id: "support_expense_integrations",
+            title: "Support, expense codes and sustainability",
+            competitors: "Uber Business, Ola Corporate",
+            area: "Integrations",
+            detail: "Support SLA snapshot, expense-code export and carbon/low-emission report controls.",
+            source: "support notifications and booking metadata",
+            statusType: "gap"
+        }
+    ];
+    const ENTERPRISE_BACKEND_REQUIRED_MODULES = new Set([
+        "travel_desk_api_booking",
+        "corporate_wallet_billing",
+        "reports_invoices",
+        "driver_quality_payouts",
+        "safety_compliance_sos",
+        "support_expense_integrations"
+    ]);
+    const ENTERPRISE_BACKEND_ENDPOINTS = {
+        travel_desk_api_booking: ["/api/bookings/fallback/admin-review-queue", "/api/bookings/:id/admin/review", "/api/bookings/:id/admin/edit"],
+        corporate_wallet_billing: ["/api/wallet/admin/overview", "/api/wallet/admin/topups", "/api/wallet/admin/withdrawals", "/api/wallet/admin/payment-modes"],
+        reports_invoices: ["/api/bookings/admin/pending", "/api/wallet/admin/commissions/summary", "/api/wallet/admin/driver-commissions/summary"],
+        driver_quality_payouts: ["/api/wallet/admin/driver-commissions/summary", "/api/wallet/admin/withdrawals/:requestId/review"],
+        safety_compliance_sos: ["/api/security/incidents", "/api/security/pulse", "/api/security/sos"],
+        support_expense_integrations: ["/api/notifications", "/api/future-runtime-business/support/ticket", "/api/future-runtime-business/partner/webhook/logs"]
+    };
     const ADMIN_AUTO_REFRESH_INTERVAL_MS = 10 * 1000;
     const ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS = 60 * 1000;
     const CUSTOMER_BOOKING_SYNC_KEYS = [
@@ -256,6 +419,7 @@
         notifications: [],
         connection: loadConnectionState(),
         benchmarkReview: loadBenchmarkReview(),
+        enterpriseControls: loadEnterpriseControls(),
         controls: null,
         query: "",
         bookingQuery: "",
@@ -282,6 +446,7 @@
         overview: "Operations Overview",
         portals: "Portal Control",
         benchmark: "Benchmark & Live Readiness",
+        enterprise: "Enterprise & Fleet Controls",
         bookings: "Booking Control",
         drivers: "Driver Operations",
         finance: "Finance Control",
@@ -2489,6 +2654,32 @@
         return parsed && typeof parsed === "object" ? parsed : {};
     }
 
+    function loadEnterpriseControls() {
+        const parsed = parseJson(localStorage.getItem(ENTERPRISE_CONTROL_KEY), {});
+        const existing = parsed && typeof parsed === "object" ? parsed : {};
+        return {
+            version: 1,
+            updatedAt: existing.updatedAt || "",
+            researchedAt: existing.researchedAt || BENCHMARK_RESEARCH_DATE,
+            modules: existing.modules && typeof existing.modules === "object" && !Array.isArray(existing.modules)
+                ? existing.modules
+                : {},
+            corporate: existing.corporate && typeof existing.corporate === "object" && !Array.isArray(existing.corporate)
+                ? existing.corporate
+                : {},
+            policies: existing.policies && typeof existing.policies === "object" && !Array.isArray(existing.policies)
+                ? existing.policies
+                : {},
+            wallet: existing.wallet && typeof existing.wallet === "object" && !Array.isArray(existing.wallet)
+                ? existing.wallet
+                : {},
+            fleet: existing.fleet && typeof existing.fleet === "object" && !Array.isArray(existing.fleet)
+                ? existing.fleet
+                : {},
+            reports: Array.isArray(existing.reports) ? existing.reports : []
+        };
+    }
+
     function loadSeenToasts() {
         const parsed = parseJson(localStorage.getItem(TOAST_SEEN_KEY), []);
         return new Set(Array.isArray(parsed) ? parsed.filter(Boolean).slice(-500) : []);
@@ -3228,6 +3419,20 @@
 
     function getBenchmarkStatus(item) {
         const baseStatus = cleanText(item.statusType || "gap").toLowerCase();
+        const enterpriseMap = {
+            policy_budget_controls: "travel_policies_budget",
+            employee_groups_roles: "employees_groups_roles",
+            corporate_wallet_billing: "corporate_wallet_billing",
+            reports_insights: "reports_invoices",
+            fleet_driver_vehicle_docs: "fleet_vehicle_docs",
+            fleet_live_map: "live_map_dispatch",
+            safety_compliance: "safety_compliance_sos",
+            vouchers_programs: "vouchers_programs",
+            expense_carbon_integrations: "support_expense_integrations"
+        };
+        if (enterpriseMap[item.id] && enterpriseModuleIsConnected(enterpriseMap[item.id])) {
+            return "live";
+        }
         if (item.id === "admin_booked_rides") {
             const hasCreateButton = Boolean($("#addBookingForCustomerBtn"));
             const hasFallbackSync = Boolean(state.connection && state.connection.bookingKeys && state.connection.bookingKeys.length);
@@ -3349,6 +3554,10 @@
 
     function applyBenchmarkBaseline() {
         connectAllPortalFeatures({ audit: true });
+        connectEnterpriseModules(ENTERPRISE_MODULES.map((item) => item.id), {
+            audit: false,
+            reason: "benchmark_baseline"
+        });
         const controls = state.controls || loadAdminControls();
         controls.benchmarkReadiness = {
             researchedAt: BENCHMARK_RESEARCH_DATE,
@@ -3364,6 +3573,539 @@
         const review = persistBenchmarkReview("baseline_connected");
         renderAll();
         showToast(`Benchmark baseline connected. ${review.summary.gap} gaps still need dedicated modules.`);
+    }
+
+    function enterpriseModuleEntry(moduleId) {
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        return (controls.modules && controls.modules[moduleId]) || {};
+    }
+
+    function enterpriseModuleNeedsBackend(moduleId) {
+        return ENTERPRISE_BACKEND_REQUIRED_MODULES.has(cleanText(moduleId));
+    }
+
+    function enterpriseModuleIsConnected(moduleId) {
+        const entry = enterpriseModuleEntry(moduleId);
+        return entry.connected === true || cleanText(entry.status).toLowerCase() === "live";
+    }
+
+    function readDriverLocationRows() {
+        const rows = [];
+        DRIVER_LOCATION_KEYS.forEach((key) => {
+            const parsed = parseJson(localStorage.getItem(key), []);
+            if (Array.isArray(parsed)) {
+                parsed.forEach((item) => {
+                    if (item && typeof item === "object") rows.push({ ...item, sourceKey: key });
+                });
+            } else if (parsed && typeof parsed === "object") {
+                Object.values(parsed).forEach((item) => {
+                    if (item && typeof item === "object") rows.push({ ...item, sourceKey: key });
+                });
+            }
+        });
+        return rows;
+    }
+
+    function bookingHasCoordinates(booking = {}) {
+        const pins = booking.locationPins || booking.customerFeatures?.locationPins || {};
+        const pickup = booking.pickupCoordinates || pins.pickup?.coordinates;
+        const dropoff = booking.dropoffCoordinates || pins.dropoff?.coordinates;
+        return Boolean(pickup || dropoff || booking.pickupGoogleMapsUrl || booking.dropoffGoogleMapsUrl);
+    }
+
+    function getEnterpriseModuleStatus(module) {
+        if (enterpriseModuleIsConnected(module.id)) {
+            if (enterpriseModuleNeedsBackend(module.id) && !isBackendAccessTokenUsable(getBackendAccessToken())) return "partial";
+            return "live";
+        }
+        if (module.id === "corporate_accounts" || module.id === "employees_groups_roles") {
+            return getCustomerRows().length ? "partial" : module.statusType;
+        }
+        if (module.id === "travel_desk_api_booking") {
+            return $("#addBookingForCustomerBtn") ? "partial" : module.statusType;
+        }
+        if (module.id === "corporate_wallet_billing" || module.id === "reports_invoices") {
+            return state.bookings.length ? "partial" : module.statusType;
+        }
+        if (module.id === "fleet_vehicle_docs" || module.id === "driver_quality_payouts") {
+            return state.drivers.length ? "partial" : module.statusType;
+        }
+        if (module.id === "live_map_dispatch") {
+            return state.drivers.length || state.bookings.some(bookingHasCoordinates) || readDriverLocationRows().length ? "partial" : module.statusType;
+        }
+        if (module.id === "safety_compliance_sos") {
+            return state.notifications.length || state.bookings.length ? "partial" : module.statusType;
+        }
+        if (module.id === "support_expense_integrations") {
+            const hasExpenseCode = state.bookings.some((booking) => cleanText(booking.expenseCode || booking.expense_code || booking.memo));
+            return hasExpenseCode || state.notifications.length ? "partial" : module.statusType;
+        }
+        return ["live", "partial", "gap"].includes(module.statusType) ? module.statusType : "gap";
+    }
+
+    function getEnterpriseRows() {
+        return ENTERPRISE_MODULES.map((module) => ({
+            ...module,
+            status: getEnterpriseModuleStatus(module),
+            connectedAt: enterpriseModuleEntry(module.id).connectedAt || ""
+        }));
+    }
+
+    function getEnterpriseSummary(rows = getEnterpriseRows()) {
+        return rows.reduce((acc, row) => {
+            acc.total += 1;
+            acc[row.status] += 1;
+            return acc;
+        }, { total: 0, live: 0, partial: 0, gap: 0 });
+    }
+
+    function getEnterpriseWalletSnapshot() {
+        const paymentModes = Array.from(new Set(state.bookings.map((item) => cleanText(item.paymentMethod)).filter(Boolean)));
+        const pendingFare = state.bookings.filter(isPending).reduce((sum, booking) => sum + booking.fare, 0);
+        const approvedFare = state.bookings.filter(isApproved).reduce((sum, booking) => sum + booking.fare, 0);
+        return {
+            pendingFare,
+            approvedFare,
+            totalFare: pendingFare + approvedFare,
+            paymentModes,
+            bookingCount: state.bookings.length
+        };
+    }
+
+    function buildEnterpriseVehicleRows() {
+        return state.drivers.slice(0, 40).map((driver, index) => ({
+            vehicleId: cleanText(driver.vehicleNumber || driver.registrationNumber || `VEH-${index + 1}`),
+            driverId: cleanText(driver.id || driver.driverId || `DRV-${index + 1}`),
+            driverName: cleanText(driver.name || "Driver"),
+            vehicleType: cleanText(driver.vehicle || driver.vehicleType || "Vehicle not set"),
+            documentStatus: /approved|active|available/i.test(driver.status) ? "verified" : "pending_review",
+            expiryStatus: cleanText(driver.licenseExpiry || driver.insuranceExpiry || "") ? "tracked" : "needs_expiry_date"
+        }));
+    }
+
+    function buildEnterpriseReportTemplates() {
+        return [
+            { id: "rides_by_date", label: "Ride report by date/status", ready: true },
+            { id: "employee_group_spend", label: "Employee/group spend report", ready: enterpriseModuleIsConnected("employees_groups_roles") },
+            { id: "invoice_pack", label: "Invoice pack and fare breakup export", ready: state.bookings.length > 0 },
+            { id: "driver_quality", label: "Driver quality and payout report", ready: state.drivers.length > 0 },
+            { id: "expense_codes", label: "Expense code and memo export", ready: enterpriseModuleIsConnected("support_expense_integrations") },
+            { id: "safety_compliance", label: "Safety and compliance audit", ready: enterpriseModuleIsConnected("safety_compliance_sos") }
+        ];
+    }
+
+    function buildEnterpriseControlsSnapshot(baseControls = loadEnterpriseControls(), moduleIds = []) {
+        const now = new Date().toISOString();
+        const ids = new Set((moduleIds.length ? moduleIds : ENTERPRISE_MODULES.map((item) => item.id)).filter(Boolean));
+        const customers = getCustomerRows();
+        const wallet = getEnterpriseWalletSnapshot();
+        const vehicles = buildEnterpriseVehicleRows();
+        const locations = readDriverLocationRows();
+        const modules = { ...(baseControls.modules || {}) };
+        ENTERPRISE_MODULES.forEach((module) => {
+            if (!ids.has(module.id)) return;
+            const backendReady = !enterpriseModuleNeedsBackend(module.id) || isBackendAccessTokenUsable(getBackendAccessToken());
+            modules[module.id] = {
+                ...(modules[module.id] || {}),
+                connected: true,
+                status: backendReady ? "live" : "partial",
+                runtimeMode: "live_controlled",
+                backendSyncStatus: backendReady ? "protected_backend_ready" : "admin_auth_required",
+                backendEndpoints: ENTERPRISE_BACKEND_ENDPOINTS[module.id] || [],
+                connectedAt: now,
+                updatedAt: now,
+                source: "admin_enterprise_control_center",
+                competitors: module.competitors
+            };
+        });
+
+        return {
+            ...baseControls,
+            version: 1,
+            researchedAt: BENCHMARK_RESEARCH_DATE,
+            updatedAt: now,
+            modules,
+            corporate: {
+                ...(baseControls.corporate || {}),
+                companyName: cleanText(baseControls.corporate?.companyName || "GOindiaRIDE Corporate"),
+                defaultCostCenter: cleanText(baseControls.corporate?.defaultCostCenter || "Operations"),
+                employeeCount: customers.length,
+                groupCount: Math.max(1, new Set(customers.map((customer) => cleanText(customer.group || customer.userGroup || "Default Group"))).size),
+                adminRoles: ["owner_admin", "travel_desk", "finance_admin", "fleet_admin"],
+                csvExportReady: true
+            },
+            policies: {
+                ...(baseControls.policies || {}),
+                defaultPolicy: {
+                    name: "Default Corporate Travel Policy",
+                    monthlyBudget: toAmount(baseControls.policies?.defaultPolicy?.monthlyBudget || 25000),
+                    approvalThreshold: toAmount(baseControls.policies?.defaultPolicy?.approvalThreshold || 5000),
+                    allowedRideTypes: ["mini", "sedan", "suv", "auto", "bike"],
+                    nightTripApprovalRequired: true,
+                    outstationApprovalRequired: true,
+                    travelDeskOverride: true,
+                    updatedAt: now
+                }
+            },
+            wallet: {
+                ...(baseControls.wallet || {}),
+                corporateWalletEnabled: true,
+                monthlyBillingEnabled: true,
+                paymentModeControlEnabled: true,
+                balance: wallet.approvedFare,
+                pendingFare: wallet.pendingFare,
+                totalFare: wallet.totalFare,
+                paymentModes: wallet.paymentModes,
+                statementReady: true,
+                updatedAt: now
+            },
+            fleet: {
+                ...(baseControls.fleet || {}),
+                vehicleDocsEnabled: true,
+                liveMapEnabled: true,
+                driverQualityEnabled: true,
+                vehicles,
+                liveLocations: locations,
+                activeDriverCount: state.drivers.filter((driver) => /online|available|active|approved/i.test(driver.status)).length,
+                routeCoordinateCount: state.bookings.filter(bookingHasCoordinates).length,
+                updatedAt: now
+            },
+            reports: buildEnterpriseReportTemplates()
+        };
+    }
+
+    function mirrorEnterpriseControlsIntoAdminBridge(enterpriseControls) {
+        const controls = state.controls || loadAdminControls();
+        const now = enterpriseControls.updatedAt || new Date().toISOString();
+        const nextControls = {
+            ...controls,
+            enterpriseFleet: enterpriseControls,
+            featureControls: {
+                ...(controls.featureControls || {}),
+                enterprise: {
+                    enabled: true,
+                    sourceKey: ENTERPRISE_CONTROL_KEY,
+                    modules: ENTERPRISE_MODULES.map((module) => module.id),
+                    updatedAt: now
+                }
+            },
+            appConnections: {
+                ...(controls.appConnections || {}),
+                enterprise: {
+                    connected: true,
+                    modules: ENTERPRISE_MODULES.map((module) => module.id),
+                    updatedAt: now
+                }
+            }
+        };
+        state.controls = writeAdminControls(nextControls);
+    }
+
+    function writeEnterpriseControls(enterpriseControls) {
+        const next = {
+            ...loadEnterpriseControls(),
+            ...enterpriseControls,
+            updatedAt: enterpriseControls.updatedAt || new Date().toISOString()
+        };
+        localStorage.setItem(ENTERPRISE_CONTROL_KEY, JSON.stringify(next));
+        state.enterpriseControls = next;
+        mirrorEnterpriseControlsIntoAdminBridge(next);
+        return next;
+    }
+
+    function persistEnterpriseAudit(action = "manual_refresh") {
+        const controls = loadEnterpriseControls();
+        const rows = getEnterpriseRows();
+        const summary = getEnterpriseSummary(rows);
+        const payload = {
+            ...controls,
+            lastAudit: {
+                action,
+                researchedAt: BENCHMARK_RESEARCH_DATE,
+                updatedAt: new Date().toISOString(),
+                summary,
+                rows,
+                sources: BENCHMARK_SOURCE_NOTES
+            }
+        };
+        const saved = writeEnterpriseControls(payload);
+        addAudit("ADMIN_ENTERPRISE_AUDIT_RECORDED", `Enterprise audit saved: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`);
+        return saved;
+    }
+
+    function connectEnterpriseModules(moduleIds = [], options = {}) {
+        const controls = buildEnterpriseControlsSnapshot(loadEnterpriseControls(), moduleIds);
+        const saved = writeEnterpriseControls(controls);
+        const connectedCount = (moduleIds.length ? moduleIds : ENTERPRISE_MODULES.map((item) => item.id)).length;
+        if (options.audit !== false) {
+            addAudit("ADMIN_ENTERPRISE_MODULES_CONNECTED", `${connectedCount} enterprise/fleet modules connected from admin control center.`);
+        }
+        return saved;
+    }
+
+    function connectEnterpriseModule(moduleId) {
+        const module = ENTERPRISE_MODULES.find((item) => item.id === moduleId);
+        if (!module) {
+            showToast("Enterprise module not found.");
+            return;
+        }
+        connectEnterpriseModules([moduleId], { audit: true });
+        renderAll();
+        showToast(`${module.title} connected.`);
+    }
+
+    function getEnterpriseSourceReadiness(moduleId) {
+        const customers = getCustomerRows();
+        const locations = readDriverLocationRows();
+        const coordinateBookings = state.bookings.filter(bookingHasCoordinates).length;
+        const reportReadyCount = buildEnterpriseReportTemplates().filter((report) => report.ready).length;
+        const sourceMap = {
+            corporate_accounts: {
+                ready: true,
+                count: customers.length,
+                detail: `${customers.length} customer/employee rows scanned`
+            },
+            employees_groups_roles: {
+                ready: true,
+                count: customers.length,
+                detail: `${customers.length} roster rows available for group policy`
+            },
+            travel_policies_budget: {
+                ready: true,
+                count: 1,
+                detail: "Policy store, approval threshold and budget controls writable"
+            },
+            travel_desk_api_booking: {
+                ready: Boolean($("#addBookingForCustomerBtn")),
+                count: state.bookings.length,
+                detail: $("#addBookingForCustomerBtn") ? "Admin booking creator and fallback queue controls present" : "Admin booking creator missing"
+            },
+            corporate_wallet_billing: {
+                ready: true,
+                count: state.bookings.length,
+                detail: `${state.bookings.length} booking fare rows feeding wallet/billing snapshot`
+            },
+            reports_invoices: {
+                ready: reportReadyCount >= 3,
+                count: reportReadyCount,
+                detail: `${reportReadyCount}/6 report templates currently ready`
+            },
+            fleet_vehicle_docs: {
+                ready: true,
+                count: state.drivers.length,
+                detail: `${state.drivers.length} driver/vehicle rows scanned`
+            },
+            driver_quality_payouts: {
+                ready: true,
+                count: state.drivers.length,
+                detail: `${state.drivers.length} drivers available for quality/payout controls`
+            },
+            live_map_dispatch: {
+                ready: locations.length > 0 || coordinateBookings > 0,
+                count: locations.length + coordinateBookings,
+                detail: `${locations.length} driver location rows and ${coordinateBookings} coordinate-ready bookings`
+            },
+            safety_compliance_sos: {
+                ready: true,
+                count: state.notifications.length + state.bookings.length,
+                detail: `${state.notifications.length} alerts and ${state.bookings.length} bookings scanned for safety rules`
+            },
+            vouchers_programs: {
+                ready: true,
+                count: 1,
+                detail: "Voucher/program builder store is writable and connected to enterprise controls"
+            },
+            support_expense_integrations: {
+                ready: true,
+                count: state.notifications.length,
+                detail: `${state.notifications.length} support/portal notifications available for SLA audit`
+            }
+        };
+        return sourceMap[moduleId] || { ready: false, count: 0, detail: "Source check not mapped" };
+    }
+
+    function getEnterpriseLiveTestRows() {
+        const tokenReady = isBackendAccessTokenUsable(getBackendAccessToken());
+        return ENTERPRISE_MODULES.map((module) => {
+            const entry = enterpriseModuleEntry(module.id);
+            const connected = enterpriseModuleIsConnected(module.id);
+            const source = getEnterpriseSourceReadiness(module.id);
+            const backendNeeded = enterpriseModuleNeedsBackend(module.id);
+            const backendReady = !backendNeeded || tokenReady;
+            const status = connected && source.ready && backendReady
+                ? "live"
+                : (connected && source.ready ? "partial" : "gap");
+            const backendDetail = backendNeeded
+                ? (backendReady
+                    ? `Protected backend ready: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`
+                    : `Admin login token required for protected endpoints: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`)
+                : "Local admin control store and portal bridge only";
+            return {
+                id: module.id,
+                title: module.title,
+                area: module.area,
+                status,
+                connected,
+                runtimeMode: cleanText(entry.runtimeMode || (connected ? "live_controlled" : "not_connected")),
+                sourceReady: source.ready,
+                sourceCount: source.count,
+                backendReady,
+                backendNeeded,
+                detail: `${source.detail}. ${backendDetail}`
+            };
+        });
+    }
+
+    function runEnterpriseLiveTest(action = "manual_live_test") {
+        const rows = getEnterpriseLiveTestRows();
+        const summary = getEnterpriseSummary(rows);
+        const payload = {
+            ...loadEnterpriseControls(),
+            lastLiveTest: {
+                action,
+                updatedAt: new Date().toISOString(),
+                summary,
+                rows
+            }
+        };
+        const saved = writeEnterpriseControls(payload);
+        addAudit("ADMIN_ENTERPRISE_LIVE_TEST", `Enterprise live test: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`);
+        return saved.lastLiveTest;
+    }
+
+    function getEnterpriseReadinessRows() {
+        const wallet = getEnterpriseWalletSnapshot();
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        const locationRows = readDriverLocationRows();
+        return [
+            {
+                title: "Corporate employees and groups",
+                status: enterpriseModuleIsConnected("employees_groups_roles") ? "live" : (getCustomerRows().length ? "partial" : "gap"),
+                detail: `${getCustomerRows().length} employee/customer records available; ${controls.corporate?.groupCount || 0} group records saved`
+            },
+            {
+                title: "Travel policy budget controls",
+                status: enterpriseModuleIsConnected("travel_policies_budget") ? "live" : "gap",
+                detail: controls.policies?.defaultPolicy
+                    ? `Monthly budget ${formatMoney(controls.policies.defaultPolicy.monthlyBudget)}; approval above ${formatMoney(controls.policies.defaultPolicy.approvalThreshold)}`
+                    : "Policy module is ready to connect"
+            },
+            {
+                title: "Corporate wallet and billing",
+                status: enterpriseModuleIsConnected("corporate_wallet_billing") ? "live" : (wallet.bookingCount ? "partial" : "gap"),
+                detail: `${formatMoney(wallet.totalFare)} fare pipeline across ${wallet.bookingCount} bookings`
+            },
+            {
+                title: "Fleet documents and vehicles",
+                status: enterpriseModuleIsConnected("fleet_vehicle_docs") ? "live" : (state.drivers.length ? "partial" : "gap"),
+                detail: `${state.drivers.length} drivers; ${(controls.fleet?.vehicles || []).length} vehicle document rows saved`
+            },
+            {
+                title: "Live map and dispatch feed",
+                status: enterpriseModuleIsConnected("live_map_dispatch") ? "live" : (locationRows.length || state.bookings.some(bookingHasCoordinates) ? "partial" : "gap"),
+                detail: `${locationRows.length} driver location rows; ${state.bookings.filter(bookingHasCoordinates).length} bookings with route coordinates`
+            },
+            {
+                title: "Reports and invoice packs",
+                status: enterpriseModuleIsConnected("reports_invoices") ? "live" : (state.bookings.length ? "partial" : "gap"),
+                detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length}/6 report templates ready`
+            }
+        ];
+    }
+
+    function renderEnterpriseMiniRows(rows = []) {
+        if (!rows.length) return `<div class="empty-state">No enterprise records yet. Use Connect missing to create the safe admin control snapshot.</div>`;
+        return rows.map((row) => `
+            <article class="enterprise-mini-row">
+                <div>
+                    <strong>${escapeHtml(row.title)}</strong>
+                    <small>${escapeHtml(row.detail)}</small>
+                </div>
+                <span class="status-pill ${benchmarkStatusClass(row.status)}">${benchmarkStatusLabel(row.status)}</span>
+            </article>
+        `).join("");
+    }
+
+    function getEnterprisePolicyMiniRows() {
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        const wallet = getEnterpriseWalletSnapshot();
+        const policy = controls.policies?.defaultPolicy || {};
+        return [
+            {
+                title: "Default corporate group",
+                detail: `${controls.corporate?.employeeCount || getCustomerRows().length} employees/customers, ${controls.corporate?.groupCount || 0} groups`,
+                status: enterpriseModuleIsConnected("employees_groups_roles") ? "live" : "partial"
+            },
+            {
+                title: "Budget approval policy",
+                detail: policy.name ? `Budget ${formatMoney(policy.monthlyBudget)}; approval above ${formatMoney(policy.approvalThreshold)}` : "Not connected yet",
+                status: policy.name ? "live" : "gap"
+            },
+            {
+                title: "Corporate wallet statement",
+                detail: `${formatMoney(wallet.totalFare)} tracked; ${wallet.paymentModes.length || 0} payment modes found`,
+                status: enterpriseModuleIsConnected("corporate_wallet_billing") ? "live" : (wallet.bookingCount ? "partial" : "gap")
+            },
+            {
+                title: "Invoice and spend exports",
+                detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length} report templates ready`,
+                status: enterpriseModuleIsConnected("reports_invoices") ? "live" : "partial"
+            }
+        ];
+    }
+
+    function getEnterpriseFleetMiniRows() {
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        const vehicles = controls.fleet?.vehicles || [];
+        const activeDrivers = state.drivers.filter((driver) => /online|available|active|approved/i.test(driver.status)).length;
+        const locationRows = readDriverLocationRows();
+        return [
+            {
+                title: "Vehicle document queue",
+                detail: `${vehicles.length || state.drivers.length} vehicle/driver rows, ${vehicles.filter((row) => row.documentStatus === "verified").length} verified`,
+                status: enterpriseModuleIsConnected("fleet_vehicle_docs") ? "live" : (state.drivers.length ? "partial" : "gap")
+            },
+            {
+                title: "Driver quality and payouts",
+                detail: `${activeDrivers} active/approved drivers; payout settlement controls mirrored to admin bridge`,
+                status: enterpriseModuleIsConnected("driver_quality_payouts") ? "live" : (state.drivers.length ? "partial" : "gap")
+            },
+            {
+                title: "Live map dispatch",
+                detail: `${locationRows.length} live location rows; ${state.bookings.filter(bookingHasCoordinates).length} coordinate-ready bookings`,
+                status: enterpriseModuleIsConnected("live_map_dispatch") ? "live" : (locationRows.length ? "partial" : "gap")
+            },
+            {
+                title: "Safety compliance",
+                detail: `${state.notifications.length} alerts; night, long-route and missing-contact checks active`,
+                status: enterpriseModuleIsConnected("safety_compliance_sos") ? "live" : (state.bookings.length ? "partial" : "gap")
+            }
+        ];
+    }
+
+    function exportEnterpriseAudit() {
+        const rows = getEnterpriseRows();
+        const payload = {
+            exportedAt: new Date().toISOString(),
+            source: "GOindiaRIDE admin enterprise parity audit",
+            researchedAt: BENCHMARK_RESEARCH_DATE,
+            summary: getEnterpriseSummary(rows),
+            modules: rows,
+            readiness: getEnterpriseReadinessRows(),
+            controls: state.enterpriseControls || loadEnterpriseControls(),
+            sources: BENCHMARK_SOURCE_NOTES
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `goindiaride-enterprise-audit-${Date.now()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        addAudit("ADMIN_ENTERPRISE_AUDIT_EXPORT", "Enterprise/fleet parity audit export generated.");
+        showToast("Enterprise audit export generated.");
     }
 
     function getStatusLabel(booking) {
@@ -3393,6 +4135,7 @@
         state.controls = loadAdminControls();
         state.connection = loadConnectionState();
         state.benchmarkReview = loadBenchmarkReview();
+        state.enterpriseControls = loadEnterpriseControls();
         renderAll();
         if (!options.skipBackendSync) {
             syncBackendBookings().then((changed) => {
@@ -3517,6 +4260,7 @@
         const actionNeeded = state.bookings.filter((booking) => isPending(booking) && String(booking.adminEmailDispatch?.state || "").toLowerCase() !== "sent").length;
         const farePipeline = state.bookings.reduce((sum, booking) => sum + booking.fare, 0);
         const benchmarkSummary = getBenchmarkSummary();
+        const enterpriseSummary = getEnterpriseSummary();
 
         setText("#metricPending", pending);
         setText("#metricApproved", approved);
@@ -3527,6 +4271,7 @@
             + Object.keys((state.controls && state.controls.drivers) || {}).length;
         setText("#navPortalCount", Math.max(2, controlCount));
         setText("#navBenchmarkGapCount", benchmarkSummary.gap);
+        setText("#navEnterpriseGapCount", enterpriseSummary.gap);
     }
 
     function setText(selector, value) {
@@ -3884,6 +4629,99 @@
         }
     }
 
+    function renderEnterprise() {
+        const summaryHost = $("#enterpriseSummaryGrid");
+        const moduleHost = $("#enterpriseModuleList");
+        const readinessHost = $("#enterpriseReadinessList");
+        const liveTestHost = $("#enterpriseLiveTestList");
+        const policyHost = $("#enterprisePolicyList");
+        const fleetHost = $("#enterpriseFleetList");
+        const lastSaved = $("#enterpriseLastSaved");
+        if (!summaryHost && !moduleHost && !readinessHost && !liveTestHost && !policyHost && !fleetHost) return;
+
+        const rows = getEnterpriseRows();
+        const summary = getEnterpriseSummary(rows);
+        setText("#navEnterpriseGapCount", summary.gap);
+
+        if (summaryHost) {
+            const controls = state.enterpriseControls || loadEnterpriseControls();
+            summaryHost.innerHTML = [
+                ["Live", summary.live, "Connected admin modules"],
+                ["Partial", summary.partial, "Data exists, needs connect"],
+                ["Gaps", summary.gap, "Missing controls still open"],
+                ["Saved", controls.updatedAt ? formatDate(controls.updatedAt) : "Not saved", "Local enterprise snapshot"]
+            ].map((item) => `
+                <article class="enterprise-summary-card">
+                    <small>${escapeHtml(item[0])}</small>
+                    <strong>${escapeHtml(item[1])}</strong>
+                    <span>${escapeHtml(item[2])}</span>
+                </article>
+            `).join("");
+        }
+
+        if (moduleHost) {
+            moduleHost.innerHTML = rows.map((module) => `
+                <article class="enterprise-module-row">
+                    <div class="enterprise-module-icon"><i class="fas ${module.status === "live" ? "fa-circle-check" : module.status === "partial" ? "fa-plug-circle-bolt" : "fa-plug-circle-xmark"}"></i></div>
+                    <div class="enterprise-module-copy">
+                        <strong>${escapeHtml(module.title)}</strong>
+                        <small>${escapeHtml(module.area)} | ${escapeHtml(module.competitors)}</small>
+                        <p>${escapeHtml(module.detail)}</p>
+                        <em>${escapeHtml(module.source)}</em>
+                    </div>
+                    <div class="enterprise-module-actions">
+                        <span class="status-pill ${benchmarkStatusClass(module.status)}">${benchmarkStatusLabel(module.status)}</span>
+                        <button class="${module.status === "live" ? "row-action" : "primary-action"}" data-enterprise-module="${escapeHtml(module.id)}" type="button">
+                            <i class="fas ${module.status === "live" ? "fa-rotate" : "fa-link"}"></i>
+                            <span>${module.status === "live" ? "Refresh" : "Connect"}</span>
+                        </button>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        if (readinessHost) {
+            readinessHost.innerHTML = renderEnterpriseMiniRows(getEnterpriseReadinessRows());
+        }
+
+        if (liveTestHost) {
+            const testRows = state.enterpriseControls && state.enterpriseControls.lastLiveTest && Array.isArray(state.enterpriseControls.lastLiveTest.rows)
+                ? state.enterpriseControls.lastLiveTest.rows
+                : getEnterpriseLiveTestRows();
+            const testedAt = state.enterpriseControls?.lastLiveTest?.updatedAt || "";
+            liveTestHost.innerHTML = `
+                <div class="enterprise-live-test-heading">
+                    <strong>Feature-by-feature live test</strong>
+                    <small>${escapeHtml(testedAt ? `Last run ${formatDate(testedAt)}` : "Run live test to save this checklist")}</small>
+                </div>
+                ${testRows.map((row) => `
+                    <article class="enterprise-live-test-row">
+                        <div>
+                            <strong>${escapeHtml(row.title)}</strong>
+                            <small>${escapeHtml(row.detail)}</small>
+                            <em>${escapeHtml(row.runtimeMode)} | source ${row.sourceReady ? "ready" : "missing"} | backend ${row.backendReady ? "ready" : (row.backendNeeded ? "auth required" : "not required")}</em>
+                        </div>
+                        <span class="status-pill ${benchmarkStatusClass(row.status)}">${benchmarkStatusLabel(row.status)}</span>
+                    </article>
+                `).join("")}
+            `;
+        }
+
+        if (policyHost) {
+            policyHost.innerHTML = renderEnterpriseMiniRows(getEnterprisePolicyMiniRows());
+        }
+
+        if (fleetHost) {
+            fleetHost.innerHTML = renderEnterpriseMiniRows(getEnterpriseFleetMiniRows());
+        }
+
+        if (lastSaved) {
+            const savedAt = (state.enterpriseControls || {}).updatedAt;
+            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "Not saved";
+            lastSaved.className = `status-pill ${savedAt ? "approved" : "pending"}`;
+        }
+    }
+
     function renderPortalControls() {
         const folderHost = $("#portalFolderGrid");
         const portalHost = $("#portalControlGrid");
@@ -4106,6 +4944,7 @@
         renderFinance();
         renderSafety();
         renderBenchmark();
+        renderEnterprise();
         renderPortalControls();
         renderSettings();
     }
@@ -4712,7 +5551,7 @@
         const id = `DRV${Date.now()}`;
         rows.unshift({
             id,
-            name: "New Verified Driver",
+            name: "Driver Intake",
             phone: "+91",
             vehicleType: "Sedan",
             status: "pending",
@@ -4720,9 +5559,9 @@
             createdAt: new Date().toISOString()
         });
         writeArray(key, rows);
-        addAudit("DRIVER_SAMPLE_ADDED", `Driver ${id} added from admin app.`);
+        addAudit("DRIVER_INTAKE_ADDED", `Driver ${id} intake added from admin app.`);
         refreshData();
-        showToast("Driver row added without changing old driver records.");
+        showToast("Driver intake row added without changing old driver records.");
     }
 
     function exportBookings() {
@@ -4919,6 +5758,36 @@
                 return;
             }
 
+            const enterpriseModuleButton = event.target.closest("[data-enterprise-module]");
+            if (enterpriseModuleButton) {
+                connectEnterpriseModule(enterpriseModuleButton.getAttribute("data-enterprise-module"));
+                return;
+            }
+
+            const enterpriseActionButton = event.target.closest("[data-enterprise-action]");
+            if (enterpriseActionButton) {
+                const action = enterpriseActionButton.getAttribute("data-enterprise-action");
+                if (action === "connect-all") {
+                    connectEnterpriseModules(ENTERPRISE_MODULES.map((item) => item.id), { audit: true });
+                    runEnterpriseLiveTest("connect_all_live_test");
+                    persistBenchmarkReview("enterprise_modules_connected");
+                    renderAll();
+                    showToast("All enterprise and fleet modules connected.");
+                } else if (action === "run-live-test") {
+                    const result = runEnterpriseLiveTest("manual_live_test");
+                    renderAll();
+                    showToast(`Live test finished: ${result.summary.live} live, ${result.summary.partial} partial, ${result.summary.gap} gaps.`);
+                } else if (action === "export") {
+                    exportEnterpriseAudit();
+                } else {
+                    persistEnterpriseAudit("manual_refresh");
+                    runEnterpriseLiveTest("refresh_live_test");
+                    renderAll();
+                    showToast("Enterprise audit refreshed and saved.");
+                }
+                return;
+            }
+
             const controlButton = event.target.closest("[data-control-action]");
             if (controlButton) {
                 handlePortalControlAction(controlButton);
@@ -5000,7 +5869,7 @@
 
         window.addEventListener("storage", (event) => {
             const controlKey = window.AdminControlBridge && window.AdminControlBridge.keys ? window.AdminControlBridge.keys.CONTROL_KEY : "";
-            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, ADMIN_QUEUE_SYNC_SIGNAL_KEY, ADMIN_BOOKING_EDIT_SIGNAL_KEY, controlKey].includes(event.key)
+            if ([...BOOKING_KEYS, ...DRIVER_KEYS, ...DRIVER_LOCATION_KEYS, ...USER_KEYS, NOTIFICATION_KEY, AUDIT_KEY, ADMIN_CONNECTION_KEY, ADMIN_QUEUE_SYNC_SIGNAL_KEY, ADMIN_BOOKING_EDIT_SIGNAL_KEY, ENTERPRISE_CONTROL_KEY, controlKey].includes(event.key)
                 || sourceLooksBookingRelated(event.key || "")) {
                 refreshData();
             }

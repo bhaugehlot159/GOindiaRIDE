@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "additional",
+  "part": 2,
+  "totalParts": 4,
+  "totalFeatureItems": 294,
+  "items": [
+    {
+      "featureId": "U00223",
+      "sourceLine": 223,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-रिफंड इंजन: तत्काल वापसी।",
+      "blockKey": "additional-ultimate-u00223-line-223"
+    },
+    {
+      "featureId": "U00224",
+      "sourceLine": 224,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट वेदर अलर्ट: लाइव चेतावनी।",
+      "blockKey": "additional-ultimate-u00224-line-224"
+    },
+    {
+      "featureId": "U00225",
+      "sourceLine": 225,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-बिल जनरेटर: सटीक डिजिटल बिल।",
+      "blockKey": "additional-ultimate-u00225-line-225"
+    },
+    {
+      "featureId": "U00230",
+      "sourceLine": 230,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI कूपन जनरेटर: व्यवहार अनुसार ऑफर।",
+      "blockKey": "additional-ultimate-u00230-line-230"
+    },
+    {
+      "featureId": "U00232",
+      "sourceLine": 232,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-फीडबैक लूप: रिव्यू सिस्टम।",
+      "blockKey": "additional-ultimate-u00232-line-232"
+    },
+    {
+      "featureId": "U00237",
+      "sourceLine": 237,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-लॉगिन: बायोमेट्रिक लॉगिन।",
+      "blockKey": "additional-ultimate-u00237-line-237"
+    },
+    {
+      "featureId": "U00241",
+      "sourceLine": 241,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-करेंसी सिंक: अंतरराष्ट्रीय दरों का अपडेट।",
+      "blockKey": "additional-ultimate-u00241-line-241"
+    },
+    {
+      "featureId": "U00246",
+      "sourceLine": 246,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई कंटेंट राइटर: ब्लॉग्स और इतिहास का ऑटो-अपडेट।",
+      "blockKey": "additional-ultimate-u00246-line-246"
+    },
+    {
+      "featureId": "U00254",
+      "sourceLine": 254,
+      "category": "additional",
+      "bucket": "general",
+      "text": "सर्वर ऑटो-स्केलिंग: लोड बढ़ने पर वेबसाइट की स्पीड कम न होने देना।",
+      "blockKey": "additional-ultimate-u00254-line-254"
+    },
+    {
+      "featureId": "U00256",
+      "sourceLine": 256,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट रिव्यू फिल्टर: फर्जी रिव्यूज को अपने आप हटाना।",
+      "blockKey": "additional-ultimate-u00256-line-256"
+    },
+    {
+      "featureId": "U00334",
+      "sourceLine": 335,
+      "category": "additional",
+      "bucket": "general",
+      "text": "3D आइकॉन: मैप पर गाड़ी का हिलता हुआ एनिमेटेड आइकॉन।",
+      "blockKey": "additional-ultimate-u00335-line-335"
+    },
+    {
+      "featureId": "U00417",
+      "sourceLine": 419,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI फोटो स्लाइडर: किलों की 100 साल पुरानी बनाम आज की फोटो का तुलनात्मक दृश्य।",
+      "blockKey": "additional-ultimate-u00419-line-419"
+    },
+    {
+      "featureId": "U00419",
+      "sourceLine": 421,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AR टाइम कैप्सूल: कैमरे के ज़रिए ऐतिहासिक स्थलों का प्राचीन वैभव लाइव देखना।",
+      "blockKey": "additional-ultimate-u00421-line-421"
+    },
+    {
+      "featureId": "U00420",
+      "sourceLine": 422,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्रीमियम डार्क थीम: रॉयल ब्लैक और गोल्ड का अंतरराष्ट्रीय लुक।",
+      "blockKey": "additional-ultimate-u00422-line-422"
+    },
+    {
+      "featureId": "U00432",
+      "sourceLine": 434,
+      "category": "additional",
+      "bucket": "general",
+      "text": "पैरालैक्स स्क्रॉलिंग: फोटो और टेक्स्ट के बीच 3D गहराई का अहसास।",
+      "blockKey": "additional-ultimate-u00434-line-434"
+    },
+    {
+      "featureId": "U00447",
+      "sourceLine": 449,
+      "category": "additional",
+      "bucket": "general",
+      "text": "होलोग्राम इफेक्ट: मोबाइल स्क्रीन पर किलों का 3D भ्रम पैदा करना।",
+      "blockKey": "additional-ultimate-u00449-line-449"
+    },
+    {
+      "featureId": "U00448",
+      "sourceLine": 450,
+      "category": "additional",
+      "bucket": "general",
+      "text": "वेदर थीम: अगर बाहर बारिश है, तो वेबसाइट पर भी बारिश का प्रभाव दिखना।",
+      "blockKey": "additional-ultimate-u00450-line-450"
+    },
+    {
+      "featureId": "U00460",
+      "sourceLine": 462,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑफलाइन ब्रांडिंग: डाउनलोड की हुई रसीद का भी प्रीमियम दिखना।",
+      "blockKey": "additional-ultimate-u00462-line-462"
+    },
+    {
+      "featureId": "U00501",
+      "sourceLine": 503,
+      "category": "additional",
+      "bucket": "general",
+      "text": "EmailJS/WhatsApp: ऑटोमैटिक रसीद और वाउचर भेजना।",
+      "blockKey": "additional-ultimate-u00503-line-503"
+    },
+    {
+      "featureId": "U00507",
+      "sourceLine": 509,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI चैटबॉट: 24/7 किसी भी सवाल का तुरंत जवाब।",
+      "blockKey": "additional-ultimate-u00509-line-509"
+    },
+    {
+      "featureId": "U00528",
+      "sourceLine": 531,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI कंटेंट राइटर: वेबसाइट पर राजस्थान के इतिहास का आटोमेटिक अपडेट।",
+      "blockKey": "additional-ultimate-u00531-line-531"
+    },
+    {
+      "featureId": "U00604",
+      "sourceLine": 607,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट वेदर थीम: धूप में साइट सुनहरी और बारिश में नीली दिखेगी।",
+      "blockKey": "additional-ultimate-u00607-line-607"
+    },
+    {
+      "featureId": "U00605",
+      "sourceLine": 608,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई अवतार कस्टमाइजेशन: महाराजा अवतार को अलग-अलग पगड़ी पहनाना।",
+      "blockKey": "additional-ultimate-u00608-line-608"
+    },
+    {
+      "featureId": "U00743",
+      "sourceLine": 748,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI फोटो स्लाइडर: किलों की 100 साल पुरानी फोटो बनाम वर्तमान स्थिति का रीयल-टाइम स्लाइडर।",
+      "blockKey": "additional-ultimate-u00748-line-748"
+    },
+    {
+      "featureId": "U00745",
+      "sourceLine": 750,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AR टाइम कैप्सूल: मोबाइल कैमरे से ऐतिहासिक स्थलों पर प्राचीन वैभव को सजीव देखना।",
+      "blockKey": "additional-ultimate-u00750-line-750"
+    },
+    {
+      "featureId": "U00746",
+      "sourceLine": 751,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्रीमियम डार्क थीम: वेबसाइट के लिए शाही काला और सुनहरा (Black & Gold) लग्जरी लुक।",
+      "blockKey": "additional-ultimate-u00751-line-751"
+    },
+    {
+      "featureId": "U00758",
+      "sourceLine": 763,
+      "category": "additional",
+      "bucket": "general",
+      "text": "पैरालैक्स स्क्रॉलिंग: वेबसाइट स्क्रॉल करते समय दृश्यों में 3D गहराई का अनुभव।",
+      "blockKey": "additional-ultimate-u00763-line-763"
+    },
+    {
+      "featureId": "U00773",
+      "sourceLine": 778,
+      "category": "additional",
+      "bucket": "general",
+      "text": "होलोग्राम इफेक्ट: मोबाइल स्क्रीन पर ऐतिहासिक इमारतों का 3D भ्रम पैदा करना।",
+      "blockKey": "additional-ultimate-u00778-line-778"
+    },
+    {
+      "featureId": "U00774",
+      "sourceLine": 779,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI अवतार कस्टमाइजेशन: महाराजा अवतार को अलग-अलग रियासती पोशाकें पहनाना।",
+      "blockKey": "additional-ultimate-u00779-line-779"
+    },
+    {
+      "featureId": "U00775",
+      "sourceLine": 780,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट वेदर थीम: यदि उदयपुर में बारिश है, तो वेबसाइट पर भी बारिश का प्रभाव दिखना।",
+      "blockKey": "additional-ultimate-u00780-line-780"
+    },
+    {
+      "featureId": "U00832",
+      "sourceLine": 838,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-रसीद: EmailJS और WhatsApp के जरिए रीयल-टाइम रसीद भेजना।",
+      "blockKey": "additional-ultimate-u00838-line-838"
+    },
+    {
+      "featureId": "U00932",
+      "sourceLine": 940,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट वेदर थीम: यदि बाहर धूप है, तो वेबसाइट सुनहरी और शाही दिखेगी।",
+      "blockKey": "additional-ultimate-u00940-line-940"
+    },
+    {
+      "featureId": "U00933",
+      "sourceLine": 941,
+      "category": "additional",
+      "bucket": "general",
+      "text": "महाराजा अवतार कस्टमाइजेशन: त्योहार के अनुसार अवतार के कपड़े और पगड़ी बदलना।",
+      "blockKey": "additional-ultimate-u00941-line-941"
+    },
+    {
+      "featureId": "U00966",
+      "sourceLine": 974,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई महाराजा सलाह: 'धूप तेज है, अभी सिटी पैलेस न जाएं' जैसी सलाह।",
+      "blockKey": "additional-ultimate-u00974-line-974"
+    },
+    {
+      "featureId": "U00969",
+      "sourceLine": 977,
+      "category": "additional",
+      "bucket": "general",
+      "text": "रॉयल ब्रांडिंग: टायर से लेकर सीट तक पर ब्रांड का लोगो (जल्द आने वाला)।",
+      "blockKey": "additional-ultimate-u00977-line-977"
+    },
+    {
+      "featureId": "U00988",
+      "sourceLine": 996,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई ट्रेवल पार्टनर: सफर के दौरान एआई द्वारा किलों का लाइव वर्णन।",
+      "blockKey": "additional-ultimate-u00996-line-996"
+    },
+    {
+      "featureId": "U01008",
+      "sourceLine": 1016,
+      "category": "additional",
+      "bucket": "general",
+      "text": "डिजिटल मार्गदर्शक: अनजाने रास्तों पर एआई द्वारा दिशा निर्देश।",
+      "blockKey": "additional-ultimate-u01016-line-1016"
+    },
+    {
+      "featureId": "U01029",
+      "sourceLine": 1038,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मेवाड़ की वीर गाथा: हल्दीघाटी के युद्ध का 3D मैप और रीयल-टाइम इतिहास।",
+      "blockKey": "additional-ultimate-u01038-line-1038"
+    },
+    {
+      "featureId": "U01040",
+      "sourceLine": 1049,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विरासत ऑडियो लाइब्रेरी: गाड़ी में बजने के लिए राजस्थानी कलाकारों की चुनिंदा लोकगीत लिस्ट।",
+      "blockKey": "additional-ultimate-u01049-line-1049"
+    },
+    {
+      "featureId": "U01052",
+      "sourceLine": 1061,
+      "category": "additional",
+      "bucket": "general",
+      "text": "वेदर सेंसिटिव थीम: उदयपुर में बारिश होने पर वेबसाइट का रंग नीला (Rainy Blue) होना।",
+      "blockKey": "additional-ultimate-u01061-line-1061"
+    },
+    {
+      "featureId": "U01086",
+      "sourceLine": 1095,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई वेदर एडवाइस: 'जैसलमेर में गर्मी है, कृपया सूती कपड़े और पानी रखें' जैसी सलाह।",
+      "blockKey": "additional-ultimate-u01095-line-1095"
+    },
+    {
+      "featureId": "U01089",
+      "sourceLine": 1098,
+      "category": "additional",
+      "bucket": "general",
+      "text": "रॉयल ब्रांडिंग स्टिकर: गाड़ियों पर 'Padharo Rajasthan Journey' का सुनहरी होलोग्राम।",
+      "blockKey": "additional-ultimate-u01098-line-1098"
+    },
+    {
+      "featureId": "U01108",
+      "sourceLine": 1117,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई ट्रेवल गाइड: चलते सफर में झीलों और पहाड़ों का लाइव इतिहास सुनाना।",
+      "blockKey": "additional-ultimate-u01117-line-1117"
+    },
+    {
+      "featureId": "U01163",
+      "sourceLine": 1173,
+      "category": "additional",
+      "bucket": "general",
+      "text": "सोशल मीडिया शेयरिंग: 'I am traveling with Padharo Rajasthan Journey' का फोटो फ्रेम।",
+      "blockKey": "additional-ultimate-u01173-line-1173"
+    },
+    {
+      "featureId": "U01164",
+      "sourceLine": 1174,
+      "category": "additional",
+      "bucket": "general",
+      "text": "हैशटैग कैंपेन: #PadharoRajasthanJourney के साथ पोस्ट करने पर डिस्काउंट कूपन।",
+      "blockKey": "additional-ultimate-u01174-line-1174"
+    },
+    {
+      "featureId": "U01165",
+      "sourceLine": 1175,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई ब्लॉग सिंक: राजस्थान के मेलों की जानकारी वेबसाइट पर ऑटो-अपडेट होना।",
+      "blockKey": "additional-ultimate-u01175-line-1175"
+    },
+    {
+      "featureId": "U01171",
+      "sourceLine": 1181,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एसईओ ऑप्टिमाइजेशन: 'Best Taxi in Udaipur' सर्च करने पर आपकी साइट का शीर्ष पर आना।",
+      "blockKey": "additional-ultimate-u01181-line-1181"
+    },
+    {
+      "featureId": "U01177",
+      "sourceLine": 1187,
+      "category": "additional",
+      "bucket": "general",
+      "text": "इमरजेंसी फुटर: वेबसाइट के हर पेज पर 'Direct Call Ajay Bhai' का बटन।",
+      "blockKey": "additional-ultimate-u01187-line-1187"
+    },
+    {
+      "featureId": "U01187",
+      "sourceLine": 1197,
+      "category": "additional",
+      "bucket": "general",
+      "text": "सोशल मीडिया फीड: वेबसाइट के होमपेज पर आपकी लेटेस्ट इंस्टाग्राम पोस्ट्स।",
+      "blockKey": "additional-ultimate-u01197-line-1197"
+    },
+    {
+      "featureId": "U01256",
+      "sourceLine": 1267,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऊंट की खाल पर कला (Usta Art): बीकानेर की इस लुप्त होती कला के मास्टर कलाकारों की लिस्ट।",
+      "blockKey": "additional-ultimate-u01267-line-1267"
+    },
+    {
+      "featureId": "U01322",
+      "sourceLine": 1334,
+      "category": "additional",
+      "bucket": "general",
+      "text": "एआई प्राइसिंग इंजन: भारी बारिश या त्योहारों के समय किराये को ऑटोमैटिक 10-20% बढ़ाने/घटाने की कोडिंग।",
+      "blockKey": "additional-ultimate-u01334-line-1334"
+    },
+    {
+      "featureId": "U01336",
+      "sourceLine": 1348,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-फीडबैक रिप्लाई: अच्छे रिव्यु पर एआई द्वारा 'खम्मा घणी' के साथ धन्यवाद भेजना।",
+      "blockKey": "additional-ultimate-u01348-line-1348"
+    },
+    {
+      "featureId": "U01410",
+      "sourceLine": 1423,
+      "category": "additional",
+      "bucket": "auto-suggestion",
+      "text": "एआई महाराजा सजेशन: \"हुकुम, जैसलमेर में मेला शुरू होने वाला है, क्या हम विशेष डिस्काउंट कूपन जारी करें?\" जैसे सुझाव।",
+      "blockKey": "additional-ultimate-u01423-line-1423"
+    },
+    {
+      "featureId": "U01424",
+      "sourceLine": 1438,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 2: AI और स्मार्ट ऑटोमेशन (तकनीकी बुद्धिमत्ता)",
+      "blockKey": "additional-ultimate-u01438-line-1438"
+    },
+    {
+      "featureId": "U01430",
+      "sourceLine": 1444,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 3: VVIP आतिथ्य एवं शाही अनुभव (कस्टमर डिलाइट)",
+      "blockKey": "additional-ultimate-u01444-line-1444"
+    },
+    {
+      "featureId": "U01433",
+      "sourceLine": 1447,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्वागत किट: पहली बार आने वाले मेहमानों के लिए साफ़ा और राजस्थानी मिठाई का विशेष डिब्बा।",
+      "blockKey": "additional-ultimate-u01447-line-1447"
+    },
+    {
+      "featureId": "U01434",
+      "sourceLine": 1448,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मसाला छाछ सेवा: गर्मियों के सफर में यात्रियों के लिए ठंडी मसाला छाछ का कॉम्प्लीमेंट्री विकल्प।",
+      "blockKey": "additional-ultimate-u01448-line-1448"
+    },
+    {
+      "featureId": "U01442",
+      "sourceLine": 1456,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 5: राजस्थान की अनसुनी विरासत (डिजिटल डेटा)",
+      "blockKey": "additional-ultimate-u01456-line-1456"
+    },
+    {
+      "featureId": "U01443",
+      "sourceLine": 1457,
+      "category": "additional",
+      "bucket": "general",
+      "text": "कुंभलगढ़ का वन्यजीव: अभयारण्य में बघेरों (Leopards) को देखने के सबसे सटीक स्पॉट्स का डेटा।",
+      "blockKey": "additional-ultimate-u01457-line-1457"
+    },
+    {
+      "featureId": "U01444",
+      "sourceLine": 1458,
+      "category": "additional",
+      "bucket": "general",
+      "text": "झीलों का वैज्ञानिक डेटा: पिछोला और फतेहसागर की गहराई और उनमें मिलने वाली मछलियों की जानकारी।",
+      "blockKey": "additional-ultimate-u01458-line-1458"
+    },
+    {
+      "featureId": "U01445",
+      "sourceLine": 1459,
+      "category": "additional",
+      "bucket": "general",
+      "text": "अनसुने गाँव: उन गाँवों का मार्ग जहाँ आज भी प्राचीन लोक कलाएं (जैसे मोलेला मिट्टी कला) जीवित हैं।",
+      "blockKey": "additional-ultimate-u01459-line-1459"
+    },
+    {
+      "featureId": "U01446",
+      "sourceLine": 1460,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्राचीन बावड़ियाँ: राजस्थान की उन छिपी हुई बावड़ियों का नक्शा जो मुख्य पर्यटन मानचित्र पर नहीं हैं।",
+      "blockKey": "additional-ultimate-u01460-line-1460"
+    },
+    {
+      "featureId": "U01447",
+      "sourceLine": 1461,
+      "category": "additional",
+      "bucket": "general",
+      "text": "राजस्थानी पकवानों का इतिहास: लाल मांस और केर-सांगरी की रेसिपी के पीछे की ऐतिहासिक कहानियाँ।",
+      "blockKey": "additional-ultimate-u01461-line-1461"
+    },
+    {
+      "featureId": "U01459",
+      "sourceLine": 1474,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 2: AI और स्मार्ट ऑटोमेशन (तकनीकी बुद्धिमत्ता)",
+      "blockKey": "additional-ultimate-u01474-line-1474"
+    },
+    {
+      "featureId": "U01462",
+      "sourceLine": 1477,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-रिफंड इंजन: ट्रांजेक्शन फेल होने पर बिना अजय भाई के हस्तक्षेप के 5 मिनट में रिफंड प्रोसेस करना।",
+      "blockKey": "additional-ultimate-u01477-line-1477"
+    },
+    {
+      "featureId": "U01463",
+      "sourceLine": 1478,
+      "category": "additional",
+      "bucket": "auto-suggestion",
+      "text": "रीयल-टाइम ट्रैफिक डेटा: गूगल मैप्स के साथ सिंक होकर सबसे खाली रास्तों का सुझाव देना।",
+      "blockKey": "additional-ultimate-u01478-line-1478"
+    },
+    {
+      "featureId": "U01464",
+      "sourceLine": 1479,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI कंटेंट अपडेट: राजस्थान के किसी मंदिर या किले में समय बदला है, तो वेबसाइट पर उसे स्वतः अपडेट करना।",
+      "blockKey": "additional-ultimate-u01479-line-1479"
+    },
+    {
+      "featureId": "U01467",
+      "sourceLine": 1482,
+      "category": "additional",
+      "bucket": "general",
+      "text": "स्मार्ट इमेज ऑप्टिमाइज़र: कम इंटरनेट स्पीड में भी वेबसाइट की फोटो का साफ़ और तेज़ खुलना।",
+      "blockKey": "additional-ultimate-u01482-line-1482"
+    },
+    {
+      "featureId": "U01469",
+      "sourceLine": 1484,
+      "category": "additional",
+      "bucket": "general",
+      "text": "इंटरनेशनल टाइम जोन सिंक: विदेशी सैलानियों के लिए उनके देश के समय के हिसाब से कॉल शेड्यूलिंग।",
+      "blockKey": "additional-ultimate-u01484-line-1484"
+    },
+    {
+      "featureId": "U01492",
+      "sourceLine": 1507,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 5: राजस्थान की अनसुनी विरासत (विस्तृत डेटा)",
+      "blockKey": "additional-ultimate-u01507-line-1507"
+    },
+    {
+      "featureId": "U01493",
+      "sourceLine": 1508,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मेवाड़ की वीर गाथा: हल्दीघाटी के युद्ध का 3D मैप और अनसुने नायक।",
+      "blockKey": "additional-ultimate-u01508-line-1508"
+    },
+    {
+      "featureId": "U01494",
+      "sourceLine": 1509,
+      "category": "additional",
+      "bucket": "general",
+      "text": "मारवाड़ का शौर्य: मेहरानगढ़ किले की सात पोल (द्वारों) और उनके पीछे के इतिहास का विवरण।",
+      "blockKey": "additional-ultimate-u01509-line-1509"
+    },
+    {
+      "featureId": "U01495",
+      "sourceLine": 1510,
+      "category": "additional",
+      "bucket": "general",
+      "text": "शेखावाटी की हवेलियाँ: नवलगढ़ और फतेहपुर की हवेलियों की नक्काशी का सूक्ष्म डेटा।",
+      "blockKey": "additional-ultimate-u01510-line-1510"
+    },
+    {
+      "featureId": "U01496",
+      "sourceLine": 1511,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बावड़ियों का विज्ञान: राजस्थान की पुरानी जल प्रणालियों के निर्माण का वैज्ञानिक आधार।",
+      "blockKey": "additional-ultimate-u01511-line-1511"
+    },
+    {
+      "featureId": "U01497",
+      "sourceLine": 1512,
+      "category": "additional",
+      "bucket": "general",
+      "text": "जैसलमेर की पत्थर नक्काशी: पटवों की हवेली के झरोखों का निर्माण और उनका इतिहास।",
+      "blockKey": "additional-ultimate-u01512-line-1512"
+    },
+    {
+      "featureId": "U01498",
+      "sourceLine": 1513,
+      "category": "additional",
+      "bucket": "general",
+      "text": "करणी माता मंदिर रहस्य: बीकानेर के सफेद चूहों (काबा) के पीछे की मान्यताओं का विवरण।",
+      "blockKey": "additional-ultimate-u01513-line-1513"
+    },
+    {
+      "featureId": "U01499",
+      "sourceLine": 1514,
+      "category": "additional",
+      "bucket": "general",
+      "text": "रणकपुर के 1444 खंभे: हर खंभे की अलग नक्काशी का सचित्र डिजिटल संग्रह।",
+      "blockKey": "additional-ultimate-u01514-line-1514"
+    },
+    {
+      "featureId": "U01500",
+      "sourceLine": 1515,
+      "category": "additional",
+      "bucket": "general",
+      "text": "राजस्थानी खान-पान: 'लाल मांस' और 'केर सांगरी' के सबसे असली ठिकानों की लिस्ट।",
+      "blockKey": "additional-ultimate-u01515-line-1515"
+    },
+    {
+      "featureId": "U01501",
+      "sourceLine": 1516,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बाड़मेर का अजरक प्रिंट: हस्तशिल्प की शुद्धता पहचानने के तकनीकी तरीके।",
+      "blockKey": "additional-ultimate-u01516-line-1516"
+    },
+    {
+      "featureId": "U01502",
+      "sourceLine": 1517,
+      "category": "additional",
+      "bucket": "general",
+      "text": "पुष्कर घाट इतिहास: पुष्कर के 52 घाटों और उनके आध्यात्मिक महत्व का डेटा।",
+      "blockKey": "additional-ultimate-u01517-line-1517"
+    },
+    {
+      "featureId": "U01514",
+      "sourceLine": 1530,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 2: AI और स्मार्ट ऑटोमेशन (तकनीकी बुद्धिमत्ता)",
+      "blockKey": "additional-ultimate-u01530-line-1530"
+    },
+    {
+      "featureId": "U01518",
+      "sourceLine": 1534,
+      "category": "additional",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव ट्रैफिक अलर्ट: पुराने डेटा के आधार पर बताना कि आज शाम 5 बजे किस रास्ते पर जाम होगा।",
+      "blockKey": "additional-ultimate-u01534-line-1534"
+    },
+    {
+      "featureId": "U01519",
+      "sourceLine": 1535,
+      "category": "additional",
+      "bucket": "general",
+      "text": "AI कंटेंट क्यूरेटर: राजस्थान के नए जिलों और वहां की खबरों को वेबसाइट पर स्वतः अपडेट करना।",
+      "blockKey": "additional-ultimate-u01535-line-1535"
+    },
+    {
+      "featureId": "U01522",
+      "sourceLine": 1538,
+      "category": "additional",
+      "bucket": "general",
+      "text": "ऑटो-एसईओ अपडेट: आपकी वेबसाइट के कीवर्ड्स को गूगल के लेटेस्ट ट्रेंड के अनुसार अपडेट करना।",
+      "blockKey": "additional-ultimate-u01538-line-1538"
+    },
+    {
+      "featureId": "U01547",
+      "sourceLine": 1563,
+      "category": "additional",
+      "bucket": "general",
+      "text": "विषय 5: राजस्थान की अनसुनी विरासत (विस्तृत डेटा)",
+      "blockKey": "additional-ultimate-u01563-line-1563"
+    },
+    {
+      "featureId": "U01548",
+      "sourceLine": 1564,
+      "category": "additional",
+      "bucket": "general",
+      "text": "बावड़ियों का वास्तु: बूंदी की 'रानी जी की बावड़ी' की नक्काशी और उसके वैज्ञानिक रहस्य।",
+      "blockKey": "additional-ultimate-u01564-line-1564"
+    },
+    {
+      "featureId": "U01549",
+      "sourceLine": 1565,
+      "category": "additional",
+      "bucket": "general",
+      "text": "अनसुने नायक: हल्दीघाटी के युद्ध में हकीम खान सूरी और भामाशाह के योगदान का डेटा।",
+      "blockKey": "additional-ultimate-u01565-line-1565"
+    },
+    {
+      "featureId": "U01550",
+      "sourceLine": 1566,
+      "category": "additional",
+      "bucket": "general",
+      "text": "झीलों का भूगोल: राजसमंद झील की 'नौ-चौकी' और वहां लिखे शिलालेखों का अर्थ।",
+      "blockKey": "additional-ultimate-u01566-line-1566"
+    },
+    {
+      "featureId": "U01551",
+      "sourceLine": 1567,
+      "category": "additional",
+      "bucket": "general",
+      "text": "राजस्थानी हस्तशिल्प: सांगानेरी प्रिंट और बगरू प्रिंट की असल पहचान के तकनीकी अंतर।",
+      "blockKey": "additional-ultimate-u01567-line-1567"
+    },
+    {
+      "featureId": "U01552",
+      "sourceLine": 1568,
+      "category": "additional",
+      "bucket": "general",
+      "text": "लोक वाद्ययंत्र: 'कामाइचा' और 'भपंग' की बनावट और उनकी जादुई आवाज़ का विवरण।",
+      "blockKey": "additional-ultimate-u01568-line-1568"
+    }
+  ]
+}

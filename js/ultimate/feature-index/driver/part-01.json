@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "driver",
+  "part": 1,
+  "totalParts": 3,
+  "totalFeatureItems": 244,
+  "items": [
+    {
+      "featureId": "U00012",
+      "sourceLine": 12,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पिकअप नोट: ड्राइवर के लिए विशेष निर्देश (जैसे: \"ब्लू गेट के पास रुकें\")।",
+      "blockKey": "driver-ultimate-u00012-line-12"
+    },
+    {
+      "featureId": "U00016",
+      "sourceLine": 16,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वॉयस नेविगेशन: ड्राइवर के लिए स्थानीय भाषाओं में वॉयस गाइड।",
+      "blockKey": "driver-ultimate-u00016-line-16"
+    },
+    {
+      "featureId": "U00024",
+      "sourceLine": 24,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर-क्लाइंट डिस्टेंस: मैप पर दोनों की सटीक दूरी।",
+      "blockKey": "driver-ultimate-u00024-line-24"
+    },
+    {
+      "featureId": "U00030",
+      "sourceLine": 30,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नो-पार्किंग अलर्ट: ड्राइवर को पार्किंग वर्जित क्षेत्रों की चेतावनी।",
+      "blockKey": "driver-ultimate-u00030-line-30"
+    },
+    {
+      "featureId": "U00032",
+      "sourceLine": 32,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पिकअप पोल: ड्राइवर को ग्राहक के सही खम्भे या गेट तक पहुँचाना।",
+      "blockKey": "driver-ultimate-u00032-line-32"
+    },
+    {
+      "featureId": "U00038",
+      "sourceLine": 38,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पिकअप वीडियो: ग्राहक को ड्राइवर का छोटा वीडियो मैसेज भेजने की सुविधा।",
+      "blockKey": "driver-ultimate-u00038-line-38"
+    },
+    {
+      "featureId": "U00039",
+      "sourceLine": 39,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर का वर्तमान मोड: क्या ड्राइवर खाना खा रहा है या फ्यूल भर रहा है, इसकी पारदर्शी सूचना।",
+      "blockKey": "driver-ultimate-u00039-line-39"
+    },
+    {
+      "featureId": "U00173",
+      "sourceLine": 173,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंस्टेंट प्रीव्यू: बुकिंग से पहले गाड़ी का फोटो और ड्राइवर का चेहरा।",
+      "blockKey": "driver-ultimate-u00173-line-173"
+    },
+    {
+      "featureId": "U00176",
+      "sourceLine": 176,
+      "category": "driver",
+      "bucket": "general",
+      "text": "V. वाहन श्रेणियां एवं सूक्ष्म चयन (171-210)",
+      "blockKey": "driver-ultimate-u00176-line-176"
+    },
+    {
+      "featureId": "U00177",
+      "sourceLine": 177,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इकोनॉमी: बजट यात्री।",
+      "blockKey": "driver-ultimate-u00177-line-177"
+    },
+    {
+      "featureId": "U00178",
+      "sourceLine": 178,
+      "category": "driver",
+      "bucket": "general",
+      "text": "लग्जरी SUV: आरामदायक पारिवारिक सफर।",
+      "blockKey": "driver-ultimate-u00178-line-178"
+    },
+    {
+      "featureId": "U00179",
+      "sourceLine": 179,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विंटेज कलेक्शन: शाही अनुभव हेतु।",
+      "blockKey": "driver-ultimate-u00179-line-179"
+    },
+    {
+      "featureId": "U00180",
+      "sourceLine": 180,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इलेक्ट्रिक व्हीकल (EV): पर्यावरण अनुकूल।",
+      "blockKey": "driver-ultimate-u00180-line-180"
+    },
+    {
+      "featureId": "U00181",
+      "sourceLine": 181,
+      "category": "driver",
+      "bucket": "auto-suggestion",
+      "text": "लगेज इंडिकेटर: सामान के हिसाब से सुझाव।",
+      "blockKey": "driver-ultimate-u00181-line-181"
+    },
+    {
+      "featureId": "U00182",
+      "sourceLine": 182,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रीयल कार फोटो: असली गाड़ी की तस्वीर।",
+      "blockKey": "driver-ultimate-u00182-line-182"
+    },
+    {
+      "featureId": "U00183",
+      "sourceLine": 183,
+      "category": "driver",
+      "bucket": "general",
+      "text": "कैरियर विकल्प: रूफ कैरियर का चुनाव।",
+      "blockKey": "driver-ultimate-u00183-line-183"
+    },
+    {
+      "featureId": "U00184",
+      "sourceLine": 184,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पेट फ्रेंडली: पालतू जानवरों की सुविधा।",
+      "blockKey": "driver-ultimate-u00184-line-184"
+    },
+    {
+      "featureId": "U00185",
+      "sourceLine": 185,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंटीरियर कस्टमाइजेशन: हनीमून या सालगिरह सजावट।",
+      "blockKey": "driver-ultimate-u00185-line-185"
+    },
+    {
+      "featureId": "U00186",
+      "sourceLine": 186,
+      "category": "driver",
+      "bucket": "general",
+      "text": "महिला ड्राइवर: विशेष सुरक्षा अनुरोध।",
+      "blockKey": "driver-ultimate-u00186-line-186"
+    },
+    {
+      "featureId": "U00187",
+      "sourceLine": 187,
+      "category": "driver",
+      "bucket": "general",
+      "text": "बेबी सीट: बच्चों हेतु एक्स्ट्रा सीट।",
+      "blockKey": "driver-ultimate-u00187-line-187"
+    },
+    {
+      "featureId": "U00188",
+      "sourceLine": 188,
+      "category": "driver",
+      "bucket": "general",
+      "text": "व्हीलचेयर एक्सेस: दिव्यांग सुलभ वाहन।",
+      "blockKey": "driver-ultimate-u00188-line-188"
+    },
+    {
+      "featureId": "U00189",
+      "sourceLine": 189,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाईफाई ऑन बोर्ड: हाई-स्पीड इंटरनेट।",
+      "blockKey": "driver-ultimate-u00189-line-189"
+    },
+    {
+      "featureId": "U00190",
+      "sourceLine": 190,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एंटरटेनमेंट सिस्टम: पीछे की सीट पर स्क्रीन।",
+      "blockKey": "driver-ultimate-u00190-line-190"
+    },
+    {
+      "featureId": "U00191",
+      "sourceLine": 191,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन फिटनेस: सफाई का रीयल-टाइम स्टेटस।",
+      "blockKey": "driver-ultimate-u00191-line-191"
+    },
+    {
+      "featureId": "U00192",
+      "sourceLine": 192,
+      "category": "driver",
+      "bucket": "general",
+      "text": "फर्स्ट एड किट: प्राथमिक चिकित्सा।",
+      "blockKey": "driver-ultimate-u00192-line-192"
+    },
+    {
+      "featureId": "U00193",
+      "sourceLine": 193,
+      "category": "driver",
+      "bucket": "general",
+      "text": "मैगजीन और अखबार: पढ़ने की सामग्री।",
+      "blockKey": "driver-ultimate-u00193-line-193"
+    },
+    {
+      "featureId": "U00195",
+      "sourceLine": 195,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नॉन-स्मोकिंग कैब: तंबाकू मुक्त वाहन।",
+      "blockKey": "driver-ultimate-u00195-line-195"
+    },
+    {
+      "featureId": "U00196",
+      "sourceLine": 196,
+      "category": "driver",
+      "bucket": "general",
+      "text": "कस्टम टेम्परेचर: पहले से AC सेटिंग।",
+      "blockKey": "driver-ultimate-u00196-line-196"
+    },
+    {
+      "featureId": "U00197",
+      "sourceLine": 197,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एयर प्यूरीफायर: गाड़ी के अंदर साफ़ हवा।",
+      "blockKey": "driver-ultimate-u00197-line-197"
+    },
+    {
+      "featureId": "U00198",
+      "sourceLine": 198,
+      "category": "driver",
+      "bucket": "general",
+      "text": "चार्जिंग पॉइंट्स: हर सीट पर USB चार्जर।",
+      "blockKey": "driver-ultimate-u00198-line-198"
+    },
+    {
+      "featureId": "U00199",
+      "sourceLine": 199,
+      "category": "driver",
+      "bucket": "general",
+      "text": "सन-ब्लाइंड्स: धूप से बचने के लिए पर्दे।",
+      "blockKey": "driver-ultimate-u00199-line-199"
+    },
+    {
+      "featureId": "U00200",
+      "sourceLine": 200,
+      "category": "driver",
+      "bucket": "general",
+      "text": "छतरी सेवा: बारिश या धूप में ड्राइवर द्वारा छतरी देना।",
+      "blockKey": "driver-ultimate-u00200-line-200"
+    },
+    {
+      "featureId": "U00201",
+      "sourceLine": 201,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ठंडा पानी: फ्रिज/आइस बॉक्स की सुविधा।",
+      "blockKey": "driver-ultimate-u00201-line-201"
+    },
+    {
+      "featureId": "U00202",
+      "sourceLine": 202,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रीडिंग लाइट्स: रात में पढ़ने के लिए लाइट।",
+      "blockKey": "driver-ultimate-u00202-line-202"
+    },
+    {
+      "featureId": "U00203",
+      "sourceLine": 203,
+      "category": "driver",
+      "bucket": "general",
+      "text": "अरोमा डिफ्यूज़र: राजस्थानी इत्र की खुशबू।",
+      "blockKey": "driver-ultimate-u00203-line-203"
+    },
+    {
+      "featureId": "U00204",
+      "sourceLine": 204,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एक्स्ट्रा कुशन: आरामदायक सफर के लिए तकिए।",
+      "blockKey": "driver-ultimate-u00204-line-204"
+    },
+    {
+      "featureId": "U00205",
+      "sourceLine": 205,
+      "category": "driver",
+      "bucket": "general",
+      "text": "म्यूजिक चॉइस: अपनी पसंद की प्लेलिस्ट बजाने का अधिकार।",
+      "blockKey": "driver-ultimate-u00205-line-205"
+    },
+    {
+      "featureId": "U00207",
+      "sourceLine": 207,
+      "category": "driver",
+      "bucket": "general",
+      "text": "सेंसिटिव लगेज हैंडलिंग: कांच या कीमती सामान के लिए विशेष निर्देश।",
+      "blockKey": "driver-ultimate-u00207-line-207"
+    },
+    {
+      "featureId": "U00208",
+      "sourceLine": 208,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्दी: ड्राइवर का राजस्थानी वेशभूषा में होना।",
+      "blockKey": "driver-ultimate-u00208-line-208"
+    },
+    {
+      "featureId": "U00209",
+      "sourceLine": 209,
+      "category": "driver",
+      "bucket": "general",
+      "text": "गाड़ी की उम्र: वेबसाइट पर गाड़ी का मॉडल वर्ष स्पष्ट होना।",
+      "blockKey": "driver-ultimate-u00209-line-209"
+    },
+    {
+      "featureId": "U00211",
+      "sourceLine": 211,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंटीरियर लाइटिंग: रात में मूड के हिसाब से लाइट बदलना।",
+      "blockKey": "driver-ultimate-u00211-line-211"
+    },
+    {
+      "featureId": "U00212",
+      "sourceLine": 212,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्नैक्स बॉक्स: लंबे सफर के लिए राजस्थानी नमकीन।",
+      "blockKey": "driver-ultimate-u00212-line-212"
+    },
+    {
+      "featureId": "U00213",
+      "sourceLine": 213,
+      "category": "driver",
+      "bucket": "general",
+      "text": "फेस टिशू और सैनिटाइज़र: हाइजीन के लिए।",
+      "blockKey": "driver-ultimate-u00213-line-213"
+    },
+    {
+      "featureId": "U00214",
+      "sourceLine": 214,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नॉइज़ कैंसलेशन: गाड़ी के अंदर बाहर का शोर कम करने की व्यवस्था।",
+      "blockKey": "driver-ultimate-u00214-line-214"
+    },
+    {
+      "featureId": "U00215",
+      "sourceLine": 215,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विंडशील्ड डिस्प्ले: ड्राइवर के लिए मैप का शीशे पर रिफ्लेक्शन।",
+      "blockKey": "driver-ultimate-u00215-line-215"
+    },
+    {
+      "featureId": "U00216",
+      "sourceLine": 216,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पर्सनल कूड़ेदान: गाड़ी की सफाई बनाए रखने हेतु।",
+      "blockKey": "driver-ultimate-u00216-line-216"
+    },
+    {
+      "featureId": "U00227",
+      "sourceLine": 227,
+      "category": "driver",
+      "bucket": "general",
+      "text": "चेहरे की पहचान (Face ID): ड्राइवर वेरिफिकेशन।",
+      "blockKey": "driver-ultimate-u00227-line-227"
+    },
+    {
+      "featureId": "U00234",
+      "sourceLine": 234,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटो-असाइनमेंट: बेस्ट रेटेड ड्राइवर को ट्रिप।",
+      "blockKey": "driver-ultimate-u00234-line-234"
+    },
+    {
+      "featureId": "U00235",
+      "sourceLine": 235,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वर्चुअल एडमिन: सिस्टम का ऑटो-मेंटेनेंस।",
+      "blockKey": "driver-ultimate-u00235-line-235"
+    },
+    {
+      "featureId": "U00238",
+      "sourceLine": 238,
+      "category": "driver",
+      "bucket": "auto-suggestion",
+      "text": "स्मार्ट फ्यूल ट्रैकिंग: ड्राइवर को पेट्रोल पंप का सुझाव।",
+      "blockKey": "driver-ultimate-u00238-line-238"
+    },
+    {
+      "featureId": "U00239",
+      "sourceLine": 239,
+      "category": "driver",
+      "bucket": "auto-suggestion",
+      "text": "ब्रेक अलर्ट: ड्राइवर को आराम का सुझाव।",
+      "blockKey": "driver-ultimate-u00239-line-239"
+    },
+    {
+      "featureId": "U00244",
+      "sourceLine": 244,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर मॉनिटर: कठोर ब्रेक या तेज़ मोड़ पर अलर्ट।",
+      "blockKey": "driver-ultimate-u00244-line-244"
+    },
+    {
+      "featureId": "U00248",
+      "sourceLine": 248,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्मार्ट ड्राइवर पेआउट: यात्रा खत्म होते ही ड्राइवर के बैंक में पैसे।",
+      "blockKey": "driver-ultimate-u00248-line-248"
+    },
+    {
+      "featureId": "U00252",
+      "sourceLine": 252,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस: गाड़ी खराब होने से पहले सर्विसिंग अलर्ट।",
+      "blockKey": "driver-ultimate-u00252-line-252"
+    },
+    {
+      "featureId": "U00257",
+      "sourceLine": 257,
+      "category": "driver",
+      "bucket": "general",
+      "text": "AI सेल्फी अटेंडेंस: ड्राइवर की ड्यूटी शुरू होने से पहले वर्दी और गाड़ी की फोटो।",
+      "blockKey": "driver-ultimate-u00257-line-257"
+    },
+    {
+      "featureId": "U00265",
+      "sourceLine": 265,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नाइट होल्ड नियम: ड्राइवर का रात का भत्ता।",
+      "blockKey": "driver-ultimate-u00265-line-265"
+    },
+    {
+      "featureId": "U00266",
+      "sourceLine": 266,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर ड्यूटी लिमिट: घंटों की सीमा।",
+      "blockKey": "driver-ultimate-u00266-line-266"
+    },
+    {
+      "featureId": "U00271",
+      "sourceLine": 271,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर पुलिस वेरिफिकेशन: क्लीयरेंस सर्टिफिकेट।",
+      "blockKey": "driver-ultimate-u00271-line-271"
+    },
+    {
+      "featureId": "U00277",
+      "sourceLine": 277,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर पहचान पत्र: आधिकारिक आईडी।",
+      "blockKey": "driver-ultimate-u00277-line-277"
+    },
+    {
+      "featureId": "U00285",
+      "sourceLine": 285,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन प्रदूषण सर्टिफिकेट (PUC): वेबसाइट पर लाइव सर्टिफिकेट।",
+      "blockKey": "driver-ultimate-u00285-line-285"
+    },
+    {
+      "featureId": "U00286",
+      "sourceLine": 286,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बैकग्राउंड चेक: पिछले 5 साल का क्रिमिनल रिकॉर्ड चेक।",
+      "blockKey": "driver-ultimate-u00286-line-286"
+    },
+    {
+      "featureId": "U00288",
+      "sourceLine": 288,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन आग बुझाने का यंत्र (Fire Extinguisher): हर गाड़ी में अनिवार्य।",
+      "blockKey": "driver-ultimate-u00288-line-288"
+    },
+    {
+      "featureId": "U00293",
+      "sourceLine": 293,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर ट्रेनिंग सर्टिफिकेट: व्यवहार और सुरक्षा की ट्रेनिंग का प्रमाण।",
+      "blockKey": "driver-ultimate-u00293-line-293"
+    },
+    {
+      "featureId": "U00332",
+      "sourceLine": 333,
+      "category": "driver",
+      "bucket": "general",
+      "text": "लाइव अपडेट: ड्राइवर के पहुँचने का सेकंड-दर-सेकंड समय।",
+      "blockKey": "driver-ultimate-u00333-line-333"
+    },
+    {
+      "featureId": "U00333",
+      "sourceLine": 334,
+      "category": "driver",
+      "bucket": "general",
+      "text": "दूरी प्रदर्शन: ग्राहक और ड्राइवर के बीच की मीटर में दूरी।",
+      "blockKey": "driver-ultimate-u00334-line-334"
+    },
+    {
+      "featureId": "U00337",
+      "sourceLine": 338,
+      "category": "driver",
+      "bucket": "general",
+      "text": "शॉर्टकट गाइड: ड्राइवर के लिए संकरी गलियों का रास्ता।",
+      "blockKey": "driver-ultimate-u00338-line-338"
+    },
+    {
+      "featureId": "U00343",
+      "sourceLine": 344,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पार्किंग अलर्ट: नो-पार्किंग जोन में ड्राइवर को चेतावनी।",
+      "blockKey": "driver-ultimate-u00344-line-344"
+    },
+    {
+      "featureId": "U00346",
+      "sourceLine": 347,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर फोटो मैसेज: 'मैं यहाँ खड़ा हूँ' का रीयल-टाइम फोटो।",
+      "blockKey": "driver-ultimate-u00347-line-347"
+    },
+    {
+      "featureId": "U00350",
+      "sourceLine": 351,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ब्रेक सूचना: ड्राइवर के भोजन या फ्यूल ब्रेक की पारदर्शिता।",
+      "blockKey": "driver-ultimate-u00351-line-351"
+    },
+    {
+      "featureId": "U00354",
+      "sourceLine": 355,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वॉयस गाइड: ड्राइवर के लिए स्थानीय भाषा में निर्देश।",
+      "blockKey": "driver-ultimate-u00355-line-355"
+    },
+    {
+      "featureId": "U00379",
+      "sourceLine": 380,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नाइट पैकेजेस: रात की लंबी यात्रा के लिए नाइट ड्राइवर।",
+      "blockKey": "driver-ultimate-u00380-line-380"
+    },
+    {
+      "featureId": "U00458",
+      "sourceLine": 460,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंस्टेंट प्रीव्यू: बुकिंग से पहले ड्राइवर की असली फोटो और रेटिंग।",
+      "blockKey": "driver-ultimate-u00460-line-460"
+    },
+    {
+      "featureId": "U00470",
+      "sourceLine": 472,
+      "category": "driver",
+      "bucket": "general",
+      "text": "महिला ड्राइवर: महिला सुरक्षा हेतु विशेष अनुरोध विकल्प।",
+      "blockKey": "driver-ultimate-u00472-line-472"
+    },
+    {
+      "featureId": "U00472",
+      "sourceLine": 474,
+      "category": "driver",
+      "bucket": "general",
+      "text": "व्हीलचेयर एक्सेस: दिव्यांग सुलभ वाहनों का चयन।",
+      "blockKey": "driver-ultimate-u00474-line-474"
+    },
+    {
+      "featureId": "U00475",
+      "sourceLine": 477,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन फिटनेस: हर ट्रिप से पहले सफाई और मेंटेनेंस का स्टेटस।",
+      "blockKey": "driver-ultimate-u00477-line-477"
+    },
+    {
+      "featureId": "U00484",
+      "sourceLine": 486,
+      "category": "driver",
+      "bucket": "general",
+      "text": "छतरी सेवा: बारिश या धूप में ड्राइवर द्वारा छतरी प्रदान करना।",
+      "blockKey": "driver-ultimate-u00486-line-486"
+    },
+    {
+      "featureId": "U00490",
+      "sourceLine": 492,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्दी: ड्राइवर का राजस्थानी वेशभूषा में होना।",
+      "blockKey": "driver-ultimate-u00492-line-492"
+    },
+    {
+      "featureId": "U00498",
+      "sourceLine": 500,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विंडशील्ड डिस्प्ले: ड्राइवर के लिए मैप का शीशे पर रिफ्लेक्शन।",
+      "blockKey": "driver-ultimate-u00500-line-500"
+    },
+    {
+      "featureId": "U00508",
+      "sourceLine": 510,
+      "category": "driver",
+      "bucket": "general",
+      "text": "चेहरे की पहचान: ड्राइवर वेरिफिकेशन के लिए फेस आईडी।",
+      "blockKey": "driver-ultimate-u00510-line-510"
+    },
+    {
+      "featureId": "U00515",
+      "sourceLine": 517,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटो-असाइनमेंट: सबसे पास और बेस्ट रेटेड ड्राइवर को ट्रिप।",
+      "blockKey": "driver-ultimate-u00517-line-517"
+    },
+    {
+      "featureId": "U00517",
+      "sourceLine": 520,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वर्चुअल एडमिन: वेबसाइट का ऑटो-मेंटेनेंस और सर्वर हेल्थ की एआई द्वारा निगरानी।",
+      "blockKey": "driver-ultimate-u00520-line-520"
+    },
+    {
+      "featureId": "U00519",
+      "sourceLine": 522,
+      "category": "driver",
+      "bucket": "general",
+      "text": "बायोमेट्रिक लॉगिन: ग्राहकों और ड्राइवरों के लिए फिंगरप्रिंट या फेस आईडी लॉगिन।",
+      "blockKey": "driver-ultimate-u00522-line-522"
+    },
+    {
+      "featureId": "U00520",
+      "sourceLine": 523,
+      "category": "driver",
+      "bucket": "auto-suggestion",
+      "text": "फ्यूल ट्रैकिंग: ड्राइवर को सबसे सस्ते और पास के पेट्रोल पंप का एआई सुझाव।",
+      "blockKey": "driver-ultimate-u00523-line-523"
+    },
+    {
+      "featureId": "U00521",
+      "sourceLine": 524,
+      "category": "driver",
+      "bucket": "auto-suggestion",
+      "text": "ब्रेक अलर्ट: ड्राइवर को थकान होने पर आराम करने का आटोमेटिक सुझाव।",
+      "blockKey": "driver-ultimate-u00524-line-524"
+    },
+    {
+      "featureId": "U00526",
+      "sourceLine": 529,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर मॉनिटर: कठोर ब्रेक या तेज़ मोड़ लेने पर ड्राइवर को चेतावनी।",
+      "blockKey": "driver-ultimate-u00529-line-529"
+    },
+    {
+      "featureId": "U00530",
+      "sourceLine": 533,
+      "category": "driver",
+      "bucket": "general",
+      "text": "स्मार्ट पेआउट: यात्रा खत्म होते ही ड्राइवर के बैंक खाते में पैसा जाना।",
+      "blockKey": "driver-ultimate-u00533-line-533"
+    },
+    {
+      "featureId": "U00534",
+      "sourceLine": 537,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस: गाड़ी खराब होने से पहले सर्विसिंग का अलर्ट देना।",
+      "blockKey": "driver-ultimate-u00537-line-537"
+    },
+    {
+      "featureId": "U00539",
+      "sourceLine": 542,
+      "category": "driver",
+      "bucket": "general",
+      "text": "सेल्फी अटेंडेंस: ड्यूटी शुरू होने से पहले ड्राइवर की वर्दी वाली फोटो।",
+      "blockKey": "driver-ultimate-u00542-line-542"
+    },
+    {
+      "featureId": "U00546",
+      "sourceLine": 549,
+      "category": "driver",
+      "bucket": "general",
+      "text": "नाइट होल्ड नियम: रात को रुकने पर ड्राइवर के भत्ते का पारदर्शी हिसाब।",
+      "blockKey": "driver-ultimate-u00549-line-549"
+    },
+    {
+      "featureId": "U00547",
+      "sourceLine": 550,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्यूटी लिमिट: ड्राइवर के काम करने के घंटों की सीमा तय करना (सुरक्षा हेतु)।",
+      "blockKey": "driver-ultimate-u00550-line-550"
+    }
+  ]
+}

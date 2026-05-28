@@ -1,0 +1,737 @@
+
+        .cab-console-title small {
+            color: #6a7888;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .cab-mode-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            border: 1px solid #d5dfeb;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .cab-mode-tab {
+            position: relative;
+            min-height: 82px;
+            border: 0;
+            border-right: 1px solid #d5dfeb;
+            background: #ffffff;
+            color: #293b4e;
+            display: grid;
+            place-items: center;
+            gap: 0.28rem;
+            padding: 0.72rem 0.45rem;
+            font: inherit;
+            font-weight: 800;
+            line-height: 1.16;
+            cursor: pointer;
+        }
+
+        .cab-mode-tab:last-child {
+            border-right: 0;
+        }
+
+        .cab-mode-tab i {
+            color: #7a8793;
+            font-size: 1rem;
+        }
+
+        .cab-mode-tab.is-active {
+            background: #eef6ff;
+            color: #1684ba;
+            outline: 2px solid #2ea9d7;
+            outline-offset: -2px;
+        }
+
+        .cab-mode-tab.is-active i {
+            color: #1684ba;
+        }
+
+        .cab-new-badge {
+            position: absolute;
+            top: -1px;
+            right: 18px;
+            border-radius: 999px;
+            padding: 0.12rem 0.42rem;
+            background: #d7193f;
+            color: #ffffff;
+            font-size: 0.58rem;
+            letter-spacing: 0;
+            line-height: 1.2;
+        }
+
+        .cab-mode-notice {
+            display: flex;
+            align-items: center;
+            gap: 0.46rem;
+            margin-top: 0.85rem;
+            padding: 0.7rem 0.82rem;
+            border-radius: 10px;
+            background: #fff2d9;
+            color: #a06614;
+            font-size: 0.87rem;
+            font-weight: 800;
+        }
+
+        .cab-mode-notice i {
+            color: #c3821c;
+        }
+
+        .cab-airport-service-row {
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+            padding: 0.52rem;
+            border: 1px solid #d8e5ef;
+            border-radius: 12px;
+            background: #f8fbfe;
+        }
+
+        .cab-booking-console.is-airport .cab-airport-service-row {
+            display: grid;
+        }
+
+        .cab-airport-service-chip {
+            min-height: 58px;
+            border: 1px solid #d3e0ec;
+            border-radius: 11px;
+            background: #ffffff;
+            color: #163550;
+            display: grid;
+            grid-template-columns: 24px minmax(0, 1fr);
+            grid-template-areas:
+                "icon title"
+                "icon hint";
+            align-items: center;
+            column-gap: 0.45rem;
+            padding: 0.44rem 0.52rem;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+        }
+
+        .cab-airport-service-chip i {
+            grid-area: icon;
+            color: #1689bf;
+            font-size: 0.95rem;
+        }
+
+        .cab-airport-service-chip strong {
+            grid-area: title;
+            font-size: 0.78rem;
+            line-height: 1.05;
+        }
+
+        .cab-airport-service-chip small {
+            grid-area: hint;
+            color: #6d7b88;
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .cab-airport-service-chip.is-active {
+            border-color: #25a9dc;
+            background: #eff9ff;
+            box-shadow: inset 0 0 0 1px #25a9dc;
+        }
+
+        .cab-airport-transfer-row {
+            display: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.45rem;
+            margin-top: 0.5rem;
+            padding: 0.45rem;
+            border: 1px solid #d7e4ef;
+            border-radius: 12px;
+            background: #f7fbff;
+        }
+
+        .cab-booking-console.is-airport-transfer .cab-airport-transfer-row {
+            display: grid;
+        }
+
+        .cab-airport-transfer-chip {
+            border: 1px solid #cfdeea;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #18334c;
+            display: grid;
+            grid-template-columns: 22px minmax(0, 1fr);
+            align-items: center;
+            gap: 0.34rem 0.45rem;
+            padding: 0.48rem 0.6rem;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+        }
+
+        .cab-airport-transfer-chip i {
+            grid-row: 1 / span 2;
+            color: #1689bf;
+        }
+
+        .cab-airport-transfer-chip strong {
+            font-size: 0.78rem;
+            line-height: 1.05;
+        }
+
+        .cab-airport-transfer-chip small {
+            color: #657789;
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .cab-airport-transfer-chip.is-active {
+            border-color: #1689bf;
+            background: #eef8ff;
+            box-shadow: inset 0 0 0 1px #1689bf;
+        }
+
+        .cab-journey-row {
+            display: flex;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+            margin-top: 0.78rem;
+            padding: 0.54rem;
+            border: 1px solid #dce4ef;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .cab-journey-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            min-height: 40px;
+            border: 1px solid #d5dfeb;
+            border-radius: 10px;
+            padding: 0.48rem 0.72rem;
+            background: #ffffff;
+            color: #34485d;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .cab-journey-chip.is-active {
+            border-color: #25a9dc;
+            background: #eff9ff;
+            color: #117eaa;
+            box-shadow: inset 0 0 0 1px #25a9dc;
+        }
+
+        .cab-booking-console:not(.is-outstation) .cab-journey-row {
+            display: none;
+        }
+
+        .cab-booking-console:not(.is-round-trip) .cab-return-mini-field {
+            display: none;
+        }
+
+        .cab-booking-console.is-airport-package .cab-package-field {
+            display: grid;
+        }
+
+        .cab-quick-fields {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.7rem;
+            margin-top: 0.82rem;
+        }
+
+        .cab-quick-field {
+            min-height: 76px;
+            border: 1px solid #dce4ef;
+            border-radius: 12px;
+            background: #fbfcfe;
+            display: flex;
+            align-items: center;
+            gap: 0.62rem;
+            padding: 0.72rem 0.78rem;
+            text-align: left;
+            color: #283d52;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .cab-quick-field i {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 30px;
+            border-radius: 999px;
+            background: #edf5fc;
+            color: #587083;
+        }
+
+        .cab-quick-field span {
+            min-width: 0;
+            display: grid;
+            gap: 0.2rem;
+        }
+
+        .cab-quick-field strong {
+            color: #6a7280;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0;
+        }
+
+        .cab-quick-field small {
+            color: #16273b;
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1.18;
+            overflow-wrap: anywhere;
+        }
+
+        .cab-booking-console:not(.is-hourly) .cab-package-field {
+            display: none;
+        }
+
+        .cab-booking-console.is-airport-package .cab-package-field {
+            display: grid;
+        }
+
+        .cab-booking-console.is-hourly .cab-quick-field[data-reveal-field="dropoff"] {
+            display: none;
+        }
+
+        .cab-booking-console:not(.is-hourly) .cab-quick-fields {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-booking-console.is-round-trip .cab-quick-fields {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-console-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.72rem;
+            margin-top: 0.82rem;
+        }
+
+        .cab-primary-search,
+        .cab-section-action,
+        .cab-offer-card button {
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 900;
+        }
+
+        .cab-route-addons {
+            display: none;
+            gap: 0.58rem;
+            padding: 0.72rem;
+            margin-top: 0.72rem;
+            border: 1px solid #24a4d4;
+            border-radius: 14px;
+            background: #ffffff;
+        }
+
+        .cab-route-addons.is-visible {
+            display: grid;
+        }
+
+        .cab-route-addons-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem;
+            color: #173350;
+            font-weight: 900;
+            flex-wrap: wrap;
+        }
+
+        .cab-route-addons-title span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.44rem;
+        }
+
+        .cab-route-addons-title small {
+            color: #6a7280;
+            font-size: 0.78rem;
+        }
+
+        .route-stops-list {
+            display: grid;
+            gap: 0.52rem;
+        }
+
+        .route-stop-field {
+            display: grid;
+            gap: 0.34rem;
+        }
+
+        .route-stop-field label {
+            color: #2c4058;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .route-stop-input-wrap {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.42rem;
+        }
+
+        .route-stop-field input {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid #cfdceb;
+            border-radius: 10px;
+            padding: 0.72rem 0.86rem;
+            color: #263c53;
+            font: inherit;
+        }
+
+        .route-stop-field input:focus {
+            outline: none;
+            border-color: #24a4d4;
+            box-shadow: 0 0 0 3px rgba(36, 164, 212, 0.14);
+        }
+
+        .route-stop-remove-btn {
+            width: 34px;
+            height: 34px;
+            display: inline-grid;
+            place-items: center;
+            border: 1px solid #f0b2b2;
+            border-radius: 999px;
+            background: #fff7f7;
+            color: #c24141;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+
+        .route-stop-remove-btn[hidden] {
+            display: none;
+        }
+
+        .route-stop-add-btn {
+            width: 30px;
+            height: 30px;
+            justify-self: center;
+            display: inline-grid;
+            place-items: center;
+            border: 1px solid #24a4d4;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #1485ad;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+
+        .cab-primary-search {
+            min-height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(100deg, #36aeea 0%, #0562f0 100%);
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            box-shadow: 0 12px 24px rgba(5, 98, 240, 0.2);
+        }
+
+        .cab-trust-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.52rem;
+            margin-top: 0.78rem;
+        }
+
+        .cab-trust-strip span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.34rem;
+            padding: 0.38rem 0.58rem;
+            border-radius: 999px;
+            background: #eef7f2;
+            color: #206343;
+            font-size: 0.74rem;
+            font-weight: 800;
+        }
+
+        .cab-page-content {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .cab-content-section {
+            padding: 1rem;
+        }
+
+        .cab-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .cab-section-head p {
+            color: #6b7a89;
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            margin: 0 0 0.12rem;
+        }
+
+        .cab-section-head h2 {
+            color: #071c30;
+            font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+            line-height: 1.1;
+            letter-spacing: 0;
+            margin: 0;
+        }
+
+        .cab-section-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            border-radius: 999px;
+            padding: 0.6rem 0.86rem;
+            background: #eef7ff;
+            color: #135f91;
+        }
+
+        .cab-offer-rail {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.82rem;
+        }
+
+        .cab-offer-card,
+        .cab-update-card,
+        .cab-experience-grid article,
+        .cab-faq-card,
+        .cab-route-columns > div {
+            border: 1px solid #dce4ef;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
+        .cab-offer-card {
+            min-height: 238px;
+            position: relative;
+            overflow: hidden;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: #ffffff;
+            isolation: isolate;
+        }
+
+        .cab-offer-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.82), rgba(7, 24, 39, 0.2)),
+                linear-gradient(135deg, #0e3b5b, #2b8492 56%, #d8a43e);
+        }
+
+        .cab-offer-airport::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.82), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #11345e, #3f93c6 56%, #e7c98d);
+        }
+
+        .cab-offer-local::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.82), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #0f4a5a, #3a8f78 56%, #e2bf75);
+        }
+
+        .cab-offer-day::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.84), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #203144, #5b7e74 52%, #d0a84e);
+        }
+
+        .cab-offer-hourly::before {
+            background:
+                linear-gradient(0deg, rgba(7, 24, 39, 0.84), rgba(7, 24, 39, 0.18)),
+                linear-gradient(135deg, #203144, #5b7e74 52%, #d0a84e);
+        }
+
+        .cab-offer-visual {
+            position: absolute;
+            top: 0.85rem;
+            right: 0.85rem;
+            width: 74px;
+            height: 74px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 2rem;
+        }
+
+        .cab-offer-card span {
+            width: fit-content;
+            border-radius: 999px;
+            padding: 0.18rem 0.48rem;
+            background: rgba(255, 255, 255, 0.88);
+            color: #152a3d;
+            font-size: 0.68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .cab-offer-card h3 {
+            max-width: 340px;
+            margin: 0.58rem 0 0.28rem;
+            color: #ffffff;
+            font-size: 1.15rem;
+            line-height: 1.13;
+            letter-spacing: 0;
+        }
+
+        .cab-offer-card p {
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 0.84rem;
+            line-height: 1.38;
+            margin: 0 0 0.78rem;
+        }
+
+        .cab-offer-card button {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            border-radius: 999px;
+            padding: 0.58rem 0.78rem;
+            background: #ffffff;
+            color: #075d90;
+        }
+
+        .cab-update-grid,
+        .cab-experience-grid,
+        .cab-route-columns {
+            display: grid;
+            gap: 0.82rem;
+        }
+
+        .cab-update-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-update-card,
+        .cab-experience-grid article {
+            padding: 0.95rem;
+        }
+
+        .cab-update-card i,
+        .cab-experience-grid article i {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #eef8ff;
+            color: #1684ba;
+            margin-bottom: 0.72rem;
+        }
+
+        .cab-update-card h3,
+        .cab-experience-grid article h3,
+        .cab-route-columns h3 {
+            color: #102b45;
+            font-size: 0.98rem;
+            line-height: 1.2;
+            letter-spacing: 0;
+            margin: 0 0 0.36rem;
+        }
+
+        .cab-update-card p,
+        .cab-experience-grid article p,
+        .cab-faq-card p {
+            color: #4d6072;
+            font-size: 0.86rem;
+            line-height: 1.46;
+            margin: 0;
+        }
+
+        .cab-experience-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .cab-faq-section {
+            display: grid;
+            gap: 0.68rem;
+        }
+
+        .cab-faq-card {
+            padding: 0.9rem 1rem;
+        }
+
+        .cab-faq-card summary {
+            color: #102b45;
+            cursor: pointer;
+            font-weight: 900;
+            line-height: 1.25;
+        }
+
+        .cab-faq-card p {
+            margin-top: 0.6rem;
+        }
+
+        .cab-route-columns {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .cab-route-columns > div {
+            padding: 0.95rem;
+            background: #f7fbff;
+        }
+
+        .cab-route-columns ul {
+            list-style: none;
+            display: grid;
+            gap: 0.34rem;
+            margin: 0;
+            padding: 0;
+            color: #4e6277;
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .cab-route-columns li::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #1a9fc5;
+            margin-right: 0.42rem;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 1039px) {
+            .cab-offer-rail,
+            .cab-update-grid,
+            .cab-experience-grid,
+            .cab-route-columns {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }

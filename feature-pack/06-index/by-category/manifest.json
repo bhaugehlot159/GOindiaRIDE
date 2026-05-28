@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-05-27T18:19:02.774Z",
+  "source": "feature-pack/06-index/FEATURE-INDEX.json",
+  "totalItems": 2070,
+  "shards": [
+    {
+      "category": "additional",
+      "file": "additional.json",
+      "count": 60
+    },
+    {
+      "category": "admin",
+      "file": "admin.json",
+      "count": 322
+    },
+    {
+      "category": "customer",
+      "file": "customer.json",
+      "count": 880
+    },
+    {
+      "category": "driver",
+      "file": "driver.json",
+      "count": 141
+    },
+    {
+      "category": "security",
+      "file": "security.json",
+      "count": 667
+    }
+  ]
+}

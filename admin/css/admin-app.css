@@ -1264,6 +1264,176 @@ button {
     text-decoration: underline;
 }
 
+.enterprise-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+    gap: 14px;
+}
+
+.enterprise-grid.bottom {
+    margin-top: 14px;
+}
+
+.enterprise-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.enterprise-summary-card,
+.enterprise-module-row,
+.enterprise-mini-row {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.enterprise-summary-card {
+    min-height: 82px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    padding: 12px;
+}
+
+.enterprise-summary-card small,
+.enterprise-summary-card span,
+.enterprise-module-copy small,
+.enterprise-module-copy p,
+.enterprise-module-copy em,
+.enterprise-mini-row small {
+    color: var(--muted);
+}
+
+.enterprise-summary-card strong {
+    color: var(--text);
+    font-size: 1.28rem;
+}
+
+.enterprise-module-list,
+.enterprise-readiness-list,
+.enterprise-live-test-list,
+.enterprise-mini-list {
+    display: grid;
+    gap: 10px;
+}
+
+.enterprise-module-row {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) minmax(126px, auto);
+    align-items: start;
+    gap: 12px;
+    padding: 12px;
+}
+
+.enterprise-module-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--teal), var(--blue));
+}
+
+.enterprise-module-copy {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+}
+
+.enterprise-module-copy strong,
+.enterprise-mini-row strong {
+    color: var(--text);
+}
+
+.enterprise-module-copy p,
+.enterprise-module-copy em {
+    margin: 0;
+    line-height: 1.35;
+}
+
+.enterprise-module-copy em {
+    color: var(--blue);
+    font-style: normal;
+    font-weight: 800;
+}
+
+.enterprise-module-actions {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+}
+
+.enterprise-module-actions .primary-action,
+.enterprise-module-actions .row-action {
+    min-width: 116px;
+}
+
+.enterprise-mini-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+}
+
+.enterprise-mini-row strong,
+.enterprise-mini-row small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.enterprise-live-test-list {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.enterprise-live-test-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--text);
+}
+
+.enterprise-live-test-heading small {
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.enterprise-live-test-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.enterprise-live-test-row strong,
+.enterprise-live-test-row small,
+.enterprise-live-test-row em {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.enterprise-live-test-row small,
+.enterprise-live-test-row em {
+    color: var(--muted);
+}
+
+.enterprise-live-test-row em {
+    margin-top: 4px;
+    font-size: 0.76rem;
+    font-style: normal;
+    font-weight: 800;
+}
+
 .portal-control-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1789,12 +1959,15 @@ button {
     .overview-grid,
     .overview-grid.bottom,
     .benchmark-grid,
+    .enterprise-grid,
+    .enterprise-grid.bottom,
     .portal-control-grid {
         grid-template-columns: 1fr;
     }
 
     .benchmark-summary-grid,
-    .benchmark-source-row {
+    .benchmark-source-row,
+    .enterprise-summary-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -1867,6 +2040,7 @@ button {
     .safety-grid,
     .benchmark-summary-grid,
     .benchmark-source-row,
+    .enterprise-summary-grid,
     .driver-control-list,
     .portal-folder-grid,
     .settings-grid {
@@ -1926,8 +2100,20 @@ button {
     }
 
     .benchmark-row,
-    .benchmark-check-row {
+    .benchmark-check-row,
+    .enterprise-module-row,
+    .enterprise-mini-row,
+    .enterprise-live-test-row {
         grid-template-columns: 1fr;
+    }
+
+    .enterprise-module-actions {
+        justify-items: stretch;
+    }
+
+    .enterprise-module-actions .primary-action,
+    .enterprise-module-actions .row-action {
+        width: 100%;
     }
 
     .feature-control-row {

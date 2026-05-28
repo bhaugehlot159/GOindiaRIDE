@@ -14,6 +14,15 @@
   var nativeKey = null;
   var internalWrite = false;
   var restoreTimer = null;
+  var snapshotTimer = null;
+  var lastSnapshotAt = 0;
+  var lastRestoreAt = 0;
+  var MAX_DEEP_PARSE_CHARS = 220000;
+  var MAX_BACKUP_READ_CHARS = 900000;
+  var MAX_KEYS_PER_PASS = 45;
+  var MAX_BACKUP_KEYS = 120;
+  var MIN_SNAPSHOT_INTERVAL_MS = 12000;
+  var MIN_RESTORE_INTERVAL_MS = 3000;
 
   var EXACT_KEYS = [
     'users',
@@ -189,10 +198,14 @@
     if (raw === null || raw === undefined) {
       return { exists: false, value: undefined, isJson: true };
     }
+    var text = String(raw);
+    if (text.length > MAX_DEEP_PARSE_CHARS) {
+      return { exists: true, value: text, isJson: false, rawTooLarge: true };
+    }
     try {
-      return { exists: true, value: JSON.parse(raw), isJson: true };
+      return { exists: true, value: JSON.parse(text), isJson: true };
     } catch (_error) {
-      return { exists: true, value: String(raw), isJson: false };
+      return { exists: true, value: text, isJson: false };
     }
   }
 
@@ -378,10 +391,40 @@
   }
 
   function readBackup() {
-    var parsed = safeParse(getRaw(BACKUP_KEY));
+    var raw = getRaw(BACKUP_KEY);
+    if (raw && String(raw).length > MAX_BACKUP_READ_CHARS) {
+      return {
+        version: VERSION,
+        stores: {},
+        skippedOversizedBackupAt: new Date().toISOString()
+      };
+    }
+    var parsed = safeParse(raw);
     var backup = parsed.exists && isPlainObject(parsed.value) ? parsed.value : {};
     if (!isPlainObject(backup.stores)) backup.stores = {};
     backup.version = VERSION;
+    return backup;
+  }
+
+  function compactBackupForWrite(backup) {
+    if (!backup || !isPlainObject(backup.stores)) return backup;
+    var stores = backup.stores;
+    var keys = Object.keys(stores);
+    if (keys.length <= MAX_BACKUP_KEYS) return backup;
+
+    keys.sort(function (left, right) {
+      var leftAt = Date.parse((stores[left] && stores[left].updatedAt) || '') || 0;
+      var rightAt = Date.parse((stores[right] && stores[right].updatedAt) || '') || 0;
+      return rightAt - leftAt;
+    });
+
+    var compactStores = {};
+    keys.slice(0, MAX_BACKUP_KEYS).forEach(function (key) {
+      compactStores[key] = stores[key];
+    });
+    backup.stores = compactStores;
+    backup.prunedAt = new Date().toISOString();
+    backup.prunedKeyCount = keys.length - Object.keys(compactStores).length;
     return backup;
   }
 
@@ -389,7 +432,20 @@
     if (!backup || !isPlainObject(backup.stores)) return;
     backup.version = VERSION;
     backup.updatedAt = new Date().toISOString();
-    setRaw(BACKUP_KEY, JSON.stringify(backup));
+    compactBackupForWrite(backup);
+    var raw = '';
+    try {
+      raw = JSON.stringify(backup);
+    } catch (_error) {
+      return;
+    }
+    if (raw.length > MAX_BACKUP_READ_CHARS) {
+      backup.stores = {};
+      backup.prunedAt = new Date().toISOString();
+      backup.prunedReason = 'backup-size-limit';
+      raw = JSON.stringify(backup);
+    }
+    setRaw(BACKUP_KEY, raw);
   }
 
   function backupParsedValue(key, parsed, backup) {
@@ -418,8 +474,24 @@
     return true;
   }
 
-  function snapshotAll() {
+  function normalizeRunOptions(options) {
+    var settings = options && typeof options === 'object' ? options : {};
+    return {
+      force: Boolean(settings.force),
+      maxKeys: Math.max(1, Number(settings.maxKeys) || MAX_KEYS_PER_PASS)
+    };
+  }
+
+  function shouldThrottle(lastRunAt, intervalMs, force) {
+    if (force) return false;
+    return Date.now() - lastRunAt < intervalMs;
+  }
+
+  function snapshotAll(options) {
     if (!storage || !nativeKey) return false;
+    var settings = normalizeRunOptions(options);
+    if (shouldThrottle(lastSnapshotAt, MIN_SNAPSHOT_INTERVAL_MS, settings.force)) return false;
+    lastSnapshotAt = Date.now();
     var backup = readBackup();
     var keys = [];
     try {
@@ -430,6 +502,7 @@
     } catch (_error) {
       return false;
     }
+    keys = keys.slice(0, settings.maxKeys);
     keys.forEach(function (key) {
       backupParsedValue(key, safeParse(getRaw(key)), backup);
     });
@@ -449,14 +522,17 @@
     return false;
   }
 
-  function restoreAll() {
+  function restoreAll(options) {
+    var settings = normalizeRunOptions(options);
+    if (shouldThrottle(lastRestoreAt, MIN_RESTORE_INTERVAL_MS, settings.force)) return false;
+    lastRestoreAt = Date.now();
     var backup = readBackup();
     var stores = backup.stores || {};
     var changed = false;
-    Object.keys(stores).forEach(function (key) {
+    Object.keys(stores).slice(0, settings.maxKeys).forEach(function (key) {
       if (restoreKeyFromEntry(key, stores[key])) changed = true;
     });
-    if (changed) snapshotAll();
+    if (changed) scheduleSnapshot({ maxKeys: settings.maxKeys });
     return changed;
   }
 
@@ -464,19 +540,34 @@
     if (!backup || !isPlainObject(backup.stores)) return false;
     writeBackup(backup);
     var changed = false;
-    Object.keys(backup.stores).forEach(function (key) {
+    Object.keys(backup.stores).slice(0, MAX_KEYS_PER_PASS).forEach(function (key) {
       if (restoreKeyFromEntry(key, backup.stores[key])) changed = true;
     });
-    if (changed) snapshotAll();
+    if (changed) scheduleSnapshot();
     return changed;
   }
 
-  function scheduleRestore() {
+  function scheduleIdle(callback, timeoutMs) {
+    if (typeof global.requestIdleCallback === 'function') {
+      return global.requestIdleCallback(callback, { timeout: timeoutMs || 1200 });
+    }
+    return global.setTimeout(callback, timeoutMs || 250);
+  }
+
+  function scheduleRestore(options) {
     if (restoreTimer) return;
-    restoreTimer = global.setTimeout(function () {
+    restoreTimer = scheduleIdle(function () {
       restoreTimer = null;
-      restoreAll();
-    }, 0);
+      restoreAll(options);
+    }, 900);
+  }
+
+  function scheduleSnapshot(options) {
+    if (snapshotTimer) return;
+    snapshotTimer = scheduleIdle(function () {
+      snapshotTimer = null;
+      snapshotAll(options);
+    }, 1400);
   }
 
   function guardedSetItem(key, value) {
@@ -527,7 +618,7 @@
   function guardedClear() {
     var backup = null;
     if (!internalWrite) {
-      snapshotAll();
+      snapshotAll({ force: true, maxKeys: MAX_BACKUP_KEYS });
       backup = readBackup();
     }
     var result = nativeClear.call(this);
@@ -578,19 +669,26 @@
   }
 
   installStorageGuard();
-  restoreAll();
-  snapshotAll();
+  scheduleRestore();
+  scheduleSnapshot();
 
   if (global.addEventListener) {
     global.addEventListener('DOMContentLoaded', function () {
-      restoreAll();
-      snapshotAll();
+      scheduleRestore();
+      scheduleSnapshot();
     });
-    global.addEventListener('pagehide', snapshotAll);
-    global.addEventListener('beforeunload', snapshotAll);
+    global.addEventListener('pagehide', function () {
+      snapshotAll({ force: true, maxKeys: 25 });
+    });
+    global.addEventListener('beforeunload', function () {
+      snapshotAll({ force: true, maxKeys: 25 });
+    });
     global.addEventListener('visibilitychange', function () {
-      if (!global.document || global.document.visibilityState === 'hidden') snapshotAll();
-      else restoreAll();
+      if (!global.document || global.document.visibilityState === 'hidden') {
+        scheduleSnapshot({ maxKeys: 25 });
+      } else {
+        scheduleRestore();
+      }
     });
     global.addEventListener('storage', function (event) {
       if (!event || !shouldProtectKey(event.key)) return;
@@ -606,6 +704,8 @@
     mergeValues: mergeValues,
     snapshotAll: snapshotAll,
     restoreAll: restoreAll,
+    scheduleSnapshot: scheduleSnapshot,
+    scheduleRestore: scheduleRestore,
     backupKey: backupKey
   };
 })(typeof window !== 'undefined' ? window : globalThis);

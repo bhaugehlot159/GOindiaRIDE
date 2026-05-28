@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "security",
+  "part": 9,
+  "totalParts": 9,
+  "totalFeatureItems": 727,
+  "items": [
+    {
+      "featureId": "U01790",
+      "sourceLine": 1813,
+      "category": "security",
+      "bucket": "general",
+      "text": "इमरजेंसी 'किंग-रिस्पॉन्स': किसी भी दुर्घटना की स्थिति में 20 मिनट के भीतर एम्बुलेंस और बैकअप गाड़ी पहुँचाने का नेटवर्क।",
+      "blockKey": "security-ultimate-u01813-line-1813"
+    },
+    {
+      "featureId": "U01792",
+      "sourceLine": 1815,
+      "category": "security",
+      "bucket": "general",
+      "text": "कार्बन फुटप्रिंट ट्रैकर: आपकी कंपनी द्वारा पर्यावरण को बचाने (EV गाड़ियों से) का लाइव मीटर।",
+      "blockKey": "security-ultimate-u01815-line-1815"
+    },
+    {
+      "featureId": "U01793",
+      "sourceLine": 1816,
+      "category": "security",
+      "bucket": "general",
+      "text": "VVIP प्राइवेसी मोड: सेलिब्रिटी ग्राहकों के लिए उनकी लोकेशन को सार्वजनिक मैप से पूरी तरह गायब करने का फीचर।",
+      "blockKey": "security-ultimate-u01816-line-1816"
+    },
+    {
+      "featureId": "U01794",
+      "sourceLine": 1817,
+      "category": "security",
+      "bucket": "general",
+      "text": "भविष्य का वॉलेट (1234): अजय भाई के नियंत्रण में रहने वाला एक ऐसा वॉलेट जो राजस्थान के हर हस्तशिल्प स्टोर पर चले।",
+      "blockKey": "security-ultimate-u01817-line-1817"
+    },
+    {
+      "featureId": "U01795",
+      "sourceLine": 1818,
+      "category": "security",
+      "bucket": "general",
+      "text": "हुकुम, हमने 16,000 पॉइंट्स का विशाल लक्ष्य प्राप्त कर लिया है!",
+      "blockKey": "security-ultimate-u01818-line-1818"
+    },
+    {
+      "featureId": "U01798",
+      "sourceLine": 1823,
+      "category": "security",
+      "bucket": "general",
+      "text": "वॉलेट सुरक्षा कवच (1234): आपके व्यक्तिगत प्रशासनिक एक्सेस के लिए अभेद्य सुरक्षा प्रोटोकॉल।",
+      "blockKey": "security-ultimate-u01823-line-1823"
+    },
+    {
+      "featureId": "U01818",
+      "sourceLine": 1843,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाश्वत सुरक्षा (The Shield): महिला सुरक्षा, बाल सुरक्षा और अंतरराष्ट्रीय सैलानियों के लिए \"अभय कवच\" कोडिंग।",
+      "blockKey": "security-ultimate-u01843-line-1843"
+    }
+  ]
+}

@@ -1,0 +1,4678 @@
+{
+  "generatedAt": "2026-03-09T18:04:43.255Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\GOindiaRIDE\\feature-pack\\00-source\\COMPLETE-FEATURES-LIST.txt",
+  "desktopSourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\COMPLETE-FEATURES-LIST.txt",
+  "category": "security",
+  "totalItems": 667,
+  "items": [
+    {
+      "id": "L0001",
+      "lineNo": 1,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "FINAL RESULT"
+    },
+    {
+      "id": "L0002",
+      "lineNo": 2,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Free में आपको मिलेगा:"
+    },
+    {
+      "id": "L0003",
+      "lineNo": 3,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Password hashing"
+    },
+    {
+      "id": "L0004",
+      "lineNo": 4,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ JWT secure login"
+    },
+    {
+      "id": "L0005",
+      "lineNo": 5,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Rate limiting"
+    },
+    {
+      "id": "L0006",
+      "lineNo": 6,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ MongoDB injection protection"
+    },
+    {
+      "id": "L0007",
+      "lineNo": 7,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ XSS protection"
+    },
+    {
+      "id": "L0008",
+      "lineNo": 8,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Suspicious activity detection"
+    },
+    {
+      "id": "L0009",
+      "lineNo": 9,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Risk scoring"
+    },
+    {
+      "id": "L0010",
+      "lineNo": 10,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Device tracking"
+    },
+    {
+      "id": "L0011",
+      "lineNo": 11,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Cloudflare firewall"
+    },
+    {
+      "id": "L0012",
+      "lineNo": 12,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0013",
+      "lineNo": 13,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "LEVEL 1 — BASIC BACKEND SECURITY (Must Do First)"
+    },
+    {
+      "id": "L0014",
+      "lineNo": 14,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣ Password Hashing"
+    },
+    {
+      "id": "L0015",
+      "lineNo": 15,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "bcrypt use करें"
+    },
+    {
+      "id": "L0016",
+      "lineNo": 16,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Plain password कभी store न करें"
+    },
+    {
+      "id": "L0017",
+      "lineNo": 17,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Salt rounds ≥ 10"
+    },
+    {
+      "id": "L0018",
+      "lineNo": 18,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣ JWT Authentication"
+    },
+    {
+      "id": "L0019",
+      "lineNo": 19,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Access token (15 min expiry)"
+    },
+    {
+      "id": "L0020",
+      "lineNo": 20,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "Role include करें (admin / user)"
+    },
+    {
+      "id": "L0021",
+      "lineNo": 21,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Protected routes पर middleware"
+    },
+    {
+      "id": "L0022",
+      "lineNo": 22,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣ Role-Based Access Control (RBAC)"
+    },
+    {
+      "id": "L0023",
+      "lineNo": 23,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Admin route → सिर्फ admin"
+    },
+    {
+      "id": "L0024",
+      "lineNo": 24,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "User route → authenticated user"
+    },
+    {
+      "id": "L0025",
+      "lineNo": 25,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4️⃣ Helmet (Security Headers)"
+    },
+    {
+      "id": "L0026",
+      "lineNo": 26,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "XSS protection headers"
+    },
+    {
+      "id": "L0027",
+      "lineNo": 27,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Hide X-Powered-By"
+    },
+    {
+      "id": "L0028",
+      "lineNo": 28,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Frameguard enable"
+    },
+    {
+      "id": "L0029",
+      "lineNo": 29,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5️⃣ Rate Limiting"
+    },
+    {
+      "id": "L0030",
+      "lineNo": 30,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "Login → max 5 attempts / 15 min"
+    },
+    {
+      "id": "L0031",
+      "lineNo": 31,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "OTP → max 3 attempts"
+    },
+    {
+      "id": "L0032",
+      "lineNo": 32,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Global API limit"
+    },
+    {
+      "id": "L0033",
+      "lineNo": 33,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "6️⃣ MongoDB Injection Protection"
+    },
+    {
+      "id": "L0034",
+      "lineNo": 34,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "express-mongo-sanitize"
+    },
+    {
+      "id": "L0035",
+      "lineNo": 35,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "7️⃣ XSS Protection"
+    },
+    {
+      "id": "L0036",
+      "lineNo": 36,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "xss-clean"
+    },
+    {
+      "id": "L0037",
+      "lineNo": 37,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "8️⃣ CORS Strict Configuration"
+    },
+    {
+      "id": "L0038",
+      "lineNo": 38,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "सिर्फ goindiaride.in allow करें"
+    },
+    {
+      "id": "L0039",
+      "lineNo": 39,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "allow मत करें"
+    },
+    {
+      "id": "L0040",
+      "lineNo": 40,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "9️⃣ Environment Variables"
+    },
+    {
+      "id": "L0041",
+      "lineNo": 41,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ".env file use करें"
+    },
+    {
+      "id": "L0042",
+      "lineNo": 42,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "MONGO_URI"
+    },
+    {
+      "id": "L0043",
+      "lineNo": 43,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "JWT_SECRET"
+    },
+    {
+      "id": "L0044",
+      "lineNo": 44,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "FIREBASE_KEY"
+    },
+    {
+      "id": "L0045",
+      "lineNo": 45,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "कभी GitHub पर push न करें"
+    },
+    {
+      "id": "L0046",
+      "lineNo": 46,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0047",
+      "lineNo": 47,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔐 LEVEL 2 — ADVANCED SECURITY (FREE)"
+    },
+    {
+      "id": "L0048",
+      "lineNo": 48,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔟 Refresh Token System"
+    },
+    {
+      "id": "L0049",
+      "lineNo": 49,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Short access token"
+    },
+    {
+      "id": "L0050",
+      "lineNo": 50,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Long refresh token (httpOnly cookie)"
+    },
+    {
+      "id": "L0051",
+      "lineNo": 51,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣1️⃣ Account Lock System"
+    },
+    {
+      "id": "L0052",
+      "lineNo": 52,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5 failed login → 30 min lock"
+    },
+    {
+      "id": "L0053",
+      "lineNo": 53,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣2️⃣ Suspicious Login Logging"
+    },
+    {
+      "id": "L0054",
+      "lineNo": 54,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Store:"
+    },
+    {
+      "id": "L0055",
+      "lineNo": 55,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "IP"
+    },
+    {
+      "id": "L0056",
+      "lineNo": 56,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "device"
+    },
+    {
+      "id": "L0057",
+      "lineNo": 57,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "time"
+    },
+    {
+      "id": "L0058",
+      "lineNo": 58,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "success/fail"
+    },
+    {
+      "id": "L0059",
+      "lineNo": 59,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣3️⃣ Device Fingerprinting"
+    },
+    {
+      "id": "L0060",
+      "lineNo": 60,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Store:"
+    },
+    {
+      "id": "L0061",
+      "lineNo": 61,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "navigator.userAgent"
+    },
+    {
+      "id": "L0062",
+      "lineNo": 62,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "OS"
+    },
+    {
+      "id": "L0063",
+      "lineNo": 63,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Browser"
+    },
+    {
+      "id": "L0064",
+      "lineNo": 64,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "New device → extra OTP"
+    },
+    {
+      "id": "L0065",
+      "lineNo": 65,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣4️⃣ Geo Location Check"
+    },
+    {
+      "id": "L0066",
+      "lineNo": 66,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "IP detect करके:"
+    },
+    {
+      "id": "L0067",
+      "lineNo": 67,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Country mismatch → extra verification"
+    },
+    {
+      "id": "L0068",
+      "lineNo": 68,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣5️⃣ Risk Score System (Free AI Logic)"
+    },
+    {
+      "id": "L0069",
+      "lineNo": 69,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Score calculate:"
+    },
+    {
+      "id": "L0070",
+      "lineNo": 70,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Failed attempts"
+    },
+    {
+      "id": "L0071",
+      "lineNo": 71,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "New device"
+    },
+    {
+      "id": "L0072",
+      "lineNo": 72,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "New IP"
+    },
+    {
+      "id": "L0073",
+      "lineNo": 73,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Multiple OTP"
+    },
+    {
+      "id": "L0074",
+      "lineNo": 74,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Score > threshold → block"
+    },
+    {
+      "id": "L0075",
+      "lineNo": 75,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0076",
+      "lineNo": 76,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🤖 LEVEL 3 — AI STYLE PROTECTION (FREE)"
+    },
+    {
+      "id": "L0077",
+      "lineNo": 77,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣6️⃣ Anomaly Detection Logic"
+    },
+    {
+      "id": "L0078",
+      "lineNo": 78,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "If:"
+    },
+    {
+      "id": "L0079",
+      "lineNo": 79,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1 IP → 20 login attempts"
+    },
+    {
+      "id": "L0080",
+      "lineNo": 80,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Different cities → same account"
+    },
+    {
+      "id": "L0081",
+      "lineNo": 81,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rapid booking creation"
+    },
+    {
+      "id": "L0082",
+      "lineNo": 82,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "→ auto block"
+    },
+    {
+      "id": "L0083",
+      "lineNo": 83,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣7️⃣ Pattern Based Fraud Detection"
+    },
+    {
+      "id": "L0084",
+      "lineNo": 84,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Booking pattern:"
+    },
+    {
+      "id": "L0085",
+      "lineNo": 85,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same card"
+    },
+    {
+      "id": "L0086",
+      "lineNo": 86,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same IP"
+    },
+    {
+      "id": "L0087",
+      "lineNo": 87,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rapid cancel"
+    },
+    {
+      "id": "L0088",
+      "lineNo": 88,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "→ flag user"
+    },
+    {
+      "id": "L0089",
+      "lineNo": 89,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣8️⃣ Automated Temporary Ban System"
+    },
+    {
+      "id": "L0090",
+      "lineNo": 90,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "MongoDB field:"
+    },
+    {
+      "id": "L0091",
+      "lineNo": 91,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0092",
+      "lineNo": 92,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0093",
+      "lineNo": 93,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🌐 LEVEL 4 — NETWORK SECURITY (FREE)"
+    },
+    {
+      "id": "L0094",
+      "lineNo": 94,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣9️⃣ Cloudflare (Free Plan)"
+    },
+    {
+      "id": "L0095",
+      "lineNo": 95,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "DDoS protection"
+    },
+    {
+      "id": "L0096",
+      "lineNo": 96,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Bot fight mode"
+    },
+    {
+      "id": "L0097",
+      "lineNo": 97,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rate limiting"
+    },
+    {
+      "id": "L0098",
+      "lineNo": 98,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "WAF basic rules"
+    },
+    {
+      "id": "L0099",
+      "lineNo": 99,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣0️⃣ HTTPS Only Mode"
+    },
+    {
+      "id": "L0100",
+      "lineNo": 100,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Force HTTPS redirect"
+    },
+    {
+      "id": "L0101",
+      "lineNo": 101,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "HSTS enable"
+    },
+    {
+      "id": "L0102",
+      "lineNo": 102,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🧠 LEVEL 5 — ADMIN SECURITY"
+    },
+    {
+      "id": "L0103",
+      "lineNo": 103,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣1️⃣ Admin 2FA"
+    },
+    {
+      "id": "L0104",
+      "lineNo": 104,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Password"
+    },
+    {
+      "id": "L0105",
+      "lineNo": 105,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Email OTP"
+    },
+    {
+      "id": "L0106",
+      "lineNo": 106,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣2️⃣ Admin IP Restriction"
+    },
+    {
+      "id": "L0107",
+      "lineNo": 107,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Only specific IP allowed"
+    },
+    {
+      "id": "L0108",
+      "lineNo": 108,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣3️⃣ Admin Login Logs"
+    },
+    {
+      "id": "L0109",
+      "lineNo": 109,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Track every admin action"
+    },
+    {
+      "id": "L0110",
+      "lineNo": 110,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0111",
+      "lineNo": 111,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "📊 LEVEL 6 — DATABASE SECURITY"
+    },
+    {
+      "id": "L0112",
+      "lineNo": 112,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣4️⃣ MongoDB Indexing"
+    },
+    {
+      "id": "L0113",
+      "lineNo": 113,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "phone indexed"
+    },
+    {
+      "id": "L0114",
+      "lineNo": 114,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "bookingId indexed"
+    },
+    {
+      "id": "L0115",
+      "lineNo": 115,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣5️⃣ Backup Enable"
+    },
+    {
+      "id": "L0116",
+      "lineNo": 116,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Atlas backup on"
+    },
+    {
+      "id": "L0117",
+      "lineNo": 117,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣6️⃣ Field Validation"
+    },
+    {
+      "id": "L0118",
+      "lineNo": 118,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Mongoose schema validation strict mode"
+    },
+    {
+      "id": "L0119",
+      "lineNo": 119,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0120",
+      "lineNo": 120,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🚀 LEVEL 7 — PRODUCTION HARDENING"
+    },
+    {
+      "id": "L0121",
+      "lineNo": 121,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣7️⃣ Remove console.log"
+    },
+    {
+      "id": "L0122",
+      "lineNo": 122,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣8️⃣ Disable detailed error messages"
+    },
+    {
+      "id": "L0123",
+      "lineNo": 123,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣9️⃣ Use PM2 for auto restart"
+    },
+    {
+      "id": "L0124",
+      "lineNo": 124,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣0️⃣ Set Proper HTTP Status Codes"
+    },
+    {
+      "id": "L0125",
+      "lineNo": 125,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔥 TOTAL FREE SECURITY FEATURES"
+    },
+    {
+      "id": "L0126",
+      "lineNo": 126,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Authentication Security"
+    },
+    {
+      "id": "L0127",
+      "lineNo": 127,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ API Protection"
+    },
+    {
+      "id": "L0128",
+      "lineNo": 128,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Injection Protection"
+    },
+    {
+      "id": "L0129",
+      "lineNo": 129,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ XSS Protection"
+    },
+    {
+      "id": "L0130",
+      "lineNo": 130,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Brute Force Protection"
+    },
+    {
+      "id": "L0131",
+      "lineNo": 131,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ AI Risk Scoring"
+    },
+    {
+      "id": "L0132",
+      "lineNo": 132,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Device Tracking"
+    },
+    {
+      "id": "L0133",
+      "lineNo": 133,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Geo Tracking"
+    },
+    {
+      "id": "L0134",
+      "lineNo": 134,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Auto Ban System"
+    },
+    {
+      "id": "L0135",
+      "lineNo": 135,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Admin Security"
+    },
+    {
+      "id": "L0136",
+      "lineNo": 136,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Network Firewall"
+    },
+    {
+      "id": "L0137",
+      "lineNo": 137,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Database Hardening"
+    },
+    {
+      "id": "L0138",
+      "lineNo": 138,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0139",
+      "lineNo": 139,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0140",
+      "lineNo": 140,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "LEVEL 8 — REAL AI BEHAVIOR ANALYSIS (FREE LOGIC BASED AI)"
+    },
+    {
+      "id": "L0141",
+      "lineNo": 141,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣ User Behavior Tracking Engine"
+    },
+    {
+      "id": "L0142",
+      "lineNo": 142,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Track:"
+    },
+    {
+      "id": "L0143",
+      "lineNo": 143,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Login time pattern"
+    },
+    {
+      "id": "L0144",
+      "lineNo": 144,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Booking time pattern"
+    },
+    {
+      "id": "L0145",
+      "lineNo": 145,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Average ride distance"
+    },
+    {
+      "id": "L0146",
+      "lineNo": 146,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Booking frequency"
+    },
+    {
+      "id": "L0147",
+      "lineNo": 147,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Cancel ratio"
+    },
+    {
+      "id": "L0148",
+      "lineNo": 148,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "👉 अगर अचानक unusual activity:"
+    },
+    {
+      "id": "L0149",
+      "lineNo": 149,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1 दिन में 20 rides"
+    },
+    {
+      "id": "L0150",
+      "lineNo": 150,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Midnight activity suddenly"
+    },
+    {
+      "id": "L0151",
+      "lineNo": 151,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "High value ride spike"
+    },
+    {
+      "id": "L0152",
+      "lineNo": 152,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "→ Risk score increase"
+    },
+    {
+      "id": "L0153",
+      "lineNo": 153,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣ Behavioral Fingerprinting"
+    },
+    {
+      "id": "L0154",
+      "lineNo": 154,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Store:"
+    },
+    {
+      "id": "L0155",
+      "lineNo": 155,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Typing speed (login page)"
+    },
+    {
+      "id": "L0156",
+      "lineNo": 156,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Click timing"
+    },
+    {
+      "id": "L0157",
+      "lineNo": 157,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Form fill duration"
+    },
+    {
+      "id": "L0158",
+      "lineNo": 158,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Scroll behavior"
+    },
+    {
+      "id": "L0159",
+      "lineNo": 159,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Bot vs Human detect कर सकते हो"
+    },
+    {
+      "id": "L0160",
+      "lineNo": 160,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣ Continuous Authentication"
+    },
+    {
+      "id": "L0161",
+      "lineNo": 161,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "User login के बाद भी:"
+    },
+    {
+      "id": "L0162",
+      "lineNo": 162,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "हर critical action पर background risk check"
+    },
+    {
+      "id": "L0163",
+      "lineNo": 163,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Example:"
+    },
+    {
+      "id": "L0164",
+      "lineNo": 164,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Payment"
+    },
+    {
+      "id": "L0165",
+      "lineNo": 165,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Cancel ride"
+    },
+    {
+      "id": "L0166",
+      "lineNo": 166,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Change phone/email"
+    },
+    {
+      "id": "L0167",
+      "lineNo": 167,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4️⃣ AI Risk Engine (Custom Logic)"
+    },
+    {
+      "id": "L0168",
+      "lineNo": 168,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "MongoDB field:"
+    },
+    {
+      "id": "L0169",
+      "lineNo": 169,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Copy code"
+    },
+    {
+      "id": "L0170",
+      "lineNo": 170,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0171",
+      "lineNo": 171,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "riskScore"
+    },
+    {
+      "id": "L0172",
+      "lineNo": 172,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "lastRiskUpdate"
+    },
+    {
+      "id": "L0173",
+      "lineNo": 173,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Score calculate from:"
+    },
+    {
+      "id": "L0174",
+      "lineNo": 174,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Failed login"
+    },
+    {
+      "id": "L0175",
+      "lineNo": 175,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "New device"
+    },
+    {
+      "id": "L0176",
+      "lineNo": 176,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "IP change"
+    },
+    {
+      "id": "L0177",
+      "lineNo": 177,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Location mismatch"
+    },
+    {
+      "id": "L0178",
+      "lineNo": 178,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Fast booking"
+    },
+    {
+      "id": "L0179",
+      "lineNo": 179,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Admin route attempt"
+    },
+    {
+      "id": "L0180",
+      "lineNo": 180,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Score > 70 → auto block"
+    },
+    {
+      "id": "L0181",
+      "lineNo": 181,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Score 40-70 → OTP"
+    },
+    {
+      "id": "L0182",
+      "lineNo": 182,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Score < 40 → normal"
+    },
+    {
+      "id": "L0183",
+      "lineNo": 183,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0184",
+      "lineNo": 184,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0185",
+      "lineNo": 185,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🧠 LEVEL 9 — FRAUD DETECTION SYSTEM"
+    },
+    {
+      "id": "L0186",
+      "lineNo": 186,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5️⃣ Fake Ride Detection"
+    },
+    {
+      "id": "L0187",
+      "lineNo": 187,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Detect:"
+    },
+    {
+      "id": "L0188",
+      "lineNo": 188,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same user → multiple accounts"
+    },
+    {
+      "id": "L0189",
+      "lineNo": 189,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same device → multiple users"
+    },
+    {
+      "id": "L0190",
+      "lineNo": 190,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same IP → bulk booking"
+    },
+    {
+      "id": "L0191",
+      "lineNo": 191,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "6️⃣ Payment Pattern AI"
+    },
+    {
+      "id": "L0192",
+      "lineNo": 192,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Check:"
+    },
+    {
+      "id": "L0193",
+      "lineNo": 193,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same card → multiple accounts"
+    },
+    {
+      "id": "L0194",
+      "lineNo": 194,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Fast cancel after booking"
+    },
+    {
+      "id": "L0195",
+      "lineNo": 195,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Repeated refund pattern"
+    },
+    {
+      "id": "L0196",
+      "lineNo": 196,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "7️⃣ Promo Abuse Detection"
+    },
+    {
+      "id": "L0197",
+      "lineNo": 197,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Track:"
+    },
+    {
+      "id": "L0198",
+      "lineNo": 198,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same IP → many new accounts"
+    },
+    {
+      "id": "L0199",
+      "lineNo": 199,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same referral code repeatedly"
+    },
+    {
+      "id": "L0200",
+      "lineNo": 200,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0201",
+      "lineNo": 201,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0202",
+      "lineNo": 202,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🛰 LEVEL 10 — DEVICE & NETWORK INTELLIGENCE"
+    },
+    {
+      "id": "L0203",
+      "lineNo": 203,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "8️⃣ Device Trust Score"
+    },
+    {
+      "id": "L0204",
+      "lineNo": 204,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Every device gets trust rating:"
+    },
+    {
+      "id": "L0205",
+      "lineNo": 205,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Known device → low risk"
+    },
+    {
+      "id": "L0206",
+      "lineNo": 206,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "New device → high risk"
+    },
+    {
+      "id": "L0207",
+      "lineNo": 207,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Emulator detect → block"
+    },
+    {
+      "id": "L0208",
+      "lineNo": 208,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "9️⃣ Proxy / VPN Detection (Basic Free)"
+    },
+    {
+      "id": "L0209",
+      "lineNo": 209,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Use:"
+    },
+    {
+      "id": "L0210",
+      "lineNo": 210,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "IP blacklist"
+    },
+    {
+      "id": "L0211",
+      "lineNo": 211,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Detect common VPN ASN"
+    },
+    {
+      "id": "L0212",
+      "lineNo": 212,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Suspicious IP range detection"
+    },
+    {
+      "id": "L0213",
+      "lineNo": 213,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔟 Bot Detection (FREE VERSION)"
+    },
+    {
+      "id": "L0214",
+      "lineNo": 214,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Implement:"
+    },
+    {
+      "id": "L0215",
+      "lineNo": 215,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "reCAPTCHA v2"
+    },
+    {
+      "id": "L0216",
+      "lineNo": 216,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Honeypot hidden input"
+    },
+    {
+      "id": "L0217",
+      "lineNo": 217,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Time-based form submission check"
+    },
+    {
+      "id": "L0218",
+      "lineNo": 218,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0219",
+      "lineNo": 219,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🛡 LEVEL 11 — ADVANCED ATTACK PREVENTION"
+    },
+    {
+      "id": "L0220",
+      "lineNo": 220,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣1️⃣ CSRF Protection"
+    },
+    {
+      "id": "L0221",
+      "lineNo": 221,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "csurf middleware"
+    },
+    {
+      "id": "L0222",
+      "lineNo": 222,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "SameSite cookies"
+    },
+    {
+      "id": "L0223",
+      "lineNo": 223,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣2️⃣ API Signature Verification"
+    },
+    {
+      "id": "L0224",
+      "lineNo": 224,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Each request:"
+    },
+    {
+      "id": "L0225",
+      "lineNo": 225,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "timestamp"
+    },
+    {
+      "id": "L0226",
+      "lineNo": 226,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "hashed signature"
+    },
+    {
+      "id": "L0227",
+      "lineNo": 227,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Prevents replay attack"
+    },
+    {
+      "id": "L0228",
+      "lineNo": 228,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣3️⃣ Replay Attack Protection"
+    },
+    {
+      "id": "L0229",
+      "lineNo": 229,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Store:"
+    },
+    {
+      "id": "L0230",
+      "lineNo": 230,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "last request timestamp Reject old duplicate requests"
+    },
+    {
+      "id": "L0231",
+      "lineNo": 231,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣4️⃣ Data Tampering Detection"
+    },
+    {
+      "id": "L0232",
+      "lineNo": 232,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Hash critical fields:"
+    },
+    {
+      "id": "L0233",
+      "lineNo": 233,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "ride price"
+    },
+    {
+      "id": "L0234",
+      "lineNo": 234,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "fare calculation"
+    },
+    {
+      "id": "L0235",
+      "lineNo": 235,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Recalculate on backend only"
+    },
+    {
+      "id": "L0236",
+      "lineNo": 236,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0237",
+      "lineNo": 237,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "📡 LEVEL 12 — REAL TIME SECURITY MONITORING"
+    },
+    {
+      "id": "L0238",
+      "lineNo": 238,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣5️⃣ Security Event Collection"
+    },
+    {
+      "id": "L0239",
+      "lineNo": 239,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Create collection:"
+    },
+    {
+      "id": "L0240",
+      "lineNo": 240,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Copy code"
+    },
+    {
+      "id": "L0241",
+      "lineNo": 241,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0242",
+      "lineNo": 242,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "securityLogs"
+    },
+    {
+      "id": "L0243",
+      "lineNo": 243,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Store:"
+    },
+    {
+      "id": "L0244",
+      "lineNo": 244,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "userId"
+    },
+    {
+      "id": "L0245",
+      "lineNo": 245,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "action"
+    },
+    {
+      "id": "L0246",
+      "lineNo": 246,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "ip"
+    },
+    {
+      "id": "L0247",
+      "lineNo": 247,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "riskScore"
+    },
+    {
+      "id": "L0248",
+      "lineNo": 248,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "result"
+    },
+    {
+      "id": "L0249",
+      "lineNo": 249,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣6️⃣ Admin Security Dashboard"
+    },
+    {
+      "id": "L0250",
+      "lineNo": 250,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Show:"
+    },
+    {
+      "id": "L0251",
+      "lineNo": 251,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Blocked users"
+    },
+    {
+      "id": "L0252",
+      "lineNo": 252,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Risk score users"
+    },
+    {
+      "id": "L0253",
+      "lineNo": 253,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Suspicious activity"
+    },
+    {
+      "id": "L0254",
+      "lineNo": 254,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣7️⃣ Alert System"
+    },
+    {
+      "id": "L0255",
+      "lineNo": 255,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Auto email when:"
+    },
+    {
+      "id": "L0256",
+      "lineNo": 256,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Admin login"
+    },
+    {
+      "id": "L0257",
+      "lineNo": 257,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Risk score > 80"
+    },
+    {
+      "id": "L0258",
+      "lineNo": 258,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Multiple failed login"
+    },
+    {
+      "id": "L0259",
+      "lineNo": 259,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0260",
+      "lineNo": 260,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔥 LEVEL 13 — PRODUCTION HARDCORE MODE"
+    },
+    {
+      "id": "L0261",
+      "lineNo": 261,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣8️⃣ Secure Cookies"
+    },
+    {
+      "id": "L0262",
+      "lineNo": 262,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "httpOnly"
+    },
+    {
+      "id": "L0263",
+      "lineNo": 263,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "secure"
+    },
+    {
+      "id": "L0264",
+      "lineNo": 264,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "sameSite strict"
+    },
+    {
+      "id": "L0265",
+      "lineNo": 265,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣9️⃣ Database Query Rate Monitor"
+    },
+    {
+      "id": "L0266",
+      "lineNo": 266,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Detect:"
+    },
+    {
+      "id": "L0267",
+      "lineNo": 267,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Bulk scraping"
+    },
+    {
+      "id": "L0268",
+      "lineNo": 268,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Automated data extraction"
+    },
+    {
+      "id": "L0269",
+      "lineNo": 269,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣0️⃣ Smart Lockdown Mode"
+    },
+    {
+      "id": "L0270",
+      "lineNo": 270,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "If:"
+    },
+    {
+      "id": "L0271",
+      "lineNo": 271,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Server attack detected"
+    },
+    {
+      "id": "L0272",
+      "lineNo": 272,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Massive login attempts"
+    },
+    {
+      "id": "L0273",
+      "lineNo": 273,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "→ Auto:"
+    },
+    {
+      "id": "L0274",
+      "lineNo": 274,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Increase rate limit"
+    },
+    {
+      "id": "L0275",
+      "lineNo": 275,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Force CAPTCHA"
+    },
+    {
+      "id": "L0276",
+      "lineNo": 276,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Block suspicious IP"
+    },
+    {
+      "id": "L0277",
+      "lineNo": 277,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0278",
+      "lineNo": 278,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🚀 LEVEL 14 — FUTURE AI EXTENSION (जब ready हो)"
+    },
+    {
+      "id": "L0279",
+      "lineNo": 279,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "TensorFlow anomaly detection"
+    },
+    {
+      "id": "L0280",
+      "lineNo": 280,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "ML based fraud scoring"
+    },
+    {
+      "id": "L0281",
+      "lineNo": 281,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Real-time ride fraud model"
+    },
+    {
+      "id": "L0282",
+      "lineNo": 282,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Auto learning risk engine"
+    },
+    {
+      "id": "L0283",
+      "lineNo": 283,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🧠 FINAL ARCHITECTURE SUMMARY"
+    },
+    {
+      "id": "L0284",
+      "lineNo": 284,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "अब तुम्हारी system में होगा:"
+    },
+    {
+      "id": "L0285",
+      "lineNo": 285,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Authentication security"
+    },
+    {
+      "id": "L0286",
+      "lineNo": 286,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Role control"
+    },
+    {
+      "id": "L0287",
+      "lineNo": 287,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ AI risk scoring"
+    },
+    {
+      "id": "L0288",
+      "lineNo": 288,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Device fingerprinting"
+    },
+    {
+      "id": "L0289",
+      "lineNo": 289,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Behavior tracking"
+    },
+    {
+      "id": "L0290",
+      "lineNo": 290,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Fraud detection"
+    },
+    {
+      "id": "L0291",
+      "lineNo": 291,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Continuous authentication"
+    },
+    {
+      "id": "L0292",
+      "lineNo": 292,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Auto blocking"
+    },
+    {
+      "id": "L0293",
+      "lineNo": 293,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Admin monitoring"
+    },
+    {
+      "id": "L0294",
+      "lineNo": 294,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Smart lockdown mode"
+    },
+    {
+      "id": "L0295",
+      "lineNo": 295,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0296",
+      "lineNo": 296,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0297",
+      "lineNo": 297,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣ AI Risk Engine implement करें"
+    },
+    {
+      "id": "L0298",
+      "lineNo": 298,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣ Device fingerprinting system बनाएं"
+    },
+    {
+      "id": "L0299",
+      "lineNo": 299,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣ Complete security architecture diagram दूँ"
+    },
+    {
+      "id": "L0300",
+      "lineNo": 300,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4️⃣ Fraud detection system code शुरू करें"
+    },
+    {
+      "id": "L0301",
+      "lineNo": 301,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0302",
+      "lineNo": 302,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0303",
+      "lineNo": 303,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🌍 LEVEL 15 — GLOBAL SECURITY FOUNDATION"
+    },
+    {
+      "id": "L0304",
+      "lineNo": 304,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣ HTTPS Everywhere"
+    },
+    {
+      "id": "L0305",
+      "lineNo": 305,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Force HTTPS"
+    },
+    {
+      "id": "L0306",
+      "lineNo": 306,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "HSTS enable"
+    },
+    {
+      "id": "L0307",
+      "lineNo": 307,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "TLS 1.2 / 1.3 only"
+    },
+    {
+      "id": "L0308",
+      "lineNo": 308,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Strong cipher suite"
+    },
+    {
+      "id": "L0309",
+      "lineNo": 309,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣ Global CDN + DDoS Protection"
+    },
+    {
+      "id": "L0310",
+      "lineNo": 310,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Use:"
+    },
+    {
+      "id": "L0311",
+      "lineNo": 311,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Cloudflare (Free plan available)"
+    },
+    {
+      "id": "L0312",
+      "lineNo": 312,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Benefits:"
+    },
+    {
+      "id": "L0313",
+      "lineNo": 313,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "DDoS protection"
+    },
+    {
+      "id": "L0314",
+      "lineNo": 314,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "WAF (Web Application Firewall)"
+    },
+    {
+      "id": "L0315",
+      "lineNo": 315,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Bot protection"
+    },
+    {
+      "id": "L0316",
+      "lineNo": 316,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rate limiting"
+    },
+    {
+      "id": "L0317",
+      "lineNo": 317,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Geo blocking"
+    },
+    {
+      "id": "L0318",
+      "lineNo": 318,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣ WAF Rules"
+    },
+    {
+      "id": "L0319",
+      "lineNo": 319,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Block:"
+    },
+    {
+      "id": "L0320",
+      "lineNo": 320,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "SQL injection"
+    },
+    {
+      "id": "L0321",
+      "lineNo": 321,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "XSS"
+    },
+    {
+      "id": "L0322",
+      "lineNo": 322,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Path traversal"
+    },
+    {
+      "id": "L0323",
+      "lineNo": 323,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Bad bots"
+    },
+    {
+      "id": "L0324",
+      "lineNo": 324,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0325",
+      "lineNo": 325,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0326",
+      "lineNo": 326,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔐 LEVEL 16 — INTERNATIONAL COMPLIANCE SECURITY"
+    },
+    {
+      "id": "L0327",
+      "lineNo": 327,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "अगर international जाना है तो ये जरूरी है:"
+    },
+    {
+      "id": "L0328",
+      "lineNo": 328,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4️⃣ GDPR Ready (Europe)"
+    },
+    {
+      "id": "L0329",
+      "lineNo": 329,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Data deletion request"
+    },
+    {
+      "id": "L0330",
+      "lineNo": 330,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "User data export"
+    },
+    {
+      "id": "L0331",
+      "lineNo": 331,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Cookie consent system"
+    },
+    {
+      "id": "L0332",
+      "lineNo": 332,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5️⃣ Data Encryption Strategy"
+    },
+    {
+      "id": "L0333",
+      "lineNo": 333,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Password → bcrypt"
+    },
+    {
+      "id": "L0334",
+      "lineNo": 334,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Sensitive fields → AES encryption"
+    },
+    {
+      "id": "L0335",
+      "lineNo": 335,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Environment variables → secure vault"
+    },
+    {
+      "id": "L0336",
+      "lineNo": 336,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "6️⃣ Data Localization Planning"
+    },
+    {
+      "id": "L0337",
+      "lineNo": 337,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Region wise DB:"
+    },
+    {
+      "id": "L0338",
+      "lineNo": 338,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "India"
+    },
+    {
+      "id": "L0339",
+      "lineNo": 339,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Europe"
+    },
+    {
+      "id": "L0340",
+      "lineNo": 340,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Middle East (Cloud future scaling)"
+    },
+    {
+      "id": "L0341",
+      "lineNo": 341,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0342",
+      "lineNo": 342,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0343",
+      "lineNo": 343,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🤖 LEVEL 17 — ADVANCED AI FRAUD DEFENSE"
+    },
+    {
+      "id": "L0344",
+      "lineNo": 344,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "7️⃣ Global Risk Score Engine"
+    },
+    {
+      "id": "L0345",
+      "lineNo": 345,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Risk factors:"
+    },
+    {
+      "id": "L0346",
+      "lineNo": 346,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Country mismatch"
+    },
+    {
+      "id": "L0347",
+      "lineNo": 347,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "IP vs SIM country mismatch"
+    },
+    {
+      "id": "L0348",
+      "lineNo": 348,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Timezone mismatch"
+    },
+    {
+      "id": "L0349",
+      "lineNo": 349,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Currency anomaly"
+    },
+    {
+      "id": "L0350",
+      "lineNo": 350,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Device change"
+    },
+    {
+      "id": "L0351",
+      "lineNo": 351,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "8️⃣ Impossible Travel Detection"
+    },
+    {
+      "id": "L0352",
+      "lineNo": 352,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Example:"
+    },
+    {
+      "id": "L0353",
+      "lineNo": 353,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5 min ago India"
+    },
+    {
+      "id": "L0354",
+      "lineNo": 354,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Now login from UK"
+    },
+    {
+      "id": "L0355",
+      "lineNo": 355,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "→ auto block"
+    },
+    {
+      "id": "L0356",
+      "lineNo": 356,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "9️⃣ Behavioral Biometrics"
+    },
+    {
+      "id": "L0357",
+      "lineNo": 357,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Mouse movement pattern"
+    },
+    {
+      "id": "L0358",
+      "lineNo": 358,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Touch speed (mobile)"
+    },
+    {
+      "id": "L0359",
+      "lineNo": 359,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Gesture pattern"
+    },
+    {
+      "id": "L0360",
+      "lineNo": 360,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0361",
+      "lineNo": 361,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0362",
+      "lineNo": 362,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🏦 LEVEL 18 — PAYMENT SECURITY (CRITICAL)"
+    },
+    {
+      "id": "L0363",
+      "lineNo": 363,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔟 PCI-DSS Awareness"
+    },
+    {
+      "id": "L0364",
+      "lineNo": 364,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Never store:"
+    },
+    {
+      "id": "L0365",
+      "lineNo": 365,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Card number"
+    },
+    {
+      "id": "L0366",
+      "lineNo": 366,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "CVV"
+    },
+    {
+      "id": "L0367",
+      "lineNo": 367,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Use payment gateway tokenization only."
+    },
+    {
+      "id": "L0368",
+      "lineNo": 368,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣1️⃣ Secure Payment Gateway"
+    },
+    {
+      "id": "L0369",
+      "lineNo": 369,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Example:"
+    },
+    {
+      "id": "L0370",
+      "lineNo": 370,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Stripe"
+    },
+    {
+      "id": "L0371",
+      "lineNo": 371,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Razorpay"
+    },
+    {
+      "id": "L0372",
+      "lineNo": 372,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0373",
+      "lineNo": 373,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0374",
+      "lineNo": 374,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🌎 LEVEL 19 — GLOBAL INFRASTRUCTURE HARDENING"
+    },
+    {
+      "id": "L0375",
+      "lineNo": 375,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣2️⃣ Multi-Region Hosting"
+    },
+    {
+      "id": "L0376",
+      "lineNo": 376,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "AWS / DigitalOcean"
+    },
+    {
+      "id": "L0377",
+      "lineNo": 377,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Load balancer"
+    },
+    {
+      "id": "L0378",
+      "lineNo": 378,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Auto scaling"
+    },
+    {
+      "id": "L0379",
+      "lineNo": 379,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣3️⃣ Zero Trust Architecture"
+    },
+    {
+      "id": "L0380",
+      "lineNo": 380,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Every request verified:"
+    },
+    {
+      "id": "L0381",
+      "lineNo": 381,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Token"
+    },
+    {
+      "id": "L0382",
+      "lineNo": 382,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Device"
+    },
+    {
+      "id": "L0383",
+      "lineNo": 383,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Risk score"
+    },
+    {
+      "id": "L0384",
+      "lineNo": 384,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣4️⃣ API Security Shield"
+    },
+    {
+      "id": "L0385",
+      "lineNo": 385,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rate limit per country"
+    },
+    {
+      "id": "L0386",
+      "lineNo": 386,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Per device limit"
+    },
+    {
+      "id": "L0387",
+      "lineNo": 387,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Per account limit"
+    },
+    {
+      "id": "L0388",
+      "lineNo": 388,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0389",
+      "lineNo": 389,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0390",
+      "lineNo": 390,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🛡 LEVEL 20 — ENTERPRISE MONITORING"
+    },
+    {
+      "id": "L0391",
+      "lineNo": 391,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣5️⃣ Centralized Logging"
+    },
+    {
+      "id": "L0392",
+      "lineNo": 392,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Log:"
+    },
+    {
+      "id": "L0393",
+      "lineNo": 393,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Auth attempts"
+    },
+    {
+      "id": "L0394",
+      "lineNo": 394,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Admin activity"
+    },
+    {
+      "id": "L0395",
+      "lineNo": 395,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Payment triggers"
+    },
+    {
+      "id": "L0396",
+      "lineNo": 396,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Suspicious behavior"
+    },
+    {
+      "id": "L0397",
+      "lineNo": 397,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣6️⃣ SIEM-style Monitoring (Basic Free Version)"
+    },
+    {
+      "id": "L0398",
+      "lineNo": 398,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Real-time alert:"
+    },
+    {
+      "id": "L0399",
+      "lineNo": 399,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "High risk user"
+    },
+    {
+      "id": "L0400",
+      "lineNo": 400,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Multiple failures"
+    },
+    {
+      "id": "L0401",
+      "lineNo": 401,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "API abuse"
+    },
+    {
+      "id": "L0402",
+      "lineNo": 402,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0403",
+      "lineNo": 403,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0404",
+      "lineNo": 404,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🧠 LEVEL 21 — AI AUTONOMOUS DEFENSE"
+    },
+    {
+      "id": "L0405",
+      "lineNo": 405,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣7️⃣ Self-Learning Risk Engine"
+    },
+    {
+      "id": "L0406",
+      "lineNo": 406,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Increase risk weight automatically"
+    },
+    {
+      "id": "L0407",
+      "lineNo": 407,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Learn fraud patterns"
+    },
+    {
+      "id": "L0408",
+      "lineNo": 408,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣8️⃣ Auto Ban Engine"
+    },
+    {
+      "id": "L0409",
+      "lineNo": 409,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "If:"
+    },
+    {
+      "id": "L0410",
+      "lineNo": 410,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Risk score > 85"
+    },
+    {
+      "id": "L0411",
+      "lineNo": 411,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Bot detected"
+    },
+    {
+      "id": "L0412",
+      "lineNo": 412,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Fraud pattern match"
+    },
+    {
+      "id": "L0413",
+      "lineNo": 413,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "→ Permanent ban"
+    },
+    {
+      "id": "L0414",
+      "lineNo": 414,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0415",
+      "lineNo": 415,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0416",
+      "lineNo": 416,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔒 LEVEL 22 — DATA PROTECTION + LEGAL SAFETY"
+    },
+    {
+      "id": "L0417",
+      "lineNo": 417,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣9️⃣ Data Retention Policy"
+    },
+    {
+      "id": "L0418",
+      "lineNo": 418,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Auto delete inactive data"
+    },
+    {
+      "id": "L0419",
+      "lineNo": 419,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Log retention 90 days"
+    },
+    {
+      "id": "L0420",
+      "lineNo": 420,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣0️⃣ Admin Audit Trail"
+    },
+    {
+      "id": "L0421",
+      "lineNo": 421,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Track:"
+    },
+    {
+      "id": "L0422",
+      "lineNo": 422,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Who changed what"
+    },
+    {
+      "id": "L0423",
+      "lineNo": 423,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "When"
+    },
+    {
+      "id": "L0424",
+      "lineNo": 424,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "From which IP"
+    },
+    {
+      "id": "L0425",
+      "lineNo": 425,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0426",
+      "lineNo": 426,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🚀 FINAL INTERNATIONAL SECURITY STACK"
+    },
+    {
+      "id": "L0427",
+      "lineNo": 427,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ CDN + WAF"
+    },
+    {
+      "id": "L0428",
+      "lineNo": 428,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ DDoS shield"
+    },
+    {
+      "id": "L0429",
+      "lineNo": 429,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ GDPR ready system"
+    },
+    {
+      "id": "L0430",
+      "lineNo": 430,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Encrypted sensitive data"
+    },
+    {
+      "id": "L0431",
+      "lineNo": 431,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ AI risk engine"
+    },
+    {
+      "id": "L0432",
+      "lineNo": 432,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Device fingerprinting"
+    },
+    {
+      "id": "L0433",
+      "lineNo": 433,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Fraud detection"
+    },
+    {
+      "id": "L0434",
+      "lineNo": 434,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Payment tokenization"
+    },
+    {
+      "id": "L0435",
+      "lineNo": 435,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Multi region infra"
+    },
+    {
+      "id": "L0436",
+      "lineNo": 436,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Zero trust backend"
+    },
+    {
+      "id": "L0437",
+      "lineNo": 437,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Admin audit log"
+    },
+    {
+      "id": "L0438",
+      "lineNo": 438,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Self learning AI"
+    },
+    {
+      "id": "L0439",
+      "lineNo": 439,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0440",
+      "lineNo": 440,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0441",
+      "lineNo": 441,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣ International Security Architecture diagram"
+    },
+    {
+      "id": "L0442",
+      "lineNo": 442,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣ GDPR implementation guide"
+    },
+    {
+      "id": "L0443",
+      "lineNo": 443,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣ AI Global Risk Engine coding"
+    },
+    {
+      "id": "L0444",
+      "lineNo": 444,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4️⃣ Enterprise level backend structure"
+    },
+    {
+      "id": "L0445",
+      "lineNo": 445,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5️⃣ Complete production deployment plan"
+    },
+    {
+      "id": "L0446",
+      "lineNo": 446,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0447",
+      "lineNo": 447,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0448",
+      "lineNo": 448,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✅ EXISTING 22 LEVEL REVIEW (Short Audit)"
+    },
+    {
+      "id": "L0449",
+      "lineNo": 449,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Covered well:"
+    },
+    {
+      "id": "L0450",
+      "lineNo": 450,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "CDN + WAF"
+    },
+    {
+      "id": "L0451",
+      "lineNo": 451,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "DDoS"
+    },
+    {
+      "id": "L0452",
+      "lineNo": 452,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "AI Risk engine"
+    },
+    {
+      "id": "L0453",
+      "lineNo": 453,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Fraud detection"
+    },
+    {
+      "id": "L0454",
+      "lineNo": 454,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Encryption"
+    },
+    {
+      "id": "L0455",
+      "lineNo": 455,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Payment tokenization"
+    },
+    {
+      "id": "L0456",
+      "lineNo": 456,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "GDPR basic"
+    },
+    {
+      "id": "L0457",
+      "lineNo": 457,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Audit logs"
+    },
+    {
+      "id": "L0458",
+      "lineNo": 458,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Zero trust idea"
+    },
+    {
+      "id": "L0459",
+      "lineNo": 459,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0460",
+      "lineNo": 460,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0461",
+      "lineNo": 461,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🚨 LEVEL 23 — SUPPLY CHAIN SECURITY (CRITICAL)"
+    },
+    {
+      "id": "L0462",
+      "lineNo": 462,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣ Dependency Vulnerability Scanning"
+    },
+    {
+      "id": "L0463",
+      "lineNo": 463,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Node.js project में:"
+    },
+    {
+      "id": "L0464",
+      "lineNo": 464,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "npm audit"
+    },
+    {
+      "id": "L0465",
+      "lineNo": 465,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Snyk (free tier)"
+    },
+    {
+      "id": "L0466",
+      "lineNo": 466,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Automatically block:"
+    },
+    {
+      "id": "L0467",
+      "lineNo": 467,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Vulnerable packages"
+    },
+    {
+      "id": "L0468",
+      "lineNo": 468,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Outdated libraries"
+    },
+    {
+      "id": "L0469",
+      "lineNo": 469,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣ Lock File Integrity"
+    },
+    {
+      "id": "L0470",
+      "lineNo": 470,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "package-lock.json commit"
+    },
+    {
+      "id": "L0471",
+      "lineNo": 471,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Hash verification"
+    },
+    {
+      "id": "L0472",
+      "lineNo": 472,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3️⃣ CI/CD Security"
+    },
+    {
+      "id": "L0473",
+      "lineNo": 473,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Secret scanning"
+    },
+    {
+      "id": "L0474",
+      "lineNo": 474,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Auto test before deploy"
+    },
+    {
+      "id": "L0475",
+      "lineNo": 475,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Production deploy approval gate"
+    },
+    {
+      "id": "L0476",
+      "lineNo": 476,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0477",
+      "lineNo": 477,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0478",
+      "lineNo": 478,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🛡 LEVEL 24 — SECRET MANAGEMENT HARDENING"
+    },
+    {
+      "id": "L0479",
+      "lineNo": 479,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4️⃣ .env Protection"
+    },
+    {
+      "id": "L0480",
+      "lineNo": 480,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Never:"
+    },
+    {
+      "id": "L0481",
+      "lineNo": 481,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Commit .env to GitHub"
+    },
+    {
+      "id": "L0482",
+      "lineNo": 482,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Use:"
+    },
+    {
+      "id": "L0483",
+      "lineNo": 483,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Environment variables on server"
+    },
+    {
+      "id": "L0484",
+      "lineNo": 484,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Secret rotation policy"
+    },
+    {
+      "id": "L0485",
+      "lineNo": 485,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5️⃣ Key Rotation System"
+    },
+    {
+      "id": "L0486",
+      "lineNo": 486,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rotate:"
+    },
+    {
+      "id": "L0487",
+      "lineNo": 487,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "JWT secret"
+    },
+    {
+      "id": "L0488",
+      "lineNo": 488,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "API keys"
+    },
+    {
+      "id": "L0489",
+      "lineNo": 489,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "DB password"
+    },
+    {
+      "id": "L0490",
+      "lineNo": 490,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Every 60–90 days."
+    },
+    {
+      "id": "L0491",
+      "lineNo": 491,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0492",
+      "lineNo": 492,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0493",
+      "lineNo": 493,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🌍 LEVEL 25 — ADVANCED NETWORK DEFENSE"
+    },
+    {
+      "id": "L0494",
+      "lineNo": 494,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "6️⃣ IP Reputation Filtering"
+    },
+    {
+      "id": "L0495",
+      "lineNo": 495,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Use:"
+    },
+    {
+      "id": "L0496",
+      "lineNo": 496,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Cloudflare bot score"
+    },
+    {
+      "id": "L0497",
+      "lineNo": 497,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Tor block"
+    },
+    {
+      "id": "L0498",
+      "lineNo": 498,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Known proxy block"
+    },
+    {
+      "id": "L0499",
+      "lineNo": 499,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "7️⃣ Geo-Risk Engine"
+    },
+    {
+      "id": "L0500",
+      "lineNo": 500,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "High fraud countries →"
+    },
+    {
+      "id": "L0501",
+      "lineNo": 501,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Extra verification step"
+    },
+    {
+      "id": "L0502",
+      "lineNo": 502,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0503",
+      "lineNo": 503,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0504",
+      "lineNo": 504,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🤖 LEVEL 26 — AI SECURITY EXPANSION"
+    },
+    {
+      "id": "L0505",
+      "lineNo": 505,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "8️⃣ Fake Account Detection AI"
+    },
+    {
+      "id": "L0506",
+      "lineNo": 506,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Detect:"
+    },
+    {
+      "id": "L0507",
+      "lineNo": 507,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Random name patterns"
+    },
+    {
+      "id": "L0508",
+      "lineNo": 508,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Disposable email"
+    },
+    {
+      "id": "L0509",
+      "lineNo": 509,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Rapid signup burst"
+    },
+    {
+      "id": "L0510",
+      "lineNo": 510,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "9️⃣ Driver Fraud Detection"
+    },
+    {
+      "id": "L0511",
+      "lineNo": 511,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Detect:"
+    },
+    {
+      "id": "L0512",
+      "lineNo": 512,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Fake GPS"
+    },
+    {
+      "id": "L0513",
+      "lineNo": 513,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Speed anomaly"
+    },
+    {
+      "id": "L0514",
+      "lineNo": 514,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Unrealistic route"
+    },
+    {
+      "id": "L0515",
+      "lineNo": 515,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0516",
+      "lineNo": 516,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0517",
+      "lineNo": 517,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🏢 LEVEL 27 — ADMIN SECURITY HARDENING"
+    },
+    {
+      "id": "L0518",
+      "lineNo": 518,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔟 Role Based Access Control (RBAC)"
+    },
+    {
+      "id": "L0519",
+      "lineNo": 519,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Roles:"
+    },
+    {
+      "id": "L0520",
+      "lineNo": 520,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Super Admin"
+    },
+    {
+      "id": "L0521",
+      "lineNo": 521,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Finance"
+    },
+    {
+      "id": "L0522",
+      "lineNo": 522,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Support"
+    },
+    {
+      "id": "L0523",
+      "lineNo": 523,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Operations"
+    },
+    {
+      "id": "L0524",
+      "lineNo": 524,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Least privilege model."
+    },
+    {
+      "id": "L0525",
+      "lineNo": 525,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣1️⃣ Admin Device Whitelisting"
+    },
+    {
+      "id": "L0526",
+      "lineNo": 526,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Only approved devices access admin panel."
+    },
+    {
+      "id": "L0527",
+      "lineNo": 527,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0528",
+      "lineNo": 528,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0529",
+      "lineNo": 529,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "💳 LEVEL 28 — FINANCIAL FRAUD LAYER"
+    },
+    {
+      "id": "L0530",
+      "lineNo": 530,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣2️⃣ Refund Abuse Detection"
+    },
+    {
+      "id": "L0531",
+      "lineNo": 531,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Repeated refund pattern"
+    },
+    {
+      "id": "L0532",
+      "lineNo": 532,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Same device multi-account refund"
+    },
+    {
+      "id": "L0533",
+      "lineNo": 533,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣3️⃣ Velocity Checks"
+    },
+    {
+      "id": "L0534",
+      "lineNo": 534,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5 bookings in 2 minutes? → suspicious"
+    },
+    {
+      "id": "L0535",
+      "lineNo": 535,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0536",
+      "lineNo": 536,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0537",
+      "lineNo": 537,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔍 LEVEL 29 — INCIDENT RESPONSE PLAN"
+    },
+    {
+      "id": "L0538",
+      "lineNo": 538,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣4️⃣ Breach Protocol"
+    },
+    {
+      "id": "L0539",
+      "lineNo": 539,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Pre-written:"
+    },
+    {
+      "id": "L0540",
+      "lineNo": 540,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Customer notification template"
+    },
+    {
+      "id": "L0541",
+      "lineNo": 541,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Internal escalation steps"
+    },
+    {
+      "id": "L0542",
+      "lineNo": 542,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Server isolation plan"
+    },
+    {
+      "id": "L0543",
+      "lineNo": 543,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣5️⃣ Backup Strategy"
+    },
+    {
+      "id": "L0544",
+      "lineNo": 544,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Daily DB backup"
+    },
+    {
+      "id": "L0545",
+      "lineNo": 545,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Encrypted backup"
+    },
+    {
+      "id": "L0546",
+      "lineNo": 546,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Off-site storage"
+    },
+    {
+      "id": "L0547",
+      "lineNo": 547,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Test restore monthly."
+    },
+    {
+      "id": "L0548",
+      "lineNo": 548,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0549",
+      "lineNo": 549,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0550",
+      "lineNo": 550,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🧠 LEVEL 30 — PRODUCTION HARDENING"
+    },
+    {
+      "id": "L0551",
+      "lineNo": 551,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣6️⃣ Rate Limit at API + Reverse Proxy"
+    },
+    {
+      "id": "L0552",
+      "lineNo": 552,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Double layer protection."
+    },
+    {
+      "id": "L0553",
+      "lineNo": 553,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣7️⃣ Security Headers"
+    },
+    {
+      "id": "L0554",
+      "lineNo": 554,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Helmet.js:"
+    },
+    {
+      "id": "L0555",
+      "lineNo": 555,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "CSP"
+    },
+    {
+      "id": "L0556",
+      "lineNo": 556,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "X-Frame-Options"
+    },
+    {
+      "id": "L0557",
+      "lineNo": 557,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "X-Content-Type-Options"
+    },
+    {
+      "id": "L0558",
+      "lineNo": 558,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣8️⃣ Content Security Policy (CSP strict mode)"
+    },
+    {
+      "id": "L0559",
+      "lineNo": 559,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1️⃣9️⃣ CORS strict policy"
+    },
+    {
+      "id": "L0560",
+      "lineNo": 560,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Only allowed domains."
+    },
+    {
+      "id": "L0561",
+      "lineNo": 561,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2️⃣0️⃣ Health Monitoring + Alerting"
+    },
+    {
+      "id": "L0562",
+      "lineNo": 562,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Server crash → instant alert."
+    },
+    {
+      "id": "L0563",
+      "lineNo": 563,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0564",
+      "lineNo": 564,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0565",
+      "lineNo": 565,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Enterprise Ready"
+    },
+    {
+      "id": "L0566",
+      "lineNo": 566,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ International Grade"
+    },
+    {
+      "id": "L0567",
+      "lineNo": 567,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Fraud Resistant"
+    },
+    {
+      "id": "L0568",
+      "lineNo": 568,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Compliance Friendly"
+    },
+    {
+      "id": "L0569",
+      "lineNo": 569,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "✔ Investor Ready"
+    },
+    {
+      "id": "L0570",
+      "lineNo": 570,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0571",
+      "lineNo": 571,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0572",
+      "lineNo": 572,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🔐 ISO 27001 readiness checklist bana sakta hoon"
+    },
+    {
+      "id": "L0573",
+      "lineNo": 573,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🌍 International compliance (GDPR + SOC2 basic roadmap) add kar sakta hoon"
+    },
+    {
+      "id": "L0574",
+      "lineNo": 574,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🏗 Production architecture diagram bana sakta hoon"
+    },
+    {
+      "id": "L0575",
+      "lineNo": 575,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0576",
+      "lineNo": 576,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0577",
+      "lineNo": 577,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "📄 Privacy Policy draft (GDPR ready)"
+    },
+    {
+      "id": "L0578",
+      "lineNo": 578,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🛡 Incident Response SOP document"
+    },
+    {
+      "id": "L0579",
+      "lineNo": 579,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "🏢 Investor Security Presentation (funding purpose)"
+    },
+    {
+      "id": "L0580",
+      "lineNo": 580,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0581",
+      "lineNo": 581,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0582",
+      "lineNo": 582,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "1. Executive Security Overview"
+    },
+    {
+      "id": "L0583",
+      "lineNo": 583,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "GoIndiaRide follows a security-first architecture aligned with international standards."
+    },
+    {
+      "id": "L0584",
+      "lineNo": 584,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "This document outlines ISO 27001 readiness, GDPR compliance, SOC2 roadmap, AI-driven"
+    },
+    {
+      "id": "L0585",
+      "lineNo": 585,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "security controls, and investor-grade governance framework."
+    },
+    {
+      "id": "L0586",
+      "lineNo": 586,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Cloud-native secure infrastructure"
+    },
+    {
+      "id": "L0587",
+      "lineNo": 587,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• End-to-end encryption"
+    },
+    {
+      "id": "L0588",
+      "lineNo": 588,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• AI fraud detection readiness"
+    },
+    {
+      "id": "L0589",
+      "lineNo": 589,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Regulatory-aligned compliance roadmap"
+    },
+    {
+      "id": "L0590",
+      "lineNo": 590,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0591",
+      "lineNo": 591,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0592",
+      "lineNo": 592,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "2. ISO 27001 Detailed Readiness Plan"
+    },
+    {
+      "id": "L0593",
+      "lineNo": 593,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "The Information Security Management System (ISMS) is structured across governance, risk, and"
+    },
+    {
+      "id": "L0594",
+      "lineNo": 594,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "technical controls."
+    },
+    {
+      "id": "L0595",
+      "lineNo": 595,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Defined ISMS scope"
+    },
+    {
+      "id": "L0596",
+      "lineNo": 596,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Security policy framework"
+    },
+    {
+      "id": "L0597",
+      "lineNo": 597,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Asset inventory & classification"
+    },
+    {
+      "id": "L0598",
+      "lineNo": 598,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Risk register & treatment plan"
+    },
+    {
+      "id": "L0599",
+      "lineNo": 599,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Access control & MFA"
+    },
+    {
+      "id": "L0600",
+      "lineNo": 600,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Encryption standards"
+    },
+    {
+      "id": "L0601",
+      "lineNo": 601,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Logging & SIEM readiness"
+    },
+    {
+      "id": "L0602",
+      "lineNo": 602,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Internal audit cycle"
+    },
+    {
+      "id": "L0603",
+      "lineNo": 603,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Management review process"
+    },
+    {
+      "id": "L0604",
+      "lineNo": 604,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0605",
+      "lineNo": 605,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0606",
+      "lineNo": 606,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "3. GDPR Compliance Framework"
+    },
+    {
+      "id": "L0607",
+      "lineNo": 607,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "GoIndiaRide aligns with EU GDPR principles including lawfulness, fairness, transparency, data"
+    },
+    {
+      "id": "L0608",
+      "lineNo": 608,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "minimization and accountability."
+    },
+    {
+      "id": "L0609",
+      "lineNo": 609,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Consent management system"
+    },
+    {
+      "id": "L0610",
+      "lineNo": 610,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Data Subject Access Request workflow"
+    },
+    {
+      "id": "L0611",
+      "lineNo": 611,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Right to erasure process"
+    },
+    {
+      "id": "L0612",
+      "lineNo": 612,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Data portability readiness"
+    },
+    {
+      "id": "L0613",
+      "lineNo": 613,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• 72-hour breach notification SOP"
+    },
+    {
+      "id": "L0614",
+      "lineNo": 614,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Vendor DPA management"
+    },
+    {
+      "id": "L0615",
+      "lineNo": 615,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0616",
+      "lineNo": 616,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0617",
+      "lineNo": 617,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "4. SOC2 Trust Criteria Roadmap"
+    },
+    {
+      "id": "L0618",
+      "lineNo": 618,
+      "section": "security",
+      "likelyMultiPoint": true,
+      "text": "Security, Availability, Confidentiality, Processing Integrity and Privacy controls are mapped."
+    },
+    {
+      "id": "L0619",
+      "lineNo": 619,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Role-Based Access Control (RBAC)"
+    },
+    {
+      "id": "L0620",
+      "lineNo": 620,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Production monitoring"
+    },
+    {
+      "id": "L0621",
+      "lineNo": 621,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Change management logging"
+    },
+    {
+      "id": "L0622",
+      "lineNo": 622,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Backup & disaster recovery testing"
+    },
+    {
+      "id": "L0623",
+      "lineNo": 623,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Quarterly compliance reviews"
+    },
+    {
+      "id": "L0624",
+      "lineNo": 624,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0625",
+      "lineNo": 625,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0626",
+      "lineNo": 626,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "5. AI-Driven Security Enhancements"
+    },
+    {
+      "id": "L0627",
+      "lineNo": 627,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "AI security enhancements are planned to strengthen fraud prevention and anomaly detection."
+    },
+    {
+      "id": "L0628",
+      "lineNo": 628,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Behavioral anomaly detection"
+    },
+    {
+      "id": "L0629",
+      "lineNo": 629,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Ride booking fraud pattern analysis"
+    },
+    {
+      "id": "L0630",
+      "lineNo": 630,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Automated suspicious login detection"
+    },
+    {
+      "id": "L0631",
+      "lineNo": 631,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Bot detection system"
+    },
+    {
+      "id": "L0632",
+      "lineNo": 632,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Adaptive risk scoring engine"
+    },
+    {
+      "id": "L0633",
+      "lineNo": 633,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0634",
+      "lineNo": 634,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0635",
+      "lineNo": 635,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "6. Incident Response & Disaster Recovery"
+    },
+    {
+      "id": "L0636",
+      "lineNo": 636,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "A structured Incident Response Plan ensures rapid containment and recovery."
+    },
+    {
+      "id": "L0637",
+      "lineNo": 637,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Incident classification matrix"
+    },
+    {
+      "id": "L0638",
+      "lineNo": 638,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Forensic investigation procedure"
+    },
+    {
+      "id": "L0639",
+      "lineNo": 639,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Regulatory communication plan"
+    },
+    {
+      "id": "L0640",
+      "lineNo": 640,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Disaster Recovery RTO/RPO targets"
+    },
+    {
+      "id": "L0641",
+      "lineNo": 641,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Post-incident improvement loop"
+    },
+    {
+      "id": "L0642",
+      "lineNo": 642,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0643",
+      "lineNo": 643,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0644",
+      "lineNo": 644,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "7. Risk Assessment Template (Operational Use)"
+    },
+    {
+      "id": "L0645",
+      "lineNo": 645,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Risk assessments are conducted quarterly and upon major system changes."
+    },
+    {
+      "id": "L0646",
+      "lineNo": 646,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Risk ID"
+    },
+    {
+      "id": "L0647",
+      "lineNo": 647,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Asset"
+    },
+    {
+      "id": "L0648",
+      "lineNo": 648,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Threat"
+    },
+    {
+      "id": "L0649",
+      "lineNo": 649,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Vulnerability"
+    },
+    {
+      "id": "L0650",
+      "lineNo": 650,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Likelihood"
+    },
+    {
+      "id": "L0651",
+      "lineNo": 651,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Impact"
+    },
+    {
+      "id": "L0652",
+      "lineNo": 652,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Risk Score"
+    },
+    {
+      "id": "L0653",
+      "lineNo": 653,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Mitigation"
+    },
+    {
+      "id": "L0654",
+      "lineNo": 654,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Owner"
+    },
+    {
+      "id": "L0655",
+      "lineNo": 655,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Residual Risk"
+    },
+    {
+      "id": "L0656",
+      "lineNo": 656,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0657",
+      "lineNo": 657,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0658",
+      "lineNo": 658,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "8. Investor Security Assurance Summary"
+    },
+    {
+      "id": "L0659",
+      "lineNo": 659,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "Security maturity directly supports global expansion and enterprise partnerships."
+    },
+    {
+      "id": "L0660",
+      "lineNo": 660,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• ISO 27001 readiness roadmap"
+    },
+    {
+      "id": "L0661",
+      "lineNo": 661,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• GDPR-aligned privacy framework"
+    },
+    {
+      "id": "L0662",
+      "lineNo": 662,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• SOC2 compliance preparation"
+    },
+    {
+      "id": "L0663",
+      "lineNo": 663,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Scalable cloud security"
+    },
+    {
+      "id": "L0664",
+      "lineNo": 664,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": "• Security governance for international operations"
+    },
+    {
+      "id": "L0665",
+      "lineNo": 665,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0666",
+      "lineNo": 666,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0667",
+      "lineNo": 667,
+      "section": "security",
+      "likelyMultiPoint": false,
+      "text": ""
+    }
+  ]
+}

@@ -1,0 +1,2263 @@
+{
+  "generatedAt": "2026-03-09T18:04:43.255Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\GOindiaRIDE\\feature-pack\\00-source\\COMPLETE-FEATURES-LIST.txt",
+  "desktopSourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\COMPLETE-FEATURES-LIST.txt",
+  "category": "admin",
+  "totalItems": 322,
+  "items": [
+    {
+      "id": "L1663",
+      "lineNo": 1663,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "## SECTION C: ADMIN PORTAL (एडमिन पोर्टल)"
+    },
+    {
+      "id": "L1664",
+      "lineNo": 1664,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1665",
+      "lineNo": 1665,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 1. डैशबोर्ड (Main Dashboard)"
+    },
+    {
+      "id": "L1666",
+      "lineNo": 1666,
+      "section": "admin",
+      "likelyMultiPoint": true,
+      "text": "- Real-time statistics (bookings, revenue, active drivers)"
+    },
+    {
+      "id": "L1667",
+      "lineNo": 1667,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Today's total bookings"
+    },
+    {
+      "id": "L1668",
+      "lineNo": 1668,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Today's revenue"
+    },
+    {
+      "id": "L1669",
+      "lineNo": 1669,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Active drivers count"
+    },
+    {
+      "id": "L1670",
+      "lineNo": 1670,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Active customers count"
+    },
+    {
+      "id": "L1671",
+      "lineNo": 1671,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Pending verifications"
+    },
+    {
+      "id": "L1672",
+      "lineNo": 1672,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Recent activities timeline"
+    },
+    {
+      "id": "L1673",
+      "lineNo": 1673,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Revenue charts (daily/weekly/monthly)"
+    },
+    {
+      "id": "L1674",
+      "lineNo": 1674,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Heat map (high demand areas in Rajasthan)"
+    },
+    {
+      "id": "L1675",
+      "lineNo": 1675,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Live map with all active taxis GPS location"
+    },
+    {
+      "id": "L1676",
+      "lineNo": 1676,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1677",
+      "lineNo": 1677,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 2. बुकिंग मैनेजमेंट (Booking Management)"
+    },
+    {
+      "id": "L1678",
+      "lineNo": 1678,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- All bookings list (pending/confirmed/completed/cancelled)"
+    },
+    {
+      "id": "L1679",
+      "lineNo": 1679,
+      "section": "admin",
+      "likelyMultiPoint": true,
+      "text": "- Filter by date, customer, driver, status"
+    },
+    {
+      "id": "L1680",
+      "lineNo": 1680,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Search bookings"
+    },
+    {
+      "id": "L1681",
+      "lineNo": 1681,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- View complete booking details"
+    },
+    {
+      "id": "L1682",
+      "lineNo": 1682,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Manual driver assignment (if AI fails)"
+    },
+    {
+      "id": "L1683",
+      "lineNo": 1683,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Fare adjustment option"
+    },
+    {
+      "id": "L1684",
+      "lineNo": 1684,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Cancel bookings"
+    },
+    {
+      "id": "L1685",
+      "lineNo": 1685,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Refund processing"
+    },
+    {
+      "id": "L1686",
+      "lineNo": 1686,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Booking reports (PDF/Excel)"
+    },
+    {
+      "id": "L1687",
+      "lineNo": 1687,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Export data"
+    },
+    {
+      "id": "L1688",
+      "lineNo": 1688,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1689",
+      "lineNo": 1689,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 3. ड्राइवर मैनेजमेंट (Driver Management)"
+    },
+    {
+      "id": "L1690",
+      "lineNo": 1690,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- All drivers list"
+    },
+    {
+      "id": "L1691",
+      "lineNo": 1691,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Filter: Active/Pending/Blocked drivers"
+    },
+    {
+      "id": "L1692",
+      "lineNo": 1692,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Driver profile view (complete details)"
+    },
+    {
+      "id": "L1693",
+      "lineNo": 1693,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Document verification center"
+    },
+    {
+      "id": "L1694",
+      "lineNo": 1694,
+      "section": "admin",
+      "likelyMultiPoint": true,
+      "text": "- View/Download documents (DL, RC, Insurance, etc.)"
+    },
+    {
+      "id": "L1695",
+      "lineNo": 1695,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Approve/Reject new drivers"
+    },
+    {
+      "id": "L1696",
+      "lineNo": 1696,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Block/Unblock drivers"
+    },
+    {
+      "id": "L1697",
+      "lineNo": 1697,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Security deposit tracking (Rs. 5000 per driver total balance)"
+    },
+    {
+      "id": "L1698",
+      "lineNo": 1698,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- 3-month verification period tracking"
+    },
+    {
+      "id": "L1699",
+      "lineNo": 1699,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Auto-unblock after 90 days"
+    },
+    {
+      "id": "L1700",
+      "lineNo": 1700,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Driver performance analytics"
+    },
+    {
+      "id": "L1701",
+      "lineNo": 1701,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Rating and reviews management"
+    },
+    {
+      "id": "L1702",
+      "lineNo": 1702,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Payout processing"
+    },
+    {
+      "id": "L1703",
+      "lineNo": 1703,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1704",
+      "lineNo": 1704,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 4. कस्टमर मैनेजमेंट (Customer Management)"
+    },
+    {
+      "id": "L1705",
+      "lineNo": 1705,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- All customers list"
+    },
+    {
+      "id": "L1706",
+      "lineNo": 1706,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Customer profile details"
+    },
+    {
+      "id": "L1707",
+      "lineNo": 1707,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Booking history per customer"
+    },
+    {
+      "id": "L1708",
+      "lineNo": 1708,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Wallet balance management"
+    },
+    {
+      "id": "L1709",
+      "lineNo": 1709,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Block/Unblock problematic users"
+    },
+    {
+      "id": "L1710",
+      "lineNo": 1710,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Refund management"
+    },
+    {
+      "id": "L1711",
+      "lineNo": 1711,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Customer complaints view"
+    },
+    {
+      "id": "L1712",
+      "lineNo": 1712,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Activity tracking"
+    },
+    {
+      "id": "L1713",
+      "lineNo": 1713,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1714",
+      "lineNo": 1714,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 5. पेमेंट और फाइनेंस (Payment & Financial Management)"
+    },
+    {
+      "id": "L1715",
+      "lineNo": 1715,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- All transactions list"
+    },
+    {
+      "id": "L1716",
+      "lineNo": 1716,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Revenue analytics (real-time data)"
+    },
+    {
+      "id": "L1717",
+      "lineNo": 1717,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Daily/Weekly/Monthly revenue breakdown"
+    },
+    {
+      "id": "L1718",
+      "lineNo": 1718,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Payment gateway status"
+    },
+    {
+      "id": "L1719",
+      "lineNo": 1719,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Pending settlements with drivers"
+    },
+    {
+      "id": "L1720",
+      "lineNo": 1720,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Refund queue processing"
+    },
+    {
+      "id": "L1721",
+      "lineNo": 1721,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Commission tracking (20% platform fee)"
+    },
+    {
+      "id": "L1722",
+      "lineNo": 1722,
+      "section": "admin",
+      "likelyMultiPoint": true,
+      "text": "- **Affiliate Commission (होटल, रेस्टोरेंट और हैंडीक्राफ्ट शॉप्स से आने वाले कमीशन)**"
+    },
+    {
+      "id": "L1723",
+      "lineNo": 1723,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Hotel booking commission tracking"
+    },
+    {
+      "id": "L1724",
+      "lineNo": 1724,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Restaurant referral commission"
+    },
+    {
+      "id": "L1725",
+      "lineNo": 1725,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Shop referral earnings"
+    },
+    {
+      "id": "L1726",
+      "lineNo": 1726,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Commission split (admin and driver share)"
+    },
+    {
+      "id": "L1727",
+      "lineNo": 1727,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Donation Report (दान के लिए इकट्ठा हुए पैसों का अलग हिसाब)**"
+    },
+    {
+      "id": "L1728",
+      "lineNo": 1728,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Donation wallet separate tracking"
+    },
+    {
+      "id": "L1729",
+      "lineNo": 1729,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Donation usage reports"
+    },
+    {
+      "id": "L1730",
+      "lineNo": 1730,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Emergency fund management"
+    },
+    {
+      "id": "L1731",
+      "lineNo": 1731,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Cancellation Earnings (ग्राहकों से कटे हुए कैंसलेशन चार्ज)**"
+    },
+    {
+      "id": "L1732",
+      "lineNo": 1732,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Cancellation charges collected from customers"
+    },
+    {
+      "id": "L1733",
+      "lineNo": 1733,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Driver penalties collected"
+    },
+    {
+      "id": "L1734",
+      "lineNo": 1734,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- GST/Tax reports (auto-calculation for every trip)"
+    },
+    {
+      "id": "L1735",
+      "lineNo": 1735,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Profit/Loss statements"
+    },
+    {
+      "id": "L1736",
+      "lineNo": 1736,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Financial reports export"
+    },
+    {
+      "id": "L1737",
+      "lineNo": 1737,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1738",
+      "lineNo": 1738,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 6. AI और ऑटो-कंट्रोल (AI & Auto-Control Features)"
+    },
+    {
+      "id": "L1739",
+      "lineNo": 1739,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **AI Auto-Dispatch System**"
+    },
+    {
+      "id": "L1740",
+      "lineNo": 1740,
+      "section": "admin",
+      "likelyMultiPoint": true,
+      "text": "  - Automatic driver assignment based on distance, rating, vehicle availability"
+    },
+    {
+      "id": "L1741",
+      "lineNo": 1741,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Success rate tracking"
+    },
+    {
+      "id": "L1742",
+      "lineNo": 1742,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Fallback logic configuration"
+    },
+    {
+      "id": "L1743",
+      "lineNo": 1743,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1744",
+      "lineNo": 1744,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Demand Prediction (डिमांड प्रेडिक्शन)**"
+    },
+    {
+      "id": "L1745",
+      "lineNo": 1745,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - City-wise demand forecast"
+    },
+    {
+      "id": "L1746",
+      "lineNo": 1746,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Historical data analysis"
+    },
+    {
+      "id": "L1747",
+      "lineNo": 1747,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Festival season prediction"
+    },
+    {
+      "id": "L1748",
+      "lineNo": 1748,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - 7-day advance forecast"
+    },
+    {
+      "id": "L1749",
+      "lineNo": 1749,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Peak hours identification"
+    },
+    {
+      "id": "L1750",
+      "lineNo": 1750,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1751",
+      "lineNo": 1751,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Smart Fare Control (स्मार्ट फेयर कंट्रोल)**"
+    },
+    {
+      "id": "L1752",
+      "lineNo": 1752,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Dynamic pricing based on demand"
+    },
+    {
+      "id": "L1753",
+      "lineNo": 1753,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-increase fare during high demand"
+    },
+    {
+      "id": "L1754",
+      "lineNo": 1754,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-decrease fare during low demand"
+    },
+    {
+      "id": "L1755",
+      "lineNo": 1755,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Peak hours surge pricing configuration"
+    },
+    {
+      "id": "L1756",
+      "lineNo": 1756,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Competitor pricing tracking"
+    },
+    {
+      "id": "L1757",
+      "lineNo": 1757,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1758",
+      "lineNo": 1758,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Driver Health Monitoring (ड्राइवर हेल्थ मॉनिटरिंग)**"
+    },
+    {
+      "id": "L1759",
+      "lineNo": 1759,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Continuous driving time tracking"
+    },
+    {
+      "id": "L1760",
+      "lineNo": 1760,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Fatigue detection (4+ hours continuous driving alert)"
+    },
+    {
+      "id": "L1761",
+      "lineNo": 1761,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Over-speeding reports"
+    },
+    {
+      "id": "L1762",
+      "lineNo": 1762,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Night driving limits"
+    },
+    {
+      "id": "L1763",
+      "lineNo": 1763,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Mandatory break enforcement"
+    },
+    {
+      "id": "L1764",
+      "lineNo": 1764,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Performance degradation alerts"
+    },
+    {
+      "id": "L1765",
+      "lineNo": 1765,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1766",
+      "lineNo": 1766,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Auto-Block System (ऑटो-ब्लॉक सिस्टम)**"
+    },
+    {
+      "id": "L1767",
+      "lineNo": 1767,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - 3-month verification rule tracking"
+    },
+    {
+      "id": "L1768",
+      "lineNo": 1768,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-block drivers with expired documents"
+    },
+    {
+      "id": "L1769",
+      "lineNo": 1769,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-block low-rated drivers (below 3 stars)"
+    },
+    {
+      "id": "L1770",
+      "lineNo": 1770,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Complaint-based auto-investigation"
+    },
+    {
+      "id": "L1771",
+      "lineNo": 1771,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-unblock after document renewal"
+    },
+    {
+      "id": "L1772",
+      "lineNo": 1772,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Admin override option"
+    },
+    {
+      "id": "L1773",
+      "lineNo": 1773,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1774",
+      "lineNo": 1774,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 7. फ्रॉड डिटेक्शन (Fraud Detection & Prevention)"
+    },
+    {
+      "id": "L1775",
+      "lineNo": 1775,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Wallet Fraud Alert (वॉलेट फ्रॉड अलर्ट)**"
+    },
+    {
+      "id": "L1776",
+      "lineNo": 1776,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Suspicious transaction detection"
+    },
+    {
+      "id": "L1777",
+      "lineNo": 1777,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto wallet freeze on fraud suspicion"
+    },
+    {
+      "id": "L1778",
+      "lineNo": 1778,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Pattern recognition for unusual activities"
+    },
+    {
+      "id": "L1779",
+      "lineNo": 1779,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Multiple account detection"
+    },
+    {
+      "id": "L1780",
+      "lineNo": 1780,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Fake booking detection"
+    },
+    {
+      "id": "L1781",
+      "lineNo": 1781,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - AI-based document verification"
+    },
+    {
+      "id": "L1782",
+      "lineNo": 1782,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Admin alerts for suspicious activities"
+    },
+    {
+      "id": "L1783",
+      "lineNo": 1783,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1784",
+      "lineNo": 1784,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 8. सेफ्टी और मॉनिटरिंग (Safety & Live Monitoring)"
+    },
+    {
+      "id": "L1785",
+      "lineNo": 1785,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Live Map (लाइव मैप)**"
+    },
+    {
+      "id": "L1786",
+      "lineNo": 1786,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - All active taxis real-time GPS location on single screen"
+    },
+    {
+      "id": "L1787",
+      "lineNo": 1787,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Route tracking"
+    },
+    {
+      "id": "L1788",
+      "lineNo": 1788,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Speed monitoring"
+    },
+    {
+      "id": "L1789",
+      "lineNo": 1789,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1790",
+      "lineNo": 1790,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Emergency SOS System (इमरजेंसी अलर्ट)**"
+    },
+    {
+      "id": "L1791",
+      "lineNo": 1791,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Instant alert when customer/driver presses SOS"
+    },
+    {
+      "id": "L1792",
+      "lineNo": 1792,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Siren notification to admin"
+    },
+    {
+      "id": "L1793",
+      "lineNo": 1793,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - GPS location of emergency"
+    },
+    {
+      "id": "L1794",
+      "lineNo": 1794,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Quick action panel"
+    },
+    {
+      "id": "L1795",
+      "lineNo": 1795,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Police coordination system"
+    },
+    {
+      "id": "L1796",
+      "lineNo": 1796,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1797",
+      "lineNo": 1797,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Heat Map (हीट मैप)**"
+    },
+    {
+      "id": "L1798",
+      "lineNo": 1798,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - District-wise pending bookings visualization"
+    },
+    {
+      "id": "L1799",
+      "lineNo": 1799,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - High-demand area identification"
+    },
+    {
+      "id": "L1800",
+      "lineNo": 1800,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Resource allocation suggestions"
+    },
+    {
+      "id": "L1801",
+      "lineNo": 1801,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1802",
+      "lineNo": 1802,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Virtual Escort (वर्चुअल एस्कॉर्ट)**"
+    },
+    {
+      "id": "L1803",
+      "lineNo": 1803,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Special monitoring for solo female travelers"
+    },
+    {
+      "id": "L1804",
+      "lineNo": 1804,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - International tourist trip tracking"
+    },
+    {
+      "id": "L1805",
+      "lineNo": 1805,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Step-by-step trip monitoring"
+    },
+    {
+      "id": "L1806",
+      "lineNo": 1806,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Route deviation alerts"
+    },
+    {
+      "id": "L1807",
+      "lineNo": 1807,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Incident reporting"
+    },
+    {
+      "id": "L1808",
+      "lineNo": 1808,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Insurance claim processing"
+    },
+    {
+      "id": "L1809",
+      "lineNo": 1809,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1810",
+      "lineNo": 1810,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 9. कंटेंट मैनेजमेंट (Content Management System)"
+    },
+    {
+      "id": "L1811",
+      "lineNo": 1811,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Tourist Places Management**"
+    },
+    {
+      "id": "L1812",
+      "lineNo": 1812,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Add/Edit/Delete Rajasthan tourist places"
+    },
+    {
+      "id": "L1813",
+      "lineNo": 1813,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Upload historical information"
+    },
+    {
+      "id": "L1814",
+      "lineNo": 1814,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Update timings, entry fees"
+    },
+    {
+      "id": "L1815",
+      "lineNo": 1815,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Photo gallery management"
+    },
+    {
+      "id": "L1816",
+      "lineNo": 1816,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Temple aarti timings update"
+    },
+    {
+      "id": "L1817",
+      "lineNo": 1817,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Best time to visit information"
+    },
+    {
+      "id": "L1818",
+      "lineNo": 1818,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1819",
+      "lineNo": 1819,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Partner Management (पार्टनर और वेंडर मैनेजमेंट)**"
+    },
+    {
+      "id": "L1820",
+      "lineNo": 1820,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Hotel database management"
+    },
+    {
+      "id": "L1821",
+      "lineNo": 1821,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Hotel/Shop rating tracking (ग्राहकों ने किस होटल को सबसे ज्यादा पसंद किया)"
+    },
+    {
+      "id": "L1822",
+      "lineNo": 1822,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Restaurant recommendations list"
+    },
+    {
+      "id": "L1823",
+      "lineNo": 1823,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Shopping guide (handicraft shops)"
+    },
+    {
+      "id": "L1824",
+      "lineNo": 1824,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Vendor agreement tracking"
+    },
+    {
+      "id": "L1825",
+      "lineNo": 1825,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Agreement expiry alerts"
+    },
+    {
+      "id": "L1826",
+      "lineNo": 1826,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Commission rate management"
+    },
+    {
+      "id": "L1827",
+      "lineNo": 1827,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Partner performance analytics"
+    },
+    {
+      "id": "L1828",
+      "lineNo": 1828,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1829",
+      "lineNo": 1829,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Suggestions Engine (सुझाव इंजन)**"
+    },
+    {
+      "id": "L1830",
+      "lineNo": 1830,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Edit best hotels list shown to customers"
+    },
+    {
+      "id": "L1831",
+      "lineNo": 1831,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Edit best shops list"
+    },
+    {
+      "id": "L1832",
+      "lineNo": 1832,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Recommendation algorithm tuning"
+    },
+    {
+      "id": "L1833",
+      "lineNo": 1833,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Featured partners management"
+    },
+    {
+      "id": "L1834",
+      "lineNo": 1834,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1835",
+      "lineNo": 1835,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 10. प्रोमो कोड मैनेजमेंट (Promo Code Management)"
+    },
+    {
+      "id": "L1836",
+      "lineNo": 1836,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Create new promo codes"
+    },
+    {
+      "id": "L1837",
+      "lineNo": 1837,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Set discount (percentage or flat)"
+    },
+    {
+      "id": "L1838",
+      "lineNo": 1838,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Validity period setting"
+    },
+    {
+      "id": "L1839",
+      "lineNo": 1839,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Usage limit configuration"
+    },
+    {
+      "id": "L1840",
+      "lineNo": 1840,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Per-user limit"
+    },
+    {
+      "id": "L1841",
+      "lineNo": 1841,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Target specific users or all"
+    },
+    {
+      "id": "L1842",
+      "lineNo": 1842,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Seasonal offers creation"
+    },
+    {
+      "id": "L1843",
+      "lineNo": 1843,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Referral program settings"
+    },
+    {
+      "id": "L1844",
+      "lineNo": 1844,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Usage analytics"
+    },
+    {
+      "id": "L1845",
+      "lineNo": 1845,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Active/Inactive toggle"
+    },
+    {
+      "id": "L1846",
+      "lineNo": 1846,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1847",
+      "lineNo": 1847,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 11. वाहन और किराया सेटिंग्स (Vehicle & Fare Settings)"
+    },
+    {
+      "id": "L1848",
+      "lineNo": 1848,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle types management"
+    },
+    {
+      "id": "L1849",
+      "lineNo": 1849,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Base fare per vehicle type"
+    },
+    {
+      "id": "L1850",
+      "lineNo": 1850,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Per KM rate setting"
+    },
+    {
+      "id": "L1851",
+      "lineNo": 1851,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Minimum fare configuration"
+    },
+    {
+      "id": "L1852",
+      "lineNo": 1852,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- GST rate setting"
+    },
+    {
+      "id": "L1853",
+      "lineNo": 1853,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Peak hours pricing"
+    },
+    {
+      "id": "L1854",
+      "lineNo": 1854,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Route-based package pricing"
+    },
+    {
+      "id": "L1855",
+      "lineNo": 1855,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Surge pricing rules"
+    },
+    {
+      "id": "L1856",
+      "lineNo": 1856,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Fare calculator configuration"
+    },
+    {
+      "id": "L1857",
+      "lineNo": 1857,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1858",
+      "lineNo": 1858,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 12. रिपोर्ट्स और एनालिटिक्स (Reports & Analytics)"
+    },
+    {
+      "id": "L1859",
+      "lineNo": 1859,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Daily/Weekly/Monthly reports"
+    },
+    {
+      "id": "L1860",
+      "lineNo": 1860,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Revenue reports"
+    },
+    {
+      "id": "L1861",
+      "lineNo": 1861,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Booking trends analysis"
+    },
+    {
+      "id": "L1862",
+      "lineNo": 1862,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Driver performance reports"
+    },
+    {
+      "id": "L1863",
+      "lineNo": 1863,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Customer analytics"
+    },
+    {
+      "id": "L1864",
+      "lineNo": 1864,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Most popular routes"
+    },
+    {
+      "id": "L1865",
+      "lineNo": 1865,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Peak hours analysis"
+    },
+    {
+      "id": "L1866",
+      "lineNo": 1866,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Conversion rate tracking"
+    },
+    {
+      "id": "L1867",
+      "lineNo": 1867,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Export to PDF/Excel"
+    },
+    {
+      "id": "L1868",
+      "lineNo": 1868,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1869",
+      "lineNo": 1869,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 13. सपोर्ट टिकट मैनेजमेंट (Support & Ticket Management)"
+    },
+    {
+      "id": "L1870",
+      "lineNo": 1870,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- All support tickets (customers + drivers)"
+    },
+    {
+      "id": "L1871",
+      "lineNo": 1871,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Ticket priority (High/Medium/Low)"
+    },
+    {
+      "id": "L1872",
+      "lineNo": 1872,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Assign to team members"
+    },
+    {
+      "id": "L1873",
+      "lineNo": 1873,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Status tracking (Open/In-Progress/Resolved)"
+    },
+    {
+      "id": "L1874",
+      "lineNo": 1874,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Response time monitoring"
+    },
+    {
+      "id": "L1875",
+      "lineNo": 1875,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Live chat system"
+    },
+    {
+      "id": "L1876",
+      "lineNo": 1876,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Email response integration"
+    },
+    {
+      "id": "L1877",
+      "lineNo": 1877,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- FAQ management"
+    },
+    {
+      "id": "L1878",
+      "lineNo": 1878,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1879",
+      "lineNo": 1879,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 14. सेटिंग्स और कॉन्फ़िगरेशन (Settings & Configuration)"
+    },
+    {
+      "id": "L1880",
+      "lineNo": 1880,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Admin user management"
+    },
+    {
+      "id": "L1881",
+      "lineNo": 1881,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Role-based access control"
+    },
+    {
+      "id": "L1882",
+      "lineNo": 1882,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Payment gateway settings"
+    },
+    {
+      "id": "L1883",
+      "lineNo": 1883,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- SMS/Email notification templates"
+    },
+    {
+      "id": "L1884",
+      "lineNo": 1884,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Platform commission percentage"
+    },
+    {
+      "id": "L1885",
+      "lineNo": 1885,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Cancellation policy settings"
+    },
+    {
+      "id": "L1886",
+      "lineNo": 1886,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Refund rules configuration"
+    },
+    {
+      "id": "L1887",
+      "lineNo": 1887,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- System logs viewing"
+    },
+    {
+      "id": "L1888",
+      "lineNo": 1888,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Backup and restore"
+    },
+    {
+      "id": "L1889",
+      "lineNo": 1889,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1890",
+      "lineNo": 1890,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 15. AI मार्केटिंग ऑटोमेशन (AI Marketing Automation)"
+    },
+    {
+      "id": "L1891",
+      "lineNo": 1891,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Predictive Booking (पूर्वानुमान बुकिंग)**"
+    },
+    {
+      "id": "L1892",
+      "lineNo": 1892,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Historical pattern analysis"
+    },
+    {
+      "id": "L1893",
+      "lineNo": 1893,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Last year same date comparison"
+    },
+    {
+      "id": "L1894",
+      "lineNo": 1894,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Festival season predictions"
+    },
+    {
+      "id": "L1895",
+      "lineNo": 1895,
+      "section": "admin",
+      "likelyMultiPoint": true,
+      "text": "  - Fleet requirement forecasting (e.g., \"50 और गाड़ियों की जरूरत पड़ेगी\")"
+    },
+    {
+      "id": "L1896",
+      "lineNo": 1896,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1897",
+      "lineNo": 1897,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Auto-Offer System (ऑटो-ऑफर सिस्टम)**"
+    },
+    {
+      "id": "L1898",
+      "lineNo": 1898,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Idle vehicle detection (2 hours empty)"
+    },
+    {
+      "id": "L1899",
+      "lineNo": 1899,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-send 10% discount to nearby customers"
+    },
+    {
+      "id": "L1900",
+      "lineNo": 1900,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Smart notification targeting"
+    },
+    {
+      "id": "L1901",
+      "lineNo": 1901,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1902",
+      "lineNo": 1902,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Re-engagement Campaigns**"
+    },
+    {
+      "id": "L1903",
+      "lineNo": 1903,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Inactive user identification"
+    },
+    {
+      "id": "L1904",
+      "lineNo": 1904,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Personalized offer generation"
+    },
+    {
+      "id": "L1905",
+      "lineNo": 1905,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Automated email/SMS campaigns"
+    },
+    {
+      "id": "L1906",
+      "lineNo": 1906,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1907",
+      "lineNo": 1907,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 16. स्मार्ट रूट ऑप्टिमाइजेशन (Smart Route Optimization)"
+    },
+    {
+      "id": "L1908",
+      "lineNo": 1908,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Multi-Point Routing**"
+    },
+    {
+      "id": "L1909",
+      "lineNo": 1909,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Same direction booking clubbing"
+    },
+    {
+      "id": "L1910",
+      "lineNo": 1910,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Carpool suggestion (2 bookings in 1 big vehicle)"
+    },
+    {
+      "id": "L1911",
+      "lineNo": 1911,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Fuel saving calculation"
+    },
+    {
+      "id": "L1912",
+      "lineNo": 1912,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Profit increase projection"
+    },
+    {
+      "id": "L1913",
+      "lineNo": 1913,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1914",
+      "lineNo": 1914,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Return Trip Logic**"
+    },
+    {
+      "id": "L1915",
+      "lineNo": 1915,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Identify empty return trips"
+    },
+    {
+      "id": "L1916",
+      "lineNo": 1916,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-suggest return bookings"
+    },
+    {
+      "id": "L1917",
+      "lineNo": 1917,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Route optimization for return journey"
+    },
+    {
+      "id": "L1918",
+      "lineNo": 1918,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Driver positioning strategy"
+    },
+    {
+      "id": "L1919",
+      "lineNo": 1919,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1920",
+      "lineNo": 1920,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 17. इन्वेंटरी और एसेट मैनेजमेंट (Inventory & Asset Management)"
+    },
+    {
+      "id": "L1921",
+      "lineNo": 1921,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- All vehicles tracking"
+    },
+    {
+      "id": "L1922",
+      "lineNo": 1922,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Kilometer-wise service alerts"
+    },
+    {
+      "id": "L1923",
+      "lineNo": 1923,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Service history per vehicle"
+    },
+    {
+      "id": "L1924",
+      "lineNo": 1924,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Maintenance schedule management"
+    },
+    {
+      "id": "L1925",
+      "lineNo": 1925,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Tire change reminders"
+    },
+    {
+      "id": "L1926",
+      "lineNo": 1926,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Document expiry tracking (bulk view)"
+    },
+    {
+      "id": "L1927",
+      "lineNo": 1927,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle status (Active/Under Maintenance/Blocked)"
+    },
+    {
+      "id": "L1928",
+      "lineNo": 1928,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Fleet performance analytics"
+    },
+    {
+      "id": "L1929",
+      "lineNo": 1929,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1930",
+      "lineNo": 1930,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 18. इंटरनेशनल फीचर्स (International Features)"
+    },
+    {
+      "id": "L1931",
+      "lineNo": 1931,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Language Bridge**"
+    },
+    {
+      "id": "L1932",
+      "lineNo": 1932,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Real-time translation system (Hindi ↔ English ↔ German ↔ French ↔ Spanish)"
+    },
+    {
+      "id": "L1933",
+      "lineNo": 1933,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Live chat translation"
+    },
+    {
+      "id": "L1934",
+      "lineNo": 1934,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Voice translation support"
+    },
+    {
+      "id": "L1935",
+      "lineNo": 1935,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1936",
+      "lineNo": 1936,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Cultural Guide AI**"
+    },
+    {
+      "id": "L1937",
+      "lineNo": 1937,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Location-triggered audio history (automatic play near forts/temples)"
+    },
+    {
+      "id": "L1938",
+      "lineNo": 1938,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Multi-language audio content"
+    },
+    {
+      "id": "L1939",
+      "lineNo": 1939,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Historical facts and stories"
+    },
+    {
+      "id": "L1940",
+      "lineNo": 1940,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Photo spot suggestions"
+    },
+    {
+      "id": "L1941",
+      "lineNo": 1941,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Cultural etiquette information"
+    },
+    {
+      "id": "L1942",
+      "lineNo": 1942,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1943",
+      "lineNo": 1943,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 19. ड्राइवर रिटेंशन (Driver Loyalty & Retention)"
+    },
+    {
+      "id": "L1944",
+      "lineNo": 1944,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Driver Leaderboard**"
+    },
+    {
+      "id": "L1945",
+      "lineNo": 1945,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Top drivers by rating"
+    },
+    {
+      "id": "L1946",
+      "lineNo": 1946,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Top drivers by trips"
+    },
+    {
+      "id": "L1947",
+      "lineNo": 1947,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - \"Driver of the Month\" badge"
+    },
+    {
+      "id": "L1948",
+      "lineNo": 1948,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Automatic bonus allocation"
+    },
+    {
+      "id": "L1949",
+      "lineNo": 1949,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Public recognition"
+    },
+    {
+      "id": "L1950",
+      "lineNo": 1950,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  "
+    },
+    {
+      "id": "L1951",
+      "lineNo": 1951,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- **Family Insurance Fund**"
+    },
+    {
+      "id": "L1952",
+      "lineNo": 1952,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Auto-deduct small amount from each trip"
+    },
+    {
+      "id": "L1953",
+      "lineNo": 1953,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Health insurance for driver families"
+    },
+    {
+      "id": "L1954",
+      "lineNo": 1954,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Fund balance tracking"
+    },
+    {
+      "id": "L1955",
+      "lineNo": 1955,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "  - Claim processing"
+    },
+    {
+      "id": "L1956",
+      "lineNo": 1956,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1957",
+      "lineNo": 1957,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "### 20. कंप्लायंस और लीगल (Compliance & Legal)"
+    },
+    {
+      "id": "L1958",
+      "lineNo": 1958,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Tax calculation and reports"
+    },
+    {
+      "id": "L1959",
+      "lineNo": 1959,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- GST filing reports"
+    },
+    {
+      "id": "L1960",
+      "lineNo": 1960,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Government compliance tracking"
+    },
+    {
+      "id": "L1961",
+      "lineNo": 1961,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Driver verification records"
+    },
+    {
+      "id": "L1962",
+      "lineNo": 1962,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Insurance tracking"
+    },
+    {
+      "id": "L1963",
+      "lineNo": 1963,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Legal document repository"
+    },
+    {
+      "id": "L1964",
+      "lineNo": 1964,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Emergency fund management (separate from donation)"
+    },
+    {
+      "id": "L1965",
+      "lineNo": 1965,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "- Accident support fund"
+    },
+    {
+      "id": "L1966",
+      "lineNo": 1966,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1967",
+      "lineNo": 1967,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "---"
+    },
+    {
+      "id": "L1968",
+      "lineNo": 1968,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2055",
+      "lineNo": 2055,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Admin portal "
+    },
+    {
+      "id": "L2056",
+      "lineNo": 2056,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "In tino portal ko aapas me connect karna hai jisase jisme keval costumer jab booking dale tab admin or driver dono ke paas notification mile "
+    },
+    {
+      "id": "L2057",
+      "lineNo": 2057,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Time time se alrt milana chahiye sabhi ficher ke"
+    },
+    {
+      "id": "L2058",
+      "lineNo": 2058,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Costumer or driver v sabhi ka control admin ke paas ho "
+    },
+    {
+      "id": "L2059",
+      "lineNo": 2059,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Or isme jitana ho sake utne sabhi ai system dalne hai"
+    },
+    {
+      "id": "L2060",
+      "lineNo": 2060,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Sabhi portal me adhik se adhik ai system dalne hai"
+    },
+    {
+      "id": "L2061",
+      "lineNo": 2061,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Or puri website automatic banani hai"
+    },
+    {
+      "id": "L2062",
+      "lineNo": 2062,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "Or hamari website ko international brand ke rup me banani hai us hisab se adhik se adhik ficher dalne hai jo other contry ke parpase se fichar jodna hai"
+    },
+    {
+      "id": "L2063",
+      "lineNo": 2063,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2064",
+      "lineNo": 2064,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2065",
+      "lineNo": 2065,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "***********************************"
+    },
+    {
+      "id": "L2066",
+      "lineNo": 2066,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2067",
+      "lineNo": 2067,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2068",
+      "lineNo": 2068,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": "meri website ka desh board ko or name ko india ke tirange  ke color me banao or ise is tarah se banao ki log adhik se adhik aakrshit ho"
+    },
+    {
+      "id": "L2069",
+      "lineNo": 2069,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2070",
+      "lineNo": 2070,
+      "section": "admin",
+      "likelyMultiPoint": false,
+      "text": ""
+    }
+  ]
+}

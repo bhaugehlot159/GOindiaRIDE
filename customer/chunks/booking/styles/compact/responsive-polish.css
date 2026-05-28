@@ -1,0 +1,629 @@
+        @media (max-width: 760px) {
+            body.booking-page.professional-booking .container {
+                display: flex;
+                flex-direction: column;
+            }
+
+            body.booking-page.professional-booking #cabBookingConsole {
+                order: 1;
+            }
+
+            body.booking-page.professional-booking #errorMessage {
+                order: 2;
+            }
+
+            body.booking-page.professional-booking #successMessage {
+                order: 3;
+            }
+
+            body.booking-page.professional-booking #bookingProgressCard {
+                order: 4;
+            }
+
+            body.booking-page.professional-booking .booking-grid {
+                order: 5;
+            }
+
+            body.booking-page.professional-booking .cab-page-content {
+                order: 6;
+            }
+
+            body.booking-page.professional-booking .booking-top-actions,
+            body.booking-page.professional-booking > .container > .header {
+                display: none !important;
+            }
+
+            body.booking-page.professional-booking .cab-page-content,
+            body.booking-page.professional-booking .cab-content-section {
+                width: 100% !important;
+                max-width: calc(100vw - 16px) !important;
+                min-width: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                overflow: hidden;
+            }
+
+            .cab-booking-console {
+                padding: 0.72rem;
+                margin-bottom: 0.72rem;
+                border-radius: 16px;
+            }
+
+            .cab-console-head {
+                display: grid;
+                grid-template-columns: 38px 1fr 38px;
+                align-items: center;
+                gap: 0.55rem;
+                margin-bottom: 0.72rem;
+            }
+
+            .cab-icon-action {
+                min-width: 38px !important;
+                min-height: 38px !important;
+                padding: 0 !important;
+                font-size: 0 !important;
+            }
+
+            .cab-icon-action i {
+                display: none !important;
+            }
+
+            .cab-icon-action::before {
+                content: "←";
+                font-size: 1.35rem;
+                line-height: 1;
+                font-weight: 900;
+                color: #173350;
+            }
+
+            .cab-icon-action[aria-label="Go home"]::before {
+                content: "⌂";
+                font-size: 1.18rem;
+                letter-spacing: 0;
+            }
+
+            .cab-mode-tab {
+                min-height: 88px;
+                font-size: 0.94rem;
+            }
+
+            .cab-mode-notice {
+                font-size: 0.82rem;
+            }
+
+            .cab-quick-fields,
+            .cab-booking-console:not(.is-hourly) .cab-quick-fields {
+                grid-template-columns: 1fr;
+                gap: 0.58rem;
+            }
+
+            .cab-quick-field {
+                min-height: 64px;
+            }
+
+            .cab-console-actions {
+                grid-template-columns: 1fr;
+            }
+
+            body.booking-page.professional-booking .booking-phone-actions {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            body.booking-page.professional-booking .booking-phone-actions .quick-action-btn {
+                min-width: 0 !important;
+                width: 100% !important;
+            }
+
+            .cab-trust-strip {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .cab-content-section {
+                padding: 0.85rem;
+            }
+
+            .cab-section-head {
+                align-items: flex-start;
+            }
+
+            .cab-section-action {
+                display: none;
+            }
+
+            .cab-offer-rail {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+                overflow: hidden;
+                padding-bottom: 0;
+            }
+
+            .cab-offer-card {
+                min-width: 0;
+            }
+
+            .cab-update-grid,
+            .cab-experience-grid,
+            .cab-route-columns {
+                grid-template-columns: 1fr;
+            }
+
+            body.booking-page.professional-booking .booking-form-section {
+                border-radius: 14px !important;
+            }
+        }
+
+        body.booking-page.professional-booking .cab-booking-console.goi-section-shell::before,
+        body.booking-page.professional-booking .cab-content-section.goi-section-shell::before {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console,
+        body.booking-page.professional-booking .cab-content-section {
+            background: #ffffff !important;
+            border-color: rgba(30, 61, 89, 0.13) !important;
+            box-shadow: 0 14px 30px rgba(31, 45, 61, 0.09) !important;
+        }
+
+        body.booking-page.professional-booking .cab-icon-action {
+            background: #f3f7fb !important;
+            color: #173350 !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            border-radius: 999px !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab {
+            background: #ffffff !important;
+            color: #293b4e !important;
+            border-radius: 0 !important;
+            border: 0 !important;
+            border-right: 1px solid #d5dfeb !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab:last-child {
+            border-right: 0 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab i {
+            color: #7a8793 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab.is-active {
+            background: #eef6ff !important;
+            color: #1684ba !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mode-tab.is-active i {
+            color: #1684ba !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip,
+        body.booking-page.professional-booking .cab-quick-field,
+        body.booking-page.professional-booking .cab-route-addons,
+        body.booking-page.professional-booking .route-stop-add-btn,
+        body.booking-page.professional-booking .cab-section-action,
+        body.booking-page.professional-booking .cab-offer-card button {
+            background: #ffffff !important;
+            color: #283d52 !important;
+            border-color: #dce4ef !important;
+            box-shadow: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-journey-chip.is-active {
+            background: #eff9ff !important;
+            color: #117eaa !important;
+            border-color: #25a9dc !important;
+            box-shadow: inset 0 0 0 1px #25a9dc !important;
+        }
+
+        body.booking-page.professional-booking .cab-quick-field {
+            background: #fbfcfe !important;
+            border-color: #dce4ef !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .cab-quick-field i {
+            background: #edf5fc !important;
+            color: #587083 !important;
+        }
+
+        body.booking-page.professional-booking .route-stop-add-btn,
+        body.booking-page.professional-booking .cab-section-action,
+        body.booking-page.professional-booking .cab-offer-card button {
+            color: #1485ad !important;
+        }
+
+        body.booking-page.professional-booking .cab-primary-search {
+            background: linear-gradient(100deg, #36aeea 0%, #0562f0 100%) !important;
+            color: #ffffff !important;
+            border: 0 !important;
+            box-shadow: 0 12px 24px rgba(5, 98, 240, 0.2) !important;
+            border-radius: 12px !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-panel {
+            background: #f7faff !important;
+            border: 1px solid #d6e5f7 !important;
+            border-radius: 14px !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-panel h3 {
+            color: #112f50 !important;
+            font-size: 1.08rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-copy {
+            color: #5d6c7c !important;
+            font-size: 0.9rem !important;
+            line-height: 1.42 !important;
+            margin-bottom: 1rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 0.65rem !important;
+            margin-top: 0.85rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn {
+            width: auto !important;
+            min-width: 138px !important;
+            max-width: 100% !important;
+            min-height: 44px !important;
+            height: 44px !important;
+            padding: 0.68rem 0.95rem !important;
+            border: 0 !important;
+            border-radius: 11px !important;
+            background: linear-gradient(100deg, #1fa8d7 0%, #1769da 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 8px 18px rgba(23, 105, 218, 0.18) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.42rem !important;
+            font-size: 0.88rem !important;
+            font-weight: 900 !important;
+            line-height: 1 !important;
+            text-align: center !important;
+            transform: none !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 10px 22px rgba(23, 105, 218, 0.22) !important;
+        }
+
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn i,
+        body.booking-page.professional-booking .booking-phone-actions .quick-action-btn * {
+            color: #ffffff !important;
+            font-size: 0.92rem !important;
+        }
+
+        body.booking-page.professional-booking:not(.booking-otp-required) .booking-phone-panel .booking-otp-field,
+        body.booking-page.professional-booking:not(.booking-otp-required) .booking-phone-panel .booking-otp-controls,
+        body.booking-page.professional-booking:not(.booking-otp-required) .booking-phone-panel #bookingPhoneRecaptchaContainer {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        body.booking-page.professional-booking.booking-otp-required .booking-phone-panel .booking-otp-field {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        body.booking-page.professional-booking.booking-otp-required .booking-phone-panel .booking-otp-controls {
+            display: flex !important;
+            visibility: visible !important;
+        }
+
+        body.booking-page.professional-booking.booking-otp-required .booking-phone-panel #bookingPhoneRecaptchaContainer {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        body.booking-page.professional-booking #bookingPhoneStatus {
+            border-radius: 10px !important;
+            font-size: 0.86rem !important;
+            line-height: 1.38 !important;
+            padding: 0.72rem 0.82rem !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        body.booking-page.professional-booking .cab-console-brand {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+        }
+
+        body.booking-page.professional-booking .cab-brand-kicker {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.34rem 0.6rem;
+            border-radius: 999px;
+            background: #eef8ff;
+            color: #0e7fab;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .cab-console-brand h2 {
+            margin: 0.45rem 0 0;
+            color: #071f35 !important;
+            font-size: clamp(1.55rem, 2.5vw, 2.1rem);
+            line-height: 1.08;
+            letter-spacing: 0;
+        }
+
+        body.booking-page.professional-booking .cab-brand-proof {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.45rem;
+            max-width: 310px;
+        }
+
+        body.booking-page.professional-booking .cab-brand-proof span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.34rem;
+            padding: 0.45rem 0.66rem;
+            border-radius: 999px;
+            background: #f6f9fc;
+            color: #244158;
+            border: 1px solid #dbe6f0;
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+
+        body.booking-page.professional-booking .cab-console-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(270px, 0.38fr);
+            gap: 0.95rem;
+            align-items: stretch;
+        }
+
+        body.booking-page.professional-booking .cab-console-main,
+        body.booking-page.professional-booking .cab-live-sidecar {
+            min-width: 0;
+        }
+
+        body.booking-page.professional-booking .cab-mini-form {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.72rem;
+            margin-top: 0.82rem;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field {
+            min-width: 0;
+            min-height: 78px;
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            grid-template-rows: auto 1fr;
+            column-gap: 0.65rem;
+            align-items: center;
+            border: 1px solid #dbe5ef;
+            border-radius: 14px;
+            padding: 0.68rem 0.78rem;
+            background: #fbfcfe;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field i {
+            grid-row: 1 / 3;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: #edf6fd;
+            color: #477186 !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field span {
+            color: #6b7480;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input,
+        body.booking-page.professional-booking .cab-mini-field select {
+            width: 100%;
+            min-width: 0;
+            min-height: 32px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: #132a40 !important;
+            font-size: 0.98rem !important;
+            font-weight: 900;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input::placeholder {
+            color: #6c7680;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field input:focus,
+        body.booking-page.professional-booking .cab-mini-field select:focus {
+            outline: none;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field:focus-within {
+            border-color: #23a5d4;
+            background: #ffffff;
+            box-shadow: 0 10px 22px rgba(35, 165, 212, 0.12);
+        }
+
+        body.booking-page.professional-booking .cab-mini-field-wide {
+            grid-column: span 2;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console.is-hourly .cab-drop-mini-field {
+            display: none;
+        }
+
+        body.booking-page.professional-booking .cab-booking-console:not(.is-hourly) .cab-mini-field.cab-package-field {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking #cabBookingConsole.is-airport-package .cab-mini-field.cab-package-field {
+            display: grid !important;
+        }
+
+        body.booking-page.professional-booking .cab-live-sidecar {
+            display: grid;
+            gap: 0.72rem;
+            padding: 0.9rem;
+            border-radius: 14px;
+            background:
+                linear-gradient(180deg, #f8fcff 0%, #ffffff 100%) !important;
+            border: 1px solid #dbe5ef;
+        }
+
+        body.booking-page.professional-booking .cab-side-title {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.8rem;
+        }
+
+        body.booking-page.professional-booking .cab-side-title span,
+        body.booking-page.professional-booking .cab-side-grid small {
+            color: #6a7887;
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .cab-side-title strong {
+            color: #09243c;
+            font-size: 1.75rem;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        body.booking-page.professional-booking .cab-live-sidecar p {
+            margin: 0;
+            color: #50677a;
+            font-size: 0.86rem;
+            line-height: 1.4;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.55rem;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid span {
+            min-width: 0;
+            display: grid;
+            gap: 0.16rem;
+            padding: 0.62rem;
+            border-radius: 12px;
+            background: #f2f7fb;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid i {
+            color: #158bb7 !important;
+        }
+
+        body.booking-page.professional-booking .cab-side-grid b {
+            min-width: 0;
+            color: #132a40;
+            font-size: 0.88rem;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        body.booking-page.professional-booking .cab-side-status {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.48rem;
+            padding: 0.62rem 0.72rem;
+            border-radius: 12px;
+            background: #eaf8ef;
+            color: #17633d;
+            font-size: 0.82rem;
+            font-weight: 900;
+            line-height: 1.3;
+        }
+
+        body.booking-page.professional-booking .cab-side-status i {
+            margin-top: 0.08rem;
+            color: #17633d !important;
+        }
+
+        @media (max-width: 1180px) {
+            body.booking-page.professional-booking .cab-console-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body.booking-page.professional-booking .cab-live-sidecar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            body.booking-page.professional-booking .cab-console-brand {
+                display: none;
+            }
+
+            body.booking-page.professional-booking .cab-console-grid {
+                gap: 0.78rem;
+            }
+
+            body.booking-page.professional-booking .cab-mini-form {
+                grid-template-columns: 1fr;
+                gap: 0.58rem;
+                margin-top: 0.72rem;
+            }
+
+            body.booking-page.professional-booking .cab-mini-field,
+            body.booking-page.professional-booking .cab-mini-field-wide {
+                grid-column: auto;
+                min-height: 66px;
+            }
+
+            body.booking-page.professional-booking .cab-mini-field input,
+            body.booking-page.professional-booking .cab-mini-field select {
+                font-size: 0.92rem !important;
+            }
+
+            body.booking-page.professional-booking .cab-mini-field input::placeholder {
+                font-size: 0.82rem;
+            }
+
+            body.booking-page.professional-booking .cab-live-sidecar {
+                padding: 0.78rem;
+            }
+
+            body.booking-page.professional-booking .cab-side-title strong {
+                font-size: 1.42rem;
+            }
+
+            body.booking-page.professional-booking .cab-side-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        /* Reference-inspired compact booking shell (MMT/Savaari/Gozo style, features preserved in drawer). */

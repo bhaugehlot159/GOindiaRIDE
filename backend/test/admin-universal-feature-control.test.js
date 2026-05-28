@@ -10,6 +10,44 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
+function readRepoJson(relativePath) {
+  return JSON.parse(readRepoFile(relativePath));
+}
+
+function resolveUltimateIndexPart(parentRelativePath, partPath) {
+  const candidate = path.join(path.dirname(parentRelativePath), partPath);
+  if (fs.existsSync(path.join(repoRoot, candidate))) {
+    return candidate;
+  }
+  return path.join('js/ultimate', partPath);
+}
+
+function readUltimateFeatureItems(relativePath, seen = new Set()) {
+  const normalizedPath = relativePath.replace(/\\/g, '/');
+  if (seen.has(normalizedPath)) return [];
+  seen.add(normalizedPath);
+
+  const payload = readRepoJson(relativePath);
+  const ownItems = Array.isArray(payload.items) ? payload.items : [];
+  const partItems = Array.isArray(payload.parts)
+    ? payload.parts.flatMap((partPath) => readUltimateFeatureItems(resolveUltimateIndexPart(relativePath, partPath), seen))
+    : [];
+  return [...ownItems, ...partItems];
+}
+
+function readUltimateExpectedCategoryCounts(index) {
+  if (index.byCategory && typeof index.byCategory === 'object') {
+    return index.byCategory;
+  }
+  const manifestPath = 'js/ultimate/feature-index/manifest.json';
+  if (!fs.existsSync(path.join(repoRoot, manifestPath))) return {};
+  const manifest = readRepoJson(manifestPath);
+  return (Array.isArray(manifest.shards) ? manifest.shards : []).reduce((acc, shard) => {
+    if (shard.category) acc[shard.category] = Number(shard.count) || 0;
+    return acc;
+  }, {});
+}
+
 function createLocalStorage(initial = {}) {
   const store = new Map(Object.entries(initial).map(([key, value]) => [key, String(value)]));
   return {
@@ -97,8 +135,10 @@ function createRuntimeSandbox(localStorage) {
 }
 
 test('ultimate feature index is fully represented by category counts', () => {
-  const index = JSON.parse(readRepoFile('js/ultimate/feature-index.json'));
-  const items = Array.isArray(index.items) ? index.items : [];
+  const indexPath = 'js/ultimate/feature-index.json';
+  const index = readRepoJson(indexPath);
+  const items = readUltimateFeatureItems(indexPath);
+  const expectedByCategory = readUltimateExpectedCategoryCounts(index);
   const byCategory = items.reduce((acc, item) => {
     assert.ok(item.featureId, 'featureId is required');
     assert.ok(item.category, `${item.featureId} category is required`);
@@ -108,7 +148,7 @@ test('ultimate feature index is fully represented by category counts', () => {
   }, {});
 
   assert.equal(items.length, index.totalFeatureItems);
-  assert.deepEqual(byCategory, index.byCategory);
+  assert.deepEqual(byCategory, expectedByCategory);
   ['customer', 'driver', 'admin', 'security', 'additional'].forEach((category) => {
     assert.ok(byCategory[category] > 0, `${category} features should be present`);
   });

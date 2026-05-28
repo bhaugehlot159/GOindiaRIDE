@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "customer",
+  "part": 3,
+  "totalParts": 6,
+  "totalFeatureItems": 458,
+  "items": [
+    {
+      "featureId": "U00608",
+      "sourceLine": 611,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सोशल शेयरिंग: बुकिंग कन्फर्म होते ही फेसबुक पर शेयर करने का विकल्प।",
+      "blockKey": "customer-ultimate-u00611-line-611"
+    },
+    {
+      "featureId": "U00609",
+      "sourceLine": 612,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट ईमेल: ग्राहक को यात्रा से 1 दिन पहले रिमाइंडर ईमेल।",
+      "blockKey": "customer-ultimate-u00612-line-612"
+    },
+    {
+      "featureId": "U00617",
+      "sourceLine": 621,
+      "category": "customer",
+      "bucket": "general",
+      "text": "उदयपुर रेलवे स्टेशन गेट 1: मुख्य प्रवेश द्वार के 'पार्सल ऑफिस' के पास का सटीक पिकअप जोन।",
+      "blockKey": "customer-ultimate-u00621-line-621"
+    },
+    {
+      "featureId": "U00620",
+      "sourceLine": 624,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ताज लेक पैलेस जेटी: नाव से उतरने वाले यात्रियों के लिए 'बंसी घाट' की सटीक पार्किंग लोकेशन।",
+      "blockKey": "customer-ultimate-u00624-line-624"
+    },
+    {
+      "featureId": "U00621",
+      "sourceLine": 625,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सिटी पैलेस (बड़ी पोल): महल के मुख्य द्वार पर भीड़भाड़ के दौरान वैकल्पिक पिकअप पॉइंट।",
+      "blockKey": "customer-ultimate-u00625-line-625"
+    },
+    {
+      "featureId": "U00622",
+      "sourceLine": 626,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सहेलियों की बाड़ी: मुख्य गेट और पार्किंग एरिया के बीच का बफर पिकअप पॉइंट।",
+      "blockKey": "customer-ultimate-u00626-line-626"
+    },
+    {
+      "featureId": "U00624",
+      "sourceLine": 628,
+      "category": "customer",
+      "bucket": "general",
+      "text": "जगदीश मंदिर: संकरी गलियों में पैदल यात्रियों के बीच सुरक्षित पिकअप टाइमिंग।",
+      "blockKey": "customer-ultimate-u00628-line-628"
+    },
+    {
+      "featureId": "U00625",
+      "sourceLine": 629,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बागौर की हवेली: शाम के शो के बाद भीड़ के समय गाड़ी पहुँचने का सटीक रूट।",
+      "blockKey": "customer-ultimate-u00629-line-629"
+    },
+    {
+      "featureId": "U00626",
+      "sourceLine": 630,
+      "category": "customer",
+      "bucket": "general",
+      "text": "दूध तलाई: रोप-वे और गार्डन के बीच का प्रिसिजन लोकेशन डेटा।",
+      "blockKey": "customer-ultimate-u00630-line-630"
+    },
+    {
+      "featureId": "U00627",
+      "sourceLine": 631,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ब्यावर नया जिला: ब्यावर बस स्टैंड के मुख्य पूछताछ केंद्र की लोकेशन।",
+      "blockKey": "customer-ultimate-u00631-line-631"
+    },
+    {
+      "featureId": "U00628",
+      "sourceLine": 632,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सलूंबर जिला: सलूंबर कलेक्ट्रेट और मुख्य बाजार के पिकअप पॉइंट्स।",
+      "blockKey": "customer-ultimate-u00632-line-632"
+    },
+    {
+      "featureId": "U00629",
+      "sourceLine": 633,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पिकअप पोल मैपिंग: बिजली के खम्भों या गेट नंबरों को लैंडमार्क मानकर पिन करना।",
+      "blockKey": "customer-ultimate-u00633-line-633"
+    },
+    {
+      "featureId": "U00631",
+      "sourceLine": 635,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वॉक-गाइड (AR): संकरी गलियों में ग्राहक को मोबाइल स्क्रीन पर 'तीर' के निशान से गाड़ी तक लाना।",
+      "blockKey": "customer-ultimate-u00635-line-635"
+    },
+    {
+      "featureId": "U00632",
+      "sourceLine": 636,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ट्रैफिक जाम प्रेडिक्शन: गूगल डेटा के आधार पर पिकअप में होने वाली देरी का 99% सटीक अनुमान।",
+      "blockKey": "customer-ultimate-u00636-line-636"
+    },
+    {
+      "featureId": "U00634",
+      "sourceLine": 638,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ऑफलाइन मोड: रेगिस्तान या किलों की मोटी दीवारों के पीछे बिना इंटरनेट के लोकेशन सेव करना।",
+      "blockKey": "customer-ultimate-u00638-line-638"
+    },
+    {
+      "featureId": "U00637",
+      "sourceLine": 641,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पिकअप वॉकिंग मैप: होटल के कमरे से पार्किंग तक का पैदल रास्ता दिखाना।",
+      "blockKey": "customer-ultimate-u00641-line-641"
+    },
+    {
+      "featureId": "U00640",
+      "sourceLine": 644,
+      "category": "customer",
+      "bucket": "general",
+      "text": "रूट शेयरिंग लिंक: परिवार को व्हाट्सएप पर 'सेफ जर्नी' का रीयल-टाइम लिंक।",
+      "blockKey": "customer-ultimate-u00644-line-644"
+    },
+    {
+      "featureId": "U00641",
+      "sourceLine": 645,
+      "category": "customer",
+      "bucket": "general",
+      "text": "मैप सैटेलाइट व्यू: ग्राहक के लिए ऊँचाई से रीयल बिल्डिंग देखने का विकल्प।",
+      "blockKey": "customer-ultimate-u00645-line-645"
+    },
+    {
+      "featureId": "U00642",
+      "sourceLine": 646,
+      "category": "customer",
+      "bucket": "general",
+      "text": "तैयारी बफर: ग्राहक को तैयार होने के लिए 2 मिनट का अतिरिक्त समय देना।",
+      "blockKey": "customer-ultimate-u00646-line-646"
+    },
+    {
+      "featureId": "U00643",
+      "sourceLine": 647,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पेट्रोल पंप मैपिंग: लंबी यात्रा में रूट पर पड़ने वाले 'रॉयल सर्विस' वाले पंपों की लिस्ट।",
+      "blockKey": "customer-ultimate-u00647-line-647"
+    },
+    {
+      "featureId": "U00644",
+      "sourceLine": 648,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पिकअप पॉइंट वीडियो: प्रमुख होटलों के पिकअप पॉइंट का 5 सेकंड का वीडियो ग्राहक को भेजना।",
+      "blockKey": "customer-ultimate-u00648-line-648"
+    },
+    {
+      "featureId": "U00645",
+      "sourceLine": 649,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शेयर्ड राइड लिंक: दोस्तों के साथ लाइव लोकेशन और किराया बांटने की सेटिंग।",
+      "blockKey": "customer-ultimate-u00649-line-649"
+    },
+    {
+      "featureId": "U00648",
+      "sourceLine": 652,
+      "category": "customer",
+      "bucket": "general",
+      "text": "रूट हिस्ट्री: पिछले 1 साल के सभी पिकअप पॉइंट्स का क्लाउड डेटा।",
+      "blockKey": "customer-ultimate-u00652-line-652"
+    },
+    {
+      "featureId": "U00653",
+      "sourceLine": 657,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इमरजेंसी रूट: अस्पताल के लिए सबसे छोटा और कम ट्रैफिक वाला बैकअप रास्ता।",
+      "blockKey": "customer-ultimate-u00657-line-657"
+    },
+    {
+      "featureId": "U00655",
+      "sourceLine": 659,
+      "category": "customer",
+      "bucket": "general",
+      "text": "नो-वेटिंग जोन: जिन जगहों पर रुकना मना है, वहां के लिए 'फ्लोटिंग पिकअप' सुविधा।",
+      "blockKey": "customer-ultimate-u00659-line-659"
+    },
+    {
+      "featureId": "U00656",
+      "sourceLine": 660,
+      "category": "customer",
+      "bucket": "general",
+      "text": "मल्टी-पॉइंट ड्रॉप: एक ही सोसाइटी में 3 अलग-अलग विंग्स पर छोड़ने की सटीकता।",
+      "blockKey": "customer-ultimate-u00660-line-660"
+    },
+    {
+      "featureId": "U00657",
+      "sourceLine": 661,
+      "category": "customer",
+      "bucket": "general",
+      "text": "8 घंटे का फिक्स्ड रूट: स्थानीय भ्रमण के लिए एआई द्वारा तय किया गया सर्वश्रेष्ठ क्रम।",
+      "blockKey": "customer-ultimate-u00661-line-661"
+    },
+    {
+      "featureId": "U00659",
+      "sourceLine": 663,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वन-वे ड्रॉप कैलकुलेटर: अंतर्राज्यीय बॉर्डर टैक्स की सटीक और पारदर्शी गणना।",
+      "blockKey": "customer-ultimate-u00663-line-663"
+    },
+    {
+      "featureId": "U00660",
+      "sourceLine": 664,
+      "category": "customer",
+      "bucket": "general",
+      "text": "राउंड-ट्रिप डिस्काउंट: उसी गाड़ी को वापस लाने पर ग्राहक को 15% की स्वतः छूट।",
+      "blockKey": "customer-ultimate-u00664-line-664"
+    },
+    {
+      "featureId": "U00665",
+      "sourceLine": 669,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कॉर्पोरेट GST सिंक: बुकिंग खत्म होते ही रजिस्टर्ड ईमेल पर GST बिल जाना।",
+      "blockKey": "customer-ultimate-u00669-line-669"
+    },
+    {
+      "featureId": "U00666",
+      "sourceLine": 670,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ग्रुप बुकिंग अलर्ट: 6 से ज्यादा सवारी होने पर बड़ी गाड़ी का ऑटो-पॉपअप।",
+      "blockKey": "customer-ultimate-u00670-line-670"
+    },
+    {
+      "featureId": "U00668",
+      "sourceLine": 672,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इवेंट बल्क बुकिंग: शादियों के लिए 10 गाड़ियों का एक साथ ट्रैक करने वाला मैप।",
+      "blockKey": "customer-ultimate-u00672-line-672"
+    },
+    {
+      "featureId": "U00670",
+      "sourceLine": 674,
+      "category": "customer",
+      "bucket": "general",
+      "text": "धार्मिक यात्रा पैक: सभी मंदिरों के आरती समय के हिसाब से पिकअप शेड्यूल।",
+      "blockKey": "customer-ultimate-u00674-line-674"
+    },
+    {
+      "featureId": "U00674",
+      "sourceLine": 678,
+      "category": "customer",
+      "bucket": "general",
+      "text": "होटल-टू-होटल चेक: पुराने होटल से सामान निकलने का रीयल स्टेटस।",
+      "blockKey": "customer-ultimate-u00678-line-678"
+    },
+    {
+      "featureId": "U00676",
+      "sourceLine": 680,
+      "category": "customer",
+      "bucket": "general",
+      "text": "गिफ्ट ए ट्रिप वाउचर: दूसरों के लिए बुक करने पर उनके नंबर पर 'शाही आमंत्रण'।",
+      "blockKey": "customer-ultimate-u00680-line-680"
+    },
+    {
+      "featureId": "U00678",
+      "sourceLine": 682,
+      "category": "customer",
+      "bucket": "general",
+      "text": "हॉलिडे हॉपर: दो पर्यटन शहरों के बीच की सस्ती 'शटल' बुकिंग।",
+      "blockKey": "customer-ultimate-u00682-line-682"
+    },
+    {
+      "featureId": "U00680",
+      "sourceLine": 684,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एडवेंचर सफारी ट्रिप: उबड़-खाबड़ रास्तों के लिए केवल 4x4 गाड़ियों का विकल्प।",
+      "blockKey": "customer-ultimate-u00684-line-684"
+    },
+    {
+      "featureId": "U00681",
+      "sourceLine": 685,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एम्बुलेंस लिंक: दुर्घटना या इमरजेंसी होने पर 108 सेवा को ऑटो-लोकेशन।",
+      "blockKey": "customer-ultimate-u00685-line-685"
+    },
+    {
+      "featureId": "U00682",
+      "sourceLine": 686,
+      "category": "customer",
+      "bucket": "general",
+      "text": "गाइड बुकिंग: टैक्सी के साथ लाइसेंसधारी टूरिस्ट गाइड का विकल्प।",
+      "blockKey": "customer-ultimate-u00686-line-686"
+    },
+    {
+      "featureId": "U00687",
+      "sourceLine": 691,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बुकिंग मॉडिफिकेशन: चलते सफर में Sedan से SUV पर स्विच करना।",
+      "blockKey": "customer-ultimate-u00691-line-691"
+    },
+    {
+      "featureId": "U00688",
+      "sourceLine": 692,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वेटिंग लिस्ट नंबर: पीक सीजन में ग्राहकों को उनकी बारी का नंबर देना।",
+      "blockKey": "customer-ultimate-u00692-line-692"
+    },
+    {
+      "featureId": "U00689",
+      "sourceLine": 693,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शेयर्ड टैक्सी फिल्टर: एक ही रूट पर जाने वाले यात्रियों को मिलाना।",
+      "blockKey": "customer-ultimate-u00693-line-693"
+    },
+    {
+      "featureId": "U00693",
+      "sourceLine": 697,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एजुकेशनल ट्रिप डेटा: छात्रों के लिए किलों की जानकारी का ऑडियो गाइड।",
+      "blockKey": "customer-ultimate-u00697-line-697"
+    },
+    {
+      "featureId": "U00694",
+      "sourceLine": 698,
+      "category": "customer",
+      "bucket": "general",
+      "text": "हेल्थ टूरिज्म: बड़े अस्पतालों के मुख्य ओपीडी गेट पर ड्रॉप।",
+      "blockKey": "customer-ultimate-u00698-line-698"
+    },
+    {
+      "featureId": "U00695",
+      "sourceLine": 699,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ऑफ-बीट ट्रिप: गूगल मैप पर न दिखने वाले गांवों का 'लोकल रूट'।",
+      "blockKey": "customer-ultimate-u00699-line-699"
+    },
+    {
+      "featureId": "U00697",
+      "sourceLine": 701,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बॉर्डर ट्रिप: राजस्थान-गुजरात या राजस्थान-हरियाणा बॉर्डर तक ड्रॉप।",
+      "blockKey": "customer-ultimate-u00701-line-701"
+    },
+    {
+      "featureId": "U00699",
+      "sourceLine": 703,
+      "category": "customer",
+      "bucket": "general",
+      "text": "तहसील लेवल पिकअप: जिलों के अंदर के गांवों की सूक्ष्म स्पेलिंग चेक।",
+      "blockKey": "customer-ultimate-u00703-line-703"
+    },
+    {
+      "featureId": "U00702",
+      "sourceLine": 706,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शौर्य गाथा ऑडियो: यात्रा के दौरान उस क्षेत्र की वीर कहानियाँ बजना।",
+      "blockKey": "customer-ultimate-u00706-line-706"
+    },
+    {
+      "featureId": "U00704",
+      "sourceLine": 708,
+      "category": "customer",
+      "bucket": "general",
+      "text": "लोक कला खंड: कठपुतली या घूमर कलाकारों के अड्डों की लोकेशन।",
+      "blockKey": "customer-ultimate-u00708-line-708"
+    },
+    {
+      "featureId": "U00708",
+      "sourceLine": 712,
+      "category": "customer",
+      "bucket": "general",
+      "text": "हस्तशिल्प गाइड: असली नक्काशी और पेंटिंग की दुकानों के लोकेशन।",
+      "blockKey": "customer-ultimate-u00712-line-712"
+    },
+    {
+      "featureId": "U00714",
+      "sourceLine": 718,
+      "category": "customer",
+      "bucket": "general",
+      "text": "लोक देवता: रामदेवजी या पाबूजी के मंदिरों का रूट मैप।",
+      "blockKey": "customer-ultimate-u00718-line-718"
+    },
+    {
+      "featureId": "U00744",
+      "sourceLine": 749,
+      "category": "customer",
+      "bucket": "general",
+      "text": "360° वर्चुअल टूर: प्रमुख किलों और महलों का घर बैठे ही डिजिटल भ्रमण (Virtual Tour)।",
+      "blockKey": "customer-ultimate-u00749-line-749"
+    },
+    {
+      "featureId": "U00747",
+      "sourceLine": 752,
+      "category": "customer",
+      "bucket": "general",
+      "text": "नो-टाइपिंग UI: ग्राहकों के लिए केवल वॉइस और आइकन आधारित आसान बुकिंग इंटरफेस।",
+      "blockKey": "customer-ultimate-u00752-line-752"
+    },
+    {
+      "featureId": "U00753",
+      "sourceLine": 758,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ब्रांड मस्कॉट: एक एनिमेटेड महाराजा पात्र जो एआई द्वारा ग्राहकों से बात करे।",
+      "blockKey": "customer-ultimate-u00758-line-758"
+    },
+    {
+      "featureId": "U00757",
+      "sourceLine": 762,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सोशल मीडिया किट: ग्राहकों के लिए फोटो सीधे इंस्टाग्राम पर शेयर करने का शाही टेम्प्लेट।",
+      "blockKey": "customer-ultimate-u00762-line-762"
+    },
+    {
+      "featureId": "U00765",
+      "sourceLine": 770,
+      "category": "customer",
+      "bucket": "general",
+      "text": "मल्टी-डिवाइस सिंक: फोन और कंप्यूटर के बीच बुकिंग डेटा का रीयल-टाइम तालमेल।",
+      "blockKey": "customer-ultimate-u00770-line-770"
+    },
+    {
+      "featureId": "U00766",
+      "sourceLine": 771,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ई-मेल टेम्पलेट्स: ग्राहकों को मिलने वाली रसीद का शाही और अंतरराष्ट्रीय डिज़ाइन।",
+      "blockKey": "customer-ultimate-u00771-line-771"
+    },
+    {
+      "featureId": "U00767",
+      "sourceLine": 772,
+      "category": "customer",
+      "bucket": "general",
+      "text": "डार्क/लाइट मोड: ग्राहक की पसंद के अनुसार वेबसाइट की थीम बदलने का विकल्प।",
+      "blockKey": "customer-ultimate-u00772-line-772"
+    },
+    {
+      "featureId": "U00771",
+      "sourceLine": 776,
+      "category": "customer",
+      "bucket": "general",
+      "text": "3D कार मॉडल्स: बुकिंग से पहले गाड़ी का 360 डिग्री रीयल व्यू दिखाना।",
+      "blockKey": "customer-ultimate-u00776-line-776"
+    },
+    {
+      "featureId": "U00772",
+      "sourceLine": 777,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टम नोटिफिकेशन साउंड: बुकिंग होने पर तलवार की खनक या घुंघरू की आवाज़।",
+      "blockKey": "customer-ultimate-u00777-line-777"
+    },
+    {
+      "featureId": "U00777",
+      "sourceLine": 782,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टम रील मेकर: ग्राहक की यात्रा फोटो से 'पधारो राजस्थान' रील स्वतः बनाना।",
+      "blockKey": "customer-ultimate-u00782-line-782"
+    },
+    {
+      "featureId": "U00791",
+      "sourceLine": 796,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इलेक्ट्रिक व्हीकल (EV): प्रदूषण मुक्त यात्रा के लिए आधुनिक इलेक्ट्रिक गाड़ियाँ।",
+      "blockKey": "customer-ultimate-u00796-line-796"
+    },
+    {
+      "featureId": "U00796",
+      "sourceLine": 801,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इंटीरियर कस्टमाइजेशन: ग्राहकों के लिए गाड़ी के अंदर फूलों या लाइट की सजावट।",
+      "blockKey": "customer-ultimate-u00801-line-801"
+    },
+    {
+      "featureId": "U00807",
+      "sourceLine": 812,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टम टेम्परेचर: पिकअप से पहले ही AC को ग्राहक की पसंद पर सेट करना।",
+      "blockKey": "customer-ultimate-u00812-line-812"
+    },
+    {
+      "featureId": "U00815",
+      "sourceLine": 820,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एक्स्ट्रा कुशन: लंबी यात्रा के लिए गर्दन और पीठ के लिए अतिरिक्त तकिए।",
+      "blockKey": "customer-ultimate-u00820-line-820"
+    },
+    {
+      "featureId": "U00819",
+      "sourceLine": 825,
+      "category": "customer",
+      "bucket": "general",
+      "text": "व्यवहार का मानक: ग्राहकों से \"खम्मा घणी\" कहकर शाही स्वागत करना।",
+      "blockKey": "customer-ultimate-u00825-line-825"
+    },
+    {
+      "featureId": "U00820",
+      "sourceLine": 826,
+      "category": "customer",
+      "bucket": "general",
+      "text": "गाड़ी का नंबर: बुकिंग के तुरंत बाद गाड़ी के नंबर की पारदर्शिता।",
+      "blockKey": "customer-ultimate-u00826-line-826"
+    },
+    {
+      "featureId": "U00823",
+      "sourceLine": 829,
+      "category": "customer",
+      "bucket": "general",
+      "text": "टायर प्रेशर अलर्ट: लंबी यात्रा से पहले टायर की हवा का डिजिटल चेक और अपडेट।",
+      "blockKey": "customer-ultimate-u00829-line-829"
+    },
+    {
+      "featureId": "U00830",
+      "sourceLine": 836,
+      "category": "customer",
+      "bucket": "general",
+      "text": "महाराजा एआई असिस्टेंट: वॉइस-आधारित बुकिंग और जानकारी देने वाला एआई महाराजा।",
+      "blockKey": "customer-ultimate-u00836-line-836"
+    },
+    {
+      "featureId": "U00831",
+      "sourceLine": 837,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बजट ट्रिप प्लानर: ग्राहक के बजट और रुचि के अनुसार एआई द्वारा रूट डिजाइन।",
+      "blockKey": "customer-ultimate-u00837-line-837"
+    },
+    {
+      "featureId": "U00835",
+      "sourceLine": 841,
+      "category": "customer",
+      "bucket": "general",
+      "text": "तत्काल रिफंड इंजन: बुकिंग कैंसल होने पर बिना देरी के पैसा वापस करने की तकनीक।",
+      "blockKey": "customer-ultimate-u00841-line-841"
+    },
+    {
+      "featureId": "U00837",
+      "sourceLine": 843,
+      "category": "customer",
+      "bucket": "general",
+      "text": "डिजिटल बिलिंग: यात्रा खत्म होते ही बिना कागज के सटीक डिजिटल इनवॉइस।",
+      "blockKey": "customer-ultimate-u00843-line-843"
+    },
+    {
+      "featureId": "U00838",
+      "sourceLine": 844,
+      "category": "customer",
+      "bucket": "general",
+      "text": "24/7 एआई चैटबॉट: वेबसाइट पर किसी भी समय ग्राहक के सवालों का तुरंत समाधान।",
+      "blockKey": "customer-ultimate-u00844-line-844"
+    },
+    {
+      "featureId": "U00840",
+      "sourceLine": 846,
+      "category": "customer",
+      "bucket": "general",
+      "text": "रूट ऑप्टिमाइज़र: सबसे सुरक्षित, छोटे और कम ट्रैफिक वाले रास्ते का स्वतः चुनाव।",
+      "blockKey": "customer-ultimate-u00846-line-846"
+    },
+    {
+      "featureId": "U00841",
+      "sourceLine": 847,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट नोटिफिकेशन: गाड़ी की लोकेशन और पहुँचने के समय का रीयल-टाइम अलर्ट।",
+      "blockKey": "customer-ultimate-u00847-line-847"
+    },
+    {
+      "featureId": "U00842",
+      "sourceLine": 848,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टम ऑफर: ग्राहक की पिछली यात्राओं के आधार पर विशेष डिस्काउंट कूपन।",
+      "blockKey": "customer-ultimate-u00848-line-848"
+    },
+    {
+      "featureId": "U00844",
+      "sourceLine": 850,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ऑटो-रिव्यू सिस्टम: यात्रा के बाद ग्राहक से अनुभव और रेटिंग लेने की व्यवस्था।",
+      "blockKey": "customer-ultimate-u00850-line-850"
+    },
+    {
+      "featureId": "U00845",
+      "sourceLine": 851,
+      "category": "customer",
+      "bucket": "auto-suggestion",
+      "text": "प्रेडिक्टिव बुकिंग: पुरानी आदतों के आधार पर ग्राहक को अगली यात्रा का सुझाव।",
+      "blockKey": "customer-ultimate-u00851-line-851"
+    },
+    {
+      "featureId": "U00852",
+      "sourceLine": 858,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट री-रूट: जाम होने पर एआई द्वारा रास्ता अपने आप बदल देना।",
+      "blockKey": "customer-ultimate-u00858-line-858"
+    },
+    {
+      "featureId": "U00853",
+      "sourceLine": 859,
+      "category": "customer",
+      "bucket": "general",
+      "text": "करेंसी कन्वर्टर: अंतरराष्ट्रीय सैलानियों के लिए उनकी मुद्रा में किराया दिखाना।",
+      "blockKey": "customer-ultimate-u00859-line-859"
+    },
+    {
+      "featureId": "U00854",
+      "sourceLine": 860,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वॉइस बुकिंग: बोलकर टैक्सी बुक करने और इतिहास जानने की सुविधा।",
+      "blockKey": "customer-ultimate-u00860-line-860"
+    },
+    {
+      "featureId": "U00855",
+      "sourceLine": 861,
+      "category": "customer",
+      "bucket": "general",
+      "text": "गूगल कैलेंडर सिंक: ग्राहक की यात्रा का समय उनके कैलेंडर में अपने आप जोड़ना।",
+      "blockKey": "customer-ultimate-u00861-line-861"
+    },
+    {
+      "featureId": "U00858",
+      "sourceLine": 864,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एआई ब्लॉग राइटर: वेबसाइट पर राजस्थान के पर्यटक स्थलों का डेटा ऑटो-अपडेट करना।",
+      "blockKey": "customer-ultimate-u00864-line-864"
+    },
+    {
+      "featureId": "U00861",
+      "sourceLine": 867,
+      "category": "customer",
+      "bucket": "general",
+      "text": "फोटो से स्थान पहचान: ग्राहक द्वारा अपलोड फोटो से एआई द्वारा उस जगह का नाम बताना।",
+      "blockKey": "customer-ultimate-u00867-line-867"
+    },
+    {
+      "featureId": "U00862",
+      "sourceLine": 868,
+      "category": "customer",
+      "bucket": "general",
+      "text": "आवाज़ से मूड पहचान: ग्राहक की आवाज़ से उनकी खुशी या नाराजगी का पता लगाना।",
+      "blockKey": "customer-ultimate-u00868-line-868"
+    },
+    {
+      "featureId": "U00865",
+      "sourceLine": 871,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट मार्केटिंग: ग्राहक के जन्मदिन या सालगिरह पर ऑटोमैटिक विश और गिफ्ट।",
+      "blockKey": "customer-ultimate-u00871-line-871"
+    },
+    {
+      "featureId": "U00867",
+      "sourceLine": 873,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ब्लॉकचेन रिकॉर्ड: बुकिंग डेटा को कभी न मिटने वाला और पारदर्शी बनाना।",
+      "blockKey": "customer-ultimate-u00873-line-873"
+    },
+    {
+      "featureId": "U00873",
+      "sourceLine": 879,
+      "category": "customer",
+      "bucket": "general",
+      "text": "डिजिटल एग्रीमेंट: रेंटल बुकिंग के समय डिजिटल हस्ताक्षर अनिवार्य करना।",
+      "blockKey": "customer-ultimate-u00879-line-879"
+    },
+    {
+      "featureId": "U00875",
+      "sourceLine": 881,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ट्रैवल इंश्योरेंस: हर यात्रा के लिए ग्राहक को तत्काल बीमा कवर देना।",
+      "blockKey": "customer-ultimate-u00881-line-881"
+    },
+    {
+      "featureId": "U00893",
+      "sourceLine": 899,
+      "category": "customer",
+      "bucket": "general",
+      "text": "रूट डेविएशन अलर्ट: तय रास्ते से गाड़ी हटने पर कंट्रोल रूम को सूचना।",
+      "blockKey": "customer-ultimate-u00899-line-899"
+    }
+  ]
+}

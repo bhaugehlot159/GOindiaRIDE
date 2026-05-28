@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "security",
+  "part": 6,
+  "totalParts": 9,
+  "totalFeatureItems": 727,
+  "items": [
+    {
+      "featureId": "U01066",
+      "sourceLine": 1075,
+      "category": "security",
+      "bucket": "general",
+      "text": "बॉर्डर टैक्स कैलकुलेटर: राज्य की सीमा पार करते समय लगने वाले टैक्स की रीयल-टाइम गणना।",
+      "blockKey": "security-ultimate-u01075-line-1075"
+    },
+    {
+      "featureId": "U01068",
+      "sourceLine": 1077,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही कैलीग्राफी: वेबसाइट पर उपयोग होने वाले अक्षरों का राजसी डिज़ाइन।",
+      "blockKey": "security-ultimate-u01077-line-1077"
+    },
+    {
+      "featureId": "U01070",
+      "sourceLine": 1079,
+      "category": "security",
+      "bucket": "general",
+      "text": "रॉयल टूरिज्म सर्टिफिकेट: राजस्थान भ्रमण पूरा करने पर एक डिजिटल प्रशस्ति पत्र।",
+      "blockKey": "security-ultimate-u01079-line-1079"
+    },
+    {
+      "featureId": "U01071",
+      "sourceLine": 1080,
+      "category": "security",
+      "bucket": "general",
+      "text": "रिफंड विंडो: पेमेंट फेल होने पर 10 मिनट के भीतर खाते में वापसी की गारंटी।",
+      "blockKey": "security-ultimate-u01080-line-1080"
+    },
+    {
+      "featureId": "U01072",
+      "sourceLine": 1081,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "मौसम सुरक्षा अलर्ट: तूफान या तेज गर्मी में यात्रा स्थगित करने का स्मार्ट सुझाव।",
+      "blockKey": "security-ultimate-u01081-line-1081"
+    },
+    {
+      "featureId": "U01074",
+      "sourceLine": 1083,
+      "category": "security",
+      "bucket": "general",
+      "text": "किले के छिपे कोने: गाइड के जरिए किलों के उन हिस्सों की जानकारी जहाँ आम लोग नहीं जाते।",
+      "blockKey": "security-ultimate-u01083-line-1083"
+    },
+    {
+      "featureId": "U01077",
+      "sourceLine": 1086,
+      "category": "security",
+      "bucket": "general",
+      "text": "डिजिटल मैप बुक: राजस्थान के रास्तों और इतिहास की एक रंगीन ई-बुक (PDF)।",
+      "blockKey": "security-ultimate-u01086-line-1086"
+    },
+    {
+      "featureId": "U01078",
+      "sourceLine": 1087,
+      "category": "security",
+      "bucket": "general",
+      "text": "बेस्ट टी-स्टॉल स्टॉप: रास्ते के उन ढाबों की लिस्ट जहाँ की 'मसाला चाय' विश्व प्रसिद्ध है।",
+      "blockKey": "security-ultimate-u01087-line-1087"
+    },
+    {
+      "featureId": "U01079",
+      "sourceLine": 1088,
+      "category": "security",
+      "bucket": "general",
+      "text": "सामान क्यूआर टैग: यात्री के बैग पर चिपकाने के लिए एक डिजिटल 'ट्रैकर टैग' (ऑप्शनल)।",
+      "blockKey": "security-ultimate-u01088-line-1088"
+    },
+    {
+      "featureId": "U01082",
+      "sourceLine": 1091,
+      "category": "security",
+      "bucket": "general",
+      "text": "साइट हेल्थ मॉनिटर: हर घंटे वेबसाइट के लिंक और पेमेंट गेटवे की टेस्टिंग।",
+      "blockKey": "security-ultimate-u01091-line-1091"
+    },
+    {
+      "featureId": "U01090",
+      "sourceLine": 1099,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव ट्रैफिक डेटा: पिछले 5 वर्षों के ट्रैफिक डेटा के आधार पर जाम का पूर्वानुमान।",
+      "blockKey": "security-ultimate-u01099-line-1099"
+    },
+    {
+      "featureId": "U01092",
+      "sourceLine": 1101,
+      "category": "security",
+      "bucket": "general",
+      "text": "किला नेविगेशन: किले के अंदर कौन सा महल कहाँ है, उसका इनडोर मैप।",
+      "blockKey": "security-ultimate-u01101-line-1101"
+    },
+    {
+      "featureId": "U01094",
+      "sourceLine": 1103,
+      "category": "security",
+      "bucket": "general",
+      "text": "वॉलेट बोनस: वॉलेट में 5000+ रुपये रखने पर 5% एक्स्ट्रा 'रॉयल क्रेडिट'।",
+      "blockKey": "security-ultimate-u01103-line-1103"
+    },
+    {
+      "featureId": "U01095",
+      "sourceLine": 1104,
+      "category": "security",
+      "bucket": "general",
+      "text": "क्विक कॉल बैक: 'कॉल मी' बटन दबाते ही 2 मिनट के भीतर कंपनी से वापसी कॉल।",
+      "blockKey": "security-ultimate-u01104-line-1104"
+    },
+    {
+      "featureId": "U01099",
+      "sourceLine": 1108,
+      "category": "security",
+      "bucket": "general",
+      "text": "डिजिटल सराय विवरण: पुराने समय की सरायों के आधुनिक और सुरक्षित ठिकानों की जानकारी।",
+      "blockKey": "security-ultimate-u01108-line-1108"
+    },
+    {
+      "featureId": "U01100",
+      "sourceLine": 1109,
+      "category": "security",
+      "bucket": "general",
+      "text": "सफर की पहेलियाँ: बच्चों के लिए राजस्थान के इतिहास से जुड़ी छोटी-छोटी क्विज।",
+      "blockKey": "security-ultimate-u01109-line-1109"
+    },
+    {
+      "featureId": "U01101",
+      "sourceLine": 1110,
+      "category": "security",
+      "bucket": "general",
+      "text": "पोशाक रेंटल लिंक: टैक्सी के साथ राजस्थानी पगड़ी और कपड़े रेंट पर लेने का विकल्प।",
+      "blockKey": "security-ultimate-u01110-line-1110"
+    },
+    {
+      "featureId": "U01102",
+      "sourceLine": 1111,
+      "category": "security",
+      "bucket": "general",
+      "text": "पैनोरमा फोटो अलर्ट: रास्ते में सबसे सुंदर नज़ारे आने पर फोटो के लिए अलर्ट।",
+      "blockKey": "security-ultimate-u01111-line-1111"
+    },
+    {
+      "featureId": "U01104",
+      "sourceLine": 1113,
+      "category": "security",
+      "bucket": "general",
+      "text": "रॉयल सील एनीमेशन: रसीद पेमेंट होने पर सुनहरी मुहर का रीयल एनीमेशन।",
+      "blockKey": "security-ultimate-u01113-line-1113"
+    },
+    {
+      "featureId": "U01105",
+      "sourceLine": 1114,
+      "category": "security",
+      "bucket": "general",
+      "text": "सटीक मारवाड़ी अनुवाद: मारवाड़ी बोलियों को सटीक अंग्रेजी में बदलने की तकनीक।",
+      "blockKey": "security-ultimate-u01114-line-1114"
+    },
+    {
+      "featureId": "U01106",
+      "sourceLine": 1115,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑफ-बीट मैप: उन गांवों का रास्ता जहाँ की लोक कला अब भी जीवित है।",
+      "blockKey": "security-ultimate-u01115-line-1115"
+    },
+    {
+      "featureId": "U01107",
+      "sourceLine": 1116,
+      "category": "security",
+      "bucket": "general",
+      "text": "बैठते ही सत्कार: गाड़ी में प्रवेश करते ही 'ठंडा पानी और इत्र' की शाही पेशकश।",
+      "blockKey": "security-ultimate-u01116-line-1116"
+    },
+    {
+      "featureId": "U01114",
+      "sourceLine": 1123,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही कार्ड ट्रांजेक्शन: वेबसाइट पर क्रेडिट कार्ड के जरिए सुरक्षित और तेज़ पेमेंट।",
+      "blockKey": "security-ultimate-u01123-line-1123"
+    },
+    {
+      "featureId": "U01115",
+      "sourceLine": 1124,
+      "category": "security",
+      "bucket": "general",
+      "text": "झरोखों का विज्ञान: महलों में हवा के प्रवाह के पीछे का आर्किटेक्चर समझाना।",
+      "blockKey": "security-ultimate-u01124-line-1124"
+    },
+    {
+      "featureId": "U01119",
+      "sourceLine": 1129,
+      "category": "security",
+      "bucket": "general",
+      "text": "फ्लोर मैट क्लीनिंग: गाड़ी के फ्लोर मैट्स को हर यात्री के उतरने के बाद वैक्यूम या ब्रश से साफ करना।",
+      "blockKey": "security-ultimate-u01129-line-1129"
+    },
+    {
+      "featureId": "U01120",
+      "sourceLine": 1130,
+      "category": "security",
+      "bucket": "general",
+      "text": "ग्लास क्लेरिटी: गाड़ी की खिड़कियों और विंडशील्ड पर उंगलियों के निशान न होने का सूक्ष्म चेक।",
+      "blockKey": "security-ultimate-u01130-line-1130"
+    },
+    {
+      "featureId": "U01121",
+      "sourceLine": 1131,
+      "category": "security",
+      "bucket": "general",
+      "text": "एसी वेंट शुद्धि: एसी के वेंट्स में धूल न जमने देने के लिए विशेष ब्रश क्लीनिंग।",
+      "blockKey": "security-ultimate-u01131-line-1131"
+    },
+    {
+      "featureId": "U01122",
+      "sourceLine": 1132,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्मोक फ्री सर्टिफिकेट: गाड़ी में कभी भी धूम्रपान न करने का डिजिटल वचन पत्र।",
+      "blockKey": "security-ultimate-u01132-line-1132"
+    },
+    {
+      "featureId": "U01123",
+      "sourceLine": 1133,
+      "category": "security",
+      "bucket": "general",
+      "text": "बूट स्पेस ऑर्गेनाइजेशन: गाड़ी की डिक्की (Boot Space) को सामान रखने के लिए हमेशा खाली और साफ रखना।",
+      "blockKey": "security-ultimate-u01133-line-1133"
+    },
+    {
+      "featureId": "U01124",
+      "sourceLine": 1134,
+      "category": "security",
+      "bucket": "general",
+      "text": "डोर हैंडल सैनिटाइजेशन: यात्रियों के बैठने से पहले दरवाजे के हैंडल को कीटाणुमुक्त करना।",
+      "blockKey": "security-ultimate-u01134-line-1134"
+    },
+    {
+      "featureId": "U01133",
+      "sourceLine": 1143,
+      "category": "security",
+      "bucket": "general",
+      "text": "रात की लाइट चेक: रात के सफर से पहले हेडलाइट, टेललाइट और इंडिकेटर का सूक्ष्म चेक।",
+      "blockKey": "security-ultimate-u01143-line-1143"
+    },
+    {
+      "featureId": "U01134",
+      "sourceLine": 1144,
+      "category": "security",
+      "bucket": "general",
+      "text": "वाइपर हेल्थ चेक: बारिश के मौसम में वाइपर ब्लेड्स की धार और सफाई की जांच।",
+      "blockKey": "security-ultimate-u01144-line-1144"
+    },
+    {
+      "featureId": "U01135",
+      "sourceLine": 1145,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्रेक पैड मॉनिटरिंग: हर 5000 किमी पर ब्रेक की पकड़ का डिजिटल रिकॉर्ड।",
+      "blockKey": "security-ultimate-u01145-line-1145"
+    },
+    {
+      "featureId": "U01137",
+      "sourceLine": 1147,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्पेयर टायर (Stepney): स्टेपनी में हवा का दबाव और बदलने के औजारों का रीयल-टाइम चेक।",
+      "blockKey": "security-ultimate-u01147-line-1147"
+    },
+    {
+      "featureId": "U01138",
+      "sourceLine": 1148,
+      "category": "security",
+      "bucket": "general",
+      "text": "फर्स्ट एड एक्सपायरी: फर्स्ट एड किट में रखी दवाओं की एक्सपायरी डेट का हर महीने चेक।",
+      "blockKey": "security-ultimate-u01148-line-1148"
+    },
+    {
+      "featureId": "U01139",
+      "sourceLine": 1149,
+      "category": "security",
+      "bucket": "general",
+      "text": "अग्नि शमन वैधता: फायर एक्सटिंगुइशर के रिफिल होने की तारीख का डिजिटल रिकॉर्ड।",
+      "blockKey": "security-ultimate-u01149-line-1149"
+    },
+    {
+      "featureId": "U01140",
+      "sourceLine": 1150,
+      "category": "security",
+      "bucket": "general",
+      "text": "टोल फास्टैग अलर्ट: फास्टैग में हमेशा पर्याप्त बैलेंस रखने का ऑटो-रिमाइंडर।",
+      "blockKey": "security-ultimate-u01150-line-1150"
+    },
+    {
+      "featureId": "U01146",
+      "sourceLine": 1156,
+      "category": "security",
+      "bucket": "general",
+      "text": "वेदर गियर: बारिश होने पर गाड़ी में छाता और वाटरप्रूफ बैग कवर की उपलब्धता।",
+      "blockKey": "security-ultimate-u01156-line-1156"
+    },
+    {
+      "featureId": "U01148",
+      "sourceLine": 1158,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही चाय की चुस्की: रास्ते के उन गुप्त 'टी-स्टॉल्स' की मैपिंग जहाँ मिट्टी के कुल्हड़ में चाय मिलती है।",
+      "blockKey": "security-ultimate-u01158-line-1158"
+    },
+    {
+      "featureId": "U01151",
+      "sourceLine": 1161,
+      "category": "security",
+      "bucket": "general",
+      "text": "इमरजेंसी कांटेक्ट कार्ड: गाड़ी की हर सीट के पीछे अजय भाई का डायरेक्ट नंबर और एम्बुलेंस नंबर।",
+      "blockKey": "security-ultimate-u01161-line-1161"
+    },
+    {
+      "featureId": "U01152",
+      "sourceLine": 1162,
+      "category": "security",
+      "bucket": "general",
+      "text": "सीट बेल्ट रिमाइंडर: गाड़ी स्टार्ट होते ही यात्रियों को प्यार से बेल्ट लगाने का आग्रह।",
+      "blockKey": "security-ultimate-u01162-line-1162"
+    },
+    {
+      "featureId": "U01153",
+      "sourceLine": 1163,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्पीड लिमिट बीप: 80 किमी/घंटा छूते ही गाड़ी के अंदर एक मधुर 'राजस्थानी टोन' की चेतावनी।",
+      "blockKey": "security-ultimate-u01163-line-1163"
+    },
+    {
+      "featureId": "U01157",
+      "sourceLine": 1167,
+      "category": "security",
+      "bucket": "general",
+      "text": "वेबसाइट डार्क मोड: रात में बुकिंग करने वालों के लिए आंखों की सुरक्षा हेतु डार्क थीम।",
+      "blockKey": "security-ultimate-u01167-line-1167"
+    },
+    {
+      "featureId": "U01159",
+      "sourceLine": 1169,
+      "category": "security",
+      "bucket": "general",
+      "text": "PayPal गेटवे सुरक्षा: अंतरराष्ट्रीय ट्रांजेक्शन के लिए विश्व स्तरीय एन्क्रिप्शन।",
+      "blockKey": "security-ultimate-u01169-line-1169"
+    },
+    {
+      "featureId": "U01160",
+      "sourceLine": 1170,
+      "category": "security",
+      "bucket": "general",
+      "text": "UPI क्यूआर कोड: गाड़ी के अंदर अजय भाई का सुरक्षित और आधिकारिक क्यूआर कोड स्टैंड।",
+      "blockKey": "security-ultimate-u01170-line-1170"
+    },
+    {
+      "featureId": "U01170",
+      "sourceLine": 1180,
+      "category": "security",
+      "bucket": "general",
+      "text": "सर्वर अपटाइम: वेबसाइट का साल के 365 दिन 24 घंटे ऑनलाइन रहने का तकनीकी भरोसा।",
+      "blockKey": "security-ultimate-u01180-line-1180"
+    },
+    {
+      "featureId": "U01172",
+      "sourceLine": 1182,
+      "category": "security",
+      "bucket": "general",
+      "text": "किलों का ऑडियो गाइड: गाड़ी के स्पीकर पर किलों के इतिहास का 2 मिनट का वॉयस-ओवर।",
+      "blockKey": "security-ultimate-u01182-line-1182"
+    },
+    {
+      "featureId": "U01174",
+      "sourceLine": 1184,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थानी पंचांग सिंक: त्योहारों के दिन वेबसाइट का बैकग्राउंड स्वतः बदलना।",
+      "blockKey": "security-ultimate-u01184-line-1184"
+    },
+    {
+      "featureId": "U01175",
+      "sourceLine": 1185,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही इत्र गंध: गाड़ी के अंदर 'चंदन' या 'गुलाब' के इत्र का सूक्ष्म उपयोग।",
+      "blockKey": "security-ultimate-u01185-line-1185"
+    },
+    {
+      "featureId": "U01178",
+      "sourceLine": 1188,
+      "category": "security",
+      "bucket": "general",
+      "text": "गूगल मैप्स API: सबसे सटीक और तेज मैप्स का उपयोग।",
+      "blockKey": "security-ultimate-u01188-line-1188"
+    },
+    {
+      "featureId": "U01179",
+      "sourceLine": 1189,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्मार्ट इमेज लोडिंग: धीमी इंटरनेट स्पीड में भी वेबसाइट का जल्दी खुलना।",
+      "blockKey": "security-ultimate-u01189-line-1189"
+    },
+    {
+      "featureId": "U01181",
+      "sourceLine": 1191,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही फोंट स्टाइल: राजस्थानी कैलीग्राफी वाले डिजिटल अक्षरों का प्रयोग।",
+      "blockKey": "security-ultimate-u01191-line-1191"
+    },
+    {
+      "featureId": "U01185",
+      "sourceLine": 1195,
+      "category": "security",
+      "bucket": "general",
+      "text": "विंटेज मोड स्विच: वेबसाइट को पुराने 'राजा-महाराजा' काल के लुक में बदलने का बटन।",
+      "blockKey": "security-ultimate-u01195-line-1195"
+    },
+    {
+      "featureId": "U01191",
+      "sourceLine": 1201,
+      "category": "security",
+      "bucket": "general",
+      "text": "रॉयल माइलेज ट्रैकर: ईंधन की बचत और पैसे के हिसाब का ऑटो-कैलकुलेशन।",
+      "blockKey": "security-ultimate-u01201-line-1201"
+    },
+    {
+      "featureId": "U01192",
+      "sourceLine": 1202,
+      "category": "security",
+      "bucket": "general",
+      "text": "नक्काशी डिजाइन UI: बटनों पर राजस्थानी कला का सूक्ष्म बॉर्डर।",
+      "blockKey": "security-ultimate-u01202-line-1202"
+    },
+    {
+      "featureId": "U01194",
+      "sourceLine": 1204,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्टॉक मैनेजमेंट: गाड़ी में रखे पानी और स्नैक्स का डिजिटल स्टॉक हिसाब।",
+      "blockKey": "security-ultimate-u01204-line-1204"
+    },
+    {
+      "featureId": "U01196",
+      "sourceLine": 1206,
+      "category": "security",
+      "bucket": "general",
+      "text": "बॉर्डर टैक्स कैलकुलेटर: राज्य की सीमा पार करते समय लगने वाले शुल्क की पारदर्शिता।",
+      "blockKey": "security-ultimate-u01206-line-1206"
+    },
+    {
+      "featureId": "U01198",
+      "sourceLine": 1208,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही कैलीग्राफी: वेबसाइट के हेडर्स का राजसी लिखावट में होना।",
+      "blockKey": "security-ultimate-u01208-line-1208"
+    },
+    {
+      "featureId": "U01200",
+      "sourceLine": 1210,
+      "category": "security",
+      "bucket": "general",
+      "text": "टूरिज्म सर्टिफिकेट: राजस्थान भ्रमण पूरा करने पर डिजिटल 'शाही प्रमाण पत्र'।",
+      "blockKey": "security-ultimate-u01210-line-1210"
+    },
+    {
+      "featureId": "U01201",
+      "sourceLine": 1211,
+      "category": "security",
+      "bucket": "general",
+      "text": "पेमेंट रिफंड विंडो: ट्रांजेक्शन फेल होने पर 10 मिनट में वापसी की तकनीकी गारंटी।",
+      "blockKey": "security-ultimate-u01211-line-1211"
+    },
+    {
+      "featureId": "U01202",
+      "sourceLine": 1212,
+      "category": "security",
+      "bucket": "general",
+      "text": "गर्मी सुरक्षा अलर्ट: 45 डिग्री से ऊपर तापमान होने पर दोपहर के सफर में सावधानी के टिप्स।",
+      "blockKey": "security-ultimate-u01212-line-1212"
+    },
+    {
+      "featureId": "U01205",
+      "sourceLine": 1215,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थानी कहावतें: सफर के दौरान स्क्रीन पर प्रेरणादायक मारवाड़ी मुहावरे।",
+      "blockKey": "security-ultimate-u01215-line-1215"
+    },
+    {
+      "featureId": "U01207",
+      "sourceLine": 1217,
+      "category": "security",
+      "bucket": "general",
+      "text": "डिजिटल मैप बुक (PDF): राजस्थान के रास्तों और इतिहास की एक सुंदर गाइड बुक।",
+      "blockKey": "security-ultimate-u01217-line-1217"
+    },
+    {
+      "featureId": "U01208",
+      "sourceLine": 1218,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "बेस्ट चाय ब्रेक: रास्ते के सबसे प्रसिद्ध चाय के ठिकानों का ऑटो-सुझाव।",
+      "blockKey": "security-ultimate-u01218-line-1218"
+    },
+    {
+      "featureId": "U01209",
+      "sourceLine": 1219,
+      "category": "security",
+      "bucket": "general",
+      "text": "लगेज ट्रैकर टैग: यात्री के सामान पर कंपनी का क्यूआर आधारित सुरक्षा टैग।",
+      "blockKey": "security-ultimate-u01219-line-1219"
+    },
+    {
+      "featureId": "U01212",
+      "sourceLine": 1222,
+      "category": "security",
+      "bucket": "general",
+      "text": "वेबसाइट लिंक चेकर: हर 1 घंटे में वेबसाइट के सभी बटनों की ऑटो-जांच।",
+      "blockKey": "security-ultimate-u01222-line-1222"
+    },
+    {
+      "featureId": "U01216",
+      "sourceLine": 1227,
+      "category": "security",
+      "bucket": "general",
+      "text": "विषय: ऐतिहासिक सूक्ष्मता, अनसुने तथ्य एवं लोक संस्कृति",
+      "blockKey": "security-ultimate-u01227-line-1227"
+    },
+    {
+      "featureId": "U01217",
+      "sourceLine": 1228,
+      "category": "security",
+      "bucket": "general",
+      "text": "हल्दीघाटी की मिट्टी: रक्त तलाई की मिट्टी के लाल होने के पीछे के वैज्ञानिक और ऐतिहासिक तथ्यों का विवरण।",
+      "blockKey": "security-ultimate-u01228-line-1228"
+    },
+    {
+      "featureId": "U01218",
+      "sourceLine": 1229,
+      "category": "security",
+      "bucket": "general",
+      "text": "चेतक की छतरी: बलीचा गाँव में स्थित चेतक के स्मारक और उसके अंतिम पड़ाव का सूक्ष्म मैप।",
+      "blockKey": "security-ultimate-u01229-line-1229"
+    },
+    {
+      "featureId": "U01219",
+      "sourceLine": 1230,
+      "category": "security",
+      "bucket": "general",
+      "text": "महाराणा प्रताप के शस्त्र: उनके 80 किलो के भाले और 208 किलो के कुल वजन के शस्त्रों का विवरण।",
+      "blockKey": "security-ultimate-u01230-line-1230"
+    },
+    {
+      "featureId": "U01220",
+      "sourceLine": 1231,
+      "category": "security",
+      "bucket": "general",
+      "text": "मेवाड़ का राजकीय चिन्ह: \"जो दृढ़ राखे धर्म को, तिही राखे करतार\" के अर्थ की व्याख्या।",
+      "blockKey": "security-ultimate-u01231-line-1231"
+    },
+    {
+      "featureId": "U01221",
+      "sourceLine": 1232,
+      "category": "security",
+      "bucket": "general",
+      "text": "चित्तौड़गढ़ का 'राम पोल': किले के मुख्य प्रवेश द्वार और वहां की सुरक्षा प्रणाली का वर्णन।",
+      "blockKey": "security-ultimate-u01232-line-1232"
+    },
+    {
+      "featureId": "U01222",
+      "sourceLine": 1233,
+      "category": "security",
+      "bucket": "general",
+      "text": "पद्मिनी का जौहर: जौहर कुंड की वर्तमान स्थिति और उस ऐतिहासिक बलिदान की तिथि-वार जानकारी।",
+      "blockKey": "security-ultimate-u01233-line-1233"
+    },
+    {
+      "featureId": "U01223",
+      "sourceLine": 1234,
+      "category": "security",
+      "bucket": "general",
+      "text": "मीरा बाई का मंदिर: चित्तौड़गढ़ में मीरा बाई की भक्ति और उनके मंदिर की नक्काशी का विवरण।",
+      "blockKey": "security-ultimate-u01234-line-1234"
+    },
+    {
+      "featureId": "U01224",
+      "sourceLine": 1235,
+      "category": "security",
+      "bucket": "general",
+      "text": "कुंभलगढ़ की सुरक्षा: किले के अंदर 365 मंदिरों के होने का रहस्य और उनकी वास्तुकला।",
+      "blockKey": "security-ultimate-u01235-line-1235"
+    },
+    {
+      "featureId": "U01225",
+      "sourceLine": 1236,
+      "category": "security",
+      "bucket": "general",
+      "text": "बादल महल: कुंभलगढ़ के सबसे ऊँचे भाग 'बादल महल' से दिखने वाले मारवाड़ के नज़ारे।",
+      "blockKey": "security-ultimate-u01236-line-1236"
+    },
+    {
+      "featureId": "U01226",
+      "sourceLine": 1237,
+      "category": "security",
+      "bucket": "general",
+      "text": "रणकपुर का 'झुकता खंभा': मंदिर के एक खंभे के जानबूझकर झुके होने के पीछे की कहानी।",
+      "blockKey": "security-ultimate-u01237-line-1237"
+    },
+    {
+      "featureId": "U01227",
+      "sourceLine": 1238,
+      "category": "security",
+      "bucket": "general",
+      "text": "जैन धर्म और राजस्थान: ओसियां और दिलवाड़ा के मंदिरों का आध्यात्मिक महत्व।",
+      "blockKey": "security-ultimate-u01238-line-1238"
+    },
+    {
+      "featureId": "U01228",
+      "sourceLine": 1239,
+      "category": "security",
+      "bucket": "general",
+      "text": "दिलवाड़ा की नक्काशी: संगमरमर पर की गई बारीक कारीगरी को पहचान की सूक्ष्म युक्तियाँ।",
+      "blockKey": "security-ultimate-u01239-line-1239"
+    },
+    {
+      "featureId": "U01229",
+      "sourceLine": 1240,
+      "category": "security",
+      "bucket": "general",
+      "text": "नक्की झील का निर्माण: देवताओं द्वारा नाखूनों से झील खोदने की पौराणिक कथा।",
+      "blockKey": "security-ultimate-u01240-line-1240"
+    },
+    {
+      "featureId": "U01230",
+      "sourceLine": 1241,
+      "category": "security",
+      "bucket": "general",
+      "text": "अचलगढ़ का किला: परमार राजाओं द्वारा निर्मित इस किले के सैन्य महत्व का डेटा।",
+      "blockKey": "security-ultimate-u01241-line-1241"
+    },
+    {
+      "featureId": "U01231",
+      "sourceLine": 1242,
+      "category": "security",
+      "bucket": "general",
+      "text": "सांभर झील का नमक: झील के निर्माण और वहां आने वाले 'फ्लेमिंगो' पक्षियों का डेटा।",
+      "blockKey": "security-ultimate-u01242-line-1242"
+    },
+    {
+      "featureId": "U01232",
+      "sourceLine": 1243,
+      "category": "security",
+      "bucket": "general",
+      "text": "शेखावाटी की भित्ति चित्रकारी: दीवारों पर नेचुरल रंगों (सब्जियों के रंग) के उपयोग की विधि।",
+      "blockKey": "security-ultimate-u01243-line-1243"
+    },
+    {
+      "featureId": "U01233",
+      "sourceLine": 1244,
+      "category": "security",
+      "bucket": "general",
+      "text": "मंडावा की हवेलियाँ: हवेलियों के 'चौक' और 'मर्दाना' व 'जनाना' हिस्सों का सांस्कृतिक अंतर।",
+      "blockKey": "security-ultimate-u01244-line-1244"
+    },
+    {
+      "featureId": "U01234",
+      "sourceLine": 1245,
+      "category": "security",
+      "bucket": "general",
+      "text": "बिश्नोई पंथ के 29 नियम: जाम्भोजी महाराज द्वारा बताए गए पर्यावरण संरक्षण के नियमों का विवरण।",
+      "blockKey": "security-ultimate-u01245-line-1245"
+    },
+    {
+      "featureId": "U01235",
+      "sourceLine": 1246,
+      "category": "security",
+      "bucket": "general",
+      "text": "काले हिरण का संरक्षण: बिश्नोई गांवों में वन्यजीवों के प्रति प्रेम की रीयल-टाइम कहानियाँ।",
+      "blockKey": "security-ultimate-u01246-line-1246"
+    },
+    {
+      "featureId": "U01236",
+      "sourceLine": 1247,
+      "category": "security",
+      "bucket": "general",
+      "text": "खेजड़ली का बलिदान: अमृता देवी बिश्नोई और 363 लोगों के वृक्षों के लिए बलिदान की गाथा।",
+      "blockKey": "security-ultimate-u01247-line-1247"
+    },
+    {
+      "featureId": "U01238",
+      "sourceLine": 1249,
+      "category": "security",
+      "bucket": "general",
+      "text": "लाठी सीरीज: जैसलमेर के नीचे स्थित मीठे पानी की गुप्त पट्टी का भूगर्भीय डेटा।",
+      "blockKey": "security-ultimate-u01249-line-1249"
+    },
+    {
+      "featureId": "U01239",
+      "sourceLine": 1250,
+      "category": "security",
+      "bucket": "general",
+      "text": "कुलधरा का सन्नाटा: पालीवाल ब्राह्मणों के एक रात में गाँव छोड़ने का रहस्य।",
+      "blockKey": "security-ultimate-u01250-line-1250"
+    },
+    {
+      "featureId": "U01240",
+      "sourceLine": 1251,
+      "category": "security",
+      "bucket": "general",
+      "text": "भानगढ़ की सीमा: सूर्यास्त के बाद किले में प्रवेश वर्जित होने का आधिकारिक और लोक कारण।",
+      "blockKey": "security-ultimate-u01251-line-1251"
+    }
+  ]
+}

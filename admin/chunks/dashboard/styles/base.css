@@ -1,0 +1,90 @@
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #333; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; overflow-y: auto; z-index: 1000; }
+        .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 20px; }
+        .sidebar-logo h2 { font-size: 1.4rem; }
+        .menu-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.8); }
+        .menu-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .topbar { position: fixed; top: 0; left: 260px; right: 0; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); z-index: 999; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .admin-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .logout-btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .logout-btn:hover { transform: translateY(-2px); }
+        .dashboard-utility-nav { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn { min-height: 42px; padding: 0.72rem 1rem; border-radius: 999px; border: 1px solid rgba(12, 42, 74, 0.12) !important; background: rgba(255, 255, 255, 0.92) !important; color: #14385e !important; font-weight: 700; box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08); }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn:hover { background: #ffffff !important; color: #102c50 !important; box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14); transform: translateY(-1px); }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn.home-btn { background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%) !important; color: #ffffff !important; border-color: transparent !important; }
+        body.fit-screen-page .topbar .dashboard-utility-nav .logout-btn i { color: inherit !important; }
+        .main-content { margin-left: 260px; margin-top: 70px; padding: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-top: 4px solid #667eea; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #333; margin-top: 10px; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); }
+        .modal-title { font-size: 1.5rem; color: #333; margin: 15px 0; font-weight: 600; }
+        .modal-text { color: #666; margin-bottom: 30px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .modal-btn.yes { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .modal-btn.no { background: #f0f0f0; color: #333; }
+
+        /* India tricolor branding (additive enhancement) */
+        .india-tricolor-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.06em;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+        }
+
+        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-white { color: #EAF1FF; }
+        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-ashoka {
+            color: #000080;
+            font-size: 0.95em;
+            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+        }
+
+        .india-tricolor-dashboard {
+            background: linear-gradient(90deg, #FF9933 0%, #FFBE66 30%, #0B1F3A 52%, #138808 82%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+            letter-spacing: 0.03em;
+        }
+
+        .india-attract-glow {
+            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        .portal-alerts-panel {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .portal-alerts-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1f2d3d;
+        }
+
+        .portal-alert-item {
+            border: 1px solid #e8ecf3;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #fafcff;
+        }
+
+        .portal-alert-item strong { color: #0b3d91; }
+        .portal-alert-meta { color: #667085; font-size: 0.82rem; margin-top: 4px; }

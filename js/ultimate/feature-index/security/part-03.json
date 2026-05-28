@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "security",
+  "part": 3,
+  "totalParts": 9,
+  "totalFeatureItems": 727,
+  "items": [
+    {
+      "featureId": "U00568",
+      "sourceLine": 571,
+      "category": "security",
+      "bucket": "general",
+      "text": "महिला सुरक्षा कोड: महिला यात्रियों के लिए एक गुप्त सुरक्षा पासवर्ड।",
+      "blockKey": "security-ultimate-u00571-line-571"
+    },
+    {
+      "featureId": "U00569",
+      "sourceLine": 572,
+      "category": "security",
+      "bucket": "general",
+      "text": "फायर एक्सटिंगुइशर: हर गाड़ी में आग बुझाने का यंत्र अनिवार्य।",
+      "blockKey": "security-ultimate-u00572-line-572"
+    },
+    {
+      "featureId": "U00570",
+      "sourceLine": 573,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाइट विजन कैमरा: रात में सुरक्षा के लिए गाड़ी के अंदर इन्फ्रारेड कैमरा।",
+      "blockKey": "security-ultimate-u00573-line-573"
+    },
+    {
+      "featureId": "U00571",
+      "sourceLine": 574,
+      "category": "security",
+      "bucket": "general",
+      "text": "एक्सीडेंट डिटेक्टर: टक्कर होते ही स्वतः एम्बुलेंस को कॉल जाना।",
+      "blockKey": "security-ultimate-u00574-line-574"
+    },
+    {
+      "featureId": "U00572",
+      "sourceLine": 575,
+      "category": "security",
+      "bucket": "general",
+      "text": "डेटा एन्क्रिप्शन: ग्राहक के नाम और नंबर को कोडेड भाषा में रखना।",
+      "blockKey": "security-ultimate-u00575-line-575"
+    },
+    {
+      "featureId": "U00573",
+      "sourceLine": 576,
+      "category": "security",
+      "bucket": "general",
+      "text": "कोर्ट एविडेंस: विवाद की स्थिति में बुकिंग डेटा को कानूनी साक्ष्य मानना।",
+      "blockKey": "security-ultimate-u00576-line-576"
+    },
+    {
+      "featureId": "U00575",
+      "sourceLine": 578,
+      "category": "security",
+      "bucket": "general",
+      "text": "मल्टी-मोड पेमेंट: UPI, क्रेडिट कार्ड, डेबिट कार्ड और नेट बैंकिंग।",
+      "blockKey": "security-ultimate-u00578-line-578"
+    },
+    {
+      "featureId": "U00576",
+      "sourceLine": 579,
+      "category": "security",
+      "bucket": "general",
+      "text": "PayPal गेटवे: विदेशी मुद्रा (डॉलर/यूरो) में पेमेंट स्वीकार करना।",
+      "blockKey": "security-ultimate-u00579-line-579"
+    },
+    {
+      "featureId": "U00578",
+      "sourceLine": 581,
+      "category": "security",
+      "bucket": "general",
+      "text": "GST इनवॉइस: कॉर्पोरेट क्लाइंट्स के लिए स्वतः जीएसटी बिल भेजना।",
+      "blockKey": "security-ultimate-u00581-line-581"
+    },
+    {
+      "featureId": "U00580",
+      "sourceLine": 583,
+      "category": "security",
+      "bucket": "general",
+      "text": "सोशल फीड: फेसबुक और इंस्टाग्राम की पोस्ट्स का वेबसाइट पर दिखना।",
+      "blockKey": "security-ultimate-u00583-line-583"
+    },
+    {
+      "featureId": "U00584",
+      "sourceLine": 587,
+      "category": "security",
+      "bucket": "general",
+      "text": "SEO मास्टर कोडिंग: गूगल पर वेबसाइट को सबसे ऊपर रखने की तकनीक।",
+      "blockKey": "security-ultimate-u00587-line-587"
+    },
+    {
+      "featureId": "U00588",
+      "sourceLine": 591,
+      "category": "security",
+      "bucket": "general",
+      "text": "24/7 लाइव सपोर्ट: व्हाट्सएप और कॉल पर अजय भाई की सीधी सहायता।",
+      "blockKey": "security-ultimate-u00591-line-591"
+    },
+    {
+      "featureId": "U00590",
+      "sourceLine": 593,
+      "category": "security",
+      "bucket": "general",
+      "text": "पत्ता गोभी नियम: (रिफंड नियम) 48 घंटे पहले 100% वापसी।",
+      "blockKey": "security-ultimate-u00593-line-593"
+    },
+    {
+      "featureId": "U00591",
+      "sourceLine": 594,
+      "category": "security",
+      "bucket": "general",
+      "text": "50% रिफंड नियम: 24 से 48 घंटे के बीच कैंसिलेशन पर।",
+      "blockKey": "security-ultimate-u00594-line-594"
+    },
+    {
+      "featureId": "U00593",
+      "sourceLine": 596,
+      "category": "security",
+      "bucket": "general",
+      "text": "VVIP रूट: मुख्यमंत्री या बड़े सेलिब्रिटीज के लिए विशेष सुरक्षा रूट।",
+      "blockKey": "security-ultimate-u00596-line-596"
+    },
+    {
+      "featureId": "U00594",
+      "sourceLine": 597,
+      "category": "security",
+      "bucket": "general",
+      "text": "कस्टम रसीद: रसीद पर अजय भाई की डिजिटल सुनहरी मुहर।",
+      "blockKey": "security-ultimate-u00597-line-597"
+    },
+    {
+      "featureId": "U00595",
+      "sourceLine": 598,
+      "category": "security",
+      "bucket": "general",
+      "text": "किलों का इतिहास: वेबसाइट पर हर किले की 10 गुप्त कहानियाँ।",
+      "blockKey": "security-ultimate-u00598-line-598"
+    },
+    {
+      "featureId": "U00596",
+      "sourceLine": 599,
+      "category": "security",
+      "bucket": "general",
+      "text": "झीलों का डेटा: झीलों की गहराई और निर्माण का वैज्ञानिक डेटा।",
+      "blockKey": "security-ultimate-u00599-line-599"
+    },
+    {
+      "featureId": "U00597",
+      "sourceLine": 600,
+      "category": "security",
+      "bucket": "general",
+      "text": "सांस्कृतिक पंचांग: आने वाले 12 महीनों के त्योहारों की सूची।",
+      "blockKey": "security-ultimate-u00600-line-600"
+    },
+    {
+      "featureId": "U00602",
+      "sourceLine": 605,
+      "category": "security",
+      "bucket": "general",
+      "text": "इमरजेंसी कांटेक्ट: वेबसाइट के फुटर में सभी आपातकालीन नंबर।",
+      "blockKey": "security-ultimate-u00605-line-605"
+    },
+    {
+      "featureId": "U00603",
+      "sourceLine": 606,
+      "category": "security",
+      "bucket": "general",
+      "text": "गूगल रिव्यु लिंक: सीधे गूगल मैप्स पर रेटिंग देने का बटन।",
+      "blockKey": "security-ultimate-u00606-line-606"
+    },
+    {
+      "featureId": "U00606",
+      "sourceLine": 609,
+      "category": "security",
+      "bucket": "general",
+      "text": "विंटेज मोड: वेबसाइट को 1940 के ब्लैक एंड व्हाइट लुक में बदलना।",
+      "blockKey": "security-ultimate-u00609-line-609"
+    },
+    {
+      "featureId": "U00607",
+      "sourceLine": 610,
+      "category": "security",
+      "bucket": "general",
+      "text": "रीयल-टाइम स्टेटस: गाड़ी की सर्विसिंग कितने दिन बाद है, इसका डेटा।",
+      "blockKey": "security-ultimate-u00610-line-610"
+    },
+    {
+      "featureId": "U00611",
+      "sourceLine": 614,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्मार्ट चार्जिंग: इलेक्ट्रिक गाड़ियों के लिए चार्जिंग स्टेशंस की मैपिंग।",
+      "blockKey": "security-ultimate-u00614-line-614"
+    },
+    {
+      "featureId": "U00612",
+      "sourceLine": 615,
+      "category": "security",
+      "bucket": "general",
+      "text": "व्हीकल लॉग बुक: गाड़ी ने अब तक कितने किलोमीटर तय किए, इसका रीयल डेटा।",
+      "blockKey": "security-ultimate-u00615-line-615"
+    },
+    {
+      "featureId": "U00613",
+      "sourceLine": 616,
+      "category": "security",
+      "bucket": "general",
+      "text": "ग्लोबल एक्सेस: दुनिया के किसी भी देश से वेबसाइट का तेज़ खुलना।",
+      "blockKey": "security-ultimate-u00616-line-616"
+    },
+    {
+      "featureId": "U00614",
+      "sourceLine": 617,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही रसीद: रसीद में राजस्थानी नक्काशी का बॉर्डर।",
+      "blockKey": "security-ultimate-u00617-line-617"
+    },
+    {
+      "featureId": "U00616",
+      "sourceLine": 619,
+      "category": "security",
+      "bucket": "general",
+      "text": "अंतिम संकल्प: 23,500 पॉइंट्स के साथ राजस्थान की सर्वश्रेष्ठ सेवा का वादा।",
+      "blockKey": "security-ultimate-u00619-line-619"
+    },
+    {
+      "featureId": "U00618",
+      "sourceLine": 622,
+      "category": "security",
+      "bucket": "general",
+      "text": "उदयपुर रेलवे स्टेशन गेट 2: शास्त्री सर्कल की तरफ वाले निकास द्वार की GPS मैपिंग।",
+      "blockKey": "security-ultimate-u00622-line-622"
+    },
+    {
+      "featureId": "U00619",
+      "sourceLine": 623,
+      "category": "security",
+      "bucket": "general",
+      "text": "महाराणा प्रताप एयरपोर्ट लेन: अराइवल गेट नंबर 2 के बाहर टैक्सी स्टैंड की विशिष्ट लेन।",
+      "blockKey": "security-ultimate-u00623-line-623"
+    },
+    {
+      "featureId": "U00623",
+      "sourceLine": 627,
+      "category": "security",
+      "bucket": "general",
+      "text": "फतेह सागर (पाल): 'बॉम्बे मार्केट' के पास गाड़ी खड़ी करने का सबसे सुरक्षित कोना।",
+      "blockKey": "security-ultimate-u00627-line-627"
+    },
+    {
+      "featureId": "U00635",
+      "sourceLine": 639,
+      "category": "security",
+      "bucket": "general",
+      "text": "लोकल लैंडमार्क: \"पुराने बरगद के पास\" या \"पीले गेट वाली दुकान\" जैसे निर्देशों की कोडिंग।",
+      "blockKey": "security-ultimate-u00639-line-639"
+    },
+    {
+      "featureId": "U00636",
+      "sourceLine": 640,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "एयरपोर्ट गेट ऑटो-सिंक: फ्लाइट नंबर से यह पता लगाना कि यात्री किस टर्मिनल गेट से निकलेगा।",
+      "blockKey": "security-ultimate-u00640-line-640"
+    },
+    {
+      "featureId": "U00646",
+      "sourceLine": 650,
+      "category": "security",
+      "bucket": "general",
+      "text": "ट्रैफिक जाम अलार्म: यदि गाड़ी 3 मिनट से ज्यादा रुकी है, तो ऑटो-अलर्ट।",
+      "blockKey": "security-ultimate-u00650-line-650"
+    },
+    {
+      "featureId": "U00647",
+      "sourceLine": 651,
+      "category": "security",
+      "bucket": "general",
+      "text": "सेफ कॉरिडोर: रात 11 बजे के बाद केवल सीसीटीवी वाले रास्तों का चुनाव।",
+      "blockKey": "security-ultimate-u00651-line-651"
+    },
+    {
+      "featureId": "U00649",
+      "sourceLine": 653,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "स्मार्ट लैंडमार्क (Temple): मंदिरों के मुख्य द्वार के बजाय शांत 'एग्जिट' गेट का सुझाव।",
+      "blockKey": "security-ultimate-u00653-line-653"
+    },
+    {
+      "featureId": "U00651",
+      "sourceLine": 655,
+      "category": "security",
+      "bucket": "general",
+      "text": "मैप कस्टमाइजेशन: दिन में चटक रंग और रात में आँखों को सुकून देने वाला डार्क मैप।",
+      "blockKey": "security-ultimate-u00655-line-655"
+    },
+    {
+      "featureId": "U00652",
+      "sourceLine": 656,
+      "category": "security",
+      "bucket": "general",
+      "text": "वर्चुअल क्यू (Queue): व्यस्त समय में 'आपका नंबर 3 है' जैसा लाइव स्टेटस।",
+      "blockKey": "security-ultimate-u00656-line-656"
+    },
+    {
+      "featureId": "U00658",
+      "sourceLine": 662,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "12 घंटे का फुल डे प्लान: धूप और भीड़ के हिसाब से सुबह-शाम के स्थानों का सुझाव।",
+      "blockKey": "security-ultimate-u00662-line-662"
+    },
+    {
+      "featureId": "U00661",
+      "sourceLine": 665,
+      "category": "security",
+      "bucket": "general",
+      "text": "मल्टी-CITY प्लानर: उदयपुर-जोधपुर-जैसलमेर के बीच के स्टॉप्स का चयन।",
+      "blockKey": "security-ultimate-u00665-line-665"
+    },
+    {
+      "featureId": "U00663",
+      "sourceLine": 667,
+      "category": "security",
+      "bucket": "general",
+      "text": "आवरली रेंटल स्लैब: हर घंटे के हिसाब से बढ़ते हुए किराये का पारदर्शी चार्ट।",
+      "blockKey": "security-ultimate-u00667-line-667"
+    },
+    {
+      "featureId": "U00667",
+      "sourceLine": 671,
+      "category": "security",
+      "bucket": "general",
+      "text": "लॉन्ग-TERM रेंटल सुरक्षा: 7 दिन से ज्यादा की बुकिंग पर गाड़ी का मिड-वे इंस्पेक्शन।",
+      "blockKey": "security-ultimate-u00671-line-671"
+    },
+    {
+      "featureId": "U00669",
+      "sourceLine": 673,
+      "category": "security",
+      "bucket": "general",
+      "text": "लास्ट मिनट फ्लैश: अचानक जरूरत पड़ने पर 5 किमी के अंदर वाली गाड़ियों को अलर्ट।",
+      "blockKey": "security-ultimate-u00673-line-673"
+    },
+    {
+      "featureId": "U00671",
+      "sourceLine": 675,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्टूडेंट डिस्काउंट कोड: यूनिवर्सिटी आईडी अपलोड करने पर 10% की तुरंत छूट।",
+      "blockKey": "security-ultimate-u00675-line-675"
+    },
+    {
+      "featureId": "U00673",
+      "sourceLine": 677,
+      "category": "security",
+      "bucket": "general",
+      "text": "VIP एयरपोर्ट ट्रांसफर: बिना लाइन के गाड़ी को सीधे वीआईपी पार्किंग में लगाना।",
+      "blockKey": "security-ultimate-u00677-line-677"
+    },
+    {
+      "featureId": "U00675",
+      "sourceLine": 679,
+      "category": "security",
+      "bucket": "general",
+      "text": "सब्सक्रिप्शन वॉलेट: रेगुलर कस्टमर्स के लिए प्रीपेड बैलेंस सुविधा।",
+      "blockKey": "security-ultimate-u00679-line-679"
+    },
+    {
+      "featureId": "U00677",
+      "sourceLine": 681,
+      "category": "security",
+      "bucket": "general",
+      "text": "शादी की सजावट: विंटेज गाड़ियों के लिए फूलों के प्रकार का चयन।",
+      "blockKey": "security-ultimate-u00681-line-681"
+    },
+    {
+      "featureId": "U00679",
+      "sourceLine": 683,
+      "category": "security",
+      "bucket": "general",
+      "text": "वीकेंड स्पेशल: शनिवार-रविवार के लिए विशेष उदयपुर-कुंभलगढ़ पैक।",
+      "blockKey": "security-ultimate-u00683-line-683"
+    },
+    {
+      "featureId": "U00683",
+      "sourceLine": 687,
+      "category": "security",
+      "bucket": "general",
+      "text": "हनीमून किट: गाड़ी में चॉकलेट, पानी और फूलों की पहले से व्यवस्था।",
+      "blockKey": "security-ultimate-u00687-line-687"
+    },
+    {
+      "featureId": "U00684",
+      "sourceLine": 688,
+      "category": "security",
+      "bucket": "general",
+      "text": "हेरिटेज वॉक मैप: गाड़ी जहाँ छोड़ेगी वहां से किले तक का पैदल मैप।",
+      "blockKey": "security-ultimate-u00688-line-688"
+    },
+    {
+      "featureId": "U00685",
+      "sourceLine": 689,
+      "category": "security",
+      "bucket": "general",
+      "text": "विजिटर पास असिस्टेंट: किलों के क्यूआर कोड वाले टिकट ऐप में ही दिखाना।",
+      "blockKey": "security-ultimate-u00689-line-689"
+    },
+    {
+      "featureId": "U00686",
+      "sourceLine": 690,
+      "category": "security",
+      "bucket": "general",
+      "text": "री-शेड्यूल पॉलिसी: बिना पैसे काटे 6 घंटे पहले तक समय बदलने की छूट।",
+      "blockKey": "security-ultimate-u00690-line-690"
+    },
+    {
+      "featureId": "U00690",
+      "sourceLine": 694,
+      "category": "security",
+      "bucket": "general",
+      "text": "शूटिंग रेंटल: कैमरा क्रू के लिए विशेष वैन और स्पेस का विकल्प।",
+      "blockKey": "security-ultimate-u00694-line-694"
+    },
+    {
+      "featureId": "U00691",
+      "sourceLine": 695,
+      "category": "security",
+      "bucket": "general",
+      "text": "पिकनिक पैक: झीलों पर सनसेट देखने के लिए 'रेडी-टू-गो' स्टॉप।",
+      "blockKey": "security-ultimate-u00695-line-695"
+    },
+    {
+      "featureId": "U00692",
+      "sourceLine": 696,
+      "category": "security",
+      "bucket": "general",
+      "text": "सेलिब्रिटी बाउंसर: विशेष सुरक्षा अनुरोध पर पीएसओ की व्यवस्था।",
+      "blockKey": "security-ultimate-u00696-line-696"
+    },
+    {
+      "featureId": "U00696",
+      "sourceLine": 700,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाइट लाइफ टूर: शहर के सबसे सुंदर रात के नज़ारे दिखाने वाला मार्ग।",
+      "blockKey": "security-ultimate-u00700-line-700"
+    },
+    {
+      "featureId": "U00698",
+      "sourceLine": 702,
+      "category": "security",
+      "bucket": "general",
+      "text": "50 जिलों का डेटा सिंक: नए जिलों का नाम टाइप करते ही ऑटो-मैपिंग।",
+      "blockKey": "security-ultimate-u00702-line-702"
+    },
+    {
+      "featureId": "U00700",
+      "sourceLine": 704,
+      "category": "security",
+      "bucket": "general",
+      "text": "Wikipedia API: पर्यटन स्थलों की जानकारी को रीयल-टाइम अपडेट करना।",
+      "blockKey": "security-ultimate-u00704-line-704"
+    },
+    {
+      "featureId": "U00701",
+      "sourceLine": 705,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजवंश डेटा: मेवाड़-मारवाड़ के किलों पर पहुँचते ही इतिहास का नोटिफिकेशन।",
+      "blockKey": "security-ultimate-u00705-line-705"
+    },
+    {
+      "featureId": "U00703",
+      "sourceLine": 707,
+      "category": "security",
+      "bucket": "general",
+      "text": "युद्ध क्षेत्र मैप: हल्दीघाटी जैसे स्थानों पर रीयल मैप दिखाना।",
+      "blockKey": "security-ultimate-u00707-line-707"
+    },
+    {
+      "featureId": "U00705",
+      "sourceLine": 709,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "स्थानीय खान-पान: रास्ते के सबसे प्रसिद्ध 'ढाबे' का ऑटो-सुझाव।",
+      "blockKey": "security-ultimate-u00709-line-709"
+    },
+    {
+      "featureId": "U00706",
+      "sourceLine": 710,
+      "category": "security",
+      "bucket": "general",
+      "text": "मेले और त्यौहार: वर्तमान तिथि के हिसाब से आसपास के मेलों की सूचना।",
+      "blockKey": "security-ultimate-u00710-line-710"
+    },
+    {
+      "featureId": "U00709",
+      "sourceLine": 713,
+      "category": "security",
+      "bucket": "general",
+      "text": "वास्तुकला विवरण: महलों के झरोखों और बनावट की जानकारी।",
+      "blockKey": "security-ultimate-u00713-line-713"
+    },
+    {
+      "featureId": "U00710",
+      "sourceLine": 714,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्रकृति और वन्यजीव: सेंचुरी एरिया में प्रवेश करते ही नियमों का अलर्ट।",
+      "blockKey": "security-ultimate-u00714-line-714"
+    },
+    {
+      "featureId": "U00711",
+      "sourceLine": 715,
+      "category": "security",
+      "bucket": "general",
+      "text": "किंवदंतियां: उस जगह से जुड़ी लोक कथाओं का डिजिटल संग्रह।",
+      "blockKey": "security-ultimate-u00715-line-715"
+    },
+    {
+      "featureId": "U00712",
+      "sourceLine": 716,
+      "category": "security",
+      "bucket": "general",
+      "text": "दुर्गों की संरचना: किलों के रक्षा तंत्र (जैसे गर्म तेल डालने के छेद) का विवरण।",
+      "blockKey": "security-ultimate-u00716-line-716"
+    },
+    {
+      "featureId": "U00713",
+      "sourceLine": 717,
+      "category": "security",
+      "bucket": "general",
+      "text": "बावड़ी इतिहास: प्राचीन जल प्रणालियों के पास रुकने का विकल्प।",
+      "blockKey": "security-ultimate-u00717-line-717"
+    },
+    {
+      "featureId": "U00715",
+      "sourceLine": 719,
+      "category": "security",
+      "bucket": "general",
+      "text": "मूर्तिकला विवरण: मंदिरों की सूक्ष्म नक्काशी के फोटो और विवरण।",
+      "blockKey": "security-ultimate-u00719-line-719"
+    },
+    {
+      "featureId": "U00716",
+      "sourceLine": 720,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थानी वेशभूषा: साफ़ा और परिधानों का इतिहास दिखाने वाली गैलरी।",
+      "blockKey": "security-ultimate-u00720-line-720"
+    },
+    {
+      "featureId": "U00717",
+      "sourceLine": 722,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्राचीन सिक्के: रियासतकालीन मुद्राओं (जैसे मेवाड़ के सिक्के) का सचित्र इतिहास।",
+      "blockKey": "security-ultimate-u00722-line-722"
+    },
+    {
+      "featureId": "U00718",
+      "sourceLine": 723,
+      "category": "security",
+      "bucket": "general",
+      "text": "मिट्टी के बर्तन: पोखरण और नीली मिट्टी (Blue Pottery) की कला का विवरण।",
+      "blockKey": "security-ultimate-u00723-line-723"
+    },
+    {
+      "featureId": "U00719",
+      "sourceLine": 724,
+      "category": "security",
+      "bucket": "general",
+      "text": "संगीत वाद्ययंत्र: रावणहत्था और सारंगी का परिचय और उनके प्रसिद्ध कलाकारों की सूची।",
+      "blockKey": "security-ultimate-u00724-line-724"
+    },
+    {
+      "featureId": "U00720",
+      "sourceLine": 725,
+      "category": "security",
+      "bucket": "general",
+      "text": "किले के रहस्य: दुर्गों के अंदर बनी गुप्त सुरंगों और छिपे हुए रास्तों की कहानियाँ।",
+      "blockKey": "security-ultimate-u00725-line-725"
+    },
+    {
+      "featureId": "U00721",
+      "sourceLine": 726,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्थापत्य नियम: महलों के निर्माण में इस्तेमाल हुए प्राचीन विज्ञान और वास्तु शास्त्र की जानकारी।",
+      "blockKey": "security-ultimate-u00726-line-726"
+    },
+    {
+      "featureId": "U00722",
+      "sourceLine": 727,
+      "category": "security",
+      "bucket": "general",
+      "text": "विदेशी यात्रियों के विचार: कर्नल टॉड जैसे यात्रियों के राजस्थान के बारे में लिखे संस्मरण।",
+      "blockKey": "security-ultimate-u00727-line-727"
+    },
+    {
+      "featureId": "U00723",
+      "sourceLine": 728,
+      "category": "security",
+      "bucket": "general",
+      "text": "पेंटिंग शैलियां: किशनगढ़ (बणी-ठणी) और बूंदी शैली की पेंटिंग्स की बारीकियां।",
+      "blockKey": "security-ultimate-u00728-line-728"
+    },
+    {
+      "featureId": "U00724",
+      "sourceLine": 729,
+      "category": "security",
+      "bucket": "general",
+      "text": "वनस्पति और मरूस्थल: थार रेगिस्तान के विशिष्ट पौधों (जैसे खेजड़ी) की खासियतें।",
+      "blockKey": "security-ultimate-u00729-line-729"
+    },
+    {
+      "featureId": "U00725",
+      "sourceLine": 730,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्राचीन आभूषण: कुंदन और मीनाकारी के गहनों के निर्माण की पूरी प्रक्रिया।",
+      "blockKey": "security-ultimate-u00730-line-730"
+    },
+    {
+      "featureId": "U00726",
+      "sourceLine": 731,
+      "category": "security",
+      "bucket": "general",
+      "text": "शिक्षा और पुस्तकालय: रियासतकालीन समय के प्राचीन ज्ञान केंद्रों और पोथियों की जानकारी।",
+      "blockKey": "security-ultimate-u00731-line-731"
+    },
+    {
+      "featureId": "U00727",
+      "sourceLine": 732,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थान के मेले: पुष्कर और ऊंट महोत्सव की रीयल-टाइम तारीखें और इवेंट कैलेंडर।",
+      "blockKey": "security-ultimate-u00732-line-732"
+    },
+    {
+      "featureId": "U00728",
+      "sourceLine": 733,
+      "category": "security",
+      "bucket": "general",
+      "text": "किलों के द्वार (पोल): रामपोल, सूरजपोल और हाथीपोल जैसे द्वारों का सामरिक महत्व।",
+      "blockKey": "security-ultimate-u00733-line-733"
+    },
+    {
+      "featureId": "U00729",
+      "sourceLine": 734,
+      "category": "security",
+      "bucket": "general",
+      "text": "विजय स्तंभ: चित्तौड़गढ़ के कीर्ति स्तंभ की नक्काशी और उसके अर्थ का विवरण।",
+      "blockKey": "security-ultimate-u00734-line-734"
+    },
+    {
+      "featureId": "U00730",
+      "sourceLine": 735,
+      "category": "security",
+      "bucket": "general",
+      "text": "पवित्र कुंड: तीर्थ स्थलों के प्राचीन जल कुंडों के औषधीय गुणों का इतिहास।",
+      "blockKey": "security-ultimate-u00735-line-735"
+    },
+    {
+      "featureId": "U00731",
+      "sourceLine": 736,
+      "category": "security",
+      "bucket": "general",
+      "text": "हवेलियों की नक्काशी: शेखावाटी की भित्ति चित्रकारी (Frescoes) का सचित्र डेटाबेस।",
+      "blockKey": "security-ultimate-u00736-line-736"
+    },
+    {
+      "featureId": "U00732",
+      "sourceLine": 737,
+      "category": "security",
+      "bucket": "general",
+      "text": "मरुधरा का संगीत: मांगणियार और लंगा गायकों के लोक गीतों का डिजिटल संग्रह।",
+      "blockKey": "security-ultimate-u00737-line-737"
+    },
+    {
+      "featureId": "U00733",
+      "sourceLine": 738,
+      "category": "security",
+      "bucket": "general",
+      "text": "लोक वाद्ययंत्र इतिहास: अलगोजा और खड़ताल जैसे वाद्ययंत्रों की बनावट का विज्ञान।",
+      "blockKey": "security-ultimate-u00738-line-738"
+    },
+    {
+      "featureId": "U00734",
+      "sourceLine": 739,
+      "category": "security",
+      "bucket": "general",
+      "text": "मरुस्थल की जैव विविधता: राज्य पक्षी गोडावण और काले हिरण के संरक्षण की जानकारी।",
+      "blockKey": "security-ultimate-u00739-line-739"
+    },
+    {
+      "featureId": "U00735",
+      "sourceLine": 740,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही शिष्टाचार: राजाओं के दरबार में अभिवादन के प्राचीन नियमों का विवरण।",
+      "blockKey": "security-ultimate-u00740-line-740"
+    },
+    {
+      "featureId": "U00736",
+      "sourceLine": 741,
+      "category": "security",
+      "bucket": "general",
+      "text": "मृग संरक्षण: बिश्नोई समुदाय के पर्यावरण प्रेम और बलिदान की पूरी गाथा।",
+      "blockKey": "security-ultimate-u00741-line-741"
+    },
+    {
+      "featureId": "U00737",
+      "sourceLine": 742,
+      "category": "security",
+      "bucket": "general",
+      "text": "आज का राजस्थान: आधुनिक विकास और सभी 50 जिलों की वर्तमान स्थिति का डेटा।",
+      "blockKey": "security-ultimate-u00742-line-742"
+    }
+  ]
+}

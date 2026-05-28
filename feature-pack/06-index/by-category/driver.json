@@ -1,0 +1,996 @@
+{
+  "generatedAt": "2026-03-09T18:04:43.255Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\GOindiaRIDE\\feature-pack\\00-source\\COMPLETE-FEATURES-LIST.txt",
+  "desktopSourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\COMPLETE-FEATURES-LIST.txt",
+  "category": "driver",
+  "totalItems": 141,
+  "items": [
+    {
+      "id": "L1531",
+      "lineNo": 1531,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "## SECTION B: DRIVER PORTAL (ड्राइवर पोर्टल)"
+    },
+    {
+      "id": "L1532",
+      "lineNo": 1532,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1533",
+      "lineNo": 1533,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 1. ड्राइवर रजिस्ट्रेशन (Driver Registration)"
+    },
+    {
+      "id": "L1534",
+      "lineNo": 1534,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर login हो (signup साइड कर सके) - Driver can signup and login"
+    },
+    {
+      "id": "L1535",
+      "lineNo": 1535,
+      "section": "driver",
+      "likelyMultiPoint": true,
+      "text": "- Driver name, photo, phone, email"
+    },
+    {
+      "id": "L1536",
+      "lineNo": 1536,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Address details"
+    },
+    {
+      "id": "L1537",
+      "lineNo": 1537,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Driving experience years"
+    },
+    {
+      "id": "L1538",
+      "lineNo": 1538,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Languages known"
+    },
+    {
+      "id": "L1539",
+      "lineNo": 1539,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1540",
+      "lineNo": 1540,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 2. वाहन की जानकारी (Vehicle Information)  "
+    },
+    {
+      "id": "L1541",
+      "lineNo": 1541,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर की गाड़ी की पूरी जानकारी फोटो का ऑप्शन - Complete vehicle info with photos"
+    },
+    {
+      "id": "L1542",
+      "lineNo": 1542,
+      "section": "driver",
+      "likelyMultiPoint": true,
+      "text": "- Vehicle model, make, year"
+    },
+    {
+      "id": "L1543",
+      "lineNo": 1543,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle number/registration"
+    },
+    {
+      "id": "L1544",
+      "lineNo": 1544,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle type (Hatchback/Sedan/SUV/etc.)"
+    },
+    {
+      "id": "L1545",
+      "lineNo": 1545,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle color"
+    },
+    {
+      "id": "L1546",
+      "lineNo": 1546,
+      "section": "driver",
+      "likelyMultiPoint": true,
+      "text": "- 4-angle vehicle photos (front, back, left, right sides)"
+    },
+    {
+      "id": "L1547",
+      "lineNo": 1547,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Seating capacity"
+    },
+    {
+      "id": "L1548",
+      "lineNo": 1548,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- AC/Non-AC"
+    },
+    {
+      "id": "L1549",
+      "lineNo": 1549,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle features"
+    },
+    {
+      "id": "L1550",
+      "lineNo": 1550,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1551",
+      "lineNo": 1551,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 3. KYC और डॉक्यूमेंट अपलोड (KYC & Document Upload)"
+    },
+    {
+      "id": "L1552",
+      "lineNo": 1552,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर लाभ हो केसे समझ ड्राइवर को पूरी जानकारी - Driver should understand complete benefits"
+    },
+    {
+      "id": "L1553",
+      "lineNo": 1553,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Driving License upload"
+    },
+    {
+      "id": "L1554",
+      "lineNo": 1554,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- RC (Registration Certificate) upload"
+    },
+    {
+      "id": "L1555",
+      "lineNo": 1555,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Insurance papers upload"
+    },
+    {
+      "id": "L1556",
+      "lineNo": 1556,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- PAN card upload"
+    },
+    {
+      "id": "L1557",
+      "lineNo": 1557,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Aadhar card upload"
+    },
+    {
+      "id": "L1558",
+      "lineNo": 1558,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- सभी Document Upload करने का ऑप्शन - All document upload option"
+    },
+    {
+      "id": "L1559",
+      "lineNo": 1559,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Police verification certificate (optional)"
+    },
+    {
+      "id": "L1560",
+      "lineNo": 1560,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Address proof"
+    },
+    {
+      "id": "L1561",
+      "lineNo": 1561,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Bank account details for payments"
+    },
+    {
+      "id": "L1562",
+      "lineNo": 1562,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1563",
+      "lineNo": 1563,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 4. सिक्योरिटी डिपॉजिट (Security Deposit)"
+    },
+    {
+      "id": "L1564",
+      "lineNo": 1564,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर के लिए Security Amount deposit का ऑप्शन होना चाहिए"
+    },
+    {
+      "id": "L1565",
+      "lineNo": 1565,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Rs. 5000 security deposit (online payment)"
+    },
+    {
+      "id": "L1566",
+      "lineNo": 1566,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- 3 महीनों की सिक्योरिटी lockout (online) - 3 months security lock period"
+    },
+    {
+      "id": "L1567",
+      "lineNo": 1567,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Deposit refund policy after verification period"
+    },
+    {
+      "id": "L1568",
+      "lineNo": 1568,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Deposit status tracking"
+    },
+    {
+      "id": "L1569",
+      "lineNo": 1569,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1570",
+      "lineNo": 1570,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 5. वेरिफिकेशन प्रोसेस (Verification Process)"
+    },
+    {
+      "id": "L1571",
+      "lineNo": 1571,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Admin approval required"
+    },
+    {
+      "id": "L1572",
+      "lineNo": 1572,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Document verification by admin"
+    },
+    {
+      "id": "L1573",
+      "lineNo": 1573,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Background check (optional)"
+    },
+    {
+      "id": "L1574",
+      "lineNo": 1574,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- 3-month verification period"
+    },
+    {
+      "id": "L1575",
+      "lineNo": 1575,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Status updates (pending/approved/rejected)"
+    },
+    {
+      "id": "L1576",
+      "lineNo": 1576,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Rejection reason display"
+    },
+    {
+      "id": "L1577",
+      "lineNo": 1577,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1578",
+      "lineNo": 1578,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 6. बुकिंग मैनेजमेंट (Booking Management)"
+    },
+    {
+      "id": "L1579",
+      "lineNo": 1579,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- बुकिंग का notification मिले - Booking notifications"
+    },
+    {
+      "id": "L1580",
+      "lineNo": 1580,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- New booking alerts (real-time)"
+    },
+    {
+      "id": "L1581",
+      "lineNo": 1581,
+      "section": "driver",
+      "likelyMultiPoint": true,
+      "text": "- Booking details view (pickup, drop, customer info, fare)"
+    },
+    {
+      "id": "L1582",
+      "lineNo": 1582,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- बुकिंग के स्वीकार करने का ऑप्शन होना चाहिए - Accept booking option"
+    },
+    {
+      "id": "L1583",
+      "lineNo": 1583,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Reject booking option"
+    },
+    {
+      "id": "L1584",
+      "lineNo": 1584,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Auto-reject after 5 minutes"
+    },
+    {
+      "id": "L1585",
+      "lineNo": 1585,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Current active bookings list"
+    },
+    {
+      "id": "L1586",
+      "lineNo": 1586,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Booking history"
+    },
+    {
+      "id": "L1587",
+      "lineNo": 1587,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1588",
+      "lineNo": 1588,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 7. पिकअप और ड्रॉप लोकेशन (Pickup & Drop Location)"
+    },
+    {
+      "id": "L1589",
+      "lineNo": 1589,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर को pickup location & drop location"
+    },
+    {
+      "id": "L1590",
+      "lineNo": 1590,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Google Maps navigation integration"
+    },
+    {
+      "id": "L1591",
+      "lineNo": 1591,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Customer contact (call/message option)"
+    },
+    {
+      "id": "L1592",
+      "lineNo": 1592,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर के पास pickup post पर जाने के बाद arrival - Arrival confirmation"
+    },
+    {
+      "id": "L1593",
+      "lineNo": 1593,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Start trip button"
+    },
+    {
+      "id": "L1594",
+      "lineNo": 1594,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- End trip button"
+    },
+    {
+      "id": "L1595",
+      "lineNo": 1595,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Trip route tracking"
+    },
+    {
+      "id": "L1596",
+      "lineNo": 1596,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1597",
+      "lineNo": 1597,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 8. कैंसलेशन और पेनल्टी (Cancellation & Penalty)"
+    },
+    {
+      "id": "L1598",
+      "lineNo": 1598,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- बुकिंग cancelled नहीं होगी (Driver cannot cancel easily)"
+    },
+    {
+      "id": "L1599",
+      "lineNo": 1599,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- High penalty for driver cancellation"
+    },
+    {
+      "id": "L1600",
+      "lineNo": 1600,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Valid cancellation reasons"
+    },
+    {
+      "id": "L1601",
+      "lineNo": 1601,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Cancellation impact on rating"
+    },
+    {
+      "id": "L1602",
+      "lineNo": 1602,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Multiple cancellation = temporary block"
+    },
+    {
+      "id": "L1603",
+      "lineNo": 1603,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1604",
+      "lineNo": 1604,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 9. अर्निंग्स और पेमेंट (Earnings & Payment)"
+    },
+    {
+      "id": "L1605",
+      "lineNo": 1605,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- खर्च डिटेल - Expense details"
+    },
+    {
+      "id": "L1606",
+      "lineNo": 1606,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Today's earnings"
+    },
+    {
+      "id": "L1607",
+      "lineNo": 1607,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Weekly earnings"
+    },
+    {
+      "id": "L1608",
+      "lineNo": 1608,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Monthly earnings"
+    },
+    {
+      "id": "L1609",
+      "lineNo": 1609,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Trip-wise earning breakdown"
+    },
+    {
+      "id": "L1610",
+      "lineNo": 1610,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Commission structure (80% driver, 20% platform)"
+    },
+    {
+      "id": "L1611",
+      "lineNo": 1611,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Pending payments (cash collected from customers)"
+    },
+    {
+      "id": "L1612",
+      "lineNo": 1612,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Withdrawal request option"
+    },
+    {
+      "id": "L1613",
+      "lineNo": 1613,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Bank transfer (3-5 business days)"
+    },
+    {
+      "id": "L1614",
+      "lineNo": 1614,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Payment history"
+    },
+    {
+      "id": "L1615",
+      "lineNo": 1615,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Earnings report (PDF/Excel download)"
+    },
+    {
+      "id": "L1616",
+      "lineNo": 1616,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1617",
+      "lineNo": 1617,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 10. रेटिंग और फीडबैक (Rating & Feedback)"
+    },
+    {
+      "id": "L1618",
+      "lineNo": 1618,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Overall driver rating (1-5 stars)"
+    },
+    {
+      "id": "L1619",
+      "lineNo": 1619,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Customer reviews display"
+    },
+    {
+      "id": "L1620",
+      "lineNo": 1620,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Rating breakdown"
+    },
+    {
+      "id": "L1621",
+      "lineNo": 1621,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Performance metrics"
+    },
+    {
+      "id": "L1622",
+      "lineNo": 1622,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Tips received from customers"
+    },
+    {
+      "id": "L1623",
+      "lineNo": 1623,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Badges and rewards for good performance"
+    },
+    {
+      "id": "L1624",
+      "lineNo": 1624,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Driver of the Month leaderboard"
+    },
+    {
+      "id": "L1625",
+      "lineNo": 1625,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1626",
+      "lineNo": 1626,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 11. वाहन मेंटेनेंस ट्रैकिंग (Vehicle Maintenance)"
+    },
+    {
+      "id": "L1627",
+      "lineNo": 1627,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Kilometer tracking (daily/total)"
+    },
+    {
+      "id": "L1628",
+      "lineNo": 1628,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Service alert at 10,000 KM"
+    },
+    {
+      "id": "L1629",
+      "lineNo": 1629,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Last service date"
+    },
+    {
+      "id": "L1630",
+      "lineNo": 1630,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Next service due date"
+    },
+    {
+      "id": "L1631",
+      "lineNo": 1631,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Maintenance log/history"
+    },
+    {
+      "id": "L1632",
+      "lineNo": 1632,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Expense tracking (fuel, repairs)"
+    },
+    {
+      "id": "L1633",
+      "lineNo": 1633,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- टाइम और किलोमीटर का ऑप्शन - Time and kilometer option"
+    },
+    {
+      "id": "L1634",
+      "lineNo": 1634,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1635",
+      "lineNo": 1635,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 12. डॉक्यूमेंट एक्सपायरी अलर्ट (Document Expiry Alerts)"
+    },
+    {
+      "id": "L1636",
+      "lineNo": 1636,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- RC expiry alert (15 days before)"
+    },
+    {
+      "id": "L1637",
+      "lineNo": 1637,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Insurance expiry alert (15 days before)"
+    },
+    {
+      "id": "L1638",
+      "lineNo": 1638,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- License renewal reminder"
+    },
+    {
+      "id": "L1639",
+      "lineNo": 1639,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Pollution certificate reminder"
+    },
+    {
+      "id": "L1640",
+      "lineNo": 1640,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Auto-block if documents expire"
+    },
+    {
+      "id": "L1641",
+      "lineNo": 1641,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Renewal notification"
+    },
+    {
+      "id": "L1642",
+      "lineNo": 1642,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1643",
+      "lineNo": 1643,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 13. ड्राइवर सपोर्ट (Driver Support)"
+    },
+    {
+      "id": "L1644",
+      "lineNo": 1644,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Help center"
+    },
+    {
+      "id": "L1645",
+      "lineNo": 1645,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Report technical issues"
+    },
+    {
+      "id": "L1646",
+      "lineNo": 1646,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Emergency support (accident, breakdown)"
+    },
+    {
+      "id": "L1647",
+      "lineNo": 1647,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Legal support"
+    },
+    {
+      "id": "L1648",
+      "lineNo": 1648,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Training resources"
+    },
+    {
+      "id": "L1649",
+      "lineNo": 1649,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Community forum"
+    },
+    {
+      "id": "L1650",
+      "lineNo": 1650,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Chat with admin"
+    },
+    {
+      "id": "L1651",
+      "lineNo": 1651,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1652",
+      "lineNo": 1652,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "### 14. अतिरिक्त फीचर्स (Additional Features)"
+    },
+    {
+      "id": "L1653",
+      "lineNo": 1653,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Driver availability status (online/offline)"
+    },
+    {
+      "id": "L1654",
+      "lineNo": 1654,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Driver dashboard with stats"
+    },
+    {
+      "id": "L1655",
+      "lineNo": 1655,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Earnings calculator"
+    },
+    {
+      "id": "L1656",
+      "lineNo": 1656,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Fuel expense tracker"
+    },
+    {
+      "id": "L1657",
+      "lineNo": 1657,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- ड्राइवर के लिए किस कानूनी नियम व शर्ते जो लागू हो सके - Legal rules and terms for drivers"
+    },
+    {
+      "id": "L1658",
+      "lineNo": 1658,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Family Insurance Fund (health insurance for driver's family from trip earnings)"
+    },
+    {
+      "id": "L1659",
+      "lineNo": 1659,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "- Driver loyalty rewards program"
+    },
+    {
+      "id": "L1660",
+      "lineNo": 1660,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1661",
+      "lineNo": 1661,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "---"
+    },
+    {
+      "id": "L1662",
+      "lineNo": 1662,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2029",
+      "lineNo": 2029,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "Driver portel"
+    },
+    {
+      "id": "L2030",
+      "lineNo": 2030,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "Bahut kam commission or upar dikhaya jaye  ki dusari company se nam matra commission kata jayega"
+    },
+    {
+      "id": "L2031",
+      "lineNo": 2031,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": " Vehicle detials full verify"
+    },
+    {
+      "id": "L2032",
+      "lineNo": 2032,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "Driver details full verified "
+    },
+    {
+      "id": "L2033",
+      "lineNo": 2033,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "Language all lang option "
+    },
+    {
+      "id": "L2034",
+      "lineNo": 2034,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": "Driver photo add option "
+    },
+    {
+      "id": "L2035",
+      "lineNo": 2035,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2036",
+      "lineNo": 2036,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2037",
+      "lineNo": 2037,
+      "section": "driver",
+      "likelyMultiPoint": false,
+      "text": ""
+    }
+  ]
+}

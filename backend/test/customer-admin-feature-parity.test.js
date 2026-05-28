@@ -7,6 +7,38 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(__dirname, '..', '..', relativePath), 'utf8');
 }
 
+function readRepoFilesUnder(relativeDir, extension = '.js') {
+  const baseDir = path.join(__dirname, '..', '..', relativeDir);
+  if (!fs.existsSync(baseDir)) return [];
+  const rows = [];
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(extension)) {
+        rows.push(fs.readFileSync(fullPath, 'utf8'));
+      }
+    }
+  }
+  walk(baseDir);
+  return rows;
+}
+
+function readBookingRuntimeSource() {
+  return [
+    readRepoFile('pages/booking.html'),
+    ...readRepoFilesUnder('customer/chunks/booking/scripts', '.js')
+  ].join('\n');
+}
+
+function readCustomerDashboardRuntimeSource() {
+  return [
+    readRepoFile('pages/customer-dashboard.html'),
+    ...readRepoFilesUnder('customer/chunks/dashboard/scripts', '.js')
+  ].join('\n');
+}
+
 function extractMapKeys(source, variableName) {
   const mapRegex = new RegExp(`(?:const|var)\\s+${variableName}\\s*=\\s*\\{([\\s\\S]*?)\\n\\s*\\};`);
   const match = source.match(mapRegex);
@@ -22,8 +54,8 @@ function extractCustomerFeatureDefinitions(bridgeSource) {
 
 test('customer feature runtime maps match admin control feature catalog', () => {
   const bridgeSource = readRepoFile('js/admin-control-bridge.js');
-  const bookingHtml = readRepoFile('pages/booking.html');
-  const customerDashboardHtml = readRepoFile('pages/customer-dashboard.html');
+  const bookingHtml = readBookingRuntimeSource();
+  const customerDashboardHtml = readCustomerDashboardRuntimeSource();
   const customerPortalJs = readRepoFile('customer/js/customer-portal.js');
 
   const expectedFeatures = extractCustomerFeatureDefinitions(bridgeSource);
@@ -45,8 +77,8 @@ test('customer feature runtime maps match admin control feature catalog', () => 
 });
 
 test('benchmark ride features are admin-controlled in both booking and dashboard flows', () => {
-  const bookingHtml = readRepoFile('pages/booking.html');
-  const customerDashboardHtml = readRepoFile('pages/customer-dashboard.html');
+  const bookingHtml = readBookingRuntimeSource();
+  const customerDashboardHtml = readCustomerDashboardRuntimeSource();
   const customerPortalJs = readRepoFile('customer/js/customer-portal.js');
 
   const bookingMapFeatures = extractMapKeys(bookingHtml, 'bookingPageFeatureMap');

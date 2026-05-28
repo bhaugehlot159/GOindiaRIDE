@@ -1,0 +1,6169 @@
+{
+  "generatedAt": "2026-03-09T18:04:43.255Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\GOindiaRIDE\\feature-pack\\00-source\\COMPLETE-FEATURES-LIST.txt",
+  "desktopSourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\COMPLETE-FEATURES-LIST.txt",
+  "category": "customer",
+  "totalItems": 880,
+  "items": [
+    {
+      "id": "L0668",
+      "lineNo": 668,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■■■ ■: CUSTOMER PORTAL"
+    },
+    {
+      "id": "L0669",
+      "lineNo": 669,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "(■■■■■■ ■■■■■■ - ■■■■■■■■■ ■■ ■■■)"
+    },
+    {
+      "id": "L0670",
+      "lineNo": 670,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■ ■■■■■■■■■■■ ■■ ■■■■■■■■ ■■■■■■"
+    },
+    {
+      "id": "L0671",
+      "lineNo": 671,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■ ■■■■■■■■■■■ ■■■■ ■■■■■ - Complete signup system"
+    },
+    {
+      "id": "L0672",
+      "lineNo": 672,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Email ■■ password ■■ registration"
+    },
+    {
+      "id": "L0673",
+      "lineNo": 673,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Mobile number verification (OTP system)"
+    },
+    {
+      "id": "L0674",
+      "lineNo": 674,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• OTP ■■ ■■■■■■ ■■■■ ■■ ■■■■■ - OTP-based booking"
+    },
+    {
+      "id": "L0675",
+      "lineNo": 675,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Google account ■■ login"
+    },
+    {
+      "id": "L0676",
+      "lineNo": 676,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Facebook account ■■ login"
+    },
+    {
+      "id": "L0677",
+      "lineNo": 677,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• User profile creation"
+    },
+    {
+      "id": "L0678",
+      "lineNo": 678,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Profile photo upload ■■■■ ■■ ■■■■■■"
+    },
+    {
+      "id": "L0679",
+      "lineNo": 679,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "• ■■■, phone number, email ■■ ■■■■■■■"
+    },
+    {
+      "id": "L0680",
+      "lineNo": 680,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ ■■■■■■ ■■■■■ ■ ■■■■■ ■■■■■ ■■ ■■■ ■■■■"
+    },
+    {
+      "id": "L0681",
+      "lineNo": 681,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ (Address) ■■■■ ■■■■ details"
+    },
+    {
+      "id": "L0682",
+      "lineNo": 682,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ID proof upload (Aadhar/PAN) - Optional"
+    },
+    {
+      "id": "L0683",
+      "lineNo": 683,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Document verification system"
+    },
+    {
+      "id": "L0684",
+      "lineNo": 684,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Emergency contacts add ■■■■ ■■ option (3 contacts)"
+    },
+    {
+      "id": "L0685",
+      "lineNo": 685,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Language preference setting (Hindi/English/Rajasthani)"
+    },
+    {
+      "id": "L0686",
+      "lineNo": 686,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Profile edit ■■■■ ■■ ■■■■■■"
+    },
+    {
+      "id": "L0687",
+      "lineNo": 687,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Password change option"
+    },
+    {
+      "id": "L0688",
+      "lineNo": 688,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Email/Phone number update"
+    },
+    {
+      "id": "L0689",
+      "lineNo": 689,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Profile privacy settings"
+    },
+    {
+      "id": "L0690",
+      "lineNo": 690,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Account delete option"
+    },
+    {
+      "id": "L0691",
+      "lineNo": 691,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0692",
+      "lineNo": 692,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■ ■■ ■■■■■■ (Tourist Places & History)"
+    },
+    {
+      "id": "L0693",
+      "lineNo": 693,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ ■■■■■■ ■■ ■■■■■■ ■■■■■■ ■■■■ ■■■■ ■■■■■"
+    },
+    {
+      "id": "L0694",
+      "lineNo": 694,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■■■■■ ■■ ■■■ forts (■■■■) ■■ ■■■■■■■"
+    },
+    {
+      "id": "L0695",
+      "lineNo": 695,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ palaces (■■■) ■■ details"
+    },
+    {
+      "id": "L0696",
+      "lineNo": 696,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ temples (■■■■■) ■■ information"
+    },
+    {
+      "id": "L0697",
+      "lineNo": 697,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Museums ■■ heritage sites"
+    },
+    {
+      "id": "L0698",
+      "lineNo": 698,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■■■■■ ■■ ■■■■■■■■ ■■■■■■ ■■ ■■■■ gallery"
+    },
+    {
+      "id": "L0699",
+      "lineNo": 699,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■ ■■■ ■■ complete historical information"
+    },
+    {
+      "id": "L0700",
+      "lineNo": 700,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■■■■ ■■ ■■■■ ■■ ■■■ (Temple aarti timings)"
+    },
+    {
+      "id": "L0701",
+      "lineNo": 701,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■ ■■ ■■■■ timing"
+    },
+    {
+      "id": "L0702",
+      "lineNo": 702,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ ■■ ■■■■ timing"
+    },
+    {
+      "id": "L0703",
+      "lineNo": 703,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■■ ■■■■ ■■ festival dates"
+    },
+    {
+      "id": "L0704",
+      "lineNo": 704,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Entry fees information (■■ ■■■ ■■)"
+    },
+    {
+      "id": "L0705",
+      "lineNo": 705,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Opening ■■ closing timings"
+    },
+    {
+      "id": "L0706",
+      "lineNo": 706,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Best time to visit suggestions"
+    },
+    {
+      "id": "L0707",
+      "lineNo": 707,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Photography allowed ■■ ■■■■"
+    },
+    {
+      "id": "L0708",
+      "lineNo": 708,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Dress code requirements (if any)"
+    },
+    {
+      "id": "L0709",
+      "lineNo": 709,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Guided tour availability"
+    },
+    {
+      "id": "L0710",
+      "lineNo": 710,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Audio guide options"
+    },
+    {
+      "id": "L0711",
+      "lineNo": 711,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Special events calendar"
+    },
+    {
+      "id": "L0712",
+      "lineNo": 712,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Festival celebrations information"
+    },
+    {
+      "id": "L0713",
+      "lineNo": 713,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Local legends ■■ stories"
+    },
+    {
+      "id": "L0714",
+      "lineNo": 714,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Architectural highlights"
+    },
+    {
+      "id": "L0715",
+      "lineNo": 715,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Photo gallery - real trip photos"
+    },
+    {
+      "id": "L0716",
+      "lineNo": 716,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• 360-degree virtual tour (future)"
+    },
+    {
+      "id": "L0717",
+      "lineNo": 717,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Nearby attractions list"
+    },
+    {
+      "id": "L0718",
+      "lineNo": 718,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Distance from major cities"
+    },
+    {
+      "id": "L0719",
+      "lineNo": 719,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• How to reach information"
+    },
+    {
+      "id": "L0720",
+      "lineNo": 720,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Parking availability"
+    },
+    {
+      "id": "L0721",
+      "lineNo": 721,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0722",
+      "lineNo": 722,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0723",
+      "lineNo": 723,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■■■ ■■■■■■ (Complete Booking System)"
+    },
+    {
+      "id": "L0724",
+      "lineNo": 724,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■ ■■ ■■■ ■■ ■■■■■ ■■■■ ■■ ■■■■■ ■■■■ ■■■■■"
+    },
+    {
+      "id": "L0725",
+      "lineNo": 725,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Pickup location search with auto-suggestions"
+    },
+    {
+      "id": "L0726",
+      "lineNo": 726,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■■■■■ ■■ ■■■ ■■■■ ■ ■■■■ ■■■■■ ■■ ■■■ ■■■■"
+    },
+    {
+      "id": "L0727",
+      "lineNo": 727,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "• All cities auto-suggest (Jaipur, Udaipur, Jodhpur, etc.)"
+    },
+    {
+      "id": "L0728",
+      "lineNo": 728,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "• All forts auto-suggest (Amber, Mehrangarh, etc.)"
+    },
+    {
+      "id": "L0729",
+      "lineNo": 729,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "• All temples auto-suggest (Ajmer Sharif, Brahma Temple, etc.)"
+    },
+    {
+      "id": "L0730",
+      "lineNo": 730,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• All tourist spots auto-suggest"
+    },
+    {
+      "id": "L0731",
+      "lineNo": 731,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Villages ■■ small towns ■■ included"
+    },
+    {
+      "id": "L0732",
+      "lineNo": 732,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Custom location entry option"
+    },
+    {
+      "id": "L0733",
+      "lineNo": 733,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• GPS-based current location pickup"
+    },
+    {
+      "id": "L0734",
+      "lineNo": 734,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Drop location search with same auto-suggestions"
+    },
+    {
+      "id": "L0735",
+      "lineNo": 735,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Popular routes quick select"
+    },
+    {
+      "id": "L0736",
+      "lineNo": 736,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Recent locations history"
+    },
+    {
+      "id": "L0737",
+      "lineNo": 737,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Favorite locations save ■■■■ ■■ option"
+    },
+    {
+      "id": "L0738",
+      "lineNo": 738,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Multi-stop trip planning (future feature)"
+    },
+    {
+      "id": "L0739",
+      "lineNo": 739,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Round trip option"
+    },
+    {
+      "id": "L0740",
+      "lineNo": 740,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• One-way trip option"
+    },
+    {
+      "id": "L0741",
+      "lineNo": 741,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Vehicle type selection"
+    },
+    {
+      "id": "L0742",
+      "lineNo": 742,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Hatchback (4 seater) - photo ■■ capacity"
+    },
+    {
+      "id": "L0743",
+      "lineNo": 743,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Sedan (4 seater) - photo ■■ capacity"
+    },
+    {
+      "id": "L0744",
+      "lineNo": 744,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• SUV (6-7 seater) - photo ■■ capacity"
+    },
+    {
+      "id": "L0745",
+      "lineNo": 745,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Tempo Traveller (12 seater) - photo ■■ capacity"
+    },
+    {
+      "id": "L0746",
+      "lineNo": 746,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Bus (20+ seater) - photo ■■ capacity"
+    },
+    {
+      "id": "L0747",
+      "lineNo": 747,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• AC ■■ Non-AC options"
+    },
+    {
+      "id": "L0748",
+      "lineNo": 748,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "• Vehicle features display (music, WiFi, etc.)"
+    },
+    {
+      "id": "L0749",
+      "lineNo": 749,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Date picker - minimum 2 hours advance booking"
+    },
+    {
+      "id": "L0750",
+      "lineNo": 750,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Time picker with 30-minute slots"
+    },
+    {
+      "id": "L0751",
+      "lineNo": 751,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Flexible timing option"
+    },
+    {
+      "id": "L0752",
+      "lineNo": 752,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Immediate booking (if available)"
+    },
+    {
+      "id": "L0753",
+      "lineNo": 753,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Advanced booking (up to 3 months)"
+    },
+    {
+      "id": "L0754",
+      "lineNo": 754,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Passenger details form"
+    },
+    {
+      "id": "L0755",
+      "lineNo": 755,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Main passenger name"
+    },
+    {
+      "id": "L0756",
+      "lineNo": 756,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Phone number"
+    },
+    {
+      "id": "L0757",
+      "lineNo": 757,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Email address"
+    },
+    {
+      "id": "L0758",
+      "lineNo": 758,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Number of passengers"
+    },
+    {
+      "id": "L0759",
+      "lineNo": 759,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Special requirements field"
+    },
+    {
+      "id": "L0760",
+      "lineNo": 760,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Luggage details"
+    },
+    {
+      "id": "L0761",
+      "lineNo": 761,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Child seat requirement"
+    },
+    {
+      "id": "L0762",
+      "lineNo": 762,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Pet-friendly option"
+    },
+    {
+      "id": "L0763",
+      "lineNo": 763,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wheelchair accessibility"
+    },
+    {
+      "id": "L0764",
+      "lineNo": 764,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Additional notes field"
+    },
+    {
+      "id": "L0765",
+      "lineNo": 765,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0766",
+      "lineNo": 766,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0767",
+      "lineNo": 767,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■■■ ■■■■ ■■ ■■■■■ ■■■■■■■■ (Fare Calculation)"
+    },
+    {
+      "id": "L0768",
+      "lineNo": 768,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Real-time fare calculator"
+    },
+    {
+      "id": "L0769",
+      "lineNo": 769,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Distance-based automatic calculation"
+    },
+    {
+      "id": "L0770",
+      "lineNo": 770,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Vehicle type ■■ ■■■■ ■■ pricing"
+    },
+    {
+      "id": "L0771",
+      "lineNo": 771,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Base fare display (■■■■■■■ ■■■■■■)"
+    },
+    {
+      "id": "L0772",
+      "lineNo": 772,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Per kilometer charges"
+    },
+    {
+      "id": "L0773",
+      "lineNo": 773,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Minimum fare guarantee"
+    },
+    {
+      "id": "L0774",
+      "lineNo": 774,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Maximum fare cap"
+    },
+    {
+      "id": "L0775",
+      "lineNo": 775,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• GST calculation (5% auto-add)"
+    },
+    {
+      "id": "L0776",
+      "lineNo": 776,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Complete fare breakdown display:"
+    },
+    {
+      "id": "L0777",
+      "lineNo": 777,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Base charge"
+    },
+    {
+      "id": "L0778",
+      "lineNo": 778,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Distance charge (KM × Rate)"
+    },
+    {
+      "id": "L0779",
+      "lineNo": 779,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- GST amount"
+    },
+    {
+      "id": "L0780",
+      "lineNo": 780,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Total payable amount"
+    },
+    {
+      "id": "L0781",
+      "lineNo": 781,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Toll charges (if applicable)"
+    },
+    {
+      "id": "L0782",
+      "lineNo": 782,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Parking charges (if applicable)"
+    },
+    {
+      "id": "L0783",
+      "lineNo": 783,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Night charges (10 PM - 6 AM)"
+    },
+    {
+      "id": "L0784",
+      "lineNo": 784,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Peak hours surcharge"
+    },
+    {
+      "id": "L0785",
+      "lineNo": 785,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Festival season pricing"
+    },
+    {
+      "id": "L0786",
+      "lineNo": 786,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Dynamic pricing based on demand"
+    },
+    {
+      "id": "L0787",
+      "lineNo": 787,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Multiple vehicle price comparison"
+    },
+    {
+      "id": "L0788",
+      "lineNo": 788,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Estimated vs actual fare display"
+    },
+    {
+      "id": "L0789",
+      "lineNo": 789,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Fare estimate via SMS/Email"
+    },
+    {
+      "id": "L0790",
+      "lineNo": 790,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Price freeze option"
+    },
+    {
+      "id": "L0791",
+      "lineNo": 791,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Round trip discount"
+    },
+    {
+      "id": "L0792",
+      "lineNo": 792,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Long distance package rates"
+    },
+    {
+      "id": "L0793",
+      "lineNo": 793,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Group booking discounts"
+    },
+    {
+      "id": "L0794",
+      "lineNo": 794,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Promo code discount deduction"
+    },
+    {
+      "id": "L0795",
+      "lineNo": 795,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Loyalty points redemption"
+    },
+    {
+      "id": "L0796",
+      "lineNo": 796,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wallet balance adjustment"
+    },
+    {
+      "id": "L0797",
+      "lineNo": 797,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Final amount to pay clearly shown"
+    },
+    {
+      "id": "L0798",
+      "lineNo": 798,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0799",
+      "lineNo": 799,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0800",
+      "lineNo": 800,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■■■ ■■■■■■ (Complete Payment System)"
+    },
+    {
+      "id": "L0801",
+      "lineNo": 801,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Multiple payment methods support"
+    },
+    {
+      "id": "L0802",
+      "lineNo": 802,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■■■■■■ ■■■ (PayPal) - International payment"
+    },
+    {
+      "id": "L0803",
+      "lineNo": 803,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• UPI payments (■■■ UPI apps)"
+    },
+    {
+      "id": "L0804",
+      "lineNo": 804,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Google Pay (GPay)"
+    },
+    {
+      "id": "L0805",
+      "lineNo": 805,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- PhonePe"
+    },
+    {
+      "id": "L0806",
+      "lineNo": 806,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Paytm UPI"
+    },
+    {
+      "id": "L0807",
+      "lineNo": 807,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- BHIM UPI"
+    },
+    {
+      "id": "L0808",
+      "lineNo": 808,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Amazon Pay UPI"
+    },
+    {
+      "id": "L0809",
+      "lineNo": 809,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Any UPI ID"
+    },
+    {
+      "id": "L0810",
+      "lineNo": 810,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "• Credit cards (Visa, Mastercard, Amex, RuPay)"
+    },
+    {
+      "id": "L0811",
+      "lineNo": 811,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Debit cards (■■■ banks)"
+    },
+    {
+      "id": "L0812",
+      "lineNo": 812,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Net banking (■■■ major banks)"
+    },
+    {
+      "id": "L0813",
+      "lineNo": 813,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- SBI, HDFC, ICICI, Axis, PNB"
+    },
+    {
+      "id": "L0814",
+      "lineNo": 814,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Regional banks ■■ included"
+    },
+    {
+      "id": "L0815",
+      "lineNo": 815,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Mobile wallets:"
+    },
+    {
+      "id": "L0816",
+      "lineNo": 816,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Paytm Wallet"
+    },
+    {
+      "id": "L0817",
+      "lineNo": 817,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- PhonePe Wallet"
+    },
+    {
+      "id": "L0818",
+      "lineNo": 818,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Mobikwik"
+    },
+    {
+      "id": "L0819",
+      "lineNo": 819,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Freecharge"
+    },
+    {
+      "id": "L0820",
+      "lineNo": 820,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Amazon Pay"
+    },
+    {
+      "id": "L0821",
+      "lineNo": 821,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• GOindiaRIDE Wallet (platform ■■ own wallet)"
+    },
+    {
+      "id": "L0822",
+      "lineNo": 822,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Wallet ■■■ ■■■■ add ■■■■"
+    },
+    {
+      "id": "L0823",
+      "lineNo": 823,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Wallet ■■ direct payment"
+    },
+    {
+      "id": "L0824",
+      "lineNo": 824,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Auto-reload option"
+    },
+    {
+      "id": "L0825",
+      "lineNo": 825,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Wallet transaction history"
+    },
+    {
+      "id": "L0826",
+      "lineNo": 826,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Refund to wallet (instant)"
+    },
+    {
+      "id": "L0827",
+      "lineNo": 827,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cash on Delivery option"
+    },
+    {
+      "id": "L0828",
+      "lineNo": 828,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver ■■ cash payment"
+    },
+    {
+      "id": "L0829",
+      "lineNo": 829,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Change arrangement alert"
+    },
+    {
+      "id": "L0830",
+      "lineNo": 830,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• EMI option (high value bookings)"
+    },
+    {
+      "id": "L0831",
+      "lineNo": 831,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Split payment (multiple methods)"
+    },
+    {
+      "id": "L0832",
+      "lineNo": 832,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment schedule (advance + balance)"
+    },
+    {
+      "id": "L0833",
+      "lineNo": 833,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Auto-debit facility"
+    },
+    {
+      "id": "L0834",
+      "lineNo": 834,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment retry option"
+    },
+    {
+      "id": "L0835",
+      "lineNo": 835,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment failure alerts"
+    },
+    {
+      "id": "L0836",
+      "lineNo": 836,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Transaction ID generation"
+    },
+    {
+      "id": "L0837",
+      "lineNo": 837,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment confirmation SMS"
+    },
+    {
+      "id": "L0838",
+      "lineNo": 838,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment confirmation Email"
+    },
+    {
+      "id": "L0839",
+      "lineNo": 839,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment receipt download (PDF)"
+    },
+    {
+      "id": "L0840",
+      "lineNo": 840,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• GST invoice generation"
+    },
+    {
+      "id": "L0841",
+      "lineNo": 841,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment security (PCI-DSS compliant)"
+    },
+    {
+      "id": "L0842",
+      "lineNo": 842,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• OTP verification for payments"
+    },
+    {
+      "id": "L0843",
+      "lineNo": 843,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• CVV verification"
+    },
+    {
+      "id": "L0844",
+      "lineNo": 844,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• 3D Secure authentication"
+    },
+    {
+      "id": "L0845",
+      "lineNo": 845,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Refund to original payment method"
+    },
+    {
+      "id": "L0846",
+      "lineNo": 846,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Refund timeline display"
+    },
+    {
+      "id": "L0847",
+      "lineNo": 847,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment history tracking"
+    },
+    {
+      "id": "L0848",
+      "lineNo": 848,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Monthly payment statements"
+    },
+    {
+      "id": "L0849",
+      "lineNo": 849,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0850",
+      "lineNo": 850,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0851",
+      "lineNo": 851,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■ ■■■■■■■■ ■■ ■■■■■■■■■ (Ride History Management)"
+    },
+    {
+      "id": "L0852",
+      "lineNo": 852,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Complete ride history (■■■ past bookings)"
+    },
+    {
+      "id": "L0853",
+      "lineNo": 853,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Upcoming bookings display"
+    },
+    {
+      "id": "L0854",
+      "lineNo": 854,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Completed trips list"
+    },
+    {
+      "id": "L0855",
+      "lineNo": 855,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cancelled bookings list"
+    },
+    {
+      "id": "L0856",
+      "lineNo": 856,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Ongoing trip tracking"
+    },
+    {
+      "id": "L0857",
+      "lineNo": 857,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Filter by date range"
+    },
+    {
+      "id": "L0858",
+      "lineNo": 858,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Filter by status (completed/cancelled/pending)"
+    },
+    {
+      "id": "L0859",
+      "lineNo": 859,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Search by booking ID"
+    },
+    {
+      "id": "L0860",
+      "lineNo": 860,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Search by destination"
+    },
+    {
+      "id": "L0861",
+      "lineNo": 861,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip details view:"
+    },
+    {
+      "id": "L0862",
+      "lineNo": 862,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Booking date ■■ time"
+    },
+    {
+      "id": "L0863",
+      "lineNo": 863,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Pickup location"
+    },
+    {
+      "id": "L0864",
+      "lineNo": 864,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Drop location"
+    },
+    {
+      "id": "L0865",
+      "lineNo": 865,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Distance traveled"
+    },
+    {
+      "id": "L0866",
+      "lineNo": 866,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Time taken"
+    },
+    {
+      "id": "L0867",
+      "lineNo": 867,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle type"
+    },
+    {
+      "id": "L0868",
+      "lineNo": 868,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver name ■■ photo"
+    },
+    {
+      "id": "L0869",
+      "lineNo": 869,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver rating"
+    },
+    {
+      "id": "L0870",
+      "lineNo": 870,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Fare paid"
+    },
+    {
+      "id": "L0871",
+      "lineNo": 871,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Payment method"
+    },
+    {
+      "id": "L0872",
+      "lineNo": 872,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Route map view"
+    },
+    {
+      "id": "L0873",
+      "lineNo": 873,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip timeline"
+    },
+    {
+      "id": "L0874",
+      "lineNo": 874,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip photos (if uploaded)"
+    },
+    {
+      "id": "L0875",
+      "lineNo": 875,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Invoice download (PDF format)"
+    },
+    {
+      "id": "L0876",
+      "lineNo": 876,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• GST invoice"
+    },
+    {
+      "id": "L0877",
+      "lineNo": 877,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Print invoice option"
+    },
+    {
+      "id": "L0878",
+      "lineNo": 878,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Email invoice"
+    },
+    {
+      "id": "L0879",
+      "lineNo": 879,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Ride cancellation option"
+    },
+    {
+      "id": "L0880",
+      "lineNo": 880,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cancellation before 24 hours - 100% refund"
+    },
+    {
+      "id": "L0881",
+      "lineNo": 881,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cancellation 12-24 hours before - 50% refund"
+    },
+    {
+      "id": "L0882",
+      "lineNo": 882,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cancellation less than 12 hours - No refund"
+    },
+    {
+      "id": "L0883",
+      "lineNo": 883,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cancellation penalty display"
+    },
+    {
+      "id": "L0884",
+      "lineNo": 884,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Refund status tracking"
+    },
+    {
+      "id": "L0885",
+      "lineNo": 885,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Rebook option (■■ click ■■■ ■■■ ■■ book)"
+    },
+    {
+      "id": "L0886",
+      "lineNo": 886,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Same route booking"
+    },
+    {
+      "id": "L0887",
+      "lineNo": 887,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Modify existing booking"
+    },
+    {
+      "id": "L0888",
+      "lineNo": 888,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Add to favorite routes"
+    },
+    {
+      "id": "L0889",
+      "lineNo": 889,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Share trip details:"
+    },
+    {
+      "id": "L0890",
+      "lineNo": 890,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- WhatsApp share"
+    },
+    {
+      "id": "L0891",
+      "lineNo": 891,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Email share"
+    },
+    {
+      "id": "L0892",
+      "lineNo": 892,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- SMS share"
+    },
+    {
+      "id": "L0893",
+      "lineNo": 893,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Social media share"
+    },
+    {
+      "id": "L0894",
+      "lineNo": 894,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Export trip history (Excel/PDF)"
+    },
+    {
+      "id": "L0895",
+      "lineNo": 895,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Monthly trip summary"
+    },
+    {
+      "id": "L0896",
+      "lineNo": 896,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Total distance traveled"
+    },
+    {
+      "id": "L0897",
+      "lineNo": 897,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Total money spent"
+    },
+    {
+      "id": "L0898",
+      "lineNo": 898,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Carbon footprint calculator"
+    },
+    {
+      "id": "L0899",
+      "lineNo": 899,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Loyalty points earned per trip"
+    },
+    {
+      "id": "L0900",
+      "lineNo": 900,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0901",
+      "lineNo": 901,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0902",
+      "lineNo": 902,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■■■ ■■ ■■■■■■ ■■■■■■ (Rating & Review System)"
+    },
+    {
+      "id": "L0903",
+      "lineNo": 903,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver rating system (1-5 stars)"
+    },
+    {
+      "id": "L0904",
+      "lineNo": 904,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Vehicle condition rating"
+    },
+    {
+      "id": "L0905",
+      "lineNo": 905,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Service quality rating"
+    },
+    {
+      "id": "L0906",
+      "lineNo": 906,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Punctuality rating"
+    },
+    {
+      "id": "L0907",
+      "lineNo": 907,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Behavior rating"
+    },
+    {
+      "id": "L0908",
+      "lineNo": 908,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Overall experience rating"
+    },
+    {
+      "id": "L0909",
+      "lineNo": 909,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Written review ■■■■■ ■■ option"
+    },
+    {
+      "id": "L0910",
+      "lineNo": 910,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Review character limit (500 words)"
+    },
+    {
+      "id": "L0911",
+      "lineNo": 911,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Review editing option"
+    },
+    {
+      "id": "L0912",
+      "lineNo": 912,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Review delete option"
+    },
+    {
+      "id": "L0913",
+      "lineNo": 913,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Photo upload from trip"
+    },
+    {
+      "id": "L0914",
+      "lineNo": 914,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Multiple photos upload (up to 10)"
+    },
+    {
+      "id": "L0915",
+      "lineNo": 915,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Video review upload (optional)"
+    },
+    {
+      "id": "L0916",
+      "lineNo": 916,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Anonymous review option"
+    },
+    {
+      "id": "L0917",
+      "lineNo": 917,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Public review display"
+    },
+    {
+      "id": "L0918",
+      "lineNo": 918,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Verified booking badge on review"
+    },
+    {
+      "id": "L0919",
+      "lineNo": 919,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Review helpful/not helpful voting"
+    },
+    {
+      "id": "L0920",
+      "lineNo": 920,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• View other customer reviews"
+    },
+    {
+      "id": "L0921",
+      "lineNo": 921,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Sort reviews by:"
+    },
+    {
+      "id": "L0922",
+      "lineNo": 922,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Most recent"
+    },
+    {
+      "id": "L0923",
+      "lineNo": 923,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Highest rated"
+    },
+    {
+      "id": "L0924",
+      "lineNo": 924,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Lowest rated"
+    },
+    {
+      "id": "L0925",
+      "lineNo": 925,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Most helpful"
+    },
+    {
+      "id": "L0926",
+      "lineNo": 926,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Filter reviews by rating"
+    },
+    {
+      "id": "L0927",
+      "lineNo": 927,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver response to reviews"
+    },
+    {
+      "id": "L0928",
+      "lineNo": 928,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Admin moderation of reviews"
+    },
+    {
+      "id": "L0929",
+      "lineNo": 929,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Report inappropriate reviews"
+    },
+    {
+      "id": "L0930",
+      "lineNo": 930,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Review rewards (loyalty points)"
+    },
+    {
+      "id": "L0931",
+      "lineNo": 931,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Monthly best reviewer badge"
+    },
+    {
+      "id": "L0932",
+      "lineNo": 932,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Share your review on social media"
+    },
+    {
+      "id": "L0933",
+      "lineNo": 933,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0934",
+      "lineNo": 934,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0935",
+      "lineNo": 935,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■■■■ ■■ ■■■■■■■■■ ■■■■■■■■ (Safety & Emergency)"
+    },
+    {
+      "id": "L0936",
+      "lineNo": 936,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Emergency SOS button (highly visible)"
+    },
+    {
+      "id": "L0937",
+      "lineNo": 937,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• One-click emergency alert"
+    },
+    {
+      "id": "L0938",
+      "lineNo": 938,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• SOS sends GPS location automatically"
+    },
+    {
+      "id": "L0939",
+      "lineNo": 939,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• SOS alerts admin instantly"
+    },
+    {
+      "id": "L0940",
+      "lineNo": 940,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• SOS alerts police (if configured)"
+    },
+    {
+      "id": "L0941",
+      "lineNo": 941,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• SOS alerts emergency contacts"
+    },
+    {
+      "id": "L0942",
+      "lineNo": 942,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Share ride details via WhatsApp"
+    },
+    {
+      "id": "L0943",
+      "lineNo": 943,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Share ride details via SMS"
+    },
+    {
+      "id": "L0944",
+      "lineNo": 944,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Share ride details via Email"
+    },
+    {
+      "id": "L0945",
+      "lineNo": 945,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Live location sharing:"
+    },
+    {
+      "id": "L0946",
+      "lineNo": 946,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Share with family members"
+    },
+    {
+      "id": "L0947",
+      "lineNo": 947,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Share with friends"
+    },
+    {
+      "id": "L0948",
+      "lineNo": 948,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Real-time location updates"
+    },
+    {
+      "id": "L0949",
+      "lineNo": 949,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Location sharing duration control"
+    },
+    {
+      "id": "L0950",
+      "lineNo": 950,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Add 3 emergency contacts"
+    },
+    {
+      "id": "L0951",
+      "lineNo": 951,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Name, phone, relation"
+    },
+    {
+      "id": "L0952",
+      "lineNo": 952,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Auto-alert in emergency"
+    },
+    {
+      "id": "L0953",
+      "lineNo": 953,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• 24/7 customer support:"
+    },
+    {
+      "id": "L0954",
+      "lineNo": 954,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Phone support"
+    },
+    {
+      "id": "L0955",
+      "lineNo": 955,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Chat support"
+    },
+    {
+      "id": "L0956",
+      "lineNo": 956,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Email support"
+    },
+    {
+      "id": "L0957",
+      "lineNo": 957,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- WhatsApp support"
+    },
+    {
+      "id": "L0958",
+      "lineNo": 958,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Help center with FAQs"
+    },
+    {
+      "id": "L0959",
+      "lineNo": 959,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Common issues ■■ solutions"
+    },
+    {
+      "id": "L0960",
+      "lineNo": 960,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Safety guidelines for travelers"
+    },
+    {
+      "id": "L0961",
+      "lineNo": 961,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Women safety features:"
+    },
+    {
+      "id": "L0962",
+      "lineNo": 962,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Female driver preference option"
+    },
+    {
+      "id": "L0963",
+      "lineNo": 963,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Share OTP verification"
+    },
+    {
+      "id": "L0964",
+      "lineNo": 964,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Trusted contact verification"
+    },
+    {
+      "id": "L0965",
+      "lineNo": 965,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Night travel safety tips"
+    },
+    {
+      "id": "L0966",
+      "lineNo": 966,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Insurance information display"
+    },
+    {
+      "id": "L0967",
+      "lineNo": 967,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Passenger insurance details"
+    },
+    {
+      "id": "L0968",
+      "lineNo": 968,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Accident helpline number"
+    },
+    {
+      "id": "L0969",
+      "lineNo": 969,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Medical emergency contacts"
+    },
+    {
+      "id": "L0970",
+      "lineNo": 970,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Nearest hospital information"
+    },
+    {
+      "id": "L0971",
+      "lineNo": 971,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Police station contacts"
+    },
+    {
+      "id": "L0972",
+      "lineNo": 972,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Tourist helpline numbers"
+    },
+    {
+      "id": "L0973",
+      "lineNo": 973,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Embassy contacts (for international tourists)"
+    },
+    {
+      "id": "L0974",
+      "lineNo": 974,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• In-trip support button"
+    },
+    {
+      "id": "L0975",
+      "lineNo": 975,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Report unsafe driving"
+    },
+    {
+      "id": "L0976",
+      "lineNo": 976,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Report route deviation"
+    },
+    {
+      "id": "L0977",
+      "lineNo": 977,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Speed limit alerts"
+    },
+    {
+      "id": "L0978",
+      "lineNo": 978,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip recording option"
+    },
+    {
+      "id": "L0979",
+      "lineNo": 979,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Audio recording (with consent)"
+    },
+    {
+      "id": "L0980",
+      "lineNo": 980,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Panic mode (silent alert)"
+    },
+    {
+      "id": "L0981",
+      "lineNo": 981,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Safe arrival confirmation"
+    },
+    {
+      "id": "L0982",
+      "lineNo": 982,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Destination reached notification"
+    },
+    {
+      "id": "L0983",
+      "lineNo": 983,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0984",
+      "lineNo": 984,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L0985",
+      "lineNo": 985,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■ ■■■■■■ ■■ ■■■■■■■ ■■■■■■■■ (Tourism & Local Services)"
+    },
+    {
+      "id": "L0986",
+      "lineNo": 986,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Restaurant recommendations (verified)"
+    },
+    {
+      "id": "L0987",
+      "lineNo": 987,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Multi-cuisine restaurants"
+    },
+    {
+      "id": "L0988",
+      "lineNo": 988,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Local Rajasthani food spots"
+    },
+    {
+      "id": "L0989",
+      "lineNo": 989,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Budget restaurants"
+    },
+    {
+      "id": "L0990",
+      "lineNo": 990,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Premium dining"
+    },
+    {
+      "id": "L0991",
+      "lineNo": 991,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Street food recommendations"
+    },
+    {
+      "id": "L0992",
+      "lineNo": 992,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Vegetarian/Non-veg options"
+    },
+    {
+      "id": "L0993",
+      "lineNo": 993,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Restaurant ratings ■■ reviews"
+    },
+    {
+      "id": "L0994",
+      "lineNo": 994,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Distance from current location"
+    },
+    {
+      "id": "L0995",
+      "lineNo": 995,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Booking/reservation option"
+    },
+    {
+      "id": "L0996",
+      "lineNo": 996,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Shop/Post office/Hotel ■■ ■■■■■■■"
+    },
+    {
+      "id": "L0997",
+      "lineNo": 997,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Handicraft shops information:"
+    },
+    {
+      "id": "L0998",
+      "lineNo": 998,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Textile shops"
+    },
+    {
+      "id": "L0999",
+      "lineNo": 999,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Jewelry shops"
+    },
+    {
+      "id": "L1000",
+      "lineNo": 1000,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Pottery ■■ ceramics"
+    },
+    {
+      "id": "L1001",
+      "lineNo": 1001,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Leather goods"
+    },
+    {
+      "id": "L1002",
+      "lineNo": 1002,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Miniature paintings"
+    },
+    {
+      "id": "L1003",
+      "lineNo": 1003,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Blue pottery"
+    },
+    {
+      "id": "L1004",
+      "lineNo": 1004,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Bandhani ■■ tie-dye"
+    },
+    {
+      "id": "L1005",
+      "lineNo": 1005,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Rajasthani puppets"
+    },
+    {
+      "id": "L1006",
+      "lineNo": 1006,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Shop ratings"
+    },
+    {
+      "id": "L1007",
+      "lineNo": 1007,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Price range"
+    },
+    {
+      "id": "L1008",
+      "lineNo": 1008,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Bargaining tips"
+    },
+    {
+      "id": "L1009",
+      "lineNo": 1009,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Hotel recommendations:"
+    },
+    {
+      "id": "L1010",
+      "lineNo": 1010,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Budget hotels"
+    },
+    {
+      "id": "L1011",
+      "lineNo": 1011,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Mid-range hotels"
+    },
+    {
+      "id": "L1012",
+      "lineNo": 1012,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Luxury hotels"
+    },
+    {
+      "id": "L1013",
+      "lineNo": 1013,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Heritage hotels"
+    },
+    {
+      "id": "L1014",
+      "lineNo": 1014,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Homestays"
+    },
+    {
+      "id": "L1015",
+      "lineNo": 1015,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Hotel ratings"
+    },
+    {
+      "id": "L1016",
+      "lineNo": 1016,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Room rates"
+    },
+    {
+      "id": "L1017",
+      "lineNo": 1017,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Amenities list"
+    },
+    {
+      "id": "L1018",
+      "lineNo": 1018,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Booking links"
+    },
+    {
+      "id": "L1019",
+      "lineNo": 1019,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Post office locations"
+    },
+    {
+      "id": "L1020",
+      "lineNo": 1020,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ATM locations"
+    },
+    {
+      "id": "L1021",
+      "lineNo": 1021,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Petrol pumps"
+    },
+    {
+      "id": "L1022",
+      "lineNo": 1022,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Medical stores (24×7)"
+    },
+    {
+      "id": "L1023",
+      "lineNo": 1023,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Hospitals ■■ clinics"
+    },
+    {
+      "id": "L1024",
+      "lineNo": 1024,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Police stations"
+    },
+    {
+      "id": "L1025",
+      "lineNo": 1025,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Tourist information centers"
+    },
+    {
+      "id": "L1026",
+      "lineNo": 1026,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Currency exchange centers"
+    },
+    {
+      "id": "L1027",
+      "lineNo": 1027,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Parking areas"
+    },
+    {
+      "id": "L1028",
+      "lineNo": 1028,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Public toilets"
+    },
+    {
+      "id": "L1029",
+      "lineNo": 1029,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Railway stations"
+    },
+    {
+      "id": "L1030",
+      "lineNo": 1030,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Bus stands"
+    },
+    {
+      "id": "L1031",
+      "lineNo": 1031,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Airport information"
+    },
+    {
+      "id": "L1032",
+      "lineNo": 1032,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Photography spots:"
+    },
+    {
+      "id": "L1033",
+      "lineNo": 1033,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Best sunset points"
+    },
+    {
+      "id": "L1034",
+      "lineNo": 1034,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Best sunrise spots"
+    },
+    {
+      "id": "L1035",
+      "lineNo": 1035,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Instagram-worthy locations"
+    },
+    {
+      "id": "L1036",
+      "lineNo": 1036,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Selfie points"
+    },
+    {
+      "id": "L1037",
+      "lineNo": 1037,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cultural events calendar:"
+    },
+    {
+      "id": "L1038",
+      "lineNo": 1038,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Festivals"
+    },
+    {
+      "id": "L1039",
+      "lineNo": 1039,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Fairs (Pushkar Fair, etc.)"
+    },
+    {
+      "id": "L1040",
+      "lineNo": 1040,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Folk music events"
+    },
+    {
+      "id": "L1041",
+      "lineNo": 1041,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Dance performances"
+    },
+    {
+      "id": "L1042",
+      "lineNo": 1042,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Camel rides"
+    },
+    {
+      "id": "L1043",
+      "lineNo": 1043,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Desert camps"
+    },
+    {
+      "id": "L1044",
+      "lineNo": 1044,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Local guides contact"
+    },
+    {
+      "id": "L1045",
+      "lineNo": 1045,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Language translator services"
+    },
+    {
+      "id": "L1046",
+      "lineNo": 1046,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Shopping tips"
+    },
+    {
+      "id": "L1047",
+      "lineNo": 1047,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Local customs information"
+    },
+    {
+      "id": "L1048",
+      "lineNo": 1048,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Weather forecast"
+    },
+    {
+      "id": "L1049",
+      "lineNo": 1049,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Best season to visit"
+    },
+    {
+      "id": "L1050",
+      "lineNo": 1050,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Monsoon travel tips"
+    },
+    {
+      "id": "L1051",
+      "lineNo": 1051,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Summer travel precautions"
+    },
+    {
+      "id": "L1052",
+      "lineNo": 1052,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Winter travel guide"
+    },
+    {
+      "id": "L1053",
+      "lineNo": 1053,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1054",
+      "lineNo": 1054,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1055",
+      "lineNo": 1055,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1056",
+      "lineNo": 1056,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■■ ■■■■■■ ■■■ ■■ ■■■ (Promo Codes & Discounts)"
+    },
+    {
+      "id": "L1057",
+      "lineNo": 1057,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Discount coupon codes"
+    },
+    {
+      "id": "L1058",
+      "lineNo": 1058,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• First ride discount (special offer)"
+    },
+    {
+      "id": "L1059",
+      "lineNo": 1059,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Sign-up bonus"
+    },
+    {
+      "id": "L1060",
+      "lineNo": 1060,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Referral program:"
+    },
+    {
+      "id": "L1061",
+      "lineNo": 1061,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Refer a friend ■■ earn discount"
+    },
+    {
+      "id": "L1062",
+      "lineNo": 1062,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Referral code sharing"
+    },
+    {
+      "id": "L1063",
+      "lineNo": 1063,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- WhatsApp share"
+    },
+    {
+      "id": "L1064",
+      "lineNo": 1064,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Social media share"
+    },
+    {
+      "id": "L1065",
+      "lineNo": 1065,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Referral earnings tracking"
+    },
+    {
+      "id": "L1066",
+      "lineNo": 1066,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Both parties get discount"
+    },
+    {
+      "id": "L1067",
+      "lineNo": 1067,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Loyalty points system:"
+    },
+    {
+      "id": "L1068",
+      "lineNo": 1068,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Earn points on every ride"
+    },
+    {
+      "id": "L1069",
+      "lineNo": 1069,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- 1 trip = X points"
+    },
+    {
+      "id": "L1070",
+      "lineNo": 1070,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Points to rupees conversion"
+    },
+    {
+      "id": "L1071",
+      "lineNo": 1071,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Redeem points for discounts"
+    },
+    {
+      "id": "L1072",
+      "lineNo": 1072,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Points balance display"
+    },
+    {
+      "id": "L1073",
+      "lineNo": 1073,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Points expiry information"
+    },
+    {
+      "id": "L1074",
+      "lineNo": 1074,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Bonus points on special occasions"
+    },
+    {
+      "id": "L1075",
+      "lineNo": 1075,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Seasonal offers:"
+    },
+    {
+      "id": "L1076",
+      "lineNo": 1076,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Diwali special discount"
+    },
+    {
+      "id": "L1077",
+      "lineNo": 1077,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Holi offers"
+    },
+    {
+      "id": "L1078",
+      "lineNo": 1078,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- New Year deals"
+    },
+    {
+      "id": "L1079",
+      "lineNo": 1079,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Republic Day offer"
+    },
+    {
+      "id": "L1080",
+      "lineNo": 1080,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Independence Day discount"
+    },
+    {
+      "id": "L1081",
+      "lineNo": 1081,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Navratri special"
+    },
+    {
+      "id": "L1082",
+      "lineNo": 1082,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Christmas offers"
+    },
+    {
+      "id": "L1083",
+      "lineNo": 1083,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Festival season packages"
+    },
+    {
+      "id": "L1084",
+      "lineNo": 1084,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Pushkar Fair special rates"
+    },
+    {
+      "id": "L1085",
+      "lineNo": 1085,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Group booking discounts:"
+    },
+    {
+      "id": "L1086",
+      "lineNo": 1086,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Family packages"
+    },
+    {
+      "id": "L1087",
+      "lineNo": 1087,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Corporate bookings discount"
+    },
+    {
+      "id": "L1088",
+      "lineNo": 1088,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- School/college group rates"
+    },
+    {
+      "id": "L1089",
+      "lineNo": 1089,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Multiple vehicle booking discount"
+    },
+    {
+      "id": "L1090",
+      "lineNo": 1090,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Long distance discounts"
+    },
+    {
+      "id": "L1091",
+      "lineNo": 1091,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Round trip packages"
+    },
+    {
+      "id": "L1092",
+      "lineNo": 1092,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Multi-day trip packages"
+    },
+    {
+      "id": "L1093",
+      "lineNo": 1093,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Weekend special offers"
+    },
+    {
+      "id": "L1094",
+      "lineNo": 1094,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Weekday discounts"
+    },
+    {
+      "id": "L1095",
+      "lineNo": 1095,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Early bird discounts (advance booking)"
+    },
+    {
+      "id": "L1096",
+      "lineNo": 1096,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Last-minute deals"
+    },
+    {
+      "id": "L1097",
+      "lineNo": 1097,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Birthday special discount"
+    },
+    {
+      "id": "L1098",
+      "lineNo": 1098,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Anniversary offers"
+    },
+    {
+      "id": "L1099",
+      "lineNo": 1099,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Student discounts (with valid ID)"
+    },
+    {
+      "id": "L1100",
+      "lineNo": 1100,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Senior citizen discounts"
+    },
+    {
+      "id": "L1101",
+      "lineNo": 1101,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Armed forces discounts"
+    },
+    {
+      "id": "L1102",
+      "lineNo": 1102,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Coupon code redemption:"
+    },
+    {
+      "id": "L1103",
+      "lineNo": 1103,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Apply code at checkout"
+    },
+    {
+      "id": "L1104",
+      "lineNo": 1104,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Auto-apply best offer"
+    },
+    {
+      "id": "L1105",
+      "lineNo": 1105,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Multiple code usage rules"
+    },
+    {
+      "id": "L1106",
+      "lineNo": 1106,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Coupon code validation"
+    },
+    {
+      "id": "L1107",
+      "lineNo": 1107,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Expiry date display"
+    },
+    {
+      "id": "L1108",
+      "lineNo": 1108,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Cashback offers:"
+    },
+    {
+      "id": "L1109",
+      "lineNo": 1109,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cashback to wallet"
+    },
+    {
+      "id": "L1110",
+      "lineNo": 1110,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cashback percentage"
+    },
+    {
+      "id": "L1111",
+      "lineNo": 1111,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Minimum booking amount"
+    },
+    {
+      "id": "L1112",
+      "lineNo": 1112,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Maximum cashback limit"
+    },
+    {
+      "id": "L1113",
+      "lineNo": 1113,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Combo offers:"
+    },
+    {
+      "id": "L1114",
+      "lineNo": 1114,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Hotel + Taxi package"
+    },
+    {
+      "id": "L1115",
+      "lineNo": 1115,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Sight-seeing + Taxi combo"
+    },
+    {
+      "id": "L1116",
+      "lineNo": 1116,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Meal + Taxi offer"
+    },
+    {
+      "id": "L1117",
+      "lineNo": 1117,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Bank offers:"
+    },
+    {
+      "id": "L1118",
+      "lineNo": 1118,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- HDFC card offers"
+    },
+    {
+      "id": "L1119",
+      "lineNo": 1119,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- ICICI bank discounts"
+    },
+    {
+      "id": "L1120",
+      "lineNo": 1120,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- SBI card cashback"
+    },
+    {
+      "id": "L1121",
+      "lineNo": 1121,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Other bank promotions"
+    },
+    {
+      "id": "L1122",
+      "lineNo": 1122,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wallet-specific offers"
+    },
+    {
+      "id": "L1123",
+      "lineNo": 1123,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• UPI payment cashback"
+    },
+    {
+      "id": "L1124",
+      "lineNo": 1124,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment method discounts"
+    },
+    {
+      "id": "L1125",
+      "lineNo": 1125,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1126",
+      "lineNo": 1126,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1127",
+      "lineNo": 1127,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■■ ■■■■ ■■■■■■■■ (User Dashboard)"
+    },
+    {
+      "id": "L1128",
+      "lineNo": 1128,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Personalized dashboard"
+    },
+    {
+      "id": "L1129",
+      "lineNo": 1129,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Welcome message with user name"
+    },
+    {
+      "id": "L1130",
+      "lineNo": 1130,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Profile completion percentage"
+    },
+    {
+      "id": "L1131",
+      "lineNo": 1131,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Upcoming bookings display:"
+    },
+    {
+      "id": "L1132",
+      "lineNo": 1132,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Next trip details"
+    },
+    {
+      "id": "L1133",
+      "lineNo": 1133,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Countdown timer"
+    },
+    {
+      "id": "L1134",
+      "lineNo": 1134,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Quick cancel option"
+    },
+    {
+      "id": "L1135",
+      "lineNo": 1135,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Modify booking option"
+    },
+    {
+      "id": "L1136",
+      "lineNo": 1136,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Recent trips summary"
+    },
+    {
+      "id": "L1137",
+      "lineNo": 1137,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Total trips completed counter"
+    },
+    {
+      "id": "L1138",
+      "lineNo": 1138,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Total distance traveled (in KM)"
+    },
+    {
+      "id": "L1139",
+      "lineNo": 1139,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Total money spent (lifetime)"
+    },
+    {
+      "id": "L1140",
+      "lineNo": 1140,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• This month's expense"
+    },
+    {
+      "id": "L1141",
+      "lineNo": 1141,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Average trip cost"
+    },
+    {
+      "id": "L1142",
+      "lineNo": 1142,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Loyalty points balance:"
+    },
+    {
+      "id": "L1143",
+      "lineNo": 1143,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Current points"
+    },
+    {
+      "id": "L1144",
+      "lineNo": 1144,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Points about to expire"
+    },
+    {
+      "id": "L1145",
+      "lineNo": 1145,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Next reward milestone"
+    },
+    {
+      "id": "L1146",
+      "lineNo": 1146,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wallet balance display:"
+    },
+    {
+      "id": "L1147",
+      "lineNo": 1147,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Current balance"
+    },
+    {
+      "id": "L1148",
+      "lineNo": 1148,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Add money button"
+    },
+    {
+      "id": "L1149",
+      "lineNo": 1149,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Transaction history"
+    },
+    {
+      "id": "L1150",
+      "lineNo": 1150,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Saved favorite locations:"
+    },
+    {
+      "id": "L1151",
+      "lineNo": 1151,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Home address"
+    },
+    {
+      "id": "L1152",
+      "lineNo": 1152,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Work address"
+    },
+    {
+      "id": "L1153",
+      "lineNo": 1153,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Frequent destinations"
+    },
+    {
+      "id": "L1154",
+      "lineNo": 1154,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Quick booking from favorites"
+    },
+    {
+      "id": "L1155",
+      "lineNo": 1155,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Emergency contacts list:"
+    },
+    {
+      "id": "L1156",
+      "lineNo": 1156,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- View contacts"
+    },
+    {
+      "id": "L1157",
+      "lineNo": 1157,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Edit contacts"
+    },
+    {
+      "id": "L1158",
+      "lineNo": 1158,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Add new contact"
+    },
+    {
+      "id": "L1159",
+      "lineNo": 1159,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Quick actions:"
+    },
+    {
+      "id": "L1160",
+      "lineNo": 1160,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Book now button"
+    },
+    {
+      "id": "L1161",
+      "lineNo": 1161,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Rebook last trip"
+    },
+    {
+      "id": "L1162",
+      "lineNo": 1162,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- View invoices"
+    },
+    {
+      "id": "L1163",
+      "lineNo": 1163,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Download statements"
+    },
+    {
+      "id": "L1164",
+      "lineNo": 1164,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Notifications center:"
+    },
+    {
+      "id": "L1165",
+      "lineNo": 1165,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Unread notifications count"
+    },
+    {
+      "id": "L1166",
+      "lineNo": 1166,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- All notifications list"
+    },
+    {
+      "id": "L1167",
+      "lineNo": 1167,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Mark as read option"
+    },
+    {
+      "id": "L1168",
+      "lineNo": 1168,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Clear all notifications"
+    },
+    {
+      "id": "L1169",
+      "lineNo": 1169,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Offers ■■ promotions:"
+    },
+    {
+      "id": "L1170",
+      "lineNo": 1170,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Active offers display"
+    },
+    {
+      "id": "L1171",
+      "lineNo": 1171,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Expiring soon alerts"
+    },
+    {
+      "id": "L1172",
+      "lineNo": 1172,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Claim offer button"
+    },
+    {
+      "id": "L1173",
+      "lineNo": 1173,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Achievements ■■ badges:"
+    },
+    {
+      "id": "L1174",
+      "lineNo": 1174,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Frequent traveler badge"
+    },
+    {
+      "id": "L1175",
+      "lineNo": 1175,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Explorer badge"
+    },
+    {
+      "id": "L1176",
+      "lineNo": 1176,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Loyal customer badge"
+    },
+    {
+      "id": "L1177",
+      "lineNo": 1177,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Early adopter badge"
+    },
+    {
+      "id": "L1178",
+      "lineNo": 1178,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Travel statistics:"
+    },
+    {
+      "id": "L1179",
+      "lineNo": 1179,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Most visited place"
+    },
+    {
+      "id": "L1180",
+      "lineNo": 1180,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Favorite vehicle type"
+    },
+    {
+      "id": "L1181",
+      "lineNo": 1181,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Preferred driver"
+    },
+    {
+      "id": "L1182",
+      "lineNo": 1182,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Peak travel time"
+    },
+    {
+      "id": "L1183",
+      "lineNo": 1183,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Carbon footprint:"
+    },
+    {
+      "id": "L1184",
+      "lineNo": 1184,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- CO2 saved vs personal vehicle"
+    },
+    {
+      "id": "L1185",
+      "lineNo": 1185,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Environmental impact"
+    },
+    {
+      "id": "L1186",
+      "lineNo": 1186,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Referral status:"
+    },
+    {
+      "id": "L1187",
+      "lineNo": 1187,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Friends referred count"
+    },
+    {
+      "id": "L1188",
+      "lineNo": 1188,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Successful referrals"
+    },
+    {
+      "id": "L1189",
+      "lineNo": 1189,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Pending referrals"
+    },
+    {
+      "id": "L1190",
+      "lineNo": 1190,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Earnings from referrals"
+    },
+    {
+      "id": "L1191",
+      "lineNo": 1191,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Settings quick access:"
+    },
+    {
+      "id": "L1192",
+      "lineNo": 1192,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Profile settings"
+    },
+    {
+      "id": "L1193",
+      "lineNo": 1193,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Notification preferences"
+    },
+    {
+      "id": "L1194",
+      "lineNo": 1194,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Privacy settings"
+    },
+    {
+      "id": "L1195",
+      "lineNo": 1195,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Language change"
+    },
+    {
+      "id": "L1196",
+      "lineNo": 1196,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Help and support"
+    },
+    {
+      "id": "L1197",
+      "lineNo": 1197,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Feedback option"
+    },
+    {
+      "id": "L1198",
+      "lineNo": 1198,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Rate your experience"
+    },
+    {
+      "id": "L1199",
+      "lineNo": 1199,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Suggest improvements"
+    },
+    {
+      "id": "L1200",
+      "lineNo": 1200,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1201",
+      "lineNo": 1201,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1202",
+      "lineNo": 1202,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■■ ■■■■■■■■■■ ■■■■■■ (Notification System)"
+    },
+    {
+      "id": "L1203",
+      "lineNo": 1203,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Push notifications (real-time)"
+    },
+    {
+      "id": "L1204",
+      "lineNo": 1204,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• SMS notifications"
+    },
+    {
+      "id": "L1205",
+      "lineNo": 1205,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Email notifications"
+    },
+    {
+      "id": "L1206",
+      "lineNo": 1206,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• WhatsApp notifications (optional)"
+    },
+    {
+      "id": "L1207",
+      "lineNo": 1207,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Booking confirmation notification"
+    },
+    {
+      "id": "L1208",
+      "lineNo": 1208,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver assignment alert:"
+    },
+    {
+      "id": "L1209",
+      "lineNo": 1209,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver name"
+    },
+    {
+      "id": "L1210",
+      "lineNo": 1210,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver photo"
+    },
+    {
+      "id": "L1211",
+      "lineNo": 1211,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle details"
+    },
+    {
+      "id": "L1212",
+      "lineNo": 1212,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Contact number"
+    },
+    {
+      "id": "L1213",
+      "lineNo": 1213,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver on the way notification"
+    },
+    {
+      "id": "L1214",
+      "lineNo": 1214,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver arrival alert (5 mins before)"
+    },
+    {
+      "id": "L1215",
+      "lineNo": 1215,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver arrived notification"
+    },
+    {
+      "id": "L1216",
+      "lineNo": 1216,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• OTP verification notification"
+    },
+    {
+      "id": "L1217",
+      "lineNo": 1217,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip started notification"
+    },
+    {
+      "id": "L1218",
+      "lineNo": 1218,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip ongoing updates (optional)"
+    },
+    {
+      "id": "L1219",
+      "lineNo": 1219,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Mid-trip alerts"
+    },
+    {
+      "id": "L1220",
+      "lineNo": 1220,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip completed notification"
+    },
+    {
+      "id": "L1221",
+      "lineNo": 1221,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment success confirmation"
+    },
+    {
+      "id": "L1222",
+      "lineNo": 1222,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Invoice ready notification"
+    },
+    {
+      "id": "L1223",
+      "lineNo": 1223,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Refund processed alert"
+    },
+    {
+      "id": "L1224",
+      "lineNo": 1224,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Promo code activated message"
+    },
+    {
+      "id": "L1225",
+      "lineNo": 1225,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Discount applied notification"
+    },
+    {
+      "id": "L1226",
+      "lineNo": 1226,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Loyalty points earned alert"
+    },
+    {
+      "id": "L1227",
+      "lineNo": 1227,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Points about to expire warning"
+    },
+    {
+      "id": "L1228",
+      "lineNo": 1228,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wallet balance low alert"
+    },
+    {
+      "id": "L1229",
+      "lineNo": 1229,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wallet money added confirmation"
+    },
+    {
+      "id": "L1230",
+      "lineNo": 1230,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• New offer launched notification"
+    },
+    {
+      "id": "L1231",
+      "lineNo": 1231,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Expiring offer reminder"
+    },
+    {
+      "id": "L1232",
+      "lineNo": 1232,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Festival special offers alert"
+    },
+    {
+      "id": "L1233",
+      "lineNo": 1233,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Referral success notification"
+    },
+    {
+      "id": "L1234",
+      "lineNo": 1234,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Friend joined via referral alert"
+    },
+    {
+      "id": "L1235",
+      "lineNo": 1235,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Achievement unlocked notification"
+    },
+    {
+      "id": "L1236",
+      "lineNo": 1236,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• New badge earned alert"
+    },
+    {
+      "id": "L1237",
+      "lineNo": 1237,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Birthday wishes ■■ special offer"
+    },
+    {
+      "id": "L1238",
+      "lineNo": 1238,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Anniversary discount notification"
+    },
+    {
+      "id": "L1239",
+      "lineNo": 1239,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Booking reminder (1 day before)"
+    },
+    {
+      "id": "L1240",
+      "lineNo": 1240,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Booking reminder (1 hour before)"
+    },
+    {
+      "id": "L1241",
+      "lineNo": 1241,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Weather alert (if bad weather)"
+    },
+    {
+      "id": "L1242",
+      "lineNo": 1242,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Road closure information"
+    },
+    {
+      "id": "L1243",
+      "lineNo": 1243,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Festival crowd alert"
+    },
+    {
+      "id": "L1244",
+      "lineNo": 1244,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Driver rating reminder"
+    },
+    {
+      "id": "L1245",
+      "lineNo": 1245,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Incomplete booking reminder"
+    },
+    {
+      "id": "L1246",
+      "lineNo": 1246,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Abandoned cart reminder"
+    },
+    {
+      "id": "L1247",
+      "lineNo": 1247,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Re-engagement notifications:"
+    },
+    {
+      "id": "L1248",
+      "lineNo": 1248,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Miss you messages"
+    },
+    {
+      "id": "L1249",
+      "lineNo": 1249,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Come back offers"
+    },
+    {
+      "id": "L1250",
+      "lineNo": 1250,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Special discounts for inactive users"
+    },
+    {
+      "id": "L1251",
+      "lineNo": 1251,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Profile completion reminder"
+    },
+    {
+      "id": "L1252",
+      "lineNo": 1252,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Emergency contact update reminder"
+    },
+    {
+      "id": "L1253",
+      "lineNo": 1253,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Document expiry alert (if applicable)"
+    },
+    {
+      "id": "L1254",
+      "lineNo": 1254,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• App update available notification"
+    },
+    {
+      "id": "L1255",
+      "lineNo": 1255,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• New feature announcement"
+    },
+    {
+      "id": "L1256",
+      "lineNo": 1256,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Notification preferences:"
+    },
+    {
+      "id": "L1257",
+      "lineNo": 1257,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Enable/Disable notifications"
+    },
+    {
+      "id": "L1258",
+      "lineNo": 1258,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Choose notification types"
+    },
+    {
+      "id": "L1259",
+      "lineNo": 1259,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Notification sound"
+    },
+    {
+      "id": "L1260",
+      "lineNo": 1260,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Vibration on/off"
+    },
+    {
+      "id": "L1261",
+      "lineNo": 1261,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Do Not Disturb hours"
+    },
+    {
+      "id": "L1262",
+      "lineNo": 1262,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Notification history"
+    },
+    {
+      "id": "L1263",
+      "lineNo": 1263,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Unread notifications badge"
+    },
+    {
+      "id": "L1264",
+      "lineNo": 1264,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Notification actions:"
+    },
+    {
+      "id": "L1265",
+      "lineNo": 1265,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Quick reply from notification"
+    },
+    {
+      "id": "L1266",
+      "lineNo": 1266,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Book from notification"
+    },
+    {
+      "id": "L1267",
+      "lineNo": 1267,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- View details"
+    },
+    {
+      "id": "L1268",
+      "lineNo": 1268,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Dismiss"
+    },
+    {
+      "id": "L1269",
+      "lineNo": 1269,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Snooze"
+    },
+    {
+      "id": "L1270",
+      "lineNo": 1270,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1271",
+      "lineNo": 1271,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1272",
+      "lineNo": 1272,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "■.■■ ■■■■■■■■ ■■■■■■ ■■■■■■■■ (Additional Customer Features)"
+    },
+    {
+      "id": "L1273",
+      "lineNo": 1273,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Multi-language support:"
+    },
+    {
+      "id": "L1274",
+      "lineNo": 1274,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- ■■■■■ (Hindi)"
+    },
+    {
+      "id": "L1275",
+      "lineNo": 1275,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- English"
+    },
+    {
+      "id": "L1276",
+      "lineNo": 1276,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- ■■■■■■■■■ (Rajasthani)"
+    },
+    {
+      "id": "L1277",
+      "lineNo": 1277,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- German (■■■■■)"
+    },
+    {
+      "id": "L1278",
+      "lineNo": 1278,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- French (■■■■■■)"
+    },
+    {
+      "id": "L1279",
+      "lineNo": 1279,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Spanish (■■■■■■■)"
+    },
+    {
+      "id": "L1280",
+      "lineNo": 1280,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Chinese (■■■■■■ ■■■) all language"
+    },
+    {
+      "id": "L1281",
+      "lineNo": 1281,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• ■■■■ ■■■■■■■■ (Language communication support)"
+    },
+    {
+      "id": "L1282",
+      "lineNo": 1282,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Real-time language translation"
+    },
+    {
+      "id": "L1283",
+      "lineNo": 1283,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Trip before preview (unique) - ■■■■■ ■■ ■■■■■■"
+    },
+    {
+      "id": "L1284",
+      "lineNo": 1284,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Virtual tour of destination"
+    },
+    {
+      "id": "L1285",
+      "lineNo": 1285,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Photos of route"
+    },
+    {
+      "id": "L1286",
+      "lineNo": 1286,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Points of interest"
+    },
+    {
+      "id": "L1287",
+      "lineNo": 1287,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Estimated journey visuals"
+    },
+    {
+      "id": "L1288",
+      "lineNo": 1288,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Real Trip Photos (■■■■ ■■■■■■):"
+    },
+    {
+      "id": "L1289",
+      "lineNo": 1289,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Actual customer trip photos"
+    },
+    {
+      "id": "L1290",
+      "lineNo": 1290,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Photo gallery"
+    },
+    {
+      "id": "L1291",
+      "lineNo": 1291,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Before and after photos"
+    },
+    {
+      "id": "L1292",
+      "lineNo": 1292,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Seasonal photos"
+    },
+    {
+      "id": "L1293",
+      "lineNo": 1293,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• 'Why Come Back Again' section:"
+    },
+    {
+      "id": "L1294",
+      "lineNo": 1294,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Unique experiences highlight"
+    },
+    {
+      "id": "L1295",
+      "lineNo": 1295,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Customer testimonials"
+    },
+    {
+      "id": "L1296",
+      "lineNo": 1296,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Return customer benefits"
+    },
+    {
+      "id": "L1297",
+      "lineNo": 1297,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• 'Why Trust Us' section:"
+    },
+    {
+      "id": "L1298",
+      "lineNo": 1298,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Company credentials"
+    },
+    {
+      "id": "L1299",
+      "lineNo": 1299,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Safety record"
+    },
+    {
+      "id": "L1300",
+      "lineNo": 1300,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Customer satisfaction rate"
+    },
+    {
+      "id": "L1301",
+      "lineNo": 1301,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Awards ■■ recognition"
+    },
+    {
+      "id": "L1302",
+      "lineNo": 1302,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Media coverage"
+    },
+    {
+      "id": "L1303",
+      "lineNo": 1303,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Certifications"
+    },
+    {
+      "id": "L1304",
+      "lineNo": 1304,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Emotional Connect content:"
+    },
+    {
+      "id": "L1305",
+      "lineNo": 1305,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Personal stories"
+    },
+    {
+      "id": "L1306",
+      "lineNo": 1306,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Memorable journeys"
+    },
+    {
+      "id": "L1307",
+      "lineNo": 1307,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Family travel experiences"
+    },
+    {
+      "id": "L1308",
+      "lineNo": 1308,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cultural connections"
+    },
+    {
+      "id": "L1309",
+      "lineNo": 1309,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Conversion ■■■■■■ ■■■■ ■■■■:"
+    },
+    {
+      "id": "L1310",
+      "lineNo": 1310,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Clear call-to-action buttons"
+    },
+    {
+      "id": "L1311",
+      "lineNo": 1311,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Limited time offers display"
+    },
+    {
+      "id": "L1312",
+      "lineNo": 1312,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Urgency creators (X seats left)"
+    },
+    {
+      "id": "L1313",
+      "lineNo": 1313,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Trust badges"
+    },
+    {
+      "id": "L1314",
+      "lineNo": 1314,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Secure payment icons"
+    },
+    {
+      "id": "L1315",
+      "lineNo": 1315,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Social Proof elements:"
+    },
+    {
+      "id": "L1316",
+      "lineNo": 1316,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Total customers served"
+    },
+    {
+      "id": "L1317",
+      "lineNo": 1317,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Total kilometers covered"
+    },
+    {
+      "id": "L1318",
+      "lineNo": 1318,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Total trips completed"
+    },
+    {
+      "id": "L1319",
+      "lineNo": 1319,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Average rating display"
+    },
+    {
+      "id": "L1320",
+      "lineNo": 1320,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Customer reviews count"
+    },
+    {
+      "id": "L1321",
+      "lineNo": 1321,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Media mentions"
+    },
+    {
+      "id": "L1322",
+      "lineNo": 1322,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Celebrity endorsements"
+    },
+    {
+      "id": "L1323",
+      "lineNo": 1323,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Awards display"
+    },
+    {
+      "id": "L1324",
+      "lineNo": 1324,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• 'Experience, not Ride' Section:"
+    },
+    {
+      "id": "L1325",
+      "lineNo": 1325,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Journey as experience marketing"
+    },
+    {
+      "id": "L1326",
+      "lineNo": 1326,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cultural immersion focus"
+    },
+    {
+      "id": "L1327",
+      "lineNo": 1327,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Local insights"
+    },
+    {
+      "id": "L1328",
+      "lineNo": 1328,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Storytelling approach"
+    },
+    {
+      "id": "L1329",
+      "lineNo": 1329,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Payment & Money Trust indicators:"
+    },
+    {
+      "id": "L1330",
+      "lineNo": 1330,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Secure payment badges"
+    },
+    {
+      "id": "L1331",
+      "lineNo": 1331,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- PCI-DSS certification"
+    },
+    {
+      "id": "L1332",
+      "lineNo": 1332,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Money-back guarantee"
+    },
+    {
+      "id": "L1333",
+      "lineNo": 1333,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Refund policy clearly stated"
+    },
+    {
+      "id": "L1334",
+      "lineNo": 1334,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- No hidden charges promise"
+    },
+    {
+      "id": "L1335",
+      "lineNo": 1335,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• International Customer ■■ ■■■:"
+    },
+    {
+      "id": "L1336",
+      "lineNo": 1336,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- ■■■■■■■■■ ■■■■■■ ■■ ■■■■ ■■■■ ■■: 'SAFE ■■ ■■'"
+    },
+    {
+      "id": "L1337",
+      "lineNo": 1337,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Safety assurance prominently"
+    },
+    {
+      "id": "L1338",
+      "lineNo": 1338,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- ■■■ ■■■ ■■■■ ■■ - visual safety proof"
+    },
+    {
+      "id": "L1339",
+      "lineNo": 1339,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- International payment support"
+    },
+    {
+      "id": "L1340",
+      "lineNo": 1340,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Multi-currency display (future)"
+    },
+    {
+      "id": "L1341",
+      "lineNo": 1341,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Travel insurance info"
+    },
+    {
+      "id": "L1342",
+      "lineNo": 1342,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Embassy contact integration"
+    },
+    {
+      "id": "L1343",
+      "lineNo": 1343,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Accessibility features:"
+    },
+    {
+      "id": "L1344",
+      "lineNo": 1344,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Screen reader support"
+    },
+    {
+      "id": "L1345",
+      "lineNo": 1345,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Voice commands (future)"
+    },
+    {
+      "id": "L1346",
+      "lineNo": 1346,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Large text option"
+    },
+    {
+      "id": "L1347",
+      "lineNo": 1347,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- High contrast mode"
+    },
+    {
+      "id": "L1348",
+      "lineNo": 1348,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Wheelchair accessible vehicles"
+    },
+    {
+      "id": "L1349",
+      "lineNo": 1349,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Offline mode support:"
+    },
+    {
+      "id": "L1350",
+      "lineNo": 1350,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- View saved trips offline"
+    },
+    {
+      "id": "L1351",
+      "lineNo": 1351,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Offline invoices"
+    },
+    {
+      "id": "L1352",
+      "lineNo": 1352,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cached information"
+    },
+    {
+      "id": "L1353",
+      "lineNo": 1353,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Progressive Web App (PWA):"
+    },
+    {
+      "id": "L1354",
+      "lineNo": 1354,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Add to home screen"
+    },
+    {
+      "id": "L1355",
+      "lineNo": 1355,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- App-like experience"
+    },
+    {
+      "id": "L1356",
+      "lineNo": 1356,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Fast loading"
+    },
+    {
+      "id": "L1357",
+      "lineNo": 1357,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Push notifications"
+    },
+    {
+      "id": "L1358",
+      "lineNo": 1358,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Customer support chat:"
+    },
+    {
+      "id": "L1359",
+      "lineNo": 1359,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Live chat support"
+    },
+    {
+      "id": "L1360",
+      "lineNo": 1360,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- AI chatbot (basic queries)"
+    },
+    {
+      "id": "L1361",
+      "lineNo": 1361,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Chat history saved"
+    },
+    {
+      "id": "L1362",
+      "lineNo": 1362,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- File sharing in chat"
+    },
+    {
+      "id": "L1363",
+      "lineNo": 1363,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Video call support (for international):"
+    },
+    {
+      "id": "L1364",
+      "lineNo": 1364,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Pre-trip video call with driver"
+    },
+    {
+      "id": "L1365",
+      "lineNo": 1365,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Verification purpose"
+    },
+    {
+      "id": "L1366",
+      "lineNo": 1366,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Travel blog section:"
+    },
+    {
+      "id": "L1367",
+      "lineNo": 1367,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Rajasthan travel tips"
+    },
+    {
+      "id": "L1368",
+      "lineNo": 1368,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Hidden gems"
+    },
+    {
+      "id": "L1369",
+      "lineNo": 1369,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Food guides"
+    },
+    {
+      "id": "L1370",
+      "lineNo": 1370,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Shopping guides"
+    },
+    {
+      "id": "L1371",
+      "lineNo": 1371,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Photography tips"
+    },
+    {
+      "id": "L1372",
+      "lineNo": 1372,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Community features:"
+    },
+    {
+      "id": "L1373",
+      "lineNo": 1373,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Travel buddy finding"
+    },
+    {
+      "id": "L1374",
+      "lineNo": 1374,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Group tours organization"
+    },
+    {
+      "id": "L1375",
+      "lineNo": 1375,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Forum discussions"
+    },
+    {
+      "id": "L1376",
+      "lineNo": 1376,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- User-generated content"
+    },
+    {
+      "id": "L1377",
+      "lineNo": 1377,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Wishlist feature:"
+    },
+    {
+      "id": "L1378",
+      "lineNo": 1378,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Save places to visit"
+    },
+    {
+      "id": "L1379",
+      "lineNo": 1379,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Plan future trips"
+    },
+    {
+      "id": "L1380",
+      "lineNo": 1380,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Share wishlist"
+    },
+    {
+      "id": "L1381",
+      "lineNo": 1381,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "• Calendar integration:"
+    },
+    {
+      "id": "L1382",
+      "lineNo": 1382,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Add booking to calendar"
+    },
+    {
+      "id": "L1383",
+      "lineNo": 1383,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Sync with Google Calendar"
+    },
+    {
+      "id": "L1384",
+      "lineNo": 1384,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Reminder before trip"
+    },
+    {
+      "id": "L1385",
+      "lineNo": 1385,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1386",
+      "lineNo": 1386,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1387",
+      "lineNo": 1387,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1388",
+      "lineNo": 1388,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "# GOindiaRIDE - COMPLETE FEATURES LIST"
+    },
+    {
+      "id": "L1389",
+      "lineNo": 1389,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "## सभी Features की विस्तृत सूची"
+    },
+    {
+      "id": "L1390",
+      "lineNo": 1390,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1391",
+      "lineNo": 1391,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "---"
+    },
+    {
+      "id": "L1392",
+      "lineNo": 1392,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1393",
+      "lineNo": 1393,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "## SECTION A: CUSTOMER PORTAL (ग्राहक पोर्टल)"
+    },
+    {
+      "id": "L1394",
+      "lineNo": 1394,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1395",
+      "lineNo": 1395,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 1. यूजर रजिस्ट्रेशन और ऑथेंटिकेशन"
+    },
+    {
+      "id": "L1396",
+      "lineNo": 1396,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- यूजर रजिस्ट्रेशन होनी चाहिए (User Registration & Profile System)"
+    },
+    {
+      "id": "L1397",
+      "lineNo": 1397,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- OTP की बुकिंग करने का ऑप्शन (OTP-based booking/login)"
+    },
+    {
+      "id": "L1398",
+      "lineNo": 1398,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- सभी पर्सनल डिटेल व ब्लॉक डिटेल के नाम सहित (Personal details with block details and names)"
+    },
+    {
+      "id": "L1399",
+      "lineNo": 1399,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Email/Password login"
+    },
+    {
+      "id": "L1400",
+      "lineNo": 1400,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Phone number verification (OTP)"
+    },
+    {
+      "id": "L1401",
+      "lineNo": 1401,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Google/Facebook social login"
+    },
+    {
+      "id": "L1402",
+      "lineNo": 1402,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- User profile with photo upload"
+    },
+    {
+      "id": "L1403",
+      "lineNo": 1403,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Document upload (ID proof) - optional"
+    },
+    {
+      "id": "L1404",
+      "lineNo": 1404,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1405",
+      "lineNo": 1405,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 2. स्थल और इतिहास (Tourist Places & History)"
+    },
+    {
+      "id": "L1406",
+      "lineNo": 1406,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- सभी स्थलों के पुराने इतिहास सहित होना चाहिए (Historical information for all places)"
+    },
+    {
+      "id": "L1407",
+      "lineNo": 1407,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- राजस्थान के ऐतिहासिक स्थलों की फोटो, इतिहास और मंदिरों की आरती का समय"
+    },
+    {
+      "id": "L1408",
+      "lineNo": 1408,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Temple aarti timings"
+    },
+    {
+      "id": "L1409",
+      "lineNo": 1409,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Entry fees information"
+    },
+    {
+      "id": "L1410",
+      "lineNo": 1410,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Opening/closing timings"
+    },
+    {
+      "id": "L1411",
+      "lineNo": 1411,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Photo gallery of real trips"
+    },
+    {
+      "id": "L1412",
+      "lineNo": 1412,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Best time to visit recommendations"
+    },
+    {
+      "id": "L1413",
+      "lineNo": 1413,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1414",
+      "lineNo": 1414,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 3. बुकिंग सिस्टम (Booking System)"
+    },
+    {
+      "id": "L1415",
+      "lineNo": 1415,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- आने के लिए एक संबंध करने का ऑप्शन होना चाहिए (Contact/booking option)"
+    },
+    {
+      "id": "L1416",
+      "lineNo": 1416,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Pick-up location search with auto-suggestions"
+    },
+    {
+      "id": "L1417",
+      "lineNo": 1417,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Drop location search with auto-suggestions  "
+    },
+    {
+      "id": "L1418",
+      "lineNo": 1418,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- राजस्थान के सभी छोटे व बड़े जगहों के नाम पुरे (All Rajasthan places - big and small)"
+    },
+    {
+      "id": "L1419",
+      "lineNo": 1419,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Vehicle type selection (Hatchback, Sedan, SUV, Tempo Traveller, Bus)"
+    },
+    {
+      "id": "L1420",
+      "lineNo": 1420,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Date and time picker (minimum 2 hours advance)"
+    },
+    {
+      "id": "L1421",
+      "lineNo": 1421,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Passenger details (name, phone, email)"
+    },
+    {
+      "id": "L1422",
+      "lineNo": 1422,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Special requirements/notes field"
+    },
+    {
+      "id": "L1423",
+      "lineNo": 1423,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Fare calculator (real-time estimation)"
+    },
+    {
+      "id": "L1424",
+      "lineNo": 1424,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Payment method selection"
+    },
+    {
+      "id": "L1425",
+      "lineNo": 1425,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Booking confirmation with booking ID"
+    },
+    {
+      "id": "L1426",
+      "lineNo": 1426,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1427",
+      "lineNo": 1427,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 4. फेयर कैलकुलेशन (Fare Calculation)"
+    },
+    {
+      "id": "L1428",
+      "lineNo": 1428,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Distance-based fare calculation"
+    },
+    {
+      "id": "L1429",
+      "lineNo": 1429,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Vehicle type-based pricing"
+    },
+    {
+      "id": "L1430",
+      "lineNo": 1430,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Base fare + Per KM charges"
+    },
+    {
+      "id": "L1431",
+      "lineNo": 1431,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- GST calculation (5%)"
+    },
+    {
+      "id": "L1432",
+      "lineNo": 1432,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Breakdown display (base + distance + GST)"
+    },
+    {
+      "id": "L1433",
+      "lineNo": 1433,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Multiple vehicle options with price comparison"
+    },
+    {
+      "id": "L1434",
+      "lineNo": 1434,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Peak hours surge pricing"
+    },
+    {
+      "id": "L1435",
+      "lineNo": 1435,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Discount code application"
+    },
+    {
+      "id": "L1436",
+      "lineNo": 1436,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1437",
+      "lineNo": 1437,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 5. पेमेंट सिस्टम (Payment System)"
+    },
+    {
+      "id": "L1438",
+      "lineNo": 1438,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- इंटरनेशनल मोड (PayPal) - International payment support"
+    },
+    {
+      "id": "L1439",
+      "lineNo": 1439,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- UPI payments"
+    },
+    {
+      "id": "L1440",
+      "lineNo": 1440,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Credit/Debit cards"
+    },
+    {
+      "id": "L1441",
+      "lineNo": 1441,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Net banking"
+    },
+    {
+      "id": "L1442",
+      "lineNo": 1442,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Wallets (Paytm, PhonePe, etc.)"
+    },
+    {
+      "id": "L1443",
+      "lineNo": 1443,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cash on delivery option"
+    },
+    {
+      "id": "L1444",
+      "lineNo": 1444,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- GOindiaRIDE wallet (preloaded balance)"
+    },
+    {
+      "id": "L1445",
+      "lineNo": 1445,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Payment history tracking"
+    },
+    {
+      "id": "L1446",
+      "lineNo": 1446,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Auto-receipt generation"
+    },
+    {
+      "id": "L1447",
+      "lineNo": 1447,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1448",
+      "lineNo": 1448,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 6. राइड हिस्ट्री और मैनेजमेंट (Ride Management)"
+    },
+    {
+      "id": "L1449",
+      "lineNo": 1449,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Complete ride history (all past bookings)"
+    },
+    {
+      "id": "L1450",
+      "lineNo": 1450,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Trip details (distance, time, cost)"
+    },
+    {
+      "id": "L1451",
+      "lineNo": 1451,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Ride cancellation option (24hrs पहली बुकिंग पर 5 से 5% तक डिस्काउंट मिले)"
+    },
+    {
+      "id": "L1452",
+      "lineNo": 1452,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cancellation before 24 hours - full refund"
+    },
+    {
+      "id": "L1453",
+      "lineNo": 1453,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cancellation 12-24 hours - 50% refund"
+    },
+    {
+      "id": "L1454",
+      "lineNo": 1454,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Less than 12 hours - no refund"
+    },
+    {
+      "id": "L1455",
+      "lineNo": 1455,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Invoice/receipt download (PDF)"
+    },
+    {
+      "id": "L1456",
+      "lineNo": 1456,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Rebook previous trips (one-click repeat)"
+    },
+    {
+      "id": "L1457",
+      "lineNo": 1457,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Favorite routes saving"
+    },
+    {
+      "id": "L1458",
+      "lineNo": 1458,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1459",
+      "lineNo": 1459,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 7. रेटिंग और रिव्यू (Rating & Reviews)"
+    },
+    {
+      "id": "L1460",
+      "lineNo": 1460,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver rating (1-5 stars)"
+    },
+    {
+      "id": "L1461",
+      "lineNo": 1461,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Written review/feedback"
+    },
+    {
+      "id": "L1462",
+      "lineNo": 1462,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Photo upload from trip"
+    },
+    {
+      "id": "L1463",
+      "lineNo": 1463,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- View other customer reviews"
+    },
+    {
+      "id": "L1464",
+      "lineNo": 1464,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Report issues/complaints"
+    },
+    {
+      "id": "L1465",
+      "lineNo": 1465,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Rate vehicle condition"
+    },
+    {
+      "id": "L1466",
+      "lineNo": 1466,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Rate punctuality"
+    },
+    {
+      "id": "L1467",
+      "lineNo": 1467,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1468",
+      "lineNo": 1468,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 8. सेफ्टी और सपोर्ट (Safety & Support Features)"
+    },
+    {
+      "id": "L1469",
+      "lineNo": 1469,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Emergency SOS button (instant alert to admin and police)"
+    },
+    {
+      "id": "L1470",
+      "lineNo": 1470,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Share ride details via WhatsApp"
+    },
+    {
+      "id": "L1471",
+      "lineNo": 1471,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Live location sharing with family/friends"
+    },
+    {
+      "id": "L1472",
+      "lineNo": 1472,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Add 3 emergency contacts"
+    },
+    {
+      "id": "L1473",
+      "lineNo": 1473,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- 24/7 customer support"
+    },
+    {
+      "id": "L1474",
+      "lineNo": 1474,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Chat support"
+    },
+    {
+      "id": "L1475",
+      "lineNo": 1475,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Help center/FAQs"
+    },
+    {
+      "id": "L1476",
+      "lineNo": 1476,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Insurance information display"
+    },
+    {
+      "id": "L1477",
+      "lineNo": 1477,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1478",
+      "lineNo": 1478,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 9. पर्यटन सुविधाएं (Tourism Features)"
+    },
+    {
+      "id": "L1479",
+      "lineNo": 1479,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Restaurant recommendations (verified restaurants with ratings)"
+    },
+    {
+      "id": "L1480",
+      "lineNo": 1480,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Shop/Post office/Hotel की जानकारी (Shops, post offices, hotels info)"
+    },
+    {
+      "id": "L1481",
+      "lineNo": 1481,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Handicraft shops information"
+    },
+    {
+      "id": "L1482",
+      "lineNo": 1482,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Local food spots guide"
+    },
+    {
+      "id": "L1483",
+      "lineNo": 1483,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Cultural events calendar"
+    },
+    {
+      "id": "L1484",
+      "lineNo": 1484,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Festival information"
+    },
+    {
+      "id": "L1485",
+      "lineNo": 1485,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Best photo spots suggestions"
+    },
+    {
+      "id": "L1486",
+      "lineNo": 1486,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Travel tips and guides"
+    },
+    {
+      "id": "L1487",
+      "lineNo": 1487,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1488",
+      "lineNo": 1488,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 10. प्रोमो कोड और डिस्काउंट (Promo Codes & Offers)"
+    },
+    {
+      "id": "L1489",
+      "lineNo": 1489,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Discount coupon codes"
+    },
+    {
+      "id": "L1490",
+      "lineNo": 1490,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- First ride discount"
+    },
+    {
+      "id": "L1491",
+      "lineNo": 1491,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Referral program (refer and earn)"
+    },
+    {
+      "id": "L1492",
+      "lineNo": 1492,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Loyalty points system"
+    },
+    {
+      "id": "L1493",
+      "lineNo": 1493,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Seasonal offers (Diwali, Holi, etc.)"
+    },
+    {
+      "id": "L1494",
+      "lineNo": 1494,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Group booking discounts"
+    },
+    {
+      "id": "L1495",
+      "lineNo": 1495,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Festival special offers"
+    },
+    {
+      "id": "L1496",
+      "lineNo": 1496,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1497",
+      "lineNo": 1497,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 11. यूजर डैशबोर्ड (User Dashboard)"
+    },
+    {
+      "id": "L1498",
+      "lineNo": 1498,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Upcoming bookings"
+    },
+    {
+      "id": "L1499",
+      "lineNo": 1499,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Completed trips count"
+    },
+    {
+      "id": "L1500",
+      "lineNo": 1500,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Total distance traveled"
+    },
+    {
+      "id": "L1501",
+      "lineNo": 1501,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Total money spent"
+    },
+    {
+      "id": "L1502",
+      "lineNo": 1502,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Loyalty points balance"
+    },
+    {
+      "id": "L1503",
+      "lineNo": 1503,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Wallet balance"
+    },
+    {
+      "id": "L1504",
+      "lineNo": 1504,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Saved favorite locations"
+    },
+    {
+      "id": "L1505",
+      "lineNo": 1505,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Emergency contacts list"
+    },
+    {
+      "id": "L1506",
+      "lineNo": 1506,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1507",
+      "lineNo": 1507,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 12. नोटिफिकेशन सिस्टम (Notifications)"
+    },
+    {
+      "id": "L1508",
+      "lineNo": 1508,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Booking confirmation notifications"
+    },
+    {
+      "id": "L1509",
+      "lineNo": 1509,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver assignment alert"
+    },
+    {
+      "id": "L1510",
+      "lineNo": 1510,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Driver arrival notification"
+    },
+    {
+      "id": "L1511",
+      "lineNo": 1511,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Trip start/end notifications"
+    },
+    {
+      "id": "L1512",
+      "lineNo": 1512,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Payment success alerts"
+    },
+    {
+      "id": "L1513",
+      "lineNo": 1513,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Promo code/offer notifications"
+    },
+    {
+      "id": "L1514",
+      "lineNo": 1514,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Festival season reminders"
+    },
+    {
+      "id": "L1515",
+      "lineNo": 1515,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1516",
+      "lineNo": 1516,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "### 13. अतिरिक्त फीचर्स (Additional Features)"
+    },
+    {
+      "id": "L1517",
+      "lineNo": 1517,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "- Multi-language support (Hindi, English, Rajasthani)"
+    },
+    {
+      "id": "L1518",
+      "lineNo": 1518,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Trip before preview (unique) - देखना की सुविधा होनी चाहिए"
+    },
+    {
+      "id": "L1519",
+      "lineNo": 1519,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Real trip photos (असली अमीरता) - actual customer trip photos"
+    },
+    {
+      "id": "L1520",
+      "lineNo": 1520,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- \"Why come back again\" section"
+    },
+    {
+      "id": "L1521",
+      "lineNo": 1521,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- \"Why trust us\" section"
+    },
+    {
+      "id": "L1522",
+      "lineNo": 1522,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Emotional connect content"
+    },
+    {
+      "id": "L1523",
+      "lineNo": 1523,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Conversion-focused design"
+    },
+    {
+      "id": "L1524",
+      "lineNo": 1524,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Social proof (testimonials, reviews)"
+    },
+    {
+      "id": "L1525",
+      "lineNo": 1525,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- \"Experience, not Ride\" section"
+    },
+    {
+      "id": "L1526",
+      "lineNo": 1526,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- Payment & money trust badges"
+    },
+    {
+      "id": "L1527",
+      "lineNo": 1527,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "- भाषा सम्बंधित (Language communication support)"
+    },
+    {
+      "id": "L1528",
+      "lineNo": 1528,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L1529",
+      "lineNo": 1529,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "---"
+    },
+    {
+      "id": "L1530",
+      "lineNo": 1530,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    },
+    {
+      "id": "L2038",
+      "lineNo": 2038,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Customer portal "
+    },
+    {
+      "id": "L2039",
+      "lineNo": 2039,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Fare eastimate real calculate "
+    },
+    {
+      "id": "L2040",
+      "lineNo": 2040,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Timeming ke anusar auto bill ganaret ho"
+    },
+    {
+      "id": "L2041",
+      "lineNo": 2041,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Km ke anusar bill automatic generating ho"
+    },
+    {
+      "id": "L2042",
+      "lineNo": 2042,
+      "section": "customer",
+      "likelyMultiPoint": true,
+      "text": "Ride type me sabhi gadiya k naam jese sedan , suv,innova,cresta,other sabhi ke name"
+    },
+    {
+      "id": "L2043",
+      "lineNo": 2043,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "One way or out station day rental or airport pickup or round trip city local trip or side seen "
+    },
+    {
+      "id": "L2044",
+      "lineNo": 2044,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Career option sabhi no wala bhi add kena "
+    },
+    {
+      "id": "L2045",
+      "lineNo": 2045,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "fuel option"
+    },
+    {
+      "id": "L2046",
+      "lineNo": 2046,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Pickup location to drop location auto generate kilomiter hona chahiye "
+    },
+    {
+      "id": "L2047",
+      "lineNo": 2047,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Customer emergency option police or ambulance dono option hone chahiye "
+    },
+    {
+      "id": "L2048",
+      "lineNo": 2048,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Customer k liya toll parking night charge extra customer ko phela hi dekhna chahiye "
+    },
+    {
+      "id": "L2049",
+      "lineNo": 2049,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Cancellation refund ka option "
+    },
+    {
+      "id": "L2050",
+      "lineNo": 2050,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Advance payment option "
+    },
+    {
+      "id": "L2051",
+      "lineNo": 2051,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Or cash ka bhi option "
+    },
+    {
+      "id": "L2052",
+      "lineNo": 2052,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "80km speed ka rules dikhna chahiye "
+    },
+    {
+      "id": "L2053",
+      "lineNo": 2053,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": "Costumer ke liye booking payment offer karne ka option jisase customer saggese kar sake ki me ye payment kar sakta hu"
+    },
+    {
+      "id": "L2054",
+      "lineNo": 2054,
+      "section": "customer",
+      "likelyMultiPoint": false,
+      "text": ""
+    }
+  ]
+}

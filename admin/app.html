@@ -125,7 +125,7 @@
             });
         })();
     </script>
-    <script src="../js/data-preservation-guard.js?v=20260512-data-preserve1"></script>
+    <script src="../js/data-preservation-guard.js?v=20260527-light1"></script>
 </head>
 <body class="admin-app-shell">
     <div class="app-layout">
@@ -147,6 +147,7 @@
                 <button class="nav-item active" data-view="overview" type="button"><i class="fas fa-table-columns"></i><span>Overview</span></button>
                 <button class="nav-item" data-view="portals" type="button"><i class="fas fa-network-wired"></i><span>Portals</span><strong id="navPortalCount">2</strong></button>
                 <button class="nav-item" data-view="benchmark" type="button"><i class="fas fa-chart-line"></i><span>Benchmark</span><strong id="navBenchmarkGapCount">0</strong></button>
+                <button class="nav-item" data-view="enterprise" type="button"><i class="fas fa-building-user"></i><span>Enterprise</span><strong id="navEnterpriseGapCount">0</strong></button>
                 <button class="nav-item" data-view="bookings" type="button"><i class="fas fa-clipboard-list"></i><span>Customer Bookings</span><strong id="navPendingCount">0</strong></button>
                 <a class="nav-item" href="./driver-bookings/"><i class="fas fa-car-side"></i><span>Driver Bookings</span><strong id="navDriverBookingCount">0</strong></a>
                 <button class="nav-item" data-view="drivers" type="button"><i class="fas fa-id-card"></i><span>Drivers</span></button>
@@ -304,6 +305,61 @@
                 </section>
             </section>
 
+            <section class="view-panel" id="view-enterprise">
+                <div class="enterprise-grid">
+                    <section class="workspace-panel enterprise-control-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Ola / Uber / Rapido parity</span>
+                                <h2>Enterprise & Fleet Control Center</h2>
+                            </div>
+                            <div class="control-actions">
+                                <button class="secondary-action" data-enterprise-action="refresh" type="button"><i class="fas fa-rotate"></i> Refresh audit</button>
+                                <button class="secondary-action" data-enterprise-action="run-live-test" type="button"><i class="fas fa-list-check"></i> Run live test</button>
+                                <button class="secondary-action" data-enterprise-action="export" type="button"><i class="fas fa-file-export"></i> Export audit</button>
+                                <button class="primary-action" data-enterprise-action="connect-all" type="button"><i class="fas fa-link"></i> Connect missing</button>
+                            </div>
+                        </div>
+                        <div class="enterprise-summary-grid" id="enterpriseSummaryGrid"></div>
+                        <div class="enterprise-module-list" id="enterpriseModuleList"></div>
+                    </section>
+
+                    <section class="workspace-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Live readiness</span>
+                                <h2>Policy, Wallet & Fleet Health</h2>
+                            </div>
+                            <span class="status-pill" id="enterpriseLastSaved">Not saved</span>
+                        </div>
+                        <div class="enterprise-readiness-list" id="enterpriseReadinessList"></div>
+                        <div class="enterprise-live-test-list" id="enterpriseLiveTestList"></div>
+                    </section>
+                </div>
+
+                <div class="enterprise-grid bottom">
+                    <section class="workspace-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Corporate ops</span>
+                                <h2>Employees, Policies & Billing</h2>
+                            </div>
+                        </div>
+                        <div class="enterprise-mini-list" id="enterprisePolicyList"></div>
+                    </section>
+
+                    <section class="workspace-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Fleet ops</span>
+                                <h2>Vehicles, Documents & Live Status</h2>
+                            </div>
+                        </div>
+                        <div class="enterprise-mini-list" id="enterpriseFleetList"></div>
+                    </section>
+                </div>
+            </section>
+
             <section class="view-panel" id="view-portals">
                 <div class="portal-control-grid">
                     <section class="workspace-panel wide-panel portal-folder-only-panel">
@@ -381,7 +437,7 @@
                             <span class="section-kicker">Fleet</span>
                             <h2>Driver Operations</h2>
                         </div>
-                        <button class="secondary-action" id="seedDriverBtn" type="button"><i class="fas fa-user-plus"></i> Add sample driver</button>
+                        <button class="secondary-action" id="seedDriverBtn" type="button"><i class="fas fa-user-plus"></i> Add driver intake</button>
                     </div>
                     <div class="driver-grid" id="driverGrid"></div>
                 </div>

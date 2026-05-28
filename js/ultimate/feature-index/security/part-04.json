@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "security",
+  "part": 4,
+  "totalParts": 9,
+  "totalFeatureItems": 727,
+  "items": [
+    {
+      "featureId": "U00738",
+      "sourceLine": 743,
+      "category": "security",
+      "bucket": "general",
+      "text": "शिल्पकारों की बायोग्राफी: राजस्थान के पद्मश्री विजेता हस्तशिल्पकारों का परिचय।",
+      "blockKey": "security-ultimate-u00743-line-743"
+    },
+    {
+      "featureId": "U00739",
+      "sourceLine": 744,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्थानी मुहावरे: स्थानीय कहावतों और उनके रोचक अर्थों का खंड।",
+      "blockKey": "security-ultimate-u00744-line-744"
+    },
+    {
+      "featureId": "U00740",
+      "sourceLine": 745,
+      "category": "security",
+      "bucket": "general",
+      "text": "पंचांग और नक्षत्र: पुराने समय के राजस्थानी ज्योतिष और खगोल विज्ञान का ज्ञान।",
+      "blockKey": "security-ultimate-u00745-line-745"
+    },
+    {
+      "featureId": "U00741",
+      "sourceLine": 746,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्राचीन खेल: सातोलिया और चौपड़ जैसे लुप्त होते खेलों की जानकारी।",
+      "blockKey": "security-ultimate-u00746-line-746"
+    },
+    {
+      "featureId": "U00742",
+      "sourceLine": 747,
+      "category": "security",
+      "bucket": "general",
+      "text": "डार्क टूरिज्म: भानगढ़ और कुलधरा जैसे स्थलों का ऐतिहासिक और वैज्ञानिक विश्लेषण।",
+      "blockKey": "security-ultimate-u00747-line-747"
+    },
+    {
+      "featureId": "U00748",
+      "sourceLine": 753,
+      "category": "security",
+      "bucket": "general",
+      "text": "इंटरएक्टिव मैप्स: मैप पर ऐतिहासिक आइकॉन जिन पर क्लिक करते ही इतिहास का ऑडियो सुनाई दे।",
+      "blockKey": "security-ultimate-u00753-line-753"
+    },
+    {
+      "featureId": "U00749",
+      "sourceLine": 754,
+      "category": "security",
+      "bucket": "general",
+      "text": "HD सिनेमैटिक गैलरी: राजस्थान के पर्यटन स्थलों के ड्रोन द्वारा लिए गए प्रोफेशनल वीडियो।",
+      "blockKey": "security-ultimate-u00754-line-754"
+    },
+    {
+      "featureId": "U00750",
+      "sourceLine": 755,
+      "category": "security",
+      "bucket": "general",
+      "text": "एनिमेटेड ट्रांजिशन: वेबसाइट के पेजों के बीच अल्ट्रा-स्मूथ और शाही ट्रांजिशन।",
+      "blockKey": "security-ultimate-u00755-line-755"
+    },
+    {
+      "featureId": "U00751",
+      "sourceLine": 756,
+      "category": "security",
+      "bucket": "general",
+      "text": "कस्टम रॉयल फॉन्ट्स: प्राचीन शिलालेखों जैसे दिखने वाले डिजिटल प्रीमियम फॉन्ट्स।",
+      "blockKey": "security-ultimate-u00756-line-756"
+    },
+    {
+      "featureId": "U00752",
+      "sourceLine": 757,
+      "category": "security",
+      "bucket": "general",
+      "text": "डायनेमिक बैकग्राउंड: समय के अनुसार वेबसाइट का दृश्य (सुबह/दोपहर/शाम) बदलना।",
+      "blockKey": "security-ultimate-u00757-line-757"
+    },
+    {
+      "featureId": "U00754",
+      "sourceLine": 759,
+      "category": "security",
+      "bucket": "general",
+      "text": "लोगो एनिमेशन: वेबसाइट लोड होते ही \"पधारो राजस्थान जर्नी\" के लोगो का चमकना।",
+      "blockKey": "security-ultimate-u00759-line-759"
+    },
+    {
+      "featureId": "U00755",
+      "sourceLine": 760,
+      "category": "security",
+      "bucket": "general",
+      "text": "कस्टमाइज्ड कर्सर: माउस कर्सर को राजस्थानी तलवार या कमल के आकार में बदलना।",
+      "blockKey": "security-ultimate-u00760-line-760"
+    },
+    {
+      "featureId": "U00756",
+      "sourceLine": 761,
+      "category": "security",
+      "bucket": "general",
+      "text": "लोडिंग एनिमेशन: पेज लोड होते समय नाचता हुआ मोर या घूमता हुआ शाही पहिया।",
+      "blockKey": "security-ultimate-u00761-line-761"
+    },
+    {
+      "featureId": "U00759",
+      "sourceLine": 764,
+      "category": "security",
+      "bucket": "general",
+      "text": "कस्टम आइकॉन्स: राजस्थान के गौरव और संस्कृति को दर्शाने वाले विशेष चिन्ह।",
+      "blockKey": "security-ultimate-u00764-line-764"
+    },
+    {
+      "featureId": "U00760",
+      "sourceLine": 765,
+      "category": "security",
+      "bucket": "general",
+      "text": "वंशावली चार्ट: राजवंशों की वंशावली को समझने के लिए इंटरएक्टिव ग्राफिक्स।",
+      "blockKey": "security-ultimate-u00765-line-765"
+    },
+    {
+      "featureId": "U00761",
+      "sourceLine": 766,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑडियो बैकग्राउंड: बैकग्राउंड में धीमी आवाज़ में बजता राजस्थानी लोक संगीत (On/Off विकल्प)।",
+      "blockKey": "security-ultimate-u00766-line-766"
+    },
+    {
+      "featureId": "U00762",
+      "sourceLine": 767,
+      "category": "security",
+      "bucket": "general",
+      "text": "वीडियो बैकग्राउंड: होमपेज पर राजस्थान की संस्कृति की 4K रील का चलना।",
+      "blockKey": "security-ultimate-u00767-line-767"
+    },
+    {
+      "featureId": "U00763",
+      "sourceLine": 768,
+      "category": "security",
+      "bucket": "general",
+      "text": "ग्लास-मॉर्फिज्म: आधुनिक पारदर्शी और प्रीमियम बटन डिज़ाइन का उपयोग।",
+      "blockKey": "security-ultimate-u00768-line-768"
+    },
+    {
+      "featureId": "U00764",
+      "sourceLine": 769,
+      "category": "security",
+      "bucket": "general",
+      "text": "माइक्रो-इंटरेक्शन: बटन क्लिक करने पर हल्का सा कंपन (Haptic Feedback)।",
+      "blockKey": "security-ultimate-u00769-line-769"
+    },
+    {
+      "featureId": "U00768",
+      "sourceLine": 773,
+      "category": "security",
+      "bucket": "general",
+      "text": "टाइपोग्राफी एनीमेशन: टेक्स्ट का रॉयल अंदाज़ में स्क्रीन पर उभर कर आना।",
+      "blockKey": "security-ultimate-u00773-line-773"
+    },
+    {
+      "featureId": "U00769",
+      "sourceLine": 774,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्क्यू-मॉर्फिज्म: वेबसाइट के बटनों का असली पत्थर, सोना या लकड़ी जैसा स्पर्श।",
+      "blockKey": "security-ultimate-u00774-line-774"
+    },
+    {
+      "featureId": "U00770",
+      "sourceLine": 775,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्मूथ स्क्रॉलिंग: वेबसाइट ब्राउज़ करने का बेहद लग्जरी और तेज़ अनुभव।",
+      "blockKey": "security-ultimate-u00775-line-775"
+    },
+    {
+      "featureId": "U00776",
+      "sourceLine": 781,
+      "category": "security",
+      "bucket": "general",
+      "text": "विंटेज फ़िल्टर: वेबसाइट को पुरानी ऐतिहासिक पांडुलिपि जैसा लुक देने का विकल्प।",
+      "blockKey": "security-ultimate-u00781-line-781"
+    },
+    {
+      "featureId": "U00778",
+      "sourceLine": 783,
+      "category": "security",
+      "bucket": "general",
+      "text": "मैग्नेटिक बटन: माउस पास ले जाते ही बटनों का हल्का सा खिंचाव महसूस होना।",
+      "blockKey": "security-ultimate-u00783-line-783"
+    },
+    {
+      "featureId": "U00779",
+      "sourceLine": 784,
+      "category": "security",
+      "bucket": "general",
+      "text": "लिविंग होमपेज: बैकग्राउंड में रीयल-टाइम सूरज ढलने और चाँद निकलने का दृश्य।",
+      "blockKey": "security-ultimate-u00784-line-784"
+    },
+    {
+      "featureId": "U00780",
+      "sourceLine": 785,
+      "category": "security",
+      "bucket": "general",
+      "text": "रॉयल वॉटरमार्क: हर गैलरी फोटो पर ब्रांड का प्रीमियम डिजिटल चिन्ह।",
+      "blockKey": "security-ultimate-u00785-line-785"
+    },
+    {
+      "featureId": "U00781",
+      "sourceLine": 786,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्रोग्रेस बार: पेज स्क्रॉल करते समय तलवार के निशान द्वारा प्रोग्रेस दिखाना।",
+      "blockKey": "security-ultimate-u00786-line-786"
+    },
+    {
+      "featureId": "U00783",
+      "sourceLine": 788,
+      "category": "security",
+      "bucket": "general",
+      "text": "भाषा समर्थन: 20 से अधिक विश्व भाषाओं में वेबसाइट का शुद्ध अनुवाद।",
+      "blockKey": "security-ultimate-u00788-line-788"
+    },
+    {
+      "featureId": "U00784",
+      "sourceLine": 789,
+      "category": "security",
+      "bucket": "general",
+      "text": "Accessibility Mode: दिव्यांगों के लिए विशेष हाई-कंट्रास्ट और वॉयस मोड।",
+      "blockKey": "security-ultimate-u00789-line-789"
+    },
+    {
+      "featureId": "U00786",
+      "sourceLine": 791,
+      "category": "security",
+      "bucket": "general",
+      "text": "रॉयल सील: पेमेंट कन्फर्म होने पर राजसी 'मुहर' लगने का एनीमेशन।",
+      "blockKey": "security-ultimate-u00791-line-791"
+    },
+    {
+      "featureId": "U00787",
+      "sourceLine": 792,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑफलाइन मोड: रसीद और बेसिक जानकारी को बिना इंटरनेट के एक्सेस करना।",
+      "blockKey": "security-ultimate-u00792-line-792"
+    },
+    {
+      "featureId": "U00789",
+      "sourceLine": 794,
+      "category": "security",
+      "bucket": "general",
+      "text": "लग्जरी SUV: वीआईपी परिवारों के लिए आरामदायक और सुरक्षित बड़ी गाड़ियाँ।",
+      "blockKey": "security-ultimate-u00794-line-794"
+    },
+    {
+      "featureId": "U00790",
+      "sourceLine": 795,
+      "category": "security",
+      "bucket": "general",
+      "text": "विंटेज कलेक्शन: शाही शादियों और विशेष इवेंट्स के लिए 1940 की गाड़ियाँ।",
+      "blockKey": "security-ultimate-u00795-line-795"
+    },
+    {
+      "featureId": "U00792",
+      "sourceLine": 797,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "लगेज इंडिकेटर: सामान की मात्रा के हिसाब से सही गाड़ी का सुझाव देना।",
+      "blockKey": "security-ultimate-u00797-line-797"
+    },
+    {
+      "featureId": "U00793",
+      "sourceLine": 798,
+      "category": "security",
+      "bucket": "general",
+      "text": "रीयल कार फोटो: जो गाड़ी बुक की गई है, उसी की असली तस्वीर दिखाना।",
+      "blockKey": "security-ultimate-u00798-line-798"
+    },
+    {
+      "featureId": "U00794",
+      "sourceLine": 799,
+      "category": "security",
+      "bucket": "general",
+      "text": "कैरियर विकल्प: छत पर सामान रखने के लिए मजबूत कैरियर वाली गाड़ियाँ।",
+      "blockKey": "security-ultimate-u00799-line-799"
+    },
+    {
+      "featureId": "U00795",
+      "sourceLine": 800,
+      "category": "security",
+      "bucket": "general",
+      "text": "पेट फ्रेंडली: पालतू जानवरों के लिए गाड़ी में विशेष सुरक्षा व्यवस्था।",
+      "blockKey": "security-ultimate-u00800-line-800"
+    },
+    {
+      "featureId": "U00798",
+      "sourceLine": 803,
+      "category": "security",
+      "bucket": "general",
+      "text": "बेबी सीट: छोटे बच्चों की सुरक्षा के लिए विशेष सीट की व्यवस्था।",
+      "blockKey": "security-ultimate-u00803-line-803"
+    },
+    {
+      "featureId": "U00800",
+      "sourceLine": 805,
+      "category": "security",
+      "bucket": "general",
+      "text": "वाईफाई ऑन बोर्ड: सफर के दौरान हाई-स्पीड इंटरनेट की सुविधा।",
+      "blockKey": "security-ultimate-u00805-line-805"
+    },
+    {
+      "featureId": "U00801",
+      "sourceLine": 806,
+      "category": "security",
+      "bucket": "general",
+      "text": "एंटरटेनमेंट सिस्टम: पीछे की सीट पर टैबलेट और अच्छी साउंड क्वालिटी।",
+      "blockKey": "security-ultimate-u00806-line-806"
+    },
+    {
+      "featureId": "U00803",
+      "sourceLine": 808,
+      "category": "security",
+      "bucket": "general",
+      "text": "फर्स्ट एड किट: प्राथमिक चिकित्सा के लिए दवाओं और पट्टी का पूरा बॉक्स।",
+      "blockKey": "security-ultimate-u00808-line-808"
+    },
+    {
+      "featureId": "U00804",
+      "sourceLine": 809,
+      "category": "security",
+      "bucket": "general",
+      "text": "मैगजीन और अखबार: सफर में पढ़ने के लिए राजस्थानी और अंतरराष्ट्रीय साहित्य।",
+      "blockKey": "security-ultimate-u00809-line-809"
+    },
+    {
+      "featureId": "U00805",
+      "sourceLine": 810,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्मार्ट डैशकैम: यात्रा की सुरक्षा के लिए लाइव वीडियो रिकॉर्डिंग।",
+      "blockKey": "security-ultimate-u00810-line-810"
+    },
+    {
+      "featureId": "U00806",
+      "sourceLine": 811,
+      "category": "security",
+      "bucket": "general",
+      "text": "नॉन-स्मोकिंग कैब: पूरी तरह तंबाकू मुक्त और स्वच्छ वातावरण।",
+      "blockKey": "security-ultimate-u00811-line-811"
+    },
+    {
+      "featureId": "U00808",
+      "sourceLine": 813,
+      "category": "security",
+      "bucket": "general",
+      "text": "एयर प्यूरीफायर: गाड़ी के अंदर साफ़ और सुगंधित हवा सुनिश्चित करना।",
+      "blockKey": "security-ultimate-u00813-line-813"
+    },
+    {
+      "featureId": "U00809",
+      "sourceLine": 814,
+      "category": "security",
+      "bucket": "general",
+      "text": "चार्जिंग पॉइंट्स: हर सीट पर फ़ास्ट USB चार्जिंग की व्यवस्था।",
+      "blockKey": "security-ultimate-u00814-line-814"
+    },
+    {
+      "featureId": "U00810",
+      "sourceLine": 815,
+      "category": "security",
+      "bucket": "general",
+      "text": "सन-ब्लाइंड्स: राजस्थान की गर्मी से बचने के लिए खिड़कियों पर पर्दे।",
+      "blockKey": "security-ultimate-u00815-line-815"
+    },
+    {
+      "featureId": "U00812",
+      "sourceLine": 817,
+      "category": "security",
+      "bucket": "general",
+      "text": "ठंडा पानी: गाड़ी के अंदर आइस बॉक्स और मिनरल वाटर की उपलब्धता।",
+      "blockKey": "security-ultimate-u00817-line-817"
+    },
+    {
+      "featureId": "U00813",
+      "sourceLine": 818,
+      "category": "security",
+      "bucket": "general",
+      "text": "रीडिंग लाइट्स: रात के सफर में पढ़ने के लिए फोकस्ड एलईडी लाइट्स।",
+      "blockKey": "security-ultimate-u00818-line-818"
+    },
+    {
+      "featureId": "U00814",
+      "sourceLine": 819,
+      "category": "security",
+      "bucket": "general",
+      "text": "अरोमा डिफ्यूज़र: गाड़ी में 'केसर' या 'चंदन' के इत्र की खुशबू।",
+      "blockKey": "security-ultimate-u00819-line-819"
+    },
+    {
+      "featureId": "U00816",
+      "sourceLine": 821,
+      "category": "security",
+      "bucket": "general",
+      "text": "म्यूजिक चॉइस: अपनी पसंद का संगीत बजाने की पूरी आज़ादी।",
+      "blockKey": "security-ultimate-u00821-line-821"
+    },
+    {
+      "featureId": "U00822",
+      "sourceLine": 828,
+      "category": "security",
+      "bucket": "general",
+      "text": "गाड़ी का मॉडल: वेबसाइट पर गाड़ी का मॉडल और निर्माण वर्ष स्पष्ट रूप से दिखाना।",
+      "blockKey": "security-ultimate-u00828-line-828"
+    },
+    {
+      "featureId": "U00824",
+      "sourceLine": 830,
+      "category": "security",
+      "bucket": "general",
+      "text": "इंटीरियर लाइटिंग: रात में सफर के दौरान मूड के हिसाब से एम्बिएंट लाइट बदलना।",
+      "blockKey": "security-ultimate-u00830-line-830"
+    },
+    {
+      "featureId": "U00825",
+      "sourceLine": 831,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाही स्नैक्स बॉक्स: लंबे सफर के लिए राजस्थानी नमकीन और बिस्कुट का बॉक्स।",
+      "blockKey": "security-ultimate-u00831-line-831"
+    },
+    {
+      "featureId": "U00826",
+      "sourceLine": 832,
+      "category": "security",
+      "bucket": "general",
+      "text": "हाइजीन किट: हर यात्री के लिए फेस टिशू, सैनिटाइज़र और मास्क की व्यवस्था।",
+      "blockKey": "security-ultimate-u00832-line-832"
+    },
+    {
+      "featureId": "U00827",
+      "sourceLine": 833,
+      "category": "security",
+      "bucket": "general",
+      "text": "ध्वनि नियंत्रण: गाड़ी के दरवाजों में बाहर का शोर कम करने के लिए साउंडप्रूफिंग।",
+      "blockKey": "security-ultimate-u00833-line-833"
+    },
+    {
+      "featureId": "U00829",
+      "sourceLine": 835,
+      "category": "security",
+      "bucket": "general",
+      "text": "पर्सनल कूड़ेदान: गाड़ी के अंदर सफाई बनाए रखने हेतु छोटा कचरा पात्र।",
+      "blockKey": "security-ultimate-u00835-line-835"
+    },
+    {
+      "featureId": "U00834",
+      "sourceLine": 840,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "डायनेमिक रेंटल रेट्स: मांग और विशेष त्योहारों के समय किराये का ऑटो-एडजस्टमेंट।",
+      "blockKey": "security-ultimate-u00840-line-840"
+    },
+    {
+      "featureId": "U00836",
+      "sourceLine": 842,
+      "category": "security",
+      "bucket": "general",
+      "text": "खराब मौसम की चेतावनी: भारी बारिश या तूफान की स्थिति में ग्राहक को सुरक्षा संदेश।",
+      "blockKey": "security-ultimate-u00842-line-842"
+    },
+    {
+      "featureId": "U00848",
+      "sourceLine": 854,
+      "category": "security",
+      "bucket": "general",
+      "text": "धोखाधड़ी से सुरक्षा: संदिग्ध बुकिंग्स और फर्जी खातों को अपने आप ब्लॉक करना।",
+      "blockKey": "security-ultimate-u00854-line-854"
+    },
+    {
+      "featureId": "U00849",
+      "sourceLine": 855,
+      "category": "security",
+      "bucket": "general",
+      "text": "बायोमेट्रिक लॉगिन: सुरक्षा के लिए फिंगरप्रिंट या फेस आईडी से लॉगिन की सुविधा।",
+      "blockKey": "security-ultimate-u00855-line-855"
+    },
+    {
+      "featureId": "U00857",
+      "sourceLine": 863,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजस्व सुरक्षा: रद्द हुई बुकिंग्स का सटीक हिसाब और आर्थिक नुकसान कम करना।",
+      "blockKey": "security-ultimate-u00863-line-863"
+    },
+    {
+      "featureId": "U00859",
+      "sourceLine": 865,
+      "category": "security",
+      "bucket": "general",
+      "text": "सुरक्षित क्लाउड: 100% डेटा बैकअप ताकि आपकी जानकारी हमेशा सुरक्षित रहे।",
+      "blockKey": "security-ultimate-u00865-line-865"
+    },
+    {
+      "featureId": "U00863",
+      "sourceLine": 869,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑटो-एंट्री पास: किलों और स्मारकों के प्रवेश टिकट वेबसाइट से ही बुक करना।",
+      "blockKey": "security-ultimate-u00869-line-869"
+    },
+    {
+      "featureId": "U00866",
+      "sourceLine": 872,
+      "category": "security",
+      "bucket": "general",
+      "text": "सर्वर ऑटो-स्केलिंग: लोड बढ़ने पर वेबसाइट की गति धीमी न होने देना।",
+      "blockKey": "security-ultimate-u00872-line-872"
+    },
+    {
+      "featureId": "U00868",
+      "sourceLine": 874,
+      "category": "security",
+      "bucket": "general",
+      "text": "स्पैम फिल्टर: वेबसाइट पर फर्जी रिव्यूज और कमेंट्स को अपने आप हटाना।",
+      "blockKey": "security-ultimate-u00874-line-874"
+    },
+    {
+      "featureId": "U00870",
+      "sourceLine": 876,
+      "category": "security",
+      "bucket": "general",
+      "text": "80 KM/H स्पीड लॉक: सुरक्षा के लिए गाड़ी की गति सीमा का डिजिटल नियंत्रण।",
+      "blockKey": "security-ultimate-u00876-line-876"
+    },
+    {
+      "featureId": "U00871",
+      "sourceLine": 877,
+      "category": "security",
+      "bucket": "general",
+      "text": "SOS पैनिक बटन: आपातकाल में पुलिस और अजय भाई को गुप्त सिग्नल भेजना।",
+      "blockKey": "security-ultimate-u00877-line-877"
+    },
+    {
+      "featureId": "U00874",
+      "sourceLine": 880,
+      "category": "security",
+      "bucket": "general",
+      "text": "सड़क सुरक्षा चार्ट: यात्रियों के लिए वेबसाइट पर यातायात नियमों का विवरण।",
+      "blockKey": "security-ultimate-u00880-line-880"
+    },
+    {
+      "featureId": "U00878",
+      "sourceLine": 884,
+      "category": "security",
+      "bucket": "general",
+      "text": "ड्रग फ्री पॉलिसी: शराब या धूम्रपान के प्रति सख्त जीरो टॉलरेंस कानून।",
+      "blockKey": "security-ultimate-u00884-line-884"
+    },
+    {
+      "featureId": "U00879",
+      "sourceLine": 885,
+      "category": "security",
+      "bucket": "general",
+      "text": "डेटा प्राइवेसी (GDPR): अंतरराष्ट्रीय सैलानियों के डेटा की विश्व-स्तरीय सुरक्षा।",
+      "blockKey": "security-ultimate-u00885-line-885"
+    },
+    {
+      "featureId": "U00880",
+      "sourceLine": 886,
+      "category": "security",
+      "bucket": "general",
+      "text": "साइबर सुरक्षा कवच: वेबसाइट पर मजबूत हैकिंग-रोधी फायरवॉल।",
+      "blockKey": "security-ultimate-u00886-line-886"
+    },
+    {
+      "featureId": "U00881",
+      "sourceLine": 887,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्रेकडाउन सपोर्ट: गाड़ी खराब होने पर 30 मिनट में वैकल्पिक गाड़ी भेजना।",
+      "blockKey": "security-ultimate-u00887-line-887"
+    },
+    {
+      "featureId": "U00883",
+      "sourceLine": 889,
+      "category": "security",
+      "bucket": "general",
+      "text": "विवाद समाधान: किसी भी बहस को सुलझाने के लिए डिजिटल लीगल ढांचा।",
+      "blockKey": "security-ultimate-u00889-line-889"
+    },
+    {
+      "featureId": "U00884",
+      "sourceLine": 890,
+      "category": "security",
+      "bucket": "general",
+      "text": "चाइल्ड लॉक: बच्चों की सुरक्षा के लिए गाड़ी के गेट्स पर विशेष लॉक।",
+      "blockKey": "security-ultimate-u00890-line-890"
+    },
+    {
+      "featureId": "U00885",
+      "sourceLine": 891,
+      "category": "security",
+      "bucket": "general",
+      "text": "टोल पारदर्शिता: रसीद में पार्किंग और टोल टैक्स का अलग से विवरण।",
+      "blockKey": "security-ultimate-u00891-line-891"
+    },
+    {
+      "featureId": "U00886",
+      "sourceLine": 892,
+      "category": "security",
+      "bucket": "general",
+      "text": "लीगल डिस्क्लेमर: नियम और शर्तों का स्पष्ट और पारदर्शी उल्लेख।",
+      "blockKey": "security-ultimate-u00892-line-892"
+    },
+    {
+      "featureId": "U00887",
+      "sourceLine": 893,
+      "category": "security",
+      "bucket": "general",
+      "text": "बिजनेस लायबिलिटी: किसी भी नुकसान की स्थिति में कंपनी की जिम्मेदारी का नियम।",
+      "blockKey": "security-ultimate-u00893-line-893"
+    },
+    {
+      "featureId": "U00889",
+      "sourceLine": 895,
+      "category": "security",
+      "bucket": "general",
+      "text": "दोहरी सुरक्षा (2FA): पेमेंट करते समय ओटीपी आधारित सुरक्षा की परत।",
+      "blockKey": "security-ultimate-u00895-line-895"
+    },
+    {
+      "featureId": "U00890",
+      "sourceLine": 896,
+      "category": "security",
+      "bucket": "general",
+      "text": "एंटी-चोरी ट्रैकर: गाड़ी चोरी होने से बचाने के लिए गुप्त ट्रैकिंग डिवाइस।",
+      "blockKey": "security-ultimate-u00896-line-896"
+    },
+    {
+      "featureId": "U00891",
+      "sourceLine": 897,
+      "category": "security",
+      "bucket": "general",
+      "text": "सीट बेल्ट अलर्ट: यात्रियों को सुरक्षा हेतु बेल्ट लगाने की चेतावनी।",
+      "blockKey": "security-ultimate-u00897-line-897"
+    },
+    {
+      "featureId": "U00892",
+      "sourceLine": 898,
+      "category": "security",
+      "bucket": "general",
+      "text": "भौतिक पैनिक बटन: गाड़ी के अंदर यात्रियों की पहुँच में फिजिकल बटन।",
+      "blockKey": "security-ultimate-u00898-line-898"
+    },
+    {
+      "featureId": "U00894",
+      "sourceLine": 900,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑनलाइन ट्रांजेक्शन सुरक्षा: ऑनलाइन पेमेंट फेल होने पर साइबर बीमा सुरक्षा।",
+      "blockKey": "security-ultimate-u00900-line-900"
+    },
+    {
+      "featureId": "U00895",
+      "sourceLine": 901,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑक्सीमीटर/दवाइयाँ: गाड़ी में इमरजेंसी मेडिकल किट की उपलब्धता।",
+      "blockKey": "security-ultimate-u00901-line-901"
+    },
+    {
+      "featureId": "U00896",
+      "sourceLine": 902,
+      "category": "security",
+      "bucket": "general",
+      "text": "PUC स्टेटस: वेबसाइट पर गाड़ी के प्रदूषण प्रमाण पत्र का लाइव लिंक।",
+      "blockKey": "security-ultimate-u00902-line-902"
+    },
+    {
+      "featureId": "U00898",
+      "sourceLine": 904,
+      "category": "security",
+      "bucket": "general",
+      "text": "महिला सुरक्षा पासवर्ड: महिला यात्रियों के लिए एक गुप्त सुरक्षा कोड।",
+      "blockKey": "security-ultimate-u00904-line-904"
+    },
+    {
+      "featureId": "U00899",
+      "sourceLine": 905,
+      "category": "security",
+      "bucket": "general",
+      "text": "अग्नि शमन यंत्र: हर गाड़ी में आग बुझाने का यंत्र अनिवार्य रूप से रखना।",
+      "blockKey": "security-ultimate-u00905-line-905"
+    },
+    {
+      "featureId": "U00900",
+      "sourceLine": 906,
+      "category": "security",
+      "bucket": "general",
+      "text": "इन्फ्रारेड कैमरा: रात की सुरक्षा के लिए गाड़ी के केबिन में कैमरा।",
+      "blockKey": "security-ultimate-u00906-line-906"
+    },
+    {
+      "featureId": "U00901",
+      "sourceLine": 907,
+      "category": "security",
+      "bucket": "general",
+      "text": "एक्सीडेंट डिटेक्टर: टक्कर होने की स्थिति में ऑटोमैटिक इमरजेंसी कॉल।",
+      "blockKey": "security-ultimate-u00907-line-907"
+    },
+    {
+      "featureId": "U00902",
+      "sourceLine": 908,
+      "category": "security",
+      "bucket": "general",
+      "text": "डेटा एन्क्रिप्शन: ग्राहक की पर्सनल डिटेल्स को गुप्त कोड में बदलना।",
+      "blockKey": "security-ultimate-u00908-line-908"
+    }
+  ]
+}

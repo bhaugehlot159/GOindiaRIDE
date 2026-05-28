@@ -7,8 +7,41 @@ function readRepoFile(relativePath) {
   return fs.readFileSync(path.join(__dirname, '..', '..', relativePath), 'utf8');
 }
 
+function readRepoFilesUnder(relativeDir, extension = '.js') {
+  const baseDir = path.join(__dirname, '..', '..', relativeDir);
+  if (!fs.existsSync(baseDir)) return [];
+  const rows = [];
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(extension)) {
+        rows.push(fs.readFileSync(fullPath, 'utf8'));
+      }
+    }
+  }
+  walk(baseDir);
+  return rows;
+}
+
+function readBookingRuntimeSource() {
+  return [
+    readRepoFile('pages/booking.html'),
+    ...readRepoFilesUnder('customer/chunks/booking/scripts', '.js'),
+    ...readRepoFilesUnder('customer/chunks/booking/styles', '.css')
+  ].join('\n');
+}
+
+function readCustomerDashboardRuntimeSource() {
+  return [
+    readRepoFile('pages/customer-dashboard.html'),
+    ...readRepoFilesUnder('customer/chunks/dashboard/scripts', '.js')
+  ].join('\n');
+}
+
 test('booking page requires contact number while OTP verification is temporarily gated off', () => {
-  const html = readRepoFile('pages/booking.html');
+  const html = readBookingRuntimeSource();
 
   assert.match(html, /id="bookingCustomerPhone"/);
   assert.match(html, /Contact Number/);
@@ -57,7 +90,7 @@ test('backend OTP responses do not expose dev codes on live runtime', () => {
 });
 
 test('customer dashboard profile saves phone through live OTP verification', () => {
-  const html = readRepoFile('pages/customer-dashboard.html');
+  const html = readCustomerDashboardRuntimeSource();
 
   assert.match(html, /id="profilePhoneInput"/);
   assert.match(html, /id="profilePhoneOtpInput"/);

@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "customer",
+  "totalFeatureItems": 458,
+  "parts": [
+    "customer/part-01.json",
+    "customer/part-02.json",
+    "customer/part-03.json",
+    "customer/part-04.json",
+    "customer/part-05.json",
+    "customer/part-06.json"
+  ],
+  "items": []
+}

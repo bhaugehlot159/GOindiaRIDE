@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "customer",
+  "part": 6,
+  "totalParts": 6,
+  "totalFeatureItems": 458,
+  "items": [
+    {
+      "featureId": "U01801",
+      "sourceLine": 1826,
+      "category": "customer",
+      "bucket": "general",
+      "text": "धोखाधड़ी रोधी एल्गोरिदम: फर्जी बुकिंग और संदिग्ध ट्रांजेक्शन को 0.1 सेकंड में पहचानने वाला सिस्टम।",
+      "blockKey": "customer-ultimate-u01826-line-1826"
+    },
+    {
+      "featureId": "U01803",
+      "sourceLine": 1828,
+      "category": "customer",
+      "bucket": "auto-suggestion",
+      "text": "महाराजा एआई माइंड: ग्राहक के सोचने से पहले उसकी पसंद के पैकेज और गाड़ी का सुझाव देने वाला \"न्यूरल नेटवर्क\"।",
+      "blockKey": "customer-ultimate-u01828-line-1828"
+    },
+    {
+      "featureId": "U01804",
+      "sourceLine": 1829,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वर्चुअल रिएलिटी (VR) शोरूम: बुकिंग से पहले ग्राहक को गाड़ी के अंदर का 3D अनुभव और राजस्थान के किलों का रीयल-टाइम नज़ारा।",
+      "blockKey": "customer-ultimate-u01829-line-1829"
+    },
+    {
+      "featureId": "U01807",
+      "sourceLine": 1832,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट वॉइस कमांड: \"महाराजा, मेरी अगली ट्रिप उदयपुर से कुंभलगढ़ के लिए बुक करो\" - बिना हाथ लगाए पूरी बुकिंग।",
+      "blockKey": "customer-ultimate-u01832-line-1832"
+    },
+    {
+      "featureId": "U01810",
+      "sourceLine": 1835,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इत्र और संगीत का संगम: गाड़ी में प्रवेश करते ही ग्राहक के मिजाज (Mood) के अनुसार इत्र की खुशबू और बैकग्राउंड संगीत का स्वतः चयन।",
+      "blockKey": "customer-ultimate-u01835-line-1835"
+    },
+    {
+      "featureId": "U01812",
+      "sourceLine": 1837,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही स्मृति चिन्ह नेटवर्क: हर यात्रा के अंत में ग्राहक को उनके फोटो वाला एक छोटा \"डिजिटल फोटो एल्बम\" उपहार में देना।",
+      "blockKey": "customer-ultimate-u01837-line-1837"
+    },
+    {
+      "featureId": "U01813",
+      "sourceLine": 1838,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ग्लोबल पार्टनरशिप: दुनिया के बड़े ट्रैवल पोर्टल्स (जैसे TripAdvisor) के साथ आपकी वेबसाइट का रीयल-टाइम डेटा सिंक।",
+      "blockKey": "customer-ultimate-u01838-line-1838"
+    },
+    {
+      "featureId": "U01817",
+      "sourceLine": 1842,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विलुप्त कलाओं का उद्धार: 1000 से अधिक स्थानीय कलाकारों और शिल्पकारों की डायरेक्ट बुकिंग लिंक (बिना किसी बिचौलिए के)।",
+      "blockKey": "customer-ultimate-u01842-line-1842"
+    }
+  ]
+}

@@ -3,8 +3,10 @@
 
     const DEFER_SELECTOR = "script[data-goi-defer-src]";
     const LOADED_ATTR = "data-goi-loaded";
-    const LOAD_DELAY_MS = 60;
-    const IDLE_TIMEOUT_MS = 700;
+    const LOAD_DELAY_MS = 600;
+    const IDLE_TIMEOUT_MS = 3500;
+    const PRELOAD_DELAY_MS = 900;
+    const SCRIPT_GAP_MS = 120;
     let deferredRuntimeStarted = false;
 
     function loadScriptTag(placeholder) {
@@ -53,6 +55,7 @@
         const placeholders = Array.from(document.querySelectorAll(DEFER_SELECTOR));
         for (const placeholder of placeholders) {
             await loadScriptTag(placeholder);
+            await new Promise((resolve) => setTimeout(resolve, SCRIPT_GAP_MS));
         }
         global.dispatchEvent(new CustomEvent("goindiaride:deferred-runtime-loaded", {
             detail: { count: placeholders.length }
@@ -66,7 +69,7 @@
     }
 
     function scheduleDeferredRuntime() {
-        warmDeferredRuntimeCache();
+        setTimeout(warmDeferredRuntimeCache, PRELOAD_DELAY_MS);
         if (typeof global.requestIdleCallback === "function") {
             global.requestIdleCallback(startDeferredRuntime, { timeout: IDLE_TIMEOUT_MS });
             return;
@@ -76,10 +79,10 @@
     }
 
     function bindEarlyInteractionLoad() {
-        const events = ["pointerdown", "keydown", "touchstart", "scroll"];
+        const events = ["pointerdown", "keydown"];
         const loadNow = () => {
             events.forEach((eventName) => global.removeEventListener(eventName, loadNow));
-            startDeferredRuntime();
+            setTimeout(startDeferredRuntime, LOAD_DELAY_MS);
         };
         events.forEach((eventName) => global.addEventListener(eventName, loadNow, { once: true, passive: true }));
     }

@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "admin",
+  "part": 2,
+  "totalParts": 2,
+  "totalFeatureItems": 97,
+  "items": [
+    {
+      "featureId": "U01740",
+      "sourceLine": 1762,
+      "category": "admin",
+      "bucket": "general",
+      "text": "6001-6500: डिजिटल प्रशासनिक साम्राज्य (Admin & Security)",
+      "blockKey": "admin-ultimate-u01762-line-1762"
+    },
+    {
+      "featureId": "U01768",
+      "sourceLine": 1790,
+      "category": "admin",
+      "bucket": "general",
+      "text": "कॉर्पोरेट बिलिंग: बड़ी कंपनियों के लिए स्वतः जीएसटी इनवॉइस और मंथली रिपोर्ट जनरेशन।",
+      "blockKey": "admin-ultimate-u01790-line-1790"
+    },
+    {
+      "featureId": "U01777",
+      "sourceLine": 1800,
+      "category": "admin",
+      "bucket": "general",
+      "text": "2. एआई-पावर्ड एडमिन एवं ऑपरेशनल कंट्रोल (11,501 - 13,000)",
+      "blockKey": "admin-ultimate-u01800-line-1800"
+    },
+    {
+      "featureId": "U01781",
+      "sourceLine": 1804,
+      "category": "admin",
+      "bucket": "general",
+      "text": "डायनेमिक रेंटल एल्गोरिदम: विशेष मुहूर्त और त्योहारों के समय मुनाफे को अधिकतम करने वाली ऑटो-प्राइसिंग।",
+      "blockKey": "admin-ultimate-u01804-line-1804"
+    },
+    {
+      "featureId": "U01782",
+      "sourceLine": 1805,
+      "category": "admin",
+      "bucket": "general",
+      "text": "सर्वर ऑटो-स्केलिंग: पीक सीजन में एक साथ 5 लाख यूजर्स आने पर भी वेबसाइट को सुपर-फास्ट रखने की तकनीक।",
+      "blockKey": "admin-ultimate-u01805-line-1805"
+    },
+    {
+      "featureId": "U01796",
+      "sourceLine": 1821,
+      "category": "admin",
+      "bucket": "general",
+      "text": "अजय भाई मास्टर एडमिन एवं वित्तीय साम्राज्य (16,001 - 18,500)",
+      "blockKey": "admin-ultimate-u01821-line-1821"
+    },
+    {
+      "featureId": "U01797",
+      "sourceLine": 1822,
+      "category": "admin",
+      "bucket": "general",
+      "text": "किंग्स डैशबोर्ड: पूरी वेबसाइट के मुनाफे, गाड़ियों और स्टाफ को एक ही \"मास्टर स्विच\" से नियंत्रित करने की शक्ति।",
+      "blockKey": "admin-ultimate-u01822-line-1822"
+    }
+  ]
+}

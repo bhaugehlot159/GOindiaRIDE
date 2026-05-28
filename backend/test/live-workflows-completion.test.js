@@ -9,9 +9,34 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
+function readFilesUnder(relativeDir, extension = '.js') {
+  const baseDir = path.join(root, relativeDir);
+  if (!fs.existsSync(baseDir)) return [];
+  const rows = [];
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(extension)) {
+        rows.push(fs.readFileSync(fullPath, 'utf8'));
+      }
+    }
+  }
+  walk(baseDir);
+  return rows;
+}
+
+function readCustomerPortalBookingSource() {
+  return [
+    read('customer/js/booking-system.js'),
+    ...readFilesUnder('customer/chunks/portal/scripts/booking-system', '.js')
+  ].join('\n');
+}
+
 test('customer booking flow is backend-first and persists real admin review fallback data', () => {
   const html = read('customer/index.html');
-  const booking = read('customer/js/booking-system.js');
+  const booking = readCustomerPortalBookingSource();
   const portal = read('customer/js/customer-portal.js');
 
   assert.match(html, /id="ridePaymentMethod"/);
@@ -70,6 +95,6 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260526-az-control1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v40-20260522-booking-back-guard/);
+  assert.match(sw, /goindiaride-pwa-v41-20260527-load-split/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });

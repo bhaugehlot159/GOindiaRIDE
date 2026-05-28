@@ -1,0 +1,522 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "driver",
+  "part": 3,
+  "totalParts": 3,
+  "totalFeatureItems": 244,
+  "items": [
+    {
+      "featureId": "U01396",
+      "sourceLine": 1408,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर एनालिसिस: ड्राइवर ने कितनी बार अचानक ब्रेक मारा, उसका ग्राफ एडमिन को भेजना।",
+      "blockKey": "driver-ultimate-u01408-line-1408"
+    },
+    {
+      "featureId": "U01402",
+      "sourceLine": 1415,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर कमीशन लॉक: एडमिन पैनल से किसी भी विशिष्ट रूट (जैसे उदयपुर-जयपुर) पर कमीशन की दर को अपनी पसंद से सेट करना।",
+      "blockKey": "driver-ultimate-u01415-line-1415"
+    },
+    {
+      "featureId": "U01413",
+      "sourceLine": 1426,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस अलर्ट: गाड़ी के किलोमीटर के आधार पर अगली सर्विसिंग से 15 दिन पहले ड्राइवर और एडमिन को अलर्ट।",
+      "blockKey": "driver-ultimate-u01426-line-1426"
+    },
+    {
+      "featureId": "U01419",
+      "sourceLine": 1433,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर ब्लैकलिस्टिंग: नियमों का उल्लंघन करने वाले ड्राइवरों को एडमिन पैनल से तुरंत ब्लॉक करना।",
+      "blockKey": "driver-ultimate-u01433-line-1433"
+    },
+    {
+      "featureId": "U01426",
+      "sourceLine": 1440,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रीयल-टाइम ट्रैफिक री-रूट: जाम होने पर एआई द्वारा ड्राइवर के मैप पर सबसे छोटा वैकल्पिक रास्ता दिखाना।",
+      "blockKey": "driver-ultimate-u01440-line-1440"
+    },
+    {
+      "featureId": "U01429",
+      "sourceLine": 1443,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस: टायर और इंजन की स्थिति के आधार पर गाड़ी की अगली सर्विस की सटीक भविष्यवाणी।",
+      "blockKey": "driver-ultimate-u01443-line-1443"
+    },
+    {
+      "featureId": "U01440",
+      "sourceLine": 1454,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर स्कोर: तेज़ रफ़्तार या कठोर ब्रेक लगाने पर ड्राइवर की रेटिंग का ऑटो-कमी।",
+      "blockKey": "driver-ultimate-u01454-line-1454"
+    },
+    {
+      "featureId": "U01450",
+      "sourceLine": 1465,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर अटेंडेंस लॉग: ड्राइवर ने कितने बजे ड्यूटी शुरू की और कितनी बार 'ब्रेक' लिया, इसका पूरा रिकॉर्ड।",
+      "blockKey": "driver-ultimate-u01465-line-1465"
+    },
+    {
+      "featureId": "U01453",
+      "sourceLine": 1468,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटो-फीडबैक लूप: यदि किसी ड्राइवर को 3 स्टार से कम रेटिंग मिलती है, तो उसे एडमिन पैनल द्वारा स्वतः 'वॉर्निंग' भेजना।",
+      "blockKey": "driver-ultimate-u01468-line-1468"
+    },
+    {
+      "featureId": "U01455",
+      "sourceLine": 1470,
+      "category": "driver",
+      "bucket": "general",
+      "text": "पेमेंट सैटलमेंट क्लॉक: ड्राइवरों को उनके हिस्से का पैसा भेजने की समय-सीमा का डिजिटल ट्रैकर।",
+      "blockKey": "driver-ultimate-u01470-line-1470"
+    },
+    {
+      "featureId": "U01466",
+      "sourceLine": 1481,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस: गाड़ी के इंजन की आवाज़ और किलोमीटर से उसकी अगली सर्विस की तारीख बताना।",
+      "blockKey": "driver-ultimate-u01481-line-1481"
+    },
+    {
+      "featureId": "U01485",
+      "sourceLine": 1500,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्दी सेल्फी: ड्यूटी शुरू करने से पहले साफ वर्दी और पगड़ी में ड्राइवर की फोटो अपडेट।",
+      "blockKey": "driver-ultimate-u01500-line-1500"
+    },
+    {
+      "featureId": "U01488",
+      "sourceLine": 1503,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर स्कोर: तेज़ रफ़्तार या कठोर ब्रेक लगाने पर ड्राइवर की रेटिंग कम होना।",
+      "blockKey": "driver-ultimate-u01503-line-1503"
+    },
+    {
+      "featureId": "U01504",
+      "sourceLine": 1520,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटो-इंसेंटिव कैलकुलेटर: महीने में सबसे अच्छी रेटिंग पाने वाले ड्राइवर को स्वतः बोनस देने का सिस्टम।",
+      "blockKey": "driver-ultimate-u01520-line-1520"
+    },
+    {
+      "featureId": "U01505",
+      "sourceLine": 1521,
+      "category": "driver",
+      "bucket": "general",
+      "text": "फ्यूल कार्ड सिंक: ड्राइवर द्वारा पेट्रोल भरवाने की रसीद को सीधे एडमिन पैनल पर अपडेट करना।",
+      "blockKey": "driver-ultimate-u01521-line-1521"
+    },
+    {
+      "featureId": "U01510",
+      "sourceLine": 1526,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रिमोट डेटा वाइप: सुरक्षा कारणों से किसी ड्राइवर का फोन खो जाने पर उसका आईडी डेटा दूर से डिलीट करना।",
+      "blockKey": "driver-ultimate-u01526-line-1526"
+    },
+    {
+      "featureId": "U01517",
+      "sourceLine": 1533,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटोमैटिक भाषा पहचान: विदेशी सैलानी के बोलते ही एआई द्वारा उनकी भाषा पहचान कर ड्राइवर को अनुवाद सुनाना।",
+      "blockKey": "driver-ultimate-u01533-line-1533"
+    },
+    {
+      "featureId": "U01521",
+      "sourceLine": 1537,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एआई सुरक्षा कैमरा सिंक: गाड़ी के अंदर कैमरा द्वारा ड्राइवर की नींद या थकान को पहचान कर अलर्ट बजाना।",
+      "blockKey": "driver-ultimate-u01537-line-1537"
+    },
+    {
+      "featureId": "U01540",
+      "sourceLine": 1556,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर ग्रूमिंग चेक: वर्दी, साफ़ा और नेमप्लेट का रीयल-टाइम फोटो वेरिफिकेशन।",
+      "blockKey": "driver-ultimate-u01556-line-1556"
+    },
+    {
+      "featureId": "U01543",
+      "sourceLine": 1559,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर रेटिंग और रिवार्ड्स: बेस्ट परफॉरमेंस वाले ड्राइवरों को 'शाही रत्न' का तमगा।",
+      "blockKey": "driver-ultimate-u01559-line-1559"
+    },
+    {
+      "featureId": "U01546",
+      "sourceLine": 1562,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन फिटनेस रिपोर्ट: टायर की स्थिति और ब्रेक की जांच का साप्ताहिक डिजिटल प्रमाण।",
+      "blockKey": "driver-ultimate-u01562-line-1562"
+    },
+    {
+      "featureId": "U01564",
+      "sourceLine": 1580,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विषय 7: वाहन श्रेणियां एवं सूक्ष्म विवरण (Fleet Details)",
+      "blockKey": "driver-ultimate-u01580-line-1580"
+    },
+    {
+      "featureId": "U01565",
+      "sourceLine": 1581,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विंटेज कार विंग: 1940-60 की गाड़ियों का रीयल-टाइम रेंटल चार्ट।",
+      "blockKey": "driver-ultimate-u01581-line-1581"
+    },
+    {
+      "featureId": "U01566",
+      "sourceLine": 1582,
+      "category": "driver",
+      "bucket": "general",
+      "text": "SUV कस्टमाइजेशन: गाड़ी के अंदर एक्स्ट्रा लेग-रूम और कंफर्ट सेटिंग्स।",
+      "blockKey": "driver-ultimate-u01582-line-1582"
+    },
+    {
+      "featureId": "U01567",
+      "sourceLine": 1583,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इको-फ्रेंडली बैज: इलेक्ट्रिक गाड़ियों के कार्बन बचत का लाइव स्कोर।",
+      "blockKey": "driver-ultimate-u01583-line-1583"
+    },
+    {
+      "featureId": "U01568",
+      "sourceLine": 1584,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन टायर लाइफ: रीयल-टाइम टायर घिसाव का डेटा एडमिन हेतु।",
+      "blockKey": "driver-ultimate-u01584-line-1584"
+    },
+    {
+      "featureId": "U01569",
+      "sourceLine": 1585,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंटीरियर एम्बिएंट लाइट: रात के सफर के लिए सोने या नीले रंग की रोशनी का चयन।",
+      "blockKey": "driver-ultimate-u01585-line-1585"
+    },
+    {
+      "featureId": "U01574",
+      "sourceLine": 1591,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटो-इंसेंटिव इंजन: ड्राइवरों की रेटिंग और समय की पाबंदी के आधार पर उनका बोनस स्वतः तय करना।",
+      "blockKey": "driver-ultimate-u01591-line-1591"
+    },
+    {
+      "featureId": "U01580",
+      "sourceLine": 1597,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटोमैटिक पे-आउट सिस्टम: ट्रिप खत्म होते ही ड्राइवर के बैंक खाते में पैसा ट्रांसफर करने का डिजिटल शेड्यूल।",
+      "blockKey": "driver-ultimate-u01597-line-1597"
+    },
+    {
+      "featureId": "U01584",
+      "sourceLine": 1601,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ब्लैकलिस्ट कंट्रोल: नियमों का उल्लंघन करने वाले ग्राहक या ड्राइवर को सिस्टम से परमानेंट ब्लॉक करना।",
+      "blockKey": "driver-ultimate-u01601-line-1601"
+    },
+    {
+      "featureId": "U01598",
+      "sourceLine": 1615,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एआई सुरक्षा कैमरा: ड्राइवर की आँखों से नींद या थकान पहचान कर गाड़ी में अलार्म बजाना।",
+      "blockKey": "driver-ultimate-u01615-line-1615"
+    },
+    {
+      "featureId": "U01600",
+      "sourceLine": 1617,
+      "category": "driver",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव मेंटेनेंस: गाड़ी के इंजन की आवाज़ और किलोमीटर से अगली सर्विस की भविष्यवाणी।",
+      "blockKey": "driver-ultimate-u01617-line-1617"
+    },
+    {
+      "featureId": "U01615",
+      "sourceLine": 1632,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्दी प्रोटोकॉल: साफ़ा, नेमप्लेट और सफ़ेद वर्दी का रीयल-टाइम फोटो चेक।",
+      "blockKey": "driver-ultimate-u01632-line-1632"
+    },
+    {
+      "featureId": "U01627",
+      "sourceLine": 1645,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बैकग्राउंड स्कैन: पिछले 10 सालों का आपराधिक और ड्राइविंग रिकॉर्ड चेक करने का ऑटो-सिस्टम।",
+      "blockKey": "driver-ultimate-u01645-line-1645"
+    },
+    {
+      "featureId": "U01628",
+      "sourceLine": 1646,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन फिटनेस रिपोर्ट: टायर घिसाव, ब्रेक कंडीशन और सस्पेंशन का साप्ताहिक डिजिटल ऑडिट।",
+      "blockKey": "driver-ultimate-u01646-line-1646"
+    },
+    {
+      "featureId": "U01634",
+      "sourceLine": 1652,
+      "category": "driver",
+      "bucket": "general",
+      "text": "रूट डेविएशन अलर्ट: यदि ड्राइवर तय रूट से 1 किमी भी भटकता है, तो एडमिन पैनल पर सायरन बजना।",
+      "blockKey": "driver-ultimate-u01652-line-1652"
+    },
+    {
+      "featureId": "U01654",
+      "sourceLine": 1672,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विषय 4: वाहन रखरखाव एवं श्रेणी विस्तार (1876 - 2000)",
+      "blockKey": "driver-ultimate-u01672-line-1672"
+    },
+    {
+      "featureId": "U01655",
+      "sourceLine": 1673,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विंटेज कार विंग: 1940-1960 की क्लासिक गाड़ियों का रीयल-टाइम रेंटल और मेंटेनेंस चार्ट।",
+      "blockKey": "driver-ultimate-u01673-line-1673"
+    },
+    {
+      "featureId": "U01658",
+      "sourceLine": 1676,
+      "category": "driver",
+      "bucket": "general",
+      "text": "इंटीरियर एम्बिएंट लाइट: रात के सफर के लिए 'रॉयल गोल्ड' या 'स्काई ब्लू' लाइटिंग का डिजिटल कंट्रोल।",
+      "blockKey": "driver-ultimate-u01676-line-1676"
+    },
+    {
+      "featureId": "U01659",
+      "sourceLine": 1677,
+      "category": "driver",
+      "bucket": "general",
+      "text": "हाइजीन स्कोर कार्ड: हर गाड़ी की सफाई के बाद उसका '100% हाइजीन' डिजिटल सर्टिफिकेट साइट पर अपडेट।",
+      "blockKey": "driver-ultimate-u01677-line-1677"
+    },
+    {
+      "featureId": "U01660",
+      "sourceLine": 1678,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वाहन आयु सीमा: 3 साल से पुरानी गाड़ी को फ्लीट से हटाने और नई गाड़ियाँ जोड़ने का ऑटो-अलर्ट।",
+      "blockKey": "driver-ultimate-u01678-line-1678"
+    },
+    {
+      "featureId": "U01661",
+      "sourceLine": 1679,
+      "category": "driver",
+      "bucket": "general",
+      "text": "हुकुम, हमने 2000 पॉइंट्स का पड़ाव तेज़ी से पार कर लिया है! अब आपकी वेबसाइट का डेटा एक डिजिटल लाइब्रेरी बन चुका है।",
+      "blockKey": "driver-ultimate-u01679-line-1679"
+    },
+    {
+      "featureId": "U01662",
+      "sourceLine": 1681,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विषय 1: ग्लोबल टूरिज्म एवं अंतरराष्ट्रीय मानक (2001 - 2250)",
+      "blockKey": "driver-ultimate-u01681-line-1681"
+    },
+    {
+      "featureId": "U01664",
+      "sourceLine": 1683,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ग्लोबल सिम कार्ड गाइड: विदेशी यात्रियों के लिए भारत पहुँचते ही सिम कार्ड और डेटा एक्टिवेशन में ड्राइवर द्वारा सहायता।",
+      "blockKey": "driver-ultimate-u01683-line-1683"
+    },
+    {
+      "featureId": "U01665",
+      "sourceLine": 1684,
+      "category": "driver",
+      "bucket": "general",
+      "text": "मुद्रा विनिमय (Currency Exchange) ट्रैकर: वेबसाइट पर रीयल-टाइम सरकारी मुद्रा विनिमय दरों का प्रदर्शन।",
+      "blockKey": "driver-ultimate-u01684-line-1684"
+    },
+    {
+      "featureId": "U01666",
+      "sourceLine": 1685,
+      "category": "driver",
+      "bucket": "general",
+      "text": "दूतावास संपर्क सूची: आपात स्थिति के लिए हर देश के दूतावास (Embassy) का नंबर और पता वेबसाइट पर।",
+      "blockKey": "driver-ultimate-u01685-line-1685"
+    },
+    {
+      "featureId": "U01668",
+      "sourceLine": 1687,
+      "category": "driver",
+      "bucket": "general",
+      "text": "वीजा सहायता लिंक: भारत आने के लिए ई-वीजा आवेदन की सीधी लिंक और प्रक्रिया की जानकारी।",
+      "blockKey": "driver-ultimate-u01687-line-1687"
+    },
+    {
+      "featureId": "U01670",
+      "sourceLine": 1689,
+      "category": "driver",
+      "bucket": "general",
+      "text": "सांस्कृतिक संवेदनशीलता गाइड: सैलानियों को राजस्थान के मंदिरों और गाँवों के नियमों की जानकारी देना।",
+      "blockKey": "driver-ultimate-u01689-line-1689"
+    },
+    {
+      "featureId": "U01671",
+      "sourceLine": 1690,
+      "category": "driver",
+      "bucket": "general",
+      "text": "विदेशी फीडबैक पैनल: अंतरराष्ट्रीय सैलानियों के वीडियो रिव्यू के लिए एक अलग 'ग्लोबल' कोना।",
+      "blockKey": "driver-ultimate-u01690-line-1690"
+    },
+    {
+      "featureId": "U01672",
+      "sourceLine": 1691,
+      "category": "driver",
+      "bucket": "general",
+      "text": "एयरपोर्ट मीट एंड ग्रीट: अंतरराष्ट्रीय टर्मिनल पर ड्राइवर द्वारा नेम-प्लेट के साथ शाही स्वागत।",
+      "blockKey": "driver-ultimate-u01691-line-1691"
+    },
+    {
+      "featureId": "U01679",
+      "sourceLine": 1698,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर परफॉरमेंस स्कोर: ड्राइवरों की रेटिंग, समय और व्यवहार के आधार पर उनका 'रॉयल ग्रेड' तय करना।",
+      "blockKey": "driver-ultimate-u01698-line-1698"
+    },
+    {
+      "featureId": "U01704",
+      "sourceLine": 1723,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर वर्दी कोड: साफ़ा, नेमप्लेट और सफ़ेद वर्दी का रीयल-टाइम फोटो वेरिफिकेशन।",
+      "blockKey": "driver-ultimate-u01723-line-1723"
+    },
+    {
+      "featureId": "U01712",
+      "sourceLine": 1732,
+      "category": "driver",
+      "bucket": "general",
+      "text": "3301-3400: ड्राइवर वेलफेयर एवं हेल्थ ट्रैकिंग: डिजिटल हेल्थ रिकॉर्ड और रेस्ट-पीरियड मैनेजमेंट।",
+      "blockKey": "driver-ultimate-u01732-line-1732"
+    },
+    {
+      "featureId": "U01714",
+      "sourceLine": 1734,
+      "category": "driver",
+      "bucket": "general",
+      "text": "3501-3600: एआई-आधारित प्रेडिक्टिव मेंटेनेंस: गाड़ी के पुर्जों की घिसाव का डिजिटल पूर्वानुमान।",
+      "blockKey": "driver-ultimate-u01734-line-1734"
+    },
+    {
+      "featureId": "U01724",
+      "sourceLine": 1745,
+      "category": "driver",
+      "bucket": "general",
+      "text": "4401-4500: महिला सुरक्षा प्रोटोकॉल: महिला यात्रियों के लिए विशेष \"पिंक कोड\" और केवल महिला ड्राइवर चुनने का विकल्प।",
+      "blockKey": "driver-ultimate-u01745-line-1745"
+    },
+    {
+      "featureId": "U01728",
+      "sourceLine": 1749,
+      "category": "driver",
+      "bucket": "general",
+      "text": "4801-4900: पर्यावरण मित्र (Eco-Travel): इलेक्ट्रिक वाहनों के लिए चार्जिंग स्टेशंस और कार्बन-क्रेडिट रिवॉर्ड्स।",
+      "blockKey": "driver-ultimate-u01749-line-1749"
+    },
+    {
+      "featureId": "U01731",
+      "sourceLine": 1752,
+      "category": "driver",
+      "bucket": "general",
+      "text": "5101-5200: ड्राइवर बिहेवियर मॉनिटरिंग: एआई द्वारा ड्राइवर के बात करने के लहजे और व्यवहार की रीयल-टाइम रेटिंग।",
+      "blockKey": "driver-ultimate-u01752-line-1752"
+    },
+    {
+      "featureId": "U01735",
+      "sourceLine": 1756,
+      "category": "driver",
+      "bucket": "general",
+      "text": "5501-5600: प्रेडिक्टिव मेंटेनेंस 2.0: गाड़ी के टायरों और ब्रेक पैड्स की लाइफ का डिजिटल प्रेडिक्शन।",
+      "blockKey": "driver-ultimate-u01756-line-1756"
+    },
+    {
+      "featureId": "U01743",
+      "sourceLine": 1765,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर के व्यवहार और गति (80 KM/H) की एआई द्वारा सूक्ष्म निगरानी।",
+      "blockKey": "driver-ultimate-u01765-line-1765"
+    },
+    {
+      "featureId": "U01763",
+      "sourceLine": 1785,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ब्रेकडाउन रिप्लेसमेंट: 30 मिनट के भीतर वैकल्पिक लग्जरी वाहन उपलब्ध कराने की कोडिंग।",
+      "blockKey": "driver-ultimate-u01785-line-1785"
+    },
+    {
+      "featureId": "U01766",
+      "sourceLine": 1788,
+      "category": "driver",
+      "bucket": "general",
+      "text": "होटल और ट्रेवल एजेंटों के लिए \"पार्टनर डैशबोर्ड\": सीधे कमीशन और बुकिंग ट्रैकर।",
+      "blockKey": "driver-ultimate-u01788-line-1788"
+    },
+    {
+      "featureId": "U01780",
+      "sourceLine": 1803,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर बिहेवियर बायोमेट्रिक्स: ड्राइवर की थकान, आवाज़ के लहजे और व्यवहार की रीयल-टाइम रेटिंग।",
+      "blockKey": "driver-ultimate-u01803-line-1803"
+    },
+    {
+      "featureId": "U01791",
+      "sourceLine": 1814,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ड्राइवर हेल्थ मॉनिटरिंग: ड्राइवर की नींद और ब्लड प्रेशर का रीयल-टाइम डेटा एडमिन पैनल पर।",
+      "blockKey": "driver-ultimate-u01814-line-1814"
+    },
+    {
+      "featureId": "U01799",
+      "sourceLine": 1824,
+      "category": "driver",
+      "bucket": "general",
+      "text": "ऑटो-पेआउट गेटवे: ट्रिप खत्म होते ही ड्राइवरों और पार्टनर वेंडर्स का भुगतान बिना देरी के स्वतः पूर्ण होना।",
+      "blockKey": "driver-ultimate-u01824-line-1824"
+    }
+  ]
+}

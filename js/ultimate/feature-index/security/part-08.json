@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "security",
+  "part": 8,
+  "totalParts": 9,
+  "totalFeatureItems": 727,
+  "items": [
+    {
+      "featureId": "U01349",
+      "sourceLine": 1361,
+      "category": "security",
+      "bucket": "general",
+      "text": "प्रतापगढ़ की थेवा कला: कांच पर सोने की जुगलबंदी का गुप्त पारिवारिक रहस्य।",
+      "blockKey": "security-ultimate-u01361-line-1361"
+    },
+    {
+      "featureId": "U01350",
+      "sourceLine": 1362,
+      "category": "security",
+      "bucket": "general",
+      "text": "सीतामाता अभयारण्य: यहाँ पाई जाने वाली 'उड़ने वाली गिलहरी' का डेटा।",
+      "blockKey": "security-ultimate-u01362-line-1362"
+    },
+    {
+      "featureId": "U01351",
+      "sourceLine": 1363,
+      "category": "security",
+      "bucket": "general",
+      "text": "चित्तौड़गढ़ का सावलिया सेठ: व्यापार के देवता और उनके चढ़ावे का ऐतिहासिक महत्व।",
+      "blockKey": "security-ultimate-u01363-line-1363"
+    },
+    {
+      "featureId": "U01352",
+      "sourceLine": 1364,
+      "category": "security",
+      "bucket": "general",
+      "text": "मेनाल जलप्रपात: भीलवाड़ा-चित्तौड़ मार्ग पर स्थित इस प्राकृतिक झरने का इतिहास।",
+      "blockKey": "security-ultimate-u01364-line-1364"
+    },
+    {
+      "featureId": "U01353",
+      "sourceLine": 1365,
+      "category": "security",
+      "bucket": "general",
+      "text": "मांडलगढ़ का किला: यहाँ के सागर-सागरी तालाबों का विवरण।",
+      "blockKey": "security-ultimate-u01365-line-1365"
+    },
+    {
+      "featureId": "U01354",
+      "sourceLine": 1366,
+      "category": "security",
+      "bucket": "general",
+      "text": "बूंदी की चौरासी खंभों की छतरी: इसके वास्तुशिल्प और नक्काशी के सूक्ष्म अंक।",
+      "blockKey": "security-ultimate-u01366-line-1366"
+    },
+    {
+      "featureId": "U01356",
+      "sourceLine": 1368,
+      "category": "security",
+      "bucket": "general",
+      "text": "झालावाड़ का सूर्य मंदिर: इसकी सात सहेलियों वाला मंदिर कहे जाने की कथा।",
+      "blockKey": "security-ultimate-u01368-line-1368"
+    },
+    {
+      "featureId": "U01357",
+      "sourceLine": 1369,
+      "category": "security",
+      "bucket": "general",
+      "text": "कोलवी की गुफाएं: राजस्थान की अजंता-एलोरा कही जाने वाली बौद्ध गुफाएं।",
+      "blockKey": "security-ultimate-u01369-line-1369"
+    },
+    {
+      "featureId": "U01358",
+      "sourceLine": 1370,
+      "category": "security",
+      "bucket": "general",
+      "text": "कोटा का गराड़िया महादेव: चंबल के 'हॉर्स शू' मोड़ का सबसे सुंदर व्यू पॉइंट।",
+      "blockKey": "security-ultimate-u01370-line-1370"
+    },
+    {
+      "featureId": "U01360",
+      "sourceLine": 1372,
+      "category": "security",
+      "bucket": "general",
+      "text": "सोरसन घास मैदान: बारां जिले के गोडावण और हिरणों का डेटा।",
+      "blockKey": "security-ultimate-u01372-line-1372"
+    },
+    {
+      "featureId": "U01361",
+      "sourceLine": 1373,
+      "category": "security",
+      "bucket": "general",
+      "text": "शाहबाद का किला: बारां की ऊँची पहाड़ी पर स्थित इस सामरिक दुर्ग का विवरण।",
+      "blockKey": "security-ultimate-u01373-line-1373"
+    },
+    {
+      "featureId": "U01362",
+      "sourceLine": 1374,
+      "category": "security",
+      "bucket": "general",
+      "text": "सवाई माधोपुर का अमरेश्वर: पहाड़ों के बीच स्थित गुफा मंदिर का रास्ता।",
+      "blockKey": "security-ultimate-u01374-line-1374"
+    },
+    {
+      "featureId": "U01363",
+      "sourceLine": 1375,
+      "category": "security",
+      "bucket": "general",
+      "text": "रणथंभौर का जोगी महल: पद्म तालाब के किनारे स्थित इस विश्राम गृह का इतिहास।",
+      "blockKey": "security-ultimate-u01375-line-1375"
+    },
+    {
+      "featureId": "U01364",
+      "sourceLine": 1376,
+      "category": "security",
+      "bucket": "general",
+      "text": "करौली का कैला देवी मंदिर: लांगुरिया गीतों और लक्खी मेले का डेटा।",
+      "blockKey": "security-ultimate-u01376-line-1376"
+    },
+    {
+      "featureId": "U01365",
+      "sourceLine": 1377,
+      "category": "security",
+      "bucket": "general",
+      "text": "धौलपुर का मचकुंड: 'तीर्थों का भांजा' कहे जाने वाले इस कुंड का महत्व।",
+      "blockKey": "security-ultimate-u01377-line-1377"
+    },
+    {
+      "featureId": "U01366",
+      "sourceLine": 1378,
+      "category": "security",
+      "bucket": "general",
+      "text": "भरतपुर का लोहागढ़: वह किला जिसे अंग्रेज भी कभी जीत नहीं पाए, उसकी दीवार का विज्ञान।",
+      "blockKey": "security-ultimate-u01378-line-1378"
+    },
+    {
+      "featureId": "U01367",
+      "sourceLine": 1379,
+      "category": "security",
+      "bucket": "general",
+      "text": "डीग के जलमहल: फव्वारों और रंगीन पानी की गुप्त पाइपलाइन तकनीक।",
+      "blockKey": "security-ultimate-u01379-line-1379"
+    },
+    {
+      "featureId": "U01368",
+      "sourceLine": 1380,
+      "category": "security",
+      "bucket": "general",
+      "text": "अलवर का सिलीसेढ़ झील: अरावली के बीच स्थित इस लेक पैलेस का नज़ारा।",
+      "blockKey": "security-ultimate-u01380-line-1380"
+    },
+    {
+      "featureId": "U01369",
+      "sourceLine": 1381,
+      "category": "security",
+      "bucket": "general",
+      "text": "भानगढ़ का खंडहर: एएसआई (ASI) के नियमों और वहां की नेगेटिव एनर्जी का वैज्ञानिक विश्लेषण।",
+      "blockKey": "security-ultimate-u01381-line-1381"
+    },
+    {
+      "featureId": "U01371",
+      "sourceLine": 1383,
+      "category": "security",
+      "bucket": "general",
+      "text": "झुंझुनू की रानी सती: मंदिर का इतिहास और वहां की वास्तुकला।",
+      "blockKey": "security-ultimate-u01383-line-1383"
+    },
+    {
+      "featureId": "U01372",
+      "sourceLine": 1384,
+      "category": "security",
+      "bucket": "general",
+      "text": "पिलानी का बिरला म्यूजियम: भारत के पहले तकनीकी संग्रहालय का डेटा।",
+      "blockKey": "security-ultimate-u01384-line-1384"
+    },
+    {
+      "featureId": "U01373",
+      "sourceLine": 1385,
+      "category": "security",
+      "bucket": "general",
+      "text": "चूरू का ताल छापर: मोथिया घास और काले हिरणों का पारिस्थितिक तंत्र।",
+      "blockKey": "security-ultimate-u01385-line-1385"
+    },
+    {
+      "featureId": "U01374",
+      "sourceLine": 1386,
+      "category": "security",
+      "bucket": "general",
+      "text": "हनुमानगढ़ का भटनेर किला: सबसे ज्यादा विदेशी आक्रमण झेलने वाले दुर्ग का इतिहास।",
+      "blockKey": "security-ultimate-u01386-line-1386"
+    },
+    {
+      "featureId": "U01375",
+      "sourceLine": 1387,
+      "category": "security",
+      "bucket": "general",
+      "text": "गंगानगर का बुड्ढा जोहड़: राजस्थान के सबसे बड़े गुरुद्वारे का विवरण।",
+      "blockKey": "security-ultimate-u01387-line-1387"
+    },
+    {
+      "featureId": "U01376",
+      "sourceLine": 1388,
+      "category": "security",
+      "bucket": "general",
+      "text": "अनूपगढ़ का लैला-मजनूं मजार: इस ऐतिहासिक प्रेम कहानी और मेले का डेटा।",
+      "blockKey": "security-ultimate-u01388-line-1388"
+    },
+    {
+      "featureId": "U01377",
+      "sourceLine": 1389,
+      "category": "security",
+      "bucket": "general",
+      "text": "फलोदी का कुरजां पक्षी: खिंचन गाँव में आने वाले प्रवासी पक्षियों का माइग्रेशन डेटा।",
+      "blockKey": "security-ultimate-u01389-line-1389"
+    },
+    {
+      "featureId": "U01378",
+      "sourceLine": 1390,
+      "category": "security",
+      "bucket": "general",
+      "text": "जोधपुर का ओसियां: राजस्थान का कोणार्क कहे जाने वाले सूर्य मंदिर का इतिहास।",
+      "blockKey": "security-ultimate-u01390-line-1390"
+    },
+    {
+      "featureId": "U01379",
+      "sourceLine": 1391,
+      "category": "security",
+      "bucket": "general",
+      "text": "अरना झरना: मरुस्थल का इकलौता रेगिस्तानी संग्रहालय (Broom Museum)।",
+      "blockKey": "security-ultimate-u01391-line-1391"
+    },
+    {
+      "featureId": "U01380",
+      "sourceLine": 1392,
+      "category": "security",
+      "bucket": "general",
+      "text": "पाली का जवाई बांध: लेपर्ड सफारी और ग्रेनाइट की पहाड़ियों का मैप।",
+      "blockKey": "security-ultimate-u01392-line-1392"
+    },
+    {
+      "featureId": "U01381",
+      "sourceLine": 1393,
+      "category": "security",
+      "bucket": "general",
+      "text": "ओम बना (बुलेट बाबा): पाली के इस अनोखे मंदिर और वहां की आस्था का डेटा।",
+      "blockKey": "security-ultimate-u01393-line-1393"
+    },
+    {
+      "featureId": "U01382",
+      "sourceLine": 1394,
+      "category": "security",
+      "bucket": "general",
+      "text": "रणकपुर का चौमुखा मंदिर: इसके 1444 खंभों के कभी न गिने जा सकने का रहस्य।",
+      "blockKey": "security-ultimate-u01394-line-1394"
+    },
+    {
+      "featureId": "U01383",
+      "sourceLine": 1395,
+      "category": "security",
+      "bucket": "general",
+      "text": "जालौर का सुंधा माता: राजस्थान के पहले 'रोप-वे' और भालू अभयारण्य का डेटा।",
+      "blockKey": "security-ultimate-u01395-line-1395"
+    },
+    {
+      "featureId": "U01385",
+      "sourceLine": 1397,
+      "category": "security",
+      "bucket": "general",
+      "text": "सिरोही का माउंट आबू: नक्की लेक के 'टोड रॉक' और 'नंदी रॉक' का विवरण।",
+      "blockKey": "security-ultimate-u01397-line-1397"
+    },
+    {
+      "featureId": "U01386",
+      "sourceLine": 1398,
+      "category": "security",
+      "bucket": "general",
+      "text": "गुरु शिखर: अरावली की सबसे ऊँची चोटी का वैज्ञानिक और धार्मिक डेटा।",
+      "blockKey": "security-ultimate-u01398-line-1398"
+    },
+    {
+      "featureId": "U01387",
+      "sourceLine": 1399,
+      "category": "security",
+      "bucket": "general",
+      "text": "राजसमंद की नौ-चौकी पाल: मेवाड़ के इतिहास की 'राजप्रशस्ति' (दुनिया का सबसे बड़ा शिलालेख)।",
+      "blockKey": "security-ultimate-u01399-line-1399"
+    },
+    {
+      "featureId": "U01388",
+      "sourceLine": 1400,
+      "category": "security",
+      "bucket": "general",
+      "text": "हल्दीपहाटी का शाही बाग: जहाँ महाराणा प्रताप ने युद्ध की योजना बनाई थी।",
+      "blockKey": "security-ultimate-u01400-line-1400"
+    },
+    {
+      "featureId": "U01389",
+      "sourceLine": 1401,
+      "category": "security",
+      "bucket": "general",
+      "text": "कुंभलगढ़ का वन्यजीव: भेड़िए और चौसिंगा हिरणों के दिखने का रीयल-टाइम डेटा।",
+      "blockKey": "security-ultimate-u01401-line-1401"
+    },
+    {
+      "featureId": "U01390",
+      "sourceLine": 1402,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाथद्वारा की पिछवाई कला: श्रीनाथजी के श्रृंगार और कपड़े पर पेंटिंग की विधि।",
+      "blockKey": "security-ultimate-u01402-line-1402"
+    },
+    {
+      "featureId": "U01391",
+      "sourceLine": 1403,
+      "category": "security",
+      "bucket": "general",
+      "text": "उदयपुर का शिल्पग्राम: पश्चिमी क्षेत्र सांस्कृतिक केंद्र की कला प्रदर्शनी का कैलेंडर।",
+      "blockKey": "security-ultimate-u01403-line-1403"
+    },
+    {
+      "featureId": "U01392",
+      "sourceLine": 1404,
+      "category": "security",
+      "bucket": "general",
+      "text": "... (इसी तरह राजस्थान के भूगोल, तकनीक और सुरक्षा के सूक्ष्म 1500 पॉइंट्स पूर्ण)।",
+      "blockKey": "security-ultimate-u01404-line-1404"
+    },
+    {
+      "featureId": "U01395",
+      "sourceLine": 1407,
+      "category": "security",
+      "bucket": "general",
+      "text": "ऑटो-रिफंड विंडो: पेमेंट फेल होने पर 5 मिनट के भीतर पैसे वापसी का डिजिटल गेट।",
+      "blockKey": "security-ultimate-u01407-line-1407"
+    },
+    {
+      "featureId": "U01397",
+      "sourceLine": 1409,
+      "category": "security",
+      "bucket": "general",
+      "text": "80 KM/H डिजिटल गवर्नर: गाड़ी की रीयल स्पीड को वेबसाइट पर लाइव दिखाना।",
+      "blockKey": "security-ultimate-u01409-line-1409"
+    },
+    {
+      "featureId": "U01398",
+      "sourceLine": 1410,
+      "category": "security",
+      "bucket": "general",
+      "text": "VVIP आतिथ्य: गाड़ी में 'शाही इत्र' और 'मसाला छाछ' (गर्मी में) की पेशकश।",
+      "blockKey": "security-ultimate-u01410-line-1410"
+    },
+    {
+      "featureId": "U01399",
+      "sourceLine": 1411,
+      "category": "security",
+      "bucket": "general",
+      "text": "डिजिटल रसीद बॉर्डर: रसीद पर चित्तौड़गढ़ की नक्काशी का डिजिटल बॉर्डर।",
+      "blockKey": "security-ultimate-u01411-line-1411"
+    },
+    {
+      "featureId": "U01400",
+      "sourceLine": 1412,
+      "category": "security",
+      "bucket": "general",
+      "text": "अजय भाई की मुहर: रसीद के अंत में आपकी चमकती हुई सुनहरी मुहर।",
+      "blockKey": "security-ultimate-u01412-line-1412"
+    },
+    {
+      "featureId": "U01409",
+      "sourceLine": 1422,
+      "category": "security",
+      "bucket": "general",
+      "text": "सर्वर हेल्थ मॉनिटर: वेबसाइट के लोडिंग समय और डेटाबेस की सुरक्षा का हर 10 मिनट में ऑटो-चेक।",
+      "blockKey": "security-ultimate-u01422-line-1422"
+    },
+    {
+      "featureId": "U01411",
+      "sourceLine": 1424,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "ऑटो-प्राइसिंग इंजन: भारी मांग (त्योहारों या वीकेंड) के दौरान किराये को स्मार्ट तरीके से ऑटो-एडजस्ट करना।",
+      "blockKey": "security-ultimate-u01424-line-1424"
+    },
+    {
+      "featureId": "U01416",
+      "sourceLine": 1429,
+      "category": "security",
+      "bucket": "auto-suggestion",
+      "text": "करेंसी ऑटो-सिंक: विदेशी सैलानियों के लिए पेपाल (PayPal) के माध्यम से डॉलर और यूरो की रीयल-टाइम एक्सचेंज रेट।",
+      "blockKey": "security-ultimate-u01429-line-1429"
+    },
+    {
+      "featureId": "U01417",
+      "sourceLine": 1430,
+      "category": "security",
+      "bucket": "general",
+      "text": "अजय भाई की सुनहरी मुहर: हर रसीद और वाउचर के अंत में आपकी आधिकारिक डिजिटल मुहर का चमकता हुआ एनीमेशन।",
+      "blockKey": "security-ultimate-u01430-line-1430"
+    },
+    {
+      "featureId": "U01436",
+      "sourceLine": 1450,
+      "category": "security",
+      "bucket": "general",
+      "text": "विषय 4: सुरक्षा एवं अंतरराष्ट्रीय मानक (सेफ्टी और ट्रस्ट)",
+      "blockKey": "security-ultimate-u01450-line-1450"
+    },
+    {
+      "featureId": "U01437",
+      "sourceLine": 1451,
+      "category": "security",
+      "bucket": "general",
+      "text": "SOS साइलेंट अलर्ट: आपातकाल में ग्राहक के एक टैप पर बिना आवाज़ किए पुलिस को लोकेशन भेजना।",
+      "blockKey": "security-ultimate-u01451-line-1451"
+    },
+    {
+      "featureId": "U01439",
+      "sourceLine": 1453,
+      "category": "security",
+      "bucket": "general",
+      "text": "विदेशी मुद्रा सुरक्षा: अंतरराष्ट्रीय ट्रांजेक्शन के लिए पेपाल (PayPal) का 128-bit एन्क्रिप्टेड गेटवे।",
+      "blockKey": "security-ultimate-u01453-line-1453"
+    },
+    {
+      "featureId": "U01481",
+      "sourceLine": 1496,
+      "category": "security",
+      "bucket": "general",
+      "text": "विषय 4: सुरक्षा एवं अंतरराष्ट्रीय मानक (सेफ्टी और ट्रस्ट)",
+      "blockKey": "security-ultimate-u01496-line-1496"
+    },
+    {
+      "featureId": "U01482",
+      "sourceLine": 1497,
+      "category": "security",
+      "bucket": "general",
+      "text": "80 KM/H डिजिटल गवर्नर: सुरक्षा के लिए गाड़ी की रीयल-टाइम स्पीड को ग्राहक के ऐप पर भी दिखाना।",
+      "blockKey": "security-ultimate-u01497-line-1497"
+    },
+    {
+      "featureId": "U01483",
+      "sourceLine": 1498,
+      "category": "security",
+      "bucket": "general",
+      "text": "SOS पैनिक बटन: आपातकाल में ग्राहक के एक टैप पर पुलिस और अजय भाई को गुप्त अलर्ट।",
+      "blockKey": "security-ultimate-u01498-line-1498"
+    },
+    {
+      "featureId": "U01484",
+      "sourceLine": 1499,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाइट विजन डैशकैम: रात के सफर में सुरक्षा के लिए गाड़ी के अंदर और बाहर की निरंतर रिकॉर्डिंग।",
+      "blockKey": "security-ultimate-u01499-line-1499"
+    },
+    {
+      "featureId": "U01486",
+      "sourceLine": 1501,
+      "category": "security",
+      "bucket": "general",
+      "text": "दोहरी सुरक्षा (2FA): पेपाल (PayPal) और कार्ड पेमेंट के लिए सुरक्षा की 7 परतें।",
+      "blockKey": "security-ultimate-u01501-line-1501"
+    },
+    {
+      "featureId": "U01487",
+      "sourceLine": 1502,
+      "category": "security",
+      "bucket": "general",
+      "text": "सड़क सुरक्षा चार्ट: यात्रियों के लिए वेबसाइट पर ट्रैफिक नियमों और सुरक्षा का शाही चार्ट।",
+      "blockKey": "security-ultimate-u01502-line-1502"
+    },
+    {
+      "featureId": "U01489",
+      "sourceLine": 1504,
+      "category": "security",
+      "bucket": "general",
+      "text": "जीडीपीआर (GDPR) डेटा सुरक्षा: विदेशी ग्राहकों की व्यक्तिगत जानकारी को पूरी तरह गुप्त रखना।",
+      "blockKey": "security-ultimate-u01504-line-1504"
+    },
+    {
+      "featureId": "U01491",
+      "sourceLine": 1506,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्रेकडाउन रिप्लेसमेंट: गाड़ी खराब होने पर 30 मिनट में दूसरी गाड़ी देने की लिखित गारंटी।",
+      "blockKey": "security-ultimate-u01506-line-1506"
+    },
+    {
+      "featureId": "U01536",
+      "sourceLine": 1552,
+      "category": "security",
+      "bucket": "general",
+      "text": "विषय 4: सुरक्षा एवं अंतरराष्ट्रीय मानक (सेफ्टी और ट्रस्ट)",
+      "blockKey": "security-ultimate-u01552-line-1552"
+    },
+    {
+      "featureId": "U01539",
+      "sourceLine": 1555,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाइट विजन डैशकैम: रात के सफर में सुरक्षा सुनिश्चित करने के लिए हाई-डेफिनेशन कैमरा।",
+      "blockKey": "security-ultimate-u01555-line-1555"
+    },
+    {
+      "featureId": "U01541",
+      "sourceLine": 1557,
+      "category": "security",
+      "bucket": "general",
+      "text": "पेपाल (PayPal) अंतरराष्ट्रीय सुरक्षा: विदेशी सैलानियों के लिए फ्रॉड-मुक्त ट्रांजेक्शन की गारंटी।",
+      "blockKey": "security-ultimate-u01557-line-1557"
+    },
+    {
+      "featureId": "U01542",
+      "sourceLine": 1558,
+      "category": "security",
+      "bucket": "general",
+      "text": "सड़क सुरक्षा गाइड (Digital): टैक्सी के अंदर क्यूआर कोड जिसे स्कैन करते ही सुरक्षा नियम दिखें।",
+      "blockKey": "security-ultimate-u01558-line-1558"
+    },
+    {
+      "featureId": "U01544",
+      "sourceLine": 1560,
+      "category": "security",
+      "bucket": "general",
+      "text": "डेटा एन्क्रिप्शन (End-to-End): ग्राहक की चैट और कॉल का कोई तीसरा व्यक्ति एक्सेस न कर सके।",
+      "blockKey": "security-ultimate-u01560-line-1560"
+    },
+    {
+      "featureId": "U01545",
+      "sourceLine": 1561,
+      "category": "security",
+      "bucket": "general",
+      "text": "24/7 एम्बुलेंस सहायता: प्रमुख अस्पतालों के साथ सीधे संपर्क का डिजिटल लिंक।",
+      "blockKey": "security-ultimate-u01561-line-1561"
+    },
+    {
+      "featureId": "U01560",
+      "sourceLine": 1576,
+      "category": "security",
+      "bucket": "general",
+      "text": "वॉलेट सुरक्षा पिन (1234): किसी भी ट्रांजेक्शन से पहले अनिवार्य पिन वेरिफिकेशन।",
+      "blockKey": "security-ultimate-u01576-line-1576"
+    },
+    {
+      "featureId": "U01595",
+      "sourceLine": 1612,
+      "category": "security",
+      "bucket": "general",
+      "text": "डेटा एन्क्रिप्शन 2.0: ग्राहकों के मोबाइल और आईडी डेटा की मिलिट्री-ग्रेड 128-bit सुरक्षा।",
+      "blockKey": "security-ultimate-u01612-line-1612"
+    },
+    {
+      "featureId": "U01622",
+      "sourceLine": 1640,
+      "category": "security",
+      "bucket": "general",
+      "text": "विषय 1: सुरक्षा, कानून एवं अंतरराष्ट्रीय मानक (1501 - 1625)",
+      "blockKey": "security-ultimate-u01640-line-1640"
+    },
+    {
+      "featureId": "U01624",
+      "sourceLine": 1642,
+      "category": "security",
+      "bucket": "general",
+      "text": "SOS साइलेंट पिंग: ग्राहक के मोबाइल हिलाने (Shake) मात्र से पुलिस और अजय भाई को गुप्त लोकेशन अलर्ट।",
+      "blockKey": "security-ultimate-u01642-line-1642"
+    },
+    {
+      "featureId": "U01625",
+      "sourceLine": 1643,
+      "category": "security",
+      "bucket": "general",
+      "text": "नाइट विजन डैशकैम: रात के घने अंधेरे में भी गाड़ी के अंदर और बाहर की 4K साफ़ रिकॉर्डिंग।",
+      "blockKey": "security-ultimate-u01643-line-1643"
+    },
+    {
+      "featureId": "U01626",
+      "sourceLine": 1644,
+      "category": "security",
+      "bucket": "general",
+      "text": "दोहरी सुरक्षा (2FA): पेपाल (PayPal) और अंतरराष्ट्रीय कार्ड पेमेंट के लिए सुरक्षा की 7 अभेद्य परतें।",
+      "blockKey": "security-ultimate-u01644-line-1644"
+    },
+    {
+      "featureId": "U01629",
+      "sourceLine": 1647,
+      "category": "security",
+      "bucket": "general",
+      "text": "जीडीपीआर डेटा सुरक्षा: विदेशी सैलानियों के पासपोर्ट और निजी डेटा को अंतरराष्ट्रीय साइबर नियमों के तहत सुरक्षित रखना।",
+      "blockKey": "security-ultimate-u01647-line-1647"
+    },
+    {
+      "featureId": "U01631",
+      "sourceLine": 1649,
+      "category": "security",
+      "bucket": "general",
+      "text": "ब्रेकडाउन गारंटी: गाड़ी खराब होने पर 30-45 मिनट में रिप्लेसमेंट गाड़ी देने का लिखित डिजिटल वादा।",
+      "blockKey": "security-ultimate-u01649-line-1649"
+    },
+    {
+      "featureId": "U01632",
+      "sourceLine": 1650,
+      "category": "security",
+      "bucket": "general",
+      "text": "24/7 लाइव सपोर्ट: अजय भाई की सीधी हेल्पलाइन और पैनिक बटन का वेबसाइट पर हमेशा सक्रिय रहना।",
+      "blockKey": "security-ultimate-u01650-line-1650"
+    },
+    {
+      "featureId": "U01633",
+      "sourceLine": 1651,
+      "category": "security",
+      "bucket": "general",
+      "text": "एंटी-हैकिंग फायरवॉल: वेबसाइट पर साइबर हमलों को रोकने के लिए 'किंग-शिल्ड' कोडिंग सुरक्षा।",
+      "blockKey": "security-ultimate-u01651-line-1651"
+    },
+    {
+      "featureId": "U01648",
+      "sourceLine": 1666,
+      "category": "security",
+      "bucket": "general",
+      "text": "वॉलेट सुरक्षा पिन (1234): किसी भी वित्तीय ट्रांजेक्शन या वॉलेट एक्सेस से पहले अनिवार्य गुप्त पिन।",
+      "blockKey": "security-ultimate-u01666-line-1666"
+    },
+    {
+      "featureId": "U01669",
+      "sourceLine": 1688,
+      "category": "security",
+      "bucket": "general",
+      "text": "वैश्विक भुगतान सुरक्षा: पेपाल (PayPal) और स्ट्राइप (Stripe) के जरिए 100% सुरक्षित अंतरराष्ट्रीय लेनदेन।",
+      "blockKey": "security-ultimate-u01688-line-1688"
+    },
+    {
+      "featureId": "U01680",
+      "sourceLine": 1699,
+      "category": "security",
+      "bucket": "general",
+      "text": "वेबसाइट हेल्थ मॉनिटर: साइट की स्पीड, हैकिंग सुरक्षा और डेटा लोड की 24/7 ऑटो-निगरानी।",
+      "blockKey": "security-ultimate-u01699-line-1699"
+    },
+    {
+      "featureId": "U01706",
+      "sourceLine": 1725,
+      "category": "security",
+      "bucket": "general",
+      "text": "वेबसाइट सुरक्षा वॉलेट (1234): आपके वित्तीय डेटा को सुरक्षित रखने का अभेद्य पासवर्ड।",
+      "blockKey": "security-ultimate-u01725-line-1725"
+    },
+    {
+      "featureId": "U01710",
+      "sourceLine": 1730,
+      "category": "security",
+      "bucket": "general",
+      "text": "3101-3200: एडवांस्ड साइबर सुरक्षा: डेटा ब्रीच रोकने के लिए 7-स्तरीय एन्क्रिप्शन कोडिंग।",
+      "blockKey": "security-ultimate-u01730-line-1730"
+    },
+    {
+      "featureId": "U01721",
+      "sourceLine": 1742,
+      "category": "security",
+      "bucket": "general",
+      "text": "4101-4200: आधुनिक भुगतान सुरक्षा: ब्लॉकचेन आधारित पारदर्शी पेमेंट और क्रिप्टो-वॉलेट का शुरुआती ढांचा।",
+      "blockKey": "security-ultimate-u01742-line-1742"
+    },
+    {
+      "featureId": "U01739",
+      "sourceLine": 1760,
+      "category": "security",
+      "bucket": "general",
+      "text": "5901-6000: अजय भाई मास्टर कंट्रोल (1234): वॉलेट सुरक्षा, स्टाफ एक्सेस और मास्टर सेटिंग्स का पूर्ण प्रशासनिक ताला।",
+      "blockKey": "security-ultimate-u01760-line-1760"
+    },
+    {
+      "featureId": "U01742",
+      "sourceLine": 1764,
+      "category": "security",
+      "bucket": "general",
+      "text": "वॉलेट सुरक्षा पिन (1234) के साथ 7-स्तरीय डेटा एन्क्रिप्शन।",
+      "blockKey": "security-ultimate-u01764-line-1764"
+    },
+    {
+      "featureId": "U01760",
+      "sourceLine": 1782,
+      "category": "security",
+      "bucket": "general",
+      "text": "8501-9000: सुरक्षा, कानून एवं ग्लोबल स्टैंडर्ड्स (Safety & Global)",
+      "blockKey": "security-ultimate-u01782-line-1782"
+    },
+    {
+      "featureId": "U01761",
+      "sourceLine": 1783,
+      "category": "security",
+      "bucket": "general",
+      "text": "महिला यात्रियों के लिए \"सुरक्षा चक्र\": एक टैप पर सीधे अजय भाई और पुलिस को गुप्त पिंग।",
+      "blockKey": "security-ultimate-u01783-line-1783"
+    },
+    {
+      "featureId": "U01764",
+      "sourceLine": 1786,
+      "category": "security",
+      "bucket": "general",
+      "text": "जीडीपीआर डेटा सुरक्षा: अंतरराष्ट्रीय ग्राहकों के पासपोर्ट और जानकारी की मिलिट्री-ग्रेड सुरक्षा।",
+      "blockKey": "security-ultimate-u01786-line-1786"
+    },
+    {
+      "featureId": "U01774",
+      "sourceLine": 1797,
+      "category": "security",
+      "bucket": "general",
+      "text": "विदेशी सैलानी लीगल सेल: अंतरराष्ट्रीय पर्यटकों के लिए स्थानीय कानूनों और बीमा दावों की डिजिटल गाइड।",
+      "blockKey": "security-ultimate-u01797-line-1797"
+    },
+    {
+      "featureId": "U01778",
+      "sourceLine": 1801,
+      "category": "security",
+      "bucket": "general",
+      "text": "अजय भाई 'मास्टर आई' (Master Eye): 50 जिलों की हर गाड़ी के अंदर के केबिन का लाइव स्टेटस (केवल सुरक्षा हेतु)।",
+      "blockKey": "security-ultimate-u01801-line-1801"
+    },
+    {
+      "featureId": "U01789",
+      "sourceLine": 1812,
+      "category": "security",
+      "bucket": "general",
+      "text": "4. सुरक्षा, स्वास्थ्य एवं भविष्य की तकनीक (14,501 - 16,000)",
+      "blockKey": "security-ultimate-u01812-line-1812"
+    }
+  ]
+}

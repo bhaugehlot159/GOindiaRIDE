@@ -1,0 +1,730 @@
+{
+  "generatedAt": "2026-03-16T14:03:38.966Z",
+  "sourcePath": "C:\\Users\\Dhaval Gajjar\\Desktop\\goindiaride 1 द अल्टीमे.txt",
+  "category": "customer",
+  "part": 5,
+  "totalParts": 6,
+  "totalFeatureItems": 458,
+  "items": [
+    {
+      "featureId": "U01412",
+      "sourceLine": 1425,
+      "category": "customer",
+      "bucket": "general",
+      "text": "व्हाट्सएप चैटबॉट मास्टरी: एआई महाराजा द्वारा ग्राहक के 500 से अधिक सामान्य सवालों (जैसे- किराया, दूरी, समय) के तुरंत जवाब देना।",
+      "blockKey": "customer-ultimate-u01425-line-1425"
+    },
+    {
+      "featureId": "U01414",
+      "sourceLine": 1427,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट रूट शेयरिंग: ग्राहक के गाड़ी में बैठते ही उनके परिवार को 'सुरक्षित यात्रा' का ऑटो-लिंक व्हाट्सएप पर भेजना।",
+      "blockKey": "customer-ultimate-u01427-line-1427"
+    },
+    {
+      "featureId": "U01415",
+      "sourceLine": 1428,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वॉइस-आधारित बुकिंग: \"पधारो महाराजा, मुझे कल जोधपुर जाना है\" बोलते ही बुकिंग विंडो का स्वतः खुल जाना।",
+      "blockKey": "customer-ultimate-u01428-line-1428"
+    },
+    {
+      "featureId": "U01425",
+      "sourceLine": 1439,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट वेदर अलर्ट: \"हुकुम, उदयपुर में आज भारी बारिश है, क्या हम ग्राहकों को वैकल्पिक मार्ग सुझाएँ?\"",
+      "blockKey": "customer-ultimate-u01439-line-1439"
+    },
+    {
+      "featureId": "U01427",
+      "sourceLine": 1441,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एआई कूपन जनरेटर: ग्राहक के व्यवहार के आधार पर उसे विशेष \"पधारो डिस्काउंट\" कूपन भेजना।",
+      "blockKey": "customer-ultimate-u01441-line-1441"
+    },
+    {
+      "featureId": "U01428",
+      "sourceLine": 1442,
+      "category": "customer",
+      "bucket": "general",
+      "text": "व्हाट्सएप वॉयस रसीद: बुकिंग होने पर ग्राहक को एक शाही आवाज़ में वॉयस मैसेज द्वारा पुष्टि भेजना।",
+      "blockKey": "customer-ultimate-u01442-line-1442"
+    },
+    {
+      "featureId": "U01431",
+      "sourceLine": 1445,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही इत्र चयन: बुकिंग के समय ग्राहक से उनकी पसंद का इत्र (चंदन, गुलाब, केसर) पूछना।",
+      "blockKey": "customer-ultimate-u01445-line-1445"
+    },
+    {
+      "featureId": "U01432",
+      "sourceLine": 1446,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पॉडकास्ट गाइड: यात्रा के दौरान उस क्षेत्र के इतिहास का छोटा और रोचक ऑडियो पॉडकास्ट।",
+      "blockKey": "customer-ultimate-u01446-line-1446"
+    },
+    {
+      "featureId": "U01435",
+      "sourceLine": 1449,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही विदाई कार्ड: यात्रा समाप्त होने पर एक डिजिटल 'धन्यवाद पत्र' जिसमें अजय भाई के हस्ताक्षर हों।",
+      "blockKey": "customer-ultimate-u01449-line-1449"
+    },
+    {
+      "featureId": "U01441",
+      "sourceLine": 1455,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सर्टिफाइड क्लीनिंग: हर ट्रिप से पहले गाड़ी के 'सैनिटाइजेशन' की लाइव फोटो वेबसाइट पर अपडेट करना।",
+      "blockKey": "customer-ultimate-u01455-line-1455"
+    },
+    {
+      "featureId": "U01451",
+      "sourceLine": 1466,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बल्क बुकिंग मैनेजमेंट: शादियों या बड़े इवेंट्स के लिए एक साथ 20 गाड़ियों को एक ही स्क्रीन पर ट्रैक करना।",
+      "blockKey": "customer-ultimate-u01466-line-1466"
+    },
+    {
+      "featureId": "U01460",
+      "sourceLine": 1475,
+      "category": "customer",
+      "bucket": "general",
+      "text": "AI वॉयस वेलकम: बुकिंग कन्फर्म होते ही ग्राहक को आपकी आवाज में \"खम्मा घणी\" का वॉयस कॉल जाना।",
+      "blockKey": "customer-ultimate-u01475-line-1475"
+    },
+    {
+      "featureId": "U01461",
+      "sourceLine": 1476,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट वेदर मैप: यात्रा शुरू करने से पहले ग्राहक को बताना कि \"आज जैसलमेर में तेज़ धूप है, हम गाड़ी में एक्स्ट्रा पानी रख रहे हैं।\"",
+      "blockKey": "customer-ultimate-u01476-line-1476"
+    },
+    {
+      "featureId": "U01465",
+      "sourceLine": 1480,
+      "category": "customer",
+      "bucket": "general",
+      "text": "व्हाट्सएप लाइव ट्रैकिंग: ग्राहक के साथ-साथ उनके परिवार को भी व्हाट्सएप पर लाइव लोकेशन लिंक भेजना।",
+      "blockKey": "customer-ultimate-u01480-line-1480"
+    },
+    {
+      "featureId": "U01468",
+      "sourceLine": 1483,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ऑटो-कूपन पिंग: यदि कोई ग्राहक बुकिंग बीच में छोड़ देता है, तो उसे 5% डिस्काउंट का कूपन भेजकर वापस बुलाना।",
+      "blockKey": "customer-ultimate-u01483-line-1483"
+    },
+    {
+      "featureId": "U01470",
+      "sourceLine": 1485,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विषय 3: VVIP आतिथ्य एवं शाही अनुभव (ग्राहक सेवा)",
+      "blockKey": "customer-ultimate-u01485-line-1485"
+    },
+    {
+      "featureId": "U01471",
+      "sourceLine": 1486,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही इत्र गंध चयन: चमेली, केवड़ा या मोगरा - ग्राहक की पसंद का इत्र गाड़ी में छिड़कना।",
+      "blockKey": "customer-ultimate-u01486-line-1486"
+    },
+    {
+      "featureId": "U01472",
+      "sourceLine": 1487,
+      "category": "customer",
+      "bucket": "general",
+      "text": "डिजिटल ऑडियो गाइड: किलों के पास पहुँचते ही गाड़ी के स्पीकर पर उस किले का इतिहास बजना।",
+      "blockKey": "customer-ultimate-u01487-line-1487"
+    },
+    {
+      "featureId": "U01473",
+      "sourceLine": 1488,
+      "category": "customer",
+      "bucket": "general",
+      "text": "प्रीमियम स्वागत किट: गाड़ी में 'पधारो राजस्थान' ब्रांड का हैंड टॉवल और इत्र की छोटी शीशी।",
+      "blockKey": "customer-ultimate-u01488-line-1488"
+    },
+    {
+      "featureId": "U01474",
+      "sourceLine": 1489,
+      "category": "customer",
+      "bucket": "general",
+      "text": "राजस्थानी नमकीन बॉक्स: बीकानेरी भुजिया और जोधपुर के मिर्ची बड़े का सफर में कॉम्प्लीमेंट्री पैक।",
+      "blockKey": "customer-ultimate-u01489-line-1489"
+    },
+    {
+      "featureId": "U01475",
+      "sourceLine": 1490,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही विदाई संदेश: यात्रा समाप्त होने पर \"हुकुम, पधारते रहजो\" का भावपूर्ण डिजिटल संदेश।",
+      "blockKey": "customer-ultimate-u01490-line-1490"
+    },
+    {
+      "featureId": "U01476",
+      "sourceLine": 1491,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टम प्लेलिस्ट: ग्राहक की रुचि के अनुसार 'लोक संगीत' या 'ओल्ड क्लासिक्स' की पहले से तैयारी।",
+      "blockKey": "customer-ultimate-u01491-line-1491"
+    },
+    {
+      "featureId": "U01477",
+      "sourceLine": 1492,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इमरजेंसी मेडिकल किट: बीपी मशीन, शुगर स्ट्रिप्स और जरूरी दवाइयों का शाही बॉक्स।",
+      "blockKey": "customer-ultimate-u01492-line-1492"
+    },
+    {
+      "featureId": "U01478",
+      "sourceLine": 1493,
+      "category": "customer",
+      "bucket": "general",
+      "text": "छतरी और सन-ग्लास: बारिश में छतरी और तेज़ धूप में राजस्थानी हैट (Hat) की उपलब्धता।",
+      "blockKey": "customer-ultimate-u01493-line-1493"
+    },
+    {
+      "featureId": "U01479",
+      "sourceLine": 1494,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ठंडा पानी और मसाला छाछ: गर्मियों में यात्रियों के लिए मिट्टी के मटके जैसा ठंडा पानी।",
+      "blockKey": "customer-ultimate-u01494-line-1494"
+    },
+    {
+      "featureId": "U01480",
+      "sourceLine": 1495,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विजिटर डायरी: ग्राहक द्वारा वेबसाइट पर अपनी यात्रा की कहानी (Blog) लिखने की सुविधा।",
+      "blockKey": "customer-ultimate-u01495-line-1495"
+    },
+    {
+      "featureId": "U01490",
+      "sourceLine": 1505,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इमरजेंसी एम्बुलेंस सिंक: दुर्घटना की स्थिति में सबसे पास के अस्पताल को ऑटो-लोकेशन भेजना।",
+      "blockKey": "customer-ultimate-u01505-line-1505"
+    },
+    {
+      "featureId": "U01507",
+      "sourceLine": 1523,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बुकिंग सोर्स ट्रैकर: यह ट्रैक करना कि बुकिंग सीधे वेबसाइट से आई है या आपके किसी पार्टनर होटल से।",
+      "blockKey": "customer-ultimate-u01523-line-1523"
+    },
+    {
+      "featureId": "U01508",
+      "sourceLine": 1524,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टमर लाइफटाइम वैल्यू (CLV): एक ग्राहक ने अब तक आपकी कंपनी को कुल कितना बिजनेस दिया, उसका डेटा।",
+      "blockKey": "customer-ultimate-u01524-line-1524"
+    },
+    {
+      "featureId": "U01512",
+      "sourceLine": 1528,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बल्क बुकिंग प्राइस नेगोशिएटर: बड़ी कंपनियों के लिए विशेष डिस्काउंट रेट्स को मैन्युअल रूप से ओवरराइड करना।",
+      "blockKey": "customer-ultimate-u01528-line-1528"
+    },
+    {
+      "featureId": "U01515",
+      "sourceLine": 1531,
+      "category": "customer",
+      "bucket": "general",
+      "text": "AI चैटबॉट वॉयस: एआई महाराजा का केवल टेक्स्ट में नहीं, बल्कि मधुर आवाज़ में ग्राहक को जवाब देना।",
+      "blockKey": "customer-ultimate-u01531-line-1531"
+    },
+    {
+      "featureId": "U01516",
+      "sourceLine": 1532,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट लगेज डिटेक्टर: ग्राहक के सामान की फोटो से एआई द्वारा यह बताना कि इसके लिए कौन सी गाड़ी बेस्ट रहेगी।",
+      "blockKey": "customer-ultimate-u01532-line-1532"
+    },
+    {
+      "featureId": "U01520",
+      "sourceLine": 1536,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट नोटिफिकेशन शेड्यूलर: ग्राहक के समय क्षेत्र (Time Zone) के अनुसार उन्हें यात्रा के रिमाइंडर भेजना।",
+      "blockKey": "customer-ultimate-u01536-line-1536"
+    },
+    {
+      "featureId": "U01523",
+      "sourceLine": 1539,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट पेमेंट रूटिंग: सबसे कम ट्रांजेक्शन फेलियर रेट वाले पेमेंट गेटवे को प्राथमिकता देना।",
+      "blockKey": "customer-ultimate-u01539-line-1539"
+    },
+    {
+      "featureId": "U01525",
+      "sourceLine": 1541,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विषय 3: VVIP आतिथ्य एवं शाही अनुभव (ग्राहक सेवा)",
+      "blockKey": "customer-ultimate-u01541-line-1541"
+    },
+    {
+      "featureId": "U01526",
+      "sourceLine": 1542,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही इत्र गंध विवरण: वेबसाइट पर हर इत्र (चंदन, गुलाब, मोगरा) की विशेषता का रोचक वर्णन।",
+      "blockKey": "customer-ultimate-u01542-line-1542"
+    },
+    {
+      "featureId": "U01527",
+      "sourceLine": 1543,
+      "category": "customer",
+      "bucket": "general",
+      "text": "वॉयस-ओवर इतिहास: गाड़ी के अंदर ऑडियो गाइड के लिए प्रोफेशनल राजस्थानी कलाकारों की आवाज़।",
+      "blockKey": "customer-ultimate-u01543-line-1543"
+    },
+    {
+      "featureId": "U01528",
+      "sourceLine": 1544,
+      "category": "customer",
+      "bucket": "general",
+      "text": "प्रीमियम सैनिटाइजेशन किट: ब्रांडेड सैनिटाइज़र, मास्क और फेस टिशू का शाही लिफाफा।",
+      "blockKey": "customer-ultimate-u01544-line-1544"
+    },
+    {
+      "featureId": "U01529",
+      "sourceLine": 1545,
+      "category": "customer",
+      "bucket": "general",
+      "text": "राजस्थानी स्वाद बास्केट: सफर में स्थानीय मक्की की राबड़ी (सर्दियों में) या छाछ (गर्मियों में) का विकल्प।",
+      "blockKey": "customer-ultimate-u01545-line-1545"
+    },
+    {
+      "featureId": "U01530",
+      "sourceLine": 1546,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पर्सनलाइज्ड वेलकम ग्रीटिंग: गाड़ी की पिछली सीट पर ग्राहक के नाम वाला 'स्वागत पत्र'।",
+      "blockKey": "customer-ultimate-u01546-line-1546"
+    },
+    {
+      "featureId": "U01531",
+      "sourceLine": 1547,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सफर की यादें (Digital): यात्रा खत्म होने पर ग्राहक को उनके सफर के फोटो का एक छोटा वीडियो बनाकर देना।",
+      "blockKey": "customer-ultimate-u01547-line-1547"
+    },
+    {
+      "featureId": "U01532",
+      "sourceLine": 1548,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इमरजेंसी 'हेल्प' बटन: गाड़ी के अंदर यात्रियों के लिए एक फिजिकल और डिजिटल पैनिक बटन।",
+      "blockKey": "customer-ultimate-u01548-line-1548"
+    },
+    {
+      "featureId": "U01533",
+      "sourceLine": 1549,
+      "category": "customer",
+      "bucket": "general",
+      "text": "छतरी और सन-ग्लास: प्रीमियम गाड़ियों में मेहमानों के लिए ब्रांडेड एक्सेसरीज।",
+      "blockKey": "customer-ultimate-u01549-line-1549"
+    },
+    {
+      "featureId": "U01534",
+      "sourceLine": 1550,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ठंडा पानी और मसाला छाछ: ताज़ा और मिनरल वाटर की बोतलों की हमेशा उपलब्धता।",
+      "blockKey": "customer-ultimate-u01550-line-1550"
+    },
+    {
+      "featureId": "U01535",
+      "sourceLine": 1551,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विजिटर फीडबैक वॉल: वेबसाइट पर ग्राहकों के वीडियो रिव्यूज को 'शाही अंदाज़' में दिखाना।",
+      "blockKey": "customer-ultimate-u01551-line-1551"
+    },
+    {
+      "featureId": "U01576",
+      "sourceLine": 1593,
+      "category": "customer",
+      "bucket": "general",
+      "text": "क्रॉस-सेलिंग डेटा: टैक्सी ग्राहकों द्वारा आपके पार्टनर होटलों में की गई बुकिंग का डेटा सिंक।",
+      "blockKey": "customer-ultimate-u01593-line-1593"
+    },
+    {
+      "featureId": "U01577",
+      "sourceLine": 1594,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टमर लाइफटाइम वैल्यू (CLV): एक पुराने ग्राहक ने अब तक कुल कितना बिजनेस दिया, उसका पूरा वित्तीय रिकॉर्ड।",
+      "blockKey": "customer-ultimate-u01594-line-1594"
+    },
+    {
+      "featureId": "U01579",
+      "sourceLine": 1596,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बल्क बुकिंग नेगोशिएटर: कॉर्पोरेट इवेंट्स या शादियों के लिए एक साथ रेट्स कम करने का मास्टर कंट्रोल।",
+      "blockKey": "customer-ultimate-u01596-line-1596"
+    },
+    {
+      "featureId": "U01582",
+      "sourceLine": 1599,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विज्ञापन ट्रैकर: यह ट्रैक करना कि ग्राहक फेसबुक विज्ञापन से आया है या गूगल सर्च से।",
+      "blockKey": "customer-ultimate-u01599-line-1599"
+    },
+    {
+      "featureId": "U01590",
+      "sourceLine": 1607,
+      "category": "customer",
+      "bucket": "general",
+      "text": "रीयल-टाइम रूट ऑप्टिमाइज़र: कम ईंधन खपत और कम समय वाले रास्तों का एआई द्वारा स्वतः चुनाव।",
+      "blockKey": "customer-ultimate-u01607-line-1607"
+    },
+    {
+      "featureId": "U01592",
+      "sourceLine": 1609,
+      "category": "customer",
+      "bucket": "general",
+      "text": "व्हाट्सएप वॉयस रसीद: बुकिंग होते ही ग्राहक को राजस्थानी लहजे में ऑडियो रसीद भेजना।",
+      "blockKey": "customer-ultimate-u01609-line-1609"
+    },
+    {
+      "featureId": "U01599",
+      "sourceLine": 1616,
+      "category": "customer",
+      "bucket": "general",
+      "text": "व्हाट्सएप लाइव ट्रैकिंग: परिवार को बिना ऐप डाउनलोड किए व्हाट्सएप पर लाइव लोकेशन लिंक भेजना।",
+      "blockKey": "customer-ultimate-u01616-line-1616"
+    },
+    {
+      "featureId": "U01602",
+      "sourceLine": 1619,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट नोटिफिकेशन: ग्राहक के समय क्षेत्र (Time Zone) के अनुसार उन्हें रिमाइंडर भेजना।",
+      "blockKey": "customer-ultimate-u01619-line-1619"
+    },
+    {
+      "featureId": "U01606",
+      "sourceLine": 1623,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही इत्र गंध लाइब्रेरी: 'मिट्टी की खुशबू', 'चंदन' और 'केसर' के छिड़काव का ग्राहक द्वारा चयन।",
+      "blockKey": "customer-ultimate-u01623-line-1623"
+    },
+    {
+      "featureId": "U01608",
+      "sourceLine": 1625,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पर्सनलाइज्ड वेलकम ग्रीटिंग: पिछली सीट पर ग्राहक के नाम वाला हस्तलिखित शाही 'स्वागत पत्र'।",
+      "blockKey": "customer-ultimate-u01625-line-1625"
+    },
+    {
+      "featureId": "U01613",
+      "sourceLine": 1630,
+      "category": "customer",
+      "bucket": "general",
+      "text": "इमरजेंसी मेडिकल किट: बीपी मशीन और शुगर चेकअप स्ट्रिप्स सहित वीआईपी दवाइयों का बॉक्स।",
+      "blockKey": "customer-ultimate-u01630-line-1630"
+    },
+    {
+      "featureId": "U01619",
+      "sourceLine": 1636,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एक्स्ट्रा कुशन: लंबी यात्रा के लिए गर्दन और पीठ के लिए मुलायम रेशमी तकिए।",
+      "blockKey": "customer-ultimate-u01636-line-1636"
+    },
+    {
+      "featureId": "U01620",
+      "sourceLine": 1637,
+      "category": "customer",
+      "bucket": "general",
+      "text": "विजिटर फीडबैक वॉल: वेबसाइट पर ग्राहकों के वीडियो रिव्यूज को 'शाही अंदाज़' में दिखाना।",
+      "blockKey": "customer-ultimate-u01637-line-1637"
+    },
+    {
+      "featureId": "U01621",
+      "sourceLine": 1638,
+      "category": "customer",
+      "bucket": "general",
+      "text": "(पॉइंट 1416 से 1500 तक ग्राहक के राजसी अनुभव को पूर्ण करते हैं)",
+      "blockKey": "customer-ultimate-u01638-line-1638"
+    },
+    {
+      "featureId": "U01630",
+      "sourceLine": 1648,
+      "category": "customer",
+      "bucket": "general",
+      "text": "एम्बुलेंस डायरेक्ट लिंक: दुर्घटना होने पर सबसे पास के 3 अस्पतालों और ब्लड बैंक को तत्काल लोकेशन भेजना।",
+      "blockKey": "customer-ultimate-u01648-line-1648"
+    },
+    {
+      "featureId": "U01649",
+      "sourceLine": 1667,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही कैशबैक नियम: हर 1000 रुपये के खर्च पर ग्राहक को 50 'रॉयल पॉइंट्स' (कैशबैक) देना।",
+      "blockKey": "customer-ultimate-u01667-line-1667"
+    },
+    {
+      "featureId": "U01651",
+      "sourceLine": 1669,
+      "category": "customer",
+      "bucket": "general",
+      "text": "जीएसटी इनवॉइस ऑटो-मेल: ट्रिप खत्म होते ही कॉर्पोरेट क्लाइंट्स को जीएसटी वाला पक्का बिल मेल पर भेजना।",
+      "blockKey": "customer-ultimate-u01669-line-1669"
+    },
+    {
+      "featureId": "U01652",
+      "sourceLine": 1670,
+      "category": "customer",
+      "bucket": "general",
+      "text": "पेमेंट फेलियर रिकवरी: यदि पेमेंट कट गया और बुकिंग नहीं हुई, तो 10 मिनट में ऑटो-रिफंड विंडो।",
+      "blockKey": "customer-ultimate-u01670-line-1670"
+    },
+    {
+      "featureId": "U01667",
+      "sourceLine": 1686,
+      "category": "customer",
+      "bucket": "general",
+      "text": "अंतरराष्ट्रीय बीमा (Travel Insurance): विदेशी सैलानियों के लिए विशेष अंतरराष्ट्रीय यात्रा बीमा का सिंक।",
+      "blockKey": "customer-ultimate-u01686-line-1686"
+    },
+    {
+      "featureId": "U01674",
+      "sourceLine": 1693,
+      "category": "customer",
+      "bucket": "general",
+      "text": "प्रेडिक्टिव डिमांड एनालिसिस: एआई द्वारा अगले 6 महीनों में राजस्थान के किस शहर में सबसे ज्यादा पर्यटक आएंगे, उसका अनुमान।",
+      "blockKey": "customer-ultimate-u01693-line-1693"
+    },
+    {
+      "featureId": "U01675",
+      "sourceLine": 1694,
+      "category": "customer",
+      "bucket": "general",
+      "text": "कस्टमर बिहेवियर डेटा: ग्राहक किस तरह की गाड़ियाँ और पैकेज ज्यादा पसंद कर रहे हैं, उसका ग्राफिकल चार्ट।",
+      "blockKey": "customer-ultimate-u01694-line-1694"
+    },
+    {
+      "featureId": "U01676",
+      "sourceLine": 1695,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ऑटो-रूट ऑप्टिमाइज़ेशन: ईंधन की बचत के लिए एआई द्वारा सबसे छोटे और सबसे साफ़ रास्तों का चुनाव।",
+      "blockKey": "customer-ultimate-u01695-line-1695"
+    },
+    {
+      "featureId": "U01678",
+      "sourceLine": 1697,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट नोटिफिकेशन: ग्राहक की रुचि के आधार पर उन्हें \"आपके पसंदीदा उदयपुर\" के नए पैकेज का अलर्ट भेजना।",
+      "blockKey": "customer-ultimate-u01697-line-1697"
+    },
+    {
+      "featureId": "U01681",
+      "sourceLine": 1700,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सर्वर स्केलिंग: एक साथ लाखों बुकिंग आने पर भी वेबसाइट को हैंग होने से बचाने की कोडिंग।",
+      "blockKey": "customer-ultimate-u01700-line-1700"
+    },
+    {
+      "featureId": "U01685",
+      "sourceLine": 1704,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ब्यावर जिला: यहाँ की प्रसिद्ध तिलपट्टी और कर्नल डिक्सन द्वारा स्थापित शहर की वास्तुकला।",
+      "blockKey": "customer-ultimate-u01704-line-1704"
+    },
+    {
+      "featureId": "U01686",
+      "sourceLine": 1705,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सलूंबर जिला: हाड़ी रानी के बलिदान का इतिहास और जयसमंद झील की ओर जाने वाला पर्यटन मार्ग।",
+      "blockKey": "customer-ultimate-u01705-line-1705"
+    },
+    {
+      "featureId": "U01687",
+      "sourceLine": 1706,
+      "category": "customer",
+      "bucket": "general",
+      "text": "फलोदी जिला: राजस्थान का सबसे शुष्क और गर्म इलाका तथा यहाँ के ऐतिहासिक 'खिंचन' पक्षी गाँव का डेटा।",
+      "blockKey": "customer-ultimate-u01706-line-1706"
+    },
+    {
+      "featureId": "U01688",
+      "sourceLine": 1707,
+      "category": "customer",
+      "bucket": "general",
+      "text": "दूदू जिला: देश का सबसे छोटा जिला होने का गौरव और इसकी सामरिक स्थिति की जानकारी।",
+      "blockKey": "customer-ultimate-u01707-line-1707"
+    },
+    {
+      "featureId": "U01689",
+      "sourceLine": 1708,
+      "category": "customer",
+      "bucket": "general",
+      "text": "सांचौर जिला: \"राजस्थान का पंजाब\" कहे जाने वाले इस क्षेत्र की नहरी सिंचाई और गुजरात बॉर्डर का व्यापार।",
+      "blockKey": "customer-ultimate-u01708-line-1708"
+    },
+    {
+      "featureId": "U01690",
+      "sourceLine": 1709,
+      "category": "customer",
+      "bucket": "general",
+      "text": "केकड़ी जिला: यहाँ की प्राचीन बावड़ियों और धार्मिक स्थलों का ऐतिहासिक डेटाबेस।",
+      "blockKey": "customer-ultimate-u01709-line-1709"
+    },
+    {
+      "featureId": "U01692",
+      "sourceLine": 1711,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाहपुरा जिला: फड़ चित्रकला की जन्मस्थली और यहाँ के ऐतिहासिक मेलों का विवरण।",
+      "blockKey": "customer-ultimate-u01711-line-1711"
+    },
+    {
+      "featureId": "U01693",
+      "sourceLine": 1712,
+      "category": "customer",
+      "bucket": "general",
+      "text": "डीग जिला: जलमहलों की नगरी और फव्वारों की प्राचीन इंजीनियरिंग का सूक्ष्म डेटा।",
+      "blockKey": "customer-ultimate-u01712-line-1712"
+    },
+    {
+      "featureId": "U01697",
+      "sourceLine": 1716,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही इत्र गंध लाइब्रेरी: ग्राहक द्वारा चुने गए इत्र (जैसे- मिट्टी, केवड़ा, चंदन) का केबिन में छिड़काव।",
+      "blockKey": "customer-ultimate-u01716-line-1716"
+    },
+    {
+      "featureId": "U01709",
+      "sourceLine": 1729,
+      "category": "customer",
+      "bucket": "general",
+      "text": "3001-3100: अंतरराष्ट्रीय पर्यटक व्यवहार एवं सांस्कृतिक संवेदनशीलता प्रशिक्षण (Cross-Cultural Training)।",
+      "blockKey": "customer-ultimate-u01729-line-1729"
+    },
+    {
+      "featureId": "U01720",
+      "sourceLine": 1741,
+      "category": "customer",
+      "bucket": "general",
+      "text": "4001-4100: VVIP कस्टमाइजेशन: ग्राहकों के लिए गाड़ी के अंदर उनके नाम के कुशन और कस्टमाइज्ड लाइट्स का सेटअप।",
+      "blockKey": "customer-ultimate-u01741-line-1741"
+    },
+    {
+      "featureId": "U01723",
+      "sourceLine": 1744,
+      "category": "customer",
+      "bucket": "general",
+      "text": "4301-4400: एआई वॉइस असिस्टेंट \"महाराजा\": बिना टाइप किए केवल बोलकर बुकिंग और इतिहास जानने की तकनीक।",
+      "blockKey": "customer-ultimate-u01744-line-1744"
+    },
+    {
+      "featureId": "U01730",
+      "sourceLine": 1751,
+      "category": "customer",
+      "bucket": "general",
+      "text": "5001-5100: शाही वेशभूषा गाइड: पर्यटकों के लिए साफ़ा, लहँगा और गहनों की रेंटल एवं फोटो-शूट सेवा।",
+      "blockKey": "customer-ultimate-u01751-line-1751"
+    },
+    {
+      "featureId": "U01736",
+      "sourceLine": 1757,
+      "category": "customer",
+      "bucket": "general",
+      "text": "5601-5700: फिल्म शूटिंग लोकेशन: राजस्थान में मशहूर फिल्मों की शूटिंग वाली जगहों का मैप और जानकारी।",
+      "blockKey": "customer-ultimate-u01757-line-1757"
+    },
+    {
+      "featureId": "U01737",
+      "sourceLine": 1758,
+      "category": "customer",
+      "bucket": "general",
+      "text": "5701-5800: आपातकालीन चिकित्सा (Health-Tech): यात्रा के दौरान पास के सबसे अच्छे अस्पताल और दवाइयों की होम-डिलीवरी।",
+      "blockKey": "customer-ultimate-u01758-line-1758"
+    },
+    {
+      "featureId": "U01746",
+      "sourceLine": 1768,
+      "category": "customer",
+      "bucket": "general",
+      "text": "बिना टाइप किए केवल बोलकर बुकिंग करने वाला \"वॉयस-महाराजा\"।",
+      "blockKey": "customer-ultimate-u01768-line-1768"
+    },
+    {
+      "featureId": "U01749",
+      "sourceLine": 1771,
+      "category": "customer",
+      "bucket": "general",
+      "text": "ग्राहकों के लिए \"वर्चुअल टूर\": किले पर पहुँचने से पहले उसका 360° डिजिटल नज़ारा।",
+      "blockKey": "customer-ultimate-u01771-line-1771"
+    },
+    {
+      "featureId": "U01754",
+      "sourceLine": 1776,
+      "category": "customer",
+      "bucket": "general",
+      "text": "शाही विदाई: यात्रा समाप्त होने पर अजय भाई का डिजिटल धन्यवाद पत्र और स्मृति चिन्ह।",
+      "blockKey": "customer-ultimate-u01776-line-1776"
+    },
+    {
+      "featureId": "U01767",
+      "sourceLine": 1789,
+      "category": "customer",
+      "bucket": "general",
+      "text": "फिल्म शूटिंग लोकेशन गाइड: मशहूर फिल्मों के लोकेशंस और वहां टैक्सी पहुँचने का मार्ग।",
+      "blockKey": "customer-ultimate-u01789-line-1789"
+    },
+    {
+      "featureId": "U01769",
+      "sourceLine": 1791,
+      "category": "customer",
+      "bucket": "general",
+      "text": "लॉयल्टी रिवॉर्ड्स: \"रॉयल पॉइंट्स\" जिन्हें ग्राहक अगली यात्रा में कैश की तरह इस्तेमाल कर सकें।",
+      "blockKey": "customer-ultimate-u01791-line-1791"
+    },
+    {
+      "featureId": "U01779",
+      "sourceLine": 1802,
+      "category": "customer",
+      "bucket": "general",
+      "text": "स्मार्ट फ्लीट री-बैलेंसिंग: एआई द्वारा खाली गाड़ियों को उन शहरों की ओर भेजना जहाँ बुकिंग की मांग ज्यादा है।",
+      "blockKey": "customer-ultimate-u01802-line-1802"
+    }
+  ]
+}
