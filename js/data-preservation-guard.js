@@ -19,10 +19,10 @@
   var lastRestoreAt = 0;
   var MAX_DEEP_PARSE_CHARS = 220000;
   var MAX_BACKUP_READ_CHARS = 900000;
-  var MAX_KEYS_PER_PASS = 45;
-  var MAX_BACKUP_KEYS = 120;
-  var MIN_SNAPSHOT_INTERVAL_MS = 12000;
-  var MIN_RESTORE_INTERVAL_MS = 3000;
+  var MAX_KEYS_PER_PASS = 12;
+  var MAX_BACKUP_KEYS = 50;
+  var MIN_SNAPSHOT_INTERVAL_MS = 60000;
+  var MIN_RESTORE_INTERVAL_MS = 30000;
 
   var EXACT_KEYS = [
     'users',
@@ -551,7 +551,7 @@
     if (typeof global.requestIdleCallback === 'function') {
       return global.requestIdleCallback(callback, { timeout: timeoutMs || 1200 });
     }
-    return global.setTimeout(callback, timeoutMs || 250);
+    return global.setTimeout(callback, timeoutMs || 2500);
   }
 
   function scheduleRestore(options) {
@@ -559,7 +559,7 @@
     restoreTimer = scheduleIdle(function () {
       restoreTimer = null;
       restoreAll(options);
-    }, 900);
+    }, 4500);
   }
 
   function scheduleSnapshot(options) {
@@ -567,7 +567,7 @@
     snapshotTimer = scheduleIdle(function () {
       snapshotTimer = null;
       snapshotAll(options);
-    }, 1400);
+    }, 9000);
   }
 
   function guardedSetItem(key, value) {
@@ -669,25 +669,24 @@
   }
 
   installStorageGuard();
-  scheduleRestore();
-  scheduleSnapshot();
+  scheduleRestore({ maxKeys: 8 });
+  scheduleSnapshot({ maxKeys: 8 });
 
   if (global.addEventListener) {
     global.addEventListener('DOMContentLoaded', function () {
-      scheduleRestore();
-      scheduleSnapshot();
+      scheduleSnapshot({ maxKeys: 8 });
     });
     global.addEventListener('pagehide', function () {
-      snapshotAll({ force: true, maxKeys: 25 });
+      snapshotAll({ force: true, maxKeys: 10 });
     });
     global.addEventListener('beforeunload', function () {
-      snapshotAll({ force: true, maxKeys: 25 });
+      snapshotAll({ force: true, maxKeys: 10 });
     });
     global.addEventListener('visibilitychange', function () {
       if (!global.document || global.document.visibilityState === 'hidden') {
-        scheduleSnapshot({ maxKeys: 25 });
+        scheduleSnapshot({ maxKeys: 10 });
       } else {
-        scheduleRestore();
+        scheduleRestore({ maxKeys: 8 });
       }
     });
     global.addEventListener('storage', function (event) {

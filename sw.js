@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v41-20260527-load-split';
+const CACHE_NAME = 'goindiaride-pwa-v42-20260528-hangfix';
 const ASSETS = [
   './',
   './index.html',

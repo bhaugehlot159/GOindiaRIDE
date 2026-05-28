@@ -3,11 +3,33 @@
 
     const DEFER_SELECTOR = "script[data-goi-defer-src]";
     const LOADED_ATTR = "data-goi-loaded";
-    const LOAD_DELAY_MS = 600;
-    const IDLE_TIMEOUT_MS = 3500;
-    const PRELOAD_DELAY_MS = 900;
-    const SCRIPT_GAP_MS = 120;
+    const LOAD_DELAY_MS = 45000;
+    const IDLE_TIMEOUT_MS = 60000;
+    const PRELOAD_DELAY_MS = 30000;
+    const SCRIPT_GAP_MS = 1800;
     let deferredRuntimeStarted = false;
+
+    function readAutoLoadPreference() {
+        try {
+            const query = new URLSearchParams(global.location.search || "");
+            if (query.get("goiFutureRuntime") === "1") return true;
+            if (query.get("goiFutureRuntime") === "0") return false;
+            if (global.__GOINDIARIDE_AUTO_LOAD_FUTURE_RUNTIME__ === true) return true;
+            return global.localStorage && global.localStorage.getItem("goindiaride_enable_future_runtime") === "true";
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function waitForIdle(timeoutMs) {
+        return new Promise((resolve) => {
+            if (typeof global.requestIdleCallback === "function") {
+                global.requestIdleCallback(resolve, { timeout: timeoutMs });
+                return;
+            }
+            setTimeout(resolve, Math.min(timeoutMs, 2500));
+        });
+    }
 
     function loadScriptTag(placeholder) {
         return new Promise((resolve) => {
@@ -54,6 +76,7 @@
     async function loadDeferredRuntimeScripts() {
         const placeholders = Array.from(document.querySelectorAll(DEFER_SELECTOR));
         for (const placeholder of placeholders) {
+            await waitForIdle(IDLE_TIMEOUT_MS);
             await loadScriptTag(placeholder);
             await new Promise((resolve) => setTimeout(resolve, SCRIPT_GAP_MS));
         }
@@ -68,7 +91,14 @@
         setTimeout(loadDeferredRuntimeScripts, LOAD_DELAY_MS);
     }
 
+    function startDeferredRuntimeNow() {
+        if (deferredRuntimeStarted) return;
+        deferredRuntimeStarted = true;
+        loadDeferredRuntimeScripts();
+    }
+
     function scheduleDeferredRuntime() {
+        if (!readAutoLoadPreference()) return;
         setTimeout(warmDeferredRuntimeCache, PRELOAD_DELAY_MS);
         if (typeof global.requestIdleCallback === "function") {
             global.requestIdleCallback(startDeferredRuntime, { timeout: IDLE_TIMEOUT_MS });
@@ -78,18 +108,13 @@
         startDeferredRuntime();
     }
 
-    function bindEarlyInteractionLoad() {
-        const events = ["pointerdown", "keydown"];
-        const loadNow = () => {
-            events.forEach((eventName) => global.removeEventListener(eventName, loadNow));
-            setTimeout(startDeferredRuntime, LOAD_DELAY_MS);
-        };
-        events.forEach((eventName) => global.addEventListener(eventName, loadNow, { once: true, passive: true }));
+    function bindManualLoad() {
+        global.addEventListener("goindiaride:load-deferred-features", startDeferredRuntimeNow);
     }
 
     global.__GOINDIARIDE_FAST_BOOT__ = true;
-    global.GoIndiaRideLoadDeferredFeatures = startDeferredRuntime;
-    bindEarlyInteractionLoad();
+    global.GoIndiaRideLoadDeferredFeatures = startDeferredRuntimeNow;
+    bindManualLoad();
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", scheduleDeferredRuntime, { once: true });

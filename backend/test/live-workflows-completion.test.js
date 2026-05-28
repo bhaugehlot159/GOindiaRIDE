@@ -95,6 +95,6 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260526-az-control1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v41-20260527-load-split/);
+  assert.match(sw, /goindiaride-pwa-v42-20260528-hangfix/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });
