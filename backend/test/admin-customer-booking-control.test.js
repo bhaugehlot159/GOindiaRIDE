@@ -39,6 +39,23 @@ function readCustomerDashboardRuntimeChunks() {
   return readRepoFilesUnder('customer/chunks/dashboard/scripts', '.js').join('\n');
 }
 
+const ADMIN_ENTERPRISE_CHUNKS = [
+  'admin/chunks/enterprise/registry.js',
+  'admin/chunks/enterprise/sources-official.js',
+  'admin/chunks/enterprise/modules-corporate.js',
+  'admin/chunks/enterprise/modules-booking-programs.js',
+  'admin/chunks/enterprise/modules-finance-reports.js',
+  'admin/chunks/enterprise/modules-fleet.js',
+  'admin/chunks/enterprise/modules-safety.js',
+  'admin/chunks/enterprise/modules-integrations.js',
+  'admin/chunks/enterprise/backend-routes.js',
+  'admin/chunks/enterprise/benchmark-extensions.js'
+];
+
+function readAdminEnterpriseChunkSource() {
+  return ADMIN_ENTERPRISE_CHUNKS.map(readRepoFile).join('\n');
+}
+
 function createLocalStorage() {
   const store = new Map();
   return {
@@ -178,6 +195,9 @@ function runAdminAppWithBookingRows(rows) {
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
 
+  ADMIN_ENTERPRISE_CHUNKS.forEach((chunkPath) => {
+    vm.runInNewContext(readRepoFile(chunkPath), sandbox, { filename: chunkPath });
+  });
   vm.runInNewContext(readRepoFile('admin/js/admin-app.js'), sandbox, { filename: 'admin/js/admin-app.js' });
   domListeners.DOMContentLoaded();
 
@@ -240,23 +260,49 @@ test('admin app exposes enterprise and fleet parity controls', () => {
   const appHtml = readRepoFile('admin/app.html');
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const adminCss = readRepoFile('admin/css/admin-app.css');
+  const enterpriseChunks = readAdminEnterpriseChunkSource();
 
   assert.match(appHtml, /data-view="enterprise"/);
   assert.match(appHtml, /id="enterpriseModuleList"/);
   assert.match(appHtml, /id="enterpriseReadinessList"/);
   assert.match(appHtml, /data-enterprise-action="connect-all"/);
   assert.match(appHtml, /data-enterprise-action="run-live-test"/);
+  ADMIN_ENTERPRISE_CHUNKS.forEach((chunkPath) => {
+    const htmlPath = `./${chunkPath.replace(/^admin\//, '')}`;
+    assert.match(appHtml, new RegExp(htmlPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  });
   assert.match(adminApp, /ENTERPRISE_CONTROL_KEY/);
   assert.match(adminApp, /ENTERPRISE_MODULES/);
   assert.match(adminApp, /ENTERPRISE_BACKEND_ENDPOINTS/);
+  assert.match(adminApp, /getAdminEnterpriseRegistry/);
+  assert.match(adminApp, /mergeEnterpriseRowsById/);
   assert.match(adminApp, /function connectEnterpriseModules\(/);
   assert.match(adminApp, /function runEnterpriseLiveTest\(/);
   assert.match(adminApp, /function renderEnterprise\(/);
-  assert.match(adminApp, /corporate_wallet_billing/);
-  assert.match(adminApp, /live_map_dispatch/);
-  assert.match(adminApp, /support_expense_integrations/);
+  assert.match(enterpriseChunks, /corporate_wallet_billing/);
+  assert.match(enterpriseChunks, /guest_rides_central_booking/);
+  assert.match(enterpriseChunks, /employee_bulk_api_lifecycle/);
+  assert.match(enterpriseChunks, /monthly_billing_statements/);
+  assert.match(enterpriseChunks, /fraud_abuse_detection/);
+  assert.match(enterpriseChunks, /webhooks_partner_logs/);
   assert.match(adminCss, /\.enterprise-grid/);
   assert.match(adminCss, /\.enterprise-module-row/);
+});
+
+test('enterprise parity catalog is split into small chunks', () => {
+  const enterpriseChunks = readAdminEnterpriseChunkSource();
+  const moduleIds = Array.from(enterpriseChunks.matchAll(/id:\s*"([^"]+)"/g)).map((match) => match[1]);
+  const uniqueModuleIds = new Set(moduleIds.filter((id) => !id.startsWith('guest_central') && !id.startsWith('bulk_employee')));
+
+  assert.ok(ADMIN_ENTERPRISE_CHUNKS.length >= 8, 'enterprise catalog should be split into several chunks');
+  ADMIN_ENTERPRISE_CHUNKS.forEach((chunkPath) => {
+    const stat = fs.statSync(path.join(root, chunkPath));
+    assert.ok(stat.size < 12000, `${chunkPath} should stay small enough for split loading`);
+  });
+  assert.ok(uniqueModuleIds.size >= 40, 'enterprise catalog should cover full corporate/fleet/admin parity modules');
+  assert.match(enterpriseChunks, /registerModules/);
+  assert.match(enterpriseChunks, /registerBackend/);
+  assert.match(enterpriseChunks, /registerBenchmark/);
 });
 
 test('admin enterprise connect-all stores live controlled modules', () => {
@@ -293,11 +339,20 @@ test('admin enterprise connect-all stores live controlled modules', () => {
 
   const enterprise = JSON.parse(result.localStorage.getItem('goindiaride_admin_enterprise_fleet_controls_v1') || '{}');
   const modules = enterprise.modules || {};
-  assert.equal(Object.keys(modules).length, 12);
+  assert.ok(Object.keys(modules).length >= 40);
   assert.equal(modules.corporate_wallet_billing.status, 'live');
+  assert.equal(modules.guest_rides_central_booking.status, 'live');
+  assert.equal(modules.employee_bulk_api_lifecycle.runtimeMode, 'live_controlled');
+  assert.equal(modules.monthly_billing_statements.backendSyncStatus, 'protected_backend_ready');
+  assert.equal(modules.fraud_abuse_detection.status, 'live');
   assert.equal(modules.live_map_dispatch.runtimeMode, 'live_controlled');
+  Object.values(modules)
+    .filter((module) => module.backendSyncStatus === 'protected_backend_ready')
+    .forEach((module) => assert.ok(Array.isArray(module.backendEndpoints) && module.backendEndpoints.length > 0));
   assert.equal(enterprise.lastLiveTest.summary.gap, 0);
   assert.equal(enterprise.lastLiveTest.rows.every((row) => row.status === 'live'), true);
+  assert.ok(Array.isArray(enterprise.moduleCatalog));
+  assert.ok(enterprise.moduleCatalog.length >= 40);
   assert.equal(enterprise.wallet.corporateWalletEnabled, true);
   assert.equal(enterprise.fleet.liveMapEnabled, true);
   assert.equal(Array.isArray(enterprise.reports), true);

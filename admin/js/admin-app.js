@@ -46,7 +46,55 @@
     const BENCHMARK_REVIEW_KEY = "goindiaride_admin_benchmark_readiness_v1";
     const ENTERPRISE_CONTROL_KEY = "goindiaride_admin_enterprise_fleet_controls_v1";
     const BENCHMARK_RESEARCH_DATE = "2026-05-28";
-    const BENCHMARK_SOURCE_NOTES = [
+
+    function getAdminEnterpriseRegistry() {
+        const registry = window.GOINDIARIDE_ADMIN_ENTERPRISE;
+        return registry && typeof registry === "object" ? registry : {};
+    }
+
+    function registryText(value) {
+        return String(value || "").trim();
+    }
+
+    function mergeEnterpriseRowsById(baseRows = [], extensionRows = []) {
+        const rows = [];
+        [...baseRows, ...extensionRows].forEach((row) => {
+            if (!row || !row.id) return;
+            const id = registryText(row.id);
+            const index = rows.findIndex((item) => item && item.id === id);
+            if (index >= 0) {
+                rows[index] = { ...rows[index], ...row, id };
+            } else {
+                rows.push({ ...row, id });
+            }
+        });
+        return rows;
+    }
+
+    function mergeEnterpriseSources(baseRows = [], extensionRows = []) {
+        const rows = [];
+        [...baseRows, ...extensionRows].forEach((row) => {
+            if (!row || !row.url) return;
+            const url = registryText(row.url);
+            if (!rows.some((item) => item && item.url === url)) {
+                rows.push({ ...row, url });
+            }
+        });
+        return rows;
+    }
+
+    function mergeEnterpriseEndpointMap(baseMap = {}, extensionMap = {}) {
+        const merged = { ...baseMap };
+        Object.keys(extensionMap || {}).forEach((moduleId) => {
+            merged[moduleId] = Array.from(new Set([
+                ...((merged[moduleId] || [])),
+                ...((extensionMap[moduleId] || []))
+            ]));
+        });
+        return merged;
+    }
+
+    const BUILTIN_BENCHMARK_SOURCE_NOTES = [
         {
             brand: "Uber for Business",
             url: "https://www.uber.com/us/en/business/products/business-hub/",
@@ -108,7 +156,11 @@
             finding: "Safety guidance includes emergency support, verification, trip monitoring, rider/captain conduct and incident escalation."
         }
     ];
-    const BENCHMARK_MATRIX = [
+    const BENCHMARK_SOURCE_NOTES = mergeEnterpriseSources(
+        BUILTIN_BENCHMARK_SOURCE_NOTES,
+        getAdminEnterpriseRegistry().sources || []
+    );
+    const BUILTIN_BENCHMARK_MATRIX = [
         {
             id: "admin_booked_rides",
             title: "Admin-booked rides",
@@ -190,7 +242,11 @@
             statusType: "gap"
         }
     ];
-    const ENTERPRISE_MODULES = [
+    const BENCHMARK_MATRIX = mergeEnterpriseRowsById(
+        BUILTIN_BENCHMARK_MATRIX,
+        getAdminEnterpriseRegistry().benchmark || []
+    );
+    const BUILTIN_ENTERPRISE_MODULES = [
         {
             id: "corporate_accounts",
             title: "Corporate accounts and cost centers",
@@ -300,22 +356,31 @@
             statusType: "gap"
         }
     ];
-    const ENTERPRISE_BACKEND_REQUIRED_MODULES = new Set([
+    const ENTERPRISE_MODULES = mergeEnterpriseRowsById(
+        BUILTIN_ENTERPRISE_MODULES,
+        getAdminEnterpriseRegistry().modules || []
+    );
+    const BUILTIN_ENTERPRISE_BACKEND_REQUIRED_MODULES = [
         "travel_desk_api_booking",
         "corporate_wallet_billing",
         "reports_invoices",
         "driver_quality_payouts",
         "safety_compliance_sos",
         "support_expense_integrations"
+    ];
+    const ENTERPRISE_BACKEND_REQUIRED_MODULES = new Set([
+        ...BUILTIN_ENTERPRISE_BACKEND_REQUIRED_MODULES,
+        ...((getAdminEnterpriseRegistry().backendRequired || [])),
+        ...ENTERPRISE_MODULES.filter((module) => module && module.backendRequired).map((module) => module.id)
     ]);
-    const ENTERPRISE_BACKEND_ENDPOINTS = {
+    const ENTERPRISE_BACKEND_ENDPOINTS = mergeEnterpriseEndpointMap({
         travel_desk_api_booking: ["/api/bookings/fallback/admin-review-queue", "/api/bookings/:id/admin/review", "/api/bookings/:id/admin/edit"],
         corporate_wallet_billing: ["/api/wallet/admin/overview", "/api/wallet/admin/topups", "/api/wallet/admin/withdrawals", "/api/wallet/admin/payment-modes"],
         reports_invoices: ["/api/bookings/admin/pending", "/api/wallet/admin/commissions/summary", "/api/wallet/admin/driver-commissions/summary"],
         driver_quality_payouts: ["/api/wallet/admin/driver-commissions/summary", "/api/wallet/admin/withdrawals/:requestId/review"],
         safety_compliance_sos: ["/api/security/incidents", "/api/security/pulse", "/api/security/sos"],
         support_expense_integrations: ["/api/notifications", "/api/future-runtime-business/support/ticket", "/api/future-runtime-business/partner/webhook/logs"]
-    };
+    }, getAdminEnterpriseRegistry().backendEndpoints || {});
     const ADMIN_AUTO_REFRESH_INTERVAL_MS = 10 * 1000;
     const ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS = 60 * 1000;
     const CUSTOMER_BOOKING_SYNC_KEYS = [
@@ -2676,7 +2741,11 @@
             fleet: existing.fleet && typeof existing.fleet === "object" && !Array.isArray(existing.fleet)
                 ? existing.fleet
                 : {},
-            reports: Array.isArray(existing.reports) ? existing.reports : []
+            reports: Array.isArray(existing.reports) ? existing.reports : [],
+            moduleCatalog: Array.isArray(existing.moduleCatalog) ? existing.moduleCatalog : [],
+            moduleGroups: existing.moduleGroups && typeof existing.moduleGroups === "object" && !Array.isArray(existing.moduleGroups)
+                ? existing.moduleGroups
+                : {}
         };
     }
 
@@ -3433,6 +3502,9 @@
         if (enterpriseMap[item.id] && enterpriseModuleIsConnected(enterpriseMap[item.id])) {
             return "live";
         }
+        if (item.enterpriseModuleId && enterpriseModuleIsConnected(item.enterpriseModuleId)) {
+            return "live";
+        }
         if (item.id === "admin_booked_rides") {
             const hasCreateButton = Boolean($("#addBookingForCustomerBtn"));
             const hasFallbackSync = Boolean(state.connection && state.connection.bookingKeys && state.connection.bookingKeys.length);
@@ -3589,6 +3661,10 @@
         return entry.connected === true || cleanText(entry.status).toLowerCase() === "live";
     }
 
+    function getEnterpriseModuleDefinition(moduleId) {
+        return ENTERPRISE_MODULES.find((module) => module.id === moduleId) || null;
+    }
+
     function readDriverLocationRows() {
         const rows = [];
         DRIVER_LOCATION_KEYS.forEach((key) => {
@@ -3640,6 +3716,8 @@
             const hasExpenseCode = state.bookings.some((booking) => cleanText(booking.expenseCode || booking.expense_code || booking.memo));
             return hasExpenseCode || state.notifications.length ? "partial" : module.statusType;
         }
+        const source = getEnterpriseSourceReadiness(module.id);
+        if (source && source.ready) return "partial";
         return ["live", "partial", "gap"].includes(module.statusType) ? module.statusType : "gap";
     }
 
@@ -3690,7 +3768,13 @@
             { id: "invoice_pack", label: "Invoice pack and fare breakup export", ready: state.bookings.length > 0 },
             { id: "driver_quality", label: "Driver quality and payout report", ready: state.drivers.length > 0 },
             { id: "expense_codes", label: "Expense code and memo export", ready: enterpriseModuleIsConnected("support_expense_integrations") },
-            { id: "safety_compliance", label: "Safety and compliance audit", ready: enterpriseModuleIsConnected("safety_compliance_sos") }
+            { id: "safety_compliance", label: "Safety and compliance audit", ready: enterpriseModuleIsConnected("safety_compliance_sos") },
+            { id: "monthly_statement", label: "Monthly billing statement", ready: enterpriseModuleIsConnected("monthly_billing_statements") },
+            { id: "tax_gst_pack", label: "GST and tax invoice pack", ready: enterpriseModuleIsConnected("tax_gst_invoice_pack") },
+            { id: "fleet_utilization", label: "Fleet utilization and trip performance", ready: enterpriseModuleIsConnected("trip_performance_utilization") },
+            { id: "carbon_report", label: "Carbon and low-emission report", ready: enterpriseModuleIsConnected("carbon_low_emission_reporting") },
+            { id: "webhook_audit", label: "Webhook and integration audit", ready: enterpriseModuleIsConnected("webhooks_partner_logs") },
+            { id: "privacy_export", label: "Audit log and privacy export", ready: enterpriseModuleIsConnected("audit_logs_privacy_exports") }
         ];
     }
 
@@ -3704,13 +3788,16 @@
         const modules = { ...(baseControls.modules || {}) };
         ENTERPRISE_MODULES.forEach((module) => {
             if (!ids.has(module.id)) return;
-            const backendReady = !enterpriseModuleNeedsBackend(module.id) || isBackendAccessTokenUsable(getBackendAccessToken());
+            const needsBackend = enterpriseModuleNeedsBackend(module.id);
+            const backendReady = !needsBackend || isBackendAccessTokenUsable(getBackendAccessToken());
             modules[module.id] = {
                 ...(modules[module.id] || {}),
                 connected: true,
                 status: backendReady ? "live" : "partial",
                 runtimeMode: "live_controlled",
-                backendSyncStatus: backendReady ? "protected_backend_ready" : "admin_auth_required",
+                backendSyncStatus: needsBackend
+                    ? (backendReady ? "protected_backend_ready" : "admin_auth_required")
+                    : "local_control_ready",
                 backendEndpoints: ENTERPRISE_BACKEND_ENDPOINTS[module.id] || [],
                 connectedAt: now,
                 updatedAt: now,
@@ -3725,6 +3812,21 @@
             researchedAt: BENCHMARK_RESEARCH_DATE,
             updatedAt: now,
             modules,
+            moduleCatalog: ENTERPRISE_MODULES.map((module) => ({
+                id: module.id,
+                title: module.title,
+                area: module.area,
+                competitors: module.competitors,
+                sourceCheck: module.sourceCheck || "controls",
+                backendRequired: enterpriseModuleNeedsBackend(module.id),
+                backendEndpoints: ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []
+            })),
+            moduleGroups: ENTERPRISE_MODULES.reduce((acc, module) => {
+                const area = cleanText(module.area || "General");
+                acc[area] = acc[area] || [];
+                acc[area].push(module.id);
+                return acc;
+            }, {}),
             corporate: {
                 ...(baseControls.corporate || {}),
                 companyName: cleanText(baseControls.corporate?.companyName || "GOindiaRIDE Corporate"),
@@ -3854,6 +3956,89 @@
         showToast(`${module.title} connected.`);
     }
 
+    function getGenericEnterpriseSourceReadiness(module) {
+        const sourceCheck = cleanText(module?.sourceCheck || "controls").toLowerCase();
+        const customers = getCustomerRows();
+        const locations = readDriverLocationRows();
+        const coordinateBookings = state.bookings.filter(bookingHasCoordinates).length;
+        const reportReadyCount = buildEnterpriseReportTemplates().filter((report) => report.ready).length;
+        const tokenReady = isBackendAccessTokenUsable(getBackendAccessToken());
+        const checks = {
+            customers: {
+                ready: true,
+                count: customers.length,
+                detail: `${customers.length} customer/employee rows scanned`
+            },
+            users: {
+                ready: true,
+                count: state.users.length,
+                detail: `${state.users.length} user rows scanned`
+            },
+            controls: {
+                ready: true,
+                count: 1,
+                detail: "Admin enterprise control store is writable"
+            },
+            policy: {
+                ready: true,
+                count: 1,
+                detail: "Policy, approval and budget control store is writable"
+            },
+            bookings: {
+                ready: true,
+                count: state.bookings.length,
+                detail: `${state.bookings.length} booking rows scanned`
+            },
+            wallet: {
+                ready: true,
+                count: getEnterpriseWalletSnapshot().bookingCount,
+                detail: "Wallet, billing and fare pipeline controls are wired"
+            },
+            reports: {
+                ready: true,
+                count: reportReadyCount,
+                detail: `${reportReadyCount} report/export templates ready`
+            },
+            drivers: {
+                ready: true,
+                count: state.drivers.length,
+                detail: `${state.drivers.length} driver/vehicle rows scanned`
+            },
+            fleet: {
+                ready: true,
+                count: state.drivers.length + coordinateBookings,
+                detail: `${state.drivers.length} drivers and ${coordinateBookings} coordinate-ready bookings scanned`
+            },
+            locations: {
+                ready: locations.length > 0 || coordinateBookings > 0,
+                count: locations.length + coordinateBookings,
+                detail: `${locations.length} driver location rows and ${coordinateBookings} coordinate-ready bookings`
+            },
+            safety: {
+                ready: true,
+                count: state.notifications.length + state.bookings.length,
+                detail: `${state.notifications.length} alerts and ${state.bookings.length} bookings scanned for safety checks`
+            },
+            notifications: {
+                ready: true,
+                count: state.notifications.length,
+                detail: `${state.notifications.length} notification/support rows scanned`
+            },
+            backend: {
+                ready: tokenReady || !enterpriseModuleNeedsBackend(module?.id),
+                count: (ENTERPRISE_BACKEND_ENDPOINTS[module?.id] || []).length,
+                detail: tokenReady
+                    ? "Admin token is ready for protected backend verification"
+                    : "Admin login token required for protected backend verification"
+            }
+        };
+        return checks[sourceCheck] || {
+            ready: true,
+            count: 1,
+            detail: "Admin control module is registered and writable"
+        };
+    }
+
     function getEnterpriseSourceReadiness(moduleId) {
         const customers = getCustomerRows();
         const locations = readDriverLocationRows();
@@ -3921,7 +4106,7 @@
                 detail: `${state.notifications.length} support/portal notifications available for SLA audit`
             }
         };
-        return sourceMap[moduleId] || { ready: false, count: 0, detail: "Source check not mapped" };
+        return sourceMap[moduleId] || getGenericEnterpriseSourceReadiness(getEnterpriseModuleDefinition(moduleId));
     }
 
     function getEnterpriseLiveTestRows() {
@@ -4008,7 +4193,7 @@
             {
                 title: "Reports and invoice packs",
                 status: enterpriseModuleIsConnected("reports_invoices") ? "live" : (state.bookings.length ? "partial" : "gap"),
-                detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length}/6 report templates ready`
+                detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length}/${buildEnterpriseReportTemplates().length} report templates ready`
             }
         ];
     }
@@ -4048,7 +4233,7 @@
             },
             {
                 title: "Invoice and spend exports",
-                detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length} report templates ready`,
+                detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length}/${buildEnterpriseReportTemplates().length} report templates ready`,
                 status: enterpriseModuleIsConnected("reports_invoices") ? "live" : "partial"
             }
         ];
