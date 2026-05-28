@@ -14,6 +14,8 @@
     ];
     const BACKEND_PATH = "/api/admin/feature-control";
     const MAX_RENDER_ROWS = 160;
+    const CATALOG_IDLE_DELAY_MS = 12000;
+    const CATALOG_IDLE_TIMEOUT_MS = 20000;
     const BLOCKED_STATUSES = ["disabled", "paused", "blocked", "approval_required", "pending_approval"];
     const CORE_PORTAL_FEATURES = {
         customer: [
@@ -78,8 +80,20 @@
         category: "all",
         status: "all",
         backendOnline: false,
-        loaded: false
+        loaded: false,
+        loading: false
     };
+
+    function scheduleIdle(callback, delayMs = 0) {
+        const run = () => {
+            if (typeof window.requestIdleCallback === "function") {
+                window.requestIdleCallback(callback, { timeout: CATALOG_IDLE_TIMEOUT_MS });
+                return;
+            }
+            window.setTimeout(callback, 180);
+        };
+        window.setTimeout(run, delayMs);
+    }
 
     function $(selector, root = document) {
         return root.querySelector(selector);
@@ -688,14 +702,32 @@
         state.catalog = mergeCatalog(coreCatalogItems(), await fetchStaticCatalog());
     }
 
-    async function init() {
+    async function loadCatalogAndRender() {
+        if (state.loading || state.loaded) return;
+        state.loading = true;
+        installStyles();
+        ensurePanel();
+        try {
+            await loadCatalog();
+            state.loaded = true;
+            mirrorIntoAdminBridgeStore(readStore());
+            render();
+        } finally {
+            state.loading = false;
+        }
+    }
+
+    function requestCatalogLoad() {
+        scheduleIdle(loadCatalogAndRender);
+    }
+
+    function init() {
         installStyles();
         ensurePanel();
         bindEvents();
-        await loadCatalog();
-        state.loaded = true;
-        mirrorIntoAdminBridgeStore(readStore());
-        render();
+        const portalNav = document.querySelector('[data-view="portals"]');
+        if (portalNav) portalNav.addEventListener("click", requestCatalogLoad, { once: true });
+        scheduleIdle(loadCatalogAndRender, CATALOG_IDLE_DELAY_MS);
     }
 
     if (document.readyState === "loading") {

@@ -383,6 +383,14 @@
     }, getAdminEnterpriseRegistry().backendEndpoints || {});
     const ADMIN_AUTO_REFRESH_INTERVAL_MS = 10 * 1000;
     const ADMIN_AUTH_BOOKING_SYNC_INTERVAL_MS = 60 * 1000;
+    const ADMIN_IDLE_STARTUP_DELAY_MS = 2500;
+    const ADMIN_IDLE_STARTUP_TIMEOUT_MS = 12000;
+    const ADMIN_STORAGE_SCAN_MAX_KEYS = 30;
+    const ADMIN_STORAGE_SCAN_MAX_VALUE_CHARS = 160000;
+    const ADMIN_STORAGE_DEEP_SCAN_MAX_KEYS = 120;
+    const ADMIN_STORAGE_DEEP_SCAN_MAX_VALUE_CHARS = 320000;
+    const ADMIN_DEEP_STORAGE_SCAN_FLAG = "goindiaride_admin_enable_deep_storage_scan";
+    const BOOKING_TABLE_RENDER_LIMIT = 80;
     const CUSTOMER_BOOKING_SYNC_KEYS = [
         "bookings",
         "goride_bookings",
@@ -533,6 +541,28 @@
             return parsed === null || parsed === undefined ? fallback : parsed;
         } catch (_error) {
             return fallback;
+        }
+    }
+
+    function scheduleAdminIdle(callback, delayMs = ADMIN_IDLE_STARTUP_DELAY_MS) {
+        const run = () => {
+            if (typeof window.requestIdleCallback === "function") {
+                window.requestIdleCallback(callback, { timeout: ADMIN_IDLE_STARTUP_TIMEOUT_MS });
+                return;
+            }
+            window.setTimeout(callback, 80);
+        };
+        window.setTimeout(run, delayMs);
+    }
+
+    function shouldRunDeepStorageScan() {
+        try {
+            const query = new URLSearchParams(window.location.search || "");
+            if (query.get("adminDeepScan") === "1") return true;
+            if (query.get("adminDeepScan") === "0") return false;
+            return localStorage.getItem(ADMIN_DEEP_STORAGE_SCAN_FLAG) === "true";
+        } catch (_error) {
+            return false;
         }
     }
 
@@ -1109,15 +1139,29 @@
         }
     }
 
-    function scanStorageForBookingRows(storage, label) {
+    function shouldScanStorageKeyForBookings(key, options = {}) {
+        if (!key || ADMIN_INTERNAL_BOOKING_SCAN_SKIP_KEYS.has(key)) return false;
+        if (BOOKING_KEYS.includes(key)) return false;
+        if (options.deep === true) return true;
+        return sourceLooksBookingRelated(key);
+    }
+
+    function scanStorageForBookingRows(storage, label, options = {}) {
         const rows = [];
         try {
             if (!storage || typeof storage.length !== "number") return rows;
+            const deep = options.deep === true || shouldRunDeepStorageScan();
+            const maxKeys = Number(options.maxKeys || (deep ? ADMIN_STORAGE_DEEP_SCAN_MAX_KEYS : ADMIN_STORAGE_SCAN_MAX_KEYS));
+            const maxValueChars = Number(options.maxValueChars || (deep ? ADMIN_STORAGE_DEEP_SCAN_MAX_VALUE_CHARS : ADMIN_STORAGE_SCAN_MAX_VALUE_CHARS));
+            let scannedKeys = 0;
             for (let index = 0; index < storage.length; index += 1) {
                 const key = storage.key(index);
-                if (!key) continue;
-                if (ADMIN_INTERNAL_BOOKING_SCAN_SKIP_KEYS.has(key)) continue;
-                const parsed = parseJson(storage.getItem(key), null);
+                if (!shouldScanStorageKeyForBookings(key, { deep })) continue;
+                if (scannedKeys >= maxKeys) break;
+                const raw = storage.getItem(key);
+                if (!raw || String(raw).length > maxValueChars) continue;
+                scannedKeys += 1;
+                const parsed = parseJson(raw, null);
                 extractBookingCandidates(parsed, `${label}:${key}`, rows);
             }
         } catch (_error) {
@@ -1126,10 +1170,10 @@
         return rows;
     }
 
-    function scanAllStorageForBookingRows() {
+    function scanAllStorageForBookingRows(options = {}) {
         return [
-            ...scanStorageForBookingRows(localStorage, "localStorage"),
-            ...scanStorageForBookingRows(sessionStorage, "sessionStorage")
+            ...scanStorageForBookingRows(localStorage, "localStorage", options),
+            ...scanStorageForBookingRows(sessionStorage, "sessionStorage", options)
         ];
     }
 
@@ -3076,7 +3120,7 @@
         }
     }
 
-    function loadBookingSplit() {
+    function loadBookingSplit(options = {}) {
         const customerRows = [];
         const driverRows = [];
         BOOKING_KEYS.forEach((key) => {
@@ -3084,9 +3128,11 @@
                 pushScopedBookingRow(item, key, customerRows, driverRows);
             });
         });
-        scanAllStorageForBookingRows().forEach((item) => {
-            pushScopedBookingRow(item, item.sourceKey || "storage_scan", customerRows, driverRows);
-        });
+        if (options.includeStorageScan !== false) {
+            scanAllStorageForBookingRows(options.storageScan || {}).forEach((item) => {
+                pushScopedBookingRow(item, item.sourceKey || "storage_scan", customerRows, driverRows);
+            });
+        }
 
         const customerBookings = sortRowsByCreatedAt(mergeById(customerRows));
         const driverBookings = sortRowsByCreatedAt(mergeDriverBookingsById(driverRows));
@@ -4311,7 +4357,10 @@
     }
 
     function refreshData(options = {}) {
-        const bookingSplit = loadBookingSplit();
+        const bookingSplit = loadBookingSplit({
+            includeStorageScan: options.includeStorageScan !== false,
+            storageScan: options.storageScan || {}
+        });
         state.bookings = bookingSplit.customerBookings;
         state.driverBookings = bookingSplit.driverBookings;
         state.drivers = loadDrivers();
@@ -4585,8 +4634,10 @@
     function renderBookingTable() {
         const host = $("#bookingTableBody");
         if (!host) return;
-        const rows = getFilteredBookings(state.bookingFilter);
-        if (!rows.length) {
+        const allRows = getFilteredBookings(state.bookingFilter);
+        const rows = allRows.slice(0, BOOKING_TABLE_RENDER_LIMIT);
+        const hiddenRows = Math.max(0, allRows.length - rows.length);
+        if (!allRows.length) {
             const query = cleanText(state.bookingQuery || state.query);
             const message = query ? `No booking rows found for "${query}".` : "No booking rows found.";
             host.innerHTML = `<tr><td colspan="6"><div class="empty-state">${escapeHtml(message)}</div></td></tr>`;
@@ -4609,7 +4660,7 @@
                     ${renderBookingCompactDetails(booking)}
                 </td>
             </tr>
-        `).join("");
+        `).join("") + (hiddenRows ? `<tr><td colspan="6"><div class="empty-state">${hiddenRows} more bookings hidden to keep admin portal fast. Use search/filter to narrow.</div></td></tr>` : "");
     }
 
     function renderBookingSplitSummary() {
@@ -6091,6 +6142,16 @@
         }
     }
 
+    function runDeferredStartupWork() {
+        connectAllPortalFeatures();
+        refreshData({
+            storageScan: {
+                maxKeys: ADMIN_STORAGE_SCAN_MAX_KEYS,
+                maxValueChars: ADMIN_STORAGE_SCAN_MAX_VALUE_CHARS
+            }
+        });
+    }
+
     window.GoIndiaAdminBookingSplit = {
         keys: {
             customer: CUSTOMER_BOOKING_SPLIT_KEY,
@@ -6098,6 +6159,20 @@
             summary: BOOKING_SPLIT_VIEW_KEY
         },
         refresh: loadBookingSplit,
+        deepScan() {
+            const split = loadBookingSplit({
+                includeStorageScan: true,
+                storageScan: {
+                    deep: true,
+                    maxKeys: ADMIN_STORAGE_DEEP_SCAN_MAX_KEYS,
+                    maxValueChars: ADMIN_STORAGE_DEEP_SCAN_MAX_VALUE_CHARS
+                }
+            });
+            state.bookings = split.customerBookings;
+            state.driverBookings = split.driverBookings;
+            renderAll();
+            return split;
+        },
         getCustomerBookings() {
             return loadBookingSplit().customerBookings;
         },
@@ -6130,10 +6205,10 @@
         hydrateOperator();
         setupEvents();
         switchView(state.view);
-        connectAllPortalFeatures();
         setupPortalListener();
         applySettings();
-        refreshData();
+        refreshData({ skipBackendSync: true, includeStorageScan: false });
+        scheduleAdminIdle(runDeferredStartupWork);
     }
 
     document.addEventListener("DOMContentLoaded", init);

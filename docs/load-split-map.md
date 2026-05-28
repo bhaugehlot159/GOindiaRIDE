@@ -72,3 +72,4 @@ The browser admin catalog keeps compatibility manifest files at the old paths, b
 5. Use `data-goi-defer-src` for non-critical runtime scripts so the page loads first.
 6. Do not delete feature/data content when splitting. Move it and reconnect it.
 7. Keep heavy future-feature manifests and ultimate runtime scripts out of automatic startup. They can be loaded manually with `window.GoIndiaRideLoadDeferredFeatures()` or by opening a page with `?goiFutureRuntime=1`.
+8. Keep admin startup lightweight: unknown localStorage deep booking scans stay manual via `window.GoIndiaAdminBookingSplit.deepScan()` or `?adminDeepScan=1`, and A-Z feature catalog loading should stay idle/deferred.

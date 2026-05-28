@@ -74,9 +74,9 @@ test('admin app has unified live control center and fresh service worker coverag
   const center = read('admin/js/admin-live-control-center.js');
   const sw = read('sw.js');
 
-  assert.match(admin, /admin-app\.js\?v=20260516-overview-clean1/);
-  assert.match(admin, /admin-live-control-center\.js\?v=20260516-overview-clean1/);
-  assert.match(legacyAdmin, /admin-live-control-center\.js\?v=20260516-overview-clean1/);
+  assert.match(admin, /admin-app\.js\?v=20260528-admin-hangfix1/);
+  assert.match(admin, /admin-live-control-center\.js\?v=20260528-admin-hangfix1/);
+  assert.match(legacyAdmin, /admin-live-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(center, /Unified Admin Control Center/);
   assert.match(center, /approveBooking/);
   assert.match(center, /cancelBooking/);
@@ -92,9 +92,9 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(center, /function isInternalDiagnosticBooking/);
   assert.match(center, /if \(isPlaceholderText\(pickup\)\) return/);
   assert.match(center, /approveKyc/);
-  assert.match(admin, /admin-feature-control-center\.js\?v=20260526-az-control1/);
+  assert.match(admin, /admin-feature-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v42-20260528-hangfix/);
+  assert.match(sw, /goindiaride-pwa-v43-20260528-admin-hangfix/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });

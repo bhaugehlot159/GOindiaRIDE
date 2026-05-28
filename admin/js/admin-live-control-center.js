@@ -18,6 +18,21 @@
     const ADMIN_REPORT_KEY = "goindiaride_admin_unified_control_reports_v1";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
     const OFFER_MS = 5 * 60 * 1000;
+    const ADMIN_LIVE_STARTUP_DELAY_MS = 4500;
+    const ADMIN_LIVE_IDLE_TIMEOUT_MS = 12000;
+    const ADMIN_LIVE_RENDER_INTERVAL_MS = 45000;
+    const ADMIN_LIVE_MAX_BOOKINGS = 80;
+
+    function scheduleIdle(callback, delayMs = 0) {
+        const run = () => {
+            if (typeof window.requestIdleCallback === "function") {
+                window.requestIdleCallback(callback, { timeout: ADMIN_LIVE_IDLE_TIMEOUT_MS });
+                return;
+            }
+            window.setTimeout(callback, 120);
+        };
+        window.setTimeout(run, delayMs);
+    }
 
     function parseJson(key, fallback) {
         try {
@@ -191,7 +206,7 @@
                 byId.set(id, normalized);
             });
         });
-        return Array.from(byId.values());
+        return Array.from(byId.values()).slice(0, ADMIN_LIVE_MAX_BOOKINGS);
     }
 
     function patchBooking(bookingId, patch) {
@@ -652,9 +667,9 @@
 
     function init() {
         installStyles();
-        render();
         bind();
-        setInterval(render, 15000);
+        scheduleIdle(render, ADMIN_LIVE_STARTUP_DELAY_MS);
+        setInterval(() => scheduleIdle(render), ADMIN_LIVE_RENDER_INTERVAL_MS);
     }
 
     if (document.readyState === "loading") {
