@@ -537,6 +537,37 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(adminApp, /status=\$\{encodeURIComponent\(status\)\}/);
 });
 
+test('admin portal active paths use customer live data instead of admin demo stores', () => {
+  const adminApp = readRepoFile('admin/js/admin-app.js');
+  const adminPortal = readRepoFile('admin/js/admin-portal.js');
+  const adminBridge = readRepoFile('js/admin-control-bridge.js');
+  const safetyMonitoring = readRepoFile('admin/js/safety-monitoring.js');
+
+  [adminApp, adminPortal, adminBridge, safetyMonitoring].forEach((source) => {
+    assert.equal(/adminDemo(Users|Drivers|Bookings)|getDemoData|initializeDemoData|demo_driver/.test(source), false);
+  });
+
+  assert.match(adminPortal, /function initializeLiveAdminData\(/);
+  assert.match(adminPortal, /function getLiveAdminData\(/);
+  assert.match(adminPortal, /goindiaride_live_customer_booking_queue_v1/);
+  assert.match(adminPortal, /ADMIN_CUSTOMER_LIVE_SECTION_IDS/);
+  assert.match(safetyMonitoring, /function getCustomerSupportTickets\(/);
+});
+
+test('admin customer-live mode avoids heavy non-customer generated bundles', () => {
+  const adminIndex = readRepoFile('admin/index.html');
+  const featureControl = readRepoFile('admin/js/admin-feature-control-center.js');
+
+  assert.equal(/data-goi-defer-src="\.\.\/js\/future-feature-runtime/.test(adminIndex), false);
+  assert.equal(/features-admin\.js|features-security\.js|future-feature-universal-live-runner/.test(adminIndex), false);
+  assert.match(adminIndex, /Customer live operations and connected admin controls/);
+
+  assert.match(featureControl, /feature-index\/customer\.json/);
+  assert.equal(/feature-index\/(driver|admin|security|additional)\.json/.test(featureControl), false);
+  assert.match(featureControl, /targetPortals:\s*\["customer",\s*"admin"\]/);
+  assert.match(featureControl, /Customer Live Feature Control/);
+});
+
 test('changed inline scripts still compile', () => {
   const inlineScriptRegex = new RegExp('<script\\b(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>', 'gi');
   for (const relativePath of ['admin/app.html', 'admin/customer-bookings/index.html', 'admin/driver-bookings/index.html', 'pages/customer-dashboard.html', 'pages/booking.html']) {

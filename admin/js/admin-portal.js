@@ -16,6 +16,27 @@ const adminLiveCache = {
     Drivers: [],
     Bookings: []
 };
+const ADMIN_LIVE_BOOKING_KEYS = [
+    'bookings',
+    'goride_bookings',
+    'goindiaride_admin_review_inbox_v1',
+    'goindiaride_active_bookings',
+    'goindiaride_scheduled_rides',
+    'goindiaride_ride_history',
+    'customerBookings',
+    'customer_bookings',
+    'goindiaride_live_customer_booking_queue_v1'
+];
+const ADMIN_LIVE_USER_KEYS = ['users', 'goride_users'];
+const ADMIN_LIVE_DRIVER_KEYS = ['drivers', 'goride_drivers'];
+const ADMIN_CUSTOMER_LIVE_SECTION_IDS = new Set([
+    'dashboard',
+    'service-alerts',
+    'support-dashboard',
+    'promo-offers',
+    'system-config',
+    'audit-logs'
+]);
 
 // Set initial theme
 if (currentTheme === 'dark') {
@@ -154,6 +175,19 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     }
 });
 
+function limitLegacyPortalToCustomerLiveSections() {
+    document.querySelectorAll('.menu-item[data-section]').forEach((item) => {
+        const sectionId = item.getAttribute('data-section');
+        if (ADMIN_CUSTOMER_LIVE_SECTION_IDS.has(sectionId)) return;
+        item.remove();
+    });
+    document.querySelectorAll('.menu-section').forEach((section) => {
+        if (!section.querySelector('.menu-item[data-section]')) {
+            section.remove();
+        }
+    });
+}
+
 // Toast Notification System
 function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
@@ -179,9 +213,9 @@ function upsertAdminBookingFromNotification(booking, fallbackStatus) {
     const incomingBookingId = String((booking && (booking.id || booking.bookingId)) || '').trim();
     if (!booking || !incomingBookingId) return null;
 
-    const adminBookings = getDemoData('Bookings');
+    const adminBookings = getLiveAdminData('Bookings').slice();
     const bookingId = incomingBookingId;
-    const idx = adminBookings.findIndex((item) => String(item.id) === bookingId);
+    const idx = adminBookings.findIndex((item) => String(item.id || item.bookingId) === bookingId);
     const existing = idx === -1 ? {} : (adminBookings[idx] || {});
     const customerSnapshot = booking.customerSnapshot && typeof booking.customerSnapshot === 'object'
         ? booking.customerSnapshot
@@ -222,11 +256,7 @@ function upsertAdminBookingFromNotification(booking, fallbackStatus) {
         adminBookings[idx] = { ...adminBookings[idx], ...normalized };
     }
 
-    if (ADMIN_LIVE_ONLY_MODE) {
-        adminLiveCache.Bookings = adminBookings.slice(0, 500);
-    } else {
-        localStorage.setItem('adminDemoBookings', JSON.stringify(adminBookings));
-    }
+    adminLiveCache.Bookings = mergeAdminLiveRows(adminBookings, 'booking').slice(0, 500);
     return normalized;
 }
 
@@ -682,60 +712,136 @@ function startBackendBookingAlerts() {
         pollBackendBookingAlerts({ seedOnly: false });
     }, BACKEND_BOOKING_ALERT_POLL_MS);
 }
-// Initialize Demo Data
-function initializeDemoData() {
-    if (ADMIN_LIVE_ONLY_MODE) {
-        adminLiveCache.Users = [];
-        adminLiveCache.Drivers = [];
-        adminLiveCache.Bookings = [];
-        return;
-    }
-
-    // Check if demo data already exists
-    if (!localStorage.getItem('adminDemoInitialized')) {
-        // Create demo users
-        const demoUsers = [
-            { id: 1, name: 'Rajesh Kumar', email: 'rajesh@example.com', phone: '9876543210', status: 'active', joinDate: '2024-01-15' },
-            { id: 2, name: 'Priya Sharma', email: 'priya@example.com', phone: '9876543211', status: 'active', joinDate: '2024-02-20' },
-            { id: 3, name: 'Amit Patel', email: 'amit@example.com', phone: '9876543212', status: 'inactive', joinDate: '2024-03-10' },
-            { id: 4, name: 'Sneha Reddy', email: 'sneha@example.com', phone: '9876543213', status: 'active', joinDate: '2024-04-05' },
-            { id: 5, name: 'Vikram Singh', email: 'vikram@example.com', phone: '9876543214', status: 'blocked', joinDate: '2024-05-12' }
-        ];
-        
-        // Create demo drivers
-        const demoDrivers = [
-            { id: 1, name: 'Ravi Kumar', email: 'ravi@example.com', phone: '8765432109', vehicle: 'Sedan - DL 01 AB 1234', rating: 4.8, totalRides: 450, status: 'available', revenue: 125000 },
-            { id: 2, name: 'Mohan Lal', email: 'mohan@example.com', phone: '8765432108', vehicle: 'SUV - DL 02 CD 5678', rating: 4.9, totalRides: 380, status: 'on-trip', revenue: 98000 },
-            { id: 3, name: 'Suresh Babu', email: 'suresh@example.com', phone: '8765432107', vehicle: 'Hatchback - DL 03 EF 9012', rating: 4.5, totalRides: 290, status: 'offline', revenue: 72000 },
-            { id: 4, name: 'Anil Kumar', email: 'anil@example.com', phone: '8765432106', vehicle: 'Sedan - DL 04 GH 3456', rating: 4.7, totalRides: 520, status: 'available', revenue: 145000 },
-            { id: 5, name: 'Dinesh Yadav', email: 'dinesh@example.com', phone: '8765432105', vehicle: 'SUV - DL 05 IJ 7890', rating: 4.6, totalRides: 310, status: 'available', revenue: 89000 }
-        ];
-        
-        // Create demo bookings
-        const demoBookings = [
-            { id: 1, customerId: 1, driverId: 1, from: 'Jaipur Railway Station', to: 'Hawa Mahal', fare: 450, status: 'completed', date: '2024-12-01' },
-            { id: 2, customerId: 2, driverId: 2, from: 'Jodhpur Airport', to: 'Mehrangarh Fort', fare: 650, status: 'completed', date: '2024-12-02' },
-            { id: 3, customerId: 3, driverId: 1, from: 'Udaipur City Palace', to: 'Lake Pichola', fare: 350, status: 'cancelled', date: '2024-12-03' },
-            { id: 4, customerId: 4, driverId: 3, from: 'Jaisalmer Fort', to: 'Sam Sand Dunes', fare: 1200, status: 'completed', date: '2024-12-04' },
-            { id: 5, customerId: 1, driverId: 4, from: 'Amber Fort', to: 'Jal Mahal', fare: 550, status: 'completed', date: '2024-12-05' }
-        ];
-        
-        // Store demo data
-        localStorage.setItem('adminDemoUsers', JSON.stringify(demoUsers));
-        localStorage.setItem('adminDemoDrivers', JSON.stringify(demoDrivers));
-        localStorage.setItem('adminDemoBookings', JSON.stringify(demoBookings));
-        localStorage.setItem('adminDemoInitialized', 'true');
+function safeAdminJson(raw, fallback) {
+    try {
+        const parsed = JSON.parse(raw || '');
+        return parsed === null || parsed === undefined ? fallback : parsed;
+    } catch (_error) {
+        return fallback;
     }
 }
 
-// Get demo data
-function getDemoData(type) {
-    if (ADMIN_LIVE_ONLY_MODE && Object.prototype.hasOwnProperty.call(adminLiveCache, type)) {
-        return Array.isArray(adminLiveCache[type]) ? adminLiveCache[type] : [];
+function readAdminArrayFromStorageKey(key) {
+    const parsed = safeAdminJson(localStorage.getItem(key), []);
+    if (Array.isArray(parsed)) return parsed.filter((item) => item && typeof item === 'object');
+    if (parsed && typeof parsed === 'object') {
+        const nested = parsed.items || parsed.rows || parsed.bookings || parsed.users || parsed.drivers || [];
+        return Array.isArray(nested) ? nested.filter((item) => item && typeof item === 'object') : [];
     }
+    return [];
+}
 
-    const data = localStorage.getItem(`adminDemo${type}`);
-    return data ? JSON.parse(data) : [];
+function readAdminRowsFromStorage(keys) {
+    return keys.reduce((rows, key) => rows.concat(readAdminArrayFromStorageKey(key)), []);
+}
+
+function adminLiveRowKey(row, prefix, index) {
+    return String(
+        row.id ||
+        row.bookingId ||
+        row._id ||
+        row.customerId ||
+        row.userId ||
+        row.driverId ||
+        row.phone ||
+        row.email ||
+        `${prefix}_${index}`
+    ).trim();
+}
+
+function adminLiveRowTime(row) {
+    const raw = row.updatedAt || row.createdAt || row.timestamp || row.date || row.joinDate || 0;
+    const time = new Date(raw).getTime();
+    return Number.isFinite(time) ? time : 0;
+}
+
+function mergeAdminLiveRows(rows, prefix) {
+    const byKey = new Map();
+    rows.forEach((row, index) => {
+        if (!row || typeof row !== 'object') return;
+        const key = adminLiveRowKey(row, prefix, index);
+        if (!key) return;
+        const existing = byKey.get(key);
+        byKey.set(key, existing ? { ...existing, ...row } : row);
+    });
+    return Array.from(byKey.values()).sort((a, b) => adminLiveRowTime(b) - adminLiveRowTime(a));
+}
+
+function normalizeAdminBookingRow(row) {
+    const customerSnapshot = row.customerSnapshot && typeof row.customerSnapshot === 'object'
+        ? row.customerSnapshot
+        : {};
+    const customer = row.customer && typeof row.customer === 'object' ? row.customer : {};
+    const fare = Number(row.finalFare || row.totalFare || row.amount || row.fare || row.fareQuote?.amount || row.fareBreakdown?.totalFare || 0);
+    const id = String(row.id || row.bookingId || row._id || '').trim();
+    return {
+        ...row,
+        id: id || row.id,
+        bookingId: row.bookingId || id || row._id || '',
+        customerId: row.customerId || customerSnapshot.id || customer.id || '',
+        driverId: row.driverId || row.assignedDriverId || '',
+        customerName: row.customerName || customerSnapshot.name || customer.name || '',
+        customerPhone: row.customerPhone || customerSnapshot.phone || customer.phone || '',
+        customerEmail: row.customerEmail || customerSnapshot.email || customer.email || '',
+        from: row.pickup || row.pickupLocation || row.from || '',
+        to: row.dropoff || row.drop || row.dropLocation || row.to || '',
+        fare,
+        status: String(row.status || row.adminReviewStatus || 'pending').toLowerCase(),
+        createdAt: row.createdAt || row.timestamp || row.date || new Date().toISOString(),
+        updatedAt: row.updatedAt || row.createdAt || row.timestamp || row.date || ''
+    };
+}
+
+function refreshAdminLiveCacheFromStorage() {
+    adminLiveCache.Users = mergeAdminLiveRows([
+        ...readAdminRowsFromStorage(ADMIN_LIVE_USER_KEYS),
+        ...adminLiveCache.Users
+    ], 'user').slice(0, 500);
+    adminLiveCache.Drivers = mergeAdminLiveRows([
+        ...readAdminRowsFromStorage(ADMIN_LIVE_DRIVER_KEYS),
+        ...adminLiveCache.Drivers
+    ], 'driver').slice(0, 500);
+    adminLiveCache.Bookings = mergeAdminLiveRows([
+        ...readAdminRowsFromStorage(ADMIN_LIVE_BOOKING_KEYS).map(normalizeAdminBookingRow),
+        ...adminLiveCache.Bookings
+    ], 'booking').slice(0, 500);
+}
+
+function initializeLiveAdminData() {
+    refreshAdminLiveCacheFromStorage();
+}
+
+function getLiveAdminData(type) {
+    if (!Object.prototype.hasOwnProperty.call(adminLiveCache, type)) return [];
+    refreshAdminLiveCacheFromStorage();
+    return Array.isArray(adminLiveCache[type]) ? adminLiveCache[type] : [];
+}
+
+function renderLiveDashboardStats(bookings, users, drivers) {
+    const customerRefs = new Set(
+        bookings
+            .map((item) => String(item.customerId || item.customerPhone || item.customerEmail || '').trim())
+            .filter(Boolean)
+    );
+    const driverRefs = new Set(
+        bookings
+            .map((item) => String(item.driverId || '').trim())
+            .filter(Boolean)
+    );
+    const activeDrivers = drivers.filter((driver) => {
+        const status = String(driver.status || driver.availability || '').toLowerCase();
+        return ['available', 'on-trip', 'online', 'active', 'verified'].includes(status);
+    }).length;
+    const liveRevenue = bookings
+        .filter((booking) => !['cancelled', 'rejected', 'blocked_by_admin', 'deleted_by_admin'].includes(String(booking.status || '').toLowerCase()))
+        .reduce((sum, booking) => sum + Number(booking.fare || booking.totalFare || booking.amount || 0), 0);
+
+    document.getElementById('stat-users').textContent = String(Math.max(users.length, customerRefs.size));
+    document.getElementById('stat-drivers').textContent = drivers.length
+        ? `${activeDrivers} / ${drivers.length}`
+        : `${driverRefs.size} active refs`;
+    document.getElementById('stat-bookings').textContent = String(bookings.length);
+    document.getElementById('stat-revenue').textContent = '₹' + Number(liveRevenue || 0).toLocaleString();
 }
 
 // Update dashboard statistics
@@ -743,43 +849,17 @@ async function updateDashboardStats() {
     if (ADMIN_LIVE_ONLY_MODE) {
         try {
             const pendingBookings = await fetchLivePendingAdminBookings(240);
-            adminLiveCache.Bookings = pendingBookings;
-
-            const uniqueCustomers = new Set(
-                pendingBookings
-                    .map((item) => String(item.customerId || '').trim())
-                    .filter(Boolean)
-            );
-            const uniqueDrivers = new Set(
-                pendingBookings
-                    .map((item) => String(item.driverId || '').trim())
-                    .filter(Boolean)
-            );
-
-            const pendingCount = pendingBookings.filter((item) => item.status === 'pending_admin_review').length;
-            const fareSum = pendingBookings.reduce((sum, item) => sum + Number(item.fare || 0), 0);
-
-            document.getElementById('stat-users').textContent = String(uniqueCustomers.size);
-            document.getElementById('stat-drivers').textContent = `${uniqueDrivers.size} active refs`;
-            document.getElementById('stat-bookings').textContent = `${pendingCount} pending`;
-            document.getElementById('stat-revenue').textContent = '₹' + Number(fareSum || 0).toLocaleString();
+            adminLiveCache.Bookings = mergeAdminLiveRows([
+                ...pendingBookings.map(normalizeAdminBookingRow),
+                ...getLiveAdminData('Bookings')
+            ], 'booking').slice(0, 500);
+            renderLiveDashboardStats(adminLiveCache.Bookings, getLiveAdminData('Users'), getLiveAdminData('Drivers'));
             return;
         } catch (error) {
-            // Fall back to existing local render if backend is temporarily unavailable.
+            renderLiveDashboardStats(getLiveAdminData('Bookings'), getLiveAdminData('Users'), getLiveAdminData('Drivers'));
+            return;
         }
     }
-
-    const users = getDemoData('Users');
-    const drivers = getDemoData('Drivers');
-    const bookings = getDemoData('Bookings');
-
-    const activeDrivers = drivers.filter(d => d.status === 'available' || d.status === 'on-trip').length;
-    const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + b.fare, 0);
-
-    document.getElementById('stat-users').textContent = users.length;
-    document.getElementById('stat-drivers').textContent = activeDrivers + ' / ' + drivers.length;
-    document.getElementById('stat-bookings').textContent = bookings.length;
-    document.getElementById('stat-revenue').textContent = '₹' + totalRevenue.toLocaleString();
 }
 
 // Load section content dynamically
@@ -895,11 +975,64 @@ function initializeSectionFeatures(sectionId) {
     }
 }
 
+function buildRevenueChartSeries(bookings) {
+    const formatter = new Intl.DateTimeFormat('en-IN', { month: 'short', day: '2-digit' });
+    const buckets = [];
+    for (let index = 6; index >= 0; index -= 1) {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() - index);
+        buckets.push({
+            key: date.toISOString().slice(0, 10),
+            label: formatter.format(date),
+            value: 0
+        });
+    }
+    const byKey = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+    bookings.forEach((booking) => {
+        const date = new Date(booking.createdAt || booking.updatedAt || booking.date || '');
+        if (!Number.isFinite(date.getTime())) return;
+        const key = date.toISOString().slice(0, 10);
+        if (!byKey.has(key)) return;
+        byKey.get(key).value += Number(booking.fare || booking.totalFare || booking.amount || 0);
+    });
+    return {
+        labels: buckets.map((bucket) => bucket.label),
+        values: buckets.map((bucket) => bucket.value)
+    };
+}
+
+function buildBookingStatusSeries(bookings) {
+    const counters = {
+        completed: 0,
+        active: 0,
+        cancelled: 0,
+        pending: 0
+    };
+    bookings.forEach((booking) => {
+        const status = String(booking.status || booking.adminReviewStatus || '').toLowerCase();
+        if (['completed', 'closed', 'paid'].includes(status)) {
+            counters.completed += 1;
+        } else if (['cancelled', 'rejected', 'blocked_by_admin', 'deleted_by_admin'].includes(status)) {
+            counters.cancelled += 1;
+        } else if (['active', 'approved', 'confirmed', 'driver_assigned', 'on_trip', 'in_progress'].includes(status)) {
+            counters.active += 1;
+        } else {
+            counters.pending += 1;
+        }
+    });
+    return [counters.completed, counters.active, counters.cancelled, counters.pending];
+}
+
 // Initialize charts on dashboard
 function initializeDashboardCharts() {
     if (typeof Chart === 'undefined') {
         return;
     }
+
+    const liveBookings = getLiveAdminData('Bookings');
+    const revenueSeries = buildRevenueChartSeries(liveBookings);
+    const bookingStatusSeries = buildBookingStatusSeries(liveBookings);
 
     // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart');
@@ -907,10 +1040,10 @@ function initializeDashboardCharts() {
         new Chart(revenueCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                labels: revenueSeries.labels,
                 datasets: [{
                     label: 'Revenue (₹)',
-                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
+                    data: revenueSeries.values,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     tension: 0.4,
@@ -947,7 +1080,7 @@ function initializeDashboardCharts() {
             data: {
                 labels: ['Completed', 'In Progress', 'Cancelled', 'Pending'],
                 datasets: [{
-                    data: [450, 85, 35, 60],
+                    data: bookingStatusSeries,
                     backgroundColor: ['#43e97b', '#4facfe', '#ff6b6b', '#feca57']
                 }]
             },
@@ -969,47 +1102,24 @@ function loadRecentActivity() {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
 
-    if (ADMIN_LIVE_ONLY_MODE) {
-        const liveRows = (Array.isArray(adminLiveCache.Bookings) ? adminLiveCache.Bookings : [])
-            .slice(0, 5)
-            .map((item) => {
-                const ageMinutes = Math.max(
-                    1,
-                    Math.floor((Date.now() - new Date(item.createdAt || Date.now()).getTime()) / 60000)
-                );
-                return {
-                    icon: 'fas fa-taxi',
-                    bg: '#0b3d91',
-                    title: `Booking ${item.id} pending admin review`,
-                    time: `${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`
-                };
-            });
+    const liveRows = getLiveAdminData('Bookings')
+        .slice(0, 5)
+        .map((item) => {
+            const ageMinutes = Math.max(
+                1,
+                Math.floor((Date.now() - new Date(item.createdAt || item.updatedAt || Date.now()).getTime()) / 60000)
+            );
+            return {
+                icon: 'fas fa-taxi',
+                bg: '#0b3d91',
+                title: `Booking ${item.id || item.bookingId || 'N/A'} ${String(item.status || 'pending').replace(/_/g, ' ')}`,
+                time: `${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`
+            };
+        });
 
-        const activities = liveRows.length
-            ? liveRows
-            : [{ icon: 'fas fa-shield-alt', bg: '#4facfe', title: 'No pending live bookings right now', time: 'Live queue synced' }];
-
-        activityList.innerHTML = activities.map(activity => `
-            <div class="activity-item">
-                <div class="activity-icon" style="background: ${activity.bg};">
-                    <i class="${activity.icon}"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-title">${activity.title}</div>
-                    <div class="activity-time">${activity.time}</div>
-                </div>
-            </div>
-        `).join('');
-        return;
-    }
-
-    const activities = [
-        { icon: 'fas fa-user-plus', bg: '#667eea', title: 'New user registered', time: '5 minutes ago' },
-        { icon: 'fas fa-car', bg: '#f093fb', title: 'Driver Ravi Kumar completed a ride', time: '12 minutes ago' },
-        { icon: 'fas fa-money-bill', bg: '#43e97b', title: 'Payment of ₹650 received', time: '25 minutes ago' },
-        { icon: 'fas fa-exclamation-triangle', bg: '#feca57', title: 'SOS alert resolved', time: '1 hour ago' },
-        { icon: 'fas fa-file-alt', bg: '#4facfe', title: 'New document submitted for verification', time: '2 hours ago' }
-    ];
+    const activities = liveRows.length
+        ? liveRows
+        : [{ icon: 'fas fa-shield-alt', bg: '#4facfe', title: 'No live customer activity yet', time: 'Live stores connected' }];
     
     activityList.innerHTML = activities.map(activity => `
         <div class="activity-item">
@@ -1042,9 +1152,11 @@ function logAdminAction(action, details) {
 window.addEventListener('DOMContentLoaded', async () => {
     const accessAllowed = await enforceAdminPortalAccess();
     if (!accessAllowed) return;
+
+    limitLegacyPortalToCustomerLiveSections();
     
-    // Initialize demo data
-    initializeDemoData();
+    // Connect live customer/admin stores without seeding sample rows.
+    initializeLiveAdminData();
     
     // Update dashboard stats
     updateDashboardStats();

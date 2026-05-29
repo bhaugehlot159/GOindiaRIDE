@@ -342,7 +342,58 @@ function createServiceAlertsContent() {
 }
 
 function createSupportDashboardContent() {
-    return `<div class="section-header"><h2>Customer Support Dashboard</h2><p>Manage support tickets</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #feca57;"><i class="fas fa-ticket-alt"></i></div><div class="stat-content"><div class="stat-label">Open Tickets</div><div class="stat-value">23</div></div></div></div><div class="card mt-20"><h3>Recent Tickets</h3><table class="data-table"><thead><tr><th>ID</th><th>Customer</th><th>Issue</th><th>Status</th></tr></thead><tbody><tr><td>#TKT001</td><td>Rajesh Kumar</td><td>Payment Issue</td><td><span class="status-badge status-pending">Open</span></td></tr></tbody></table></div>`;
+    const tickets = getCustomerSupportTickets();
+    const openTickets = tickets.filter((ticket) => !['closed', 'resolved', 'done'].includes(String(ticket.status || '').toLowerCase()));
+    const rows = tickets.slice(0, 8).map((ticket) => `
+        <tr>
+            <td>${escapeSafetyHtml(ticket.ticketCode || ticket.id || 'N/A')}</td>
+            <td>${escapeSafetyHtml(ticket.customerName || ticket.name || ticket.userKey || 'Customer')}</td>
+            <td>${escapeSafetyHtml(ticket.category || ticket.issue || ticket.subject || 'Support request')}</td>
+            <td><span class="status-badge status-pending">${escapeSafetyHtml(ticket.status || 'open')}</span></td>
+        </tr>
+    `).join('');
+    const emptyRow = `<tr><td colspan="4">No live customer support tickets found.</td></tr>`;
+    return `<div class="section-header"><h2>Customer Support Dashboard</h2><p>Manage live customer support tickets</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #feca57;"><i class="fas fa-ticket-alt"></i></div><div class="stat-content"><div class="stat-label">Open Tickets</div><div class="stat-value">${openTickets.length}</div></div></div></div><div class="card mt-20"><h3>Recent Tickets</h3><table class="data-table"><thead><tr><th>ID</th><th>Customer</th><th>Issue</th><th>Status</th></tr></thead><tbody>${rows || emptyRow}</tbody></table></div>`;
+}
+
+function escapeSafetyHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function readSafetyJson(key, fallback) {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '');
+        return parsed === null || parsed === undefined ? fallback : parsed;
+    } catch (_error) {
+        return fallback;
+    }
+}
+
+function getCustomerSupportTickets() {
+    const directStores = [
+        'goindiaride_customer_support_tickets_v1',
+        'goindiaride_support_tickets_v1',
+        'supportTickets'
+    ];
+    const directTickets = directStores.flatMap((key) => {
+        const parsed = readSafetyJson(key, []);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.items)) return parsed.items;
+        if (parsed && typeof parsed === 'object' && Array.isArray(parsed.supportTickets)) return parsed.supportTickets;
+        return [];
+    });
+    const businessStore = readSafetyJson('goindiaride.runtime.business-store.v1', {});
+    const businessTickets = businessStore && Array.isArray(businessStore.supportTickets)
+        ? businessStore.supportTickets
+        : [];
+    return [...directTickets, ...businessTickets]
+        .filter((ticket) => ticket && typeof ticket === 'object')
+        .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime());
 }
 
 function normalizeDriverApprovalStatus(driver) {
@@ -365,18 +416,6 @@ function getDriverApplications() {
         }
     } catch (error) {
         drivers = [];
-    }
-
-    if (!drivers.length) {
-        const fallback = getDemoData('Drivers');
-        if (Array.isArray(fallback)) {
-            drivers = fallback.map((driver) => ({
-                ...driver,
-                id: driver.id || ('demo_driver_' + Math.floor(Math.random() * 100000)),
-                phone: driver.phone || '',
-                approvalStatus: driver.status === 'blocked' ? 'rejected' : 'approved'
-            }));
-        }
     }
 
     return drivers.map((driver) => {

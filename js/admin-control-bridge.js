@@ -12,15 +12,14 @@
         "bookings",
         "goride_bookings",
         "goindiaride_admin_review_inbox_v1",
-        "adminDemoBookings",
         "goindiaride_active_bookings",
         "goindiaride_scheduled_rides",
         "goindiaride_ride_history",
         "customerBookings",
         "customer_bookings"
     ];
-    const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
-    const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
+    const DRIVER_KEYS = ["drivers", "goride_drivers"];
+    const USER_KEYS = ["users", "goride_users"];
     const FEATURE_DEFINITIONS = {
         customer: [
             "home_dashboard",

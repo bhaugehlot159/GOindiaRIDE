@@ -162,10 +162,10 @@ Access system settings via:
 
 ### Data Management
 
-All data is stored in localStorage with these keys:
-- `adminDemoUsers` - User data
-- `adminDemoDrivers` - Driver data
-- `adminDemoBookings` - Booking data
+Admin reads live customer data from connected localStorage queues and backend sync caches:
+- `users`, `goride_users` - Customer records
+- `drivers`, `goride_drivers` - Driver records used by live references
+- `bookings`, `goride_bookings`, `goindiaride_admin_review_inbox_v1`, `goindiaride_live_customer_booking_queue_v1` - Customer booking queues
 - `adminAuditLogs` - Audit log entries
 - `adminTheme` - Current theme preference
 

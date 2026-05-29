@@ -14,12 +14,11 @@
         "goindiaride_ride_history",
         "customerBookings",
         "customer_bookings",
-        "goindiaride_live_customer_booking_queue_v1",
-        "adminDemoBookings"
+        "goindiaride_live_customer_booking_queue_v1"
     ];
-    const DRIVER_KEYS = ["drivers", "goride_drivers", "adminDemoDrivers"];
+    const DRIVER_KEYS = ["drivers", "goride_drivers"];
     const DRIVER_LOCATION_KEYS = ["goindiaride_driver_live_locations_v1", "goindiaride_driver_locations", "driver_live_locations"];
-    const USER_KEYS = ["users", "goride_users", "adminDemoUsers"];
+    const USER_KEYS = ["users", "goride_users"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
     const ADMIN_QUEUE_SYNC_SIGNAL_KEY = "goindiaride_admin_review_queue_signal_v1";
@@ -979,7 +978,7 @@
             row?.mode
         ].join(" ").toLowerCase();
         return (
-            /(bkttest|bktest|ridpublic|codex_live_test|codex test|adminDemoBookings|admin demo)/i.test(text)
+            /(bkttest|bktest|ridpublic|codex_live_test|codex test)/i.test(text)
             || cleanText(row?.bookingId || row?.id).startsWith("LOCAL-")
         );
     }

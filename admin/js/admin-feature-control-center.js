@@ -4,13 +4,9 @@
     const STORE_KEY = "goindiaride_admin_universal_feature_controls_v1";
     const AUDIT_KEY = "adminAuditLogs";
     const LOCAL_EVENT = "goindiaride:admin-universal-feature-control-update";
-    const CATALOG_URL = "../js/ultimate/feature-index.json";
+    const CATALOG_URL = "../js/ultimate/feature-index/customer.json";
     const CATALOG_SHARD_URLS = [
-        "../js/ultimate/feature-index/customer.json",
-        "../js/ultimate/feature-index/driver.json",
-        "../js/ultimate/feature-index/admin.json",
-        "../js/ultimate/feature-index/security.json",
-        "../js/ultimate/feature-index/additional.json"
+        "../js/ultimate/feature-index/customer.json"
     ];
     const BACKEND_PATH = "/api/admin/feature-control";
     const MAX_RENDER_ROWS = 160;
@@ -27,8 +23,7 @@
             "local_events", "tour_packages", "heritage_walks", "food_guide", "shopping_guide",
             "profile", "ride_preferences", "emergency_contacts", "notifications",
             "customer_support", "emergency"
-        ],
-        driver: ["availability", "booking_requests", "active_trips", "earnings", "kyc", "wallet", "messages", "safety"]
+        ]
     };
     const CORE_FEATURE_LABELS = {
         home_dashboard: "Customer home dashboard",
@@ -65,19 +60,13 @@
         emergency_contacts: "Emergency contacts",
         notifications: "Notifications",
         customer_support: "Customer support",
-        emergency: "Emergency controls",
-        availability: "Driver availability",
-        booking_requests: "Driver booking requests",
-        active_trips: "Driver active trips",
-        earnings: "Driver earnings",
-        kyc: "Driver KYC",
-        safety: "Driver safety"
+        emergency: "Emergency controls"
     };
 
     const state = {
         catalog: [],
         query: "",
-        category: "all",
+        category: "customer",
         status: "all",
         backendOnline: false,
         loaded: false,
@@ -197,7 +186,7 @@
             title: "Admin Feature Control",
             message: control.reason || `${feature.featureId} set to ${control.status}.`,
             sourcePortal: "admin",
-            targetPortals: ["customer", "driver", "admin"],
+            targetPortals: ["customer", "admin"],
             metadata: {
                 category: feature.category,
                 featureId: feature.featureId,
@@ -247,7 +236,7 @@
             blockKey: cleanText(item.blockKey || ""),
             sourceLine: item.sourceLine || null,
             control: item.control && typeof item.control === "object" ? item.control : null
-        })).filter((item) => item.featureId);
+        })).filter((item) => item.featureId && item.category === "customer");
     }
 
     async function fetchStaticCatalogUrl(url, seen = new Set()) {
@@ -272,7 +261,7 @@
             description: cleanText(item.description || item.text || ""),
             blockKey: cleanText(item.blockKey || ""),
             sourceLine: item.sourceLine || null
-        })).filter((item) => item.featureId);
+        })).filter((item) => item.featureId && item.category === "customer");
     }
 
     async function fetchStaticCatalog() {
@@ -515,7 +504,7 @@
     }
 
     function renderSummary(summary) {
-        const categories = ["customer", "driver", "admin", "security", "additional"];
+        const categories = ["customer"];
         return categories.map((category) => {
             const row = summary[category] || { total: 0, active: 0, paused: 0, approval: 0 };
             return `
@@ -551,7 +540,7 @@
             .az-toolbar{display:flex;gap:.65rem;flex-wrap:wrap;align-items:center;margin:.9rem 0}
             .az-toolbar input,.az-toolbar select{border:1px solid #d8e1ef;border-radius:7px;padding:.65rem .75rem;min-height:38px;background:#fff;color:#0f172a}
             .az-toolbar input{flex:1 1 260px}
-            .az-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.65rem;margin:.85rem 0}
+            .az-summary-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:.65rem;margin:.85rem 0}
             .az-summary-tile{border:1px solid #e2e8f0;border-radius:8px;background:#f8fbff;padding:.7rem}
             .az-summary-tile small,.az-summary-tile span{display:block;color:#667085}
             .az-summary-tile strong{display:block;font-size:1.1rem;margin:.2rem 0;color:#0f172a}
@@ -578,20 +567,15 @@
         section.innerHTML = `
             <div class="panel-title-row">
                 <div>
-                    <span class="section-kicker">A-Z feature authority</span>
-                    <h2>Universal Feature Control</h2>
+                    <span class="section-kicker">Customer feature authority</span>
+                    <h2>Customer Live Feature Control</h2>
                 </div>
                 <span class="status-pill good" id="adminAzFeatureSync">Local control</span>
             </div>
             <div class="az-toolbar">
-                <input id="adminAzFeatureSearch" type="search" placeholder="Search feature id, Hindi/English description, category or note">
+                <input id="adminAzFeatureSearch" type="search" placeholder="Search customer feature id, Hindi/English description or note">
                 <select id="adminAzFeatureCategory" aria-label="Feature category">
-                    <option value="all">All categories</option>
                     <option value="customer">Customer</option>
-                    <option value="driver">Driver</option>
-                    <option value="admin">Admin</option>
-                    <option value="security">Security</option>
-                    <option value="additional">Additional</option>
                 </select>
                 <select id="adminAzFeatureStatus" aria-label="Feature status">
                     <option value="all">All status</option>
