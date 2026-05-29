@@ -59018,7 +59018,7 @@ router.post('/audit/admin-chain/verify', authenticate, requireAdmin, async (req,
 // === FUTURE_FEATURE_ITEM_START: security-f5477-line-5477 ===
 // Activation: remove opening and closing comment markers of this item only.
 // Feature ID: F5477 | Source Line: 5477
-// Description: Free OTP via email/SMS gateway (no demo/static)
+// Description: Free OTP via email/SMS gateway without static codes
 'use strict';
 
 (function future_feature_security_f5477() {
@@ -59030,7 +59030,7 @@ router.post('/audit/admin-chain/verify', authenticate, requireAdmin, async (req,
     sourceLine: 5477,
     category: 'security',
     bucket: 'general',
-    description: "Free OTP via email/SMS gateway (no demo/static)",
+    description: "Free OTP via email/SMS gateway without static codes",
     status: 'enabled-from-itemwise-block',
     implemented: false
   };

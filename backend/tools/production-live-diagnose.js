@@ -131,7 +131,7 @@ function healthReachableStatus(status) {
 async function run() {
   const args = parseArgs(process.argv.slice(2));
   const siteBase = normalizeBase(args.site, 'https://goindiaride.in');
-  const apiBase = normalizeBase(args.api, 'https://api.goindiaride.in');
+  const apiBase = normalizeBase(args.api, 'https://goindiaride.onrender.com');
   const origin = normalizeBase(args.origin, siteBase);
   const reportDir = path.join(__dirname, '..', 'reports');
   const reportPath = path.join(reportDir, 'production-live-diagnose-latest.json');

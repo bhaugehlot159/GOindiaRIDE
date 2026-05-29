@@ -6423,7 +6423,7 @@ router.get('/payment-modes', wrapAsync(async (req, res) => {
     return res.status(409).json({
       ok: false,
       livePaymentRequired: true,
-      message: 'Legacy/demo wallet top-up is disabled. Use /api/wallet/topup/order with an enabled online payment mode and the matching secure verification flow.'
+      message: 'Legacy wallet top-up is disabled. Use /api/wallet/topup/order with an enabled online payment mode and the matching secure verification flow.'
     });
 
     const store = getStore();

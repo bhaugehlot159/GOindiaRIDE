@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-01T14:44:26.942Z",
+  "generatedAt": "2026-05-29T19:03:02.018Z",
   "inputs": {
     "siteBase": "https://goindiaride.in",
     "apiBase": "https://goindiaride.onrender.com",
@@ -10,8 +10,8 @@
       "ok": true,
       "addresses": [
         "185.199.109.153",
-        "185.199.111.153",
         "185.199.110.153",
+        "185.199.111.153",
         "185.199.108.153"
       ],
       "error": null
@@ -19,8 +19,8 @@
     "api": {
       "ok": true,
       "addresses": [
-        "216.24.57.251",
-        "216.24.57.7"
+        "216.24.57.7",
+        "216.24.57.251"
       ],
       "error": null
     }
@@ -37,7 +37,7 @@
       "headers": {
         "server": "GitHub.com",
         "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210091-BOM",
+        "xServedBy": "cache-bom-vanm7210085-BOM",
         "xCache": "HIT"
       },
       "classification": "github_pages_static_response"
@@ -53,7 +53,7 @@
       "headers": {
         "server": "GitHub.com",
         "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210091-BOM",
+        "xServedBy": "cache-bom-vanm7210085-BOM",
         "xCache": "HIT"
       },
       "classification": "github_pages_static_response"
@@ -69,7 +69,7 @@
       "headers": {
         "server": "Varnish",
         "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210091-BOM",
+        "xServedBy": "cache-bom-vanm7210085-BOM",
         "xCache": "MISS"
       },
       "classification": "static_edge_blocking_api"
@@ -85,7 +85,7 @@
       "headers": {
         "server": "Varnish",
         "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210070-BOM",
+        "xServedBy": "cache-bom-vanm7210089-BOM",
         "xCache": "MISS"
       },
       "classification": "static_edge_blocking_api"
@@ -101,7 +101,7 @@
       "headers": {
         "server": "Varnish",
         "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210082-BOM",
+        "xServedBy": "cache-bom-vanm7210088-BOM",
         "xCache": "MISS"
       },
       "classification": "static_edge_blocking_api"
@@ -117,7 +117,7 @@
       "headers": {
         "server": "Varnish",
         "via": "1.1 varnish",
-        "xServedBy": "cache-bom-vanm7210082-BOM",
+        "xServedBy": "cache-bom-vanm7210034-BOM",
         "xCache": "MISS"
       },
       "classification": "static_edge_blocking_api"
@@ -126,22 +126,32 @@
       "name": "api-health-direct",
       "method": "GET",
       "url": "https://goindiaride.onrender.com/health",
-      "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "This operation was aborted",
-      "headers": {},
+      "ok": true,
+      "status": 200,
+      "bodyPreview": "{\"status\":\"ok\",\"security\":\"hardened\"}",
+      "error": null,
+      "headers": {
+        "server": "cloudflare",
+        "via": "",
+        "xServedBy": "",
+        "xCache": ""
+      },
       "classification": ""
     },
     {
       "name": "api-future-runtime",
       "method": "GET",
       "url": "https://goindiaride.onrender.com/api/future-runtime/status",
-      "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "This operation was aborted",
-      "headers": {},
+      "ok": true,
+      "status": 200,
+      "bodyPreview": "{\"ok\":true,\"totalActiveFeatures\":0,\"totalExecutions\":0,\"byCategory\":{},\"byAction\":{},\"updatedAt\":\"2026-05-29T19:02:58.827Z\"}",
+      "error": null,
+      "headers": {
+        "server": "cloudflare",
+        "via": "",
+        "xServedBy": "",
+        "xCache": ""
+      },
       "classification": ""
     },
     {
@@ -149,10 +159,15 @@
       "method": "POST",
       "url": "https://goindiaride.onrender.com/api/auth/login",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "This operation was aborted",
-      "headers": {},
+      "status": 401,
+      "bodyPreview": "{\"message\":\"Invalid credentials\"}",
+      "error": null,
+      "headers": {
+        "server": "cloudflare",
+        "via": "",
+        "xServedBy": "",
+        "xCache": ""
+      },
       "classification": ""
     },
     {
@@ -160,10 +175,15 @@
       "method": "POST",
       "url": "https://goindiaride.onrender.com/api/bookings/fallback/admin-alert-email",
       "ok": false,
-      "status": 0,
-      "bodyPreview": "",
-      "error": "This operation was aborted",
-      "headers": {},
+      "status": 400,
+      "bodyPreview": "{\"message\":\"X-Idempotency-Key is required for this operation\"}",
+      "error": null,
+      "headers": {
+        "server": "cloudflare",
+        "via": "",
+        "xServedBy": "",
+        "xCache": ""
+      },
       "classification": ""
     }
   ],
@@ -171,21 +191,18 @@
     "siteDnsOk": true,
     "apiDnsOk": true,
     "siteHealthOk": false,
-    "apiHealthOk": false,
+    "apiHealthOk": true,
     "siteAuthRouteOk": false,
     "siteBackendAuthRouteOk": false,
-    "apiAuthRouteOk": false,
+    "apiAuthRouteOk": true,
     "siteBookingRouteOk": false,
     "siteBackendBookingRouteOk": false,
-    "apiBookingRouteOk": false,
+    "apiBookingRouteOk": true,
     "siteStaticEdgeDetected": true
   },
   "recommendations": [
     "Configure website reverse proxy for /api/* or /backend/api/* to backend Node app (avoid static host 405).",
     "Login API route is unreachable on site host. Proxy /api/auth/* (and optionally /backend/api/auth/*) to backend Node app.",
-    "Ensure api domain proxies POST /api/auth/login to backend and does not block request methods.",
-    "Ensure api domain reverse proxy points to backend :5000 and allows POST methods.",
-    "Restart backend service and validate nginx upstream/SSL for api domain.",
     "Site domain currently serves static edge responses; route /api/* to backend reverse proxy (Nginx) instead of static host."
   ]
 }

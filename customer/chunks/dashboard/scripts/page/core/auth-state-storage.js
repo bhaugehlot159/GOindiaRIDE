@@ -927,14 +927,7 @@
             renderCustomerAlerts();
             walletReady.catch(() => {});
 
-            // Initialize demo chat (first time only)
-            const hasInitializedChat = localStorage.getItem(getChatInitKey(getCustomerWalletOwnerId()));
-            if (!hasInitializedChat) {
-                startDemoChat();
-                localStorage.setItem(getChatInitKey(getCustomerWalletOwnerId()), 'true');
-            }
-
-            // Load messages
+            // Load live messages without seeding artificial conversations.
             loadMessages();
             openRequestedCustomerTabFromUrl();
 

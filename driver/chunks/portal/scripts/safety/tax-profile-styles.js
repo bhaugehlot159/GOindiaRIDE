@@ -80,6 +80,7 @@ function openProfile() {
 // Get Profile Content
 function getProfileContent() {
     const kycData = JSON.parse(localStorage.getItem('kyc_data') || '{}');
+    const driverProfile = getLiveDriverProfile();
     
     return `
         <div class="profile-container">
@@ -87,8 +88,8 @@ function getProfileContent() {
                 <div class="profile-avatar">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h2>Demo Driver</h2>
-                <p>Driver ID: DR-${Date.now().toString().slice(-6)}</p>
+                <h2>${driverProfile.name}</h2>
+                <p>Driver ID: ${driverProfile.id || 'Pending live sync'}</p>
                 ${kycData.verified ? '<span class="badge badge-success">✓ Verified Driver</span>' : ''}
             </div>
             
@@ -127,6 +128,22 @@ function getProfileContent() {
             </div>
         </div>
     `;
+}
+
+function getLiveDriverProfile() {
+    try {
+        const currentDriver = JSON.parse(localStorage.getItem('currentDriver') || 'null');
+        const driverData = JSON.parse(localStorage.getItem('driver_data') || '{}');
+        const driver = currentDriver && typeof currentDriver === 'object'
+            ? { ...driverData, ...currentDriver }
+            : driverData;
+        return {
+            name: driver.name || driver.fullName || 'Driver',
+            id: driver.id || driver.driverId || ''
+        };
+    } catch (_error) {
+        return { name: 'Driver', id: '' };
+    }
 }
 
 // Logout

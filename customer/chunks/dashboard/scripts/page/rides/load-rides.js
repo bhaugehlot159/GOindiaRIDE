@@ -231,7 +231,7 @@
                     (razorpayStatus && razorpayStatus.available)
                 );
                 modeNode.textContent = !live
-                    ? 'Live payment login required. Demo/local wallet top-up is disabled.'
+                    ? 'Live payment login required. Local wallet top-up is disabled.'
                     : anyGatewayReady
                         ? 'LIVE Secure Backend + secure gateway checkout active (CSRF + token + idempotency + server wallet).'
                     : paypalMissing && window.WalletCore && typeof WalletCore.getPayPalSetupMessage === 'function'
@@ -318,7 +318,7 @@
                 return;
             }
             if (!isSecureWalletMode() || !window.WalletCore || typeof WalletCore.startSecureTopupCheckout !== 'function') {
-                alert('Real payment ke liye live login/session aur enabled online payment mode required hai. Demo/local wallet add disabled hai. Please login again and try Add Money.');
+                alert('Real payment ke liye live login/session aur enabled online payment mode required hai. Local wallet add disabled hai. Please login again and try Add Money.');
                 return;
             }
 

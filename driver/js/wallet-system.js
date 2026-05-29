@@ -210,7 +210,7 @@ async function processAddMoney(event) {
     }
 
     if (!canUseLiveDriverTopup()) {
-        showToast('Real payment ke liye live login/session aur enabled online payment mode required hai. Demo add money disabled hai.', 'error');
+        showToast('Real payment ke liye live login/session aur enabled online payment mode required hai. Local add money disabled hai.', 'error');
         return;
     }
     

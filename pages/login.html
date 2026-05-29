@@ -40,8 +40,8 @@
         .input-with-icon i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #1a5f97; }
         .input-with-icon input { padding-left: 3rem; }
         .password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #1a5f97; cursor: pointer; font-size: 1.2rem; }
-        .demo-info { background: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #1565c0; }
-        .demo-info code { background: rgba(33, 150, 243, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+        .login-info { background: #e3f2fd; border: 2px solid #2196f3; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #1565c0; }
+        .login-info code { background: rgba(33, 150, 243, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
         #firebaseRecaptchaContainer { min-height: 1px; margin-bottom: 0.5rem; }
         .error-message { background: #ffebee; color: #c62828; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: none; border-left: 4px solid #c62828; }
         .error-message.show { display: block; }
@@ -196,7 +196,7 @@
             background: #fbfdff;
         }
 
-        .demo-info {
+        .login-info {
             border: 1px solid rgba(26, 95, 151, 0.24);
             border-radius: 12px;
             background: linear-gradient(145deg, #eff6ff 0%, #e8f2ff 100%);
@@ -582,15 +582,15 @@
             </div>
 
             <!-- Login Info -->
-            <div class="demo-info" id="demoInfo">
+            <div class="login-info" id="liveLoginInfo">
                 <strong>Secure login options</strong><br>
-                <span id="demoCustomer">
+                <span id="liveCustomerLoginText">
                     Customer accounts can sign in using registered mobile OTP or email and password.
                 </span>
-                <span id="demoDriver" style="display: none;">
+                <span id="liveDriverLoginText" style="display: none;">
                     Driver accounts can sign in using registered mobile OTP or email and password.
                 </span>
-                <span id="adminDemoText" style="display: none;">
+                <span id="adminLiveLoginText" style="display: none;">
                     Admin access is restricted. Use only authorized live admin credentials and 2FA code.
                 </span>
             </div>

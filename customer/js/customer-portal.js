@@ -595,7 +595,7 @@ function getValidityDate() {
 }
 
 /**
- * Load demo data
+ * Load customer portal data
  */
 function loadPortalData() {
     loadFavoriteLocations();

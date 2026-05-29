@@ -105,17 +105,11 @@ function captureUniformPhoto() {
     
     localStorage.setItem('safety_data', JSON.stringify(safetyData));
     
-    showToast('Uniform check photo captured! Verifying...', 'success');
-    
-    // Simulate AI verification after 2 seconds
-    setTimeout(() => {
-        safetyData.uniformCheck.verified = true;
-        localStorage.setItem('safety_data', JSON.stringify(safetyData));
-        showToast('Uniform verified! ✓', 'success');
-        
-        closeAllModals();
-        setTimeout(() => openUniformCheck(), 300);
-    }, 2000);
+    safetyData.uniformCheck.verificationStatus = 'pending_admin_review';
+    localStorage.setItem('safety_data', JSON.stringify(safetyData));
+    showToast('Uniform check photo captured and sent for live verification.', 'success');
+    closeAllModals();
+    setTimeout(() => openUniformCheck(), 300);
 }
 
 // Open Telematics Dashboard

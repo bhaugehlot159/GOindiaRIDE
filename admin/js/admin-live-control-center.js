@@ -131,7 +131,7 @@
             row.notes,
             row.mode
         ].join(" ").toLowerCase();
-        return /(bkttest|bktest|ridpublic|codex_live_test|codex test|admin demo|admindemobookings)/i.test(text);
+        return /(bkttest|bktest|ridpublic|codex_live_test|codex test)/i.test(text);
     }
 
     function isIncompleteLocalOnlyBooking(row = {}) {

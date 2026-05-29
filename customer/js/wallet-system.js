@@ -30,7 +30,7 @@ function canUseLiveCustomerTopup() {
 }
 
 function showLivePaymentRequired() {
-    CustomerPortal.showToast('Real payment ke liye live login/session aur enabled online payment mode required hai. Demo add money disabled hai.', 'error');
+    CustomerPortal.showToast('Real payment ke liye live login/session aur enabled online payment mode required hai. Local add money disabled hai.', 'error');
 }
 
 async function refreshSecureCustomerWalletSnapshot(forceSync = false) {
@@ -130,7 +130,7 @@ async function handleAddMoney() {
     const walletType = document.getElementById('addMoneyModal').getAttribute('data-wallet-type');
 
     if (walletType !== 'payment') {
-        CustomerPortal.showToast('Live donation wallet funding is not enabled yet. Demo donation top-up disabled hai.', 'error');
+        CustomerPortal.showToast('Live donation wallet funding is not enabled yet. Local donation top-up disabled hai.', 'error');
         return;
     }
 
@@ -177,73 +177,6 @@ async function handleAddMoney() {
     }
 
     return;
-
-    // Simulate gateway processing
-    setTimeout(() => {
-        try {
-            if (window.WalletCore) {
-                const ownerId = getCustomerWalletOwnerId();
-
-                if (walletType === 'payment') {
-                    WalletCore.credit({
-                        type: 'customer',
-                        ownerId,
-                        amount,
-                        description: 'Wallet top-up via ' + paymentMethod,
-                        actorRole: 'customer',
-                        paymentMode: paymentMethod
-                    });
-                } else if (walletType === 'donation') {
-                    WalletCore.credit({
-                        type: 'donation',
-                        ownerId: 'pool',
-                        amount,
-                        description: 'Donation pool funding via ' + paymentMethod,
-                        actorRole: 'customer',
-                        paymentMode: paymentMethod
-                    });
-                }
-                if (typeof WalletCore.settlePaymentToAdmin === 'function') {
-                    WalletCore.settlePaymentToAdmin({
-                        amount,
-                        sourceType: walletType === 'payment' ? 'customer' : 'donation',
-                        sourceOwnerId: walletType === 'payment' ? ownerId : 'pool',
-                        paymentMode: paymentMethod,
-                        description: 'Auto settlement for ' + walletType + ' top-up',
-                        actorId: ownerId
-                    });
-                }
-
-                syncLegacyWalletSnapshot();
-            } else {
-                const wallet = JSON.parse(localStorage.getItem(CUSTOMER_WALLET_KEY) || '{"payment": 0, "donation": 0}');
-                if (walletType === 'payment') {
-                    wallet.payment = (wallet.payment || 0) + amount;
-                } else if (walletType === 'donation') {
-                    wallet.donation = (wallet.donation || 0) + amount;
-                }
-                localStorage.setItem(CUSTOMER_WALLET_KEY, JSON.stringify(wallet));
-            }
-
-            addTransaction({
-                type: 'added',
-                amount,
-                description: 'Added to ' + walletType + ' wallet via ' + paymentMethod,
-                date: new Date().toLocaleDateString()
-            });
-
-            updateWalletUI();
-            CustomerPortal.hideLoading();
-            CustomerPortal.closeModal('addMoneyModal');
-            CustomerPortal.showToast('Rs ' + amount + ' added successfully!', 'success');
-
-            document.getElementById('customAmount').value = '';
-            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
-        } catch (error) {
-            CustomerPortal.hideLoading();
-            CustomerPortal.showToast(error.message || 'Wallet update failed', 'error');
-        }
-    }, 1200);
 }
 /**
  * Add transaction

@@ -490,7 +490,7 @@ router.post('/wallet/topup', (req, res) => {
   return res.status(409).json({
     ok: false,
     livePaymentRequired: true,
-    message: 'Legacy/demo wallet top-up is disabled. Use live Razorpay order + server verification.'
+    message: 'Legacy wallet top-up is disabled. Use live Razorpay order + server verification.'
   });
 
   const store = getStore();
@@ -603,9 +603,7 @@ router.post('/auth/otp/send', (req, res) => {
     ok: true,
     otpId: event.id,
     channel,
-    expiresAt: event.expiresAt,
-    // For demo runtime only. Remove this in production.
-    code
+    expiresAt: event.expiresAt
   });
 });
 

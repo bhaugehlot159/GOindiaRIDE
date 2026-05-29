@@ -342,7 +342,7 @@
                 return;
             }
             if (!window.WalletCore || typeof WalletCore.startSecureTopupCheckout !== 'function') {
-                showError('Real payment ke liye enabled online payment mode required hai. Demo/manual wallet top-up disabled hai. Please hard refresh and login again.');
+                showError('Real payment ke liye enabled online payment mode required hai. Manual wallet top-up disabled hai. Please hard refresh and login again.');
                 return;
             }
             if (!Number.isFinite(amount) || amount < 10) {
@@ -800,14 +800,7 @@
                 showSuccess('✅ Ride started!');
             }
 
-            // Note: In production, ride completion should be manually triggered by the driver
-            // For demo purposes, rides auto-complete after 30 seconds (can be disabled)
-            const DEMO_MODE = true; // Set to false in production
-            if (DEMO_MODE) {
-                setTimeout(() => {
-                    completeRide(rideId);
-                }, 30000); // 30 seconds for demo
-            }
+            // Ride completion is manually triggered by the driver in live mode.
         }
 
         function completeRide(rideId) {

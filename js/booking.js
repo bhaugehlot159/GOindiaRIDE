@@ -34,8 +34,21 @@ document.querySelectorAll('.ride-type-card').forEach(card => {
 // Calculate fare estimation
 function calculateFare() {
     const baseFare = 50;
-    const distance = Math.random() * 10 + 5; // Random distance for demo
-    const time = Math.random() * 30 + 10; // Random time for demo
+    let routeEstimate = {};
+    try {
+        routeEstimate = JSON.parse(localStorage.getItem('goindiaride_current_route_estimate') || '{}');
+    } catch (_error) {
+        routeEstimate = {};
+    }
+    const distance = Number(routeEstimate.distanceKm || routeEstimate.distance || 0);
+    const time = Number(routeEstimate.durationMinutes || routeEstimate.timeMinutes || 0);
+
+    if (!distance || !time) {
+        document.getElementById('distanceFare').textContent = '₹0.00';
+        document.getElementById('timeFare').textContent = '₹0.00';
+        document.getElementById('totalFare').textContent = '₹0.00';
+        return;
+    }
     
     const ratePerKm = rideRates[selectedRideType];
     const distanceFare = distance * ratePerKm;

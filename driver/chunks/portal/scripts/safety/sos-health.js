@@ -11,10 +11,7 @@ function triggerSOS() {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     },
-                    driverInfo: {
-                        id: 'DRIVER-' + Date.now(),
-                        name: 'Demo Driver'
-                    },
+                    driverInfo: getLiveSosDriverInfo(),
                     status: 'active'
                 };
                 
@@ -31,14 +28,27 @@ function triggerSOS() {
             const sosData = {
                 timestamp: Date.now(),
                 location: null,
-                driverInfo: {
-                    id: 'DRIVER-' + Date.now(),
-                    name: 'Demo Driver'
-                },
+                driverInfo: getLiveSosDriverInfo(),
                 status: 'active'
             };
             showSOSAlert(sosData);
         }
+    }
+}
+
+function getLiveSosDriverInfo() {
+    try {
+        const currentDriver = JSON.parse(localStorage.getItem('currentDriver') || 'null');
+        const driverData = JSON.parse(localStorage.getItem('driver_data') || '{}');
+        const driver = currentDriver && typeof currentDriver === 'object'
+            ? { ...driverData, ...currentDriver }
+            : driverData;
+        return {
+            id: driver.id || driver.driverId || '',
+            name: driver.name || driver.fullName || 'Driver'
+        };
+    } catch (_error) {
+        return { id: '', name: 'Driver' };
     }
 }
 

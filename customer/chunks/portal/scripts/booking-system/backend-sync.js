@@ -12,7 +12,7 @@ function getBackendApiBase() {
     }
 
     if (/(^|\.)goindiaride\.in$/i.test(host)) {
-        return 'https://api.goindiaride.in';
+        return 'https://goindiaride.onrender.com';
     }
 
     return String(window.location.origin || '').replace(/\/$/, '');

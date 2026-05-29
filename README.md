@@ -9,13 +9,9 @@
 - ✅ Automatic Driver Assignment
 - ✅ Receipt Generation
 
-## 🔑 Demo Login Credentials
+## 🔑 Live Login Credentials
 
-| Role | Phone | Password |
-|------|-------|----------|
-| Customer | 9876543210 | 123456 |
-| Driver | 8765432109 | 123456 |
-| Admin | 7654321098 | 123456 |
+Use provisioned live credentials from your secure environment or admin-created accounts. Static shared passwords should not be used for production access.
 
 ## 📂 File Structure
 

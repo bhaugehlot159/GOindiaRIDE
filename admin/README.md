@@ -60,7 +60,7 @@ A comprehensive Admin Portal with **32 features** for managing the GOindiaRIDE t
 
 - **Frontend**: Vanilla JavaScript (ES6+)
 - **Styling**: CSS3 with CSS Variables, Grid, and Flexbox
-- **Data Storage**: localStorage (for demo/testing)
+- **Data Storage**: localStorage live sync caches and protected admin queues
 - **Charts**: Chart.js v4.4.0
 - **Icons**: Font Awesome 6.4.0
 - **No Dependencies**: Pure JavaScript, no frameworks required
@@ -85,18 +85,18 @@ A comprehensive Admin Portal with **32 features** for managing the GOindiaRIDE t
 ### Access the Portal
 
 1. Open `/admin/index.html` in a web browser
-2. The portal loads in demo mode (no authentication required)
+2. The portal loads in live customer/admin mode with authentication controls
 3. All features are accessible via the sidebar menu
 
-### Demo Data
+### Live Data
 
-The portal comes pre-loaded with demo data including:
-- 5 demo users
-- 5 demo drivers
-- 5 demo bookings
+The portal reads connected live data including:
+- Customer records
+- Driver records
+- Booking queues
 - Sample statistics and metrics
 
-Demo data is stored in localStorage and persists between sessions.
+Live admin/customer queues are stored in localStorage and persist between sessions.
 
 ## Features Guide
 

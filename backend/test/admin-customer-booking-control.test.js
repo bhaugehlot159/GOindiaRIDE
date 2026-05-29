@@ -568,6 +568,48 @@ test('admin customer-live mode avoids heavy non-customer generated bundles', () 
   assert.match(featureControl, /Customer Live Feature Control/);
 });
 
+test('production pages target reachable live backend origin', () => {
+  [
+    'admin/index.html',
+    'customer/index.html',
+    'driver/index.html',
+    'admin/chunks/dashboard/scripts/future-runtime-config.js',
+    'driver/chunks/dashboard/scripts/future-runtime-config.js',
+    'customer/chunks/portal/scripts/booking-system/backend-sync.js',
+    'backend/tools/production-live-diagnose.js'
+  ].forEach((file) => {
+    const source = readRepoFile(file);
+    assert.match(source, /https:\/\/goindiaride\.onrender\.com/, `${file} should target the reachable live backend`);
+    assert.doesNotMatch(source, /https:\/\/api\.goindiaride\.in|us-central1-gehlot-86e38\.cloudfunctions\.net/, `${file} should not hard-code the unreachable production API origin`);
+  });
+});
+
+test('customer and driver active runtime files do not seed demo behavior', () => {
+  const activeRuntimeFiles = [
+    'customer/chunks/dashboard/scripts/page/chat/messages-chat.js',
+    'customer/chunks/dashboard/scripts/page/core/auth-state-storage.js',
+    'customer/chunks/portal/scripts/booking-system/live-trip-chat.js',
+    'customer/js/wallet-system.js',
+    'driver/js/driver-portal.js',
+    'driver/js/wallet-system.js',
+    'driver/chunks/dashboard/scripts/dashboard-page.js',
+    'driver/chunks/portal/scripts/safety/sos-health.js',
+    'driver/chunks/portal/scripts/safety/tax-profile-styles.js',
+    'driver/chunks/portal/scripts/safety/uniform-telematics.js',
+    'js/customer-dashboard-live-bridge.js',
+    'js/future-feature-runtime-extensions.js',
+    'backend/src/routes/futureBusinessRoutes.js',
+    'backend/src/routes/walletRoutes.js'
+  ];
+  const forbidden = /\bdemo\b|demoMode|demoReady|DEMO_|startDemo|for demo|demo purposes|simulate driver response|seeded chat|Demo Driver|For demo runtime/i;
+
+  activeRuntimeFiles.forEach((file) => {
+    assert.equal(forbidden.test(readRepoFile(file)), false, `${file} should not seed or expose demo behavior`);
+  });
+
+  assert.doesNotMatch(readRepoFile('backend/src/routes/futureBusinessRoutes.js'), /Demo OTP|data\.code|,\s*code\s*[\r\n}]/);
+});
+
 test('changed inline scripts still compile', () => {
   const inlineScriptRegex = new RegExp('<script\\b(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>', 'gi');
   for (const relativePath of ['admin/app.html', 'admin/customer-bookings/index.html', 'admin/driver-bookings/index.html', 'pages/customer-dashboard.html', 'pages/booking.html']) {

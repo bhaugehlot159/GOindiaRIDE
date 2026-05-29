@@ -13,7 +13,7 @@
     'goindiaride_live_customer_booking_queue_v1'
   ];
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
-  window.__GOINDIARIDE_DISABLE_DEMO_CHAT__ = true;
+  window.__GOINDIARIDE_DISABLE_AUTOMATED_CHAT_SEED__ = true;
 
   function parseJson(raw, fallback) {
     try {
@@ -1133,10 +1133,6 @@
   bridge.liveTrackingWatchId = null;
   window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ = bridge;
   bootstrapIdentityFromUser(getStoredUser());
-
-  if (typeof startDemoChat === 'function') {
-    window.startDemoChat = function () { return false; };
-  }
 
   if (typeof loadDashboard === 'function') {
     var originalLoadDashboard = loadDashboard;

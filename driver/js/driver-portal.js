@@ -27,11 +27,6 @@ let driverState = {
 const DRIVER_BACKEND_BOOKING_ALERT_POLL_MS = 5000;
 const DRIVER_BOOKING_ALARM_PREF_KEY = 'goindiaride_driver_booking_alarm_enabled';
 const DRIVER_BOOKING_ALARM_BTN_ID = 'goiEnableDriverBookingAlarm';
-const DRIVER_DEMO_REQUESTS_ENABLED = String(
-    window.GOINDIARIDE_ENABLE_DRIVER_DEMO_REQUESTS
-    || localStorage.getItem('goindiaride_enable_driver_demo_requests')
-    || 'false'
-).toLowerCase() === 'true';
 let driverBackendBookingAlertTimer = null;
 let driverBackendAlarmContext = null;
 let driverBackendAlarmLastAt = 0;
@@ -98,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAdminControlRuntime();
     setupEventListeners();
     checkSystemStatus();
-    loadDemoData();
     startStatusMonitoring();
     setupPortalNotifications();
     startDriverBackendBookingAlerts();
@@ -776,7 +770,7 @@ function startDriverBackendBookingAlerts() {
         pollDriverBackendBookingAlerts({ seedOnly: false });
     }, DRIVER_BACKEND_BOOKING_ALERT_POLL_MS);
 }
-// Check for Ride Requests (Demo)
+// Check for live ride requests
 function checkForRideRequests() {
     if (!driverState.isOnline) return;
     if (!isDriverPortalAllowedByAdmin()) return;
@@ -785,19 +779,6 @@ function checkForRideRequests() {
     if (String(getBackendAccessToken() || '').trim()) {
         return;
     }
-
-    // Live mode default: do not generate synthetic demo ride requests.
-    if (!DRIVER_DEMO_REQUESTS_ENABLED) {
-        return;
-    }
-    
-    // Simulate ride request after random delay (demo)
-    const delay = Math.random() * 30000 + 10000; // 10-40 seconds
-    setTimeout(() => {
-        if (driverState.isOnline && !driverState.currentRide && isDriverPortalAllowedByAdmin()) {
-            showRideRequest();
-        }
-    }, delay);
 }
 
 // Show Ride Request
@@ -806,7 +787,7 @@ function showRideRequest(bookingData = null) {
         return;
     }
 
-    if (!bookingData && !DRIVER_DEMO_REQUESTS_ENABLED) {
+    if (!bookingData) {
         return;
     }
 
@@ -818,15 +799,6 @@ function showRideRequest(bookingData = null) {
         document.getElementById('requestPickup').textContent = bookingData.pickup;
         document.getElementById('requestDrop').textContent = bookingData.drop;
         document.getElementById('requestFare').textContent = `₹${Number(bookingData.finalFare || bookingData.fare || 0).toFixed(0)}`;
-    } else {
-        // Demo data
-        const pickups = ['Jaipur Railway Station', 'Airport', 'Hawa Mahal', 'City Palace', 'Amber Fort'];
-        const drops = ['Hotel Taj', 'Airport', 'Pink City', 'Bus Stand', 'Mall Road'];
-
-        driverState.pendingRequest = null;
-        document.getElementById('requestPickup').textContent = pickups[Math.floor(Math.random() * pickups.length)];
-        document.getElementById('requestDrop').textContent = drops[Math.floor(Math.random() * drops.length)];
-        document.getElementById('requestFare').textContent = `₹${(Math.random() * 500 + 100).toFixed(0)}`;
     }
     
     // Start countdown
@@ -1053,7 +1025,7 @@ function checkFatigue() {
         
         document.getElementById('drivingHours').textContent = driverState.drivingHours.toFixed(1);
         
-        // Start rest timer (30 minutes demo)
+        // Start mandatory live rest timer.
         startRestTimer(30);
         
         showToast('Mandatory rest period started. You must rest for 30 minutes.', 'warning');
@@ -1117,23 +1089,6 @@ function startStatusMonitoring() {
     
     // Save data every 5 minutes
     setInterval(saveDriverData, 300000);
-}
-
-// Load Demo Data
-function loadDemoData() {
-    if (!DRIVER_DEMO_REQUESTS_ENABLED) {
-        return;
-    }
-
-    // Initialize with demo data if first time
-    if (!localStorage.getItem(STORAGE_KEYS.DRIVER_DATA)) {
-        driverState.rating = 4.8;
-        driverState.todayEarnings = 850.50;
-        driverState.todayTrips = 12;
-        driverState.onlineHours = 6;
-        saveDriverData();
-        updateDashboard();
-    }
 }
 
 // Update KYC Status

@@ -256,7 +256,7 @@
   }
 
   function liveWalletTopupDisabledMessage() {
-    return 'Real wallet top-up requires live login/session and secure gateway checkout. Demo/local wallet top-up is disabled.';
+    return 'Real wallet top-up requires live login/session and secure gateway checkout. Local wallet top-up is disabled.';
   }
 
   function isLiveWalletTopupReady() {
@@ -3242,7 +3242,7 @@
         executeFeature(feature, 'otp-send', payload);
         if (data && data.ok) {
           latestOtpId = data.otpId || '';
-          setOutput('OTP sent. Demo OTP: ' + (data.code || 'hidden'));
+          setOutput('OTP sent. Enter the code delivered to your selected channel.');
         } else {
           setOutput('OTP send failed.');
         }

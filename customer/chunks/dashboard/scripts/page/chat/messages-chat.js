@@ -2,16 +2,6 @@
         // ----------------------------------------====
 
         let currentChatUser = null;
-        let demoResponseTimeout = null;
-
-        // Demo response configuration
-        const DEMO_RESPONSES = [
-            "I'll be there in 5 minutes!",
-            "On my way to pick you up!",
-            "Thanks for choosing GO India RIDE!",
-            "Have a safe journey!",
-            "Sure, I can help with that.",
-        ];
 
         // Helper function to get chat initialization key
         function getChatInitKey(userId) {
@@ -149,16 +139,27 @@
         }
 
         function closeChat() {
-            // Clear any pending demo response timeouts
-            if (demoResponseTimeout) {
-                clearTimeout(demoResponseTimeout);
-                demoResponseTimeout = null;
-            }
-
             document.getElementById('conversationsList').style.display = 'block';
             document.getElementById('chatWindow').style.display = 'none';
             currentChatUser = null;
             loadMessages(); // Refresh conversations list
+        }
+
+        function notifyLiveDriverChat(driverId, content) {
+            if (!window.PortalConnector || typeof window.PortalConnector.createNotification !== 'function') return;
+            window.PortalConnector.createNotification({
+                type: 'customer_driver_message',
+                title: 'Customer message',
+                message: content.slice(0, 160),
+                sourcePortal: 'customer',
+                targetPortals: ['driver', 'admin'],
+                metadata: {
+                    driverId,
+                    customerId: getCustomerWalletOwnerId(),
+                    channel: 'customer_dashboard_chat',
+                    liveMode: true
+                }
+            });
         }
 
         function sendMessage() {
@@ -180,30 +181,7 @@
 
             // Reload chat
             loadChatMessages(currentChatUser);
-
-            // Simulate driver response (for demo purposes)
-            // Clear any existing timeout first
-            if (demoResponseTimeout) {
-                clearTimeout(demoResponseTimeout);
-            }
-
-            const chatUserAtSendTime = currentChatUser; // Capture current user
-            demoResponseTimeout = setTimeout(() => {
-                const randomResponse = DEMO_RESPONSES[Math.floor(Math.random() * DEMO_RESPONSES.length)];
-
-                MessageDB.create({
-                    senderId: chatUserAtSendTime,
-                    receiverId: getCustomerWalletOwnerId(),
-                    content: randomResponse,
-                    read: false
-                });
-
-                // Only reload if still viewing the same chat
-                if (currentChatUser === chatUserAtSendTime) {
-                    loadChatMessages(currentChatUser);
-                }
-                demoResponseTimeout = null;
-            }, 2000);
+            notifyLiveDriverChat(currentChatUser, content);
         }
 
         function handleMessageKeyPress(event) {
@@ -225,20 +203,6 @@
             if (hours < 24) return `${hours}h ago`;
             if (days < 7) return `${days}d ago`;
             return date.toLocaleDateString();
-        }
-
-        function startDemoChat() {
-            // Add a demo message for testing
-            const drivers = JSON.parse(localStorage.getItem('goride_drivers')) || [];
-            if (drivers.length > 0) {
-                const demoDriver = drivers[0];
-                MessageDB.create({
-                    senderId: demoDriver.id,
-                    receiverId: getCustomerWalletOwnerId(),
-                    content: "Hello! I'm your driver. Looking forward to serving you! 🚗",
-                    read: false
-                });
-            }
         }
 
         function goHome() {

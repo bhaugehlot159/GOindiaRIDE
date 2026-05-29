@@ -1,3 +1,5 @@
+let currentLiveTripDriver = null;
+
 function openLiveTripModal(booking) {
     const status = normalizeBookingLifecycleStatus(booking);
     const hasAssignedDriver = status === 'driver_assigned' && Boolean(booking.driverName || booking.driverId);
@@ -18,8 +20,8 @@ function openLiveTripModal(booking) {
             vehicle: matchedDriver
                 ? ((matchedDriver.vehicleModel || 'Vehicle') + ' - ' + (matchedDriver.vehicleNumber || 'Pending'))
                 : (booking.vehicleType || 'Vehicle details pending'),
-            rating: matchedDriver ? Number(matchedDriver.rating || 4.7).toFixed(1) : '4.7',
-            phone: matchedDriver?.phone || '+91 **********'
+            rating: matchedDriver && matchedDriver.rating ? Number(matchedDriver.rating).toFixed(1) : '--',
+            phone: matchedDriver?.phone || booking.driverPhone || ''
         };
     } else if (status === 'approved_waiting_driver') {
         driver = {
@@ -99,6 +101,7 @@ function generateOTP() {
  * Open chat modal
  */
 function openChatModal(driver) {
+    currentLiveTripDriver = driver;
     CustomerPortal.openModal('chatModal');
     
     // Load chat messages
@@ -129,12 +132,17 @@ function openChatModal(driver) {
  */
 function loadChatMessages(driver) {
     const chatMessages = document.getElementById('chatMessages');
-    
-    // Seeded chat messages
-    const messages = [
-        { type: 'received', text: `Hello! I'm ${driver.name}, your driver for today.`, time: '10:30 AM' },
-        { type: 'received', text: 'I will reach in 5 minutes.', time: '10:31 AM' }
-    ];
+    const messages = getLiveTripChatMessages(driver);
+
+    if (!messages.length) {
+        chatMessages.innerHTML = `
+            <div class="message received">
+                No live trip messages yet.
+                <small style="display: block; margin-top: 0.25rem; opacity: 0.7; font-size: 0.75rem;">Live chat ready</small>
+            </div>
+        `;
+        return;
+    }
     
     chatMessages.innerHTML = messages.map(msg => `
         <div class="message ${msg.type}">
@@ -142,6 +150,51 @@ function loadChatMessages(driver) {
             <small style="display: block; margin-top: 0.25rem; opacity: 0.7; font-size: 0.75rem;">${msg.time}</small>
         </div>
     `).join('');
+}
+
+function getLiveTripChatKey(driver) {
+    const driverRef = String(driver && (driver.id || driver.phone || driver.name) || 'assigned-driver')
+        .replace(/[^a-z0-9_-]/gi, '_')
+        .slice(0, 80);
+    return `goindiaride_live_trip_chat_${driverRef}_v1`;
+}
+
+function getLiveTripChatMessages(driver) {
+    try {
+        const rows = JSON.parse(localStorage.getItem(getLiveTripChatKey(driver)) || '[]');
+        return Array.isArray(rows) ? rows.filter((row) => row && typeof row === 'object') : [];
+    } catch (_error) {
+        return [];
+    }
+}
+
+function saveLiveTripChatMessage(driver, type, text) {
+    const rows = getLiveTripChatMessages(driver);
+    rows.push({
+        type,
+        text,
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toISOString()
+    });
+    localStorage.setItem(getLiveTripChatKey(driver), JSON.stringify(rows.slice(-100)));
+    return rows;
+}
+
+function notifyLiveTripChat(driver, message) {
+    if (!window.PortalConnector || typeof window.PortalConnector.createNotification !== 'function') return;
+    window.PortalConnector.createNotification({
+        type: 'customer_live_trip_message',
+        title: 'Live trip message',
+        message: message.slice(0, 160),
+        sourcePortal: 'customer',
+        targetPortals: ['driver', 'admin'],
+        metadata: {
+            driverId: driver && driver.id,
+            driverPhone: driver && driver.phone,
+            channel: 'live_trip_chat',
+            liveMode: true
+        }
+    });
 }
 
 /**
@@ -154,12 +207,14 @@ function sendChatMessage() {
     if (!message) return;
     
     const chatMessages = document.getElementById('chatMessages');
-    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const driver = currentLiveTripDriver || {};
+    saveLiveTripChatMessage(driver, 'sent', message);
+    notifyLiveTripChat(driver, message);
     
     const messageHTML = `
         <div class="message sent">
             ${message}
-            <small style="display: block; margin-top: 0.25rem; opacity: 0.7; font-size: 0.75rem;">${time}</small>
+            <small style="display: block; margin-top: 0.25rem; opacity: 0.7; font-size: 0.75rem;">Just now</small>
         </div>
     `;
     
@@ -168,18 +223,6 @@ function sendChatMessage() {
     
     // Auto-scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    // Simulate driver response
-    setTimeout(() => {
-        const response = `
-            <div class="message received">
-                Okay, noted!
-                <small style="display: block; margin-top: 0.25rem; opacity: 0.7; font-size: 0.75rem;">${time}</small>
-            </div>
-        `;
-        chatMessages.insertAdjacentHTML('beforeend', response);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 2000);
 }
 
 /**
@@ -195,17 +238,13 @@ function sendQuickMessage(message) {
  * Initiate call masking
  */
 function initiateCallMasking(driver) {
-    // In production, this would use a call masking service
-    const maskedNumber = '+91 80XXX XXXXX';
-    
-    if (confirm(`Call driver via masked number?\n\nYour number will not be revealed to the driver.\n\nMasked Number: ${maskedNumber}`)) {
-        CustomerPortal.showToast('Connecting call via masked number...', 'success');
-        
-        // Simulate call
-        setTimeout(() => {
-            CustomerPortal.showToast('Call connected', 'success');
-        }, 2000);
+    const phone = String(driver && driver.phone || '').trim();
+    if (!phone) {
+        CustomerPortal.showToast('Driver phone is not available yet. Try after assignment sync.', 'error');
+        return;
     }
+    CustomerPortal.showToast('Opening live call dialer...', 'success');
+    window.location.href = `tel:${phone}`;
 }
 
 /**
