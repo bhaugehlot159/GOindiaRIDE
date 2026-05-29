@@ -204,8 +204,8 @@ function updateLoginMethod(){
   methodSelector.style.display='grid';
   customerForm.style.display=role==='customer'?'block':'none';
   driverForm.style.display=role==='driver'?'block':'none';
-  demoCustomer.style.display=role==='customer'?'inline':'none';
-  demoDriver.style.display=role==='driver'?'inline':'none';
+  if(demoCustomer)demoCustomer.style.display=role==='customer'?'inline':'none';
+  if(demoDriver)demoDriver.style.display=role==='driver'?'inline':'none';
   closeForgotPassword();
   updateSelectedLoginMethod();
 }

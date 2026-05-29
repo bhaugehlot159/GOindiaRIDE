@@ -171,6 +171,16 @@ function resolveAdminNextPath(){
     return fallback;
   }
 }
+function shouldOpenAdminLoginFromQuery(){
+  try{
+    const query=new URLSearchParams(window.location.search||'');
+    const adminParam=String(query.get('admin')||'').trim().toLowerCase();
+    const next=String(query.get('next')||'').trim().toLowerCase();
+    return adminParam==='1'||adminParam==='true'||next.startsWith('/admin/')||next.startsWith('../admin/')||next.startsWith('./admin/');
+  }catch(_error){
+    return false;
+  }
+}
 async function verifyAdmin2FA(){
   const otp=readOtpDigits('.admin2fa-otp');
   if(!/^\d{6}$/.test(otp)){showError('Please enter valid 6-digit OTP.');return;}
@@ -214,7 +224,7 @@ function toggleAdminLogin(){
   const adminText=document.getElementById('adminDemoText');
   closeForgotPassword();
   if(adminForm.style.display==='none'){
-    adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';adminText.style.display='inline';
+    adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';if(adminText)adminText.style.display='inline';
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
     getAdminCredentialFields().forEach((field)=>{delete field.dataset.userEdited;});
     clearAdminCredentialAutofill(true);
@@ -223,6 +233,6 @@ function toggleAdminLogin(){
     adminStep1Context=null;
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   }else{
-    adminStep1Context=null;adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';adminText.style.display='none';updateLoginMethod();
+    adminStep1Context=null;adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';if(adminText)adminText.style.display='none';updateLoginMethod();
   }
 }

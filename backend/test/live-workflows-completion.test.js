@@ -95,6 +95,21 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v43-20260528-admin-hangfix/);
+  assert.match(sw, /goindiaride-pwa-v44-20260530-admin-entryfix/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
+});
+
+test('admin app homepage entry opens admin login instead of customer login', () => {
+  const home = read('index.html');
+  const admin2fa = read('shared/chunks/auth/login/scripts/admin-2fa.js');
+  const adminSecurity = read('shared/chunks/auth/login/scripts/admin-security-firebase.js');
+  const recovery = read('shared/chunks/auth/login/scripts/recovery-ui-init.js');
+
+  assert.match(home, /pages\/login\.html\?admin=1&next=%2Fadmin%2Fapp\.html/);
+  assert.match(admin2fa, /function shouldOpenAdminLoginFromQuery\(\)/);
+  assert.match(admin2fa, /next\.startsWith\('\/admin\/'\)/);
+  assert.match(admin2fa, /if\(adminText\)adminText\.style\.display='inline'/);
+  assert.match(adminSecurity, /if\(demoCustomer\)demoCustomer\.style\.display/);
+  assert.match(recovery, /shouldOpenAdminLoginFromQuery\(\)/);
+  assert.match(recovery, /else\{\s*updateLoginMethod\(\);\s*\}/);
 });

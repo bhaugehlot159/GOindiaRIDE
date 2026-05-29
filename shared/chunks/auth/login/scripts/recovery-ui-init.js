@@ -87,7 +87,8 @@ async function handleForgotPasswordReset(){
 function initializeAdminAccessGate(){
   const adminButton=document.querySelector('.admin-portal-link');if(!adminButton)return;
   const query=new URLSearchParams(window.location.search||'');
-  if(query.get('admin')==='1'){
+  const shouldOpenAdmin=typeof shouldOpenAdminLoginFromQuery==='function'?shouldOpenAdminLoginFromQuery():query.get('admin')==='1';
+  if(shouldOpenAdmin){
     adminButton.style.display='inline-flex';
     const adminForm=document.getElementById('adminForm');
     if(adminForm&&adminForm.style.display==='none')toggleAdminLogin();
@@ -134,7 +135,14 @@ window.addEventListener('load',async()=>{
   await ensureAdminProfile();
   bindAdminAutofillGuards();
   clearAdminCredentialAutofill(true);
-  updateLoginMethod();
+  if(typeof shouldOpenAdminLoginFromQuery==='function'&&shouldOpenAdminLoginFromQuery()){
+    const adminButton=document.querySelector('.admin-portal-link');
+    if(adminButton)adminButton.style.display='inline-flex';
+    const adminForm=document.getElementById('adminForm');
+    if(adminForm&&adminForm.style.display==='none')toggleAdminLogin();
+  }else{
+    updateLoginMethod();
+  }
 initFirebasePhoneAuth().catch(()=>{});
   initializeAdminAccessGate();
   scheduleAdminCredentialAutofillClear();
