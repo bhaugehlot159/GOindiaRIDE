@@ -53,6 +53,14 @@
         ];
         const DASHBOARD_ADMIN_EMAIL_RETRY_QUEUE_KEY = 'goindiaride_admin_email_retry_queue_v1';
         const DASHBOARD_ADMIN_EMAIL_BATCH_SIZE = 3;
+        const DASHBOARD_BOOKING_CACHE_MS = 6000;
+        const DASHBOARD_BOOKING_MAX_ROWS_PER_KEY = 260;
+        const DASHBOARD_BOOKING_MAX_VALUE_CHARS = 520000;
+        const DASHBOARD_BOOKING_MIRROR_COOLDOWN_MS = 15000;
+        const DASHBOARD_BOOKING_LIGHT_MIRROR_KEYS = [
+            'goindiaride_admin_customer_bookings_current_v1',
+            'goindiaride_live_customer_booking_queue_v1'
+        ];
         const PROFILE_PHONE_VERIFICATION_SESSION_KEY = 'goindiaride-dashboard-phone-verify';
         const CUSTOMER_BOOKING_EDIT_MAX_COUNT = 5;
         const CUSTOMER_BOOKING_EDITABLE_FIELDS = [
@@ -75,6 +83,9 @@
         ];
         const RIDE_EDIT_SPECIAL_REQUEST_KEYS = ['airCondition', 'wifi', 'charger', 'music'];
         const RIDE_EDIT_SAFETY_KEYS = ['womenDriverPref', 'childSeat', 'wheelchairAssist', 'petFriendly', 'liveTripShare', 'maskedCall'];
+        let dashboardBookingCache = { rows: [], at: 0 };
+        let dashboardBookingMirrorTimer = null;
+        let dashboardBookingLastMirrorAt = 0;
         const CUSTOMER_BOOKING_EDIT_WINDOWS = [
             { minHours: 72, tier: 'full_plus', label: '72h+ Premium Edit', allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice() },
             { minHours: 48, tier: 'full', label: '48-72h Flexible Edit', allowedFields: CUSTOMER_BOOKING_EDITABLE_FIELDS.slice() },
@@ -337,20 +348,45 @@
             return false;
         }
 
-        function readDashboardBookingsStore() {
+        function scheduleDashboardIdle(callback, delayMs = 0) {
+            const run = () => {
+                if (typeof window.requestIdleCallback === 'function') {
+                    window.requestIdleCallback(callback, { timeout: 8000 });
+                    return;
+                }
+                window.setTimeout(callback, 120);
+            };
+            window.setTimeout(run, delayMs);
+        }
+
+        function readDashboardArrayFromStorage(key, options = {}) {
+            try {
+                const raw = localStorage.getItem(key) || '[]';
+                const maxChars = Number(options.maxChars || DASHBOARD_BOOKING_MAX_VALUE_CHARS);
+                if (raw.length > maxChars && options.forceDeep !== true) return [];
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return [];
+                return parsed
+                    .filter((item) => item && typeof item === 'object')
+                    .slice(0, Number(options.maxRows || DASHBOARD_BOOKING_MAX_ROWS_PER_KEY));
+            } catch (_error) {
+                return [];
+            }
+        }
+
+        function invalidateDashboardBookingCache() {
+            dashboardBookingCache = { rows: [], at: 0 };
+        }
+
+        function readDashboardBookingsStore(options = {}) {
+            const now = Date.now();
+            if (!options.force && Array.isArray(dashboardBookingCache.rows) && dashboardBookingCache.rows.length && now - dashboardBookingCache.at < DASHBOARD_BOOKING_CACHE_MS) {
+                return dashboardBookingCache.rows.slice();
+            }
             const storageKeys = DASHBOARD_BOOKING_SYNC_KEYS;
             const rows = [];
             storageKeys.forEach((key) => {
-                try {
-                    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-                    if (Array.isArray(parsed)) {
-                        parsed.forEach((item) => {
-                            if (item && typeof item === 'object') rows.push(item);
-                        });
-                    }
-                } catch (_error) {
-                    // Ignore broken legacy entries and keep the remaining booking stores alive.
-                }
+                readDashboardArrayFromStorage(key, options).forEach((item) => rows.push(item));
             });
 
             const toDashboardTimestamp = (value) => {
@@ -404,15 +440,8 @@
                         - new Date(left.updatedAt || left.createdAt || 0).getTime();
                 })
             ];
-            if (merged.length) {
-                try {
-                    localStorage.setItem('bookings', JSON.stringify(merged));
-                    localStorage.setItem('goride_bookings', JSON.stringify(merged));
-                } catch (_error) {
-                    // Keep rendering the in-memory merged rows even if browser storage is full.
-                }
-            }
-            return merged;
+            dashboardBookingCache = { rows: merged, at: now };
+            return merged.slice();
         }
 
         function getCustomerBookingsFromStore() {
@@ -423,46 +452,52 @@
 
         function mirrorDashboardBookingsForAdminPortal(bookings) {
             if (!Array.isArray(bookings) || !bookings.length) return;
-            const keys = DASHBOARD_BOOKING_SYNC_KEYS;
-            keys.forEach((key) => {
-                let rows = [];
-                try {
-                    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-                    rows = Array.isArray(parsed) ? parsed : [];
-                } catch (_error) {
-                    rows = [];
-                }
+            if (dashboardBookingMirrorTimer || Date.now() - dashboardBookingLastMirrorAt < DASHBOARD_BOOKING_MIRROR_COOLDOWN_MS) return;
+            dashboardBookingMirrorTimer = window.setTimeout(() => {
+                dashboardBookingMirrorTimer = null;
+                dashboardBookingLastMirrorAt = Date.now();
+                const rowsToMirror = bookings.slice(0, DASHBOARD_BOOKING_MAX_ROWS_PER_KEY);
+                scheduleDashboardIdle(() => {
+                    DASHBOARD_BOOKING_LIGHT_MIRROR_KEYS.forEach((key) => {
+                        let rows = [];
+                        try {
+                            rows = readDashboardArrayFromStorage(key, { forceDeep: true, maxChars: DASHBOARD_BOOKING_MAX_VALUE_CHARS, maxRows: DASHBOARD_BOOKING_MAX_ROWS_PER_KEY });
+                        } catch (_error) {
+                            rows = [];
+                        }
 
-                const byId = new Map();
-                rows.forEach((row) => {
-                    const id = String(row && (row.bookingId || row.id) || '').trim();
-                    if (id) byId.set(id, row);
-                });
+                        const byId = new Map();
+                        rows.forEach((row) => {
+                            const id = String(row && (row.bookingId || row.id) || '').trim();
+                            if (id) byId.set(id, row);
+                        });
 
-                bookings.forEach((booking) => {
-                    if (!booking || typeof booking !== 'object') return;
-                    const id = String(booking.bookingId || booking.id || '').trim();
-                    if (!id) return;
-                    const existing = byId.get(id) || {};
-                    byId.set(id, {
-                        ...existing,
-                        ...booking,
-                        id,
-                        bookingId: id,
-                        pickup: booking.pickup || booking.pickupLocation || existing.pickup || '',
-                        pickupLocation: booking.pickupLocation || booking.pickup || existing.pickupLocation || '',
-                        dropoff: booking.dropoff || booking.dropLocation || booking.drop || existing.dropoff || '',
-                        dropLocation: booking.dropLocation || booking.dropoff || booking.drop || existing.dropLocation || '',
-                        totalFare: Number(booking.totalFare || booking.amount || booking.fare || existing.totalFare || existing.fare || 0),
-                        amount: Number(booking.amount || booking.totalFare || booking.fare || existing.amount || existing.fare || 0),
-                        status: booking.status || existing.status || 'pending_admin_review',
-                        adminReviewStatus: booking.adminReviewStatus || existing.adminReviewStatus || 'pending',
-                        updatedAt: booking.updatedAt || new Date().toISOString()
+                        rowsToMirror.forEach((booking) => {
+                            if (!booking || typeof booking !== 'object') return;
+                            const id = String(booking.bookingId || booking.id || '').trim();
+                            if (!id) return;
+                            const existing = byId.get(id) || {};
+                            byId.set(id, {
+                                ...existing,
+                                ...booking,
+                                id,
+                                bookingId: id,
+                                pickup: booking.pickup || booking.pickupLocation || existing.pickup || '',
+                                pickupLocation: booking.pickupLocation || booking.pickup || existing.pickupLocation || '',
+                                dropoff: booking.dropoff || booking.dropLocation || booking.drop || existing.dropoff || '',
+                                dropLocation: booking.dropLocation || booking.dropoff || booking.drop || existing.dropLocation || '',
+                                totalFare: Number(booking.totalFare || booking.amount || booking.fare || existing.totalFare || existing.fare || 0),
+                                amount: Number(booking.amount || booking.totalFare || booking.fare || existing.amount || existing.fare || 0),
+                                status: booking.status || existing.status || 'pending_admin_review',
+                                adminReviewStatus: booking.adminReviewStatus || existing.adminReviewStatus || 'pending',
+                                updatedAt: booking.updatedAt || new Date().toISOString()
+                            });
+                        });
+
+                        localStorage.setItem(key, JSON.stringify(Array.from(byId.values()).slice(0, DASHBOARD_BOOKING_MAX_ROWS_PER_KEY)));
                     });
                 });
-
-                localStorage.setItem(key, JSON.stringify(Array.from(byId.values())));
-            });
+            }, 800);
         }
 
         function migrateLegacyCustomerDashboardStores() {
@@ -491,8 +526,7 @@
                 };
             });
             if (bookingsChanged) {
-                localStorage.setItem('bookings', JSON.stringify(normalizedBookings));
-                localStorage.setItem('goride_bookings', JSON.stringify(normalizedBookings));
+                mirrorDashboardBookingsForAdminPortal(normalizedBookings.filter((booking) => customerOwnsStoredRecord(booking)));
             }
 
             try {
@@ -898,7 +932,6 @@
         window.addEventListener('load', async function() {
             currentUser = await checkAuth();
             if (!currentUser) return;
-            migrateLegacyCustomerDashboardStores();
             document.getElementById('rideEditIsReturnTrip')?.addEventListener('change', function() {
                 toggleRideEditReturnFields(Boolean(this.checked));
             });
@@ -931,16 +964,18 @@
             loadMessages();
             openRequestedCustomerTabFromUrl();
 
-            // Check for completed rides immediately
-            checkForCompletedRides();
+            scheduleDashboardIdle(() => {
+                migrateLegacyCustomerDashboardStores();
+                checkForCompletedRides();
+            }, 1800);
 
             // Start real-time sync
             startRealTimeSync();
-            flushDashboardAdminEmailRetryQueue();
+            scheduleDashboardIdle(flushDashboardAdminEmailRetryQueue, 7000);
             window.addEventListener('online', flushDashboardAdminEmailRetryQueue);
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                    flushDashboardAdminEmailRetryQueue();
+                    scheduleDashboardIdle(flushDashboardAdminEmailRetryQueue, 1000);
                 }
             });
         });

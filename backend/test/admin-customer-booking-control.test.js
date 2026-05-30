@@ -515,12 +515,13 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(adminApp, /mode:\s*cleanText\(mode \|\| "admin_edit"/);
   assert.match(adminApp, /syncAdminBookingUpdateToFallbackQueue\(updatedBooking,\s*"admin_edit"/);
   assert.match(customerDashboardPage, /goindiaride_admin_customer_bookings_current_v1/);
-  assert.match(customerDashboard, /customer-dashboard-live-bridge\.js\?v=20260516-admin-full-field-sync\d+/);
+  assert.match(customerDashboard, /customer-dashboard-live-bridge\.js\?v=20260530-customer-hangfix1/);
 
   assert.match(runtimeBridge, /LOCAL_BOOKING_KEYS/);
   assert.match(runtimeBridge, /goindiaride_admin_customer_bookings_current_v1/);
   assert.match(runtimeBridge, /goindiaride_live_customer_booking_queue_v1/);
-  assert.match(runtimeBridge, /localStorage\.setItem\('goindiaride_active_bookings'/);
+  assert.match(runtimeBridge, /'goindiaride_active_bookings'/);
+  assert.match(runtimeBridge, /RUNTIME_BOOKING_WRITE_LIMIT/);
   assert.match(runtimeBridge, /adminQueueSyncStatus/);
   assert.match(runtimeBridge, /function mergeBookingRowSnapshots\(/);
   assert.match(runtimeBridge, /function fetchFallbackAdminQueueBookings\(/);

@@ -79,33 +79,47 @@
                 }
             };
 
-            if (window.AdminControlBridge && typeof AdminControlBridge.initPortalRuntime === 'function') {
-                AdminControlBridge.initPortalRuntime('customer', {
-                    getSubject: getCustomerSubject,
-                    onBlocked: function () {
-                        document.querySelectorAll('.container, a[href*="booking"], button[onclick*="Booking"], button[onclick*="booking"], form button[type="submit"]').forEach(function (node) {
-                            if (!node.closest('#goindiarideAdminControlBanner')) node.classList.add('admin-lock-sensitive');
-                        });
-                    },
-                    onAllowed: function () {
-                        document.querySelectorAll('.admin-lock-sensitive').forEach(function (node) {
-                            node.classList.remove('admin-lock-sensitive');
-                        });
+            function runCustomerIdle(callback, delayMs) {
+                const run = function () {
+                    if (typeof window.requestIdleCallback === 'function') {
+                        window.requestIdleCallback(callback, { timeout: 9000 });
+                        return;
                     }
-                });
+                    window.setTimeout(callback, 160);
+                };
+                window.setTimeout(run, delayMs || 0);
             }
 
-            if (window.AdminControlBridge && typeof AdminControlBridge.initFeatureRuntime === 'function') {
-                AdminControlBridge.initFeatureRuntime('customer', customerAdminFeatureMap, {
-                    getSubject: getCustomerSubject
-                });
-            }
+            function connectCustomerAdminControls() {
+                if (window.AdminControlBridge && typeof AdminControlBridge.initPortalRuntime === 'function') {
+                    AdminControlBridge.initPortalRuntime('customer', {
+                        getSubject: getCustomerSubject,
+                        onBlocked: function () {
+                            document.querySelectorAll('.container, a[href*="booking"], button[onclick*="Booking"], button[onclick*="booking"], form button[type="submit"]').forEach(function (node) {
+                                if (!node.closest('#goindiarideAdminControlBanner')) node.classList.add('admin-lock-sensitive');
+                            });
+                        },
+                        onAllowed: function () {
+                            document.querySelectorAll('.admin-lock-sensitive').forEach(function (node) {
+                                node.classList.remove('admin-lock-sensitive');
+                            });
+                        }
+                    });
+                }
 
-            if (window.AdminControlBridge && typeof AdminControlBridge.wrapFeatureActions === 'function') {
-                AdminControlBridge.wrapFeatureActions('customer', customerAdminActionMap, {
-                    getSubject: getCustomerSubject
-                });
+                if (window.AdminControlBridge && typeof AdminControlBridge.initFeatureRuntime === 'function') {
+                    AdminControlBridge.initFeatureRuntime('customer', customerAdminFeatureMap, {
+                        getSubject: getCustomerSubject
+                    });
+                }
+
+                if (window.AdminControlBridge && typeof AdminControlBridge.wrapFeatureActions === 'function') {
+                    AdminControlBridge.wrapFeatureActions('customer', customerAdminActionMap, {
+                        getSubject: getCustomerSubject
+                    });
+                }
             }
+            runCustomerIdle(connectCustomerAdminControls, 3500);
 
             let lastAdminBookingSyncSignal = '';
             function invalidateCustomerRuntimeBookingCache() {
@@ -221,7 +235,7 @@
                 } catch (_error) {
                     // Ignore storage read failures.
                 }
-            }, 2000);
+            }, 15000);
 
             try {
                 const rawSignal = localStorage.getItem(ADMIN_BOOKING_EDIT_SIGNAL_KEY) || '';

@@ -12,8 +12,23 @@
     'goindiaride_admin_customer_bookings_current_v1',
     'goindiaride_live_customer_booking_queue_v1'
   ];
+  var RUNTIME_BOOKING_CACHE_MS = 10000;
+  var RUNTIME_BOOKING_MAX_ROWS_PER_KEY = 220;
+  var RUNTIME_BOOKING_MAX_VALUE_CHARS = 520000;
+  var RUNTIME_BOOKING_WRITE_LIMIT = 260;
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
   window.__GOINDIARIDE_DISABLE_AUTOMATED_CHAT_SEED__ = true;
+
+  function scheduleRuntimeIdle(callback, delayMs) {
+    var run = function () {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(callback, { timeout: 10000 });
+        return;
+      }
+      window.setTimeout(callback, 140);
+    };
+    window.setTimeout(run, delayMs || 0);
+  }
 
   function parseJson(raw, fallback) {
     try {
@@ -223,30 +238,58 @@
     return looseRows.concat(sortBookingRows(Object.keys(mergedMap).map(function (key) { return mergedMap[key]; })));
   }
 
-  function readLocalBookings() {
+  function readBookingRowsFromKey(key, options) {
+    try {
+      var raw = localStorage.getItem(key) || '[]';
+      var maxChars = Number((options && options.maxChars) || RUNTIME_BOOKING_MAX_VALUE_CHARS);
+      if (raw.length > maxChars && !(options && options.forceDeep)) return [];
+      return safeArray(parseJson(raw, [])).slice(0, Number((options && options.maxRows) || RUNTIME_BOOKING_MAX_ROWS_PER_KEY));
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  function readLocalBookings(options) {
+    var settings = options && typeof options === 'object' ? options : {};
+    if (!settings.force && Array.isArray(bridge.localBookingCache) && Number(bridge.localBookingCacheAt || 0) > 0) {
+      if (Date.now() - Number(bridge.localBookingCacheAt || 0) < RUNTIME_BOOKING_CACHE_MS) {
+        return bridge.localBookingCache.slice();
+      }
+    }
     var merged = [];
     for (var i = 0; i < LOCAL_BOOKING_KEYS.length; i += 1) {
       merged = mergeBookingCollections(
         merged,
-        safeArray(parseJson(localStorage.getItem(LOCAL_BOOKING_KEYS[i]) || '[]', []))
+        readBookingRowsFromKey(LOCAL_BOOKING_KEYS[i], settings)
       );
     }
+    bridge.localBookingCache = merged.slice();
+    bridge.localBookingCacheAt = Date.now();
     return merged;
   }
 
   function writeLocalBookings(rows) {
     try {
-      var mergedLocal = mergeBookingCollections(readLocalBookings(), safeArray(rows));
+      var mergedLocal = mergeBookingCollections(readLocalBookings({ force: true }), safeArray(rows)).slice(0, RUNTIME_BOOKING_WRITE_LIMIT);
       var mergedShared = mergeBookingCollections(
-        safeArray(parseJson(localStorage.getItem('goride_bookings') || '[]', [])),
+        readBookingRowsFromKey('goride_bookings', { force: true }),
         mergedLocal
-      );
-      localStorage.setItem('bookings', JSON.stringify(mergedLocal));
-      localStorage.setItem('goride_bookings', JSON.stringify(mergedShared));
-      localStorage.setItem('goindiaride_active_bookings', JSON.stringify(mergedLocal));
-      localStorage.setItem('customerBookings', JSON.stringify(mergedLocal));
-      localStorage.setItem('customer_bookings', JSON.stringify(mergedLocal));
-      localStorage.setItem('goindiaride_live_customer_booking_queue_v1', JSON.stringify(mergedLocal.slice(0, 250)));
+      ).slice(0, RUNTIME_BOOKING_WRITE_LIMIT);
+      [
+        ['bookings', mergedLocal],
+        ['goride_bookings', mergedShared],
+        ['goindiaride_active_bookings', mergedLocal],
+        ['customerBookings', mergedLocal],
+        ['customer_bookings', mergedLocal],
+        ['goindiaride_live_customer_booking_queue_v1', mergedLocal]
+      ].forEach(function (entry) {
+        var key = entry[0];
+        var existing = localStorage.getItem(key) || '[]';
+        if (existing.length > RUNTIME_BOOKING_MAX_VALUE_CHARS && key !== 'goindiaride_live_customer_booking_queue_v1') return;
+        localStorage.setItem(key, JSON.stringify(entry[1].slice(0, RUNTIME_BOOKING_WRITE_LIMIT)));
+      });
+      bridge.localBookingCache = mergedLocal.slice();
+      bridge.localBookingCacheAt = Date.now();
     } catch (_error) {}
   }
 
@@ -812,8 +855,9 @@
     if (!syncState[identity.userKey] || typeof syncState[identity.userKey] !== 'object') syncState[identity.userKey] = {};
     var userSyncState = syncState[identity.userKey];
 
-    for (var i = 0; i < bookings.length; i += 1) {
-      var booking = bookings[i];
+    var rowsToSync = safeArray(bookings).slice(0, 20);
+    for (var i = 0; i < rowsToSync.length; i += 1) {
+      var booking = rowsToSync[i];
       var bookingRef = getBookingRef(booking);
       if (!bookingRef) continue;
       var status = String(booking.status || '').toLowerCase();
@@ -838,6 +882,15 @@
     localStorage.setItem(RUNTIME_HISTORY_SYNC_KEY, JSON.stringify(syncState));
   }
 
+  function scheduleBackgroundBookingSync(user, delayMs) {
+    if (bridge.backgroundBookingSyncScheduled) return;
+    bridge.backgroundBookingSyncScheduled = true;
+    scheduleRuntimeIdle(function () {
+      bridge.backgroundBookingSyncScheduled = false;
+      getBookings({ forceSync: true, background: true, user: user }).catch(function () { return null; });
+    }, delayMs || 6500);
+  }
+
   async function getBookings(options) {
     var settings = options && typeof options === 'object' ? options : {};
     if (!settings.forceSync && Array.isArray(bridge.cachedBookings) && bridge.cachedBookings.length && Number(bridge.cachedBookingsAt || 0) > 0) {
@@ -848,6 +901,15 @@
     }
     var user = getStoredUser();
     var identity = bootstrapIdentityFromUser(user);
+    if (!settings.forceSync && settings.background !== true) {
+      var fastLocalRows = readLocalBookings().filter(function (row) { return bookingBelongsToUser(row, user); });
+      window.__GOINDIARIDE_CUSTOMER_DASHBOARD_BOOKINGS__ = fastLocalRows.slice();
+      window.__GOINDIARIDE_DASHBOARD_RUNTIME_USER__ = identity.user;
+      bridge.cachedBookings = fastLocalRows.slice();
+      bridge.cachedBookingsAt = Date.now();
+      scheduleBackgroundBookingSync(user);
+      return fastLocalRows;
+    }
     await syncLocalBookingsToBackend(user);
     writeLocalBookings(readLocalBookings());
     var localRows = readLocalBookings().filter(function (row) { return bookingBelongsToUser(row, user); });
@@ -1248,8 +1310,12 @@
 
   window.addEventListener('load', function () {
     bootstrapIdentityFromUser(getStoredUser());
-    getBookings({ forceSync: true }).catch(function () { return null; });
-    observeRuntimeCards();
-    enhanceRuntimeCards();
+    scheduleRuntimeIdle(function () {
+      getBookings({ forceSync: true, background: true }).catch(function () { return null; });
+    }, 7000);
+    scheduleRuntimeIdle(function () {
+      observeRuntimeCards();
+      enhanceRuntimeCards();
+    }, 3500);
   });
 })();
