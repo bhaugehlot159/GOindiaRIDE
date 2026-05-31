@@ -13,9 +13,9 @@
     'goindiaride_live_customer_booking_queue_v1'
   ];
   var RUNTIME_BOOKING_CACHE_MS = 10000;
-  var RUNTIME_BOOKING_MAX_ROWS_PER_KEY = 220;
-  var RUNTIME_BOOKING_MAX_VALUE_CHARS = 520000;
-  var RUNTIME_BOOKING_WRITE_LIMIT = 260;
+  var RUNTIME_BOOKING_MAX_ROWS_PER_KEY = 140;
+  var RUNTIME_BOOKING_MAX_VALUE_CHARS = 360000;
+  var RUNTIME_BOOKING_WRITE_LIMIT = 140;
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
   window.__GOINDIARIDE_DISABLE_AUTOMATED_CHAT_SEED__ = true;
 
@@ -242,11 +242,23 @@
     try {
       var raw = localStorage.getItem(key) || '[]';
       var maxChars = Number((options && options.maxChars) || RUNTIME_BOOKING_MAX_VALUE_CHARS);
-      if (raw.length > maxChars && !(options && options.forceDeep)) return [];
+      if (raw.length > maxChars) return [];
       return safeArray(parseJson(raw, [])).slice(0, Number((options && options.maxRows) || RUNTIME_BOOKING_MAX_ROWS_PER_KEY));
     } catch (_error) {
       return [];
     }
+  }
+
+  function writeRowsIfChanged(key, rows) {
+    try {
+      var limited = safeArray(rows).slice(0, RUNTIME_BOOKING_WRITE_LIMIT);
+      var raw = JSON.stringify(limited);
+      if (raw.length > RUNTIME_BOOKING_MAX_VALUE_CHARS) {
+        raw = JSON.stringify(limited.slice(0, Math.max(20, Math.floor(RUNTIME_BOOKING_WRITE_LIMIT / 2))));
+      }
+      if (localStorage.getItem(key) === raw) return;
+      localStorage.setItem(key, raw);
+    } catch (_error) {}
   }
 
   function readLocalBookings(options) {
@@ -286,7 +298,7 @@
         var key = entry[0];
         var existing = localStorage.getItem(key) || '[]';
         if (existing.length > RUNTIME_BOOKING_MAX_VALUE_CHARS && key !== 'goindiaride_live_customer_booking_queue_v1') return;
-        localStorage.setItem(key, JSON.stringify(entry[1].slice(0, RUNTIME_BOOKING_WRITE_LIMIT)));
+        writeRowsIfChanged(key, entry[1]);
       });
       bridge.localBookingCache = mergedLocal.slice();
       bridge.localBookingCacheAt = Date.now();
@@ -1312,7 +1324,7 @@
     bootstrapIdentityFromUser(getStoredUser());
     scheduleRuntimeIdle(function () {
       getBookings({ forceSync: true, background: true }).catch(function () { return null; });
-    }, 7000);
+    }, 18000);
     scheduleRuntimeIdle(function () {
       observeRuntimeCards();
       enhanceRuntimeCards();

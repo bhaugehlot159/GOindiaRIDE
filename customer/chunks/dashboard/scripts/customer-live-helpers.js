@@ -15,6 +15,8 @@
                 donations: 'donations',
                 profile: 'profile'
             };
+            const CUSTOMER_DASHBOARD_SYNC_MAX_ROWS = 140;
+            const CUSTOMER_DASHBOARD_SYNC_MAX_CHARS = 360000;
             const customerAdminFeatureMap = {
                 home_dashboard: ['.header-section', '.quick-actions', '.stats-grid'],
                 booking: ['button[onclick*="goToBooking"]', 'a[href*="booking.html"]', '.quick-action-btn[onclick*="goToBooking"]', '#rideEditModal', '.ride-edit-modal-content', 'button[onclick*="submitRideEdit"]'],
@@ -122,10 +124,32 @@
             runCustomerIdle(connectCustomerAdminControls, 3500);
 
             let lastAdminBookingSyncSignal = '';
+            let customerBookingViewRefreshTimer = null;
             function invalidateCustomerRuntimeBookingCache() {
                 if (!window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__) return;
                 window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__.cachedBookings = null;
                 window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__.cachedBookingsAt = 0;
+            }
+
+            function readDashboardSyncRows(key) {
+                try {
+                    const raw = localStorage.getItem(key) || '[]';
+                    if (raw.length > CUSTOMER_DASHBOARD_SYNC_MAX_CHARS) return [];
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === 'object').slice(0, CUSTOMER_DASHBOARD_SYNC_MAX_ROWS) : [];
+                } catch (_error) {
+                    return [];
+                }
+            }
+
+            function writeDashboardSyncRows(key, rows) {
+                try {
+                    const raw = JSON.stringify((Array.isArray(rows) ? rows : []).slice(0, CUSTOMER_DASHBOARD_SYNC_MAX_ROWS));
+                    if (localStorage.getItem(key) === raw) return;
+                    localStorage.setItem(key, raw);
+                } catch (_error) {
+                    // Ignore local storage pressure.
+                }
             }
 
             function upsertDashboardBookingFromAdminPayload(booking, fallbackBookingId) {
@@ -133,13 +157,7 @@
                 if (!bookingId) return;
 
                 DASHBOARD_BOOKING_SYNC_KEYS.forEach(function (key) {
-                    let rows = [];
-                    try {
-                        const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-                        rows = Array.isArray(parsed) ? parsed : [];
-                    } catch (_error) {
-                        rows = [];
-                    }
+                    let rows = readDashboardSyncRows(key);
 
                     const idx = rows.findIndex(function (item) {
                         return String(item.id || item.bookingId || '').trim() === bookingId;
@@ -165,7 +183,7 @@
                     } else {
                         rows.unshift(updated);
                     }
-                    localStorage.setItem(key, JSON.stringify(rows));
+                    writeDashboardSyncRows(key, rows);
                 });
                 invalidateCustomerRuntimeBookingCache();
             }
@@ -180,10 +198,14 @@
 
             function refreshCustomerBookingViewsFromAdminSync() {
                 invalidateCustomerRuntimeBookingCache();
-                if (typeof loadRides === 'function') loadRides();
-                if (typeof loadDashboard === 'function') loadDashboard();
-                if (typeof checkForCompletedRides === 'function') checkForCompletedRides();
-                if (typeof renderCustomerAlerts === 'function') renderCustomerAlerts();
+                if (customerBookingViewRefreshTimer) return;
+                customerBookingViewRefreshTimer = window.setTimeout(function () {
+                    customerBookingViewRefreshTimer = null;
+                    if (typeof loadRides === 'function') loadRides();
+                    if (typeof loadDashboard === 'function') loadDashboard();
+                    if (typeof checkForCompletedRides === 'function') checkForCompletedRides();
+                    if (typeof renderCustomerAlerts === 'function') renderCustomerAlerts();
+                }, 300);
             }
 
             function handleAdminBookingSyncSignal(rawSignal) {

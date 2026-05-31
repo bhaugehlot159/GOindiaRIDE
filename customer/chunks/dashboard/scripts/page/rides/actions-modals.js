@@ -842,10 +842,11 @@
         function loadRides() {
             const customerBookings = getCustomerBookingsFromStore();
 
+            const renderLimit = typeof DASHBOARD_BOOKING_RENDER_LIMIT === 'number' ? DASHBOARD_BOOKING_RENDER_LIMIT : 80;
             const activeRides = customerBookings.filter(b =>
                 b.status !== 'completed' && b.status !== 'cancelled'
-            );
-            const completedRides = customerBookings.filter(b => b.status === 'completed');
+            ).slice(0, renderLimit);
+            const completedRides = customerBookings.filter(b => b.status === 'completed').slice(0, renderLimit);
 
             // Active Rides
             const activeList = document.getElementById('activeRidesList');

@@ -14,6 +14,7 @@
             const query = new URLSearchParams(global.location.search || "");
             if (query.get("goiFutureRuntime") === "1") return true;
             if (query.get("goiFutureRuntime") === "0") return false;
+            if (global.__GOINDIARIDE_DISABLE_FUTURE_RUNTIME_AUTOLOAD__ === true) return false;
             if (global.__GOINDIARIDE_AUTO_LOAD_FUTURE_RUNTIME__ === true) return true;
             return global.localStorage && global.localStorage.getItem("goindiaride_enable_future_runtime") === "true";
         } catch (_error) {

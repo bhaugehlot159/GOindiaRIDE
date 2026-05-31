@@ -63,6 +63,32 @@ function calculateFarePreview() {
     `;
 }
 
+function safePortalBookingText(value, maxLen = 180) {
+    return String(value || '')
+        .replace(/[<>]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, maxLen);
+}
+
+function getPortalBookingFare(booking) {
+    const value = Number(
+        booking?.finalFare
+        || booking?.totalFare
+        || booking?.amount
+        || booking?.fare
+        || 0
+    );
+    return Number.isFinite(value) ? value : 0;
+}
+
+function getPortalBookingDateLabel(booking) {
+    const raw = booking?.timestamp || booking?.createdAt || booking?.updatedAt || Date.now();
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return new Date().toLocaleString();
+    return parsed.toLocaleString();
+}
+
 /**
  * Calculate fare based on distance and vehicle type
  */
@@ -228,7 +254,16 @@ async function loadActiveBookings(options = {}) {
         }
     }
 
-    const bookings = JSON.parse(localStorage.getItem('goindiaride_active_bookings') || '[]');
+    let bookings = [];
+    try {
+        const rawBookings = localStorage.getItem('goindiaride_active_bookings') || '[]';
+        if (rawBookings.length <= 360000) {
+            const parsed = JSON.parse(rawBookings);
+            bookings = Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === 'object').slice(0, 80) : [];
+        }
+    } catch (_error) {
+        bookings = [];
+    }
     const container = document.getElementById('activeBookingsList');
     
     if (!container) return;
@@ -247,21 +282,28 @@ async function loadActiveBookings(options = {}) {
         completed: 'Completed'
     };
 
-    container.innerHTML = bookings.map(booking => `
-        <div class="booking-item">
-            <div>
-                <strong>${booking.pickup} → ${booking.drop}</strong>
+    container.innerHTML = bookings.map((booking) => {
+        const status = safePortalBookingText(booking.status || 'pending_admin_review', 60);
+        const pickup = safePortalBookingText(booking.pickup || booking.pickupLocation || '-', 180);
+        const drop = safePortalBookingText(booking.drop || booking.dropoff || booking.dropLocation || '-', 180);
+        const bookingId = safePortalBookingText(booking.id || booking.bookingId || '', 120).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const fare = getPortalBookingFare(booking);
+        return `
+            <div class="booking-item">
                 <div>
-                    <span class="badge badge-${booking.status}">${labelMap[booking.status] || booking.status}</span> •
-                    <span>₹${booking.finalFare.toFixed(0)}</span>
+                    <strong>${pickup} → ${drop}</strong>
+                    <div>
+                        <span class="badge badge-${status}">${labelMap[status] || status}</span> •
+                        <span>₹${fare.toFixed(0)}</span>
+                    </div>
+                    <small>${getPortalBookingDateLabel(booking)}</small>
                 </div>
-                <small>${new Date(booking.timestamp).toLocaleString()}</small>
+                <button class="btn-primary" onclick="viewLiveTrip('${bookingId}')">
+                    <i class="fas fa-eye"></i> Track
+                </button>
             </div>
-            <button class="btn-primary" onclick="viewLiveTrip('${booking.id}')">
-                <i class="fas fa-eye"></i> Track
-            </button>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 /**

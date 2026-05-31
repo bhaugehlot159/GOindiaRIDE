@@ -54,8 +54,9 @@
         const DASHBOARD_ADMIN_EMAIL_RETRY_QUEUE_KEY = 'goindiaride_admin_email_retry_queue_v1';
         const DASHBOARD_ADMIN_EMAIL_BATCH_SIZE = 3;
         const DASHBOARD_BOOKING_CACHE_MS = 6000;
-        const DASHBOARD_BOOKING_MAX_ROWS_PER_KEY = 260;
-        const DASHBOARD_BOOKING_MAX_VALUE_CHARS = 520000;
+        const DASHBOARD_BOOKING_MAX_ROWS_PER_KEY = 140;
+        const DASHBOARD_BOOKING_MAX_VALUE_CHARS = 360000;
+        const DASHBOARD_BOOKING_RENDER_LIMIT = 80;
         const DASHBOARD_BOOKING_MIRROR_COOLDOWN_MS = 15000;
         const DASHBOARD_BOOKING_LIGHT_MIRROR_KEYS = [
             'goindiaride_admin_customer_bookings_current_v1',
@@ -363,7 +364,7 @@
             try {
                 const raw = localStorage.getItem(key) || '[]';
                 const maxChars = Number(options.maxChars || DASHBOARD_BOOKING_MAX_VALUE_CHARS);
-                if (raw.length > maxChars && options.forceDeep !== true) return [];
+                if (raw.length > maxChars) return [];
                 const parsed = JSON.parse(raw);
                 if (!Array.isArray(parsed)) return [];
                 return parsed
@@ -450,6 +451,17 @@
             return customerRows;
         }
 
+        function writeDashboardRowsIfChanged(key, rows) {
+            try {
+                const limited = (Array.isArray(rows) ? rows : []).slice(0, DASHBOARD_BOOKING_MAX_ROWS_PER_KEY);
+                const raw = JSON.stringify(limited);
+                if (localStorage.getItem(key) === raw) return;
+                localStorage.setItem(key, raw);
+            } catch (_error) {
+                // Ignore local storage pressure.
+            }
+        }
+
         function mirrorDashboardBookingsForAdminPortal(bookings) {
             if (!Array.isArray(bookings) || !bookings.length) return;
             if (dashboardBookingMirrorTimer || Date.now() - dashboardBookingLastMirrorAt < DASHBOARD_BOOKING_MIRROR_COOLDOWN_MS) return;
@@ -461,7 +473,7 @@
                     DASHBOARD_BOOKING_LIGHT_MIRROR_KEYS.forEach((key) => {
                         let rows = [];
                         try {
-                            rows = readDashboardArrayFromStorage(key, { forceDeep: true, maxChars: DASHBOARD_BOOKING_MAX_VALUE_CHARS, maxRows: DASHBOARD_BOOKING_MAX_ROWS_PER_KEY });
+                            rows = readDashboardArrayFromStorage(key, { maxChars: DASHBOARD_BOOKING_MAX_VALUE_CHARS, maxRows: DASHBOARD_BOOKING_MAX_ROWS_PER_KEY });
                         } catch (_error) {
                             rows = [];
                         }
@@ -494,7 +506,7 @@
                             });
                         });
 
-                        localStorage.setItem(key, JSON.stringify(Array.from(byId.values()).slice(0, DASHBOARD_BOOKING_MAX_ROWS_PER_KEY)));
+                        writeDashboardRowsIfChanged(key, Array.from(byId.values()).slice(0, DASHBOARD_BOOKING_MAX_ROWS_PER_KEY));
                     });
                 });
             }, 800);

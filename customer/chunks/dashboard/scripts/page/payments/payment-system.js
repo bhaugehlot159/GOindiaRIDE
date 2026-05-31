@@ -61,12 +61,8 @@
         function checkForCompletedRides() {
             const myRides = getCustomerBookingsFromStore();
 
-            myRides.forEach(ride => {
-                // If ride is completed and payment not done, show payment modal
-                if (ride.status === 'completed' && !ride.paymentStatus) {
-                    showPaymentModal(ride.id);
-                }
-            });
+            const unpaidRide = myRides.find(ride => ride.status === 'completed' && !ride.paymentStatus);
+            if (unpaidRide) showPaymentModal(unpaidRide.id);
         }
 
         // Real-time sync - poll for updates every 30 seconds

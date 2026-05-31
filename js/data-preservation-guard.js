@@ -450,6 +450,7 @@
 
   function backupParsedValue(key, parsed, backup) {
     if (!shouldProtectKey(key) || !parsed || !parsed.exists) return backup;
+    if (parsed.rawTooLarge) return backup || readBackup();
     var target = backup || readBackup();
     var previous = target.stores[key] && hasOwn(target.stores[key], 'value')
       ? target.stores[key].value
@@ -576,10 +577,25 @@
       return nativeSetItem.call(this, key, value);
     }
 
+    var incomingRaw = toText(value);
+    var existingRaw = getRaw(safeKey);
+    if (existingRaw === incomingRaw) return undefined;
+
+    if (incomingRaw.length > MAX_DEEP_PARSE_CHARS || (existingRaw && existingRaw.length > MAX_DEEP_PARSE_CHARS)) {
+      internalWrite = true;
+      try {
+        nativeSetItem.call(storage, safeKey, incomingRaw);
+      } finally {
+        internalWrite = false;
+      }
+      scheduleSnapshot({ maxKeys: 4 });
+      return undefined;
+    }
+
     var backup = readBackup();
     var backupEntry = backup.stores[safeKey] || null;
-    var existing = safeParse(getRaw(safeKey));
-    var incoming = safeParse(toText(value));
+    var existing = safeParse(existingRaw);
+    var incoming = safeParse(incomingRaw);
     if (!incoming.exists) incoming = { exists: true, value: toText(value), isJson: false };
 
     var base = backupEntry && hasOwn(backupEntry, 'value') ? backupEntry.value : undefined;
