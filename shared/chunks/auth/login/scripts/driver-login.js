@@ -19,14 +19,16 @@ async function driverLoginOTP(phone){
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Driver OTP login blocked','AI risk blocked driver OTP login.',{driverId:driver.id,phone,score:Number(risk.score||0)});driverResetOTP();return;}
   const verifiedDriver=upsertLocalAccountFromBackend('driver',{...driver,phone,isPhoneVerified:true});
   setDriverSession(verifiedDriver);
-  const sync=await ensureBackendSessionForRole({record:verifiedDriver,role:'driver',source:'driver_otp'});
-  showSuccess(sync.synced?'Login successful. Live booking session connected.':'Login successful. Fallback local session active.');
-  setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+  startBackendSessionSync({record:verifiedDriver,role:'driver',source:'driver_otp'});
+  showSuccess('Login successful.');
+  redirectAfterLogin('./driver-dashboard.html');
 }
 function driverResetOTP(){driverConfirmation=null;document.getElementById('driverOTPSection').classList.remove('show');document.getElementById('driverPhone').disabled=false;document.querySelectorAll('.driver-otp').forEach((i)=>{i.value='';});}
 async function driverLoginEmail(){
   const email=sanitizeEmail(document.getElementById('driverEmail').value);const password=document.getElementById('driverPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
+  const instantLogin=await tryInstantCachedRoleLogin({role:'driver',email,password,target:'./driver-dashboard.html'});
+  if(instantLogin.handled)return;
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
   let resolvedLogin=liveLogin;
   if(!resolvedLogin.ok){
@@ -44,7 +46,7 @@ async function driverLoginEmail(){
     setDriverSession(resolvedLogin.record);
     if(readBackendAccessToken())markBackendAuthMode('secure_backend');
     else await ensureBackendSessionForRole({record:resolvedLogin.record,password,role:'driver',source:'driver_backend_login'});
-    showSuccess('Login successful.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+    showSuccess('Login successful.');redirectAfterLogin('./driver-dashboard.html');
     return;
   }
 
@@ -65,8 +67,8 @@ async function driverLoginEmail(){
         account=findAccountByIdentifier('driver',email);
       }
       setDriverSession(account.record);
-      const sync=await ensureBackendSessionForRole({record:account.record,password,role:'driver',source:'driver_local_restore'});
-      showSuccess(sync.synced?'Login successful.':'Login successful (local account restored).');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      startBackendSessionSync({record:account.record,password,role:'driver',source:'driver_local_restore'});
+      showSuccess('Login successful.');redirectAfterLogin('./driver-dashboard.html');
       return;
     }
     localPasswordMismatch=true;
@@ -84,8 +86,8 @@ async function driverLoginEmail(){
         writeRecords(customerAccount.storeKeys,customerAccount.records);
       }
       setUserSession(customerAccount.record);
-      const sync=await ensureBackendSessionForRole({record:customerAccount.record,password,role:'customer',source:'driver_switch_customer'});
-      showSuccess(sync.synced?'Yeh account customer role me hai. Customer portal open kiya ja raha hai.':'Yeh account customer role me hai. Customer portal local restore mode me open ho raha hai.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      startBackendSessionSync({record:customerAccount.record,password,role:'customer',source:'driver_switch_customer'});
+      showSuccess('Yeh account customer role me hai. Customer portal open kiya ja raha hai.');redirectAfterLogin('./customer-dashboard.html');
       return;
     }
     localPasswordMismatch=true;
@@ -96,9 +98,9 @@ async function driverLoginEmail(){
       const emergencyReset=await createEmergencyLocalAccount({role:'driver',email,password,forcePasswordReset:true});
       if(emergencyReset.ok){
         setDriverSession(emergencyReset.record);
-        await ensureBackendSessionForRole({record:emergencyReset.record,password,role:'driver',source:'driver_emergency_reset'});
+        startBackendSessionSync({record:emergencyReset.record,password,role:'driver',source:'driver_emergency_reset'});
         showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
-        setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+        redirectAfterLogin('./driver-dashboard.html');
         return;
       }
     }
@@ -118,11 +120,11 @@ async function driverLoginEmail(){
     const emergency=await createEmergencyLocalAccount({role:'driver',email,password});
     if(emergency.ok){
       setDriverSession(emergency.record);
-      await ensureBackendSessionForRole({record:emergency.record,password,role:'driver',source:'driver_emergency_create'});
+      startBackendSessionSync({record:emergency.record,password,role:'driver',source:'driver_emergency_create'});
       showSuccess(emergency.created
         ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
         : 'Login successful (local restore mode).');
-      setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      redirectAfterLogin('./driver-dashboard.html');
       return;
     }
   }

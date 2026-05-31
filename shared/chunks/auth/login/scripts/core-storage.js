@@ -26,7 +26,8 @@ const ADMIN_OTP_METHOD_KEY='admin2FAMethod';
 const ADMIN_OTP_CONTEXT_KEY='goindiaride_admin_otp_context';
 const LOGIN_RISK_THRESHOLD=35;
 const LIVE_BACKEND_REQUIRED_FOR_LOGIN=true;
-const AUTH_REQUEST_TIMEOUT_MS=45000;
+const AUTH_REQUEST_TIMEOUT_MS=12000;
+const LOGIN_REDIRECT_DELAY_MS=0;
 const ADMIN_MAX_ATTEMPTS=5;
 const ADMIN_LOCK_MS=15*60*1000;
 const ADMIN_CHALLENGE_TTL_MS=10*60*1000;
@@ -342,6 +343,67 @@ function readBackendAccessToken(){
     localStorage.getItem('token')||
     ''
   ).trim();
+}
+function readBackendRefreshToken(){
+  return String(
+    localStorage.getItem('goindiaride_refresh_token')||
+    localStorage.getItem('goindiaride_refresh_token_v1')||
+    ''
+  ).trim();
+}
+function redirectAfterLogin(target){
+  const nextUrl=String(target||'').trim();
+  if(!nextUrl)return;
+  const run=()=>{window.location.replace(nextUrl);};
+  const delay=Number(LOGIN_REDIRECT_DELAY_MS||0);
+  if(delay>0){setTimeout(run,delay);return;}
+  if(typeof requestAnimationFrame==='function'){requestAnimationFrame(run);return;}
+  run();
+}
+function isInstantCachedLoginEligible(record){
+  if(!record||typeof record!=='object')return false;
+  if(readBackendAccessToken()||readBackendRefreshToken())return true;
+  return Boolean(record.backendUserId||record.syncedFromBackendAt||record.recoveredFromSessionAt||record.emergencyRestored);
+}
+function startBackendSessionSync({record,password,role,source}){
+  Promise.resolve()
+    .then(()=>ensureBackendSessionForRole({record,password,role,source}))
+    .catch(()=>{});
+}
+async function tryInstantCachedRoleLogin({role,email,password,target}){
+  const safeRole=normalizeAccountRole(role,'customer');
+  const safeEmail=sanitizeEmail(email||'');
+  const account=findAccountByIdentifier(safeRole,safeEmail);
+  if(!account.record)return{handled:false,reason:'missing_local_record'};
+
+  const passwordCheck=await verifyPasswordForLogin(password,getAccountPasswordValue(account.record));
+  if(!passwordCheck.isValid)return{handled:false,reason:'password_mismatch'};
+
+  let resolvedRecord=account.record;
+  if(passwordCheck.needsMigration){
+    resolvedRecord={...account.record,password:passwordCheck.hashed,passwordUpdatedAt:new Date().toISOString()};
+    if(account.index>=0)account.records[account.index]=resolvedRecord;
+    else account.records.push(resolvedRecord);
+    writeRecords(account.storeKeys,account.records);
+  }
+
+  if(!isInstantCachedLoginEligible(resolvedRecord)){
+    return{handled:false,reason:'needs_live_backend'};
+  }
+
+  if(safeRole==='driver')setDriverSession(resolvedRecord);
+  else setUserSession(resolvedRecord);
+
+  markBackendAuthMode(readBackendAccessToken()?'secure_backend':'fast_local_restore','instant_cached_login');
+  showSuccess('Login successful.');
+  startBackendSessionSync({
+    record:resolvedRecord,
+    password,
+    role:safeRole,
+    source:`${safeRole}_instant_cached_login`
+  });
+  redirectAfterLogin(target);
+  return{handled:true,record:resolvedRecord};
 }
 function getAccountPasswordValue(record){
   if(!record||typeof record!=='object')return'';

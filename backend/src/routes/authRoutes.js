@@ -484,6 +484,7 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recapt
   const ip = getClientIp(req);
   const country = getCountry(req);
   const device = getDeviceMeta(req);
+  const anomalyCheck = detectLoginAnomaly(ip).catch(() => false);
 
   if (!normalizedEmail || !password) {
     return res.status(400).json({ message: 'Email/username and password are required' });
@@ -491,7 +492,7 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recapt
 
   const user = await findLoginUser(normalizedEmail);
   if (!user) {
-    await LoginLog.create({ email: normalizedEmail, ip, country, ...device, status: 'fail', reason: 'User not found' });
+    LoginLog.create({ email: normalizedEmail, ip, country, ...device, status: 'fail', reason: 'User not found' }).catch(() => {});
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
@@ -499,7 +500,7 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recapt
     return res.status(423).json({ message: 'Account locked for 30 minutes due to failed login attempts' });
   }
 
-  if (await detectLoginAnomaly(ip)) {
+  if (await anomalyCheck) {
     user.isTemporarilyBannedUntil = new Date(Date.now() + 30 * 60 * 1000);
     await user.save();
     return res.status(403).json({ message: 'Anomalous traffic detected. Temporary ban applied.' });
@@ -513,7 +514,7 @@ router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recapt
       user.failedLoginAttempts = 0;
     }
     await user.save();
-    await LoginLog.create({ userId: user._id, email: user.email, ip, country, ...device, status: 'fail', reason: 'Wrong password' });
+    LoginLog.create({ userId: user._id, email: user.email, ip, country, ...device, status: 'fail', reason: 'Wrong password' }).catch(() => {});
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
@@ -625,24 +626,51 @@ if (isRegisteredAdminAccount(user)) {
   });
   await user.save();
 
-  await trackBehaviorEvent({
-    userId: user._id,
-    eventType: 'login',
-    ip,
-    city: req.headers['x-city'] || 'unknown',
-    deviceFingerprint: device.fingerprint,
-    metadata: { country }
+  const loginAuditUserId = user._id;
+  const loginAuditEmail = user.email || normalizedEmail;
+  const loginAuditReason = geoMismatch || isNewDevice ? 'Extra verification advised' : 'ok';
+  const runAfterResponse = typeof setImmediate === 'function'
+    ? setImmediate
+    : (callback) => setTimeout(callback, 0);
+
+  res.once('finish', () => {
+    runAfterResponse(async () => {
+      try {
+        await trackBehaviorEvent({
+          userId: loginAuditUserId,
+          eventType: 'login',
+          ip,
+          city: req.headers['x-city'] || 'unknown',
+          deviceFingerprint: device.fingerprint,
+          metadata: { country }
+        });
+
+        const behavior = await evaluateBehaviorRisk(loginAuditUserId);
+        if (behavior.score > 70) {
+          await User.updateOne(
+            { _id: loginAuditUserId },
+            {
+              $set: {
+                isTemporarilyBannedUntil: new Date(Date.now() + 30 * 60 * 1000),
+                riskScore: behavior.score,
+                lastRiskUpdate: new Date()
+              }
+            }
+          );
+        }
+
+        await LoginLog.create({
+          userId: loginAuditUserId,
+          email: loginAuditEmail,
+          ip,
+          country,
+          ...device,
+          status: 'success',
+          reason: loginAuditReason
+        });
+      } catch (_error) {}
+    });
   });
-
-  const behavior = await evaluateBehaviorRisk(user._id);
-  if (behavior.score > 70) {
-    user.isTemporarilyBannedUntil = new Date(Date.now() + 30 * 60 * 1000);
-    user.riskScore = behavior.score;
-    user.lastRiskUpdate = new Date();
-    await user.save();
-  }
-
-  await LoginLog.create({ userId: user._id, email: user.email || normalizedEmail, ip, country, ...device, status: 'success', reason: geoMismatch || isNewDevice ? 'Extra verification advised' : 'ok' });
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
@@ -662,7 +690,7 @@ if (isRegisteredAdminAccount(user)) {
     role: user.role,
     accountType: user.accountType || (user.role === 'admin' ? 'admin' : 'customer'),
     riskScore: user.riskScore,
-    requiresExtraOtp: isNewDevice || geoMismatch || behavior.score >= 40
+    requiresExtraOtp: isNewDevice || geoMismatch || riskScore >= 40
   });
 });
 

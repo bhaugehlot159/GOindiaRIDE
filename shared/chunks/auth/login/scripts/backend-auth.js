@@ -344,24 +344,26 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
     localStorage.setItem('goindiaride_auth_mode','secure_backend');
   }
 
-  const profile=await fetchBackendProfile(backendLogin.data?.accessToken||'');
-  const profileRole=normalizeAccountRole(profile?.accountType||profile?.role||backendLogin.data?.accountType,safeRole);
+  const backendData=backendLogin.data||{};
+  const shouldFetchProfile=!backendData.email||!backendData.id;
+  const profile=shouldFetchProfile?await fetchBackendProfile(backendData.accessToken||''):null;
+  const profileRole=normalizeAccountRole(profile?.accountType||profile?.role||backendData.accountType||backendData.role,safeRole);
   if(profileRole!==safeRole){
     return{ok:false,status:403,message:`This account is registered as ${profileRole}. Please switch portal.`};
   }
 
   const restored=upsertLocalAccountFromBackend(safeRole,{
-    id:profile?.id||profile?.sub||backendLogin.data?.id||backendLogin.data?.userId||'',
-    name:profile?.name||backendLogin.data?.name||'',
-    fullname:profile?.name||backendLogin.data?.name||'',
+    id:profile?.id||profile?.sub||backendData.id||backendData.userId||'',
+    name:profile?.name||backendData.name||'',
+    fullname:profile?.name||backendData.name||'',
     email:profile?.email||safeEmail,
-    phone:profile?.phone||backendLogin.data?.phone||'',
-    isPhoneVerified:Boolean(profile?.isPhoneVerified ?? backendLogin.data?.isPhoneVerified ?? false),
-    vehicleType:profile?.vehicleType||backendLogin.data?.vehicleType||'',
-    vehicleNumber:profile?.vehicleNumber||backendLogin.data?.vehicleNumber||''
+    phone:profile?.phone||backendData.phone||'',
+    isPhoneVerified:Boolean(profile?.isPhoneVerified ?? backendData.isPhoneVerified ?? false),
+    vehicleType:profile?.vehicleType||backendData.vehicleType||'',
+    vehicleNumber:profile?.vehicleNumber||backendData.vehicleNumber||''
   });
   persistSessionContinuity(safeRole,restored,{
-    refreshToken:backendLogin.data?.refreshToken||''
+    refreshToken:backendData.refreshToken||''
   });
 
   return{ok:true,status:200,record:restored,source:'backend'};

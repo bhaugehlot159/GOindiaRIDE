@@ -19,14 +19,16 @@ async function customerLoginOTP(phone){
   if(shouldBlockByRisk(risk)){showError('Login blocked by security filter.');notifyAdminSecurityEvent('Customer OTP login blocked','AI risk blocked customer OTP login.',{customerId:customer.id,phone,score:Number(risk.score||0)});customerResetOTP();return;}
   const verifiedCustomer=upsertLocalAccountFromBackend('customer',{...customer,phone,isPhoneVerified:true});
   setUserSession(verifiedCustomer);
-  const sync=await ensureBackendSessionForRole({record:verifiedCustomer,role:'customer',source:'customer_otp'});
-  showSuccess(sync.synced?'Login successful. Live booking session connected.':'Login successful. Fallback local session active.');
-  setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+  startBackendSessionSync({record:verifiedCustomer,role:'customer',source:'customer_otp'});
+  showSuccess('Login successful.');
+  redirectAfterLogin('./customer-dashboard.html');
 }
 function customerResetOTP(){customerConfirmation=null;document.getElementById('customerOTPSection').classList.remove('show');document.getElementById('customerPhone').disabled=false;document.querySelectorAll('.customer-otp').forEach((i)=>{i.value='';});}
 async function customerLoginEmail(){
   const email=sanitizeEmail(document.getElementById('customerEmail').value);const password=document.getElementById('customerPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
+  const instantLogin=await tryInstantCachedRoleLogin({role:'customer',email,password,target:'./customer-dashboard.html'});
+  if(instantLogin.handled)return;
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'customer',email,password});
   let resolvedLogin=liveLogin;
   if(!resolvedLogin.ok){
@@ -44,7 +46,7 @@ async function customerLoginEmail(){
     setUserSession(resolvedLogin.record);
     if(readBackendAccessToken())markBackendAuthMode('secure_backend');
     else await ensureBackendSessionForRole({record:resolvedLogin.record,password,role:'customer',source:'customer_backend_login'});
-    showSuccess('Login successful.');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+    showSuccess('Login successful.');redirectAfterLogin('./customer-dashboard.html');
     return;
   }
 
@@ -65,8 +67,8 @@ async function customerLoginEmail(){
         account=findAccountByIdentifier('customer',email);
       }
       setUserSession(account.record);
-      const sync=await ensureBackendSessionForRole({record:account.record,password,role:'customer',source:'customer_local_restore'});
-      showSuccess(sync.synced?'Login successful.':'Login successful (local account restored).');setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      startBackendSessionSync({record:account.record,password,role:'customer',source:'customer_local_restore'});
+      showSuccess('Login successful.');redirectAfterLogin('./customer-dashboard.html');
       return;
     }
     localPasswordMismatch=true;
@@ -84,8 +86,8 @@ async function customerLoginEmail(){
         writeRecords(driverAccount.storeKeys,driverAccount.records);
       }
       setDriverSession(driverAccount.record);
-      const sync=await ensureBackendSessionForRole({record:driverAccount.record,password,role:'driver',source:'customer_switch_driver'});
-      showSuccess(sync.synced?'Yeh account driver role me hai. Driver portal open kiya ja raha hai.':'Yeh account driver role me hai. Driver portal local restore mode me open ho raha hai.');setTimeout(()=>{window.location.href='./driver-dashboard.html';},700);
+      startBackendSessionSync({record:driverAccount.record,password,role:'driver',source:'customer_switch_driver'});
+      showSuccess('Yeh account driver role me hai. Driver portal open kiya ja raha hai.');redirectAfterLogin('./driver-dashboard.html');
       return;
     }
     localPasswordMismatch=true;
@@ -96,9 +98,9 @@ async function customerLoginEmail(){
       const emergencyReset=await createEmergencyLocalAccount({role:'customer',email,password,forcePasswordReset:true});
       if(emergencyReset.ok){
         setUserSession(emergencyReset.record);
-        await ensureBackendSessionForRole({record:emergencyReset.record,password,role:'customer',source:'customer_emergency_reset'});
+        startBackendSessionSync({record:emergencyReset.record,password,role:'customer',source:'customer_emergency_reset'});
         showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
-        setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+        redirectAfterLogin('./customer-dashboard.html');
         return;
       }
     }
@@ -118,11 +120,11 @@ async function customerLoginEmail(){
     const emergency=await createEmergencyLocalAccount({role:'customer',email,password});
     if(emergency.ok){
       setUserSession(emergency.record);
-      await ensureBackendSessionForRole({record:emergency.record,password,role:'customer',source:'customer_emergency_create'});
+      startBackendSessionSync({record:emergency.record,password,role:'customer',source:'customer_emergency_create'});
       showSuccess(emergency.created
         ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
         : 'Login successful (local restore mode).');
-      setTimeout(()=>{window.location.href='./customer-dashboard.html';},700);
+      redirectAfterLogin('./customer-dashboard.html');
       return;
     }
   }
