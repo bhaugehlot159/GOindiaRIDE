@@ -20,6 +20,12 @@ const hashToken = typeof authUtils.hashToken === 'function'
   : (token) => crypto.createHash('sha256').update(String(token)).digest('hex');
 const { getClientIp, getDeviceMeta, getCountry } = require('../utils/device');
 const { calculateLoginRisk, detectLoginAnomaly } = require('../services/riskService');
+const {
+  normalizeLoginPrincipal,
+  findLoginUser,
+  issueLoginSession,
+  attachRefreshSession
+} = require('../services/authLoginOptimizationService');
 const { loginLimiter, otpLimiter } = require("../middleware/rateLimiters");
 const { restrictAdminIp, requireAdmin2FA } = require('../middleware/adminSecurityMiddleware');
 const { honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck } = require('../middleware/botProtectionMiddleware');
@@ -471,19 +477,19 @@ router.post('/register', honeypotCheck, submissionTimingCheck, recaptchaPresence
 });
 
 router.post('/login', loginLimiter, honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck, async (req, res) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
   const requestedAccountTypeRaw = String(req.body?.accountType || '').trim();
   const requestedAccountType = requestedAccountTypeRaw ? normalizeAccountType(requestedAccountTypeRaw) : '';
-  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const normalizedEmail = normalizeLoginPrincipal(req.body);
   const ip = getClientIp(req);
   const country = getCountry(req);
   const device = getDeviceMeta(req);
 
   if (!normalizedEmail || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
+    return res.status(400).json({ message: 'Email/username and password are required' });
   }
 
-  const user = await User.findOne({ email: normalizedEmail });
+  const user = await findLoginUser(normalizedEmail);
   if (!user) {
     await LoginLog.create({ email: normalizedEmail, ip, country, ...device, status: 'fail', reason: 'User not found' });
     return res.status(401).json({ message: 'Invalid credentials' });
@@ -545,6 +551,9 @@ if (user.isTwoFactorEnabled) {
     }
 }
 
+  if (!Array.isArray(user.knownDevices)) user.knownDevices = [];
+  if (!Array.isArray(user.trustedDevices)) user.trustedDevices = [];
+
   const trustedDevice = user.trustedDevices.find((item) => item.fingerprint === device.fingerprint);
   const isNewDevice = !trustedDevice;
   const geoMismatch = country !== 'unknown' && user.lastLoginIp && user.lastLoginIp !== ip;
@@ -555,7 +564,7 @@ if (user.isTwoFactorEnabled) {
     user.riskScore = riskScore;
     user.lastRiskUpdate = new Date();
     await user.save();
-    await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'fail', reason: `Blocked risk score ${riskScore}` });
+    await LoginLog.create({ userId: user._id, email: user.email || normalizedEmail, ip, country, ...device, status: 'fail', reason: `Blocked risk score ${riskScore}` });
     return res.status(403).json({ message: 'Login blocked due to high risk score' });
   }
 
@@ -602,9 +611,18 @@ if (isRegisteredAdminAccount(user)) {
     }
 }
   
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-  user.refreshToken = hashToken(refreshToken);
+  const session = issueLoginSession(user, {
+    ip,
+    device,
+    userAgent: req.headers['user-agent'] || ''
+  });
+  const { accessToken, refreshToken } = session;
+  attachRefreshSession(user, session, {
+    ip,
+    device,
+    userAgent: req.headers['user-agent'] || '',
+    maxSessions: 8
+  });
   await user.save();
 
   await trackBehaviorEvent({
@@ -624,7 +642,7 @@ if (isRegisteredAdminAccount(user)) {
     await user.save();
   }
 
-  await LoginLog.create({ userId: user._id, email, ip, country, ...device, status: 'success', reason: geoMismatch || isNewDevice ? 'Extra verification advised' : 'ok' });
+  await LoginLog.create({ userId: user._id, email: user.email || normalizedEmail, ip, country, ...device, status: 'success', reason: geoMismatch || isNewDevice ? 'Extra verification advised' : 'ok' });
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,

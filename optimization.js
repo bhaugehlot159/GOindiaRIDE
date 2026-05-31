@@ -8,7 +8,7 @@
   if (!global || !document || global.__GOINDIARIDE_OPTIMIZATION_ACTIVE__) return;
   global.__GOINDIARIDE_OPTIMIZATION_ACTIVE__ = true;
 
-  var VERSION = "20260531-opt1";
+  var VERSION = "20260531-opt2";
   var CONFIG = {
     lazyRootMargin: "360px 0px",
     staticCacheName: "goindiaride-static-assets-" + VERSION,
@@ -36,6 +36,7 @@
 
   var transparentPixel =
     "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+  var placeholderCache = Object.create(null);
   var heavyEvents = Object.keys(CONFIG.eventIntervals);
   var staticAssetPattern = /\.(?:css|js|mjs|json|png|jpe?g|gif|svg|webp|avif|ico|woff2?|ttf|otf)(?:[?#].*)?$/i;
   var mediaObserver = null;
@@ -139,20 +140,83 @@
     return loading === "eager" || priority === "high" || isNearViewport(element, 80);
   }
 
+  function injectLazyMediaStyles() {
+    if (document.getElementById("goindiaride-optimization-media-style")) return;
+    var style = document.createElement("style");
+    style.id = "goindiaride-optimization-media-style";
+    style.textContent = [
+      "img.goi-opt-blur{background:#eef2f7;filter:blur(14px);transform:scale(1.01);transition:filter .28s ease,transform .28s ease,opacity .28s ease;will-change:filter,transform;}",
+      "img.goi-opt-loaded{filter:blur(0);transform:none;will-change:auto;}"
+    ].join("");
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  function getNumericAttribute(element, name, fallback) {
+    var value = parseInt(element.getAttribute(name), 10);
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  }
+
+  function buildBlurPlaceholder(element) {
+    var explicit =
+      element.getAttribute("data-placeholder") ||
+      element.getAttribute("data-low-src") ||
+      element.getAttribute("data-goi-low-src") ||
+      element.getAttribute("data-lqip");
+    if (explicit) return explicit;
+
+    var width = Math.min(getNumericAttribute(element, "width", 40), 320);
+    var height = Math.min(getNumericAttribute(element, "height", 24), 240);
+    var key = width + "x" + height;
+    if (placeholderCache[key]) return placeholderCache[key];
+
+    var svg = [
+      "<svg xmlns='http://www.w3.org/2000/svg' width='", width, "' height='", height, "' viewBox='0 0 ", width, " ", height, "'>",
+      "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#e8eef5'/><stop offset='1' stop-color='#f6f8fb'/></linearGradient>",
+      "<filter id='b'><feGaussianBlur stdDeviation='10'/></filter></defs>",
+      "<rect width='100%' height='100%' fill='url(#g)'/>",
+      "<circle cx='", Math.round(width * 0.25), "' cy='", Math.round(height * 0.3), "' r='", Math.max(8, Math.round(Math.min(width, height) * 0.22)), "' fill='#d6e0eb' filter='url(#b)'/>",
+      "<circle cx='", Math.round(width * 0.78), "' cy='", Math.round(height * 0.72), "' r='", Math.max(10, Math.round(Math.min(width, height) * 0.26)), "' fill='#eef3f8' filter='url(#b)'/>",
+      "</svg>"
+    ].join("");
+
+    placeholderCache[key] = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    return placeholderCache[key];
+  }
+
+  function finishImageLoad(element) {
+    element.__goiMediaLoaded = true;
+    element.classList.add("goi-opt-loaded");
+    element.classList.remove("goi-opt-blur");
+    element.removeAttribute("data-goi-opt-src");
+    element.removeAttribute("data-goi-opt-srcset");
+    element.removeAttribute("data-goi-opt-sizes");
+  }
+
   function restoreMedia(element) {
     if (!element || element.__goiMediaLoaded) return;
     var src = element.getAttribute("data-goi-opt-src") || element.getAttribute("data-src");
     var srcset = element.getAttribute("data-goi-opt-srcset") || element.getAttribute("data-srcset");
     var sizes = element.getAttribute("data-goi-opt-sizes") || element.getAttribute("data-sizes");
 
-    if (srcset && element.tagName === "IMG") element.setAttribute("srcset", srcset);
-    if (sizes && element.tagName === "IMG") element.setAttribute("sizes", sizes);
-    if (src) element.setAttribute("src", src);
+    if (element.tagName === "IMG") {
+      element.classList.add("goi-opt-blur");
+      element.classList.remove("goi-opt-loaded");
+      element.addEventListener("load", function handleImageLoaded() {
+        finishImageLoad(element);
+      }, { once: true });
+      element.addEventListener("error", function handleImageError() {
+        element.classList.remove("goi-opt-blur");
+      }, { once: true });
+      if (srcset) element.setAttribute("srcset", srcset);
+      if (sizes) element.setAttribute("sizes", sizes);
+      if (src) element.setAttribute("src", src);
+      if (element.complete && element.naturalWidth > 1) finishImageLoad(element);
+      return;
+    }
 
+    if (src) element.setAttribute("src", src);
     element.__goiMediaLoaded = true;
     element.removeAttribute("data-goi-opt-src");
-    element.removeAttribute("data-goi-opt-srcset");
-    element.removeAttribute("data-goi-opt-sizes");
   }
 
   function prepareMedia(element) {
@@ -163,6 +227,7 @@
     element.__goiMediaPrepared = true;
 
     if (tag === "IMG") {
+      injectLazyMediaStyles();
       element.setAttribute("loading", element.getAttribute("loading") || "lazy");
       element.setAttribute("decoding", element.getAttribute("decoding") || "async");
       if (!element.getAttribute("fetchpriority") && !element.getAttribute("fetchPriority")) {
@@ -173,9 +238,10 @@
         var src = element.getAttribute("src");
         var srcset = element.getAttribute("srcset");
         var sizes = element.getAttribute("sizes");
-        if (src && !element.getAttribute("data-goi-opt-src")) {
-          element.setAttribute("data-goi-opt-src", src);
-          element.setAttribute("src", transparentPixel);
+        if ((src || srcset) && !element.getAttribute("data-goi-opt-src") && !element.getAttribute("data-goi-opt-srcset")) {
+          if (src) element.setAttribute("data-goi-opt-src", src);
+          element.classList.add("goi-opt-blur");
+          element.setAttribute("src", buildBlurPlaceholder(element) || transparentPixel);
         }
         if (srcset && !element.getAttribute("data-goi-opt-srcset")) {
           element.setAttribute("data-goi-opt-srcset", srcset);
