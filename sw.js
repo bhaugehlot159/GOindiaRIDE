@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v46-20260531-customer-freeze';
+const CACHE_NAME = 'goindiaride-pwa-v47-20260531-optimization';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './js/global-ui.js',
   './js/data-preservation-guard.js',
   './js/wallet-core.js',
+  './optimization.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
