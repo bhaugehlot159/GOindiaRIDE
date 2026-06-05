@@ -307,10 +307,26 @@
                             <p id="profilePhoneVerificationBadge">No mobile number saved</p>
                         </div>
                         <div class="profile-settings-list" aria-label="Profile settings status">
-                            <div><i class="fas fa-id-card"></i><span>Personal details</span></div>
-                            <div><i class="fas fa-key"></i><span>OTP protected updates</span></div>
-                            <div><i class="fas fa-receipt"></i><span>Receipts email ready</span></div>
-                            <div><i class="fas fa-shield-alt"></i><span>Safety contact enabled</span></div>
+                            <button type="button" class="profile-feature-item" data-profile-feature="personal">
+                                <i class="fas fa-id-card"></i>
+                                <span><strong>Personal details</strong><small id="profileFeaturePersonalStatus">Checking...</small></span>
+                                <b>Open</b>
+                            </button>
+                            <button type="button" class="profile-feature-item" data-profile-feature="otp">
+                                <i class="fas fa-key"></i>
+                                <span><strong>OTP protected updates</strong><small id="profileFeatureOtpStatus">Checking...</small></span>
+                                <b>Verify</b>
+                            </button>
+                            <button type="button" class="profile-feature-item" data-profile-feature="receipts">
+                                <i class="fas fa-receipt"></i>
+                                <span><strong>Receipts email</strong><small id="profileFeatureReceiptsStatus">Checking...</small></span>
+                                <b>Save</b>
+                            </button>
+                            <button type="button" class="profile-feature-item" data-profile-feature="safety">
+                                <i class="fas fa-shield-alt"></i>
+                                <span><strong>Safety contact</strong><small id="profileFeatureSafetyStatus">Checking...</small></span>
+                                <b>Enable</b>
+                            </button>
                         </div>
                     </aside>
 
@@ -780,6 +796,7 @@
 <script id="future-runtime-external-loader" src="../customer/chunks/dashboard/scripts/future-runtime-config.js?v=20260527-chunk1"></script>
 <script src="../js/customer-dashboard-live-bridge.js?v=20260531-customer-freeze1"></script>
 <script src="../customer/chunks/dashboard/scripts/customer-live-ops.js?v=20260604-iq200"></script>
+<script src="../customer/chunks/dashboard/scripts/customer-profile-live-features.js?v=20260606-real1"></script>
 <script data-goi-defer-src="../js/future-feature-runtime.js?v=20260317-ratingfare1" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="../js/future-feature-runtime-extensions.js?v=20260507-allpay13" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="../js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1" data-goi-performance="deferred-runtime"></script>

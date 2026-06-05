@@ -796,21 +796,86 @@ body.customer-dashboard-page .profile-settings-list {
     gap: 0.65rem;
 }
 
-body.customer-dashboard-page .profile-settings-list div {
+body.customer-dashboard-page .profile-feature-item {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    min-height: 42px;
-    padding: 0.68rem 0.76rem;
+    min-height: 58px;
+    padding: 0.68rem 0.76rem !important;
     border-radius: 14px;
-    background: #ffffff;
-    border: 1px solid #edf0f5;
-    color: #374151;
+    background: #ffffff !important;
+    border: 1px solid #edf0f5 !important;
+    color: #374151 !important;
     font-weight: 750;
+    text-align: left;
+    box-shadow: none !important;
+    cursor: pointer;
 }
 
-body.customer-dashboard-page .profile-settings-list i {
+body.customer-dashboard-page .profile-feature-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(79, 70, 229, 0.28) !important;
+    box-shadow: 0 12px 22px rgba(17, 24, 39, 0.07) !important;
+}
+
+body.customer-dashboard-page .profile-feature-item i {
     color: var(--cdash-brand);
+    width: 24px;
+    flex: 0 0 24px;
+    text-align: center;
+}
+
+body.customer-dashboard-page .profile-feature-item span {
+    min-width: 0;
+    flex: 1;
+}
+
+body.customer-dashboard-page .profile-feature-item strong {
+    display: block;
+    color: #111827;
+    line-height: 1.25;
+}
+
+body.customer-dashboard-page .profile-feature-item small {
+    display: block;
+    margin-top: 0.12rem;
+    color: #6b7280;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+body.customer-dashboard-page .profile-feature-item b {
+    flex: 0 0 auto;
+    padding: 0.28rem 0.46rem;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 0.72rem;
+    line-height: 1;
+}
+
+body.customer-dashboard-page .profile-feature-item[data-state="ready"] {
+    border-color: rgba(4, 120, 87, 0.22) !important;
+    background: #fbfffd !important;
+}
+
+body.customer-dashboard-page .profile-feature-item[data-state="ready"] i,
+body.customer-dashboard-page .profile-feature-item[data-state="ready"] b {
+    color: #047857;
+}
+
+body.customer-dashboard-page .profile-feature-item[data-state="ready"] b {
+    background: #ecfdf5;
+}
+
+body.customer-dashboard-page .profile-feature-item[data-state="attention"] {
+    border-color: rgba(180, 83, 9, 0.22) !important;
+}
+
+body.customer-dashboard-page .profile-feature-item[data-state="attention"] b {
+    background: #fff7ed;
+    color: #b45309;
 }
 
 body.customer-dashboard-page .profile-account-editor {
