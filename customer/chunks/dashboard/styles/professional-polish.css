@@ -878,9 +878,24 @@ body.customer-dashboard-page .profile-feature-item[data-state="attention"] b {
     color: #b45309;
 }
 
+body.customer-dashboard-page .profile-feature-item[data-active="true"] {
+    border-color: rgba(79, 70, 229, 0.45) !important;
+    background: #f5f7ff !important;
+    box-shadow: 0 14px 28px rgba(79, 70, 229, 0.12) !important;
+}
+
 body.customer-dashboard-page .profile-account-editor {
     padding: 1.25rem;
     min-width: 0;
+}
+
+body.customer-dashboard-page .profile-editor-panel {
+    display: none;
+}
+
+body.customer-dashboard-page .profile-editor-panel.is-active {
+    display: grid;
+    gap: 1rem;
 }
 
 body.customer-dashboard-page .profile-editor-head {
@@ -945,7 +960,6 @@ body.customer-dashboard-page .profile-verification-note {
     display: flex;
     align-items: flex-start;
     gap: 0.65rem;
-    margin-top: 1rem;
     padding: 0.82rem 0.95rem;
     border-radius: 15px;
     background: #f8fafc;
@@ -962,11 +976,48 @@ body.customer-dashboard-page .profile-verification-note p {
     line-height: 1.55;
 }
 
+body.customer-dashboard-page .profile-feature-panel-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.78rem;
+    padding: 0.95rem;
+    border-radius: 15px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+body.customer-dashboard-page .profile-feature-panel-note i {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    color: var(--cdash-brand);
+}
+
+body.customer-dashboard-page .profile-feature-panel-note strong {
+    display: block;
+    color: #111827;
+    font-weight: 850;
+    margin-bottom: 0.2rem;
+}
+
+body.customer-dashboard-page .profile-feature-panel-note p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
 body.customer-dashboard-page .profile-action-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.68rem;
-    margin-top: 1rem;
+    margin-top: 0;
 }
 
 body.customer-dashboard-page .profile-action {

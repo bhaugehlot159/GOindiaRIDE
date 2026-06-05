@@ -3,6 +3,13 @@
 
     var RECEIPT_PREF_KEY = 'goindiaride.customer.profile.receipt-email.v1';
     var SAFETY_CONTACT_KEY = 'goindiaride.customer.profile.safety-contact.v1';
+    var activeFeature = 'personal';
+    var FEATURE_META = {
+        personal: { kicker: 'Profile', title: 'Personal Details' },
+        otp: { kicker: 'Security', title: 'OTP Protected Updates' },
+        receipts: { kicker: 'Receipts', title: 'Receipt Email' },
+        safety: { kicker: 'Safety', title: 'Safety Contact' }
+    };
 
     function safeText(value, fallback) {
         var text = String(value == null ? '' : value)
@@ -47,6 +54,48 @@
         return { name: name, email: email, phone: phone, phoneVerified: phoneVerified };
     }
 
+    function setText(id, value) {
+        var node = document.getElementById(id);
+        if (node) node.textContent = value || '';
+    }
+
+    function setPanelMessage(id, message, type) {
+        var node = document.getElementById(id);
+        if (!node) return;
+        node.textContent = message || '';
+        node.dataset.state = type || '';
+        if (type === 'error') node.style.color = '#b91c1c';
+        else if (type === 'success') node.style.color = '#047857';
+        else if (type === 'warning') node.style.color = '#b45309';
+        else node.style.color = '';
+    }
+
+    function selectFeature(feature, options) {
+        var nextFeature = FEATURE_META[feature] ? feature : 'personal';
+        var meta = FEATURE_META[nextFeature];
+        activeFeature = nextFeature;
+        var editor = document.querySelector('.profile-account-editor');
+        if (editor) editor.setAttribute('data-active-profile-feature', nextFeature);
+        setText('profileEditorKicker', meta.kicker);
+        setText('profileEditorTitle', meta.title);
+
+        document.querySelectorAll('[data-profile-panel]').forEach(function (panel) {
+            var isActive = panel.getAttribute('data-profile-panel') === nextFeature;
+            panel.classList.toggle('is-active', isActive);
+            panel.hidden = !isActive;
+        });
+
+        document.querySelectorAll('[data-profile-feature]').forEach(function (card) {
+            var isActive = card.getAttribute('data-profile-feature') === nextFeature;
+            card.setAttribute('data-active', isActive ? 'true' : 'false');
+            card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+
+        if (options && options.focusSelector) {
+            focusField(options.focusSelector);
+        }
+    }
+
     function setCardState(feature, status, state, actionLabel) {
         var card = document.querySelector('[data-profile-feature="' + feature + '"]');
         var statusNode = document.getElementById('profileFeature' + feature.charAt(0).toUpperCase() + feature.slice(1) + 'Status');
@@ -61,14 +110,14 @@
 
     function refreshFeatureStates() {
         var profile = getProfileSnapshot();
-        var personalReady = Boolean(profile.name && isValidEmail(profile.email) && profile.phone);
+        var personalReady = Boolean(profile.name && isValidEmail(profile.email));
         var receiptPref = readPreference(RECEIPT_PREF_KEY);
         var safetyPref = readPreference(SAFETY_CONTACT_KEY);
         var receiptReady = isValidEmail(profile.email) && receiptPref.email === profile.email;
         var safetyReady = Boolean(profile.phone && profile.phoneVerified && safetyPref.phone === profile.phone);
         var secureBadge = document.querySelector('.profile-secure-badge');
 
-        setCardState('personal', personalReady ? 'Complete and ready' : 'Name, email, or mobile missing', personalReady ? 'ready' : 'attention', 'Open');
+        setCardState('personal', personalReady ? 'Complete and ready' : 'Name or email missing', personalReady ? 'ready' : 'attention', 'Open');
         setCardState('otp', profile.phoneVerified ? 'Mobile verified' : 'OTP verification required', profile.phoneVerified ? 'ready' : 'attention', profile.phoneVerified ? 'Verified' : 'Verify');
         setCardState('receipts', receiptReady ? 'Receipts will go to ' + profile.email : (isValidEmail(profile.email) ? 'Tap to save receipt email' : 'Add valid email first'), receiptReady ? 'ready' : 'attention', receiptReady ? 'Ready' : 'Save');
         setCardState('safety', safetyReady ? 'Emergency contact enabled' : (profile.phoneVerified ? 'Tap to enable safety contact' : 'Verify mobile first'), safetyReady ? 'ready' : 'attention', safetyReady ? 'Enabled' : 'Enable');
@@ -79,6 +128,20 @@
                 ? '<i class="fas fa-lock"></i> Secure backend sync'
                 : '<i class="fas fa-lock"></i> Secure local sync';
         }
+
+        setPanelMessage('profilePersonalPanelStatus', personalReady
+            ? 'Personal details are complete. Use OTP protected updates for mobile changes.'
+            : 'Add name and valid email to complete personal details.', personalReady ? 'success' : 'warning');
+        setText('profileReceiptsEmailText', profile.email || 'Add email in Personal details');
+        setPanelMessage('profileReceiptPanelStatus', receiptReady
+            ? 'Receipt email saved for ride receipts and booking updates.'
+            : (isValidEmail(profile.email) ? 'Click Save Receipt Email to use this email for receipts.' : 'Add a valid email in Personal details first.'), receiptReady ? 'success' : 'warning');
+        setText('profileSafetyPhoneText', profile.phone
+            ? (profile.phoneVerified ? 'Verified mobile: ' + profile.phone : 'Mobile needs OTP: ' + profile.phone)
+            : 'Add mobile in OTP protected updates');
+        setPanelMessage('profileSafetyPanelStatus', safetyReady
+            ? 'Safety contact enabled with your verified mobile.'
+            : (profile.phoneVerified ? 'Click Enable Safety Contact to use this verified mobile for support.' : 'Verify mobile in OTP protected updates first.'), safetyReady ? 'success' : 'warning');
     }
 
     function readPreference(key) {
@@ -96,22 +159,6 @@
         refreshFeatureStates();
     }
 
-    function toast(message, type) {
-        if (type === 'success' && typeof showSuccessToast === 'function') {
-            showSuccessToast(message, 'Profile');
-            return;
-        }
-        if (typeof showWarningToast === 'function') {
-            showWarningToast(message, 'Profile');
-            return;
-        }
-        var node = document.createElement('div');
-        node.textContent = message;
-        node.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:2000;background:#111827;color:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 14px 30px rgba(15,23,42,.22);font-weight:700;';
-        document.body.appendChild(node);
-        setTimeout(function () { node.remove(); }, 2600);
-    }
-
     function focusField(selector) {
         var editor = document.querySelector('.profile-account-editor');
         var field = document.querySelector(selector);
@@ -125,40 +172,33 @@
     }
 
     function runPersonalDetails() {
+        selectFeature('personal');
         var profile = getProfileSnapshot();
-        if (!profile.name) return focusField('#profileNameInput');
-        if (!isValidEmail(profile.email)) return focusField('#profileEmailInput');
-        if (!profile.phone) return focusField('#profilePhoneInput');
-        focusField('#profileNameInput');
-        toast('Personal details are open and ready to edit.', 'success');
+        if (!profile.name) return selectFeature('personal', { focusSelector: '#profileNameInput' });
+        if (!isValidEmail(profile.email)) return selectFeature('personal', { focusSelector: '#profileEmailInput' });
+        setPanelMessage('profilePersonalPanelStatus', 'Personal details are open. Save changes from this section only.', 'success');
     }
 
     async function runOtpUpdates() {
+        selectFeature('otp');
         var profile = getProfileSnapshot();
         if (!profile.phone) {
-            focusField('#profilePhoneInput');
-            toast('Enter mobile number first, then send OTP.', 'warning');
+            selectFeature('otp', { focusSelector: '#profilePhoneInput' });
+            setPanelMessage('profilePhoneUpdateStatus', 'Enter mobile number first, then use Send OTP.', 'warning');
             return;
         }
         if (profile.phoneVerified) {
-            focusField('#profilePhoneOtpInput');
-            toast('Mobile is already verified. Use OTP only when changing number.', 'success');
+            setPanelMessage('profilePhoneUpdateStatus', 'Mobile already verified. Use Send OTP only after changing the mobile number.', 'success');
             return;
         }
-        if (typeof sendProfilePhoneOtp === 'function') {
-            await sendProfilePhoneOtp();
-            focusField('#profilePhoneOtpInput');
-            refreshFeatureStates();
-            return;
-        }
-        focusField('#profilePhoneOtpInput');
+        setPanelMessage('profilePhoneUpdateStatus', 'Click Send OTP, then enter the code here.', 'warning');
     }
 
     function runReceiptsEmail() {
+        selectFeature('receipts');
         var profile = getProfileSnapshot();
         if (!isValidEmail(profile.email)) {
-            focusField('#profileEmailInput');
-            toast('Add a valid email to receive receipts.', 'warning');
+            setPanelMessage('profileReceiptPanelStatus', 'Add a valid email in Personal details before saving receipts.', 'error');
             return;
         }
         savePreference(RECEIPT_PREF_KEY, {
@@ -166,22 +206,18 @@
             customerName: profile.name,
             enabled: true
         });
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(profile.email).catch(function () {});
-        }
-        toast('Receipt email saved: ' + profile.email, 'success');
+        setPanelMessage('profileReceiptPanelStatus', 'Receipt email saved: ' + profile.email, 'success');
     }
 
     function runSafetyContact() {
+        selectFeature('safety');
         var profile = getProfileSnapshot();
         if (!profile.phone) {
-            focusField('#profilePhoneInput');
-            toast('Add mobile number before enabling safety contact.', 'warning');
+            setPanelMessage('profileSafetyPanelStatus', 'Add mobile number in OTP protected updates before enabling safety contact.', 'error');
             return;
         }
         if (!profile.phoneVerified) {
-            focusField('#profilePhoneOtpInput');
-            toast('Verify mobile before enabling safety contact.', 'warning');
+            setPanelMessage('profileSafetyPanelStatus', 'Verify mobile in OTP protected updates before enabling safety contact.', 'error');
             return;
         }
         savePreference(SAFETY_CONTACT_KEY, {
@@ -189,11 +225,7 @@
             customerName: profile.name,
             enabled: true
         });
-        var panel = document.querySelector('.emergency-panel');
-        if (panel && typeof panel.scrollIntoView === 'function') {
-            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        toast('Safety contact enabled with verified mobile.', 'success');
+        setPanelMessage('profileSafetyPanelStatus', 'Safety contact enabled with verified mobile.', 'success');
     }
 
     function wireFeatureCards() {
@@ -202,10 +234,9 @@
             card.dataset.profileLiveReady = '1';
             card.addEventListener('click', function () {
                 var feature = card.getAttribute('data-profile-feature');
-                if (feature === 'personal') runPersonalDetails();
+                selectFeature(feature);
+                refreshFeatureStates();
                 if (feature === 'otp') runOtpUpdates();
-                if (feature === 'receipts') runReceiptsEmail();
-                if (feature === 'safety') runSafetyContact();
             });
         });
     }
@@ -227,6 +258,7 @@
     function boot() {
         wireFeatureCards();
         wrapRefreshFunctions();
+        selectFeature(activeFeature);
         refreshFeatureStates();
         ['profileNameInput', 'profileEmailInput', 'profilePhoneInput', 'profilePhoneOtpInput'].forEach(function (id) {
             var node = document.getElementById(id);
@@ -244,7 +276,9 @@
     }
 
     window.CustomerProfileLiveFeatures = {
+        open: selectFeature,
         refresh: refreshFeatureStates,
+        openOtpUpdates: runOtpUpdates,
         enableReceiptsEmail: runReceiptsEmail,
         enableSafetyContact: runSafetyContact
     };

@@ -11,7 +11,7 @@
     <script defer src="../js/non-home-fit.js?v=20260314-cdash2"></script>
     <link rel="stylesheet" href="../customer/chunks/dashboard/styles/fit-overrides.css?v=20260527-chunk1">
     <link rel="stylesheet" href="../css/professional-purple-theme.css">
-    <link rel="stylesheet" href="../customer/chunks/dashboard/styles/professional-polish.css?v=20260604-iq200">
+    <link rel="stylesheet" href="../customer/chunks/dashboard/styles/professional-polish.css?v=20260606-profile-tabs1">
     <script src="../js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
 <body class="customer-dashboard-page fit-screen-off" data-fit-screen="off">
@@ -330,52 +330,95 @@
                         </div>
                     </aside>
 
-                    <section class="profile-account-editor" aria-label="Edit customer account">
+                    <section class="profile-account-editor" aria-label="Edit customer account" data-active-profile-feature="personal">
                         <div class="profile-editor-head">
                             <div>
-                                <span class="profile-kicker">Settings</span>
-                                <h3>Account Details</h3>
+                                <span class="profile-kicker" id="profileEditorKicker">Settings</span>
+                                <h3 id="profileEditorTitle">Personal Details</h3>
                             </div>
                             <span class="profile-secure-badge"><i class="fas fa-lock"></i> Secure update</span>
                         </div>
 
-                        <div class="profile-form-grid">
-                            <div class="profile-field">
-                                <label for="profileNameInput">Full Name</label>
-                                <input type="text" id="profileNameInput" placeholder="Enter full name">
+                        <div class="profile-editor-panel is-active" data-profile-panel="personal">
+                            <div class="profile-form-grid">
+                                <div class="profile-field">
+                                    <label for="profileNameInput">Full Name</label>
+                                    <input type="text" id="profileNameInput" placeholder="Enter full name">
+                                </div>
+                                <div class="profile-field">
+                                    <label for="profileEmailInput">Email Address</label>
+                                    <input type="email" id="profileEmailInput" placeholder="Enter active email">
+                                </div>
                             </div>
-                            <div class="profile-field">
-                                <label for="profileEmailInput">Email Address</label>
-                                <input type="email" id="profileEmailInput" placeholder="Enter active email">
+                            <div class="profile-feature-panel-note">
+                                <i class="fas fa-id-card"></i>
+                                <p id="profilePersonalPanelStatus">Update customer name and email here. Mobile changes are protected in OTP updates.</p>
                             </div>
-                            <div class="profile-field">
-                                <label for="profilePhoneInput">Mobile Number</label>
-                                <input type="tel" id="profilePhoneInput" placeholder="Example: +919876543210" oninput="handleProfilePhoneInputChange()">
+                            <div class="profile-action-row">
+                                <button type="button" class="profile-action primary" onclick="saveProfileDetails()">
+                                    <i class="fas fa-floppy-disk"></i> Save Profile
+                                </button>
                             </div>
-                            <div class="profile-field">
-                                <label for="profilePhoneOtpInput">OTP Code</label>
-                                <input type="text" id="profilePhoneOtpInput" inputmode="numeric" maxlength="8" placeholder="Enter OTP">
+                            <p id="profileSaveStatus" class="profile-save-status">Update your name and email, then click Save Profile.</p>
+                        </div>
+
+                        <div class="profile-editor-panel" data-profile-panel="otp" hidden>
+                            <div class="profile-form-grid">
+                                <div class="profile-field">
+                                    <label for="profilePhoneInput">Mobile Number</label>
+                                    <input type="tel" id="profilePhoneInput" placeholder="Example: +919876543210" oninput="handleProfilePhoneInputChange()">
+                                </div>
+                                <div class="profile-field">
+                                    <label for="profilePhoneOtpInput">OTP Code</label>
+                                    <input type="text" id="profilePhoneOtpInput" inputmode="numeric" maxlength="8" placeholder="Enter OTP">
+                                </div>
+                            </div>
+                            <div class="profile-verification-note">
+                                <i class="fas fa-circle-info"></i>
+                                <p id="profilePhoneUpdateStatus">Verified mobile admin mail aur booking contact ke liye use hoga.</p>
+                            </div>
+                            <div class="profile-action-row">
+                                <button type="button" class="profile-action" onclick="sendProfilePhoneOtp()">
+                                    <i class="fas fa-paper-plane"></i> Send OTP
+                                </button>
+                                <button type="button" class="profile-action success" onclick="verifyAndSaveProfilePhone()">
+                                    <i class="fas fa-check-circle"></i> Verify &amp; Save Mobile
+                                </button>
+                            </div>
+                            <div id="profilePhoneRecaptchaContainer" class="profile-recaptcha-slot"></div>
+                        </div>
+
+                        <div class="profile-editor-panel" data-profile-panel="receipts" hidden>
+                            <div class="profile-feature-panel-note">
+                                <i class="fas fa-receipt"></i>
+                                <div>
+                                    <strong>Receipt Email</strong>
+                                    <p id="profileReceiptsEmailText">-</p>
+                                </div>
+                            </div>
+                            <p id="profileReceiptPanelStatus" class="profile-save-status">Save this email for ride receipts and booking updates.</p>
+                            <div class="profile-action-row">
+                                <button type="button" class="profile-action primary" onclick="window.CustomerProfileLiveFeatures && window.CustomerProfileLiveFeatures.enableReceiptsEmail()">
+                                    <i class="fas fa-floppy-disk"></i> Save Receipt Email
+                                </button>
                             </div>
                         </div>
 
-                        <div class="profile-verification-note">
-                            <i class="fas fa-circle-info"></i>
-                            <p id="profilePhoneUpdateStatus">Verified mobile admin mail aur booking contact ke liye use hoga.</p>
+                        <div class="profile-editor-panel" data-profile-panel="safety" hidden>
+                            <div class="profile-feature-panel-note">
+                                <i class="fas fa-shield-alt"></i>
+                                <div>
+                                    <strong>Safety Contact</strong>
+                                    <p id="profileSafetyPhoneText">-</p>
+                                </div>
+                            </div>
+                            <p id="profileSafetyPanelStatus" class="profile-save-status">Use your verified mobile for emergency contact and admin support.</p>
+                            <div class="profile-action-row">
+                                <button type="button" class="profile-action success" onclick="window.CustomerProfileLiveFeatures && window.CustomerProfileLiveFeatures.enableSafetyContact()">
+                                    <i class="fas fa-shield-alt"></i> Enable Safety Contact
+                                </button>
+                            </div>
                         </div>
-
-                        <div class="profile-action-row">
-                            <button type="button" class="profile-action primary" onclick="saveProfileDetails()">
-                                <i class="fas fa-floppy-disk"></i> Save Profile
-                            </button>
-                            <button type="button" class="profile-action" onclick="sendProfilePhoneOtp()">
-                                <i class="fas fa-paper-plane"></i> Send OTP
-                            </button>
-                            <button type="button" class="profile-action success" onclick="verifyAndSaveProfilePhone()">
-                                <i class="fas fa-check-circle"></i> Verify &amp; Save Mobile
-                            </button>
-                        </div>
-                        <div id="profilePhoneRecaptchaContainer" class="profile-recaptcha-slot"></div>
-                        <p id="profileSaveStatus" class="profile-save-status">Update your name, email, and mobile number, then click Save Profile.</p>
                     </section>
                     <div id="customerRuntimeProfileMount" style="display:none;"></div>
                 </div>
@@ -761,7 +804,7 @@
     <script src="../customer/chunks/dashboard/scripts/page/rides/load-rides.js?v=20260528-dash-split1"></script>
     <script src="../customer/chunks/dashboard/scripts/page/rides/actions-modals.js?v=20260528-dash-split1"></script>
     <script src="../customer/chunks/dashboard/scripts/page/donations/load-donations.js?v=20260528-dash-split1"></script>
-    <script src="../customer/chunks/dashboard/scripts/page/profile/load-profile.js?v=20260528-dash-split1"></script>
+    <script src="../customer/chunks/dashboard/scripts/page/profile/load-profile.js?v=20260606-profile-tabs1"></script>
     <script src="../customer/chunks/dashboard/scripts/page/payments/payment-system.js?v=20260528-dash-split1"></script>
     <script src="../customer/chunks/dashboard/scripts/page/donations/donation-system.js?v=20260528-dash-split1"></script>
     <script src="../customer/chunks/dashboard/scripts/page/navigation/tab-switching.js?v=20260528-dash-split1"></script>
@@ -775,7 +818,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="../js/firebase-config.js?v=20260516-inline-phone1"></script>
-    <script src="../js/phone-verification.js?v=20260516-inline-phone1"></script>
+    <script src="../js/phone-verification.js?v=20260606-profile-tabs1"></script>
     <script src="../js/route-suggestions.js"></script>
     <script src="../js/portal-alerts.js"></script>
     <script src="../js/portal-connector.js"></script>
@@ -796,7 +839,7 @@
 <script id="future-runtime-external-loader" src="../customer/chunks/dashboard/scripts/future-runtime-config.js?v=20260527-chunk1"></script>
 <script src="../js/customer-dashboard-live-bridge.js?v=20260531-customer-freeze1"></script>
 <script src="../customer/chunks/dashboard/scripts/customer-live-ops.js?v=20260604-iq200"></script>
-<script src="../customer/chunks/dashboard/scripts/customer-profile-live-features.js?v=20260606-real1"></script>
+<script src="../customer/chunks/dashboard/scripts/customer-profile-live-features.js?v=20260606-profile-tabs1"></script>
 <script data-goi-defer-src="../js/future-feature-runtime.js?v=20260317-ratingfare1" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="../js/future-feature-runtime-extensions.js?v=20260507-allpay13" data-goi-performance="deferred-runtime"></script>
 <script data-goi-defer-src="../js/tourism-explorer-full-autosuggest.js?v=20260317-tourism-allraj1" data-goi-performance="deferred-runtime"></script>

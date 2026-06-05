@@ -211,7 +211,6 @@
             const normalizedPhone = normalizeDashboardPhoneValue(input?.value || '');
             if (!normalizedPhone) {
                 setProfilePhoneUpdateStatus('Please enter a valid mobile number with country code.', 'error');
-                showProfilePhoneError('Please enter a valid mobile number with country code.');
                 return;
             }
             if (isProfileSavedPhoneStillVerified(normalizedPhone)) {
@@ -222,9 +221,6 @@
                 }
                 updateProfilePhoneBadge(normalizedPhone, true);
                 setProfilePhoneUpdateStatus('Mobile already verified. OTP is required only if you enter a different number.', 'success');
-                if (typeof showSuccessToast === 'function') {
-                    showSuccessToast('Mobile number already verified.', 'Phone Verification');
-                }
                 return;
             }
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {
@@ -240,13 +236,9 @@
                 });
                 if (input) input.value = normalizedPhone;
                 setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
-                if (typeof showSuccessToast === 'function') {
-                    showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
-                }
             } catch (error) {
                 const message = toProfilePhoneFriendlyError(error);
                 setProfilePhoneUpdateStatus(message, 'error');
-                showProfilePhoneError(message);
             }
         }
 
@@ -330,13 +322,9 @@
                     statusNode.textContent = 'Mobile verified and saved.';
                     statusNode.style.color = '#15803d';
                 }
-                if (typeof showSuccessToast === 'function') {
-                    showSuccessToast(`Mobile verified: ${verifiedPhone}`, 'Phone Verification');
-                }
             } catch (error) {
                 const message = toProfilePhoneFriendlyError(error);
                 setProfilePhoneUpdateStatus(message, 'error');
-                showProfilePhoneError(message);
             }
         }
 
