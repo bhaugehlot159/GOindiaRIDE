@@ -55,17 +55,13 @@
 
   function toFriendlyFirebaseError(error) {
     if (isUnauthorizedDomainError(error) || isCaptchaCheckFailedError(error)) {
-      const code = String(error && error.code || '').trim() || 'unknown';
-      return new Error(`Firebase domain/recaptcha mismatch hai (${code}). Authentication > Settings > Authorized domains me goindiaride.in, www.goindiaride.in, goindiaride.onrender.com add karo.`);
+      return new Error('Phone OTP security setup needs admin update for this domain. Please retry after the domain is enabled.');
     }
     if (isOperationNotAllowedError(error)) {
-      const code = String(error && error.code || '').trim() || 'unknown';
-      return new Error(`Firebase Phone sign-in currently disabled hai (${code}). Authentication > Sign-in method me Phone provider enable karo.`);
+      return new Error('Phone OTP provider is not enabled yet. Please contact admin/support to enable phone verification.');
     }
     if (isInvalidApiKeyError(error)) {
-      const code = String(error && error.code || '').trim() || 'unknown';
-      const summary = getActiveFirebaseConfigSummary();
-      return new Error(`Firebase key mismatch lag raha hai (${code}). Active key ${summary.apiKeyMasked} (${summary.source}), project ${summary.projectId}, authDomain ${summary.authDomain}. Project Settings > General se latest Web API key verify karo, aur Render env FIREBASE_KEY bhi same rakho.`);
+      return new Error('Phone OTP service needs admin configuration. Please retry after Firebase settings are updated.');
     }
     return error instanceof Error ? error : new Error(String(error || 'Phone verification failed'));
   }

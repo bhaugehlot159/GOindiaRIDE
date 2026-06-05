@@ -16,6 +16,13 @@
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(safeText(value, '').toLowerCase());
     }
 
+    function normalizePhone(value) {
+        if (typeof normalizeDashboardPhoneValue === 'function') {
+            return normalizeDashboardPhoneValue(value || '');
+        }
+        return safeText(value, '');
+    }
+
     function getUser() {
         if (typeof currentUser !== 'undefined' && currentUser) return currentUser;
         try {
@@ -29,11 +36,13 @@
         var user = getUser();
         var name = safeText(document.getElementById('profileNameInput')?.value || user.fullname || user.name, '');
         var email = safeText(document.getElementById('profileEmailInput')?.value || user.email, '');
-        var phone = safeText(document.getElementById('profilePhoneInput')?.value || user.phone || user.mobile, '');
-        var phoneVerified = Boolean(user.isPhoneVerified || user.phoneVerified);
+        var savedPhone = normalizePhone(user.phone || user.mobile);
+        var phone = normalizePhone(document.getElementById('profilePhoneInput')?.value || savedPhone);
+        var phoneVerified = Boolean(phone && savedPhone && phone === savedPhone && (user.isPhoneVerified || user.phoneVerified));
         try {
             var runtimeProfile = JSON.parse(localStorage.getItem('goindiaride.profile.runtime') || '{}') || {};
-            phoneVerified = phoneVerified || Boolean(runtimeProfile.isPhoneVerified || runtimeProfile.phoneVerified);
+            var runtimePhone = normalizePhone(runtimeProfile.phone || runtimeProfile.mobile || savedPhone);
+            phoneVerified = phoneVerified || Boolean(phone && runtimePhone && phone === runtimePhone && (runtimeProfile.isPhoneVerified || runtimeProfile.phoneVerified));
         } catch (_error) {}
         return { name: name, email: email, phone: phone, phoneVerified: phoneVerified };
     }

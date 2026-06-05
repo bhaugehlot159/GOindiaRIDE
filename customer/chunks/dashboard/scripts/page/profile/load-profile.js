@@ -24,12 +24,53 @@
             }
         }
 
+        function isProfileSavedPhoneStillVerified(phoneValue) {
+            const normalizedPhone = normalizeDashboardPhoneValue(phoneValue || '');
+            const savedPhone = normalizeDashboardPhoneValue(currentUser?.phone || currentUser?.mobile || '');
+            const savedVerified = Boolean(currentUser?.isPhoneVerified || currentUser?.phoneVerified);
+            return Boolean(normalizedPhone && savedPhone && normalizedPhone === savedPhone && savedVerified);
+        }
+
+        function toProfilePhoneFriendlyError(error) {
+            const rawMessage = String(error?.message || error || '').trim();
+            const normalizedMessage = rawMessage.toLowerCase();
+            if (
+                normalizedMessage.includes('auth/invalid-api-key') ||
+                normalizedMessage.includes('invalid api key') ||
+                normalizedMessage.includes('firebase key mismatch')
+            ) {
+                return 'Phone OTP service needs admin configuration. Your verified mobile is still saved; OTP for a changed number will work after Firebase key is updated.';
+            }
+            if (
+                normalizedMessage.includes('auth/unauthorized-domain') ||
+                normalizedMessage.includes('unauthorized domain') ||
+                normalizedMessage.includes('recaptcha')
+            ) {
+                return 'Phone OTP security setup needs admin update for this domain. Your saved profile is safe; please retry after the domain is enabled.';
+            }
+            if (
+                normalizedMessage.includes('operation-not-allowed') ||
+                normalizedMessage.includes('phone provider')
+            ) {
+                return 'Phone OTP provider is not enabled yet. Please contact admin/support to enable phone verification.';
+            }
+            return rawMessage || 'OTP failed. Please retry.';
+        }
+
         function handleProfilePhoneInputChange() {
             const otpInput = document.getElementById('profilePhoneOtpInput');
+            const input = document.getElementById('profilePhoneInput');
+            const normalizedPhone = normalizeDashboardPhoneValue(input?.value || '');
             if (otpInput) otpInput.value = '';
             if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
                 window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
             }
+            if (isProfileSavedPhoneStillVerified(normalizedPhone)) {
+                updateProfilePhoneBadge(normalizedPhone, true);
+                setProfilePhoneUpdateStatus('Verified mobile is ready for booking and admin notifications.');
+                return;
+            }
+            updateProfilePhoneBadge(normalizedPhone, false);
             setProfilePhoneUpdateStatus('Send OTP to verify this mobile number before booking.');
         }
 
@@ -166,10 +207,24 @@
 
         async function sendProfilePhoneOtp() {
             const input = document.getElementById('profilePhoneInput');
+            const otpInput = document.getElementById('profilePhoneOtpInput');
             const normalizedPhone = normalizeDashboardPhoneValue(input?.value || '');
             if (!normalizedPhone) {
                 setProfilePhoneUpdateStatus('Please enter a valid mobile number with country code.', 'error');
                 showProfilePhoneError('Please enter a valid mobile number with country code.');
+                return;
+            }
+            if (isProfileSavedPhoneStillVerified(normalizedPhone)) {
+                if (input) input.value = normalizedPhone;
+                if (otpInput) otpInput.value = '';
+                if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
+                    window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
+                }
+                updateProfilePhoneBadge(normalizedPhone, true);
+                setProfilePhoneUpdateStatus('Mobile already verified. OTP is required only if you enter a different number.', 'success');
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast('Mobile number already verified.', 'Phone Verification');
+                }
                 return;
             }
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {
@@ -189,7 +244,7 @@
                     showSuccessToast(`OTP sent to ${normalizedPhone}`, 'Phone Verification');
                 }
             } catch (error) {
-                const message = String(error?.message || 'OTP send failed. Please retry.').trim();
+                const message = toProfilePhoneFriendlyError(error);
                 setProfilePhoneUpdateStatus(message, 'error');
                 showProfilePhoneError(message);
             }
@@ -279,7 +334,7 @@
                     showSuccessToast(`Mobile verified: ${verifiedPhone}`, 'Phone Verification');
                 }
             } catch (error) {
-                const message = String(error?.message || 'OTP verification failed. Please retry.').trim();
+                const message = toProfilePhoneFriendlyError(error);
                 setProfilePhoneUpdateStatus(message, 'error');
                 showProfilePhoneError(message);
             }
