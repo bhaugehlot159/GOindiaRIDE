@@ -97,7 +97,10 @@ test('customer dashboard profile saves phone through live OTP verification', () 
   assert.match(html, /id="profilePhoneRecaptchaContainer"/);
   assert.match(html, /function sendProfilePhoneOtp\(\)/);
   assert.match(html, /function verifyAndSaveProfilePhone\(\)/);
+  assert.match(html, /function isProfileBackendOtpFallbackEnabled\(\)/);
+  assert.match(html, /window\.__GOINDIARIDE_PROFILE_BACKEND_OTP_FALLBACK__ === true/);
   assert.match(html, /sendProfileBackendPhoneOtp\(normalizedPhone\)/);
+  assert.match(html, /GoIndiaPhoneVerification\.sendOtp[\s\S]*isProfileBackendOtpFallbackEnabled\(\)[\s\S]*sendProfileBackendPhoneOtp\(normalizedPhone\)/);
   assert.match(html, /verifyProfileBackendPhoneOtp\(backendOtpSession\.phone,\s*otpValue\)/);
   assert.match(html, /\/api\/auth\/profile-phone\/request-otp/);
   assert.match(html, /\/api\/auth\/profile-phone\/verify-otp/);
@@ -106,7 +109,8 @@ test('customer dashboard profile saves phone through live OTP verification', () 
   assert.match(html, /syncDashboardPhoneWithBackend\(verifiedPhone\)/);
   assert.match(html, /Verified:\s*\$\{phone\}/);
   assert.match(html, /verified:\s*Boolean\(profilePatch\.verified/);
-  assert.match(html, /phone-verification\.js\?v=20260606-profile-tabs1/);
+  assert.match(html, /phone-verification\.js\?v=20260606-firebase-otp1/);
+  assert.doesNotMatch(html, /Sending OTP through secure SMS gateway/);
   assert.doesNotMatch(html, /Phone OTP verification is currently paused/);
   assert.doesNotMatch(html, /Firebase OTP verification scripts are temporarily paused/);
 });

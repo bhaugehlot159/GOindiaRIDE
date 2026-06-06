@@ -128,7 +128,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
         }
 
         configPromise = (async () => {
-            const fallbackConfig = applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
+            const fallbackConfig = normalizeConfig(window.GOINDIARIDE_FIREBASE_CONFIG);
             try {
                 const controller = typeof AbortController === 'function' ? new AbortController() : null;
                 const timeoutId = controller ? window.setTimeout(() => controller.abort(), 8000) : null;
@@ -142,16 +142,20 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
                 });
                 if (timeoutId) window.clearTimeout(timeoutId);
                 if (!response.ok) {
-                    return fallbackConfig;
+                    window.GOINDIARIDE_FIREBASE_CONFIG_LAST_ERROR = `client_config_http_${response.status}`;
+                    return applyResolvedConfig(fallbackConfig, 'static');
                 }
                 const data = await response.json().catch(() => ({}));
                 const resolvedConfig = normalizeConfig(data && data.config);
                 if (isLikelyFirebaseClientConfig(resolvedConfig)) {
+                    window.GOINDIARIDE_FIREBASE_CONFIG_LAST_ERROR = '';
                     return applyResolvedConfig(resolvedConfig, 'backend');
                 }
-                return fallbackConfig;
-            } catch (_error) {
-                return fallbackConfig;
+                window.GOINDIARIDE_FIREBASE_CONFIG_LAST_ERROR = 'client_config_invalid_payload';
+                return applyResolvedConfig(fallbackConfig, 'static');
+            } catch (error) {
+                window.GOINDIARIDE_FIREBASE_CONFIG_LAST_ERROR = String(error?.name || error?.message || error || 'client_config_fetch_failed').slice(0, 160);
+                return applyResolvedConfig(fallbackConfig, 'static');
             }
         })();
 

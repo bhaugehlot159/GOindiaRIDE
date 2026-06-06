@@ -287,6 +287,11 @@
             return isProfilePhoneServiceUnavailableReason(message);
         }
 
+        function isProfileBackendOtpFallbackEnabled() {
+            return window.__GOINDIARIDE_PROFILE_BACKEND_OTP_FALLBACK__ === true
+                || String(window.GOINDIARIDE_PROFILE_BACKEND_OTP_FALLBACK || '').toLowerCase() === 'true';
+        }
+
         function handleProfilePhoneInputChange() {
             const otpInput = document.getElementById('profilePhoneOtpInput');
             const input = document.getElementById('profilePhoneInput');
@@ -456,24 +461,6 @@
                 return;
             }
 
-            try {
-                setProfilePhoneUpdateStatus('Sending OTP through secure SMS gateway...');
-                await sendProfileBackendPhoneOtp(normalizedPhone);
-                if (input) input.value = normalizedPhone;
-                if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
-                    window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
-                }
-                setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
-                return;
-            } catch (backendError) {
-                const backendMessage = String(backendError?.message || '').trim();
-                console.warn('Profile phone backend SMS OTP failed; checking Firebase fallback.', backendError);
-                if (!shouldTryProfileFirebaseFallback(backendMessage)) {
-                    setProfilePhoneUpdateStatus(getProfilePhoneCustomerMessage(backendMessage, 'OTP send failed. Please retry.'), 'error');
-                    return;
-                }
-            }
-
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {
                 setProfilePhoneUpdateStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
                 return;
@@ -489,6 +476,25 @@
                 if (input) input.value = normalizedPhone;
                 setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
             } catch (error) {
+                console.warn('Profile phone Firebase OTP failed.', error);
+                if (isProfileBackendOtpFallbackEnabled()) {
+                    try {
+                        setProfilePhoneUpdateStatus('Firebase OTP unavailable; trying secure SMS gateway...');
+                        await sendProfileBackendPhoneOtp(normalizedPhone);
+                        if (input) input.value = normalizedPhone;
+                        if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
+                            window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
+                        }
+                        setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
+                        return;
+                    } catch (backendError) {
+                        const backendMessage = String(backendError?.message || '').trim();
+                        if (!shouldTryProfileFirebaseFallback(backendMessage)) {
+                            setProfilePhoneUpdateStatus(getProfilePhoneCustomerMessage(backendMessage, 'OTP send failed. Please retry.'), 'error');
+                            return;
+                        }
+                    }
+                }
                 const message = getProfilePhoneCustomerMessage(toProfilePhoneFriendlyError(error), 'OTP send failed. Please retry.');
                 setProfilePhoneUpdateStatus(message, 'error');
             }
@@ -501,7 +507,12 @@
                 return;
             }
             const normalizedInputPhone = normalizeDashboardPhoneValue(document.getElementById('profilePhoneInput')?.value || '');
-            const backendOtpSession = getProfileBackendOtpSession(normalizedInputPhone);
+            const backendOtpSession = isProfileBackendOtpFallbackEnabled()
+                ? getProfileBackendOtpSession(normalizedInputPhone)
+                : null;
+            if (!isProfileBackendOtpFallbackEnabled()) {
+                clearProfileBackendOtpSession();
+            }
             if (backendOtpSession) {
                 try {
                     setProfilePhoneUpdateStatus('Verifying OTP...');
