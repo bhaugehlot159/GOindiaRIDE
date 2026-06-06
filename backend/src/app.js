@@ -190,6 +190,7 @@ app.use(cors({
     'X-Idempotency-Key',
     'Idempotency-Key',
     'X-Device-Fingerprint',
+    'X-Refresh-Token',
   ],
   exposedHeaders: ['X-Request-Id', 'X-CSRF-Token'],
   credentials: true,
