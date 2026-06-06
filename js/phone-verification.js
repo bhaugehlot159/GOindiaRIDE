@@ -159,13 +159,15 @@
       container = document.createElement('div');
       container.id = containerId;
       container.style.display = 'none';
-      document.body.appendChild(container);
+      (document.body || document.documentElement).appendChild(container);
     }
 
-    const verifier = new window.firebase.auth.RecaptchaVerifier(containerId, {
-      size: 'invisible'
-    }, auth);
-    verifier.render();
+    const verifierApp = auth && auth.app ? auth.app : undefined;
+    const verifierOptions = { size: 'invisible' };
+    const verifier = verifierApp
+      ? new window.firebase.auth.RecaptchaVerifier(containerId, verifierOptions, verifierApp)
+      : new window.firebase.auth.RecaptchaVerifier(containerId, verifierOptions);
+    await verifier.render();
 
     verificationSessions.set(sessionKey, {
       ...(existing || {}),
