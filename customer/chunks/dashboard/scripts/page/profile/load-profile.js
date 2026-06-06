@@ -192,7 +192,7 @@
                 throw new Error('missing_access_token');
             }
 
-            const apiBases = getDashboardAdminEmailApiBases();
+            const apiBases = ['https://goindiaride.onrender.com'];
             let lastError = 'server_api_unavailable';
             for (const apiBase of apiBases) {
                 try {
