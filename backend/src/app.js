@@ -188,6 +188,7 @@ app.use(cors({
     'X-OTP-Verified',
     'X-Recaptcha-Token',
     'X-Idempotency-Key'
+    'Idempotency-Key',
   ],
   exposedHeaders: ['X-Request-Id', 'X-CSRF-Token'],
   credentials: true,
