@@ -97,12 +97,16 @@ test('customer dashboard profile saves phone through live OTP verification', () 
   assert.match(html, /id="profilePhoneRecaptchaContainer"/);
   assert.match(html, /function sendProfilePhoneOtp\(\)/);
   assert.match(html, /function verifyAndSaveProfilePhone\(\)/);
+  assert.match(html, /sendProfileBackendPhoneOtp\(normalizedPhone\)/);
+  assert.match(html, /verifyProfileBackendPhoneOtp\(backendOtpSession\.phone,\s*otpValue\)/);
+  assert.match(html, /\/api\/auth\/profile-phone\/request-otp/);
+  assert.match(html, /\/api\/auth\/profile-phone\/verify-otp/);
   assert.match(html, /GoIndiaPhoneVerification\.sendOtp/);
   assert.match(html, /GoIndiaPhoneVerification\.verifyOtp/);
   assert.match(html, /syncDashboardPhoneWithBackend\(verifiedPhone\)/);
   assert.match(html, /Verified:\s*\$\{phone\}/);
   assert.match(html, /verified:\s*Boolean\(profilePatch\.verified/);
-  assert.match(html, /phone-verification\.js\?v=20260516-inline-phone1/);
+  assert.match(html, /phone-verification\.js\?v=20260606-profile-tabs1/);
   assert.doesNotMatch(html, /Phone OTP verification is currently paused/);
   assert.doesNotMatch(html, /Firebase OTP verification scripts are temporarily paused/);
 });
@@ -116,4 +120,18 @@ test('backend profile routes persist verified mobile state', () => {
   assert.match(userRoutes, /Object\.prototype\.hasOwnProperty\.call\(req\.body \|\| \{\}, 'verified'\)/);
   assert.match(bookingRoutes, /isPhoneVerified:\s*true/);
   assert.match(bookingRoutes, /x-otp-verified/);
+});
+
+test('auth routes support authenticated profile phone OTP without switching account', () => {
+  const authRoutes = readRepoFile('backend/src/routes/authRoutes.js');
+  const otpModel = readRepoFile('backend/src/models/Otp.js');
+
+  assert.match(otpModel, /'profile_phone'/);
+  assert.match(authRoutes, /const PROFILE_PHONE_PURPOSE = 'profile_phone'/);
+  assert.match(authRoutes, /router\.post\('\/profile-phone\/request-otp', authenticate/);
+  assert.match(authRoutes, /router\.post\('\/profile-phone\/verify-otp', authenticate/);
+  assert.match(authRoutes, /purpose: PROFILE_PHONE_PURPOSE/);
+  assert.match(authRoutes, /Phone already in use by another account/);
+  assert.match(authRoutes, /user\.phone = normalizedPhone/);
+  assert.match(authRoutes, /user\.isPhoneVerified = true/);
 });

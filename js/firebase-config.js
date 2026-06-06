@@ -58,7 +58,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
     const defaultConfig = Object.freeze({
         ...(window.GOINDIARIDE_FIREBASE_CONFIG || {})
     });
-    const forceStaticConfig = String(window.GOINDIARIDE_FORCE_STATIC_FIREBASE_CONFIG || 'true').toLowerCase() === 'true';
+    const forceStaticConfig = String(window.GOINDIARIDE_FORCE_STATIC_FIREBASE_CONFIG || '').toLowerCase() === 'true';
     const host = String(window.location.hostname || '').toLowerCase();
     const isPrimaryWebsiteHost = host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.goindiaride.in');
     const isRenderHost = host === 'goindiaride.onrender.com' || host.endsWith('.onrender.com');
@@ -115,7 +115,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
         if (forceStaticConfig && !preferDynamic) {
             return applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
         }
-        if (!shouldPreferBackendConfig) {
+        if (!shouldPreferBackendConfig && !preferDynamic) {
             return applyResolvedConfig(window.GOINDIARIDE_FIREBASE_CONFIG, 'static');
         }
         if (configPromise && !forceRefresh) {

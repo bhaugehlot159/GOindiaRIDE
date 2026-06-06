@@ -37,6 +37,7 @@ const router = express.Router();
 
 const DEVICE_APPROVAL_ENABLED = true;
 const PASSWORD_RESET_PURPOSE = 'password_reset';
+const PROFILE_PHONE_PURPOSE = 'profile_phone';
 
 function isProductionRuntime() {
   const nodeEnv = String(process.env.NODE_ENV || '').toLowerCase().trim();
@@ -421,6 +422,212 @@ router.get('/firebase/client-config', (_req, res) => {
     ok: true,
     config
   });
+});
+
+router.post('/profile-phone/request-otp', authenticate, async (req, res) => {
+  try {
+    const normalizedPhone = normalizePhoneValue(req.body?.phone, { allowLocalIndian: true });
+    if (!normalizedPhone) {
+      return res.status(400).json({ message: 'Valid phone required' });
+    }
+
+    const user = await User.findById(req.user.id).select('_id accountType phone').lean();
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const phoneCandidates = buildPhoneLookupCandidates(normalizedPhone);
+    const conflict = await User.findOne({
+      _id: { $ne: req.user.id },
+      phone: { $in: phoneCandidates }
+    }).select('_id').lean();
+
+    if (conflict) {
+      return res.status(409).json({ message: 'Phone already in use by another account' });
+    }
+
+    const accountType = ['customer', 'driver', 'admin'].includes(user.accountType) ? user.accountType : 'customer';
+    const existing = await Otp.findOne({
+      identifier: normalizedPhone,
+      channel: 'sms',
+      accountType,
+      purpose: PROFILE_PHONE_PURPOSE
+    });
+
+    const isTest = String(process.env.TEST_MODE || '').toLowerCase().trim() === 'true';
+    const cooldownMs = isTest ? 1000 : Number(process.env.OTP_COOLDOWN_MS || 30000);
+    const maxSend = isTest ? 1000 : Number(process.env.OTP_MAX_SEND || 10);
+
+    if (existing?.lastSentAt) {
+      const diffMs = Date.now() - new Date(existing.lastSentAt).getTime();
+      if (diffMs < cooldownMs) {
+        return res.status(429).json({
+          message: `Please wait ${Math.ceil((cooldownMs - diffMs) / 1000)} seconds before requesting OTP again`
+        });
+      }
+    }
+
+    if ((existing?.sendCount || 0) >= maxSend) {
+      return res.status(429).json({ message: 'OTP request limit reached. Try later.' });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = await bcrypt.hash(otp, 12);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await Otp.findOneAndUpdate(
+      { identifier: normalizedPhone, channel: 'sms', accountType, purpose: PROFILE_PHONE_PURPOSE },
+      {
+        $set: {
+          phone: normalizedPhone,
+          email: null,
+          otpHash,
+          expiresAt,
+          attempts: 0,
+          verifiedAt: null,
+          ip: req.ip
+        },
+        $setOnInsert: {
+          purpose: PROFILE_PHONE_PURPOSE
+        },
+        $inc: { sendCount: 1 },
+        $currentDate: { lastSentAt: true }
+      },
+      { upsert: true, new: true }
+    );
+
+    let deliveryResult = null;
+    try {
+      deliveryResult = await sendSms({
+        to: normalizePhoneForDelivery(normalizedPhone),
+        otp,
+        text: `Your GOIndiaRIDE profile mobile verification OTP is ${otp}. It will expire in 5 minutes. Do not share this code.`
+      });
+    } catch (deliveryError) {
+      deliveryResult = {
+        sent: false,
+        skipped: false,
+        reason: 'sms_send_failed',
+        message: deliveryError.message || 'otp_delivery_failed'
+      };
+    }
+
+    const deliveryOk = Boolean(deliveryResult && deliveryResult.sent);
+    const deliverySummary = {
+      channel: 'sms',
+      target: maskPhone(normalizedPhone),
+      sent: deliveryOk,
+      skipped: Boolean(deliveryResult && deliveryResult.skipped),
+      provider: deliveryResult && deliveryResult.provider ? deliveryResult.provider : undefined,
+      reason: deliveryResult && deliveryResult.reason ? deliveryResult.reason : undefined,
+      message: deliveryResult && deliveryResult.message ? deliveryResult.message : undefined
+    };
+
+    if (!deliveryOk && !allowOtpDevResponse()) {
+      return res.status(503).json({
+        message: 'Mobile OTP provider is not configured or failed. Please check SMS/WhatsApp settings.',
+        delivery: deliverySummary
+      });
+    }
+
+    return res.status(200).json({
+      message: deliveryOk ? 'OTP sent successfully' : 'OTP generated. Delivery provider is not configured.',
+      delivery: deliverySummary,
+      ...(allowOtpDevResponse() ? { devOtp: otp } : {})
+    });
+  } catch (error) {
+    console.error('profile-phone request-otp error:', error);
+    return res.status(500).json({ message: 'Server error in profile phone OTP request' });
+  }
+});
+
+router.post('/profile-phone/verify-otp', authenticate, async (req, res) => {
+  try {
+    const normalizedPhone = normalizePhoneValue(req.body?.phone, { allowLocalIndian: true });
+    const otpValue = String(req.body?.otp || '').trim();
+    if (!normalizedPhone) {
+      return res.status(400).json({ message: 'Valid phone required' });
+    }
+    if (!/^\d{6}$/.test(otpValue)) {
+      return res.status(400).json({ message: 'Valid OTP required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const accountType = ['customer', 'driver', 'admin'].includes(user.accountType) ? user.accountType : 'customer';
+    const otpDoc = await Otp.findOne({
+      identifier: normalizedPhone,
+      channel: 'sms',
+      accountType,
+      purpose: PROFILE_PHONE_PURPOSE
+    });
+
+    if (!otpDoc) {
+      return res.status(400).json({ message: 'OTP not found. Please request again.' });
+    }
+    if (otpDoc.verifiedAt) {
+      return res.status(400).json({ message: 'OTP already used. Please request a new one.' });
+    }
+    if (new Date(otpDoc.expiresAt).getTime() < Date.now()) {
+      await Otp.deleteOne({ _id: otpDoc._id });
+      return res.status(400).json({ message: 'OTP expired. Please request again.' });
+    }
+
+    const isTest = String(process.env.TEST_MODE || '').toLowerCase().trim() === 'true';
+    const attemptsLimit = Number(process.env.OTP_VERIFY_ATTEMPTS || (isTest ? 100 : 5));
+    if ((otpDoc.attempts || 0) >= attemptsLimit) {
+      await Otp.deleteOne({ _id: otpDoc._id });
+      return res.status(429).json({ message: 'Too many wrong attempts. Request new OTP.' });
+    }
+
+    const ok = await bcrypt.compare(otpValue, otpDoc.otpHash);
+    if (!ok) {
+      otpDoc.attempts = (otpDoc.attempts || 0) + 1;
+      await otpDoc.save();
+      return res.status(401).json({
+        message: 'Invalid OTP',
+        attemptsLeft: Math.max(0, attemptsLimit - (otpDoc.attempts || 0))
+      });
+    }
+
+    const phoneCandidates = buildPhoneLookupCandidates(normalizedPhone);
+    const conflict = await User.findOne({
+      _id: { $ne: req.user.id },
+      phone: { $in: phoneCandidates }
+    }).select('_id').lean();
+
+    if (conflict) {
+      return res.status(409).json({ message: 'Phone already in use by another account' });
+    }
+
+    otpDoc.verifiedAt = new Date();
+    await otpDoc.save();
+
+    user.phone = normalizedPhone;
+    user.isPhoneVerified = true;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Phone verified successfully',
+      user: {
+        id: String(user._id),
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        isPhoneVerified: Boolean(user.isPhoneVerified),
+        role: user.role || '',
+        accountType: user.accountType || '',
+        createdAt: user.createdAt || null,
+        updatedAt: user.updatedAt || null
+      }
+    });
+  } catch (error) {
+    console.error('profile-phone verify-otp error:', error);
+    return res.status(500).json({ message: 'Server error in profile phone OTP verify' });
+  }
 });
 
 function isStrongPassword(value) {

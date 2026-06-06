@@ -1,5 +1,7 @@
         // LOAD PROFILE
         // ----------------------------------------====
+        const PROFILE_PHONE_BACKEND_OTP_SESSION_KEY = 'goindiaride-dashboard-profile-backend-otp';
+        const PROFILE_PHONE_BACKEND_OTP_TTL_MS = 7 * 60 * 1000;
 
         function hydrateProfilePhoneEditor() {
             const safeName = normalizeDashboardNameValue(currentUser?.fullname || currentUser?.name || '');
@@ -57,11 +59,240 @@
             return rawMessage || 'OTP failed. Please retry.';
         }
 
+        function isProfilePhoneServiceUnavailableReason(message) {
+            const text = String(message || '').trim().toLowerCase();
+            return Boolean(
+                text.includes('mobile otp provider is not configured')
+                || text.includes('sms/whatsapp settings')
+                || text.includes('sms_provider_not_configured')
+                || text.includes('twilio_send_failed')
+                || text.includes('twilio_request_failed')
+                || text.includes('twilio_sms_not_configured')
+                || text.includes('msg91_send_failed')
+                || text.includes('msg91_not_configured')
+                || text.includes('fast2sms_not_configured')
+                || text.includes('fast2sms_send_failed')
+                || text.includes('request_timeout')
+                || text.includes('network_error')
+                || text.includes('failed to fetch')
+                || text.includes('preflight')
+                || text.includes('missing_access_token')
+                || text.includes('phone otp service needs admin configuration')
+                || text.includes('auth/invalid-api-key')
+                || text.includes('invalid api key')
+            );
+        }
+
+        function getProfilePhoneCustomerMessage(message, fallback = 'OTP failed. Please retry.') {
+            const rawMessage = String(message || '').trim();
+            if (!rawMessage) return fallback;
+            const lower = rawMessage.toLowerCase();
+            if (lower.includes('phone already in use')) {
+                return 'This mobile number is already linked with another account.';
+            }
+            if (lower.includes('please wait') || lower.includes('otp request limit')) {
+                return rawMessage;
+            }
+            if (lower.includes('otp not found') || lower.includes('pehle otp')) {
+                return 'Please send OTP first, then enter the code here.';
+            }
+            if (lower.includes('otp already used')) {
+                return 'This OTP is already used. Please request a new OTP.';
+            }
+            if (lower.includes('otp expired')) {
+                return 'OTP expired. Please request a new OTP.';
+            }
+            if (lower.includes('invalid otp') || lower.includes('invalid-verification-code') || lower.includes('wrong')) {
+                return 'OTP code is not correct. Please check the SMS and try again.';
+            }
+            if (isProfilePhoneServiceUnavailableReason(rawMessage)) {
+                return 'Phone OTP service is temporarily unavailable. Please try again in a moment.';
+            }
+            return rawMessage;
+        }
+
+        function setProfileBackendOtpSession(phone, apiBase = '') {
+            const normalizedPhone = normalizeDashboardPhoneValue(phone);
+            if (!normalizedPhone) return;
+            try {
+                sessionStorage.setItem(PROFILE_PHONE_BACKEND_OTP_SESSION_KEY, JSON.stringify({
+                    phone: normalizedPhone,
+                    apiBase: sanitizeInput(apiBase || '', 240),
+                    sentAt: Date.now()
+                }));
+            } catch (_error) {
+                // Ignore session storage failures; Firebase fallback can still run.
+            }
+        }
+
+        function getProfileBackendOtpSession(phone = '') {
+            const normalizedPhone = normalizeDashboardPhoneValue(phone);
+            try {
+                const parsed = JSON.parse(sessionStorage.getItem(PROFILE_PHONE_BACKEND_OTP_SESSION_KEY) || '{}');
+                const storedPhone = normalizeDashboardPhoneValue(parsed.phone || '');
+                const sentAt = Number(parsed.sentAt || 0);
+                const fresh = sentAt && Date.now() - sentAt < PROFILE_PHONE_BACKEND_OTP_TTL_MS;
+                if (storedPhone && fresh && (!normalizedPhone || storedPhone === normalizedPhone)) {
+                    return {
+                        phone: storedPhone,
+                        apiBase: sanitizeInput(parsed.apiBase || '', 240)
+                    };
+                }
+            } catch (_error) {
+                // Ignore malformed session storage.
+            }
+            return null;
+        }
+
+        function clearProfileBackendOtpSession() {
+            try {
+                sessionStorage.removeItem(PROFILE_PHONE_BACKEND_OTP_SESSION_KEY);
+            } catch (_error) {
+                // Ignore session storage restrictions.
+            }
+        }
+
+        function getDashboardDeviceFingerprint() {
+            if (window.GoIndiaSessionContinuity && typeof window.GoIndiaSessionContinuity.buildClientDeviceFingerprint === 'function') {
+                return window.GoIndiaSessionContinuity.buildClientDeviceFingerprint();
+            }
+
+            const key = 'goindiaride_device_fingerprint_v1';
+            try {
+                const existing = String(localStorage.getItem(key) || '').trim();
+                if (existing) return existing;
+            } catch (_error) {
+                // Continue with an in-memory fingerprint.
+            }
+
+            const parts = [
+                navigator.userAgent || '',
+                navigator.language || '',
+                screen && `${screen.width}x${screen.height}x${screen.colorDepth}`,
+                Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+            ];
+            let hash = 2166136261;
+            const input = parts.join('|');
+            for (let index = 0; index < input.length; index += 1) {
+                hash ^= input.charCodeAt(index);
+                hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+            }
+            const fingerprint = `web_${(hash >>> 0).toString(16)}`;
+            try {
+                localStorage.setItem(key, fingerprint);
+            } catch (_error) {
+                // Ignore storage restrictions.
+            }
+            return fingerprint;
+        }
+
+        async function profilePhoneApiPost(path, body = {}, options = {}) {
+            const token = getDashboardAccessToken();
+            if (!token) {
+                throw new Error('missing_access_token');
+            }
+
+            const apiBases = getDashboardAdminEmailApiBases();
+            let lastError = 'server_api_unavailable';
+            for (const apiBase of apiBases) {
+                try {
+                    const response = await dashboardFetchWithTimeout(`${apiBase}${path}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${token}`,
+                            'X-Request-ID': typeof createDashboardRequestId === 'function'
+                                ? createDashboardRequestId(options.idPrefix || 'profile-phone-otp')
+                                : `profile-phone-otp-${Date.now()}`,
+                            'Idempotency-Key': typeof createDashboardIdempotencyKey === 'function'
+                                ? createDashboardIdempotencyKey(options.idPrefix || 'profile-phone-otp')
+                                : `profile-phone-otp:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`
+                        },
+                        body: JSON.stringify(body)
+                    }, options.timeoutMs || 14000);
+                    const data = await response.json().catch(() => ({}));
+                    if (response.ok) {
+                        return { ok: true, data, apiBase };
+                    }
+                    lastError = sanitizeInput(data.message || response.statusText || `http_${response.status}`, 240);
+                    if (response.status === 400 || response.status === 401 || response.status === 403 || response.status === 409 || response.status === 429) {
+                        break;
+                    }
+                } catch (error) {
+                    lastError = typeof classifyDashboardRequestFailure === 'function'
+                        ? classifyDashboardRequestFailure(apiBase, error)
+                        : String(error?.message || error || 'network_error');
+                }
+            }
+            throw new Error(lastError);
+        }
+
+        async function sendProfileBackendPhoneOtp(normalizedPhone) {
+            const result = await profilePhoneApiPost('/api/auth/profile-phone/request-otp', {
+                phone: normalizedPhone
+            }, {
+                idPrefix: 'gir-profile-phone-otp',
+                timeoutMs: 14000
+            });
+
+            const delivery = result.data?.delivery || {};
+            if (result.ok && delivery.sent) {
+                setProfileBackendOtpSession(normalizedPhone, result.apiBase || '');
+                return {
+                    ok: true,
+                    provider: sanitizeInput(delivery.provider || 'backend_sms', 80),
+                    apiBase: result.apiBase || ''
+                };
+            }
+
+            throw new Error(sanitizeInput(
+                [delivery.reason, delivery.message, result.data?.message, 'backend_profile_sms_otp_failed'].filter(Boolean).join(': '),
+                260
+            ));
+        }
+
+        async function verifyProfileBackendPhoneOtp(normalizedPhone, otpValue) {
+            const session = getProfileBackendOtpSession(normalizedPhone);
+            if (!session) {
+                throw new Error('Please send OTP first, then enter the code here.');
+            }
+
+            const result = await profilePhoneApiPost('/api/auth/profile-phone/verify-otp', {
+                phone: session.phone,
+                otp: otpValue,
+                deviceFingerprint: getDashboardDeviceFingerprint()
+            }, {
+                idPrefix: 'gir-profile-phone-otp-verify',
+                timeoutMs: 14000
+            });
+
+            const user = result.data?.user || {};
+            const verifiedPhone = normalizeDashboardPhoneValue(user.phone || session.phone);
+            if (!verifiedPhone) {
+                throw new Error('Verified phone number missing after OTP confirmation.');
+            }
+            clearProfileBackendOtpSession();
+            return {
+                ok: true,
+                phone: verifiedPhone,
+                user
+            };
+        }
+
+        function shouldTryProfileFirebaseFallback(message) {
+            const lower = String(message || '').toLowerCase();
+            if (lower.includes('phone already in use')) return false;
+            if (lower.includes('please wait') || lower.includes('otp request limit')) return false;
+            return isProfilePhoneServiceUnavailableReason(message);
+        }
+
         function handleProfilePhoneInputChange() {
             const otpInput = document.getElementById('profilePhoneOtpInput');
             const input = document.getElementById('profilePhoneInput');
             const normalizedPhone = normalizeDashboardPhoneValue(input?.value || '');
             if (otpInput) otpInput.value = '';
+            clearProfileBackendOtpSession();
             if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
                 window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
             }
@@ -216,6 +447,7 @@
             if (isProfileSavedPhoneStillVerified(normalizedPhone)) {
                 if (input) input.value = normalizedPhone;
                 if (otpInput) otpInput.value = '';
+                clearProfileBackendOtpSession();
                 if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
                     window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
                 }
@@ -223,13 +455,33 @@
                 setProfilePhoneUpdateStatus('Mobile already verified. OTP is required only if you enter a different number.', 'success');
                 return;
             }
+
+            try {
+                setProfilePhoneUpdateStatus('Sending OTP through secure SMS gateway...');
+                await sendProfileBackendPhoneOtp(normalizedPhone);
+                if (input) input.value = normalizedPhone;
+                if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.clearSession === 'function') {
+                    window.GoIndiaPhoneVerification.clearSession(PROFILE_PHONE_VERIFICATION_SESSION_KEY);
+                }
+                setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
+                return;
+            } catch (backendError) {
+                const backendMessage = String(backendError?.message || '').trim();
+                console.warn('Profile phone backend SMS OTP failed; checking Firebase fallback.', backendError);
+                if (!shouldTryProfileFirebaseFallback(backendMessage)) {
+                    setProfilePhoneUpdateStatus(getProfilePhoneCustomerMessage(backendMessage, 'OTP send failed. Please retry.'), 'error');
+                    return;
+                }
+            }
+
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.sendOtp !== 'function') {
                 setProfilePhoneUpdateStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
                 return;
             }
 
             try {
-                setProfilePhoneUpdateStatus('Sending OTP...');
+                clearProfileBackendOtpSession();
+                setProfilePhoneUpdateStatus('Sending OTP through Firebase...');
                 await window.GoIndiaPhoneVerification.sendOtp(normalizedPhone, {
                     sessionKey: PROFILE_PHONE_VERIFICATION_SESSION_KEY,
                     containerId: 'profilePhoneRecaptchaContainer'
@@ -237,7 +489,7 @@
                 if (input) input.value = normalizedPhone;
                 setProfilePhoneUpdateStatus(`OTP sent to ${normalizedPhone}. Enter the code and tap Verify & Save Mobile.`, 'success');
             } catch (error) {
-                const message = toProfilePhoneFriendlyError(error);
+                const message = getProfilePhoneCustomerMessage(toProfilePhoneFriendlyError(error), 'OTP send failed. Please retry.');
                 setProfilePhoneUpdateStatus(message, 'error');
             }
         }
@@ -248,6 +500,52 @@
                 setProfilePhoneUpdateStatus('Please enter the OTP code.', 'error');
                 return;
             }
+            const normalizedInputPhone = normalizeDashboardPhoneValue(document.getElementById('profilePhoneInput')?.value || '');
+            const backendOtpSession = getProfileBackendOtpSession(normalizedInputPhone);
+            if (backendOtpSession) {
+                try {
+                    setProfilePhoneUpdateStatus('Verifying OTP...');
+                    const backendResult = await verifyProfileBackendPhoneOtp(backendOtpSession.phone, otpValue);
+                    const verifiedPhone = backendResult.phone;
+                    const backendUser = backendResult.user || {};
+                    const safeName = normalizeDashboardNameValue(backendUser.name || currentUser?.fullname || currentUser?.name || '');
+                    const safeEmail = normalizeDashboardEmailValue(backendUser.email || currentUser?.email || '');
+                    persistDashboardCurrentUserSession({
+                        fullname: safeName,
+                        name: safeName,
+                        email: safeEmail,
+                        phone: verifiedPhone,
+                        mobile: verifiedPhone,
+                        isPhoneVerified: true,
+                        phoneVerified: true
+                    });
+                    updateDashboardCustomerAccountStores({
+                        fullname: safeName,
+                        name: safeName,
+                        email: safeEmail,
+                        phone: verifiedPhone,
+                        mobile: verifiedPhone,
+                        isPhoneVerified: true,
+                        phoneVerified: true
+                    }, true);
+                    const input = document.getElementById('profilePhoneInput');
+                    if (input) input.value = verifiedPhone;
+                    document.getElementById('profilePhone').textContent = verifiedPhone;
+                    hydrateProfilePhoneEditor();
+                    setProfilePhoneUpdateStatus(`Verified mobile saved to backend: ${verifiedPhone}`, 'success');
+                    const statusNode = document.getElementById('profileSaveStatus');
+                    if (statusNode) {
+                        statusNode.textContent = 'Mobile verified and saved.';
+                        statusNode.style.color = '#15803d';
+                    }
+                    return;
+                } catch (backendError) {
+                    const message = getProfilePhoneCustomerMessage(backendError?.message || 'OTP verification failed. Please retry.');
+                    setProfilePhoneUpdateStatus(message, 'error');
+                    return;
+                }
+            }
+
             if (!window.GoIndiaPhoneVerification || typeof window.GoIndiaPhoneVerification.verifyOtp !== 'function') {
                 setProfilePhoneUpdateStatus('Phone verification service is still loading. Please retry in a moment.', 'error');
                 return;
@@ -323,7 +621,7 @@
                     statusNode.style.color = '#15803d';
                 }
             } catch (error) {
-                const message = toProfilePhoneFriendlyError(error);
+                const message = getProfilePhoneCustomerMessage(toProfilePhoneFriendlyError(error), 'OTP verification failed. Please retry.');
                 setProfilePhoneUpdateStatus(message, 'error');
             }
         }
