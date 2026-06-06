@@ -1251,7 +1251,7 @@
 
             const apiBases = getBackendApiBaseCandidates();
             const deviceFingerprint = getBookingDeviceFingerprint();
-            const paths = ['/api/auth/refresh-secure', '/api/auth/refresh', '/api/auth/refresh-token-v2'];
+            const paths = ['/api/auth/refresh-secure', '/api/auth/refresh-token', '/api/auth/refresh-token-v2'];
             const attempts = [];
             for (const apiBase of apiBases) {
                 if (isApiBaseQuarantined(apiBase)) {

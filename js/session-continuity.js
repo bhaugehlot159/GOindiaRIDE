@@ -365,7 +365,7 @@
   }
 
   async function refreshAtBase(apiBase, refreshToken, deviceFingerprint) {
-    var paths = ['/api/auth/refresh-secure', '/api/auth/refresh'];
+    var paths = ['/api/auth/refresh-secure', '/api/auth/refresh-token'];
     for (var i = 0; i < paths.length; i += 1) {
       try {
         var response = await fetchWithTimeout(apiBase + paths[i], {
