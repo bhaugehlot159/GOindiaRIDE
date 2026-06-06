@@ -187,7 +187,7 @@ app.use(cors({
     'X-Signature',
     'X-OTP-Verified',
     'X-Recaptcha-Token',
-    'X-Idempotency-Key'
+    'X-Idempotency-Key',
     'Idempotency-Key',
   ],
   exposedHeaders: ['X-Request-Id', 'X-CSRF-Token'],
