@@ -239,6 +239,26 @@
             });
         }
 
+        function updateCurrentLocationAddressWhenReady(target, coords, options = {}) {
+            const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
+            const cleanCoords = normalizeBookingMapCoords(coords, { source: 'browser_gps_high_accuracy' });
+            if (!cleanCoords || safeTarget === 'stop') return;
+            reverseGeocodeBookingCoords(cleanCoords)
+                .then((resolvedAddress) => {
+                    const address = sanitizeInput(resolvedAddress || '', 220).trim();
+                    if (!address || !shouldAcceptBookingReverseAddress(address)) return;
+                    const stillRelevant = typeof shouldApplyBookingReverseAddressToTarget === 'function'
+                        ? shouldApplyBookingReverseAddressToTarget(safeTarget, cleanCoords)
+                        : pointsAreNearEnoughForRefinement(cleanCoords, getBookingMapCoordsForTarget(safeTarget));
+                    if (!stillRelevant) return;
+                    updateBookingMapFieldValue(safeTarget, address, cleanCoords, {
+                        source: 'current',
+                        stopInput: options.stopInput || null
+                    });
+                })
+                .catch(() => null);
+        }
+
         async function requestBookingCurrentLocation(target = 'pickup', options = {}) {
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
             const sourceButton = options.sourceButton || null;
@@ -307,7 +327,9 @@
                     releaseBusy();
                 }
                 bookingGoogleMapState.warmCurrentLocation = coords;
-                reverseGeocodeBookingCoords(coords).catch(() => '');
+                updateCurrentLocationAddressWhenReady(safeTarget, coords, {
+                    stopInput: options.stopInput || null
+                });
                 mapReadyPromise.then(() => {
                     const latestPoint = getBookingMapCoordsForTarget(safeTarget)
                         || normalizeBookingMapCoords(lastAppliedPoint || coords);

@@ -248,6 +248,19 @@
             }
         }
 
+        function getNextCabLayerIndex(layers, startIndex) {
+            const lastLayerIndex = layers.length - 1;
+            let nextIndex = Math.max(0, Math.min(startIndex, lastLayerIndex));
+            while (
+                nextIndex < lastLayerIndex
+                && layers[nextIndex]?.skipWhenComplete === true
+                && layers[nextIndex].complete()
+            ) {
+                nextIndex += 1;
+            }
+            return nextIndex;
+        }
+
         function advanceCabLayerIfCurrentComplete(layerKey) {
             const activeFlow = getActiveCabFlow();
             const layers = buildCabQuickLayers(activeFlow);
@@ -274,7 +287,7 @@
 
             if (activeIndex < lastLayerIndex) {
                 cabLayerManualIndex = null;
-                cabLayerUnlockedIndex = Math.min(lastLayerIndex, activeIndex + 1);
+                cabLayerUnlockedIndex = getNextCabLayerIndex(layers, activeIndex + 1);
                 syncCabLayerFlow(activeFlow);
                 const nextLayer = layers[cabLayerUnlockedIndex];
                 focusCabLayerInput(nextLayer && nextLayer.node, true);
@@ -476,6 +489,7 @@
             const returnDateNode = document.getElementById('cabQuickReturnDateInput');
             const returnTimeNode = document.getElementById('cabQuickReturnTimeInput');
             const packageNode = document.getElementById('cabQuickPackageSelect');
+            const terminalNode = document.getElementById('cabQuickTerminalInput');
 
             const baseLayers = [
                 {
@@ -513,6 +527,29 @@
                     pendingText: 'Select pickup time'
                 }
             ];
+
+            if (flow === 'airport') {
+                const readTerminalValue = () => sanitizeInput(terminalNode?.value || '').trim();
+                baseLayers.splice(2, 0, {
+                    key: 'terminal',
+                    label: 'Terminal',
+                    node: terminalNode ? terminalNode.closest('.cab-mini-field') : null,
+                    complete: () => {
+                        const requirement = getAirportTerminalRequirementState();
+                        return !requirement.required || Boolean(readTerminalValue());
+                    },
+                    skipWhenComplete: true,
+                    valueText: () => {
+                        const terminalValue = readTerminalValue();
+                        if (terminalValue) return terminalValue;
+                        const requirement = getAirportTerminalRequirementState();
+                        return requirement.hasAirportSelection && !requirement.required
+                            ? 'Optional terminal / gate'
+                            : '';
+                    },
+                    pendingText: 'Add terminal / gate'
+                });
+            }
 
             if ((flow === 'outstation' && getCabJourneyMode() === 'round_trip')
                 || (flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn))) {
@@ -892,7 +929,7 @@
 
             if (activeIndex < lastLayerIndex) {
                 cabLayerManualIndex = null;
-                cabLayerUnlockedIndex = Math.min(lastLayerIndex, activeIndex + 1);
+                cabLayerUnlockedIndex = getNextCabLayerIndex(layers, activeIndex + 1);
                 syncCabLayerFlow(activeFlow);
                 const nextLayer = layers[cabLayerUnlockedIndex];
                 focusCabLayerInput(nextLayer && nextLayer.node, true);

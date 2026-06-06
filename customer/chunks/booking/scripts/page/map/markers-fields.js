@@ -62,6 +62,26 @@
             }
         }
 
+        function getBookingMapTargetInputIds(target) {
+            if (target === 'dropoff') return ['dropoff', 'cabQuickDropoffInput'];
+            if (target === 'pickup') return ['pickup', 'cabQuickPickupInput'];
+            return [];
+        }
+
+        function shouldApplyBookingReverseAddressToTarget(target, baseCoords) {
+            const currentPoint = getBookingMapCoordsForTarget(target);
+            if (currentPoint && pointsAreNearEnoughForRefinement(baseCoords, currentPoint)) return true;
+
+            const formattedCoords = formatBookingMapCoords(baseCoords);
+            return getBookingMapTargetInputIds(target).some((inputId) => {
+                const input = document.getElementById(inputId);
+                if (!input) return false;
+                const datasetPoint = getBookingMapDatasetCoords(input);
+                if (datasetPoint && pointsAreNearEnoughForRefinement(baseCoords, datasetPoint)) return true;
+                return formattedCoords && sanitizeInput(input.value || '').trim() === formattedCoords;
+            });
+        }
+
         function updateBookingMapFieldValue(target, value, coords = null, options = {}) {
             const cleanCoords = normalizeBookingMapCoords(coords, {
                 source: options.source === 'current' ? 'browser_gps_high_accuracy' : (options.source || 'map_pin')
@@ -81,9 +101,7 @@
                 }
                 handleRouteStopInputChange();
             } else {
-                const inputIds = target === 'dropoff'
-                    ? ['dropoff', 'cabQuickDropoffInput']
-                    : ['pickup', 'cabQuickPickupInput'];
+                const inputIds = getBookingMapTargetInputIds(target);
                 inputIds.forEach((inputId) => {
                     const input = document.getElementById(inputId);
                     if (!input) return;
@@ -94,6 +112,10 @@
                 });
                 handleLocationUpdated();
                 updateBookingExperience();
+                if (typeof advanceCabLayerIfCurrentComplete === 'function') {
+                    const layerKey = target === 'dropoff' ? 'dropoff' : 'pickup';
+                    window.setTimeout(() => advanceCabLayerIfCurrentComplete(layerKey), 0);
+                }
             }
 
             if (cleanCoords) {
@@ -147,8 +169,7 @@
                     .then((resolvedAddress) => {
                         const address = sanitizeInput(resolvedAddress || '', 220).trim();
                         if (!address || !shouldAcceptBookingReverseAddress(address)) return;
-                        const currentPoint = getBookingMapCoordsForTarget(safeTarget);
-                        const stillRelevant = pointsAreNearEnoughForRefinement(cleanCoords, currentPoint);
+                        const stillRelevant = shouldApplyBookingReverseAddressToTarget(safeTarget, cleanCoords);
                         if (!stillRelevant) return;
                         updateBookingMapFieldValue(safeTarget, address, cleanCoords, options);
                     })
@@ -160,8 +181,8 @@
                 ).trim();
 
                 if (address) {
-                    const currentPoint = getBookingMapCoordsForTarget(safeTarget);
-                    const stillRelevant = options.background === true || pointsAreNearEnoughForRefinement(cleanCoords, currentPoint);
+                    const stillRelevant = options.background === true
+                        || shouldApplyBookingReverseAddressToTarget(safeTarget, cleanCoords);
                     if (stillRelevant) {
                         updateBookingMapFieldValue(safeTarget, address, cleanCoords, options);
                     }

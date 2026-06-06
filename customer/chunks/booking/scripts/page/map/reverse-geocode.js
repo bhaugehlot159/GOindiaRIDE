@@ -54,16 +54,43 @@
             return !detailPattern.test(normalized);
         }
 
+        function isBookingCoordinateAddress(address) {
+            return /^-?\d+\.\d{4,}\s*,\s*-?\d+\.\d{4,}/.test(normalizeBookingAddressCandidate(address));
+        }
+
+        function isBookingUsableLocalityAddress(address) {
+            const normalized = normalizeBookingAddressCandidate(address);
+            if (!normalized || isBookingCoordinateAddress(normalized)) return false;
+            const parts = normalized.split(',').map((part) => part.trim()).filter(Boolean);
+            if (parts.length < 3 || normalized.length < 16) return false;
+            if (!/[a-z]{3,}/i.test(normalized)) return false;
+            if (!/\b(india|bharat)\b/i.test(normalized) && parts.length < 4) return false;
+            if (isBookingBroadAdministrativeAddress(normalized) && parts.length < 4) return false;
+            const lower = normalized.toLowerCase();
+            const tooBroad = [
+                'india',
+                'bharat',
+                'rajasthan, india',
+                'gujarat, india',
+                'maharashtra, india',
+                'madhya pradesh, india',
+                'uttar pradesh, india',
+                'delhi, india'
+            ];
+            return !tooBroad.includes(lower);
+        }
+
         function shouldAcceptBookingReverseAddress(address) {
             const normalized = normalizeBookingAddressCandidate(address);
             if (!normalized) return false;
-            if (/^-?\d+\.\d{4,}\s*,\s*-?\d+\.\d{4,}/.test(normalized)) return true;
+            if (isBookingCoordinateAddress(normalized)) return false;
             const parts = normalized.split(',').map((part) => part.trim()).filter(Boolean);
             const hasStreetLevelHint = /\b(\d+[a-z0-9\-\/]*|road|rd|street|st|lane|ln|gali|chowk|circle|sector|colony|nagar|market|shop|mall|gate|hospital|hotel|temple|station|airport|flat|apt|apartment|building|plot|house|society)\b/i.test(normalized);
             const isLikelyCityOnly = parts.length <= 4 && !hasStreetLevelHint;
-            if (isLikelyCityOnly) return false;
-            if (isBookingBroadAdministrativeAddress(normalized)) return false;
-            return scoreBookingAddressCandidate(normalized) >= BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE;
+            if (isLikelyCityOnly) return isBookingUsableLocalityAddress(normalized);
+            if (isBookingBroadAdministrativeAddress(normalized) && !isBookingUsableLocalityAddress(normalized)) return false;
+            return scoreBookingAddressCandidate(normalized) >= BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE
+                || isBookingUsableLocalityAddress(normalized);
         }
 
         function purgeLegacyBookingReverseGeocodeCacheKeys() {
@@ -229,7 +256,11 @@
                 return left.address.length - right.address.length;
             });
             const best = ranked[0] || null;
-            if (!best || best.score < BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE) return formatBookingMapCoords(coords);
+            if (!best) return formatBookingMapCoords(coords);
+            if (best.score < BOOKING_REVERSE_GEOCODE_MIN_ACCEPT_SCORE) {
+                const localityFallback = ranked.find(({ address }) => isBookingUsableLocalityAddress(address));
+                return localityFallback?.address || formatBookingMapCoords(coords);
+            }
             return best.address;
         }
 
@@ -271,7 +302,7 @@
             const osmData = await fetchBookingJsonWithTimeout(
                 `https://nominatim.openstreetmap.org/reverse?${buildOsmParams().toString()}`,
                 osmRequestOptions,
-                1800
+                3500
             );
             const osmAddress = normalizeBookingAddressCandidate(osmData?.display_name);
             const osmStructured = normalizeBookingAddressCandidate(buildBookingReverseAddress(osmData?.address || {}));
@@ -287,7 +318,7 @@
                 fetchBookingJsonWithTimeout(
                     `https://nominatim.openstreetmap.org/reverse?${buildOsmParams({ layer: 'poi', zoom: '18' }).toString()}`,
                     osmRequestOptions,
-                    1600
+                    3000
                 ),
                 fetchBookingJsonWithTimeout(
                     `https://api.bigdatacloud.net/data/reverse-geocode-client?${cloudParams.toString()}`,
@@ -295,7 +326,7 @@
                         method: 'GET',
                         headers: { Accept: 'application/json' }
                     },
-                    1600
+                    3000
                 )
             ]);
             const osmPoiAddress = normalizeBookingAddressCandidate(osmPoiData?.display_name);
