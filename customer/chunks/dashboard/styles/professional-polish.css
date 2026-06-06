@@ -702,6 +702,7 @@ body.customer-dashboard-page #messageInput {
 body.customer-dashboard-page .profile-account-shell {
     display: grid;
     grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.38fr);
+    align-items: start;
     gap: 1rem;
 }
 
@@ -1063,6 +1064,178 @@ body.customer-dashboard-page .profile-save-status {
     line-height: 1.5;
 }
 
+/* Compact professional profile view */
+body.customer-dashboard-page #profileTab {
+    padding: 1rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-account-shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    grid-template-columns: minmax(300px, 340px) minmax(0, 1fr);
+    gap: 0.9rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-account-summary,
+body.customer-dashboard-page #profileTab .profile-account-editor {
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
+}
+
+body.customer-dashboard-page #profileTab .profile-account-summary {
+    padding: 0.95rem;
+    gap: 0.72rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-account-editor {
+    align-self: start;
+    padding: 0.95rem;
+    min-height: 0;
+}
+
+body.customer-dashboard-page #profileTab .profile-avatar-large {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    font-size: 1.38rem;
+    box-shadow: 0 10px 22px rgba(79, 70, 229, 0.17);
+}
+
+body.customer-dashboard-page #profileTab .profile-kicker {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+}
+
+body.customer-dashboard-page #profileTab .profile-summary-copy h3 {
+    font-size: clamp(1.35rem, 1.55vw, 1.7rem);
+    line-height: 1.08;
+}
+
+body.customer-dashboard-page #profileTab .profile-summary-copy p {
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-contact-row {
+    padding: 0.72rem;
+    border-radius: 13px;
+}
+
+body.customer-dashboard-page #profileTab .profile-contact-row strong {
+    font-size: 0.98rem;
+}
+
+body.customer-dashboard-page #profileTab #profilePhoneVerificationBadge {
+    margin-top: 0.32rem;
+    font-size: 0.82rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-settings-list {
+    gap: 0.5rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-feature-item {
+    min-height: 48px;
+    gap: 0.52rem;
+    padding: 0.52rem 0.62rem !important;
+    border-radius: 12px;
+}
+
+body.customer-dashboard-page #profileTab .profile-feature-item i {
+    width: 20px;
+    flex-basis: 20px;
+    font-size: 0.95rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-feature-item strong {
+    font-size: 0.92rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-feature-item small {
+    margin-top: 0.04rem;
+    font-size: 0.72rem;
+    line-height: 1.25;
+}
+
+body.customer-dashboard-page #profileTab .profile-feature-item b {
+    padding: 0.22rem 0.42rem;
+    font-size: 0.68rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-editor-head {
+    align-items: center;
+    gap: 0.8rem;
+    padding-bottom: 0.7rem;
+    margin-bottom: 0.8rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-editor-head h3 {
+    font-size: 1.3rem;
+    line-height: 1.15;
+}
+
+body.customer-dashboard-page #profileTab .profile-secure-badge {
+    padding: 0.34rem 0.52rem;
+    font-size: 0.76rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-editor-panel.is-active {
+    gap: 0.72rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-form-grid {
+    gap: 0.72rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-field label {
+    margin-bottom: 0.3rem;
+    font-size: 0.92rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-field input {
+    min-height: 42px;
+    padding: 0.58rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.94rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-verification-note,
+body.customer-dashboard-page #profileTab .profile-feature-panel-note {
+    gap: 0.52rem;
+    padding: 0.62rem 0.72rem;
+    border-radius: 12px;
+    font-size: 0.92rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-feature-panel-note i {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+    border-radius: 9px;
+}
+
+body.customer-dashboard-page #profileTab .profile-verification-note p,
+body.customer-dashboard-page #profileTab .profile-feature-panel-note p {
+    line-height: 1.4;
+}
+
+body.customer-dashboard-page #profileTab .profile-action-row {
+    gap: 0.52rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-action {
+    min-height: 40px;
+    padding: 0.52rem 0.72rem !important;
+    border-radius: 11px !important;
+    font-size: 0.92rem;
+}
+
+body.customer-dashboard-page #profileTab .profile-save-status {
+    margin-top: 0.55rem;
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
 @media (max-width: 1180px) {
     body.customer-dashboard-page .header-top {
         grid-template-columns: 1fr;
@@ -1085,6 +1258,11 @@ body.customer-dashboard-page .profile-save-status {
     }
 
     body.customer-dashboard-page .profile-account-shell {
+        grid-template-columns: 1fr;
+    }
+
+    body.customer-dashboard-page #profileTab .profile-account-shell {
+        max-width: 760px;
         grid-template-columns: 1fr;
     }
 
@@ -1182,8 +1360,22 @@ body.customer-dashboard-page .profile-save-status {
         padding: 1rem;
     }
 
+    body.customer-dashboard-page #profileTab {
+        padding: 0.75rem;
+    }
+
+    body.customer-dashboard-page #profileTab .profile-account-summary,
+    body.customer-dashboard-page #profileTab .profile-account-editor {
+        padding: 0.85rem;
+    }
+
     body.customer-dashboard-page .profile-form-grid,
     body.customer-dashboard-page .profile-settings-list {
+        grid-template-columns: 1fr;
+    }
+
+    body.customer-dashboard-page #profileTab .profile-form-grid,
+    body.customer-dashboard-page #profileTab .profile-settings-list {
         grid-template-columns: 1fr;
     }
 
