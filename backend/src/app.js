@@ -189,6 +189,7 @@ app.use(cors({
     'X-Recaptcha-Token',
     'X-Idempotency-Key',
     'Idempotency-Key',
+    'X-Device-Fingerprint',
   ],
   exposedHeaders: ['X-Request-Id', 'X-CSRF-Token'],
   credentials: true,
