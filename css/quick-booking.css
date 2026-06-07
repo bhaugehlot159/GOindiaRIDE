@@ -278,7 +278,7 @@ a:focus-visible {
 
 .journey-toggle {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 12px;
 }
@@ -298,11 +298,16 @@ a:focus-visible {
     border-color: var(--green-dark);
 }
 
+.service-detail-row,
 .route-grid,
 .details-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+}
+
+.service-detail-row {
+    margin-bottom: 12px;
 }
 
 .field-wide {
@@ -360,11 +365,17 @@ a:focus-visible {
     padding-right: 48px;
 }
 
-.return-field {
+.return-field,
+.stop-field {
     display: none;
 }
 
 .booking-panel.is-round-trip .return-field {
+    display: grid;
+}
+
+.booking-panel.is-multi-city .stop-field,
+.booking-panel.is-round-trip .stop-field {
     display: grid;
 }
 
@@ -467,11 +478,92 @@ a:focus-visible {
     font-size: 0.96rem;
 }
 
+.detail-drawer {
+    margin-top: 12px;
+    padding: 10px;
+    background: #f8fbfa;
+    border: 1px solid #dce8e4;
+    border-radius: 8px;
+}
+
+.detail-drawer summary {
+    cursor: pointer;
+    color: var(--green-dark);
+    font-weight: 900;
+}
+
+.extra-grid {
+    margin-top: 10px;
+}
+
+.option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.option-grid label {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    gap: 8px;
+    padding: 8px 10px;
+    color: #243b37;
+    background: #ffffff;
+    border: 1px solid #d7e2de;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.option-grid input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--green);
+}
+
 .submit-row {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 10px;
     margin-top: 12px;
+}
+
+.manage-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: end;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #dce8e4;
+}
+
+.manage-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    gap: 8px;
+    padding: 0 12px;
+    color: #ffffff;
+    background: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.manage-btn.is-muted {
+    color: var(--green-dark);
+    background: #edf7f3;
+    border-color: #cce3da;
+}
+
+.booking-panel.is-editing {
+    border-color: rgba(216, 138, 22, 0.55);
+    box-shadow: 0 18px 45px rgba(48, 37, 16, 0.22);
 }
 
 .submit-btn,
@@ -626,11 +718,17 @@ a:focus-visible {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .service-detail-row,
     .route-grid,
     .details-grid,
     .fare-strip,
     .submit-row,
+    .manage-panel,
     .trust-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .option-grid {
         grid-template-columns: 1fr;
     }
 

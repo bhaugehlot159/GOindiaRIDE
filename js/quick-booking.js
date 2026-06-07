@@ -23,11 +23,26 @@
         rideTime: document.getElementById('rideTimeInput'),
         returnDate: document.getElementById('returnDateInput'),
         returnTime: document.getElementById('returnTimeInput'),
+        stopOne: document.getElementById('stopOneInput'),
+        stopTwo: document.getElementById('stopTwoInput'),
+        serviceMode: document.getElementById('serviceModeInput'),
+        vehicleModel: document.getElementById('vehicleModelInput'),
         name: document.getElementById('nameInput'),
         phone: document.getElementById('phoneInput'),
+        email: document.getElementById('emailInput'),
         passengers: document.getElementById('passengerInput'),
+        luggage: document.getElementById('luggageInput'),
         payment: document.getElementById('paymentInput'),
-        notes: document.getElementById('notesInput')
+        budget: document.getElementById('budgetInput'),
+        promo: document.getElementById('promoInput'),
+        notes: document.getElementById('notesInput'),
+        terminal: document.getElementById('terminalInput'),
+        flight: document.getElementById('flightInput'),
+        fuelPreference: document.getElementById('fuelPreferenceInput'),
+        gstCompany: document.getElementById('gstCompanyInput'),
+        gstNumber: document.getElementById('gstNumberInput'),
+        editReason: document.getElementById('editReasonInput'),
+        manageBooking: document.getElementById('manageBookingInput')
     };
 
     const fareAmount = document.getElementById('fareAmount');
@@ -36,12 +51,16 @@
     const formMessage = document.getElementById('formMessage');
     const submitBtn = document.getElementById('submitBookingBtn');
     const whatsAppBookingLink = document.getElementById('whatsAppBookingLink');
+    const loadBookingBtn = document.getElementById('loadBookingBtn');
+    const newBookingBtn = document.getElementById('newBookingBtn');
 
     const state = {
         tripPlan: 'airport',
         journey: 'one_way',
         vehicleType: 'economy',
-        lastFare: null
+        lastFare: null,
+        editingBookingId: '',
+        editOriginal: null
     };
 
     function cleanText(value, maxLen) {
@@ -95,9 +114,144 @@
         return '';
     }
 
+    function normalizeEmail(value) {
+        const email = cleanText(value, 180).toLowerCase();
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
+    }
+
+    function readStops() {
+        return [fields.stopOne, fields.stopTwo]
+            .map((input) => cleanText(input && input.value, 160))
+            .filter(Boolean);
+    }
+
+    function readBooleanMap(selector) {
+        const result = {};
+        document.querySelectorAll(selector).forEach((input) => {
+            const key = cleanText(input.dataset.addon || input.dataset.safety || '', 60);
+            if (key) result[key] = Boolean(input.checked);
+        });
+        return result;
+    }
+
+    function readBookingAddOns() {
+        return readBooleanMap('[data-addon]');
+    }
+
+    function readSafetyAccessibility() {
+        return readBooleanMap('[data-safety]');
+    }
+
+    function readSpecialRequests() {
+        const addOns = readBookingAddOns();
+        return {
+            aircondition: true,
+            meetassist: Boolean(addOns.meetAssist),
+            waterbottle: Boolean(addOns.waterBottle),
+            charger: Boolean(addOns.phoneCharger),
+            wifi: Boolean(addOns.wifi),
+            gstinvoice: Boolean(cleanText(fields.gstCompany && fields.gstCompany.value, 140) || cleanText(fields.gstNumber && fields.gstNumber.value, 40))
+        };
+    }
+
+    function readTravelAssurance() {
+        return {
+            flightDetails: {
+                flightNumber: cleanText(fields.flight && fields.flight.value, 80),
+                terminal: cleanText(fields.terminal && fields.terminal.value, 120),
+                pickupPoint: cleanText(fields.terminal && fields.terminal.value, 120)
+            },
+            policyPreferences: {
+                flexibleCancellation: true,
+                adminReviewBeforeDispatch: true,
+                customerEditRequested: Boolean(state.editingBookingId),
+                liveTripShare: Boolean(readSafetyAccessibility().livetripshare)
+            },
+            billingDetails: {
+                gstInvoiceRequired: Boolean(cleanText(fields.gstCompany && fields.gstCompany.value, 140) || cleanText(fields.gstNumber && fields.gstNumber.value, 40)),
+                gstCompanyName: cleanText(fields.gstCompany && fields.gstCompany.value, 140),
+                gstNumber: cleanText(fields.gstNumber && fields.gstNumber.value, 40)
+            },
+            addOns: readBookingAddOns()
+        };
+    }
+
+    function buildLocationPins(pickup, drop, stops) {
+        const currentMatch = /^current location \((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)$/i.exec(pickup || '');
+        const pickupCoordinates = currentMatch
+            ? { lat: Number(currentMatch[1]), lng: Number(currentMatch[2]), source: 'browser_geolocation' }
+            : null;
+        return {
+            pickup: {
+                label: pickup,
+                coordinates: pickupCoordinates,
+                googleMapsUrl: pickupCoordinates ? `https://www.google.com/maps?q=${pickupCoordinates.lat},${pickupCoordinates.lng}` : ''
+            },
+            dropoff: {
+                label: drop,
+                coordinates: null,
+                googleMapsUrl: ''
+            },
+            stops: stops.map((label) => ({ label, coordinates: null, googleMapsUrl: '' }))
+        };
+    }
+
+    function buildFullDetailNotes(baseNotes, details = {}) {
+        const lines = [
+            cleanText(baseNotes, 300),
+            details.serviceMode ? `Service mode: ${details.serviceMode}` : '',
+            details.journey ? `Journey: ${details.journey}` : '',
+            details.terminal ? `Terminal/Gate: ${details.terminal}` : '',
+            details.flight ? `Flight/Train: ${details.flight}` : '',
+            details.stops && details.stops.length ? `Stops: ${details.stops.join(' | ')}` : '',
+            details.luggage ? `Luggage: ${details.luggage}` : '',
+            details.vehicleModel ? `Cab model: ${details.vehicleModel}` : '',
+            details.fuelPreference ? `Fuel preference: ${details.fuelPreference}` : '',
+            details.budgetAmount ? `Customer budget: INR ${details.budgetAmount}` : '',
+            details.promoCode ? `Promo: ${details.promoCode}` : '',
+            details.gstCompany || details.gstNumber ? `GST: ${details.gstCompany || 'Company not set'} ${details.gstNumber || ''}` : '',
+            details.editReason ? `Customer edit note: ${details.editReason}` : ''
+        ].filter(Boolean);
+        return cleanText(lines.join(' | '), 600);
+    }
+
+    function computeChangedFields(previous = {}, next = {}) {
+        if (!previous || !previous.bookingId) return [];
+        const pairs = [
+            ['pickup', previous.pickup || previous.pickupLocation, next.pickup],
+            ['dropoff', previous.dropoff || previous.drop || previous.dropLocation, next.dropoff],
+            ['rideDate', previous.rideDate, next.rideDate],
+            ['rideTime', previous.rideTime, next.rideTime],
+            ['returnDate', previous.returnDate || previous.returnTrip?.returnDate, next.returnDate],
+            ['returnTime', previous.returnTime || previous.returnTrip?.returnTime, next.returnTime],
+            ['tripPlan', previous.tripPlan, next.tripPlan],
+            ['tripServiceType', previous.tripServiceType || previous.serviceType, next.tripServiceType],
+            ['vehicleType', previous.vehicleType || previous.rideType, next.vehicleType],
+            ['vehicleModel', previous.vehicleModel, next.vehicleModel],
+            ['passengers', previous.passengers, next.passengers],
+            ['luggage', previous.luggage, next.luggage],
+            ['paymentMethod', previous.paymentMethod || previous.payment?.method, next.paymentMethod],
+            ['notes', previous.notes, next.notes],
+            ['budgetAmount', previous.budgetAmount || previous.customerBidAmount, next.budgetAmount],
+            ['stops', JSON.stringify(previous.stops || []), JSON.stringify(next.stops || [])],
+            ['specialRequests', JSON.stringify(previous.specialRequests || previous.customerFeatures?.specialRequests || {}), JSON.stringify(next.specialRequests || {})],
+            ['safetyAccessibility', JSON.stringify(previous.safetyAccessibility || previous.customerFeatures?.safetyAccessibility || {}), JSON.stringify(next.safetyAccessibility || {})]
+        ];
+        return pairs
+            .filter(([, before, after]) => cleanText(before, 1000) !== cleanText(after, 1000))
+            .map(([field]) => field);
+    }
+
+    function activeBookingId() {
+        return cleanText(state.editingBookingId || '', 120).toUpperCase();
+    }
+
     function normalizeTripServiceType() {
+        const serviceMode = cleanText(fields.serviceMode && fields.serviceMode.value, 80);
+        if (serviceMode) return serviceMode;
         if (state.tripPlan === 'airport') return 'airport_pickup_drop';
         if (state.tripPlan === 'rental') return 'hourly_rental';
+        if (state.journey === 'multi_city') return 'multi_city';
         if (state.tripPlan === 'outstation') return state.journey === 'round_trip' ? 'outstation_round_trip' : 'outstation_one_way';
         return 'local_city';
     }
@@ -123,12 +277,14 @@
         if (state.tripPlan === 'airport') return 22;
         if (state.tripPlan === 'outstation') return state.journey === 'round_trip' ? 260 : 160;
         if (state.tripPlan === 'rental') return 80;
+        if (state.journey === 'multi_city') return 45;
         return 12;
     }
 
     function buildFareInput() {
         const pickup = cleanText(fields.pickup.value, 180);
         const drop = cleanText(fields.drop.value, 180);
+        const stops = readStops();
         const fallbackDistance = estimateFallbackDistance(pickup, drop);
         return {
             pickup,
@@ -136,13 +292,21 @@
             tripPlan: state.tripPlan,
             tripServiceType: normalizeTripServiceType(),
             vehicleType: state.vehicleType,
+            vehicleModel: cleanText(fields.vehicleModel && fields.vehicleModel.value, 80),
+            vehicleFuelPreference: cleanText(fields.fuelPreference && fields.fuelPreference.value, 80),
             passengers: toNumber(fields.passengers.value, 1),
+            luggage: cleanText(fields.luggage && fields.luggage.value, 80),
             paymentMethod: fields.payment.value || 'cash',
             rideDate: fields.rideDate.value,
             rideTime: fields.rideTime.value,
             returnDate: state.journey === 'round_trip' ? fields.returnDate.value : '',
             returnTime: state.journey === 'round_trip' ? fields.returnTime.value : '',
             isReturnTrip: state.journey === 'round_trip',
+            stops,
+            specialRequests: readSpecialRequests(),
+            safetyAccessibility: readSafetyAccessibility(),
+            budgetAmount: toNumber(fields.budget && fields.budget.value, 0),
+            promoCode: cleanText(fields.promo && fields.promo.value, 40).toUpperCase(),
             distanceKm: fallbackDistance,
             distanceSource: pickup && drop ? 'shortcut_estimate' : 'shortcut_default'
         };
@@ -295,72 +459,209 @@
 
     function buildBookingPayload(existingId) {
         const fare = estimateFare();
-        const bookingId = existingId || makeBookingId();
+        const bookingId = (existingId || activeBookingId() || makeBookingId()).toUpperCase();
         const phone = normalizePhone(fields.phone.value);
         const pickup = cleanText(fields.pickup.value, 180);
         const drop = cleanText(fields.drop.value, 180);
         const customerName = cleanText(fields.name.value, 140) || 'Public booking customer';
+        const customerEmail = normalizeEmail(fields.email && fields.email.value);
         const totalFare = Math.round(toNumber(fare.totalFare || fare.amount || fare.finalFare, 0));
         const now = new Date().toISOString();
-        return {
+        const stops = readStops();
+        const specialRequests = readSpecialRequests();
+        const safetyAccessibility = readSafetyAccessibility();
+        const travelAssurance = readTravelAssurance();
+        const terminal = cleanText(fields.terminal && fields.terminal.value, 120);
+        const flightNumber = cleanText(fields.flight && fields.flight.value, 80);
+        const serviceMode = normalizeTripServiceType();
+        const vehicleModel = cleanText(fields.vehicleModel && fields.vehicleModel.value, 80);
+        const fuelPreference = cleanText(fields.fuelPreference && fields.fuelPreference.value, 80);
+        const luggage = cleanText(fields.luggage && fields.luggage.value, 80);
+        const budgetAmount = toNumber(fields.budget && fields.budget.value, 0);
+        const promoCode = cleanText(fields.promo && fields.promo.value, 40).toUpperCase();
+        const editReason = cleanText(fields.editReason && fields.editReason.value, 180);
+        const locationPins = buildLocationPins(pickup, drop, stops);
+        const fullNotes = buildFullDetailNotes(fields.notes.value, {
+            serviceMode,
+            journey: state.journey,
+            terminal,
+            flight: flightNumber,
+            stops,
+            luggage,
+            vehicleModel,
+            fuelPreference,
+            budgetAmount,
+            promoCode,
+            gstCompany: cleanText(fields.gstCompany && fields.gstCompany.value, 140),
+            gstNumber: cleanText(fields.gstNumber && fields.gstNumber.value, 40),
+            editReason
+        });
+        const existing = state.editOriginal && state.editOriginal.bookingId === bookingId ? state.editOriginal : {};
+        const editHistory = Array.isArray(existing.editHistory) ? existing.editHistory.slice(-49) : [];
+        if (existing.bookingId) {
+            editHistory.push({
+                editedAt: now,
+                by: 'customer',
+                source: 'public_shortcut_booking',
+                reason: editReason || 'Updated by customer from shortcut booking page.',
+                changedFields: []
+            });
+        }
+        const returnTrip = {
+            enabled: state.journey === 'round_trip',
+            returnDate: state.journey === 'round_trip' ? fields.returnDate.value : '',
+            returnTime: state.journey === 'round_trip' ? fields.returnTime.value : '',
+            returnDateTime: state.journey === 'round_trip' && fields.returnDate.value && fields.returnTime.value
+                ? `${fields.returnDate.value}T${fields.returnTime.value}:00`
+                : null
+        };
+        const customerFeatures = {
+            specialRequests,
+            safetyAccessibility,
+            hasStops: stops.length > 0,
+            hasReturnTrip: returnTrip.enabled,
+            airportTerminalNote: terminal,
+            vehicleFuelPreference: fuelPreference,
+            locationPins,
+            pickupCoordinates: locationPins.pickup.coordinates,
+            dropoffCoordinates: locationPins.dropoff.coordinates,
+            routeStopLocations: locationPins.stops,
+            travelAssurance,
+            flightDetails: travelAssurance.flightDetails,
+            policyPreferences: travelAssurance.policyPreferences,
+            billingDetails: travelAssurance.billingDetails,
+            addOns: travelAssurance.addOns,
+            publicShortcutEditEnabled: true
+        };
+        const payload = {
+            ...existing,
             id: bookingId,
             bookingId,
             customerId: '',
             customerName,
             customerPhone: phone,
-            customerEmail: '',
+            customerEmail,
             customerSnapshot: {
                 name: customerName,
                 phone,
-                email: ''
+                email: customerEmail
+            },
+            phoneVerification: {
+                status: 'contact_only',
+                source: 'public_shortcut_required_contact',
+                fallbackReason: ''
             },
             pickup,
             pickupLocation: pickup,
+            pickupCoordinates: locationPins.pickup.coordinates,
+            pickupGoogleMapsUrl: locationPins.pickup.googleMapsUrl,
             drop,
             dropoff: drop,
             dropLocation: drop,
+            dropoffCoordinates: locationPins.dropoff.coordinates,
+            dropoffGoogleMapsUrl: locationPins.dropoff.googleMapsUrl,
+            locationPins,
+            stops,
+            routeStopLocations: locationPins.stops,
             rideDate: fields.rideDate.value,
             rideTime: fields.rideTime.value,
-            returnDate: state.journey === 'round_trip' ? fields.returnDate.value : '',
-            returnTime: state.journey === 'round_trip' ? fields.returnTime.value : '',
-            returnTrip: {
-                enabled: state.journey === 'round_trip',
-                returnDate: state.journey === 'round_trip' ? fields.returnDate.value : '',
-                returnTime: state.journey === 'round_trip' ? fields.returnTime.value : ''
-            },
+            returnDate: returnTrip.returnDate,
+            returnTime: returnTrip.returnTime,
+            returnTrip,
             journeyType: state.journey,
             tripPlan: state.tripPlan,
-            tripServiceType: normalizeTripServiceType(),
-            serviceType: normalizeTripServiceType(),
+            tripServiceType: serviceMode,
+            serviceType: serviceMode,
+            airportServiceMode: serviceMode,
+            airportServiceLabel: serviceMode.replace(/_/g, ' '),
+            airportTerminalNote: terminal,
+            travelAssurance,
+            flightDetails: travelAssurance.flightDetails,
+            policyPreferences: travelAssurance.policyPreferences,
+            billingDetails: travelAssurance.billingDetails,
+            bookingAddOns: travelAssurance.addOns,
             vehicleType: state.vehicleType,
             rideType: state.vehicleType,
+            vehicleModel,
+            vehicleFuelPreference: fuelPreference,
+            fuelPreference,
             passengers: toNumber(fields.passengers.value, 1),
-            luggage: '',
+            luggage,
             paymentMethod: fields.payment.value || 'cash',
-            notes: cleanText(fields.notes.value, 300),
+            notes: fullNotes,
             distanceKm: toNumber(fare.distanceKm, 0),
+            distance: toNumber(fare.distanceKm, 0),
             distanceSource: cleanText(fare.distanceSource || 'shortcut_estimate', 80),
+            budgetAmount,
+            customerBidAmount: budgetAmount,
             amount: totalFare,
             totalFare,
             finalFare: totalFare,
-            fareBreakdown: fare,
+            fareBreakdown: {
+                ...fare,
+                totalFare,
+                amount: totalFare,
+                finalFare: totalFare,
+                budgetAmount,
+                customerBidAmount: budgetAmount
+            },
             fareQuote: {
                 amount: totalFare,
                 currency: 'INR',
                 distanceKm: toNumber(fare.distanceKm, 0),
+                source: cleanText(fare.distanceSource || 'shortcut_estimate', 80),
+                routeCategory: fare.routeCategory || '',
                 estimatedAt: now
             },
+            fareHash: cleanText(fare.fareHash || '', 240),
+            payment: {
+                method: fields.payment.value || 'cash',
+                status: 'pending',
+                mode: fields.payment.value === 'card' ? 'india_card' : 'india',
+                currency: 'INR'
+            },
+            promo: {
+                code: promoCode || null,
+                discount: toNumber(fare.promoDiscount, 0)
+            },
+            referralCode: promoCode,
+            promoCode,
+            specialRequests,
+            safetyAccessibility,
+            customerFeatures,
             currency: 'INR',
             status: 'pending_admin_review',
             adminReviewStatus: 'pending',
             adminBookingScope: 'customer',
-            sourceKey: 'shortcut_public_booking',
-            mode: 'public_no_login_shortcut',
-            backendStatus: 'public_shortcut_local_saved',
+            sourceKey: existing.bookingId ? 'shortcut_customer_edit' : 'shortcut_public_booking',
+            mode: existing.bookingId ? 'public_no_login_customer_edit' : 'public_no_login_shortcut',
+            backendStatus: existing.bookingId ? 'public_shortcut_edit_local_saved' : 'public_shortcut_local_saved',
             bookingChannel: 'google_direct_shortcut',
-            createdAt: now,
+            editCount: existing.bookingId ? Math.max(toNumber(existing.editCount, 0) + 1, editHistory.length) : toNumber(existing.editCount, 0),
+            editHistory,
+            lastEditedAt: existing.bookingId ? now : (existing.lastEditedAt || null),
+            customerLastEditedAt: existing.bookingId ? now : (existing.customerLastEditedAt || null),
+            customerEditReason: existing.bookingId ? (editReason || 'Updated by customer from shortcut booking page.') : '',
+            statusHistory: [
+                ...(Array.isArray(existing.statusHistory) ? existing.statusHistory.slice(-25) : []),
+                {
+                    status: existing.bookingId ? 'customer_edited' : 'pending_admin_review',
+                    at: now,
+                    source: 'public_shortcut_booking',
+                    note: existing.bookingId ? (editReason || 'Customer edited booking details.') : 'Public shortcut booking submitted.'
+                }
+            ],
+            createdAt: existing.createdAt || now,
             updatedAt: now
         };
+        if (existing.bookingId) {
+            const changedFields = computeChangedFields(existing, payload);
+            payload.changedFields = changedFields;
+            if (payload.editHistory.length) {
+                payload.editHistory[payload.editHistory.length - 1].changedFields = changedFields;
+            }
+        }
+        return payload;
     }
 
     function setMessage(message, type) {
@@ -371,7 +672,8 @@
 
     function setBusy(isBusy) {
         submitBtn.disabled = Boolean(isBusy);
-        submitBtn.querySelector('span').textContent = isBusy ? 'Sending request' : 'Send booking request';
+        const idleLabel = activeBookingId() ? 'Update booking request' : 'Send booking request';
+        submitBtn.querySelector('span').textContent = isBusy ? (activeBookingId() ? 'Updating request' : 'Sending request') : idleLabel;
         syncStatus.textContent = isBusy ? 'Sending' : 'Ready';
     }
 
@@ -411,6 +713,10 @@
             errors.push('Return date is required');
             markError(fields.returnDate);
         }
+        if (fields.email && fields.email.value && !normalizeEmail(fields.email.value)) {
+            errors.push('Valid email is required');
+            markError(fields.email);
+        }
         return errors;
     }
 
@@ -429,6 +735,148 @@
         whatsAppBookingLink.href = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(text)}`;
     }
 
+    function findBookingById(bookingId) {
+        const safeId = cleanText(bookingId, 120).toUpperCase();
+        if (!safeId) return null;
+        for (const key of [ADMIN_REVIEW_KEY, ...STORE_KEYS]) {
+            const found = readArray(key).find((item) => cleanText(item.bookingId || item.id, 120).toUpperCase() === safeId);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    function defaultServiceModeForTripPlan(plan) {
+        if (plan === 'airport') return 'airport_drop';
+        if (plan === 'outstation') return state.journey === 'round_trip' ? 'outstation_round_trip' : 'outstation_one_way';
+        if (plan === 'rental') return 'rental_full_day';
+        return 'local_point';
+    }
+
+    function setTripPlan(plan, keepServiceMode = false) {
+        state.tripPlan = cleanText(plan, 40) || 'city';
+        document.querySelectorAll('.service-tab').forEach((tab) => {
+            const active = tab.dataset.tripPlan === state.tripPlan;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        if (!keepServiceMode && fields.serviceMode) {
+            fields.serviceMode.value = defaultServiceModeForTripPlan(state.tripPlan);
+        }
+    }
+
+    function setJourney(journey) {
+        state.journey = cleanText(journey, 40) || 'one_way';
+        document.querySelectorAll('.journey-btn').forEach((tab) => tab.classList.toggle('is-active', tab.dataset.journey === state.journey));
+        form.classList.toggle('is-round-trip', state.journey === 'round_trip');
+        form.classList.toggle('is-multi-city', state.journey === 'multi_city');
+        if (fields.serviceMode && state.tripPlan === 'outstation') {
+            fields.serviceMode.value = defaultServiceModeForTripPlan(state.tripPlan);
+        }
+    }
+
+    function setVehicle(vehicleType) {
+        state.vehicleType = cleanText(vehicleType, 40) || 'economy';
+        document.querySelectorAll('.vehicle-card').forEach((card) => card.classList.toggle('is-active', card.dataset.vehicle === state.vehicleType));
+    }
+
+    function writeCheckboxMap(selector, values = {}) {
+        document.querySelectorAll(selector).forEach((input) => {
+            const key = cleanText(input.dataset.addon || input.dataset.safety || '', 60);
+            if (!key) return;
+            input.checked = values[key] === true;
+        });
+    }
+
+    function setEditMode(booking) {
+        const bookingId = cleanText(booking && (booking.bookingId || booking.id), 120).toUpperCase();
+        state.editingBookingId = bookingId;
+        state.editOriginal = bookingId ? { ...booking, bookingId } : null;
+        form.classList.toggle('is-editing', Boolean(bookingId));
+        if (fields.manageBooking && bookingId) fields.manageBooking.value = bookingId;
+        setBusy(false);
+    }
+
+    function clearEditMode() {
+        state.editingBookingId = '';
+        state.editOriginal = null;
+        form.classList.remove('is-editing');
+        if (fields.manageBooking) fields.manageBooking.value = '';
+        if (fields.editReason) fields.editReason.value = '';
+        setBusy(false);
+        syncStatus.textContent = 'Ready';
+    }
+
+    function populateFormFromBooking(booking) {
+        if (!booking) return false;
+        const pickup = cleanText(booking.pickup || booking.pickupLocation || booking.from, 180);
+        const drop = cleanText(booking.dropoff || booking.drop || booking.dropLocation || booking.to, 180);
+        const returnEnabled = Boolean(booking.returnTrip?.enabled || booking.returnDate || booking.returnTime);
+        const stops = Array.isArray(booking.stops) && booking.stops.length
+            ? booking.stops
+            : (Array.isArray(booking.routeStopLocations) ? booking.routeStopLocations.map((item) => item.label || item.name || item).filter(Boolean) : []);
+        const customer = booking.customerSnapshot || {};
+        const features = booking.customerFeatures || {};
+        const travel = booking.travelAssurance || features.travelAssurance || {};
+        fields.pickup.value = pickup;
+        fields.drop.value = drop;
+        fields.rideDate.value = cleanText(booking.rideDate, 40) || fields.rideDate.value;
+        fields.rideTime.value = cleanText(booking.rideTime, 40) || fields.rideTime.value;
+        fields.returnDate.value = cleanText(booking.returnDate || booking.returnTrip?.returnDate, 40);
+        fields.returnTime.value = cleanText(booking.returnTime || booking.returnTrip?.returnTime, 40);
+        fields.stopOne.value = cleanText(stops[0], 160);
+        fields.stopTwo.value = cleanText(stops[1], 160);
+        fields.name.value = cleanText(booking.customerName || customer.name, 140);
+        fields.phone.value = cleanText(booking.customerPhone || customer.phone, 40);
+        fields.email.value = cleanText(booking.customerEmail || customer.email, 180);
+        fields.passengers.value = String(Math.max(1, Math.min(6, toNumber(booking.passengers, 1))));
+        fields.luggage.value = cleanText(booking.luggage, 80) || 'none';
+        fields.payment.value = cleanText(booking.paymentMethod || booking.payment?.method, 80) || 'cash';
+        fields.budget.value = cleanText(booking.budgetAmount || booking.customerBidAmount || '', 40);
+        fields.promo.value = cleanText(booking.promoCode || booking.referralCode || booking.promo?.code || '', 40);
+        fields.notes.value = cleanText(booking.notes, 300);
+        fields.terminal.value = cleanText(booking.airportTerminalNote || booking.flightDetails?.terminal || travel.flightDetails?.terminal || features.airportTerminalNote, 120);
+        fields.flight.value = cleanText(booking.flightDetails?.flightNumber || travel.flightDetails?.flightNumber, 80);
+        fields.fuelPreference.value = cleanText(booking.vehicleFuelPreference || booking.fuelPreference || features.vehicleFuelPreference, 80);
+        fields.vehicleModel.value = cleanText(booking.vehicleModel, 80);
+        fields.serviceMode.value = cleanText(booking.tripServiceType || booking.serviceType || booking.airportServiceMode, 80) || fields.serviceMode.value;
+        fields.gstCompany.value = cleanText(booking.billingDetails?.gstCompanyName || travel.billingDetails?.gstCompanyName, 140);
+        fields.gstNumber.value = cleanText(booking.billingDetails?.gstNumber || travel.billingDetails?.gstNumber, 40);
+        writeCheckboxMap('[data-addon]', booking.bookingAddOns || travel.addOns || features.addOns || {});
+        writeCheckboxMap('[data-safety]', booking.safetyAccessibility || features.safetyAccessibility || {});
+        setTripPlan(cleanText(booking.tripPlan, 40) || 'city', true);
+        setJourney(cleanText(booking.journeyType, 40) || (stops.length ? 'multi_city' : (returnEnabled ? 'round_trip' : 'one_way')));
+        setVehicle(cleanText(booking.vehicleType || booking.rideType, 40) || 'economy');
+        setEditMode(booking);
+        estimateFare();
+        return true;
+    }
+
+    function loadBookingForEdit() {
+        const requestedId = cleanText(fields.manageBooking && fields.manageBooking.value, 120).toUpperCase();
+        const booking = findBookingById(requestedId);
+        if (!booking) {
+            setMessage('Booking reference not found on this device. Use the same browser or submit a fresh request.', 'error');
+            return;
+        }
+        populateFormFromBooking(booking);
+        setMessage(`Booking ${requestedId} loaded for customer edit.`, 'success');
+    }
+
+    function resetForNewBooking() {
+        form.reset();
+        clearEditMode();
+        setTripPlan('airport');
+        setJourney('one_way');
+        setVehicle('economy');
+        const today = todayValue();
+        fields.rideDate.min = today;
+        fields.returnDate.min = today;
+        fields.rideDate.value = today;
+        fields.rideTime.value = defaultTimeValue();
+        setMessage('', '');
+        estimateFare();
+    }
+
     async function submitBooking(event) {
         event.preventDefault();
         const errors = validate();
@@ -440,13 +888,16 @@
 
         setBusy(true);
         setMessage('', '');
-        const booking = buildBookingPayload();
+        const isEdit = Boolean(activeBookingId());
+        const booking = buildBookingPayload(activeBookingId());
         persistBooking(booking);
         updateWhatsAppLink(booking);
 
         const queueBody = {
-            source: 'shortcut_public_booking',
-            reason: 'public_no_login_shortcut',
+            source: isEdit ? 'shortcut_customer_edit' : 'shortcut_public_booking',
+            reason: isEdit ? (booking.customerEditReason || 'public_no_login_customer_edit') : 'public_no_login_shortcut',
+            mode: booking.mode,
+            changedFields: booking.changedFields || [],
             bookings: [booking]
         };
         const queueResult = await postJsonAcrossBases('/api/bookings/fallback/admin-review-queue', queueBody, 12000);
@@ -458,10 +909,10 @@
         emailResult = await postJsonAcrossBases('/api/bookings/fallback/admin-alert-email', booking, 18000);
 
         const backendStatus = emailResult.ok
-            ? 'admin_alert_sent'
+            ? (isEdit ? 'admin_alert_sent_after_customer_edit' : 'admin_alert_sent')
             : queueResult.ok
-                ? 'admin_queue_synced_email_pending'
-                : 'local_saved_sync_pending';
+                ? (isEdit ? 'admin_queue_synced_customer_edit_email_pending' : 'admin_queue_synced_email_pending')
+                : (isEdit ? 'customer_edit_local_saved_sync_pending' : 'local_saved_sync_pending');
         const updated = {
             ...booking,
             backendStatus,
@@ -479,32 +930,39 @@
 
         if (emailResult.ok || queueResult.ok) {
             syncStatus.textContent = emailResult.ok ? 'Sent' : 'Queued';
-            setMessage(`Booking ${booking.bookingId} received. GO India RIDE will confirm on your mobile.`, 'success');
+            fields.manageBooking.value = booking.bookingId;
+            setEditMode(booking);
+            setMessage(
+                isEdit
+                    ? `Booking ${booking.bookingId} updated. Admin portal will show the latest details.`
+                    : `Booking ${booking.bookingId} received. GO India RIDE will confirm on your mobile.`,
+                'success'
+            );
             return;
         }
 
         syncStatus.textContent = 'Saved';
-        setMessage(`Booking ${booking.bookingId} is saved on this device. Use WhatsApp or call for instant confirmation.`, 'success');
+        fields.manageBooking.value = booking.bookingId;
+        setEditMode(booking);
+        setMessage(
+            isEdit
+                ? `Booking ${booking.bookingId} edit is saved on this device. Use WhatsApp or call for instant confirmation.`
+                : `Booking ${booking.bookingId} is saved on this device. Use WhatsApp or call for instant confirmation.`,
+            'success'
+        );
     }
 
     function wireTabs() {
         document.querySelectorAll('.service-tab').forEach((button) => {
             button.addEventListener('click', () => {
-                state.tripPlan = button.dataset.tripPlan || 'city';
-                document.querySelectorAll('.service-tab').forEach((tab) => {
-                    const active = tab === button;
-                    tab.classList.toggle('is-active', active);
-                    tab.setAttribute('aria-selected', active ? 'true' : 'false');
-                });
+                setTripPlan(button.dataset.tripPlan || 'city');
                 estimateFare();
             });
         });
 
         document.querySelectorAll('.journey-btn').forEach((button) => {
             button.addEventListener('click', () => {
-                state.journey = button.dataset.journey || 'one_way';
-                document.querySelectorAll('.journey-btn').forEach((tab) => tab.classList.toggle('is-active', tab === button));
-                form.classList.toggle('is-round-trip', state.journey === 'round_trip');
+                setJourney(button.dataset.journey || 'one_way');
                 if (state.journey === 'round_trip' && !fields.returnDate.value) {
                     fields.returnDate.value = fields.rideDate.value || todayValue();
                 }
@@ -514,8 +972,7 @@
 
         document.querySelectorAll('.vehicle-card').forEach((button) => {
             button.addEventListener('click', () => {
-                state.vehicleType = button.dataset.vehicle || 'economy';
-                document.querySelectorAll('.vehicle-card').forEach((card) => card.classList.toggle('is-active', card === button));
+                setVehicle(button.dataset.vehicle || 'economy');
                 estimateFare();
             });
         });
@@ -526,6 +983,14 @@
                 fields.drop.value = button.dataset.drop || '';
                 estimateFare();
             });
+        });
+    }
+
+    function wireManageButtons() {
+        if (loadBookingBtn) loadBookingBtn.addEventListener('click', loadBookingForEdit);
+        if (newBookingBtn) newBookingBtn.addEventListener('click', resetForNewBooking);
+        document.querySelectorAll('[data-addon], [data-safety]').forEach((input) => {
+            input.addEventListener('change', estimateFare);
         });
     }
 
@@ -569,6 +1034,7 @@
     }
 
     wireTabs();
+    wireManageButtons();
     wireLocationButton();
     initDefaults();
     form.addEventListener('submit', submitBooking);

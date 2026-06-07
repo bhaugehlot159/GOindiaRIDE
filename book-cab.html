@@ -108,7 +108,7 @@
                     </div>
                 </div>
 
-                <form class="booking-panel" id="quickBookingForm" aria-label="No login cab booking form">
+                <form class="booking-panel" id="quickBookingForm" aria-label="No login cab booking form" novalidate>
                     <div class="panel-head">
                         <div>
                             <p class="panel-kicker">GO India RIDE</p>
@@ -139,6 +139,36 @@
                     <div class="journey-toggle" aria-label="Journey type">
                         <button type="button" class="journey-btn is-active" data-journey="one_way">One way</button>
                         <button type="button" class="journey-btn" data-journey="round_trip">Round trip</button>
+                        <button type="button" class="journey-btn" data-journey="multi_city">Multi stop</button>
+                    </div>
+
+                    <div class="service-detail-row">
+                        <label class="field-shell">
+                            <span>Service mode</span>
+                            <select id="serviceModeInput" name="serviceMode">
+                                <option value="airport_drop">Airport drop</option>
+                                <option value="airport_pickup">Airport pickup</option>
+                                <option value="airport_transfer">Airport transfer</option>
+                                <option value="airport_hourly">Airport hourly</option>
+                                <option value="local_point">Local point to point</option>
+                                <option value="local_hourly">Local hourly</option>
+                                <option value="outstation_one_way">Outstation one way</option>
+                                <option value="outstation_round_trip">Outstation round trip</option>
+                                <option value="rental_half_day">Rental half day</option>
+                                <option value="rental_full_day">Rental full day</option>
+                            </select>
+                        </label>
+                        <label class="field-shell">
+                            <span>Cab model</span>
+                            <select id="vehicleModelInput" name="vehicleModel">
+                                <option value="">Any clean cab</option>
+                                <option value="hatchback">Hatchback</option>
+                                <option value="sedan_ac">AC Sedan</option>
+                                <option value="suv_ac">AC SUV</option>
+                                <option value="traveller">Traveller / Minivan</option>
+                                <option value="business_sedan">Business Sedan</option>
+                            </select>
+                        </label>
                     </div>
 
                     <div class="route-grid">
@@ -168,6 +198,14 @@
                         <label class="field-shell return-field">
                             <span>Return time</span>
                             <input id="returnTimeInput" name="returnTime" type="time">
+                        </label>
+                        <label class="field-shell stop-field">
+                            <span>Stop 1</span>
+                            <input id="stopOneInput" name="stopOne" type="text" placeholder="Optional stop">
+                        </label>
+                        <label class="field-shell stop-field">
+                            <span>Stop 2</span>
+                            <input id="stopTwoInput" name="stopTwo" type="text" placeholder="Optional stop">
                         </label>
                     </div>
 
@@ -202,8 +240,12 @@
                             <input id="nameInput" name="customerName" type="text" autocomplete="name" placeholder="Your name">
                         </label>
                         <label class="field-shell">
-                            <span>Mobile</span>
-                            <input id="phoneInput" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number" required>
+                            <span>Mobile *</span>
+                            <input id="phoneInput" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number" required aria-required="true">
+                        </label>
+                        <label class="field-shell">
+                            <span>Email</span>
+                            <input id="emailInput" name="customerEmail" type="email" autocomplete="email" placeholder="Receipt email">
                         </label>
                         <label class="field-shell">
                             <span>Passengers</span>
@@ -217,6 +259,15 @@
                             </select>
                         </label>
                         <label class="field-shell">
+                            <span>Luggage</span>
+                            <select id="luggageInput" name="luggage">
+                                <option value="none">No luggage</option>
+                                <option value="small">Small bag</option>
+                                <option value="medium">2-3 bags</option>
+                                <option value="large">Large luggage</option>
+                            </select>
+                        </label>
+                        <label class="field-shell">
                             <span>Payment</span>
                             <select id="paymentInput" name="paymentMethod">
                                 <option value="cash">Cash</option>
@@ -224,11 +275,64 @@
                                 <option value="card">Card</option>
                             </select>
                         </label>
+                        <label class="field-shell">
+                            <span>Budget</span>
+                            <input id="budgetInput" name="budgetAmount" type="number" min="0" step="50" inputmode="numeric" placeholder="Optional INR">
+                        </label>
+                        <label class="field-shell">
+                            <span>Promo</span>
+                            <input id="promoInput" name="promoCode" type="text" placeholder="Promo code">
+                        </label>
                         <label class="field-shell field-wide">
                             <span>Notes</span>
                             <input id="notesInput" name="notes" type="text" placeholder="Flight number, luggage, pickup point">
                         </label>
                     </div>
+
+                    <details class="detail-drawer" open>
+                        <summary>Full trip details</summary>
+                        <div class="details-grid extra-grid">
+                            <label class="field-shell">
+                                <span>Terminal / gate</span>
+                                <input id="terminalInput" name="terminal" type="text" placeholder="Terminal, pillar, gate">
+                            </label>
+                            <label class="field-shell">
+                                <span>Flight / train</span>
+                                <input id="flightInput" name="flightNumber" type="text" placeholder="Flight or train number">
+                            </label>
+                            <label class="field-shell">
+                                <span>Fuel</span>
+                                <select id="fuelPreferenceInput" name="fuelPreference">
+                                    <option value="">Any fuel</option>
+                                    <option value="petrol_diesel">Petrol / Diesel</option>
+                                    <option value="cng">CNG</option>
+                                    <option value="ev">EV preferred</option>
+                                </select>
+                            </label>
+                            <label class="field-shell">
+                                <span>GST company</span>
+                                <input id="gstCompanyInput" name="gstCompany" type="text" placeholder="Company name">
+                            </label>
+                            <label class="field-shell">
+                                <span>GST number</span>
+                                <input id="gstNumberInput" name="gstNumber" type="text" placeholder="GSTIN">
+                            </label>
+                            <label class="field-shell">
+                                <span>Edit note</span>
+                                <input id="editReasonInput" name="editReason" type="text" placeholder="Reason for customer edit">
+                            </label>
+                        </div>
+                        <div class="option-grid" aria-label="Add-ons and safety preferences">
+                            <label><input type="checkbox" data-addon="meetAssist"> Meet and assist</label>
+                            <label><input type="checkbox" data-addon="waterBottle"> Water bottle</label>
+                            <label><input type="checkbox" data-addon="phoneCharger"> Phone charger</label>
+                            <label><input type="checkbox" data-addon="wifi"> WiFi request</label>
+                            <label><input type="checkbox" data-safety="womenDriverPref"> Women driver pref.</label>
+                            <label><input type="checkbox" data-safety="childseat"> Child seat</label>
+                            <label><input type="checkbox" data-safety="wheelchairassist"> Wheelchair assist</label>
+                            <label><input type="checkbox" data-safety="livetripshare" checked> Live trip share</label>
+                        </div>
+                    </details>
 
                     <div class="fare-strip" aria-live="polite">
                         <div>
@@ -257,6 +361,21 @@
                     </div>
 
                     <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
+
+                    <div class="manage-panel" aria-label="Manage existing booking">
+                        <label class="field-shell">
+                            <span>Booking reference</span>
+                            <input id="manageBookingInput" type="text" placeholder="RID booking id">
+                        </label>
+                        <button class="manage-btn" id="loadBookingBtn" type="button">
+                            <i class="fas fa-pen-to-square" aria-hidden="true"></i>
+                            <span>Edit booking</span>
+                        </button>
+                        <button class="manage-btn is-muted" id="newBookingBtn" type="button">
+                            <i class="fas fa-plus" aria-hidden="true"></i>
+                            <span>New</span>
+                        </button>
+                    </div>
                 </form>
             </div>
         </section>
