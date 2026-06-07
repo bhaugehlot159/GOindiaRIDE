@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v48-20260607-direct-booking';
+const CACHE_NAME = 'goindiaride-pwa-v49-20260607-booking-seo';
 const ASSETS = [
   './',
   './index.html',
