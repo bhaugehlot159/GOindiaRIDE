@@ -418,6 +418,18 @@
         return candidates;
     }
 
+    function makeIdempotencyKey(body, endpointPath) {
+        const bookingPart = cleanText(body && (body.bookingId || body.id), 80)
+            .replace(/[^A-Za-z0-9_-]/g, '')
+            .slice(0, 48) || Date.now().toString(36);
+        const endpointPart = cleanText(endpointPath, 90)
+            .replace(/[^A-Za-z0-9:_-]/g, '_')
+            .replace(/^_+|_+$/g, '')
+            .slice(0, 52) || 'booking';
+        const randomPart = Math.random().toString(36).slice(2, 10);
+        return `gir-shortcut_${bookingPart}_${endpointPart}_${randomPart}`.slice(0, 128);
+    }
+
     async function postJsonAcrossBases(path, body, timeoutMs) {
         const attempts = [];
         for (const base of getApiBaseCandidates()) {
@@ -433,7 +445,7 @@
                         'x-booking-client': 'goindiaride-web',
                         'x-request-id': `gir-shortcut-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                         'x-timestamp': String(Date.now()),
-                        'x-idempotency-key': `gir-shortcut:${body.bookingId || body.id || Date.now()}:${path}`
+                        'x-idempotency-key': makeIdempotencyKey(body, path)
                     },
                     body: JSON.stringify(body),
                     signal: controller.signal
