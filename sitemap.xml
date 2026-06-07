@@ -27,6 +27,14 @@
     <changefreq>daily</changefreq>
   </url>
 
+  <!-- Taxi, Cab, Rental, Airport and Outstation Service Page -->
+  <url>
+    <loc>https://goindiaride.in/taxi-service.html</loc>
+    <lastmod>2026-06-07</lastmod>
+    <priority>0.95</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
   <!-- Existing Booking Page -->
   <url>
     <loc>https://goindiaride.in/pages/booking.html</loc>

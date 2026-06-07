@@ -1,10 +1,12 @@
-const CACHE_NAME = 'goindiaride-pwa-v49-20260607-booking-seo';
+const CACHE_NAME = 'goindiaride-pwa-v50-20260607-taxi-keywords';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './book-cab.html',
+  './taxi-service.html',
   './css/quick-booking.css',
+  './css/search-service.css',
   './css/professional-purple-theme.css',
   './js/global-ui.js',
   './js/data-preservation-guard.js',
