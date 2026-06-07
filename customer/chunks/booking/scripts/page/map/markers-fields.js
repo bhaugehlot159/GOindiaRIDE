@@ -136,6 +136,12 @@
                 showBookingLocationNotice('Location coordinates were not valid. Please try again.', 'error');
                 return;
             }
+            if (options.source === 'current' && !isBookingPreciseCurrentLocationPoint(cleanCoords)) {
+                const preciseMessage = formatBookingPreciseLocationRequiredMessage(cleanCoords);
+                showBookingLocationNotice(preciseMessage, 'error');
+                setBookingMapStatus(preciseMessage, 'error');
+                return;
+            }
             setBookingMapActiveTarget(safeTarget);
             const targetLabel = safeTarget === 'dropoff' ? 'Drop' : safeTarget === 'stop' ? 'Stop' : 'Pickup';
             const accuracy = formatBookingMapAccuracy(cleanCoords);

@@ -239,10 +239,42 @@
             });
         }
 
+        function setPreciseCurrentLocationNeededStatus(point) {
+            const message = formatBookingPreciseLocationRequiredMessage(point);
+            setBookingMapStatus(message, 'error');
+            showBookingLocationNotice(message, 'error');
+        }
+
+        function clearWeakCurrentLocationTarget(target) {
+            const safeTarget = ['pickup', 'dropoff'].includes(target) ? target : '';
+            if (!safeTarget) return;
+            const inputIds = safeTarget === 'dropoff'
+                ? ['dropoff', 'cabQuickDropoffInput']
+                : ['pickup', 'cabQuickPickupInput'];
+            let cleared = false;
+            inputIds.forEach((inputId) => {
+                const input = document.getElementById(inputId);
+                const point = getBookingMapDatasetCoords(input);
+                if (!input || input.dataset?.googleMapSource !== 'browser_gps_high_accuracy') return;
+                if (!point || isBookingPreciseCurrentLocationPoint(point)) return;
+                input.value = '';
+                clearBookingExactLocationDataset(input);
+                cleared = true;
+            });
+            if (!cleared) return;
+            bookingGoogleMapState.coords[safeTarget] = null;
+            setBookingMapMarker(safeTarget, null);
+            updateBookingGoogleMapLine();
+            saveBookingExactLocationSnapshot();
+            updateBookingGoogleMapRouteLink();
+            updateBookingExperience();
+            if (typeof syncCabLayerFlow === 'function') syncCabLayerFlow(getActiveCabFlow());
+        }
+
         function updateCurrentLocationAddressWhenReady(target, coords, options = {}) {
             const safeTarget = ['pickup', 'dropoff', 'stop'].includes(target) ? target : 'pickup';
             const cleanCoords = normalizeBookingMapCoords(coords, { source: 'browser_gps_high_accuracy' });
-            if (!cleanCoords || safeTarget === 'stop') return;
+            if (!cleanCoords || safeTarget === 'stop' || !isBookingPreciseCurrentLocationPoint(cleanCoords)) return;
             reverseGeocodeBookingCoords(cleanCoords)
                 .then((resolvedAddress) => {
                     const address = sanitizeInput(resolvedAddress || '', 220).trim();
@@ -273,6 +305,7 @@
                 showBookingLocationNotice('Current location is not supported in this browser. Type the address manually.', 'error');
                 return;
             }
+            clearWeakCurrentLocationTarget(safeTarget);
             setBookingCurrentButtonBusy(sourceButton, true);
             setBookingMapStatus('Getting GPS location...', 'info');
             const warmedPoint = isBookingWarmCurrentLocationUsable(bookingGoogleMapState.warmCurrentLocation)
@@ -302,7 +335,7 @@
 
                 if (!warmedPoint) {
                     const instantPoint = await getBookingCurrentPositionInstant().catch(() => null);
-                    if (instantPoint) {
+                    if (instantPoint && isBookingPreciseCurrentLocationPoint(instantPoint)) {
                         await applyBookingMapCoordinates(safeTarget, instantPoint, {
                             source: 'current',
                             preferCoordinatesFirst: true,
@@ -310,10 +343,27 @@
                         });
                         lastAppliedPoint = instantPoint;
                         releaseBusy();
+                    } else if (instantPoint) {
+                        setBookingMapStatus(
+                            `${formatBookingMapAccuracy(instantPoint) || 'Approx GPS'} mila, exact GPS point verify ho raha hai...`,
+                            'warning'
+                        );
                     }
                 }
 
-                const coords = await getBestBookingCurrentLocation();
+                let coords = await getBestBookingCurrentLocation();
+                if (!isBookingPreciseCurrentLocationPoint(coords)) {
+                    const refinedPoint = await refineBookingCurrentPosition(coords);
+                    if (isBetterBookingGeoPoint(refinedPoint, coords)) {
+                        coords = refinedPoint;
+                    }
+                }
+                if (!isBookingPreciseCurrentLocationPoint(coords)) {
+                    bookingGoogleMapState.warmCurrentLocation = null;
+                    setPreciseCurrentLocationNeededStatus(coords);
+                    releaseBusy();
+                    return;
+                }
                 const shouldReplaceWarmPoint = !lastAppliedPoint
                     || isBetterBookingGeoPoint(coords, lastAppliedPoint)
                     || getBookingDistanceMeters(coords, lastAppliedPoint) > 20;

@@ -282,6 +282,18 @@
             return `GPS ±${Math.max(1, Math.round(Number(point.accuracy)))}m`;
         }
 
+        function isBookingPreciseCurrentLocationPoint(coords) {
+            const point = normalizeBookingMapCoords(coords);
+            if (!point) return false;
+            const accuracy = Number(point.accuracy ?? Number.POSITIVE_INFINITY);
+            return Number.isFinite(accuracy) && accuracy <= BOOKING_GPS_WEAK_ACCURACY_METERS;
+        }
+
+        function formatBookingPreciseLocationRequiredMessage(coords) {
+            const accuracy = formatBookingMapAccuracy(coords);
+            return `Exact current location nahi mila${accuracy ? ` (${accuracy})` : ''}. Browser/Windows me Location + Precise location ON karke retry karein, ya pickup manually type karein.`;
+        }
+
         function formatBookingMapCoords(coords) {
             const point = normalizeBookingMapCoords(coords);
             if (!point) return '';
