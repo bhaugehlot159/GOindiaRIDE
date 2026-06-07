@@ -1,6 +1,6 @@
 // Go to booking page
         function goToBooking() {
-            window.location.href = './pages/booking.html';
+            window.location.href = './book-cab.html';
         }
 
         // Smooth scrolling

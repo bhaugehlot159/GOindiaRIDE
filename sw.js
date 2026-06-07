@@ -1,12 +1,16 @@
-const CACHE_NAME = 'goindiaride-pwa-v47-20260531-optimization';
+const CACHE_NAME = 'goindiaride-pwa-v48-20260607-direct-booking';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './book-cab.html',
+  './css/quick-booking.css',
   './css/professional-purple-theme.css',
   './js/global-ui.js',
   './js/data-preservation-guard.js',
   './js/wallet-core.js',
+  './js/quick-booking.js',
+  './assets/images/quick-booking-hero.png',
   './optimization.js',
   './manifest.webmanifest',
   './icons/icon-192.png',

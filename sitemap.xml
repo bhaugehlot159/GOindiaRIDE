@@ -4,58 +4,65 @@
 
   <!-- English (default) -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://bhaugehlot159.github.io/GOindiaRIDE/" />
-    <xhtml:link rel="alternate" hreflang="hi" href="https://bhaugehlot159.github.io/GOindiaRIDE/hi/" />
-    <xhtml:link rel="alternate" hreflang="fr" href="https://bhaugehlot159.github.io/GOindiaRIDE/fr/" />
-    <xhtml:link rel="alternate" hreflang="de" href="https://bhaugehlot159.github.io/GOindiaRIDE/de/" />
-    <xhtml:link rel="alternate" hreflang="es" href="https://bhaugehlot159.github.io/GOindiaRIDE/es/" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://bhaugehlot159.github.io/GOindiaRIDE/ja/" />
-    <xhtml:link rel="alternate" hreflang="zh" href="https://bhaugehlot159.github.io/GOindiaRIDE/zh/" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://bhaugehlot159.github.io/GOindiaRIDE/ar/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://bhaugehlot159.github.io/GOindiaRIDE/" />
+    <loc>https://goindiaride.in/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://goindiaride.in/" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://goindiaride.in/hi/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://goindiaride.in/fr/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://goindiaride.in/de/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://goindiaride.in/es/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://goindiaride.in/ja/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://goindiaride.in/zh/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://goindiaride.in/ar/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://goindiaride.in/" />
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
 
-  <!-- Booking Page -->
+  <!-- Direct No-login Booking Page -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/booking.html</loc>
+    <loc>https://goindiaride.in/book-cab.html</loc>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Existing Booking Page -->
+  <url>
+    <loc>https://goindiaride.in/pages/booking.html</loc>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
 
   <!-- Login Page -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/login.html</loc>
+    <loc>https://goindiaride.in/pages/login.html</loc>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
 
   <!-- Signup Page -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/signup.html</loc>
+    <loc>https://goindiaride.in/pages/signup.html</loc>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
 
   <!-- Customer Dashboard -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/customer-dashboard.html</loc>
+    <loc>https://goindiaride.in/pages/customer-dashboard.html</loc>
     <priority>0.7</priority>
     <changefreq>daily</changefreq>
   </url>
 
   <!-- Driver Dashboard -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/driver-dashboard.html</loc>
+    <loc>https://goindiaride.in/pages/driver-dashboard.html</loc>
     <priority>0.7</priority>
     <changefreq>daily</changefreq>
   </url>
 
   <!-- Admin Dashboard -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/admin-dashboard.html</loc>
+    <loc>https://goindiaride.in/pages/admin-dashboard.html</loc>
     <priority>0.6</priority>
     <changefreq>daily</changefreq>
   </url>
@@ -63,32 +70,32 @@
 
   <!-- Legal Pages -->
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/privacy-policy.html</loc>
+    <loc>https://goindiaride.in/pages/legal/privacy-policy.html</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/terms-and-conditions.html</loc>
+    <loc>https://goindiaride.in/pages/legal/terms-and-conditions.html</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/refund-policy.html</loc>
+    <loc>https://goindiaride.in/pages/legal/refund-policy.html</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/driver-agreement.html</loc>
+    <loc>https://goindiaride.in/pages/legal/driver-agreement.html</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/gdpr-notice.html</loc>
+    <loc>https://goindiaride.in/pages/legal/gdpr-notice.html</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://bhaugehlot159.github.io/GOindiaRIDE/pages/legal/cookie-policy.html</loc>
+    <loc>https://goindiaride.in/pages/legal/cookie-policy.html</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
