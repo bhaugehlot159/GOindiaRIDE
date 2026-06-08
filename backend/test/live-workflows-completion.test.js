@@ -53,6 +53,55 @@ test('customer booking flow is backend-first and persists real admin review fall
   assert.match(portal, /PortalConnector\.broadcastToAll/);
 });
 
+test('public no-login booking shortcut keeps admin queue, email, edit, and search signals connected', () => {
+  const home = read('index.html');
+  const publicBooking = read('book-cab.html');
+  const shortcut = read('js/quick-booking.js');
+  const adminApp = read('admin/js/admin-app.js');
+  const sitemap = read('sitemap.xml');
+  const robots = read('robots.txt');
+  const homeNavbar = home.match(/<div class="navbar-links">[\s\S]*?<\/div>\s*<\/div>\s*<\/nav>/)?.[0] || '';
+
+  assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
+  assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
+  assert.match(publicBooking, /id="quickBookingForm"/);
+  assert.match(publicBooking, /Direct cab booking, no login/);
+  assert.match(publicBooking, /id="phoneInput"[^>]*name="customerPhone"[^>]*required[^>]*aria-required="true"/);
+  assert.match(publicBooking, /id="serviceModeInput"/);
+  assert.match(publicBooking, /id="vehicleModelInput"/);
+  assert.match(publicBooking, /id="passengerInput"/);
+  assert.match(publicBooking, /id="luggageInput"/);
+  assert.match(publicBooking, /id="paymentInput"/);
+  assert.match(publicBooking, /id="budgetInput"/);
+  assert.match(publicBooking, /id="promoInput"/);
+  assert.match(publicBooking, /id="terminalInput"/);
+  assert.match(publicBooking, /id="flightInput"/);
+  assert.match(publicBooking, /id="gstCompanyInput"/);
+  assert.match(publicBooking, /id="gstNumberInput"/);
+  assert.match(publicBooking, /id="manageBookingInput"/);
+  assert.match(publicBooking, /id="editReasonInput"/);
+
+  assert.match(shortcut, /\/api\/bookings\/fallback\/admin-review-queue/);
+  assert.match(shortcut, /\/api\/bookings\/fallback\/admin-alert-email/);
+  assert.match(shortcut, /makeIdempotencyKey\(body, path\)/);
+  assert.match(shortcut, /sourceKey:\s*existing\.bookingId \? 'shortcut_customer_edit' : 'shortcut_public_booking'/);
+  assert.match(shortcut, /mode:\s*existing\.bookingId \? 'public_no_login_customer_edit' : 'public_no_login_shortcut'/);
+  assert.match(shortcut, /bookingChannel:\s*'google_direct_shortcut'/);
+  assert.match(shortcut, /changedFields/);
+  assert.match(shortcut, /customerFeatures/);
+  assert.match(shortcut, /adminEmailDispatch/);
+  assert.match(shortcut, /Valid mobile number is required/);
+
+  assert.match(adminApp, /fallback\/admin-review-queue\?limit=500&status=/);
+  assert.match(adminApp, /mapBackendBookingRow\(row, "backend_fallback_admin_review_queue"\)/);
+  assert.match(adminApp, /syncAdminBookingUpdateToFallbackQueue/);
+
+  assert.match(sitemap, /https:\/\/goindiaride\.in\/book-cab\.html/);
+  assert.match(sitemap, /https:\/\/goindiaride\.in\/taxi-service\.html/);
+  assert.doesNotMatch(sitemap, /pages\/login\.html|pages\/signup\.html|admin\/|terms-and-conditions\.html|privacy-policy\.html/);
+  assert.match(robots, /Sitemap:\s*https:\/\/goindiaride\.in\/sitemap\.xml/);
+});
+
 test('driver portal exposes real KYC, deposit, booking acceptance, penalty, and payout workflow', () => {
   const html = read('driver/index.html');
   const workflow = read('driver/js/driver-live-workflow.js');
@@ -95,7 +144,7 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v47-20260531-optimization/);
+  assert.match(sw, /goindiaride-pwa-v51-20260608-home-search-cleanup/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });
 

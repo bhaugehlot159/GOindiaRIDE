@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v50-20260607-taxi-keywords';
+const CACHE_NAME = 'goindiaride-pwa-v51-20260608-home-search-cleanup';
 const ASSETS = [
   './',
   './index.html',
