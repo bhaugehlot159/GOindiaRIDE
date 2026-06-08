@@ -297,6 +297,7 @@ html body.goi-global-theme.home-international .btn-secondary {
 body.home-international .home-primary-cta,
 body.home-international .btn-primary {
     background: var(--home-black) !important;
+    background-image: none !important;
     color: #ffffff !important;
     border-color: var(--home-black) !important;
 }
@@ -304,6 +305,7 @@ body.home-international .btn-primary {
 html body.goi-global-theme.home-international .home-primary-cta,
 html body.goi-global-theme.home-international .btn-primary.home-primary-cta {
     background: var(--home-black) !important;
+    background-image: none !important;
     color: #ffffff !important;
     border-color: var(--home-black) !important;
 }
@@ -396,33 +398,39 @@ body.home-international .home-service-tabs {
 body.home-international .home-service-tabs a,
 body.home-international .home-service-tabs button {
     min-height: 40px;
-    border: 1px solid var(--home-line);
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--home-ink);
-    background: #f8fbfa;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 900;
-    font-family: inherit;
+    border: 1px solid var(--home-line) !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--home-ink) !important;
+    background: #f8fbfa !important;
+    background-image: none !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+    font-weight: 900 !important;
+    font-family: inherit !important;
     cursor: pointer;
+    box-shadow: none !important;
+    transform: none !important;
+    padding: 0.55rem 0.4rem !important;
 }
 
 body.home-international .home-service-tabs a:first-child,
 body.home-international .home-service-tabs button.is-active {
-    background: #e7f5f2;
-    border-color: rgba(15, 118, 110, 0.35);
-    color: var(--home-teal-dark);
+    background: var(--home-black) !important;
+    border-color: var(--home-black) !important;
+    color: #ffffff !important;
 }
 
 body.home-international .home-route-preview {
     border: 1px solid var(--home-line);
     border-radius: 8px;
-    padding: 0.95rem;
-    background: #ffffff;
+    padding: 0.75rem;
+    background: #f8fbfa;
     margin-bottom: 1rem;
+    display: grid;
+    gap: 0.65rem;
 }
 
 body.home-international .home-route-point span {
@@ -442,42 +450,42 @@ body.home-international .home-route-point strong {
 
 body.home-international .home-route-point {
     display: block;
+    background: #ffffff;
+    border: 1px solid var(--home-line);
+    border-radius: 6px;
+    padding: 0.7rem 0.75rem;
 }
 
 body.home-international .home-route-point input {
     width: 100%;
-    min-height: 42px;
+    min-height: 34px;
     border: 0;
-    border-bottom: 1px solid transparent;
     outline: 0;
     background: transparent;
     color: var(--home-ink);
     font: inherit;
-    font-size: 1rem;
-    font-weight: 850;
-    padding: 0.15rem 0 0.25rem;
+    font-size: 0.98rem;
+    font-weight: 800;
+    padding: 0;
+    box-shadow: none !important;
 }
 
 body.home-international .home-route-point input::placeholder {
-    color: var(--home-ink);
-    opacity: 0.9;
+    color: #6a7785;
+    opacity: 1;
 }
 
-body.home-international .home-route-point input:focus {
-    border-bottom-color: var(--home-teal);
+body.home-international .home-route-point:focus-within {
+    border-color: var(--home-teal);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 body.home-international .home-phone-point {
-    margin-top: 0.85rem;
-    padding-top: 0.85rem;
-    border-top: 1px solid var(--home-line);
+    margin-top: 0;
 }
 
 body.home-international .home-route-line {
-    width: 2px;
-    height: 30px;
-    background: var(--home-line);
-    margin: 0.45rem 0 0.45rem 0.42rem;
+    display: none;
 }
 
 body.home-international .home-booking-card-cta {
@@ -510,6 +518,10 @@ body.home-international .home-card-note {
     line-height: 1.5;
     margin: 0.85rem 0 0 !important;
     opacity: 1 !important;
+}
+
+html body.goi-global-theme.home-international .home-card-note {
+    color: var(--home-muted) !important;
 }
 
 body.home-international .home-hero-visual {
@@ -793,6 +805,66 @@ body.home-international .how-it-works {
     background: var(--home-soft) !important;
 }
 
+body.home-international section.how-it-works.goi-section-shell,
+html body.goi-global-theme.home-international section.how-it-works.goi-section-shell {
+    background: var(--home-soft) !important;
+    background-image: none !important;
+    color: var(--home-ink) !important;
+}
+
+body.home-international .stats,
+body.home-international section.stats.goi-section-shell,
+html body.goi-global-theme.home-international section.stats.goi-section-shell,
+html body.goi-global-theme.home-international .stats {
+    background: #0b1117 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    padding: 2.25rem 0 !important;
+    border: 0 !important;
+}
+
+body.home-international .stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 0.85rem !important;
+}
+
+body.home-international .stat-item,
+html body.goi-global-theme.home-international .stat-item {
+    text-align: left !important;
+    padding: 1rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    min-height: 150px !important;
+}
+
+body.home-international .stat-label {
+    display: inline-block;
+    color: #86efac !important;
+    font-size: 0.78rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    margin-bottom: 0.55rem;
+}
+
+body.home-international .stat-item h3,
+html body.goi-global-theme.home-international .stat-item h3 {
+    color: #ffffff !important;
+    font-size: 1.85rem !important;
+    line-height: 1.05 !important;
+    margin: 0 0 0.55rem !important;
+    font-weight: 900 !important;
+}
+
+body.home-international .stat-item p,
+html body.goi-global-theme.home-international .stat-item p {
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 0.92rem !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+}
+
 body.home-international .steps {
     display: grid !important;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -804,7 +876,8 @@ body.home-international .step {
     background: #ffffff;
     border: 1px solid var(--home-line);
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.05rem;
+    min-height: 210px;
 }
 
 body.home-international .step-number {
@@ -815,6 +888,45 @@ body.home-international .step-number {
     background: var(--home-black) !important;
     color: #ffffff !important;
     font-size: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+body.home-international .how-it-works .section-eyebrow,
+html body.goi-global-theme.home-international .how-it-works .section-eyebrow {
+    color: var(--home-teal) !important;
+}
+
+body.home-international .how-it-works h2,
+html body.goi-global-theme.home-international .how-it-works h2 {
+    color: var(--home-ink) !important;
+}
+
+body.home-international .step h3,
+html body.goi-global-theme.home-international .step h3 {
+    color: var(--home-ink) !important;
+    font-size: 1.05rem !important;
+    margin: 0 0 0.65rem !important;
+    font-weight: 900 !important;
+}
+
+body.home-international .step p,
+html body.goi-global-theme.home-international .step p {
+    color: var(--home-muted) !important;
+    line-height: 1.55 !important;
+    margin: 0 !important;
+}
+
+body.home-international section.pricing.goi-section-shell,
+html body.goi-global-theme.home-international section.pricing.goi-section-shell {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: var(--home-ink) !important;
+}
+
+body.home-international .pricing h2,
+html body.goi-global-theme.home-international .pricing h2 {
+    color: var(--home-ink) !important;
 }
 
 body.home-international .price {
@@ -822,8 +934,7 @@ body.home-international .price {
 }
 
 body.home-international .pricing-card button,
-body.home-international .pricing-live-link,
-body.home-international .cta .btn-primary {
+body.home-international .pricing-live-link {
     min-height: 46px;
     border-radius: 6px !important;
     background: var(--home-black) !important;
@@ -839,28 +950,141 @@ body.home-international .cta .btn-primary {
     width: 100%;
 }
 
+body.home-international .pricing-card::before,
+html body.goi-global-theme.home-international .pricing-card::before {
+    display: none !important;
+}
+
+body.home-international .home-cta-booking,
+body.home-international .cta a.home-cta-booking.btn-primary,
+html body.goi-global-theme.home-international .home-cta-booking {
+    width: fit-content !important;
+    max-width: 280px !important;
+    min-height: 50px !important;
+    padding: 0.9rem 1.25rem !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: var(--home-black) !important;
+    border: 1px solid #ffffff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.55rem !important;
+    text-decoration: none !important;
+    font-weight: 900 !important;
+    box-shadow: none !important;
+    justify-self: start !important;
+    grid-column: 2 !important;
+    grid-row: 3 !important;
+}
+
 body.home-international .cta,
+body.home-international section.cta.goi-section-shell,
+html body.goi-global-theme.home-international section.cta.goi-section-shell,
 html body.goi-global-theme.home-international .cta {
     background: var(--home-black) !important;
+    background-image: none !important;
     color: #ffffff !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    padding: 4rem 0 !important;
+    text-align: left !important;
+}
+
+body.home-international .cta .container {
+    max-width: 1180px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 1.25rem !important;
+    align-items: end !important;
 }
 
 body.home-international .cta h2,
-body.home-international .cta p {
+body.home-international .cta p,
+html body.goi-global-theme.home-international .cta h2,
+html body.goi-global-theme.home-international .cta p {
     color: #ffffff !important;
+    text-align: left !important;
+}
+
+body.home-international .cta .section-eyebrow {
+    color: #86efac !important;
+    grid-column: 1 / -1;
+    margin-bottom: 0 !important;
+}
+
+body.home-international .cta h2 {
+    margin: 0 !important;
+    grid-column: 1 !important;
+    grid-row: 2 / span 2 !important;
+}
+
+body.home-international .cta p {
+    max-width: 620px;
+    margin: 0.6rem 0 0 !important;
+    color: rgba(255, 255, 255, 0.74) !important;
+    grid-column: 2 !important;
+    grid-row: 2 !important;
 }
 
 body.home-international .footer {
     background: #081019 !important;
     color: #ffffff !important;
+    padding: 3.25rem 0 1.5rem !important;
 }
 
 body.home-international .footer a,
 body.home-international .footer h4,
 body.home-international .footer p {
     color: #ffffff !important;
+}
+
+body.home-international .footer-content {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 1.5rem !important;
+    text-align: left !important;
+}
+
+body.home-international .footer-section h4 {
+    font-size: 0.95rem !important;
+    margin: 0 0 0.95rem !important;
+    font-weight: 900 !important;
+}
+
+body.home-international .footer-section ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: grid !important;
+    gap: 0.55rem !important;
+}
+
+body.home-international .footer-section li {
+    margin: 0 !important;
+}
+
+body.home-international .footer-section a {
+    color: rgba(255, 255, 255, 0.76) !important;
+    text-decoration: none !important;
+    font-size: 0.94rem !important;
+}
+
+body.home-international .footer-section a:hover {
+    color: #ffffff !important;
+}
+
+body.home-international .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+    margin-top: 2.25rem !important;
+    padding-top: 1.2rem !important;
+    text-align: left !important;
+}
+
+body.home-international .footer-bottom p {
+    color: rgba(255, 255, 255, 0.68) !important;
+    margin: 0.25rem 0 !important;
+    font-size: 0.92rem !important;
 }
 
 @media (max-width: 1100px) {
@@ -880,7 +1104,9 @@ body.home-international .footer p {
     }
 
     body.home-international .home-service-grid,
-    body.home-international .home-route-grid {
+    body.home-international .home-route-grid,
+    body.home-international .stats-grid,
+    body.home-international .footer-content {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -907,11 +1133,33 @@ body.home-international .footer p {
     }
 
     body.home-international .home-confidence-points,
+    body.home-international .stats-grid,
     body.home-international .home-story-grid,
     body.home-international .features-grid,
     body.home-international .pricing-cards,
-    body.home-international .steps {
+    body.home-international .steps,
+    body.home-international .footer-content {
         grid-template-columns: 1fr !important;
+    }
+
+    body.home-international .cta .container {
+        grid-template-columns: 1fr !important;
+        align-items: start !important;
+    }
+
+    body.home-international .home-cta-booking,
+    body.home-international .cta a.home-cta-booking.btn-primary {
+        width: 100% !important;
+        max-width: none !important;
+        justify-self: stretch !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
+    }
+
+    body.home-international .cta h2,
+    body.home-international .cta p {
+        grid-column: auto !important;
+        grid-row: auto !important;
     }
 }
 
