@@ -64,6 +64,12 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
 
   assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
+  assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
+  assert.match(homeNavbar, /href="\.\/pages\/signup\.html"[^>]*rel="nofollow"/);
+  assert.match(homeNavbar, /href="\.\/pages\/login\.html\?admin=1&next=%2Fadmin%2Fapp\.html"[^>]*rel="nofollow"/);
+  assert.match(home, /href="\.\/pages\/legal\/gdpr-notice\.html"[^>]*rel="nofollow"/);
+  assert.match(read('pages/login.html'), /<meta name="googlebot" content="noindex, follow">/);
+  assert.match(read('pages/legal/gdpr-notice.html'), /<meta name="googlebot" content="noindex, follow">/);
   assert.match(publicBooking, /id="quickBookingForm"/);
   assert.match(publicBooking, /Direct cab booking, no login/);
   assert.match(publicBooking, /id="phoneInput"[^>]*name="customerPhone"[^>]*required[^>]*aria-required="true"/);
@@ -98,6 +104,7 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
 
   assert.match(sitemap, /https:\/\/goindiaride\.in\/book-cab\.html/);
   assert.match(sitemap, /https:\/\/goindiaride\.in\/taxi-service\.html/);
+  assert.match(sitemap, /<lastmod>2026-06-08<\/lastmod>/);
   assert.doesNotMatch(sitemap, /pages\/login\.html|pages\/signup\.html|admin\/|terms-and-conditions\.html|privacy-policy\.html/);
   assert.match(robots, /Sitemap:\s*https:\/\/goindiaride\.in\/sitemap\.xml/);
 });
@@ -144,7 +151,7 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v51-20260608-home-search-cleanup/);
+  assert.match(sw, /goindiaride-pwa-v52-20260608-search-sitelink-cleanup/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });
 

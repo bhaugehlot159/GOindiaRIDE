@@ -14,7 +14,7 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://goindiaride.in/zh/" />
     <xhtml:link rel="alternate" hreflang="ar" href="https://goindiaride.in/ar/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://goindiaride.in/" />
-    <lastmod>2026-06-07</lastmod>
+    <lastmod>2026-06-08</lastmod>
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
@@ -22,7 +22,7 @@
   <!-- Direct No-login Booking Page -->
   <url>
     <loc>https://goindiaride.in/book-cab.html</loc>
-    <lastmod>2026-06-07</lastmod>
+    <lastmod>2026-06-08</lastmod>
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
@@ -30,7 +30,7 @@
   <!-- Taxi, Cab, Rental, Airport and Outstation Service Page -->
   <url>
     <loc>https://goindiaride.in/taxi-service.html</loc>
-    <lastmod>2026-06-07</lastmod>
+    <lastmod>2026-06-08</lastmod>
     <priority>0.95</priority>
     <changefreq>weekly</changefreq>
   </url>
