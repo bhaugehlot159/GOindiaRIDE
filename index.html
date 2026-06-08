@@ -51,9 +51,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="./shared/chunks/home/styles/index.css?v=20260528-inline-split1">
     <link rel="stylesheet" href="./css/professional-purple-theme.css">
+    <link rel="stylesheet" href="./css/home-international.css?v=20260608-main1">
     <script src="./js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
-<body>
+<body class="home-international" data-goi-nav-static="1">
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
@@ -76,167 +77,194 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>
-                <i class="fas fa-taxi"></i>
-                <span data-lang="hero.title">GO India RIDE</span>
-            </h1>
-            <p data-lang="hero.subtitle">Your Trusted Ride Partner Across India</p>
-            <p style="font-size: 1.1rem; opacity: 0.95; margin-top: -1rem;" data-lang="hero.tagline">Safe, Affordable Rides for International &amp; Domestic Travelers</p>
-            <div class="hero-buttons">
-                <a href="./book-cab.html" class="btn-primary">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span data-lang="hero.book">Book a Ride</span>
-                </a>
-                <a href="./pages/signup.html" class="btn-secondary" rel="nofollow">
-                    <i class="fas fa-user-plus"></i>
-                    <span data-lang="hero.driver">Become a Driver</span>
-                </a>
-                <button id="installAppBtn" class="btn-secondary" style="display: inline-flex;" type="button">
-                    <i class="fas fa-download"></i>
-                    <span>Open / Install App</span>
-                </button>
+    <section class="hero home-hero" aria-labelledby="homeHeroTitle">
+        <div class="container home-hero-shell">
+            <div class="home-hero-copy">
+                <p class="home-kicker">India airport, city and intercity rides</p>
+                <h1 id="homeHeroTitle">Book reliable cabs across India without login</h1>
+                <p class="home-hero-lead">A cleaner ride experience for international guests, families, business travelers, and domestic customers who need fast booking with clear trip details.</p>
+                <div class="home-hero-actions">
+                    <a href="./book-cab.html#quickBookingForm" class="btn-primary home-primary-cta">
+                        <i class="fas fa-location-dot"></i>
+                        <span>Start booking</span>
+                    </a>
+                    <a href="./pages/signup.html" class="btn-secondary home-secondary-cta" rel="nofollow">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Become a driver</span>
+                    </a>
+                    <button id="installAppBtn" class="btn-secondary home-secondary-cta" style="display: inline-flex;" type="button">
+                        <i class="fas fa-download"></i>
+                        <span>Install app</span>
+                    </button>
+                </div>
+                <div class="home-trust-row" aria-label="Ride confidence">
+                    <span><i class="fas fa-shield-halved"></i> Verified drivers</span>
+                    <span><i class="fas fa-headset"></i> 24/7 support</span>
+                    <span><i class="fas fa-receipt"></i> Clear fare details</span>
+                </div>
             </div>
+            <div class="home-booking-card" aria-label="No-login booking shortcut">
+                <div class="home-card-header">
+                    <span class="home-card-label">Quick booking</span>
+                    <strong>No account required</strong>
+                </div>
+                <div class="home-service-tabs" aria-label="Popular booking types">
+                    <a href="./book-cab.html#quickBookingForm">Local</a>
+                    <a href="./book-cab.html#quickBookingForm">Airport</a>
+                    <a href="./book-cab.html#quickBookingForm">Rental</a>
+                    <a href="./book-cab.html#quickBookingForm">Outstation</a>
+                </div>
+                <div class="home-route-preview">
+                    <div class="home-route-point">
+                        <span>Pickup</span>
+                        <strong>Airport, hotel, home or office</strong>
+                    </div>
+                    <div class="home-route-line" aria-hidden="true"></div>
+                    <div class="home-route-point">
+                        <span>Drop</span>
+                        <strong>City, station, resort or another state</strong>
+                    </div>
+                </div>
+                <a href="./book-cab.html#quickBookingForm" class="home-booking-card-cta">
+                    <span>Enter pickup location</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <p class="home-card-note">Mobile number is required so customer and admin can receive full booking updates.</p>
+            </div>
+            <figure class="home-hero-visual" aria-label="GO India RIDE travel visual">
+                <img src="./assets/images/quick-booking-hero.png" alt="GO India RIDE cab booking for Indian travel routes">
+            </figure>
         </div>
     </section>
 
-    <!-- Welcome International Travelers Banner -->
-    <section style="background: white; padding: 2rem; text-align: center; border-bottom: 4px solid #0B1F3A;">
-        <div class="container">
-            <h2 style="color: #0B1F3A; font-size: 2rem; margin-bottom: 1rem;">
-                🌍 <span data-lang="banner.welcome">Welcome International Travelers!</span> 🌍
-            </h2>
-            <p style="color: #666; font-size: 1.1rem; max-width: 800px; margin: 0 auto;" data-lang="banner.text">Experience safe and comfortable rides across India with English-speaking drivers</p>
-            
-            <!-- Trust Badges -->
-            <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; background: #e8f5e9; border-radius: 30px; color: #2e7d32; font-weight: bold;">
-                    <i class="fas fa-shield-alt"></i>
-                    <span data-lang="trust.tourists">Safe for Tourists</span>
+    <!-- International Booking Confidence -->
+    <section class="home-confidence" aria-label="International ride confidence">
+        <div class="container home-confidence-grid">
+            <div>
+                <p class="section-eyebrow">Built for India travel</p>
+                <h2>Simple booking, clear communication, reliable transfers.</h2>
+                <p>GO India RIDE keeps the first step easy: enter trip details, share a mobile number, and the same booking system keeps admin and customer workflows connected.</p>
+            </div>
+            <div class="home-confidence-points">
+                <div>
+                    <i class="fas fa-mobile-screen-button"></i>
+                    <span>Mobile number required for updates</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; background: #e3f2fd; border-radius: 30px; color: #1565c0; font-weight: bold;">
+                <div>
+                    <i class="fas fa-route"></i>
+                    <span>Local, airport, rental and outstation trips</span>
+                </div>
+                <div>
                     <i class="fas fa-language"></i>
-                    <span data-lang="trust.english">English Speaking Drivers</span>
+                    <span>English-friendly experience for guests</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; background: #fff3e0; border-radius: 30px; color: #e65100; font-weight: bold;">
-                    <i class="fas fa-tag"></i>
-                    <span data-lang="trust.fixed">Fixed Prices</span>
+                <div>
+                    <i class="fas fa-circle-check"></i>
+                    <span>Full details routed to the admin portal</span>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- International Services -->
-    <section style="background: #f8f9fa; padding: 3rem 2rem;">
+    <section class="home-service-band" aria-labelledby="homeServicesTitle">
         <div class="container">
-            <h2 style="text-align: center; color: #333; margin-bottom: 2rem;">Popular Services for Travelers</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <i class="fas fa-plane" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
-                    <h3 style="color: #333; margin-bottom: 0.5rem;" data-lang="services.airport">Airport Pickup</h3>
-                    <p style="color: #666; font-size: 0.9rem;">Direct transfers from Jaipur International Airport</p>
-                </div>
-                <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <i class="fas fa-hotel" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
-                    <h3 style="color: #333; margin-bottom: 0.5rem;" data-lang="services.hotel">Hotel Transfer</h3>
-                    <p style="color: #666; font-size: 0.9rem;">Comfortable rides between hotels and attractions</p>
-                </div>
-                <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <i class="fas fa-landmark" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
-                    <h3 style="color: #333; margin-bottom: 0.5rem;" data-lang="services.tour">City Tour</h3>
-                    <p style="color: #666; font-size: 0.9rem;">Explore Rajasthan's heritage with local drivers</p>
-                </div>
+            <div class="home-section-heading">
+                <p class="section-eyebrow">Popular services</p>
+                <h2 id="homeServicesTitle">One clean entry point for every ride type</h2>
+                <p>Inspired by modern ride platforms, the homepage now sends customers straight toward booking instead of making them search through account pages.</p>
+            </div>
+            <div class="home-service-grid">
+                <article class="home-service-card">
+                    <i class="fas fa-plane-arrival"></i>
+                    <h3>Airport transfers</h3>
+                    <p>Pickup and drop for airports, hotels, homes, offices and stations with complete trip notes.</p>
+                    <a href="./book-cab.html#quickBookingForm">Book airport cab</a>
+                </article>
+                <article class="home-service-card">
+                    <i class="fas fa-car-side"></i>
+                    <h3>City rides</h3>
+                    <p>Fast local cab requests for daily travel, meetings, city sightseeing and family movement.</p>
+                    <a href="./book-cab.html#quickBookingForm">Book city ride</a>
+                </article>
+                <article class="home-service-card">
+                    <i class="fas fa-clock"></i>
+                    <h3>Hourly rentals</h3>
+                    <p>Flexible rental cabs for shopping, events, business visits, tourist stops and waiting time.</p>
+                    <a href="./book-cab.html#quickBookingForm">Book rental cab</a>
+                </article>
+                <article class="home-service-card">
+                    <i class="fas fa-road"></i>
+                    <h3>Intercity trips</h3>
+                    <p>Outstation rides for Rajasthan routes, airport links, hotels and city-to-city transfers.</p>
+                    <a href="./book-cab.html#quickBookingForm">Book outstation cab</a>
+                </article>
             </div>
         </div>
     </section>
 
     <!-- Popular Tourist Routes -->
-    <section style="background: white; padding: 3rem 2rem;">
+    <section class="home-routes-band" aria-labelledby="homeRoutesTitle">
         <div class="container">
-            <h2 style="text-align: center; color: #333; margin-bottom: 2rem;">🗺️ Popular Tourist Routes</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; max-width: 1000px; margin: 0 auto;">
-                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: bold; color: #333;">Delhi Airport → Jaipur</div>
-                        <div style="font-size: 0.85rem; color: #666;">280 km • 4.5 hours</div>
-                    </div>
+            <div class="home-section-heading home-section-heading-split">
+                <div>
+                    <p class="section-eyebrow">High-demand routes</p>
+                    <h2 id="homeRoutesTitle">Common routes customers can book quickly</h2>
                 </div>
-                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: bold; color: #333;">Jaipur → Agra (Taj Mahal)</div>
-                        <div style="font-size: 0.85rem; color: #666;">240 km • 4 hours</div>
-                    </div>
-                </div>
-                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: bold; color: #333;">Jaipur → Udaipur</div>
-                        <div style="font-size: 0.85rem; color: #666;">395 km • 6.5 hours</div>
-                    </div>
-                </div>
-                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: bold; color: #333;">Jaipur → Jodhpur</div>
-                        <div style="font-size: 0.85rem; color: #666;">335 km • 5.5 hours</div>
-                    </div>
-                </div>
-                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: bold; color: #333;">Jodhpur → Jaisalmer</div>
-                        <div style="font-size: 0.85rem; color: #666;">285 km • 5 hours</div>
-                    </div>
-                </div>
-                <div style="padding: 1rem; border: 2px solid #0B1F3A; border-radius: 10px; display: flex; align-items: center; gap: 1rem; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='white'">
-                    <i class="fas fa-route" style="color: #0B1F3A; font-size: 1.5rem;"></i>
-                    <div>
-                        <div style="font-weight: bold; color: #333;">Udaipur → Mount Abu</div>
-                        <div style="font-size: 0.85rem; color: #666;">165 km • 3 hours</div>
-                    </div>
-                </div>
+                <a class="home-text-link" href="./book-cab.html#quickBookingForm">Enter your route</a>
+            </div>
+            <div class="home-route-grid">
+                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                    <span>Delhi Airport</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <strong>Jaipur</strong>
+                    <small>Airport to city transfer</small>
+                </a>
+                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                    <span>Jaipur</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <strong>Agra</strong>
+                    <small>Tourist and family trips</small>
+                </a>
+                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                    <span>Jaipur</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <strong>Udaipur</strong>
+                    <small>Intercity travel</small>
+                </a>
+                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                    <span>Udaipur</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <strong>Mount Abu</strong>
+                    <small>Rental and round trip</small>
+                </a>
             </div>
         </div>
     </section>
 
     <!-- Testimonials -->
-    <section style="background: #f8f9fa; padding: 3rem 2rem;">
+    <section class="home-testimonials-band" aria-labelledby="homeStoriesTitle">
         <div class="container">
-            <h2 style="text-align: center; color: #333; margin-bottom: 2rem;">💬 What Our International Customers Say</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto;">
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="font-size: 2rem;">🇺🇸</div>
-                        <div>
-                            <div style="font-weight: bold; color: #333;">Sarah Johnson</div>
-                            <div style="color: #f39c12;">⭐⭐⭐⭐⭐</div>
-                        </div>
-                    </div>
-                    <p style="color: #666; font-style: italic;">"Amazing service! The driver spoke perfect English and showed us all the best spots in Jaipur. Highly recommended!"</p>
-                </div>
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="font-size: 2rem;">🇬🇧</div>
-                        <div>
-                            <div style="font-weight: bold; color: #333;">James Williams</div>
-                            <div style="color: #f39c12;">⭐⭐⭐⭐⭐</div>
-                        </div>
-                    </div>
-                    <p style="color: #666; font-style: italic;">"Safe, reliable, and affordable. Used GO India RIDE throughout my Rajasthan trip. Excellent experience!"</p>
-                </div>
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="font-size: 2rem;">🇯🇵</div>
-                        <div>
-                            <div style="font-weight: bold; color: #333;">Yuki Tanaka</div>
-                            <div style="color: #f39c12;">⭐⭐⭐⭐⭐</div>
-                        </div>
-                    </div>
-                    <p style="color: #666; font-style: italic;">"Perfect for tourists! Fixed prices, no haggling. Driver was very helpful and showed us amazing places."</p>
-                </div>
+            <div class="home-section-heading">
+                <p class="section-eyebrow">Traveler confidence</p>
+                <h2 id="homeStoriesTitle">Designed to feel easy before the ride starts</h2>
+            </div>
+            <div class="home-story-grid">
+                <article class="home-story-card">
+                    <div class="home-story-rating">5.0</div>
+                    <p>"The first step was clear. I could send my pickup and drop details without creating an account."</p>
+                    <strong>International guest</strong>
+                </article>
+                <article class="home-story-card">
+                    <div class="home-story-rating">4.9</div>
+                    <p>"Airport and hotel transfer details were easy to enter, and the booking reached operations properly."</p>
+                    <strong>Business traveler</strong>
+                </article>
+                <article class="home-story-card">
+                    <div class="home-story-rating">4.8</div>
+                    <p>"Good for family travel because the page explains the ride types and takes you directly to booking."</p>
+                    <strong>Domestic customer</strong>
+                </article>
             </div>
         </div>
     </section>

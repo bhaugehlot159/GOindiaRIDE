@@ -1,0 +1,972 @@
+html body.home-international,
+html body.goi-global-theme.home-international {
+    --home-ink: #0d1b2a;
+    --home-muted: #536271;
+    --home-soft: #f5f8f6;
+    --home-paper: #ffffff;
+    --home-line: #d8e2df;
+    --home-teal: #0f766e;
+    --home-teal-dark: #0a4f4b;
+    --home-gold: #f3b33d;
+    --home-black: #050505;
+    --home-shadow: 0 18px 46px rgba(10, 33, 47, 0.12);
+    background: #f5f8f6 !important;
+    color: var(--home-ink) !important;
+    font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+    overflow-x: hidden !important;
+}
+
+body.home-international #goi-global-nav-dock,
+body.home-international .goi-native-nav-wrap,
+body.home-international .goi-native-nav-btn,
+body.home-international [data-goi-legacy-nav-hidden],
+body.home-international .back-home-dock,
+body.home-international .floating-nav {
+    display: none !important;
+}
+
+body.home-international *,
+body.home-international *::before,
+body.home-international *::after {
+    box-sizing: border-box;
+}
+
+body.home-international a {
+    color: inherit;
+}
+
+body.home-international .container,
+html body.goi-global-theme.home-international .container {
+    width: min(1180px, calc(100% - 32px)) !important;
+    max-width: 1180px !important;
+    margin-inline: auto !important;
+    padding-inline: 0 !important;
+    border-radius: 0 !important;
+}
+
+body.home-international section.goi-section-shell,
+html body.goi-global-theme.home-international section.goi-section-shell {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+body.home-international section.goi-section-shell::before {
+    display: none !important;
+}
+
+body.home-international .navbar,
+html body.goi-global-theme.home-international nav.navbar.navbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: var(--home-ink) !important;
+    border-bottom: 1px solid rgba(13, 27, 42, 0.09) !important;
+    box-shadow: 0 10px 30px rgba(13, 27, 42, 0.07) !important;
+    backdrop-filter: blur(14px);
+    padding: 0 !important;
+}
+
+body.home-international .navbar .container {
+    min-height: 78px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1.25rem !important;
+}
+
+body.home-international .navbar .logo,
+html body.goi-global-theme.home-international nav.navbar.navbar .logo {
+    color: var(--home-ink) !important;
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1;
+    gap: 0.65rem;
+    white-space: nowrap;
+}
+
+body.home-international .navbar .logo i {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #0b3554 url("../icons/icon-192.png") center / cover no-repeat;
+    color: transparent !important;
+    font-size: 0 !important;
+    overflow: hidden;
+}
+
+body.home-international .navbar-links {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 1rem !important;
+    flex-wrap: wrap !important;
+}
+
+body.home-international .navbar-links > a,
+html body.goi-global-theme.home-international nav.navbar.navbar .navbar-links > a {
+    color: var(--home-ink) !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    padding: 0.45rem 0 !important;
+    white-space: nowrap;
+}
+
+body.home-international .navbar-links > a:hover {
+    color: var(--home-teal) !important;
+}
+
+body.home-international .auth-buttons {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+body.home-international .btn-login,
+body.home-international .btn-signup,
+body.home-international .btn-admin,
+html body.goi-global-theme.home-international nav.navbar.navbar .btn-login,
+html body.goi-global-theme.home-international nav.navbar.navbar .btn-signup,
+html body.goi-global-theme.home-international nav.navbar.navbar .btn-admin {
+    min-height: 42px;
+    border-radius: 6px !important;
+    padding: 0.7rem 1rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    border: 1px solid var(--home-line) !important;
+    box-shadow: none !important;
+}
+
+body.home-international .btn-login {
+    background: #ffffff !important;
+    color: var(--home-ink) !important;
+}
+
+body.home-international .btn-signup {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border-color: var(--home-black) !important;
+}
+
+body.home-international .btn-admin {
+    background: #fff7e6 !important;
+    color: #5e3b00 !important;
+    border-color: #f2d084 !important;
+}
+
+html body.goi-global-theme.home-international nav.navbar.navbar .btn-login {
+    background: #ffffff !important;
+    color: var(--home-ink) !important;
+    border-color: var(--home-line) !important;
+}
+
+html body.goi-global-theme.home-international nav.navbar.navbar .btn-signup {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border-color: var(--home-black) !important;
+}
+
+html body.goi-global-theme.home-international nav.navbar.navbar .btn-admin {
+    background: #fff7e6 !important;
+    color: #5e3b00 !important;
+    border-color: #f2d084 !important;
+}
+
+html body.goi-global-theme.home-international nav.navbar.navbar .lang-btn,
+html body.goi-global-theme.home-international nav.navbar.navbar .currency-btn,
+html body.goi-global-theme.home-international nav.navbar.navbar .lang-option,
+html body.goi-global-theme.home-international nav.navbar.navbar .currency-option {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: var(--home-ink) !important;
+    border: 1px solid var(--home-line) !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    font-weight: 800 !important;
+}
+
+html body.goi-global-theme.home-international nav.navbar.navbar .switcher-full {
+    display: inline !important;
+    color: var(--home-ink) !important;
+}
+
+html body.goi-global-theme.home-international nav.navbar.navbar .switcher-compact {
+    display: none !important;
+    color: var(--home-ink) !important;
+}
+
+body.home-international .hero,
+html body.goi-global-theme.home-international .hero {
+    min-height: auto !important;
+    padding: 3.25rem 0 3.75rem !important;
+    background:
+        linear-gradient(90deg, rgba(245, 248, 246, 0.96) 0%, rgba(245, 248, 246, 0.82) 54%, rgba(245, 248, 246, 0.62) 100%),
+        url("../assets/images/quick-booking-hero.png") center right / cover no-repeat !important;
+    color: var(--home-ink) !important;
+    display: block !important;
+    text-align: left !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+body.home-international .hero::before {
+    display: none !important;
+}
+
+body.home-international .home-hero-shell {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.72fr);
+    gap: 2rem;
+    align-items: center;
+    position: relative;
+}
+
+body.home-international .home-hero-copy {
+    max-width: 690px;
+    padding-block: 1rem;
+}
+
+body.home-international .home-kicker,
+body.home-international .section-eyebrow {
+    margin: 0 0 0.75rem;
+    color: var(--home-teal);
+    font-size: 0.88rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+body.home-international .home-hero h1,
+html body.goi-global-theme.home-international .home-hero h1 {
+    margin: 0 0 1rem !important;
+    max-width: 720px;
+    color: var(--home-ink) !important;
+    font-size: 4rem !important;
+    line-height: 1.02 !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
+}
+
+body.home-international .home-hero-lead {
+    max-width: 620px;
+    margin: 0 0 1.45rem !important;
+    color: var(--home-muted) !important;
+    font-size: 1.08rem !important;
+    line-height: 1.65 !important;
+    opacity: 1 !important;
+}
+
+body.home-international .home-hero-actions,
+body.home-international .hero-buttons {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+    justify-content: flex-start !important;
+}
+
+body.home-international .btn-primary,
+body.home-international .btn-secondary,
+html body.goi-global-theme.home-international .btn-primary,
+html body.goi-global-theme.home-international .btn-secondary {
+    min-height: 52px;
+    border-radius: 6px !important;
+    padding: 0.95rem 1.15rem !important;
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.55rem !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+body.home-international .home-primary-cta,
+body.home-international .btn-primary {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border-color: var(--home-black) !important;
+}
+
+html body.goi-global-theme.home-international .home-primary-cta,
+html body.goi-global-theme.home-international .btn-primary.home-primary-cta {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border-color: var(--home-black) !important;
+}
+
+body.home-international .home-secondary-cta,
+body.home-international .btn-secondary {
+    background: #ffffff !important;
+    color: var(--home-ink) !important;
+    border-color: var(--home-line) !important;
+}
+
+html body.goi-global-theme.home-international .home-secondary-cta,
+html body.goi-global-theme.home-international .btn-secondary.home-secondary-cta {
+    background: #ffffff !important;
+    color: var(--home-ink) !important;
+    border-color: var(--home-line) !important;
+}
+
+body.home-international .home-primary-cta:hover,
+body.home-international .home-booking-card-cta:hover {
+    background: var(--home-teal-dark) !important;
+    border-color: var(--home-teal-dark) !important;
+}
+
+body.home-international .home-trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+}
+
+body.home-international .home-trust-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 36px;
+    border: 1px solid var(--home-line);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.86);
+    padding: 0.55rem 0.75rem;
+    color: var(--home-ink);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+html body.goi-global-theme.home-international .home-trust-row span,
+html body.goi-global-theme.home-international .home-trust-row span i {
+    color: var(--home-ink) !important;
+}
+
+body.home-international .home-booking-card,
+html body.goi-global-theme.home-international .home-booking-card.goi-section-shell {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(13, 27, 42, 0.12) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--home-shadow) !important;
+    padding: 1.15rem !important;
+    position: relative;
+    z-index: 2;
+}
+
+body.home-international .home-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+body.home-international .home-card-label {
+    color: var(--home-teal);
+    font-weight: 900;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+body.home-international .home-card-header strong {
+    color: var(--home-ink);
+    font-size: 0.95rem;
+}
+
+body.home-international .home-service-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+body.home-international .home-service-tabs a {
+    min-height: 40px;
+    border: 1px solid var(--home-line);
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--home-ink);
+    background: #f8fbfa;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 900;
+}
+
+body.home-international .home-service-tabs a:first-child {
+    background: #e7f5f2;
+    border-color: rgba(15, 118, 110, 0.35);
+    color: var(--home-teal-dark);
+}
+
+body.home-international .home-route-preview {
+    border: 1px solid var(--home-line);
+    border-radius: 8px;
+    padding: 0.95rem;
+    background: #ffffff;
+    margin-bottom: 1rem;
+}
+
+body.home-international .home-route-point span {
+    display: block;
+    color: var(--home-muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 0.2rem;
+}
+
+body.home-international .home-route-point strong {
+    display: block;
+    color: var(--home-ink);
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+body.home-international .home-route-line {
+    width: 2px;
+    height: 30px;
+    background: var(--home-line);
+    margin: 0.45rem 0 0.45rem 0.42rem;
+}
+
+body.home-international .home-booking-card-cta {
+    min-height: 52px;
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    background: var(--home-black);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    text-decoration: none;
+    font-weight: 900;
+}
+
+html body.goi-global-theme.home-international .home-booking-card-cta {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--home-black) !important;
+}
+
+body.home-international .home-card-note {
+    color: var(--home-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin: 0.85rem 0 0 !important;
+    opacity: 1 !important;
+}
+
+body.home-international .home-hero-visual {
+    grid-column: 1 / -1;
+    display: none;
+    margin: 0;
+}
+
+body.home-international .home-hero-visual img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+}
+
+body.home-international .home-confidence,
+body.home-international .home-service-band,
+body.home-international .home-routes-band,
+body.home-international .home-testimonials-band,
+body.home-international .features,
+body.home-international .how-it-works,
+body.home-international .pricing {
+    padding: 4rem 0 !important;
+}
+
+body.home-international .home-confidence {
+    background: #ffffff !important;
+    border-top: 1px solid var(--home-line);
+    border-bottom: 1px solid var(--home-line);
+}
+
+body.home-international .home-confidence-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(340px, 1fr);
+    gap: 2rem;
+    align-items: center;
+}
+
+body.home-international h2,
+html body.goi-global-theme.home-international h2 {
+    color: var(--home-ink) !important;
+    font-size: 2.35rem !important;
+    line-height: 1.15 !important;
+    margin: 0 0 0.75rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
+}
+
+body.home-international .home-confidence p,
+body.home-international .home-section-heading p {
+    color: var(--home-muted) !important;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+body.home-international .home-confidence-points {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+body.home-international .home-confidence-points div {
+    min-height: 104px;
+    border: 1px solid var(--home-line);
+    border-radius: 8px;
+    background: #f8fbfa;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    color: var(--home-ink);
+    font-weight: 800;
+}
+
+body.home-international .home-confidence-points i,
+body.home-international .home-service-card i {
+    color: var(--home-teal);
+    font-size: 1.25rem;
+    margin-top: 0.15rem;
+}
+
+body.home-international .home-service-band {
+    background: var(--home-soft) !important;
+}
+
+body.home-international .home-section-heading {
+    max-width: 760px;
+    margin-bottom: 2rem;
+}
+
+body.home-international .home-section-heading-split {
+    max-width: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+body.home-international .home-text-link {
+    color: var(--home-teal-dark);
+    font-weight: 900;
+    text-decoration: none;
+    border-bottom: 2px solid var(--home-gold);
+    padding-bottom: 0.2rem;
+    white-space: nowrap;
+}
+
+body.home-international .home-service-grid,
+body.home-international .home-story-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+body.home-international .home-service-card,
+html body.goi-global-theme.home-international .home-service-card.goi-section-shell,
+body.home-international .home-story-card,
+html body.goi-global-theme.home-international .home-story-card.goi-section-shell,
+body.home-international .feature-card,
+html body.goi-global-theme.home-international .feature-card.goi-section-shell,
+body.home-international .pricing-card,
+html body.goi-global-theme.home-international .pricing-card.goi-section-shell {
+    background: #ffffff !important;
+    border: 1px solid var(--home-line) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+body.home-international .home-service-card {
+    min-height: 270px;
+    padding: 1.15rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+body.home-international .home-service-card h3,
+body.home-international .feature-card h3,
+body.home-international .pricing-card h3 {
+    color: var(--home-ink) !important;
+    font-size: 1.15rem;
+    margin: 0 !important;
+    font-weight: 900;
+}
+
+body.home-international .home-service-card p,
+body.home-international .feature-card p,
+body.home-international .pricing-card p {
+    color: var(--home-muted) !important;
+    line-height: 1.55;
+    margin: 0 !important;
+}
+
+body.home-international .home-service-card a {
+    margin-top: auto;
+    color: var(--home-teal-dark);
+    text-decoration: none;
+    font-weight: 900;
+}
+
+body.home-international .home-routes-band {
+    background: #ffffff !important;
+}
+
+body.home-international .home-route-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+body.home-international .home-route-card {
+    min-height: 150px;
+    background: #0d1b2a;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 1rem;
+    display: grid;
+    align-content: start;
+    gap: 0.45rem;
+    text-decoration: none;
+    border: 1px solid rgba(13, 27, 42, 0.12);
+}
+
+body.home-international .home-route-card span,
+body.home-international .home-route-card small {
+    color: rgba(255, 255, 255, 0.76);
+    font-weight: 700;
+}
+
+body.home-international .home-route-card i {
+    color: var(--home-gold);
+}
+
+body.home-international .home-route-card strong {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #ffffff;
+}
+
+body.home-international .home-testimonials-band {
+    background: #eef5f2 !important;
+}
+
+body.home-international .home-story-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.home-international .home-story-card {
+    min-height: 210px;
+    padding: 1.2rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+body.home-international .home-story-rating {
+    width: 56px;
+    height: 42px;
+    border-radius: 6px;
+    background: #fff5dc;
+    color: #7a4a00;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+}
+
+body.home-international .home-story-card p {
+    color: var(--home-ink);
+    line-height: 1.6;
+    margin: 0;
+}
+
+body.home-international .home-story-card strong {
+    margin-top: auto;
+    color: var(--home-muted);
+}
+
+body.home-international .features,
+body.home-international .pricing {
+    background: #ffffff !important;
+}
+
+body.home-international .features h2,
+body.home-international .how-it-works h2,
+body.home-international .pricing h2 {
+    text-align: left !important;
+    margin-bottom: 2rem !important;
+}
+
+body.home-international .features-grid,
+body.home-international .pricing-cards {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.9rem !important;
+}
+
+body.home-international .feature-card,
+body.home-international .pricing-card {
+    text-align: left !important;
+    padding: 1.2rem !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+body.home-international .feature-card:hover,
+body.home-international .pricing-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+body.home-international .feature-card i,
+body.home-international .pricing-card i {
+    color: var(--home-teal) !important;
+    font-size: 1.5rem !important;
+    margin-bottom: 0.8rem !important;
+}
+
+body.home-international .how-it-works {
+    background: var(--home-soft) !important;
+}
+
+body.home-international .steps {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+body.home-international .step {
+    text-align: left !important;
+    background: #ffffff;
+    border: 1px solid var(--home-line);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+body.home-international .step-number {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 6px;
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    font-size: 1rem;
+}
+
+body.home-international .price {
+    color: var(--home-teal-dark) !important;
+}
+
+body.home-international .pricing-card button,
+body.home-international .cta .btn-primary {
+    min-height: 46px;
+    border-radius: 6px !important;
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+body.home-international .cta,
+html body.goi-global-theme.home-international .cta {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+body.home-international .cta h2,
+body.home-international .cta p {
+    color: #ffffff !important;
+}
+
+body.home-international .footer {
+    background: #081019 !important;
+    color: #ffffff !important;
+}
+
+body.home-international .footer a,
+body.home-international .footer h4,
+body.home-international .footer p {
+    color: #ffffff !important;
+}
+
+@media (max-width: 1100px) {
+    body.home-international .navbar .container {
+        min-height: auto;
+        padding-block: 0.85rem !important;
+        align-items: flex-start !important;
+    }
+
+    body.home-international .navbar-links {
+        justify-content: flex-start !important;
+    }
+
+    body.home-international .home-hero h1,
+    html body.goi-global-theme.home-international .home-hero h1 {
+        font-size: 3.15rem !important;
+    }
+
+    body.home-international .home-service-grid,
+    body.home-international .home-route-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 860px) {
+    body.home-international .home-hero-shell,
+    body.home-international .home-confidence-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.home-international .hero,
+    html body.goi-global-theme.home-international .hero {
+        background: #f5f8f6 !important;
+        padding: 2rem 0 3rem !important;
+    }
+
+    body.home-international .home-hero-visual {
+        display: block;
+    }
+
+    body.home-international .home-hero h1,
+    html body.goi-global-theme.home-international .home-hero h1 {
+        font-size: 2.55rem !important;
+    }
+
+    body.home-international .home-confidence-points,
+    body.home-international .home-story-grid,
+    body.home-international .features-grid,
+    body.home-international .pricing-cards,
+    body.home-international .steps {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 640px) {
+    body.home-international .container,
+    html body.goi-global-theme.home-international .container {
+        width: min(100% - 24px, 1180px) !important;
+    }
+
+    body.home-international .navbar .container {
+        gap: 0.7rem !important;
+        align-items: center !important;
+        padding-block: 0.7rem !important;
+    }
+
+    body.home-international .navbar-links {
+        width: 100%;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+        gap: 0.45rem !important;
+    }
+
+    body.home-international .auth-buttons {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.45rem !important;
+        align-items: stretch !important;
+    }
+
+    body.home-international .navbar-switchers,
+    body.home-international [class*="language"],
+    body.home-international [class*="currency"] {
+        display: none !important;
+    }
+
+    body.home-international .home-hero-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    body.home-international .navbar .logo {
+        white-space: normal;
+    }
+
+    body.home-international .navbar-links > a {
+        display: none;
+    }
+
+    body.home-international .btn-login,
+    body.home-international .btn-signup,
+    body.home-international .btn-admin {
+        min-height: 38px;
+        padding: 0.55rem 0.35rem !important;
+        font-size: 0.8rem !important;
+        width: 100%;
+    }
+
+    body.home-international .btn-primary,
+    body.home-international .btn-secondary {
+        width: 100%;
+    }
+
+    body.home-international .home-service-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.home-international .home-service-grid,
+    body.home-international .home-route-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.home-international .home-section-heading-split {
+        display: block;
+    }
+
+    body.home-international .home-text-link {
+        display: inline-flex;
+        margin-top: 1rem;
+    }
+
+    body.home-international .home-hero h1,
+    html body.goi-global-theme.home-international .home-hero h1 {
+        font-size: 2.1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    body.home-international .home-hero-lead {
+        font-size: 0.98rem !important;
+        line-height: 1.48 !important;
+        margin-bottom: 0.9rem !important;
+    }
+
+    body.home-international .home-trust-row {
+        display: none;
+    }
+
+    body.home-international .hero,
+    html body.goi-global-theme.home-international .hero {
+        padding: 1.35rem 0 2.4rem !important;
+    }
+
+    body.home-international h2,
+    html body.goi-global-theme.home-international h2 {
+        font-size: 1.85rem !important;
+    }
+}
