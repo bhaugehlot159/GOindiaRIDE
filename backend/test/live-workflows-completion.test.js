@@ -61,12 +61,21 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   const sitemap = read('sitemap.xml');
   const robots = read('robots.txt');
   const homeNavbar = home.match(/<div class="navbar-links">[\s\S]*?<\/div>\s*<\/div>\s*<\/nav>/)?.[0] || '';
+  const homeFooter = home.match(/<footer class="footer">[\s\S]*?<\/footer>/)?.[0] || '';
 
   assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
   assert.match(homeNavbar, /href="\.\/pages\/signup\.html"[^>]*rel="nofollow"/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html\?admin=1&next=%2Fadmin%2Fapp\.html"[^>]*rel="nofollow"/);
+  assert.match(home, /id="homeQuickBookingForm"[\s\S]*name="pickup"[^>]*required[\s\S]*name="drop"[^>]*required[\s\S]*name="phone"[^>]*required/);
+  assert.match(home, /data-home-trip-plan="airport"[\s\S]*data-home-service-mode="airport_pickup"/);
+  assert.match(home, /data-home-trip-plan="rental"[\s\S]*data-home-journey="round_trip"/);
+  assert.match(home, /data-home-booking-link/);
+  assert.match(home, /source=home_route&amp;tripPlan=outstation/);
+  assert.match(home, /vehicleType=sedan&amp;vehicleModel=business_sedan/);
+  assert.doesNotMatch(home, /onclick="goToBooking\(\)"/);
+  assert.doesNotMatch(homeFooter, /href="#(?:about|careers|press|blog|faq|support|safety|driver-signup|driver-faq|driver-support|documents)"/);
   assert.match(home, /href="\.\/pages\/legal\/gdpr-notice\.html"[^>]*rel="nofollow"/);
   assert.match(read('pages/login.html'), /<meta name="googlebot" content="noindex, follow">/);
   assert.match(read('pages/booking.html'), /<meta name="googlebot" content="noindex, follow">/);
@@ -99,6 +108,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /customerFeatures/);
   assert.match(shortcut, /adminEmailDispatch/);
   assert.match(shortcut, /Valid mobile number is required/);
+  assert.match(shortcut, /function applyHomepagePrefillFromUrl\(/);
+  assert.match(shortcut, /new URLSearchParams\(window\.location\.search \|\| ''\)/);
+  assert.match(shortcut, /setTripPlan\(tripPlan, true\)/);
+  assert.match(shortcut, /setFieldValue\(fields\.pickup, params\.get\('pickup'\), 180\)/);
+  assert.match(shortcut, /setFieldValue\(fields\.phone, params\.get\('phone'\) \|\| params\.get\('customerPhone'\), 40\)/);
 
   assert.match(adminApp, /fallback\/admin-review-queue\?limit=500&status=/);
   assert.match(adminApp, /mapBackendBookingRow\(row, "backend_fallback_admin_review_queue"\)/);

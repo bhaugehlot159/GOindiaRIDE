@@ -51,7 +51,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="./shared/chunks/home/styles/index.css?v=20260528-inline-split1">
     <link rel="stylesheet" href="./css/professional-purple-theme.css">
-    <link rel="stylesheet" href="./css/home-international.css?v=20260608-main1">
+    <link rel="stylesheet" href="./css/home-international.css?v=20260609-live1">
     <script src="./js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
 <body class="home-international" data-goi-nav-static="1">
@@ -84,7 +84,7 @@
                 <h1 id="homeHeroTitle">Book reliable cabs across India without login</h1>
                 <p class="home-hero-lead">A cleaner ride experience for international guests, families, business travelers, and domestic customers who need fast booking with clear trip details.</p>
                 <div class="home-hero-actions">
-                    <a href="./book-cab.html#quickBookingForm" class="btn-primary home-primary-cta">
+                    <a href="./book-cab.html?source=home_hero&amp;tripPlan=city&amp;serviceMode=local_point#quickBookingForm" class="btn-primary home-primary-cta" data-home-booking-link data-source="home_hero" data-trip-plan="city" data-service-mode="local_point">
                         <i class="fas fa-location-dot"></i>
                         <span>Start booking</span>
                     </a>
@@ -103,34 +103,43 @@
                     <span><i class="fas fa-receipt"></i> Clear fare details</span>
                 </div>
             </div>
-            <div class="home-booking-card" aria-label="No-login booking shortcut">
+            <form class="home-booking-card" id="homeQuickBookingForm" action="./book-cab.html#quickBookingForm" method="get" aria-label="No-login booking shortcut">
+                <input type="hidden" name="source" value="home_live_shortcut">
+                <input type="hidden" id="homeTripPlanInput" name="tripPlan" value="city">
+                <input type="hidden" id="homeJourneyInput" name="journey" value="one_way">
+                <input type="hidden" id="homeServiceModeInput" name="serviceMode" value="local_point">
+                <input type="hidden" id="homeVehicleTypeInput" name="vehicleType" value="economy">
                 <div class="home-card-header">
                     <span class="home-card-label">Quick booking</span>
                     <strong>No account required</strong>
                 </div>
-                <div class="home-service-tabs" aria-label="Popular booking types">
-                    <a href="./book-cab.html#quickBookingForm">Local</a>
-                    <a href="./book-cab.html#quickBookingForm">Airport</a>
-                    <a href="./book-cab.html#quickBookingForm">Rental</a>
-                    <a href="./book-cab.html#quickBookingForm">Outstation</a>
+                <div class="home-service-tabs" aria-label="Popular booking types" role="tablist">
+                    <button type="button" class="is-active" data-home-trip-plan="city" data-home-service-mode="local_point" data-home-journey="one_way" aria-selected="true">Local</button>
+                    <button type="button" data-home-trip-plan="airport" data-home-service-mode="airport_pickup" data-home-journey="one_way" aria-selected="false">Airport</button>
+                    <button type="button" data-home-trip-plan="rental" data-home-service-mode="rental_full_day" data-home-journey="round_trip" aria-selected="false">Rental</button>
+                    <button type="button" data-home-trip-plan="outstation" data-home-service-mode="outstation_one_way" data-home-journey="one_way" aria-selected="false">Outstation</button>
                 </div>
                 <div class="home-route-preview">
-                    <div class="home-route-point">
+                    <label class="home-route-point" for="homePickupInput">
                         <span>Pickup</span>
-                        <strong>Airport, hotel, home or office</strong>
-                    </div>
+                        <input id="homePickupInput" name="pickup" type="text" autocomplete="street-address" placeholder="Airport, hotel, home or office" required>
+                    </label>
                     <div class="home-route-line" aria-hidden="true"></div>
-                    <div class="home-route-point">
+                    <label class="home-route-point" for="homeDropInput">
                         <span>Drop</span>
-                        <strong>City, station, resort or another state</strong>
-                    </div>
+                        <input id="homeDropInput" name="drop" type="text" autocomplete="street-address" placeholder="City, station, resort or another state" required>
+                    </label>
+                    <label class="home-route-point home-phone-point" for="homePhoneInput">
+                        <span>Mobile number</span>
+                        <input id="homePhoneInput" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number" required>
+                    </label>
                 </div>
-                <a href="./book-cab.html#quickBookingForm" class="home-booking-card-cta">
-                    <span>Enter pickup location</span>
+                <button type="submit" class="home-booking-card-cta">
+                    <span>Continue live booking</span>
                     <i class="fas fa-arrow-right"></i>
-                </a>
+                </button>
                 <p class="home-card-note">Mobile number is required so customer and admin can receive full booking updates.</p>
-            </div>
+            </form>
             <figure class="home-hero-visual" aria-label="GO India RIDE travel visual">
                 <img src="./assets/images/quick-booking-hero.png" alt="GO India RIDE cab booking for Indian travel routes">
             </figure>
@@ -179,25 +188,25 @@
                     <i class="fas fa-plane-arrival"></i>
                     <h3>Airport transfers</h3>
                     <p>Pickup and drop for airports, hotels, homes, offices and stations with complete trip notes.</p>
-                    <a href="./book-cab.html#quickBookingForm">Book airport cab</a>
+                    <a href="./book-cab.html?source=home_service&amp;tripPlan=airport&amp;serviceMode=airport_pickup#quickBookingForm" data-home-booking-link data-source="home_service_airport" data-trip-plan="airport" data-service-mode="airport_pickup">Book airport cab</a>
                 </article>
                 <article class="home-service-card">
                     <i class="fas fa-car-side"></i>
                     <h3>City rides</h3>
                     <p>Fast local cab requests for daily travel, meetings, city sightseeing and family movement.</p>
-                    <a href="./book-cab.html#quickBookingForm">Book city ride</a>
+                    <a href="./book-cab.html?source=home_service&amp;tripPlan=city&amp;serviceMode=local_point#quickBookingForm" data-home-booking-link data-source="home_service_city" data-trip-plan="city" data-service-mode="local_point">Book city ride</a>
                 </article>
                 <article class="home-service-card">
                     <i class="fas fa-clock"></i>
                     <h3>Hourly rentals</h3>
                     <p>Flexible rental cabs for shopping, events, business visits, tourist stops and waiting time.</p>
-                    <a href="./book-cab.html#quickBookingForm">Book rental cab</a>
+                    <a href="./book-cab.html?source=home_service&amp;tripPlan=rental&amp;serviceMode=rental_full_day&amp;journey=round_trip#quickBookingForm" data-home-booking-link data-source="home_service_rental" data-trip-plan="rental" data-service-mode="rental_full_day" data-journey="round_trip">Book rental cab</a>
                 </article>
                 <article class="home-service-card">
                     <i class="fas fa-road"></i>
                     <h3>Intercity trips</h3>
                     <p>Outstation rides for Rajasthan routes, airport links, hotels and city-to-city transfers.</p>
-                    <a href="./book-cab.html#quickBookingForm">Book outstation cab</a>
+                    <a href="./book-cab.html?source=home_service&amp;tripPlan=outstation&amp;serviceMode=outstation_one_way#quickBookingForm" data-home-booking-link data-source="home_service_outstation" data-trip-plan="outstation" data-service-mode="outstation_one_way">Book outstation cab</a>
                 </article>
             </div>
         </div>
@@ -211,28 +220,28 @@
                     <p class="section-eyebrow">High-demand routes</p>
                     <h2 id="homeRoutesTitle">Common routes customers can book quickly</h2>
                 </div>
-                <a class="home-text-link" href="./book-cab.html#quickBookingForm">Enter your route</a>
+                <a class="home-text-link" href="./book-cab.html?source=home_routes&amp;tripPlan=outstation&amp;serviceMode=outstation_one_way#quickBookingForm" data-home-booking-link data-source="home_routes" data-trip-plan="outstation" data-service-mode="outstation_one_way">Enter your route</a>
             </div>
             <div class="home-route-grid">
-                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                <a href="./book-cab.html?source=home_route&amp;tripPlan=outstation&amp;serviceMode=outstation_one_way&amp;pickup=Delhi%20Airport&amp;drop=Jaipur#quickBookingForm" class="home-route-card" data-home-booking-link data-source="home_route_delhi_jaipur" data-trip-plan="outstation" data-service-mode="outstation_one_way" data-pickup="Delhi Airport" data-drop="Jaipur">
                     <span>Delhi Airport</span>
                     <i class="fas fa-arrow-right"></i>
                     <strong>Jaipur</strong>
                     <small>Airport to city transfer</small>
                 </a>
-                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                <a href="./book-cab.html?source=home_route&amp;tripPlan=outstation&amp;serviceMode=outstation_one_way&amp;pickup=Jaipur&amp;drop=Agra%20Taj%20Mahal#quickBookingForm" class="home-route-card" data-home-booking-link data-source="home_route_jaipur_agra" data-trip-plan="outstation" data-service-mode="outstation_one_way" data-pickup="Jaipur" data-drop="Agra Taj Mahal">
                     <span>Jaipur</span>
                     <i class="fas fa-arrow-right"></i>
                     <strong>Agra</strong>
                     <small>Tourist and family trips</small>
                 </a>
-                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                <a href="./book-cab.html?source=home_route&amp;tripPlan=outstation&amp;serviceMode=outstation_one_way&amp;pickup=Jaipur&amp;drop=Udaipur#quickBookingForm" class="home-route-card" data-home-booking-link data-source="home_route_jaipur_udaipur" data-trip-plan="outstation" data-service-mode="outstation_one_way" data-pickup="Jaipur" data-drop="Udaipur">
                     <span>Jaipur</span>
                     <i class="fas fa-arrow-right"></i>
                     <strong>Udaipur</strong>
                     <small>Intercity travel</small>
                 </a>
-                <a href="./book-cab.html#quickBookingForm" class="home-route-card">
+                <a href="./book-cab.html?source=home_route&amp;tripPlan=outstation&amp;serviceMode=outstation_round_trip&amp;journey=round_trip&amp;pickup=Udaipur&amp;drop=Mount%20Abu#quickBookingForm" class="home-route-card" data-home-booking-link data-source="home_route_udaipur_mount_abu" data-trip-plan="outstation" data-service-mode="outstation_round_trip" data-journey="round_trip" data-pickup="Udaipur" data-drop="Mount Abu">
                     <span>Udaipur</span>
                     <i class="fas fa-arrow-right"></i>
                     <strong>Mount Abu</strong>
@@ -417,7 +426,7 @@
                         <li>Real-time tracking</li>
                         <li>Safe rides</li>
                     </ul>
-                    <button onclick="goToBooking()">Book Now</button>
+                    <a class="pricing-live-link" href="./book-cab.html?source=home_pricing&amp;tripPlan=city&amp;serviceMode=local_point&amp;vehicleType=economy&amp;vehicleModel=hatchback#quickBookingForm" data-home-booking-link data-source="home_pricing_economy" data-trip-plan="city" data-service-mode="local_point" data-vehicle-type="economy" data-vehicle-model="hatchback">Book Now</a>
                 </div>
                 <div class="pricing-card">
                     <i class="fas fa-crown" style="font-size: 3rem; color: #f39c12; margin-bottom: 1rem;"></i>
@@ -431,7 +440,7 @@
                         <li>WiFi available</li>
                         <li>Water & snacks</li>
                     </ul>
-                    <button onclick="goToBooking()">Book Now</button>
+                    <a class="pricing-live-link" href="./book-cab.html?source=home_pricing&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;vehicleType=sedan&amp;vehicleModel=business_sedan#quickBookingForm" data-home-booking-link data-source="home_pricing_premium" data-trip-plan="airport" data-service-mode="airport_pickup" data-vehicle-type="sedan" data-vehicle-model="business_sedan">Book Now</a>
                 </div>
                 <div class="pricing-card">
                     <i class="fas fa-users" style="font-size: 3rem; color: #2ecc71; margin-bottom: 1rem;"></i>
@@ -445,7 +454,7 @@
                         <li>Safe routes</li>
                         <li>Quick pickup</li>
                     </ul>
-                    <button onclick="goToBooking()">Book Now</button>
+                    <a class="pricing-live-link" href="./book-cab.html?source=home_pricing&amp;tripPlan=city&amp;serviceMode=local_point&amp;vehicleType=economy&amp;notes=Share%20ride%20preference#quickBookingForm" data-home-booking-link data-source="home_pricing_share" data-trip-plan="city" data-service-mode="local_point" data-vehicle-type="economy" data-notes="Share ride preference">Book Now</a>
                 </div>
             </div>
         </div>
@@ -470,10 +479,10 @@
                 <div class="footer-section">
                     <h4>About Us</h4>
                     <ul>
-                        <li><a href="#about">About GO India RIDE</a></li>
-                        <li><a href="#careers">Careers</a></li>
-                        <li><a href="#press">Press</a></li>
-                        <li><a href="#blog">Blog</a></li>
+                        <li><a href="./pages/home.html">About GO India RIDE</a></li>
+                        <li><a href="./pages/signup.html?role=driver" rel="nofollow">Careers</a></li>
+                        <li><a href="mailto:support@goindiaride.in?subject=Press%20inquiry">Press</a></li>
+                        <li><a href="./pages/services.html">Blog</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -483,18 +492,18 @@
                         <li><a href="./taxi-service.html">Taxi Service India</a></li>
                         <li><a href="./taxi-service.html">Rental Cab Booking</a></li>
                         <li><a href="./book-cab.html#quickBookingForm">Enter Pickup Location</a></li>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#support">Support</a></li>
-                        <li><a href="#safety">Safety Center</a></li>
+                        <li><a href="./pages/contact.html">FAQ</a></li>
+                        <li><a href="https://wa.me/918426891471?text=I%20need%20GO%20India%20RIDE%20support" rel="nofollow">Support</a></li>
+                        <li><a href="./pages/legal/terms-and-conditions.html" rel="nofollow">Safety Center</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>For Drivers</h4>
                     <ul>
-                        <li><a href="#driver-signup">Become a Driver</a></li>
-                        <li><a href="#driver-faq">Driver FAQ</a></li>
-                        <li><a href="#driver-support">Driver Support</a></li>
-                        <li><a href="#documents">Documents</a></li>
+                        <li><a href="./pages/signup.html?role=driver" rel="nofollow">Become a Driver</a></li>
+                        <li><a href="./pages/legal/driver-agreement.html" rel="nofollow">Driver FAQ</a></li>
+                        <li><a href="mailto:support@goindiaride.in?subject=Driver%20support">Driver Support</a></li>
+                        <li><a href="./pages/legal/driver-agreement.html" rel="nofollow">Documents</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -517,7 +526,7 @@
 
     <script src="./js/ai-auto-detective.js?v=20260416-riskfix1"></script>
     <script src="./js/app.js"></script>
-    <script src="./shared/chunks/home/scripts/index.js?v=20260528-inline-split1"></script>
+    <script src="./shared/chunks/home/scripts/index.js?v=20260609-live1"></script>
     
     <!-- JSON-LD Schema for SEO -->
     <script type="application/ld+json">

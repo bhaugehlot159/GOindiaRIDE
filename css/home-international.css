@@ -393,7 +393,8 @@ body.home-international .home-service-tabs {
     margin-bottom: 1rem;
 }
 
-body.home-international .home-service-tabs a {
+body.home-international .home-service-tabs a,
+body.home-international .home-service-tabs button {
     min-height: 40px;
     border: 1px solid var(--home-line);
     border-radius: 6px;
@@ -405,9 +406,12 @@ body.home-international .home-service-tabs a {
     text-decoration: none;
     font-size: 0.85rem;
     font-weight: 900;
+    font-family: inherit;
+    cursor: pointer;
 }
 
-body.home-international .home-service-tabs a:first-child {
+body.home-international .home-service-tabs a:first-child,
+body.home-international .home-service-tabs button.is-active {
     background: #e7f5f2;
     border-color: rgba(15, 118, 110, 0.35);
     color: var(--home-teal-dark);
@@ -436,6 +440,39 @@ body.home-international .home-route-point strong {
     line-height: 1.35;
 }
 
+body.home-international .home-route-point {
+    display: block;
+}
+
+body.home-international .home-route-point input {
+    width: 100%;
+    min-height: 42px;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    outline: 0;
+    background: transparent;
+    color: var(--home-ink);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 850;
+    padding: 0.15rem 0 0.25rem;
+}
+
+body.home-international .home-route-point input::placeholder {
+    color: var(--home-ink);
+    opacity: 0.9;
+}
+
+body.home-international .home-route-point input:focus {
+    border-bottom-color: var(--home-teal);
+}
+
+body.home-international .home-phone-point {
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--home-line);
+}
+
 body.home-international .home-route-line {
     width: 2px;
     height: 30px;
@@ -455,6 +492,10 @@ body.home-international .home-booking-card-cta {
     gap: 1rem;
     text-decoration: none;
     font-weight: 900;
+    width: 100%;
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
 }
 
 html body.goi-global-theme.home-international .home-booking-card-cta {
@@ -781,6 +822,7 @@ body.home-international .price {
 }
 
 body.home-international .pricing-card button,
+body.home-international .pricing-live-link,
 body.home-international .cta .btn-primary {
     min-height: 46px;
     border-radius: 6px !important;
@@ -788,6 +830,13 @@ body.home-international .cta .btn-primary {
     color: #ffffff !important;
     border: 0 !important;
     box-shadow: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    font-weight: 900;
+    width: 100%;
 }
 
 body.home-international .cta,

@@ -791,6 +791,85 @@
         document.querySelectorAll('.vehicle-card').forEach((card) => card.classList.toggle('is-active', card.dataset.vehicle === state.vehicleType));
     }
 
+    function hasSelectOption(input, value) {
+        if (!input || input.tagName !== 'SELECT') return true;
+        return Array.from(input.options || []).some((option) => option.value === value);
+    }
+
+    function setFieldValue(input, value, maxLen) {
+        if (!input) return false;
+        const clean = cleanText(value, maxLen || 220);
+        if (!clean) return false;
+        if (!hasSelectOption(input, clean)) return false;
+        input.value = clean;
+        return true;
+    }
+
+    function applyHomepagePrefillFromUrl() {
+        const params = new URLSearchParams(window.location.search || '');
+        const prefillKeys = [
+            'source',
+            'tripPlan',
+            'journey',
+            'serviceMode',
+            'vehicleType',
+            'vehicleModel',
+            'pickup',
+            'drop',
+            'phone',
+            'customerPhone',
+            'name',
+            'customerName',
+            'email',
+            'customerEmail',
+            'rideDate',
+            'rideTime',
+            'returnDate',
+            'returnTime',
+            'passengers',
+            'luggage',
+            'paymentMethod',
+            'budget',
+            'promo',
+            'notes'
+        ];
+        if (!prefillKeys.some((key) => params.has(key))) return false;
+
+        const tripPlan = cleanText(params.get('tripPlan'), 40);
+        const journey = cleanText(params.get('journey'), 40);
+        const vehicleType = cleanText(params.get('vehicleType'), 40);
+        if (tripPlan) setTripPlan(tripPlan, true);
+        if (journey) setJourney(journey);
+        if (vehicleType) setVehicle(vehicleType);
+
+        setFieldValue(fields.serviceMode, params.get('serviceMode'), 80);
+        setFieldValue(fields.vehicleModel, params.get('vehicleModel'), 80);
+        setFieldValue(fields.pickup, params.get('pickup'), 180);
+        setFieldValue(fields.drop, params.get('drop'), 180);
+        setFieldValue(fields.phone, params.get('phone') || params.get('customerPhone'), 40);
+        setFieldValue(fields.name, params.get('name') || params.get('customerName'), 140);
+        setFieldValue(fields.email, params.get('email') || params.get('customerEmail'), 180);
+        setFieldValue(fields.rideDate, params.get('rideDate'), 40);
+        setFieldValue(fields.rideTime, params.get('rideTime'), 40);
+        setFieldValue(fields.returnDate, params.get('returnDate'), 40);
+        setFieldValue(fields.returnTime, params.get('returnTime'), 40);
+        setFieldValue(fields.passengers, params.get('passengers'), 20);
+        setFieldValue(fields.luggage, params.get('luggage'), 80);
+        setFieldValue(fields.payment, params.get('paymentMethod'), 80);
+        setFieldValue(fields.budget, params.get('budget'), 40);
+        setFieldValue(fields.promo, params.get('promo'), 40);
+        setFieldValue(fields.notes, params.get('notes'), 300);
+
+        if (state.journey === 'round_trip' && !fields.returnDate.value) {
+            fields.returnDate.value = fields.rideDate.value || todayValue();
+        }
+
+        estimateFare();
+        syncStatus.textContent = 'Prefilled';
+        setMessage('Trip details prefilled from homepage. Add remaining details and send booking request.', 'success');
+        return true;
+    }
+
     function writeCheckboxMap(selector, values = {}) {
         document.querySelectorAll(selector).forEach((input) => {
             const key = cleanText(input.dataset.addon || input.dataset.safety || '', 60);
@@ -1049,5 +1128,6 @@
     wireManageButtons();
     wireLocationButton();
     initDefaults();
+    applyHomepagePrefillFromUrl();
     form.addEventListener('submit', submitBooking);
 })();

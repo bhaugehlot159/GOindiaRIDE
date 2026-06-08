@@ -1,7 +1,90 @@
-// Go to booking page
-        function goToBooking() {
-            window.location.href = './book-cab.html';
+// Live homepage booking handoff
+        function cleanBookingValue(value) {
+            return String(value || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
         }
+
+        function buildBookingUrl(params = {}) {
+            const query = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                const clean = cleanBookingValue(value);
+                if (clean) query.set(key, clean);
+            });
+            const suffix = query.toString() ? `?${query.toString()}` : '';
+            return `./book-cab.html${suffix}#quickBookingForm`;
+        }
+
+        function goToBooking(params = {}) {
+            window.location.href = buildBookingUrl({
+                source: 'home_button',
+                tripPlan: 'city',
+                serviceMode: 'local_point',
+                ...params
+            });
+        }
+
+        window.goToBooking = goToBooking;
+
+        function datasetBookingParams(element) {
+            if (!element) return {};
+            const data = element.dataset || {};
+            return {
+                source: data.source || 'home_live_link',
+                tripPlan: data.tripPlan || data.homeTripPlan,
+                journey: data.journey || data.homeJourney,
+                serviceMode: data.serviceMode || data.homeServiceMode,
+                vehicleType: data.vehicleType,
+                vehicleModel: data.vehicleModel,
+                pickup: data.pickup,
+                drop: data.drop,
+                phone: data.phone,
+                notes: data.notes
+            };
+        }
+
+        function wireHomeQuickBookingForm() {
+            const form = document.getElementById('homeQuickBookingForm');
+            if (!form) return;
+
+            const tripPlanInput = document.getElementById('homeTripPlanInput');
+            const journeyInput = document.getElementById('homeJourneyInput');
+            const serviceModeInput = document.getElementById('homeServiceModeInput');
+
+            form.querySelectorAll('[data-home-trip-plan]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    form.querySelectorAll('[data-home-trip-plan]').forEach((item) => {
+                        const active = item === button;
+                        item.classList.toggle('is-active', active);
+                        item.setAttribute('aria-selected', active ? 'true' : 'false');
+                    });
+                    if (tripPlanInput) tripPlanInput.value = button.dataset.homeTripPlan || 'city';
+                    if (journeyInput) journeyInput.value = button.dataset.homeJourney || 'one_way';
+                    if (serviceModeInput) serviceModeInput.value = button.dataset.homeServiceMode || 'local_point';
+                });
+            });
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (!form.reportValidity()) return;
+                const params = {};
+                new FormData(form).forEach((value, key) => {
+                    params[key] = value;
+                });
+                window.location.href = buildBookingUrl(params);
+            });
+        }
+
+        function wireLiveBookingLinks() {
+            document.querySelectorAll('[data-home-booking-link]').forEach((link) => {
+                link.addEventListener('click', (event) => {
+                    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+                    event.preventDefault();
+                    window.location.href = buildBookingUrl(datasetBookingParams(link));
+                });
+            });
+        }
+
+        wireHomeQuickBookingForm();
+        wireLiveBookingLinks();
 
         // Smooth scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
