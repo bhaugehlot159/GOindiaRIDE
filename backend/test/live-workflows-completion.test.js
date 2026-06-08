@@ -69,6 +69,8 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(homeNavbar, /href="\.\/pages\/login\.html\?admin=1&next=%2Fadmin%2Fapp\.html"[^>]*rel="nofollow"/);
   assert.match(home, /href="\.\/pages\/legal\/gdpr-notice\.html"[^>]*rel="nofollow"/);
   assert.match(read('pages/login.html'), /<meta name="googlebot" content="noindex, follow">/);
+  assert.match(read('pages/booking.html'), /<meta name="googlebot" content="noindex, follow">/);
+  assert.match(read('pages/booking.html'), /<link rel="canonical" href="https:\/\/goindiaride\.in\/book-cab\.html">/);
   assert.match(read('pages/legal/gdpr-notice.html'), /<meta name="googlebot" content="noindex, follow">/);
   assert.match(publicBooking, /id="quickBookingForm"/);
   assert.match(publicBooking, /Direct cab booking, no login/);
