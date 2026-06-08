@@ -144,17 +144,19 @@ async function resetFirebasePhoneAuth(){
 }
 async function initFirebasePhoneAuth(options={}){
   const forceRefresh=Boolean(options&&options.forceRefresh);
+  const silent=Boolean(options&&options.silent);
+  const reportSetupError=(message)=>{if(silent){console.warn(message);return;}showError(message);};
   if(firebaseReady&&!forceRefresh)return true;
-  if(!window.firebase||typeof firebase.auth!=='function'){showError('Firebase Auth library load nahi hui. Page reload karein.');return false;}
+  if(!window.firebase||typeof firebase.auth!=='function'){reportSetupError('Firebase Auth library load nahi hui. Page reload karein.');return false;}
   if(forceRefresh)await resetFirebasePhoneAuth();
   const cfg=typeof window.resolveGoIndiaFirebaseConfig==='function'
     ? await window.resolveGoIndiaFirebaseConfig({forceRefresh})
     : (window.GOINDIARIDE_FIREBASE_CONFIG||{});
   const required=['apiKey','authDomain','projectId','appId'];
   const missing=required.filter((k)=>!cfg[k]);
-  if(missing.length){showError('Firebase config missing hai.');return false;}
+  if(missing.length){reportSetupError('Firebase config missing hai.');return false;}
   try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebaseReady=true;return true;}
-  catch(e){console.error('firebase init failed',e);showError(toFriendlyFirebasePhoneError(e)||'Firebase initialize nahi ho paya.');return false;}
+  catch(e){console.error('firebase init failed',e);reportSetupError(toFriendlyFirebasePhoneError(e)||'Firebase initialize nahi ho paya.');return false;}
 }
 async function ensureRecaptcha(){
   if(!await initFirebasePhoneAuth())return null;

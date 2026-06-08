@@ -115,14 +115,16 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   const login = read('pages/login.html');
   const signup = read('pages/signup.html');
   const authCss = read('css/auth-professional.css');
+  const firebaseAuth = read('shared/chunks/auth/login/scripts/admin-security-firebase.js');
+  const recoveryUi = read('shared/chunks/auth/login/scripts/recovery-ui-init.js');
   const customerPhoneInput = login.match(/<input[^>]+id="customerPhone"[^>]+>/)?.[0] || '';
   const driverPhoneInput = login.match(/<input[^>]+id="driverPhone"[^>]+>/)?.[0] || '';
   const signupPhoneInput = signup.match(/<input[^>]+id="phone"[^>]+>/)?.[0] || '';
 
   assert.match(login, /<meta name="googlebot" content="noindex, follow">/);
   assert.match(signup, /<meta name="googlebot" content="noindex, follow">/);
-  assert.match(login, /css\/auth-professional\.css\?v=20260608-auth3/);
-  assert.match(signup, /css\/auth-professional\.css\?v=20260608-auth3/);
+  assert.match(login, /css\/auth-professional\.css\?v=20260608-auth11/);
+  assert.match(signup, /css\/auth-professional\.css\?v=20260608-auth11/);
   assert.match(login, /<body class="auth-entry-page auth-login-page">/);
   assert.match(signup, /<body class="auth-entry-page auth-signup-page">/);
 
@@ -133,6 +135,7 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(login, /driverSendOTP\(\)/);
   assert.match(login, /adminStep1Login\(\)/);
   assert.match(login, /guardPhoneAutofillLeak/);
+  assert.match(login, /class="auth-ride-preview"/);
 
   assert.match(customerPhoneInput, /name="goindiaride_customer_mobile_otp"/);
   assert.match(customerPhoneInput, /autocomplete="off"/);
@@ -142,6 +145,7 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(driverPhoneInput, /inputmode="tel"/);
 
   assert.match(signup, /id="signupForm"/);
+  assert.match(signup, /class="auth-ride-preview"/);
   assert.match(signup, /id="fullname"[\s\S]*autocomplete="name"/);
   assert.match(signup, /id="email"[\s\S]*autocomplete="email"/);
   assert.match(signupPhoneInput, /name="phone"/);
@@ -155,8 +159,24 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(authCss, /content:\s*none !important/);
   assert.match(authCss, /v2: ride-app entry surface, not a dashboard shell/);
   assert.match(authCss, /v3: app-style auth like ride platforms, not a split dashboard/);
+  assert.match(authCss, /v4: compact international ride auth surface/);
+  assert.match(authCss, /v5: international ride marketplace auth combination/);
+  assert.match(authCss, /v6: international cab photo and clean booking-auth blend/);
+  assert.match(authCss, /v7: full-bleed travel auth with floating booking panel/);
+  assert.match(authCss, /v8: corporate dark hero with simple ride auth card/);
+  assert.match(authCss, /v9: final Ola-Uber inspired corporate auth combination/);
+  assert.match(authCss, /v11: final Ola Corporate \+ Uber inspired auth composition/);
+  assert.match(authCss, /Its Easy, Safe and Efficient/);
+  assert.match(authCss, /background:\s*#eeeeef !important/);
   assert.match(authCss, /grid-template-columns:\s*1fr !important/);
   assert.match(authCss, /overflow:\s*visible !important/);
+  assert.match(authCss, /auth-ride-preview/);
+  assert.match(authCss, /quick-booking-hero\.png/);
+  assert.match(authCss, /position:\s*fixed !important/);
+  assert.match(authCss, /grid-template-columns:\s*minmax\(320px,\s*0\.88fr\)\s*minmax\(470px,\s*1\.12fr\)/);
+  assert.match(authCss, /height:\s*auto !important/);
+  assert.match(firebaseAuth, /reportSetupError/);
+  assert.match(recoveryUi, /initFirebasePhoneAuth\(\{silent:true\}\)/);
 });
 
 test('driver portal exposes real KYC, deposit, booking acceptance, penalty, and payout workflow', () => {

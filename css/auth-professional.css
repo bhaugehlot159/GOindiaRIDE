@@ -513,6 +513,354 @@ body.auth-entry-page .otp-digit {
   }
 }
 
+/* v7: full-bleed travel auth with floating booking panel */
+body.auth-entry-page {
+  position: relative !important;
+  min-height: 100dvh !important;
+  place-items: center !important;
+  padding: clamp(18px, 4vh, 34px) 18px !important;
+  background: #07141f !important;
+  overflow-x: hidden !important;
+}
+
+body.auth-entry-page::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -2 !important;
+  background: url("../assets/images/quick-booking-hero.png") center / cover no-repeat !important;
+}
+
+body.auth-entry-page::after {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  background:
+    linear-gradient(90deg, rgba(5, 17, 27, 0.84) 0%, rgba(6, 28, 38, 0.58) 45%, rgba(247, 250, 249, 0.22) 100%),
+    linear-gradient(180deg, rgba(5, 17, 27, 0.12) 0%, rgba(5, 17, 27, 0.55) 100%) !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  position: relative !important;
+  isolation: isolate !important;
+  width: min(1180px, calc(100vw - 36px)) !important;
+  max-width: 1180px !important;
+  min-height: min(720px, calc(100dvh - 44px)) !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-items: center !important;
+  justify-items: end !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  position: static !important;
+  min-height: 0 !important;
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  overflow: visible !important;
+}
+
+body.auth-entry-page .login-left::before,
+body.auth-entry-page .signup-left::before {
+  content: none !important;
+}
+
+body.auth-entry-page .showcase-chip {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  display: inline-flex !important;
+  width: fit-content !important;
+  padding: 0.46rem 0.72rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.26) !important;
+  background: rgba(255, 255, 255, 0.13) !important;
+  color: #ffffff !important;
+  font-size: 0.75rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  position: absolute !important;
+  top: 2.9rem !important;
+  left: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.7rem !important;
+  font-size: clamp(2.05rem, 4vw, 3.65rem) !important;
+  line-height: 1 !important;
+  font-weight: 880 !important;
+  text-shadow: 0 12px 30px rgba(0, 0, 0, 0.26) !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  display: inline-block !important;
+  color: #7be2e8 !important;
+  font-size: 0.96em !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 4.4rem !important;
+  display: block !important;
+  max-width: 31rem !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: clamp(1.05rem, 1.6vw, 1.28rem) !important;
+  line-height: 1.55 !important;
+}
+
+body.auth-entry-page .showcase-band {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 1.55rem !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+  gap: 0.5rem !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  padding: 0.5rem 0.7rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.24) !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+body.auth-entry-page .auth-ride-preview,
+body.auth-entry-page .features-list,
+body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  position: relative !important;
+  z-index: 2 !important;
+  width: min(100%, 470px) !important;
+  min-height: 0 !important;
+  display: block !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+body.auth-signup-page .signup-right {
+  width: min(100%, 650px) !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.48rem !important;
+  margin: 0 0 0.62rem !important;
+  padding: 0 !important;
+}
+
+body.auth-entry-page .utility-btn,
+body.auth-entry-page .goi-native-nav-btn {
+  min-height: 38px !important;
+  padding: 0.48rem 0.72rem !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #102033 !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12) !important;
+}
+
+body.auth-entry-page .utility-btn.utility-primary,
+body.auth-entry-page .goi-dock-btn-primary {
+  background: #0f7a82 !important;
+  border-color: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .admin-portal-link {
+  top: 0 !important;
+  right: auto !important;
+  left: calc(100% - 470px) !important;
+  transform: translateX(-112%) !important;
+  min-height: 38px !important;
+  padding: 0.5rem 0.68rem !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  color: #102033 !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12) !important;
+}
+
+body.auth-entry-page .auth-panel {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: clamp(1.2rem, 2.6vw, 1.85rem) !important;
+  border: 1px solid rgba(215, 224, 229, 0.9) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 26px 70px rgba(5, 17, 27, 0.26) !important;
+  backdrop-filter: blur(18px) !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  margin-bottom: 0.32rem !important;
+  color: #0f7a82 !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .login-header,
+body.auth-entry-page .signup-header {
+  margin-bottom: 1rem !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  font-size: clamp(2rem, 3.6vw, 2.7rem) !important;
+  line-height: 1.04 !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label,
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  background: #ffffff !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 48px !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 48px !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  min-height: 48px !important;
+}
+
+@media (max-width: 900px) {
+  body.auth-entry-page {
+    place-items: start center !important;
+    padding: 10px !important;
+    background: #f7faf9 !important;
+  }
+
+  body.auth-entry-page::before,
+  body.auth-entry-page::after {
+    content: none !important;
+  }
+
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+    min-height: 0 !important;
+    display: block !important;
+    border: 1px solid #d7e0e5 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: 0 18px 44px rgba(20, 40, 60, 0.13) !important;
+    overflow: hidden !important;
+  }
+
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    position: relative !important;
+    min-height: 132px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1rem !important;
+    background:
+      linear-gradient(90deg, rgba(8, 23, 36, 0.78), rgba(12, 77, 75, 0.72)),
+      url("../assets/images/quick-booking-hero.png") center / cover no-repeat !important;
+  }
+
+  body.auth-entry-page .showcase-chip,
+  body.auth-entry-page .login-left p,
+  body.auth-entry-page .signup-left p,
+  body.auth-entry-page .showcase-band,
+  body.auth-entry-page .auth-ride-preview {
+    display: none !important;
+  }
+
+  body.auth-entry-page .login-left h1,
+  body.auth-entry-page .signup-left h1 {
+    position: static !important;
+    max-width: none !important;
+    color: #ffffff !important;
+    font-size: clamp(1.8rem, 8vw, 2.45rem) !important;
+    text-align: center !important;
+  }
+
+  body.auth-entry-page .login-right,
+  body.auth-entry-page .signup-right {
+    width: 100% !important;
+    padding: 0.95rem !important;
+  }
+
+  body.auth-entry-page .admin-portal-link {
+    display: none !important;
+  }
+
+  body.auth-entry-page .utility-btn,
+  body.auth-entry-page .goi-native-nav-btn {
+    box-shadow: none !important;
+    border-color: #d7e0e5 !important;
+    background: #ffffff !important;
+  }
+
+  body.auth-entry-page .auth-panel {
+    padding: 0 !important;
+    border: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  body.auth-entry-page .role-selector,
+  body.auth-entry-page .login-method-selector,
+  body.auth-entry-page #signupForm,
+  body.auth-entry-page .form-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 @media (max-width: 620px) {
   body.auth-entry-page .auth-panel {
     padding: 0.78rem !important;
@@ -803,5 +1151,2484 @@ body.auth-signup-page .signup-left h1 {
 
   body.auth-entry-page .showcase-band {
     justify-content: flex-start !important;
+  }
+}
+
+/* v4: compact international ride auth surface */
+body.auth-entry-page {
+  min-height: 100dvh !important;
+  align-items: start !important;
+  place-items: start center !important;
+  padding: clamp(14px, 3vh, 26px) 12px !important;
+  background:
+    linear-gradient(90deg, #f4fbfc 0%, #ffffff 18%, #ffffff 82%, #fff8ec 100%) !important;
+  color: #102033 !important;
+  overflow-x: hidden !important;
+}
+
+body.auth-entry-page::before,
+body.auth-entry-page::after {
+  content: none !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  width: min(520px, calc(100vw - 24px)) !important;
+  max-width: 520px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  border: 1px solid #d6e3ea !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 36px rgba(16, 32, 51, 0.11) !important;
+  overflow: visible !important;
+}
+
+body.auth-signup-page .signup-container {
+  width: min(720px, calc(100vw - 24px)) !important;
+  max-width: 720px !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  order: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+  padding: 0.82rem 1rem !important;
+  border-bottom: 1px solid #d6e3ea !important;
+  background: #ffffff !important;
+  color: #102033 !important;
+}
+
+body.auth-entry-page .login-left *,
+body.auth-entry-page .signup-left * {
+  color: #102033 !important;
+}
+
+body.auth-entry-page .showcase-chip,
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p,
+body.auth-entry-page .features-list,
+body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+  color: #102033 !important;
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem) !important;
+  line-height: 1.05 !important;
+  font-weight: 850 !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  color: #0f7a82 !important;
+  font-size: 1.32em !important;
+}
+
+body.auth-entry-page .showcase-band {
+  margin: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 0.35rem !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  padding: 0.34rem 0.55rem !important;
+  border: 1px solid #d6e3ea !important;
+  border-radius: 999px !important;
+  background: #f8fbfc !important;
+  color: #526276 !important;
+  font-size: 0.74rem !important;
+  line-height: 1 !important;
+  font-weight: 750 !important;
+  white-space: nowrap !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  order: 1 !important;
+  padding: 0 !important;
+  background: #ffffff !important;
+  overflow: visible !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.45rem !important;
+  margin: 0 !important;
+  padding: 0.72rem 0.88rem 0 !important;
+}
+
+body.auth-entry-page .admin-portal-link {
+  top: 0.7rem !important;
+  left: 0.88rem !important;
+  right: auto !important;
+  min-height: 34px !important;
+  padding: 0.45rem 0.62rem !important;
+  border-radius: 8px !important;
+  background: #f7fbfc !important;
+  color: #526276 !important;
+  border: 1px solid #d6e3ea !important;
+  box-shadow: none !important;
+  font-size: 0.78rem !important;
+}
+
+body.auth-entry-page .utility-btn,
+body.auth-entry-page .goi-native-nav-btn {
+  min-height: 34px !important;
+  padding: 0.42rem 0.68rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #d6e3ea !important;
+  background: #ffffff !important;
+  color: #102033 !important;
+  box-shadow: none !important;
+  font-size: 0.84rem !important;
+}
+
+body.auth-entry-page .utility-btn.utility-primary,
+body.auth-entry-page .goi-dock-btn-primary {
+  border-color: #0f7a82 !important;
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .auth-panel {
+  width: 100% !important;
+  max-width: none !important;
+  padding: clamp(1rem, 2.6vw, 1.35rem) !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  margin: 0 0 0.18rem !important;
+  color: #0f7a82 !important;
+  font-size: 0.72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.14em !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .login-header,
+body.auth-entry-page .signup-header {
+  margin: 0 0 0.75rem !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  margin: 0 !important;
+  color: #102033 !important;
+  font-size: clamp(1.72rem, 4.6vw, 2.2rem) !important;
+  line-height: 1.05 !important;
+  font-weight: 850 !important;
+}
+
+body.auth-entry-page .login-header p,
+body.auth-entry-page .signup-header p {
+  margin: 0.28rem 0 0 !important;
+  color: #526276 !important;
+  font-size: 0.96rem !important;
+  line-height: 1.35 !important;
+}
+
+body.auth-entry-page .role-selector,
+body.auth-entry-page .login-method-selector {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.48rem !important;
+  margin-bottom: 0.55rem !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 44px !important;
+  padding: 0.58rem 0.72rem !important;
+  border: 1px solid #d6e3ea !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #102033 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.55rem !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .role-option:checked + .role-label,
+body.auth-entry-page .method-option:checked + .method-label {
+  border-color: #0f7a82 !important;
+  background: #edfafa !important;
+  color: #0a5960 !important;
+  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+}
+
+body.auth-entry-page .role-label i,
+body.auth-entry-page .method-label i {
+  color: #0f7a82 !important;
+  font-size: 1rem !important;
+}
+
+body.auth-entry-page .role-label span,
+body.auth-entry-page .method-label span {
+  color: inherit !important;
+  font-size: 0.96rem !important;
+  font-weight: 820 !important;
+}
+
+body.auth-entry-page .login-info {
+  display: none !important;
+}
+
+body.auth-entry-page #signupForm {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.55rem 0.72rem !important;
+}
+
+body.auth-entry-page .form-group {
+  margin: 0 !important;
+}
+
+body.auth-entry-page .form-group.full-width,
+body.auth-entry-page .driver-only-fields,
+body.auth-entry-page .terms-checkbox,
+body.auth-entry-page .form-buttons {
+  grid-column: 1 / -1 !important;
+}
+
+body.auth-entry-page .form-group label {
+  margin: 0 0 0.22rem !important;
+  color: #102033 !important;
+  font-size: 0.86rem !important;
+  line-height: 1.2 !important;
+  font-weight: 820 !important;
+}
+
+body.auth-entry-page .input-with-icon {
+  position: relative !important;
+}
+
+body.auth-entry-page .input-with-icon i {
+  left: 0.9rem !important;
+  color: #0f7a82 !important;
+  font-size: 0.96rem !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  width: 100% !important;
+  min-height: 44px !important;
+  padding: 0.64rem 0.9rem 0.64rem 2.65rem !important;
+  border: 1px solid #d6e3ea !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #102033 !important;
+  font-size: 0.96rem !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .form-group input::placeholder {
+  color: #697a8f !important;
+}
+
+body.auth-entry-page .form-group input:focus,
+body.auth-entry-page .form-group select:focus,
+body.auth-entry-page #forgotRole:focus {
+  border-color: #0f7a82 !important;
+  box-shadow: 0 0 0 3px rgba(15, 122, 130, 0.13) !important;
+}
+
+body.auth-entry-page .password-toggle {
+  right: 0.7rem !important;
+  color: #0f7a82 !important;
+}
+
+body.auth-entry-page .input-with-icon input[type="password"] {
+  padding-right: 3rem !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  width: auto !important;
+  min-height: 44px !important;
+  padding: 0.68rem 1rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #0f7a82 !important;
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+  font-size: 0.94rem !important;
+  font-weight: 850 !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-login[onclick*="goToLogin"] {
+  background: #ffffff !important;
+  color: #0f7a82 !important;
+}
+
+body.auth-entry-page .btn-signup[type="submit"] {
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .form-buttons {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr) !important;
+  gap: 0.5rem !important;
+  margin-top: 0.1rem !important;
+}
+
+body.auth-entry-page .terms-checkbox,
+body.auth-entry-page .divider-text,
+body.auth-entry-page .action-links {
+  margin-top: 0.15rem !important;
+  color: #526276 !important;
+  font-size: 0.86rem !important;
+}
+
+body.auth-entry-page .divider-text {
+  margin-top: 0.7rem !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .driver-only-fields {
+  padding: 0.72rem !important;
+  border: 1px solid #d6e3ea !important;
+  border-radius: 8px !important;
+  background: #f8fbfc !important;
+}
+
+body.auth-entry-page .error-message,
+body.auth-entry-page .success-message {
+  border-radius: 8px !important;
+  margin-bottom: 0.6rem !important;
+}
+
+body.auth-entry-page .otp-input-section,
+body.auth-entry-page .forgot-password-section {
+  margin-top: 0.7rem !important;
+  padding: 0.75rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #d6e3ea !important;
+}
+
+@media (min-width: 901px) {
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    min-height: 0 !important;
+  }
+
+  body.auth-login-page .login-container {
+    margin-top: clamp(28px, 7vh, 72px) !important;
+  }
+
+  body.auth-signup-page .signup-container {
+    margin-top: clamp(12px, 3vh, 28px) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.auth-entry-page {
+    padding: 10px !important;
+  }
+
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: calc(100vw - 20px) !important;
+    max-width: none !important;
+  }
+
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  body.auth-entry-page .showcase-band {
+    justify-content: flex-start !important;
+  }
+
+  body.auth-entry-page .auth-utility-nav {
+    padding: 0.6rem 0.7rem 0 !important;
+  }
+
+  body.auth-entry-page .auth-panel {
+    padding: 0.9rem !important;
+  }
+
+  body.auth-entry-page #signupForm,
+  body.auth-entry-page .role-selector,
+  body.auth-entry-page .login-method-selector,
+  body.auth-entry-page .form-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* v5: international ride marketplace auth combination */
+body.auth-entry-page {
+  place-items: center !important;
+  min-height: 100dvh !important;
+  padding: clamp(16px, 3vh, 30px) 14px !important;
+  background:
+    linear-gradient(90deg, #eef8fa 0%, #f7fafb 17%, #ffffff 52%, #fff8ed 100%) !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  width: min(1100px, calc(100vw - 28px)) !important;
+  max-width: 1100px !important;
+  min-height: 620px !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(320px, 0.88fr) minmax(470px, 1.12fr) !important;
+  border: 1px solid #d7e3e7 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  box-shadow: 0 26px 58px rgba(16, 32, 51, 0.13) !important;
+}
+
+body.auth-signup-page .signup-container {
+  width: min(1120px, calc(100vw - 28px)) !important;
+  max-width: 1120px !important;
+  min-height: 660px !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  min-height: 100% !important;
+  order: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  padding: clamp(1.35rem, 2.5vw, 2rem) !important;
+  border: 0 !important;
+  background:
+    linear-gradient(180deg, #102033 0%, #123f45 58%, #286348 100%) !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .login-left *,
+body.auth-entry-page .signup-left * {
+  color: inherit !important;
+}
+
+body.auth-entry-page .showcase-chip {
+  display: inline-flex !important;
+  width: fit-content !important;
+  padding: 0.38rem 0.62rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: #dff8f8 !important;
+  font-size: 0.72rem !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.62rem !important;
+  color: #ffffff !important;
+  font-size: clamp(2rem, 3.4vw, 3rem) !important;
+  line-height: 1 !important;
+  font-weight: 880 !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  color: #7be2e8 !important;
+  font-size: 1.08em !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p {
+  display: block !important;
+  max-width: 28rem !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: 1rem !important;
+  line-height: 1.58 !important;
+}
+
+body.auth-entry-page .showcase-band {
+  display: flex !important;
+  justify-content: flex-start !important;
+  gap: 0.42rem !important;
+  margin: 0 !important;
+  flex-wrap: wrap !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 999px !important;
+  padding: 0.42rem 0.62rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 780 !important;
+}
+
+body.auth-entry-page .features-list,
+body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+body.auth-entry-page .auth-ride-preview {
+  display: grid !important;
+  gap: 0.72rem !important;
+  margin-top: auto !important;
+  padding: 0.9rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.auth-entry-page .preview-tabs,
+body.auth-entry-page .preview-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.42rem !important;
+}
+
+body.auth-entry-page .preview-tabs span,
+body.auth-entry-page .preview-metrics span {
+  min-height: 34px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.86) !important;
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+
+body.auth-entry-page .preview-tabs span:first-child {
+  background: #ffffff !important;
+  color: #102033 !important;
+}
+
+body.auth-entry-page .preview-route {
+  position: relative !important;
+  display: grid !important;
+  gap: 0.5rem !important;
+  padding: 0.5rem 0 !important;
+}
+
+body.auth-entry-page .preview-route::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 1.45rem !important;
+  bottom: 1.45rem !important;
+  left: 0.48rem !important;
+  width: 2px !important;
+  background: rgba(123, 226, 232, 0.55) !important;
+}
+
+body.auth-entry-page .route-step {
+  display: grid !important;
+  grid-template-columns: 1.05rem minmax(0, 1fr) !important;
+  gap: 0.7rem !important;
+  align-items: center !important;
+  min-height: 54px !important;
+}
+
+body.auth-entry-page .route-dot {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 0.92rem !important;
+  height: 0.92rem !important;
+  border-radius: 999px !important;
+  background: #7be2e8 !important;
+  box-shadow: 0 0 0 5px rgba(123, 226, 232, 0.14) !important;
+}
+
+body.auth-entry-page .route-step.drop .route-dot {
+  background: #ffc857 !important;
+  box-shadow: 0 0 0 5px rgba(255, 200, 87, 0.14) !important;
+}
+
+body.auth-entry-page .route-step small {
+  display: block !important;
+  margin-bottom: 0.18rem !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+  font-size: 0.72rem !important;
+  font-weight: 760 !important;
+}
+
+body.auth-entry-page .route-step strong {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 0.95rem !important;
+  line-height: 1.25 !important;
+  font-weight: 850 !important;
+}
+
+body.auth-entry-page .preview-metrics span {
+  min-height: 42px !important;
+  display: block !important;
+  padding: 0.4rem !important;
+  line-height: 1.2 !important;
+}
+
+body.auth-entry-page .preview-metrics strong {
+  display: block !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  order: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  padding: clamp(1.1rem, 2.4vw, 1.8rem) !important;
+  background: #ffffff !important;
+  overflow: visible !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  justify-content: flex-end !important;
+  padding: 0 !important;
+  margin: 0 0 1rem !important;
+}
+
+body.auth-entry-page .admin-portal-link {
+  top: 1rem !important;
+  left: auto !important;
+  right: 1rem !important;
+  min-height: 32px !important;
+  padding: 0.42rem 0.58rem !important;
+  border: 1px solid #d7e3e7 !important;
+  background: #ffffff !important;
+  color: #5d6d7e !important;
+}
+
+body.auth-entry-page .auth-panel {
+  max-width: 470px !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+}
+
+body.auth-signup-page .auth-panel {
+  max-width: 650px !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  color: #0f7a82 !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.14em !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .login-header,
+body.auth-entry-page .signup-header {
+  text-align: left !important;
+  margin-bottom: 1rem !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  color: #102033 !important;
+  font-size: clamp(2rem, 4vw, 2.55rem) !important;
+}
+
+body.auth-entry-page .login-header p,
+body.auth-entry-page .signup-header p {
+  color: #5d6d7e !important;
+  font-size: 1rem !important;
+}
+
+body.auth-entry-page .role-selector,
+body.auth-entry-page .login-method-selector {
+  gap: 0.52rem !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 48px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+}
+
+body.auth-entry-page .role-option:checked + .role-label,
+body.auth-entry-page .method-option:checked + .method-label {
+  background: #ecfbfb !important;
+  border-color: #0f7a82 !important;
+  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 48px !important;
+  font-size: 0.98rem !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  min-height: 48px !important;
+  border-radius: 8px !important;
+}
+
+body.auth-entry-page .error-message {
+  padding: 0.72rem 0.85rem !important;
+  font-size: 0.88rem !important;
+}
+
+@media (min-width: 901px) {
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    min-height: 620px !important;
+  }
+
+  body.auth-signup-page .signup-container {
+    min-height: 660px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.auth-entry-page {
+    place-items: start center !important;
+    padding: 10px !important;
+  }
+
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    min-height: 0 !important;
+    padding: 0.95rem !important;
+    gap: 0.7rem !important;
+  }
+
+  body.auth-entry-page .login-left h1,
+  body.auth-entry-page .signup-left h1 {
+    font-size: 1.78rem !important;
+  }
+
+  body.auth-entry-page .login-left p,
+  body.auth-entry-page .signup-left p,
+  body.auth-entry-page .auth-ride-preview {
+    display: none !important;
+  }
+
+  body.auth-entry-page .login-right,
+  body.auth-entry-page .signup-right {
+    padding: 0.92rem !important;
+  }
+
+  body.auth-entry-page .auth-panel {
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  body.auth-entry-page .showcase-band {
+    display: none !important;
+  }
+
+  body.auth-entry-page .role-selector,
+  body.auth-entry-page .login-method-selector,
+  body.auth-entry-page #signupForm,
+  body.auth-entry-page .form-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* v6: international cab photo and clean booking-auth blend */
+body.auth-entry-page {
+  place-items: center !important;
+  padding: clamp(18px, 3vh, 34px) 14px !important;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(15, 122, 130, 0.12), transparent 30%),
+    radial-gradient(circle at 92% 82%, rgba(255, 184, 77, 0.16), transparent 32%),
+    #f7faf9 !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  width: min(1140px, calc(100vw - 28px)) !important;
+  max-width: 1140px !important;
+  min-height: 640px !important;
+  grid-template-columns: minmax(380px, 0.98fr) minmax(470px, 1.02fr) !important;
+  border: 1px solid #d7e0e5 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 24px 60px rgba(20, 40, 60, 0.14) !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
+}
+
+body.auth-signup-page .signup-container {
+  width: min(1160px, calc(100vw - 28px)) !important;
+  max-width: 1160px !important;
+  min-height: 680px !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  position: relative !important;
+  min-height: 100% !important;
+  padding: clamp(1.4rem, 2.5vw, 2.1rem) !important;
+  justify-content: space-between !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(180deg, rgba(8, 23, 36, 0.72) 0%, rgba(10, 44, 48, 0.58) 45%, rgba(9, 48, 46, 0.84) 100%),
+    url("../assets/images/quick-booking-hero.png") center / cover no-repeat !important;
+}
+
+body.auth-entry-page .login-left::before,
+body.auth-entry-page .signup-left::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(90deg, rgba(4, 18, 29, 0.46), rgba(4, 18, 29, 0.12)) !important;
+  pointer-events: none !important;
+}
+
+body.auth-entry-page .login-left > *,
+body.auth-entry-page .signup-left > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+body.auth-entry-page .showcase-chip {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  max-width: 9ch !important;
+  font-size: clamp(2.4rem, 4.4vw, 4rem) !important;
+  line-height: 0.96 !important;
+  text-shadow: 0 8px 26px rgba(0, 0, 0, 0.24) !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  display: none !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p {
+  max-width: 24rem !important;
+  margin-top: 0.8rem !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 1.05rem !important;
+}
+
+body.auth-entry-page .showcase-band {
+  margin-top: 0.95rem !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+body.auth-entry-page .auth-ride-preview {
+  width: min(100%, 390px) !important;
+  padding: 0.82rem !important;
+  gap: 0.65rem !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(255, 255, 255, 0.74) !important;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+body.auth-entry-page .preview-tabs span,
+body.auth-entry-page .preview-metrics span {
+  min-height: 32px !important;
+  background: #eef6f6 !important;
+  color: #3d5264 !important;
+}
+
+body.auth-entry-page .preview-tabs span:first-child {
+  background: #102033 !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .preview-route {
+  padding: 0.24rem 0 !important;
+}
+
+body.auth-entry-page .preview-route::before {
+  background: #9dc9c9 !important;
+}
+
+body.auth-entry-page .route-step small {
+  color: #6a7785 !important;
+}
+
+body.auth-entry-page .route-step strong {
+  color: #102033 !important;
+}
+
+body.auth-entry-page .preview-metrics span {
+  background: #f6f8f8 !important;
+}
+
+body.auth-entry-page .preview-metrics strong {
+  color: #0f7a82 !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  padding: clamp(1.35rem, 3vw, 2.35rem) !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  margin-bottom: clamp(1.1rem, 2vh, 1.8rem) !important;
+}
+
+body.auth-entry-page .utility-btn,
+body.auth-entry-page .goi-native-nav-btn {
+  border-color: #d8e2e7 !important;
+  color: #17283a !important;
+  font-weight: 780 !important;
+}
+
+body.auth-entry-page .utility-btn.utility-primary,
+body.auth-entry-page .goi-dock-btn-primary {
+  background: #0f7a82 !important;
+  border-color: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .auth-panel {
+  max-width: 480px !important;
+}
+
+body.auth-signup-page .auth-panel {
+  max-width: 660px !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  margin-bottom: 0.32rem !important;
+  color: #0f7a82 !important;
+  letter-spacing: 0.16em !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  font-size: clamp(2.05rem, 4vw, 2.85rem) !important;
+  letter-spacing: 0 !important;
+}
+
+body.auth-entry-page .role-selector,
+body.auth-entry-page .login-method-selector {
+  margin-bottom: 0.62rem !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 50px !important;
+  padding: 0.68rem 0.8rem !important;
+}
+
+body.auth-entry-page .form-group label {
+  margin-bottom: 0.3rem !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 50px !important;
+  border-color: #d8e2e7 !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  min-height: 50px !important;
+  background: #0f7a82 !important;
+  border-color: #0f7a82 !important;
+}
+
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-login[onclick*="goToLogin"] {
+  background: #ffffff !important;
+  color: #0f7a82 !important;
+}
+
+body.auth-entry-page .btn-signup[type="submit"] {
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+@media (min-width: 901px) {
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    min-height: 640px !important;
+  }
+
+  body.auth-signup-page .signup-container {
+    min-height: 680px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.auth-entry-page {
+    place-items: start center !important;
+    padding: 10px !important;
+  }
+
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    overflow: hidden !important;
+  }
+
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    min-height: 128px !important;
+    padding: 1rem !important;
+    background:
+      linear-gradient(90deg, rgba(8, 23, 36, 0.78), rgba(12, 77, 75, 0.72)),
+      url("../assets/images/quick-booking-hero.png") center / cover no-repeat !important;
+  }
+
+  body.auth-entry-page .showcase-chip,
+  body.auth-entry-page .showcase-band,
+  body.auth-entry-page .login-left p,
+  body.auth-entry-page .signup-left p,
+  body.auth-entry-page .auth-ride-preview {
+    display: none !important;
+  }
+
+  body.auth-entry-page .login-left h1,
+  body.auth-entry-page .signup-left h1 {
+    max-width: none !important;
+    font-size: 1.95rem !important;
+  }
+
+  body.auth-entry-page .login-right,
+  body.auth-entry-page .signup-right {
+    padding: 0.95rem !important;
+  }
+}
+
+/* v8: corporate dark hero with simple ride auth card */
+body.auth-entry-page {
+  min-height: 100dvh !important;
+  display: grid !important;
+  place-items: stretch !important;
+  padding: 0 !important;
+  background: #1d1f21 !important;
+  color: #ffffff !important;
+  overflow-x: hidden !important;
+}
+
+body.auth-entry-page::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  height: 112px !important;
+  z-index: 0 !important;
+  background: #eeeeef !important;
+  box-shadow: 0 1px 0 rgba(16, 32, 51, 0.08) !important;
+}
+
+body.auth-entry-page::after {
+  content: "" !important;
+  position: fixed !important;
+  inset: 112px 0 0 0 !important;
+  z-index: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(29, 31, 33, 0.98) 0%, rgba(29, 31, 33, 0.96) 54%, rgba(29, 31, 33, 0.91) 100%),
+    url("../assets/images/quick-booking-hero.png") center / cover no-repeat !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100dvh !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(420px, 1fr) minmax(420px, 600px) !important;
+  align-items: center !important;
+  gap: clamp(36px, 6vw, 96px) !important;
+  padding: 136px clamp(44px, 7vw, 118px) clamp(44px, 7vh, 76px) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+body.auth-signup-page .signup-container {
+  grid-template-columns: minmax(420px, 1fr) minmax(560px, 620px) !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  position: static !important;
+  min-height: 0 !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: 1.6rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  overflow: visible !important;
+}
+
+body.auth-entry-page .login-left::before,
+body.auth-entry-page .signup-left::before {
+  content: none !important;
+}
+
+body.auth-entry-page .showcase-chip {
+  display: none !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  position: fixed !important;
+  top: 34px !important;
+  left: clamp(44px, 7vw, 118px) !important;
+  z-index: 2 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.7rem !important;
+  color: #202124 !important;
+  font-size: clamp(1.9rem, 3vw, 2.55rem) !important;
+  line-height: 1 !important;
+  font-weight: 840 !important;
+  text-shadow: none !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 50% !important;
+  background: #121314 !important;
+  color: #d7e830 !important;
+  font-size: 1.05rem !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p {
+  position: static !important;
+  display: block !important;
+  max-width: 42rem !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: clamp(2.05rem, 4vw, 3.05rem) !important;
+  line-height: 1.18 !important;
+  font-weight: 430 !important;
+  letter-spacing: 0 !important;
+}
+
+body.auth-entry-page .login-left::after,
+body.auth-entry-page .signup-left::after {
+  content: "Easy, safe, and efficient mobility access" !important;
+  display: block !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: clamp(1.16rem, 2vw, 1.55rem) !important;
+  line-height: 1.25 !important;
+  font-weight: 780 !important;
+}
+
+body.auth-entry-page .showcase-band {
+  position: fixed !important;
+  top: 44px !important;
+  right: clamp(44px, 7vw, 118px) !important;
+  z-index: 2 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: clamp(1rem, 2.8vw, 2.5rem) !important;
+  margin: 0 !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #656565 !important;
+  font-size: 0.82rem !important;
+  font-weight: 820 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body.auth-entry-page .auth-ride-preview,
+body.auth-entry-page .features-list,
+body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 100% !important;
+  display: grid !important;
+  align-content: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+  margin: 0 0 0.65rem !important;
+  padding: 0 !important;
+}
+
+body.auth-entry-page .utility-btn,
+body.auth-entry-page .goi-native-nav-btn {
+  min-height: 38px !important;
+  padding: 0.48rem 0.72rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #202124 !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .utility-btn.utility-primary,
+body.auth-entry-page .goi-dock-btn-primary {
+  background: #0f7a82 !important;
+  border-color: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .admin-portal-link {
+  display: none !important;
+}
+
+body.auth-entry-page .auth-panel {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: clamp(1.75rem, 3vw, 2.45rem) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #202124 !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: none !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  display: none !important;
+}
+
+body.auth-entry-page .login-header,
+body.auth-entry-page .signup-header {
+  margin: 0 0 1.25rem !important;
+  text-align: left !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  color: #303030 !important;
+  font-size: clamp(1.95rem, 3vw, 2.35rem) !important;
+  line-height: 1.08 !important;
+  font-weight: 760 !important;
+}
+
+body.auth-entry-page .login-header p,
+body.auth-entry-page .signup-header p {
+  color: #666666 !important;
+  font-size: 0.98rem !important;
+}
+
+body.auth-entry-page .role-selector,
+body.auth-entry-page .login-method-selector {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.58rem !important;
+  margin-bottom: 0.72rem !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 48px !important;
+  border-radius: 6px !important;
+  border: 1px solid #dcdcdc !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .role-option:checked + .role-label,
+body.auth-entry-page .method-option:checked + .method-label {
+  border-color: #0f7a82 !important;
+  background: #eaf8f8 !important;
+  color: #0b5960 !important;
+  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+}
+
+body.auth-entry-page .form-group label {
+  color: #303030 !important;
+  font-size: 0.9rem !important;
+  font-weight: 760 !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 52px !important;
+  border: 1px solid #dcdcdc !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  font-size: 1rem !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  min-height: 52px !important;
+  border-radius: 6px !important;
+  border: 0 !important;
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
+}
+
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-login[onclick*="goToLogin"] {
+  border: 1px solid #0f7a82 !important;
+  background: #ffffff !important;
+  color: #0f7a82 !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .btn-signup[type="submit"] {
+  border: 0 !important;
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
+}
+
+body.auth-entry-page .divider-text,
+body.auth-entry-page .action-links,
+body.auth-entry-page .terms-checkbox {
+  color: #555555 !important;
+}
+
+@media (max-width: 980px) {
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding-top: 128px !important;
+  }
+
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    min-height: auto !important;
+  }
+
+  body.auth-entry-page .login-left p,
+  body.auth-entry-page .signup-left p {
+    max-width: 34rem !important;
+    font-size: clamp(1.45rem, 6vw, 2.1rem) !important;
+  }
+
+  body.auth-entry-page .showcase-band {
+    display: none !important;
+  }
+
+  body.auth-entry-page .login-right,
+  body.auth-entry-page .signup-right {
+    width: min(100%, 560px) !important;
+    justify-self: center !important;
+  }
+}
+
+@media (max-width: 560px) {
+  body.auth-entry-page {
+    place-items: start center !important;
+    background: #1d1f21 !important;
+  }
+
+  body.auth-entry-page::before {
+    height: 86px !important;
+  }
+
+  body.auth-entry-page::after {
+    inset: 86px 0 0 0 !important;
+  }
+
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    padding: 102px 12px 18px !important;
+  }
+
+  body.auth-entry-page .login-left h1,
+  body.auth-entry-page .signup-left h1 {
+    top: 24px !important;
+    left: 18px !important;
+    font-size: 1.35rem !important;
+  }
+
+  body.auth-entry-page .login-left h1 i,
+  body.auth-entry-page .signup-left h1 i {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  body.auth-entry-page .login-left p,
+  body.auth-entry-page .signup-left p,
+  body.auth-entry-page .login-left::after,
+  body.auth-entry-page .signup-left::after {
+    display: none !important;
+  }
+
+  body.auth-entry-page .auth-utility-nav {
+    margin-bottom: 0.5rem !important;
+  }
+
+  body.auth-entry-page .auth-panel {
+    padding: 1rem !important;
+  }
+
+  body.auth-entry-page .role-selector,
+  body.auth-entry-page .login-method-selector,
+  body.auth-entry-page #signupForm,
+  body.auth-entry-page .form-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* v9: final Ola-Uber inspired corporate auth combination */
+html body.auth-entry-page {
+  min-height: 100dvh !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #1d1f21 !important;
+  color: #ffffff !important;
+  overflow-x: hidden !important;
+}
+
+html body.auth-entry-page::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  height: 114px !important;
+  z-index: 1000 !important;
+  background: #eeeeef !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08) !important;
+  pointer-events: none !important;
+}
+
+html body.auth-entry-page::after {
+  content: "" !important;
+  position: fixed !important;
+  inset: 114px 0 0 0 !important;
+  z-index: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(29, 31, 33, 0.98) 0%, rgba(29, 31, 33, 0.96) 55%, rgba(29, 31, 33, 0.9) 100%),
+    url("../assets/images/quick-booking-hero.png") center / cover no-repeat !important;
+  pointer-events: none !important;
+}
+
+html body.auth-entry-page .login-container,
+html body.auth-entry-page .signup-container {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100dvh !important;
+  height: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(360px, 1fr) minmax(420px, 590px) !important;
+  align-items: center !important;
+  gap: clamp(44px, 7vw, 110px) !important;
+  padding: 138px clamp(48px, 7vw, 118px) 54px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body.auth-signup-page .signup-container {
+  grid-template-columns: minmax(360px, 1fr) minmax(560px, 640px) !important;
+}
+
+html body.auth-entry-page .login-left,
+html body.auth-entry-page .signup-left {
+  position: static !important;
+  z-index: 2 !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 1.45rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body.auth-entry-page .login-left::before,
+html body.auth-entry-page .signup-left::before {
+  content: none !important;
+}
+
+html body.auth-entry-page .login-left h1,
+html body.auth-entry-page .signup-left h1 {
+  position: fixed !important;
+  top: 34px !important;
+  left: clamp(48px, 7vw, 118px) !important;
+  z-index: 1002 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.74rem !important;
+  color: #202124 !important;
+  font-size: clamp(1.95rem, 3vw, 2.55rem) !important;
+  line-height: 1 !important;
+  font-weight: 820 !important;
+  text-shadow: none !important;
+}
+
+html body.auth-entry-page .login-left h1 i,
+html body.auth-entry-page .signup-left h1 i {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 50% !important;
+  background: #151515 !important;
+  color: #d8ea2f !important;
+  font-size: 1rem !important;
+}
+
+html body.auth-entry-page .showcase-chip {
+  display: none !important;
+}
+
+html body.auth-entry-page .login-left p,
+html body.auth-entry-page .signup-left p {
+  position: static !important;
+  display: block !important;
+  max-width: 44rem !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: clamp(2.15rem, 4.3vw, 3.28rem) !important;
+  line-height: 1.16 !important;
+  font-weight: 430 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.auth-entry-page .login-left::after,
+html body.auth-entry-page .signup-left::after {
+  content: "Easy, safe, and efficient mobility access" !important;
+  display: block !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: clamp(1.2rem, 2vw, 1.58rem) !important;
+  line-height: 1.2 !important;
+  font-weight: 780 !important;
+}
+
+html body.auth-entry-page .showcase-band {
+  position: fixed !important;
+  top: 45px !important;
+  right: clamp(48px, 7vw, 118px) !important;
+  left: auto !important;
+  bottom: auto !important;
+  z-index: 1002 !important;
+  width: auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: clamp(1rem, 2.8vw, 2.4rem) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body.auth-entry-page .showcase-band span {
+  display: inline !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #666666 !important;
+  font-size: 0.82rem !important;
+  line-height: 1 !important;
+  font-weight: 820 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html body.auth-entry-page .auth-ride-preview,
+html body.auth-entry-page .features-list,
+html body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+html body.auth-entry-page .login-right,
+html body.auth-entry-page .signup-right {
+  position: relative !important;
+  z-index: 3 !important;
+  width: 100% !important;
+  display: grid !important;
+  align-content: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+html body.auth-entry-page .auth-utility-nav {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  margin: 0 0 0.68rem !important;
+  padding: 0 !important;
+}
+
+html body.auth-entry-page .utility-btn,
+html body.auth-entry-page .goi-native-nav-btn {
+  min-height: 38px !important;
+  padding: 0.48rem 0.72rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.26) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #202124 !important;
+  font-size: 0.9rem !important;
+  font-weight: 780 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .utility-btn.utility-primary,
+html body.auth-entry-page .goi-dock-btn-primary {
+  background: #0f7a82 !important;
+  border-color: #0f7a82 !important;
+  color: #ffffff !important;
+}
+
+html body.auth-entry-page .admin-portal-link {
+  display: none !important;
+}
+
+html body.auth-entry-page .auth-panel {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: clamp(1.75rem, 3vw, 2.45rem) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.26) !important;
+  backdrop-filter: none !important;
+}
+
+html body.auth-entry-page .auth-eyebrow {
+  display: none !important;
+}
+
+html body.auth-entry-page .login-header,
+html body.auth-entry-page .signup-header {
+  margin: 0 0 1.2rem !important;
+  text-align: left !important;
+}
+
+html body.auth-entry-page .login-header h2,
+html body.auth-entry-page .signup-header h2 {
+  margin: 0 !important;
+  color: #303030 !important;
+  font-size: clamp(1.95rem, 3vw, 2.36rem) !important;
+  line-height: 1.08 !important;
+  font-weight: 760 !important;
+}
+
+html body.auth-entry-page .login-header p,
+html body.auth-entry-page .signup-header p {
+  margin: 0.42rem 0 0 !important;
+  color: #666666 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.35 !important;
+}
+
+html body.auth-entry-page .role-selector,
+html body.auth-entry-page .login-method-selector {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.58rem !important;
+  margin-bottom: 0.72rem !important;
+}
+
+html body.auth-entry-page .role-label,
+html body.auth-entry-page .method-label {
+  min-height: 48px !important;
+  padding: 0.65rem 0.78rem !important;
+  border-radius: 6px !important;
+  border: 1px solid #dcdcdc !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .role-option:checked + .role-label,
+html body.auth-entry-page .method-option:checked + .method-label {
+  border-color: #0f7a82 !important;
+  background: #eaf8f8 !important;
+  color: #0b5960 !important;
+  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+}
+
+html body.auth-entry-page .form-group label {
+  color: #303030 !important;
+  font-size: 0.9rem !important;
+  font-weight: 760 !important;
+}
+
+html body.auth-entry-page .form-group input,
+html body.auth-entry-page .form-group select,
+html body.auth-entry-page #forgotRole {
+  min-height: 52px !important;
+  border: 1px solid #dcdcdc !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  font-size: 1rem !important;
+}
+
+html body.auth-entry-page .btn-login,
+html body.auth-entry-page .btn-signup,
+html body.auth-entry-page .btn-send-otp,
+html body.auth-entry-page .btn-verify {
+  min-height: 52px !important;
+  border-radius: 6px !important;
+  border: 0 !important;
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
+}
+
+html body.auth-entry-page .btn-signup,
+html body.auth-entry-page .btn-login[onclick*="goToLogin"] {
+  border: 1px solid #0f7a82 !important;
+  background: #ffffff !important;
+  color: #0f7a82 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .btn-signup[type="submit"] {
+  border: 0 !important;
+  background: #0f7a82 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
+}
+
+@media (max-width: 980px) {
+  html body.auth-entry-page .login-container,
+  html body.auth-entry-page .signup-container {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem !important;
+    padding-top: 136px !important;
+  }
+
+  html body.auth-entry-page .login-left p,
+  html body.auth-entry-page .signup-left p {
+    max-width: 34rem !important;
+    font-size: clamp(1.45rem, 6vw, 2.1rem) !important;
+  }
+
+  html body.auth-entry-page .showcase-band {
+    display: none !important;
+  }
+
+  html body.auth-entry-page .login-right,
+  html body.auth-entry-page .signup-right {
+    width: min(100%, 560px) !important;
+    justify-self: center !important;
+  }
+}
+
+@media (max-width: 560px) {
+  html body.auth-entry-page::before {
+    height: 86px !important;
+  }
+
+  html body.auth-entry-page::after {
+    inset: 86px 0 0 0 !important;
+  }
+
+  html body.auth-entry-page .login-container,
+  html body.auth-entry-page .signup-container {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    display: block !important;
+    padding: 104px 12px 18px !important;
+  }
+
+  html body.auth-entry-page .login-left,
+  html body.auth-entry-page .signup-left {
+    display: block !important;
+  }
+
+  html body.auth-entry-page .login-left h1,
+  html body.auth-entry-page .signup-left h1 {
+    top: 24px !important;
+    left: 18px !important;
+    font-size: 1.35rem !important;
+  }
+
+  html body.auth-entry-page .login-left h1 i,
+  html body.auth-entry-page .signup-left h1 i {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  html body.auth-entry-page .login-left p,
+  html body.auth-entry-page .signup-left p,
+  html body.auth-entry-page .login-left::after,
+  html body.auth-entry-page .signup-left::after {
+    display: none !important;
+  }
+
+  html body.auth-entry-page .auth-utility-nav {
+    margin-bottom: 0.5rem !important;
+  }
+
+  html body.auth-entry-page .auth-panel {
+    padding: 1rem !important;
+  }
+
+  html body.auth-entry-page .role-selector,
+  html body.auth-entry-page .login-method-selector,
+  html body.auth-entry-page #signupForm,
+  html body.auth-entry-page .form-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* v10: visible header layer and stable corporate hero positioning */
+html body.auth-entry-page .login-container::before,
+html body.auth-entry-page .signup-container::before {
+  content: "" !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 114px !important;
+  z-index: 1001 !important;
+  background: #eeeeef !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08) !important;
+  pointer-events: none !important;
+}
+
+html body.auth-entry-page .login-left h1,
+html body.auth-entry-page .signup-left h1 {
+  z-index: 1003 !important;
+  color: #202124 !important;
+}
+
+html body.auth-entry-page .showcase-band {
+  z-index: 1003 !important;
+}
+
+html body.auth-entry-page .login-left,
+html body.auth-entry-page .signup-left {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 1.55rem !important;
+}
+
+html body.auth-entry-page .login-left::after,
+html body.auth-entry-page .signup-left::after {
+  position: static !important;
+  margin-top: 0 !important;
+}
+
+html body.auth-entry-page .auth-utility-nav {
+  position: relative !important;
+  z-index: 4 !important;
+}
+
+html body.auth-entry-page .auth-panel {
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+@media (max-width: 560px) {
+  html body.auth-entry-page .login-container::before,
+  html body.auth-entry-page .signup-container::before {
+    height: 86px !important;
+  }
+}
+
+/* v11: final Ola Corporate + Uber inspired auth composition */
+html body.auth-entry-page {
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  background: #1b1b1b !important;
+  color: #242424 !important;
+}
+
+html body.auth-entry-page::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  height: 118px !important;
+  z-index: 1400 !important;
+  background: #eeeeef !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  pointer-events: none !important;
+}
+
+html body.auth-entry-page::after {
+  content: "" !important;
+  position: fixed !important;
+  inset: 118px 0 0 0 !important;
+  z-index: 0 !important;
+  background:
+    radial-gradient(circle at 30% 48%, rgba(255, 255, 255, 0.055), transparent 0),
+    linear-gradient(115deg, #171717 0%, #222222 56%, #303030 100%) !important;
+  pointer-events: none !important;
+}
+
+html body.auth-entry-page .login-container,
+html body.auth-entry-page .signup-container {
+  position: relative !important;
+  z-index: 2 !important;
+  width: min(100%, 1680px) !important;
+  min-height: 100dvh !important;
+  margin: 0 auto !important;
+  padding: 118px clamp(34px, 5vw, 88px) clamp(34px, 5vw, 72px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(360px, 1fr) minmax(440px, 560px) !important;
+  gap: clamp(44px, 8vw, 120px) !important;
+  align-items: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body.auth-signup-page .signup-container {
+  grid-template-columns: minmax(360px, 1fr) minmax(500px, 620px) !important;
+}
+
+html body.auth-entry-page .login-container::before,
+html body.auth-entry-page .signup-container::before {
+  content: "" !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 118px !important;
+  z-index: 1 !important;
+  background: #eeeeef !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+html body.auth-entry-page .login-left,
+html body.auth-entry-page .signup-left {
+  position: static !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  min-height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(1.4rem, 2.4vw, 2rem) !important;
+  padding: 0 0 2.5rem !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body.auth-entry-page .login-left h1,
+html body.auth-entry-page .signup-left h1 {
+  position: fixed !important;
+  top: 34px !important;
+  left: clamp(48px, 6.6vw, 112px) !important;
+  z-index: 1700 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.8rem !important;
+  color: #222222 !important;
+  font-size: clamp(1.9rem, 2.7vw, 2.45rem) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+html body.auth-entry-page .login-left h1 i,
+html body.auth-entry-page .signup-left h1 i {
+  width: 48px !important;
+  height: 48px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 48px !important;
+  border-radius: 50% !important;
+  background: #161616 !important;
+  border: 4px solid #2b2b2b !important;
+  color: #dbe935 !important;
+  font-size: 1.08rem !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .showcase-band {
+  position: fixed !important;
+  top: 50px !important;
+  right: clamp(48px, 6.6vw, 112px) !important;
+  left: auto !important;
+  z-index: 1700 !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: clamp(1.15rem, 3vw, 2.65rem) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
+html body.auth-entry-page .showcase-band span {
+  display: inline !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #626262 !important;
+  font-size: clamp(0.78rem, 1vw, 0.92rem) !important;
+  font-weight: 790 !important;
+  letter-spacing: 0.12em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  white-space: nowrap !important;
+}
+
+html body.auth-entry-page .showcase-chip,
+html body.auth-entry-page .auth-ride-preview,
+html body.auth-entry-page .features-list,
+html body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+html body.auth-entry-page .login-left p,
+html body.auth-entry-page .signup-left p {
+  position: static !important;
+  display: block !important;
+  max-width: 46rem !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: clamp(2.2rem, 4vw, 3.6rem) !important;
+  line-height: 1.16 !important;
+  font-weight: 430 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.auth-entry-page .login-left::after,
+html body.auth-entry-page .signup-left::after {
+  content: "Its Easy, Safe and Efficient" !important;
+  position: static !important;
+  display: block !important;
+  width: auto !important;
+  max-width: 34rem !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: clamp(1.2rem, 1.8vw, 1.7rem) !important;
+  line-height: 1.2 !important;
+  font-weight: 780 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.auth-entry-page .login-right,
+html body.auth-entry-page .signup-right {
+  position: relative !important;
+  z-index: 3 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  gap: 0.72rem !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body.auth-entry-page .auth-utility-nav {
+  order: 2 !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1rem !important;
+  margin: 0.55rem 0 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body.auth-entry-page .utility-btn,
+html body.auth-entry-page .goi-native-nav-btn {
+  min-height: 38px !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  font-size: 0.96rem !important;
+  font-weight: 760 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .utility-btn.utility-primary,
+html body.auth-entry-page .goi-dock-btn-primary {
+  color: #dbe935 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+html body.auth-entry-page .auth-panel {
+  order: 1 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: clamp(1.85rem, 3vw, 2.7rem) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34) !important;
+  backdrop-filter: none !important;
+}
+
+html body.auth-entry-page .auth-eyebrow,
+html body.auth-entry-page .login-info {
+  display: none !important;
+}
+
+html body.auth-entry-page .login-header,
+html body.auth-entry-page .signup-header {
+  margin: 0 0 1.15rem !important;
+  text-align: left !important;
+}
+
+html body.auth-entry-page .login-header h2,
+html body.auth-entry-page .signup-header h2 {
+  margin: 0 !important;
+  color: #303030 !important;
+  font-size: clamp(1.8rem, 2.55vw, 2.25rem) !important;
+  line-height: 1.1 !important;
+  font-weight: 720 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.auth-entry-page .login-header p,
+html body.auth-entry-page .signup-header p {
+  margin: 0.38rem 0 0 !important;
+  color: #5c5c5c !important;
+  font-size: 0.98rem !important;
+  line-height: 1.35 !important;
+}
+
+html body.auth-entry-page .role-selector,
+html body.auth-entry-page .login-method-selector {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.58rem !important;
+  margin: 0 0 0.64rem !important;
+}
+
+html body.auth-entry-page .role-label,
+html body.auth-entry-page .method-label {
+  min-height: 46px !important;
+  padding: 0.62rem 0.72rem !important;
+  justify-content: center !important;
+  gap: 0.55rem !important;
+  border-radius: 4px !important;
+  border: 1px solid #d8d8d8 !important;
+  background: #ffffff !important;
+  color: #333333 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .role-label i,
+html body.auth-entry-page .method-label i {
+  color: #111111 !important;
+}
+
+html body.auth-entry-page .role-option:checked + .role-label,
+html body.auth-entry-page .method-option:checked + .method-label {
+  border-color: #111111 !important;
+  background: #f1f1f1 !important;
+  color: #111111 !important;
+  box-shadow: inset 0 0 0 1px #111111 !important;
+}
+
+html body.auth-entry-page .form-group {
+  margin-bottom: 0.86rem !important;
+}
+
+html body.auth-entry-page .form-group label {
+  margin-bottom: 0.32rem !important;
+  color: #303030 !important;
+  font-size: 0.88rem !important;
+  font-weight: 720 !important;
+}
+
+html body.auth-entry-page .form-group input,
+html body.auth-entry-page .form-group select,
+html body.auth-entry-page #forgotRole {
+  min-height: 48px !important;
+  border: 1px solid #d8d8d8 !important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
+  color: #303030 !important;
+  font-size: 1rem !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .input-with-icon i {
+  color: #111111 !important;
+}
+
+html body.auth-entry-page .btn-login,
+html body.auth-entry-page .btn-signup,
+html body.auth-entry-page .btn-send-otp,
+html body.auth-entry-page .btn-verify {
+  min-height: 50px !important;
+  width: auto !important;
+  min-width: 172px !important;
+  padding: 0.78rem 1.35rem !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 780 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .btn-signup,
+html body.auth-entry-page .btn-login[onclick*="goToLogin"] {
+  min-width: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #1f8de2 !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .btn-signup[type="submit"] {
+  min-width: 172px !important;
+  border: 0 !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html body.auth-entry-page .form-buttons {
+  justify-content: flex-start !important;
+  gap: 0.75rem !important;
+}
+
+@media (max-width: 1080px) {
+  html body.auth-entry-page .showcase-band {
+    display: none !important;
+  }
+
+  html body.auth-entry-page .login-container,
+  html body.auth-entry-page .signup-container,
+  html body.auth-signup-page .signup-container {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+    padding-top: 136px !important;
+  }
+
+  html body.auth-entry-page .login-left,
+  html body.auth-entry-page .signup-left {
+    padding-bottom: 0 !important;
+  }
+
+  html body.auth-entry-page .login-left p,
+  html body.auth-entry-page .signup-left p {
+    max-width: 42rem !important;
+    font-size: clamp(1.8rem, 5vw, 2.6rem) !important;
+  }
+
+  html body.auth-entry-page .login-right,
+  html body.auth-entry-page .signup-right {
+    width: min(100%, 620px) !important;
+    margin: 0 auto !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html body.auth-entry-page::before {
+    height: 86px !important;
+  }
+
+  html body.auth-entry-page::after {
+    inset: 86px 0 0 0 !important;
+  }
+
+  html body.auth-entry-page .login-container,
+  html body.auth-entry-page .signup-container,
+  html body.auth-signup-page .signup-container {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100dvh !important;
+    padding: 104px 12px 22px !important;
+  }
+
+  html body.auth-entry-page .login-left,
+  html body.auth-entry-page .signup-left {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  html body.auth-entry-page .login-left h1,
+  html body.auth-entry-page .signup-left h1 {
+    top: 24px !important;
+    left: 16px !important;
+    font-size: 1.32rem !important;
+  }
+
+  html body.auth-entry-page .login-container::before,
+  html body.auth-entry-page .signup-container::before {
+    height: 86px !important;
+  }
+
+  html body.auth-entry-page .login-left h1 i,
+  html body.auth-entry-page .signup-left h1 i {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+    border-width: 3px !important;
+    font-size: 0.82rem !important;
+  }
+
+  html body.auth-entry-page .login-left p,
+  html body.auth-entry-page .signup-left p,
+  html body.auth-entry-page .login-left::after,
+  html body.auth-entry-page .signup-left::after {
+    display: none !important;
+  }
+
+  html body.auth-entry-page .auth-panel {
+    padding: 1rem !important;
+  }
+
+  html body.auth-entry-page .role-selector,
+  html body.auth-entry-page .login-method-selector,
+  html body.auth-entry-page #signupForm,
+  html body.auth-entry-page .form-buttons {
+    grid-template-columns: 1fr !important;
   }
 }

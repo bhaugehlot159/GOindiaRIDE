@@ -143,7 +143,7 @@ window.addEventListener('load',async()=>{
   }else{
     updateLoginMethod();
   }
-initFirebasePhoneAuth().catch(()=>{});
+  initFirebasePhoneAuth({silent:true}).catch(()=>{});
   initializeAdminAccessGate();
   scheduleAdminCredentialAutofillClear();
   console.log('Login page ready');
