@@ -528,3 +528,280 @@ body.auth-entry-page .otp-digit {
     flex-direction: column !important;
   }
 }
+
+/* v2: ride-app entry surface, not a dashboard shell */
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  width: min(1080px, calc(100vw - 28px)) !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(520px, 1.28fr) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+body.auth-entry-page .signup-container {
+  grid-template-columns: minmax(300px, 0.68fr) minmax(580px, 1.32fr) !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  overflow: visible !important;
+  padding: clamp(0.85rem, 1.45vw, 1.25rem) !important;
+}
+
+body.auth-entry-page .auth-panel {
+  max-width: 720px !important;
+  padding: clamp(0.65rem, 1.2vw, 1rem) !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  padding: clamp(1.1rem, 2vw, 1.65rem) !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  font-size: clamp(1.7rem, 2.35vw, 2.35rem) !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p {
+  font-size: 0.9rem !important;
+}
+
+body.auth-entry-page .features-list li {
+  font-size: 0.86rem !important;
+}
+
+body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 50px !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 46px !important;
+}
+
+@media (min-width: 901px) {
+  body.auth-entry-page {
+    align-items: center !important;
+  }
+
+  body.auth-entry-page .login-container {
+    min-height: 560px !important;
+  }
+
+  body.auth-entry-page .signup-container {
+    min-height: 620px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: 100% !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+}
+
+/* v3: app-style auth like ride platforms, not a split dashboard */
+body.auth-entry-page {
+  place-items: start center !important;
+  padding: clamp(16px, 3vh, 32px) clamp(12px, 3vw, 24px) !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  width: min(920px, calc(100vw - 32px)) !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  min-height: 0 !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 42px rgba(19, 35, 58, 0.12) !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 0.7rem 1rem !important;
+  padding: clamp(0.9rem, 1.6vw, 1.2rem) clamp(1rem, 2vw, 1.45rem) !important;
+  border-bottom: 1px solid var(--auth-border) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fcfc 100%) !important;
+  color: var(--auth-ink) !important;
+}
+
+body.auth-entry-page .login-left *,
+body.auth-entry-page .signup-left * {
+  color: var(--auth-ink) !important;
+}
+
+body.auth-entry-page .showcase-chip {
+  width: fit-content !important;
+  grid-column: 1 / -1 !important;
+  padding: 0.28rem 0.55rem !important;
+  border: 1px solid #c7e8e4 !important;
+  background: #effaf8 !important;
+  color: var(--auth-teal-deep) !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+  color: var(--auth-ink) !important;
+  font-size: clamp(1.45rem, 2.4vw, 2rem) !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  color: var(--auth-teal) !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p,
+body.auth-entry-page .features-list,
+body.auth-entry-page .showcase-proof {
+  display: none !important;
+}
+
+body.auth-entry-page .showcase-band {
+  justify-content: flex-end !important;
+  gap: 0.4rem !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  padding: 0.34rem 0.58rem !important;
+  border: 1px solid var(--auth-border) !important;
+  background: #ffffff !important;
+  color: var(--auth-muted) !important;
+  font-size: 0.72rem !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  padding: clamp(0.7rem, 1.35vw, 1rem) !important;
+  background: #ffffff !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  margin-bottom: 0.25rem !important;
+}
+
+body.auth-entry-page .auth-panel {
+  max-width: 760px !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  font-size: clamp(1.45rem, 2.25vw, 1.95rem) !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  justify-content: flex-start !important;
+  padding-left: 1rem !important;
+}
+
+body.auth-entry-page .login-info {
+  background: #f7fbfb !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  margin-bottom: 0.14rem !important;
+}
+
+body.auth-entry-page .login-header,
+body.auth-entry-page .signup-header {
+  margin-bottom: 0.48rem !important;
+}
+
+body.auth-entry-page .role-selector,
+body.auth-entry-page .login-method-selector {
+  gap: 0.45rem !important;
+  margin-bottom: 0.52rem !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 44px !important;
+  padding-top: 0.48rem !important;
+  padding-bottom: 0.48rem !important;
+}
+
+body.auth-entry-page .form-group label {
+  margin-bottom: 0.18rem !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 42px !important;
+  padding-top: 0.52rem !important;
+  padding-bottom: 0.52rem !important;
+}
+
+body.auth-entry-page #signupForm {
+  gap: 0.44rem 0.6rem !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  min-height: 42px !important;
+}
+
+body.auth-signup-page .signup-left {
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.7rem !important;
+}
+
+body.auth-signup-page .signup-left .showcase-chip {
+  display: none !important;
+}
+
+body.auth-signup-page .signup-left h1 {
+  font-size: clamp(1.35rem, 2vw, 1.75rem) !important;
+}
+
+@media (min-width: 901px) {
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    min-height: 0 !important;
+  }
+
+  body.auth-entry-page .signup-container {
+    width: min(960px, calc(100vw - 32px)) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.auth-entry-page .showcase-band {
+    justify-content: flex-start !important;
+  }
+}

@@ -121,8 +121,8 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
 
   assert.match(login, /<meta name="googlebot" content="noindex, follow">/);
   assert.match(signup, /<meta name="googlebot" content="noindex, follow">/);
-  assert.match(login, /css\/auth-professional\.css\?v=20260608-auth1/);
-  assert.match(signup, /css\/auth-professional\.css\?v=20260608-auth1/);
+  assert.match(login, /css\/auth-professional\.css\?v=20260608-auth3/);
+  assert.match(signup, /css\/auth-professional\.css\?v=20260608-auth3/);
   assert.match(login, /<body class="auth-entry-page auth-login-page">/);
   assert.match(signup, /<body class="auth-entry-page auth-signup-page">/);
 
@@ -132,12 +132,13 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(login, /customerSendOTP\(\)/);
   assert.match(login, /driverSendOTP\(\)/);
   assert.match(login, /adminStep1Login\(\)/);
+  assert.match(login, /guardPhoneAutofillLeak/);
 
-  assert.match(customerPhoneInput, /name="customerPhone"/);
-  assert.match(customerPhoneInput, /autocomplete="tel"/);
+  assert.match(customerPhoneInput, /name="goindiaride_customer_mobile_otp"/);
+  assert.match(customerPhoneInput, /autocomplete="off"/);
   assert.match(customerPhoneInput, /inputmode="tel"/);
-  assert.match(driverPhoneInput, /name="driverPhone"/);
-  assert.match(driverPhoneInput, /autocomplete="tel"/);
+  assert.match(driverPhoneInput, /name="goindiaride_driver_mobile_otp"/);
+  assert.match(driverPhoneInput, /autocomplete="off"/);
   assert.match(driverPhoneInput, /inputmode="tel"/);
 
   assert.match(signup, /id="signupForm"/);
@@ -152,7 +153,10 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(authCss, /Loaded only by login\/signup pages/);
   assert.match(authCss, /body\.auth-entry-page::before/);
   assert.match(authCss, /content:\s*none !important/);
-  assert.match(authCss, /grid-template-columns:\s*minmax\(300px, 0\.86fr\) minmax\(480px, 1\.14fr\)/);
+  assert.match(authCss, /v2: ride-app entry surface, not a dashboard shell/);
+  assert.match(authCss, /v3: app-style auth like ride platforms, not a split dashboard/);
+  assert.match(authCss, /grid-template-columns:\s*1fr !important/);
+  assert.match(authCss, /overflow:\s*visible !important/);
 });
 
 test('driver portal exposes real KYC, deposit, booking acceptance, penalty, and payout workflow', () => {
