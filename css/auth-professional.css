@@ -1,0 +1,530 @@
+/*
+  Professional auth entry polish.
+  Loaded only by login/signup pages so existing booking, admin, dashboard, and portal styles stay untouched.
+*/
+
+:root {
+  --auth-ink: #13233a;
+  --auth-muted: #53657a;
+  --auth-border: #d6e1ea;
+  --auth-panel: #ffffff;
+  --auth-soft: #f6fafc;
+  --auth-teal: #126a73;
+  --auth-teal-deep: #0f3f54;
+  --auth-amber: #d89b2b;
+  --auth-focus: rgba(18, 106, 115, 0.16);
+  --auth-shadow: 0 22px 48px rgba(19, 35, 58, 0.15);
+}
+
+body.auth-entry-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(10px, 1.5vw, 18px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  color: var(--auth-ink) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #edf6f6 54%, #fff7e8 100%) !important;
+}
+
+body.auth-entry-page::before,
+body.auth-entry-page::after,
+body.auth-entry-page .login-left::after,
+body.auth-entry-page .signup-left::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.auth-entry-page .login-container,
+body.auth-entry-page .signup-container {
+  width: min(1120px, calc(100vw - 28px)) !important;
+  max-width: 1120px !important;
+  min-height: 0 !important;
+  height: min(720px, calc(100dvh - 32px)) !important;
+  max-height: calc(100dvh - 32px) !important;
+  display: grid !important;
+  grid-template-columns: minmax(300px, 0.86fr) minmax(480px, 1.14fr) !important;
+  overflow: hidden !important;
+  border: 1px solid var(--auth-border) !important;
+  border-radius: 10px !important;
+  background: var(--auth-panel) !important;
+  box-shadow: var(--auth-shadow) !important;
+}
+
+body.auth-entry-page .signup-container {
+  height: min(780px, calc(100dvh - 32px)) !important;
+  grid-template-columns: minmax(286px, 0.76fr) minmax(560px, 1.24fr) !important;
+}
+
+body.auth-entry-page .login-left,
+body.auth-entry-page .signup-left {
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 0.72rem !important;
+  padding: clamp(1.2rem, 2vw, 2rem) !important;
+  text-align: left !important;
+  overflow: hidden !important;
+  background: linear-gradient(150deg, #10233d 0%, #126a73 62%, #d89b2b 165%) !important;
+  color: #f8fbff !important;
+}
+
+body.auth-entry-page .login-left *,
+body.auth-entry-page .signup-left * {
+  color: #f8fbff !important;
+}
+
+body.auth-entry-page .showcase-chip {
+  padding: 0.38rem 0.68rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.09) !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+body.auth-entry-page .login-left h1,
+body.auth-entry-page .signup-left h1 {
+  margin: 0 !important;
+  font-size: clamp(1.85rem, 2.5vw, 2.55rem) !important;
+  line-height: 1.08 !important;
+  letter-spacing: 0 !important;
+}
+
+body.auth-entry-page .login-left h1 i,
+body.auth-entry-page .signup-left h1 i {
+  color: #83e7f0 !important;
+}
+
+body.auth-entry-page .login-left p,
+body.auth-entry-page .signup-left p {
+  max-width: 31ch !important;
+  margin: 0.2rem 0 0 !important;
+  font-size: 0.98rem !important;
+  line-height: 1.5 !important;
+  color: rgba(248, 251, 255, 0.88) !important;
+}
+
+body.auth-entry-page .showcase-band {
+  gap: 0.42rem !important;
+}
+
+body.auth-entry-page .showcase-band span {
+  padding: 0.34rem 0.56rem !important;
+  border-radius: 999px !important;
+  font-size: 0.76rem !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.auth-entry-page .features-list {
+  display: grid !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  margin-top: 0.15rem !important;
+}
+
+body.auth-entry-page .features-list li {
+  gap: 0.7rem !important;
+  padding: 0 !important;
+  font-size: 0.92rem !important;
+  line-height: 1.35 !important;
+}
+
+body.auth-entry-page .features-list i {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 999px !important;
+  background: rgba(131, 231, 240, 0.18) !important;
+  color: #83e7f0 !important;
+  font-size: 0.95rem !important;
+  flex: 0 0 auto !important;
+}
+
+body.auth-entry-page .features-list i::before {
+  content: "✓" !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+body.auth-entry-page .showcase-proof {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.55rem !important;
+  margin-top: 0.25rem !important;
+}
+
+body.auth-entry-page .proof-card {
+  padding: 0.72rem !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .proof-card strong {
+  margin-bottom: 0.18rem !important;
+  font-size: 0.9rem !important;
+}
+
+body.auth-entry-page .proof-card span {
+  font-size: 0.78rem !important;
+  line-height: 1.38 !important;
+  color: rgba(248, 251, 255, 0.8) !important;
+}
+
+body.auth-entry-page .login-right,
+body.auth-entry-page .signup-right {
+  justify-content: flex-start !important;
+  gap: 0.75rem !important;
+  min-width: 0 !important;
+  padding: clamp(0.9rem, 1.7vw, 1.45rem) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  background: linear-gradient(180deg, #ffffff 0%, var(--auth-soft) 100%) !important;
+}
+
+body.auth-entry-page .auth-utility-nav {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.42rem !important;
+  margin-bottom: 0 !important;
+}
+
+body.auth-entry-page .utility-btn,
+body.auth-entry-page .goi-native-nav-btn {
+  min-height: 36px !important;
+  padding: 0.5rem 0.78rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--auth-border) !important;
+  background: #ffffff !important;
+  color: var(--auth-ink) !important;
+  box-shadow: none !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+}
+
+body.auth-entry-page .utility-btn.utility-primary,
+body.auth-entry-page .goi-dock-btn-primary {
+  background: var(--auth-teal) !important;
+  color: #ffffff !important;
+  border-color: var(--auth-teal) !important;
+}
+
+body.auth-entry-page .auth-panel {
+  width: 100% !important;
+  max-width: 690px !important;
+  margin: 0 auto !important;
+  padding: clamp(0.9rem, 1.6vw, 1.35rem) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--auth-border) !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 30px rgba(19, 35, 58, 0.08) !important;
+}
+
+body.auth-signup-page .auth-panel {
+  max-width: 760px !important;
+}
+
+body.auth-entry-page .auth-eyebrow {
+  margin-bottom: 0.28rem !important;
+  color: var(--auth-teal) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.1em !important;
+}
+
+body.auth-entry-page .login-header,
+body.auth-entry-page .signup-header {
+  margin-bottom: 0.72rem !important;
+}
+
+body.auth-entry-page .login-header h2,
+body.auth-entry-page .signup-header h2 {
+  margin: 0 0 0.3rem !important;
+  color: var(--auth-ink) !important;
+  font-size: clamp(1.55rem, 2vw, 2.05rem) !important;
+  line-height: 1.08 !important;
+  letter-spacing: 0 !important;
+}
+
+body.auth-entry-page .login-header p,
+body.auth-entry-page .signup-header p {
+  margin: 0 !important;
+  color: var(--auth-muted) !important;
+  font-size: 0.92rem !important;
+}
+
+body.auth-entry-page .role-selector,
+body.auth-entry-page .login-method-selector {
+  gap: 0.6rem !important;
+  margin-bottom: 0.7rem !important;
+}
+
+body.auth-entry-page .role-label,
+body.auth-entry-page .method-label {
+  min-height: 54px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: 0.55rem !important;
+  padding: 0.65rem 0.75rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--auth-border) !important;
+  background: #ffffff !important;
+  color: var(--auth-ink) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body.auth-entry-page .role-label:hover,
+body.auth-entry-page .method-label:hover {
+  border-color: rgba(18, 106, 115, 0.55) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .role-option:checked + .role-label,
+body.auth-entry-page .method-option:checked + .method-label {
+  border-color: var(--auth-teal) !important;
+  background: #eaf7f6 !important;
+  color: var(--auth-teal-deep) !important;
+  box-shadow: 0 0 0 3px var(--auth-focus) !important;
+}
+
+body.auth-entry-page .role-label i,
+body.auth-entry-page .method-label i {
+  font-size: 1.1rem !important;
+  color: var(--auth-teal) !important;
+}
+
+body.auth-entry-page .role-label span,
+body.auth-entry-page .method-label span {
+  color: inherit !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+}
+
+body.auth-entry-page .login-info {
+  margin-bottom: 0.78rem !important;
+  padding: 0.72rem 0.82rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #c7e8e4 !important;
+  background: #effaf8 !important;
+  color: #164b52 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.38 !important;
+}
+
+body.auth-entry-page .form-group {
+  margin-bottom: 0.72rem !important;
+}
+
+body.auth-entry-page #signupForm .form-group {
+  margin-bottom: 0 !important;
+}
+
+body.auth-entry-page .form-group label {
+  margin-bottom: 0.32rem !important;
+  color: var(--auth-ink) !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+}
+
+body.auth-entry-page .input-with-icon {
+  position: relative !important;
+}
+
+body.auth-entry-page .input-with-icon i {
+  left: 0.92rem !important;
+  color: var(--auth-teal) !important;
+  font-size: 1rem !important;
+}
+
+body.auth-entry-page .form-group input,
+body.auth-entry-page .form-group select,
+body.auth-entry-page #forgotRole {
+  min-height: 48px !important;
+  padding: 0.68rem 0.9rem 0.68rem 2.75rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--auth-border) !important;
+  background: #ffffff !important;
+  color: var(--auth-ink) !important;
+  box-shadow: none !important;
+  font-size: 0.94rem !important;
+}
+
+body.auth-entry-page .form-group input:focus,
+body.auth-entry-page .form-group select:focus,
+body.auth-entry-page #forgotRole:focus {
+  border-color: var(--auth-teal) !important;
+  box-shadow: 0 0 0 3px var(--auth-focus) !important;
+  background: #ffffff !important;
+}
+
+body.auth-entry-page .form-group input::placeholder {
+  color: #7b8897 !important;
+}
+
+body.auth-entry-page .password-toggle {
+  right: 0.25rem !important;
+  width: 42px !important;
+  height: 42px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--auth-teal) !important;
+  box-shadow: none !important;
+}
+
+body.auth-entry-page .input-with-icon input[type="password"] {
+  padding-right: 3.1rem !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify {
+  min-height: 46px !important;
+  padding: 0.7rem 0.9rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--auth-teal) !important;
+  box-shadow: none !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  font-size: 0.92rem !important;
+}
+
+body.auth-entry-page .btn-login,
+body.auth-entry-page .btn-send-otp,
+body.auth-entry-page .btn-verify,
+body.auth-entry-page .btn-signup[type="submit"] {
+  background: var(--auth-teal) !important;
+  color: #ffffff !important;
+}
+
+body.auth-entry-page .btn-signup,
+body.auth-entry-page .btn-login[onclick*="goToLogin"] {
+  background: #ffffff !important;
+  color: var(--auth-teal-deep) !important;
+}
+
+body.auth-entry-page .btn-login:hover,
+body.auth-entry-page .btn-signup:hover,
+body.auth-entry-page .btn-send-otp:hover,
+body.auth-entry-page .btn-verify:hover {
+  transform: none !important;
+  filter: brightness(1.02) !important;
+  box-shadow: 0 8px 18px rgba(18, 106, 115, 0.15) !important;
+}
+
+body.auth-entry-page #signupForm {
+  gap: 0.62rem 0.72rem !important;
+}
+
+body.auth-entry-page .driver-only-fields {
+  padding: 0.7rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #c7e8e4 !important;
+  background: #f3fbfa !important;
+}
+
+body.auth-entry-page .terms-checkbox,
+body.auth-entry-page .divider-text,
+body.auth-entry-page .action-links {
+  color: var(--auth-muted) !important;
+}
+
+body.auth-entry-page .terms-checkbox {
+  margin: 0.05rem 0 0 !important;
+}
+
+body.auth-entry-page .form-buttons {
+  gap: 0.55rem !important;
+  margin: 0.05rem 0 0 !important;
+}
+
+body.auth-entry-page .otp-input-section,
+body.auth-entry-page .forgot-password-section {
+  padding: 0.78rem !important;
+  border-radius: 8px !important;
+}
+
+body.auth-entry-page .otp-input-group {
+  gap: 0.45rem !important;
+}
+
+body.auth-entry-page .otp-digit {
+  width: 42px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  font-size: 1.05rem !important;
+}
+
+@media (max-height: 820px) and (min-width: 901px) {
+  body.auth-entry-page .showcase-proof {
+    display: none !important;
+  }
+
+  body.auth-entry-page .features-list li {
+    font-size: 0.86rem !important;
+  }
+
+  body.auth-entry-page .login-left p,
+  body.auth-entry-page .signup-left p {
+    font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.auth-entry-page {
+    place-items: start center !important;
+    padding: 8px !important;
+  }
+
+  body.auth-entry-page .login-container,
+  body.auth-entry-page .signup-container {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+    border-radius: 8px !important;
+  }
+
+  body.auth-entry-page .login-right,
+  body.auth-entry-page .signup-right {
+    order: 1 !important;
+    overflow: visible !important;
+    padding: 0.8rem !important;
+  }
+
+  body.auth-entry-page .login-left,
+  body.auth-entry-page .signup-left {
+    order: 2 !important;
+    padding: 1rem !important;
+  }
+
+  body.auth-entry-page .showcase-proof {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 620px) {
+  body.auth-entry-page .auth-panel {
+    padding: 0.78rem !important;
+  }
+
+  body.auth-entry-page .role-selector,
+  body.auth-entry-page .login-method-selector,
+  body.auth-entry-page #signupForm {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.auth-entry-page .form-buttons {
+    flex-direction: column !important;
+  }
+}

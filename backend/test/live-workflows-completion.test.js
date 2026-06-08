@@ -111,6 +111,50 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(robots, /Sitemap:\s*https:\/\/goindiaride\.in\/sitemap\.xml/);
 });
 
+test('auth entry pages keep noindex, live form ids, and professional layout hooks', () => {
+  const login = read('pages/login.html');
+  const signup = read('pages/signup.html');
+  const authCss = read('css/auth-professional.css');
+  const customerPhoneInput = login.match(/<input[^>]+id="customerPhone"[^>]+>/)?.[0] || '';
+  const driverPhoneInput = login.match(/<input[^>]+id="driverPhone"[^>]+>/)?.[0] || '';
+  const signupPhoneInput = signup.match(/<input[^>]+id="phone"[^>]+>/)?.[0] || '';
+
+  assert.match(login, /<meta name="googlebot" content="noindex, follow">/);
+  assert.match(signup, /<meta name="googlebot" content="noindex, follow">/);
+  assert.match(login, /css\/auth-professional\.css\?v=20260608-auth1/);
+  assert.match(signup, /css\/auth-professional\.css\?v=20260608-auth1/);
+  assert.match(login, /<body class="auth-entry-page auth-login-page">/);
+  assert.match(signup, /<body class="auth-entry-page auth-signup-page">/);
+
+  assert.match(login, /id="customerForm"/);
+  assert.match(login, /id="driverForm"/);
+  assert.match(login, /id="adminForm"/);
+  assert.match(login, /customerSendOTP\(\)/);
+  assert.match(login, /driverSendOTP\(\)/);
+  assert.match(login, /adminStep1Login\(\)/);
+
+  assert.match(customerPhoneInput, /name="customerPhone"/);
+  assert.match(customerPhoneInput, /autocomplete="tel"/);
+  assert.match(customerPhoneInput, /inputmode="tel"/);
+  assert.match(driverPhoneInput, /name="driverPhone"/);
+  assert.match(driverPhoneInput, /autocomplete="tel"/);
+  assert.match(driverPhoneInput, /inputmode="tel"/);
+
+  assert.match(signup, /id="signupForm"/);
+  assert.match(signup, /id="fullname"[\s\S]*autocomplete="name"/);
+  assert.match(signup, /id="email"[\s\S]*autocomplete="email"/);
+  assert.match(signupPhoneInput, /name="phone"/);
+  assert.match(signupPhoneInput, /autocomplete="tel"/);
+  assert.match(signupPhoneInput, /inputmode="tel"/);
+  assert.match(signup, /id="password"[\s\S]*autocomplete="new-password"/);
+  assert.match(signup, /id="confirmPassword"[\s\S]*autocomplete="new-password"/);
+
+  assert.match(authCss, /Loaded only by login\/signup pages/);
+  assert.match(authCss, /body\.auth-entry-page::before/);
+  assert.match(authCss, /content:\s*none !important/);
+  assert.match(authCss, /grid-template-columns:\s*minmax\(300px, 0\.86fr\) minmax\(480px, 1\.14fr\)/);
+});
+
 test('driver portal exposes real KYC, deposit, booking acceptance, penalty, and payout workflow', () => {
   const html = read('driver/index.html');
   const workflow = read('driver/js/driver-live-workflow.js');

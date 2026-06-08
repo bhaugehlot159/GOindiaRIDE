@@ -491,9 +491,10 @@
 <link rel="stylesheet" href="../fit-screen.css?v=20260314-auth2">
     <script defer src="../js/non-home-fit.js?v=20260314-auth2"></script>
     <link rel="stylesheet" href="../css/professional-purple-theme.css">
+    <link rel="stylesheet" href="../css/auth-professional.css?v=20260608-auth1">
     <script src="../js/data-preservation-guard.js?v=20260528-hangfix1"></script>
 </head>
-<body>
+<body class="auth-entry-page auth-login-page">
     <div class="login-container">
         <!-- Left Panel -->
         <div class="login-left">
@@ -605,7 +606,7 @@
                         <label for="customerPhone">Phone Number</label>
                         <div class="input-with-icon">
                             <i class="fas fa-mobile-alt"></i>
-                            <input type="tel" id="customerPhone" placeholder="+919876543210" maxlength="16" autocomplete="tel">
+                            <input type="tel" id="customerPhone" name="customerPhone" placeholder="+919876543210" maxlength="16" autocomplete="tel" inputmode="tel" autocapitalize="off" spellcheck="false">
                         </div>
                     </div>
 
@@ -639,7 +640,7 @@
                         <label for="customerEmail">Email Address</label>
                         <div class="input-with-icon">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="customerEmail" placeholder="Enter your email">
+                            <input type="email" id="customerEmail" name="customerEmail" placeholder="Enter your email" autocomplete="email" autocapitalize="none" spellcheck="false">
                         </div>
                     </div>
 
@@ -647,7 +648,7 @@
                         <label for="customerPassword">Password</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="customerPassword" placeholder="Enter your password">
+                            <input type="password" id="customerPassword" name="customerPassword" placeholder="Enter your password" autocomplete="current-password">
                             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('customerPassword')">
                                 <i class="fas fa-eye" id="customerPasswordIcon"></i>
                             </button>
@@ -672,7 +673,7 @@
                         <label for="driverPhone">Phone Number</label>
                         <div class="input-with-icon">
                             <i class="fas fa-mobile-alt"></i>
-                            <input type="tel" id="driverPhone" placeholder="+919876543210" maxlength="16" autocomplete="tel">
+                            <input type="tel" id="driverPhone" name="driverPhone" placeholder="+919876543210" maxlength="16" autocomplete="tel" inputmode="tel" autocapitalize="off" spellcheck="false">
                         </div>
                     </div>
 
@@ -706,7 +707,7 @@
                         <label for="driverEmail">Email Address</label>
                         <div class="input-with-icon">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="driverEmail" placeholder="Enter your email">
+                            <input type="email" id="driverEmail" name="driverEmail" placeholder="Enter your email" autocomplete="email" autocapitalize="none" spellcheck="false">
                         </div>
                     </div>
 
@@ -714,7 +715,7 @@
                         <label for="driverPassword">Password</label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="driverPassword" placeholder="Enter your password">
+                            <input type="password" id="driverPassword" name="driverPassword" placeholder="Enter your password" autocomplete="current-password">
                             <button type="button" class="password-toggle" onclick="togglePasswordVisibility('driverPassword')">
                                 <i class="fas fa-eye" id="driverPasswordIcon"></i>
                             </button>
