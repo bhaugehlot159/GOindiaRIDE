@@ -431,6 +431,8 @@ body.home-international .home-route-preview {
     margin-bottom: 0.58rem;
     display: grid;
     gap: 0.36rem;
+    position: relative;
+    overflow: visible;
 }
 
 body.home-international .home-route-point span {
@@ -458,6 +460,8 @@ body.home-international .home-route-point {
 }
 
 body.home-international .home-route-point input {
+    appearance: none;
+    -webkit-appearance: none;
     width: 100%;
     min-height: 22px;
     height: 24px;
@@ -487,27 +491,36 @@ body.home-international .home-phone-point {
     margin-top: 0;
 }
 
-body.home-international .home-current-location-btn {
+body.home-international .home-current-location-btn,
+html body.goi-global-theme.home-international .home-current-location-btn,
+html body.goi-global-theme.home-international button.home-current-location-btn {
     min-height: 32px;
     width: 100%;
     border: 1px solid rgba(15, 118, 110, 0.25);
     border-radius: 6px;
-    background: #eaf7f4;
-    color: var(--home-teal-dark);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    background: #ffffff !important;
+    background-image: none !important;
+    color: var(--home-teal-dark) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
     gap: 0.45rem;
-    font: inherit;
-    font-size: 0.78rem;
-    font-weight: 900;
+    font-family: inherit !important;
+    font-size: 0.78rem !important;
+    font-weight: 900 !important;
     cursor: pointer;
-    padding: 0.36rem 0.56rem;
+    padding: 0.36rem 0.56rem !important;
+    box-shadow: none !important;
+    text-transform: none !important;
 }
 
 body.home-international .home-current-location-btn:hover,
-body.home-international .home-current-location-btn:focus-visible {
+body.home-international .home-current-location-btn:focus-visible,
+html body.goi-global-theme.home-international button.home-current-location-btn:hover,
+html body.goi-global-theme.home-international button.home-current-location-btn:focus-visible {
     border-color: var(--home-teal);
+    background: #eef7f5 !important;
+    color: var(--home-teal-dark) !important;
     outline: 0;
 }
 
@@ -520,44 +533,61 @@ body.home-international .home-location-suggest-panel[hidden] {
     display: none !important;
 }
 
-body.home-international .home-location-suggest-panel {
-    display: grid;
+body.home-international .home-location-suggest-panel,
+html body.goi-global-theme.home-international .home-location-suggest-panel {
+    position: absolute;
+    z-index: 40;
+    display: grid !important;
     gap: 0.3rem;
     border: 1px solid var(--home-line);
     border-radius: 6px;
-    background: #ffffff;
+    background: #ffffff !important;
+    background-image: none !important;
     padding: 0.42rem;
     box-shadow: 0 12px 30px rgba(13, 27, 42, 0.1);
+    max-height: 230px;
+    overflow-y: auto;
 }
 
-body.home-international .home-location-suggest-panel button {
+body.home-international .home-location-suggest-panel button,
+html body.goi-global-theme.home-international .home-location-suggest-panel button {
     min-height: 32px;
-    border: 0;
-    border-radius: 5px;
-    background: transparent;
-    color: var(--home-ink);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    border: 0 !important;
+    border-radius: 5px !important;
+    background: #ffffff !important;
+    background-image: none !important;
+    color: var(--home-ink) !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center !important;
+    justify-content: stretch !important;
     gap: 0.65rem;
-    padding: 0.34rem 0.45rem;
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 850;
-    text-align: left;
+    padding: 0.34rem 0.45rem !important;
+    font-family: inherit !important;
+    font-size: 0.82rem !important;
+    font-weight: 850 !important;
+    text-align: left !important;
     cursor: pointer;
+    box-shadow: none !important;
+    transform: none !important;
+    text-transform: none !important;
 }
 
 body.home-international .home-location-suggest-panel button:hover,
-body.home-international .home-location-suggest-panel button:focus-visible {
-    background: #eef7f5;
+body.home-international .home-location-suggest-panel button:focus-visible,
+html body.goi-global-theme.home-international .home-location-suggest-panel button:hover,
+html body.goi-global-theme.home-international .home-location-suggest-panel button:focus-visible {
+    background: #eef7f5 !important;
+    color: var(--home-ink) !important;
     outline: 0;
 }
 
-body.home-international .home-location-suggest-panel small {
-    color: var(--home-muted);
-    font-size: 0.68rem;
-    font-weight: 800;
+body.home-international .home-location-suggest-panel small,
+html body.goi-global-theme.home-international .home-location-suggest-panel small {
+    color: var(--home-muted) !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    white-space: nowrap;
 }
 
 body.home-international .home-suggestion-row {
@@ -567,22 +597,31 @@ body.home-international .home-suggestion-row {
     margin-top: 0.04rem;
 }
 
-body.home-international .home-suggestion-row button {
+body.home-international .home-suggestion-row button,
+html body.goi-global-theme.home-international .home-suggestion-row button {
     border: 1px solid var(--home-line) !important;
     border-radius: 999px !important;
     background: #ffffff !important;
+    background-image: none !important;
     color: var(--home-ink) !important;
     min-height: 28px !important;
     padding: 0.28rem 0.46rem !important;
-    font: inherit !important;
+    font-family: inherit !important;
     font-size: 0.72rem !important;
     font-weight: 850 !important;
     cursor: pointer;
+    box-shadow: none !important;
+    transform: none !important;
+    text-transform: none !important;
 }
 
 body.home-international .home-suggestion-row button:hover,
-body.home-international .home-suggestion-row button:focus-visible {
+body.home-international .home-suggestion-row button:focus-visible,
+html body.goi-global-theme.home-international .home-suggestion-row button:hover,
+html body.goi-global-theme.home-international .home-suggestion-row button:focus-visible {
     border-color: var(--home-teal) !important;
+    background: #eef7f5 !important;
+    color: var(--home-ink) !important;
     outline: 0;
 }
 

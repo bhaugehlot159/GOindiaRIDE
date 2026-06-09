@@ -69,11 +69,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(homeNavbar, /href="\.\/pages\/signup\.html"[^>]*rel="nofollow"/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html\?admin=1&next=%2Fadmin%2Fapp\.html"[^>]*rel="nofollow"/);
   assert.match(home, /id="homeQuickBookingForm"[\s\S]*name="pickup"[^>]*required[\s\S]*name="drop"[^>]*required[\s\S]*name="phone"[^>]*required/);
-  assert.match(home, /id="homePickupInput"[^>]*list="homeLocationList"/);
-  assert.match(home, /id="homeDropInput"[^>]*list="homeLocationList"/);
+  assert.match(home, /id="homePickupInput"[^>]*autocomplete="off"[^>]*aria-controls="homeLocationSuggestPanel"/);
+  assert.match(home, /id="homeDropInput"[^>]*autocomplete="off"[^>]*aria-controls="homeLocationSuggestPanel"/);
+  assert.doesNotMatch(home, /list="homeLocationList"|<datalist id="homeLocationList"/);
   assert.match(home, /id="homeUseLocationBtn"[\s\S]*Use current location/);
   assert.match(home, /id="homeLocationSuggestPanel"/);
-  assert.match(home, /id="homeLocationList"[\s\S]*Delhi Airport[\s\S]*Udaipur Airport[\s\S]*Mount Abu/);
   assert.match(home, /data-home-suggestion="pickup"/);
   assert.match(home, /data-home-trip-plan="airport"[\s\S]*data-home-service-mode="airport_pickup"/);
   assert.match(home, /data-home-trip-plan="rental"[\s\S]*data-home-journey="round_trip"/);
@@ -121,8 +121,10 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /setFieldValue\(fields\.phone, params\.get\('phone'\) \|\| params\.get\('customerPhone'\), 40\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_LOCATION_SUGGESTIONS/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /function renderHomeSuggestions\(/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /dataset\.bookingValue/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /getBookingLocationValue\(pickupInput\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /navigator\.geolocation/);
-  assert.match(read('shared/chunks/home/scripts/index.js'), /Current location \(\$\{lat\}, \$\{lng\}\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, 'Current location', `Current location \(\$\{lat\}, \$\{lng\}\)`\)/);
 
   assert.match(adminApp, /fallback\/admin-review-queue\?limit=500&status=/);
   assert.match(adminApp, /mapBackendBookingRow\(row, "backend_fallback_admin_review_queue"\)/);

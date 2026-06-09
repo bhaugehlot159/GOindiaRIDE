@@ -77,23 +77,41 @@
                 if (suggestionPanel) {
                     suggestionPanel.hidden = true;
                     suggestionPanel.replaceChildren();
+                    [pickupInput, dropInput].filter(Boolean).forEach((input) => {
+                        input.setAttribute('aria-expanded', 'false');
+                    });
                 }
             }
 
-            function fillHomeLocation(input, value) {
+            function getBookingLocationValue(input) {
+                return cleanBookingValue((input && input.dataset && input.dataset.bookingValue) || (input && input.value));
+            }
+
+            function fillHomeLocation(input, value, bookingValue) {
                 if (!input) return;
                 input.value = cleanBookingValue(value);
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.focus();
+                const exact = cleanBookingValue(bookingValue);
+                if (exact && exact !== input.value) {
+                    input.dataset.bookingValue = exact;
+                } else {
+                    delete input.dataset.bookingValue;
+                }
                 hideHomeSuggestions();
                 setHomeStatus('');
             }
 
             function renderHomeSuggestions(input) {
                 if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
+                delete input.dataset.bookingValue;
                 const query = cleanBookingValue(input.value).toLowerCase();
                 const matches = HOME_LOCATION_SUGGESTIONS
                     .filter((item) => !query || item.label.toLowerCase().includes(query))
+                    .sort((a, b) => {
+                        if (!query) return 0;
+                        const aStarts = a.label.toLowerCase().startsWith(query);
+                        const bStarts = b.label.toLowerCase().startsWith(query);
+                        return Number(bStarts) - Number(aStarts);
+                    })
                     .slice(0, 6);
 
                 if (!matches.length) {
@@ -102,6 +120,7 @@
                 }
 
                 const target = input === pickupInput ? 'pickup' : 'drop';
+                const field = input.closest('.home-route-point');
                 const rows = matches.map((item) => {
                     const button = document.createElement('button');
                     button.type = 'button';
@@ -116,7 +135,14 @@
                 });
 
                 suggestionPanel.replaceChildren(...rows);
+                if (field) {
+                    const anchor = input === pickupInput && currentLocationButton ? currentLocationButton : field;
+                    suggestionPanel.style.left = `${field.offsetLeft}px`;
+                    suggestionPanel.style.top = `${anchor.offsetTop + anchor.offsetHeight + 4}px`;
+                    suggestionPanel.style.width = `${field.offsetWidth}px`;
+                }
                 suggestionPanel.hidden = false;
+                input.setAttribute('aria-expanded', 'true');
             }
 
             [pickupInput, dropInput].filter(Boolean).forEach((input) => {
@@ -160,9 +186,9 @@
                     navigator.geolocation.getCurrentPosition((position) => {
                         const lat = Number(position.coords.latitude || 0).toFixed(5);
                         const lng = Number(position.coords.longitude || 0).toFixed(5);
-                        fillHomeLocation(pickupInput, `Current location (${lat}, ${lng})`);
+                        fillHomeLocation(pickupInput, 'Current location', `Current location (${lat}, ${lng})`);
                         currentLocationButton.disabled = false;
-                        setHomeStatus('Current location added as pickup.');
+                        setHomeStatus('Current location added.');
                     }, () => {
                         currentLocationButton.disabled = false;
                         setHomeStatus('Location permission was not allowed. Type pickup manually.');
@@ -195,6 +221,8 @@
                 new FormData(form).forEach((value, key) => {
                     params[key] = value;
                 });
+                params.pickup = getBookingLocationValue(pickupInput);
+                params.drop = getBookingLocationValue(dropInput);
                 window.location.href = buildBookingUrl(params);
             });
         }
