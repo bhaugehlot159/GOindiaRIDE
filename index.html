@@ -51,7 +51,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="./shared/chunks/home/styles/index.css?v=20260528-inline-split1">
     <link rel="stylesheet" href="./css/professional-purple-theme.css">
-    <link rel="stylesheet" href="./css/home-international.css?v=20260609-polish1">
+    <link rel="stylesheet" href="./css/home-international.css?v=20260609-polish2">
     <script src="./js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
 <body class="home-international" data-goi-nav-static="1">
@@ -122,17 +122,28 @@
                 <div class="home-route-preview">
                     <label class="home-route-point" for="homePickupInput">
                         <span>Pickup</span>
-                        <input id="homePickupInput" name="pickup" type="text" autocomplete="street-address" placeholder="Airport, hotel, home or office" required>
+                        <input id="homePickupInput" name="pickup" type="text" autocomplete="street-address" list="homeLocationList" placeholder="Search pickup location" required>
                     </label>
+                    <button type="button" class="home-current-location-btn" id="homeUseLocationBtn">
+                        <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
+                        <span>Use current location</span>
+                    </button>
                     <div class="home-route-line" aria-hidden="true"></div>
                     <label class="home-route-point" for="homeDropInput">
                         <span>Drop</span>
-                        <input id="homeDropInput" name="drop" type="text" autocomplete="street-address" placeholder="City, station, resort or another state" required>
+                        <input id="homeDropInput" name="drop" type="text" autocomplete="street-address" list="homeLocationList" placeholder="Search drop location" required>
                     </label>
                     <label class="home-route-point home-phone-point" for="homePhoneInput">
                         <span>Mobile number</span>
-                        <input id="homePhoneInput" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number" required>
+                        <input id="homePhoneInput" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Mobile number" required>
                     </label>
+                    <div class="home-location-suggest-panel" id="homeLocationSuggestPanel" hidden></div>
+                    <div class="home-suggestion-row" aria-label="Popular location suggestions">
+                        <button type="button" data-home-suggestion="pickup" data-value="Delhi Airport">Delhi Airport</button>
+                        <button type="button" data-home-suggestion="drop" data-value="Jaipur">Jaipur</button>
+                        <button type="button" data-home-suggestion="drop" data-value="Udaipur">Udaipur</button>
+                    </div>
+                    <p class="home-form-status" id="homeFormStatus" aria-live="polite"></p>
                 </div>
                 <button type="submit" class="home-booking-card-cta">
                     <span>Continue live booking</span>
@@ -140,6 +151,20 @@
                 </button>
                 <p class="home-card-note">Mobile number is required so customer and admin can receive full booking updates.</p>
             </form>
+            <datalist id="homeLocationList">
+                <option value="Delhi Airport">
+                <option value="Jaipur">
+                <option value="Udaipur">
+                <option value="Udaipur Airport">
+                <option value="Jaipur Railway Station">
+                <option value="Udaipur Railway Station">
+                <option value="Mount Abu">
+                <option value="Agra Taj Mahal">
+                <option value="Jodhpur">
+                <option value="Kota">
+                <option value="Ahmedabad Airport">
+                <option value="Mumbai Airport">
+            </datalist>
             <figure class="home-hero-visual" aria-label="GO India RIDE travel visual">
                 <img src="./assets/images/quick-booking-hero.png" alt="GO India RIDE cab booking for Indian travel routes">
             </figure>

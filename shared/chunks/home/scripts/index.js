@@ -1,4 +1,19 @@
 // Live homepage booking handoff
+        const HOME_LOCATION_SUGGESTIONS = [
+            { label: 'Delhi Airport', detail: 'Airport pickup' },
+            { label: 'Jaipur', detail: 'City and outstation' },
+            { label: 'Udaipur', detail: 'City, hotel and airport' },
+            { label: 'Udaipur Airport', detail: 'Airport transfer' },
+            { label: 'Jaipur Railway Station', detail: 'Station pickup' },
+            { label: 'Udaipur Railway Station', detail: 'Station pickup' },
+            { label: 'Mount Abu', detail: 'Outstation route' },
+            { label: 'Agra Taj Mahal', detail: 'Tourist route' },
+            { label: 'Jodhpur', detail: 'Intercity route' },
+            { label: 'Kota', detail: 'Intercity route' },
+            { label: 'Ahmedabad Airport', detail: 'Airport transfer' },
+            { label: 'Mumbai Airport', detail: 'Airport transfer' }
+        ];
+
         function cleanBookingValue(value) {
             return String(value || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
         }
@@ -48,6 +63,116 @@
             const tripPlanInput = document.getElementById('homeTripPlanInput');
             const journeyInput = document.getElementById('homeJourneyInput');
             const serviceModeInput = document.getElementById('homeServiceModeInput');
+            const pickupInput = document.getElementById('homePickupInput');
+            const dropInput = document.getElementById('homeDropInput');
+            const status = document.getElementById('homeFormStatus');
+            const suggestionPanel = document.getElementById('homeLocationSuggestPanel');
+            const currentLocationButton = document.getElementById('homeUseLocationBtn');
+
+            function setHomeStatus(message) {
+                if (status) status.textContent = message || '';
+            }
+
+            function hideHomeSuggestions() {
+                if (suggestionPanel) {
+                    suggestionPanel.hidden = true;
+                    suggestionPanel.replaceChildren();
+                }
+            }
+
+            function fillHomeLocation(input, value) {
+                if (!input) return;
+                input.value = cleanBookingValue(value);
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.focus();
+                hideHomeSuggestions();
+                setHomeStatus('');
+            }
+
+            function renderHomeSuggestions(input) {
+                if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
+                const query = cleanBookingValue(input.value).toLowerCase();
+                const matches = HOME_LOCATION_SUGGESTIONS
+                    .filter((item) => !query || item.label.toLowerCase().includes(query))
+                    .slice(0, 6);
+
+                if (!matches.length) {
+                    hideHomeSuggestions();
+                    return;
+                }
+
+                const target = input === pickupInput ? 'pickup' : 'drop';
+                const rows = matches.map((item) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.dataset.homeSuggestTarget = target;
+                    button.dataset.homeSuggestValue = item.label;
+                    button.textContent = item.label;
+
+                    const detail = document.createElement('small');
+                    detail.textContent = item.detail;
+                    button.appendChild(detail);
+                    return button;
+                });
+
+                suggestionPanel.replaceChildren(...rows);
+                suggestionPanel.hidden = false;
+            }
+
+            [pickupInput, dropInput].filter(Boolean).forEach((input) => {
+                input.addEventListener('focus', () => renderHomeSuggestions(input));
+                input.addEventListener('input', () => renderHomeSuggestions(input));
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') hideHomeSuggestions();
+                });
+            });
+
+            if (suggestionPanel) {
+                suggestionPanel.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-home-suggest-value]');
+                    if (!button) return;
+                    const targetInput = button.dataset.homeSuggestTarget === 'pickup' ? pickupInput : dropInput;
+                    fillHomeLocation(targetInput, button.dataset.homeSuggestValue);
+                });
+            }
+
+            form.querySelectorAll('[data-home-suggestion]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const targetInput = button.dataset.homeSuggestion === 'pickup' ? pickupInput : dropInput;
+                    fillHomeLocation(targetInput, button.dataset.value);
+                });
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!suggestionPanel || suggestionPanel.hidden || form.contains(event.target)) return;
+                hideHomeSuggestions();
+            });
+
+            if (currentLocationButton && pickupInput) {
+                currentLocationButton.addEventListener('click', () => {
+                    if (!navigator.geolocation) {
+                        setHomeStatus('Current location is not available in this browser.');
+                        return;
+                    }
+
+                    currentLocationButton.disabled = true;
+                    setHomeStatus('Finding current location...');
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const lat = Number(position.coords.latitude || 0).toFixed(5);
+                        const lng = Number(position.coords.longitude || 0).toFixed(5);
+                        fillHomeLocation(pickupInput, `Current location (${lat}, ${lng})`);
+                        currentLocationButton.disabled = false;
+                        setHomeStatus('Current location added as pickup.');
+                    }, () => {
+                        currentLocationButton.disabled = false;
+                        setHomeStatus('Location permission was not allowed. Type pickup manually.');
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 9000,
+                        maximumAge: 120000
+                    });
+                });
+            }
 
             form.querySelectorAll('[data-home-trip-plan]').forEach((button) => {
                 button.addEventListener('click', () => {
@@ -65,6 +190,7 @@
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
                 if (!form.reportValidity()) return;
+                setHomeStatus('');
                 const params = {};
                 new FormData(form).forEach((value, key) => {
                     params[key] = value;
