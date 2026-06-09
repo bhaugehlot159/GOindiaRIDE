@@ -247,6 +247,21 @@ body.home-international .section-eyebrow {
     text-transform: uppercase;
 }
 
+body.home-international .home-kicker,
+html body.goi-global-theme.home-international .home-kicker {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 30px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.32rem 0.62rem;
+    border: 1px solid rgba(15, 118, 110, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88) !important;
+    color: var(--home-teal-dark) !important;
+    text-shadow: none !important;
+}
+
 body.home-international .home-hero h1,
 html body.goi-global-theme.home-international .home-hero h1 {
     margin: 0 0 1rem !important;
@@ -529,7 +544,24 @@ body.home-international .home-current-location-btn:disabled {
     opacity: 0.75;
 }
 
+body.home-international .home-current-location-btn.is-loading,
+html body.goi-global-theme.home-international button.home-current-location-btn.is-loading {
+    border-color: rgba(15, 118, 110, 0.34) !important;
+    background: #eef7f5 !important;
+}
+
+body.home-international .home-current-location-btn.is-success,
+html body.goi-global-theme.home-international button.home-current-location-btn.is-success {
+    border-color: rgba(15, 118, 110, 0.4) !important;
+    background: #eef7f5 !important;
+    color: var(--home-teal-dark) !important;
+}
+
 body.home-international .home-location-suggest-panel[hidden] {
+    display: none !important;
+}
+
+body.home-international .home-location-suggest-panel:empty {
     display: none !important;
 }
 
@@ -545,8 +577,9 @@ html body.goi-global-theme.home-international .home-location-suggest-panel {
     background-image: none !important;
     padding: 0.42rem;
     box-shadow: 0 12px 30px rgba(13, 27, 42, 0.1);
-    max-height: 230px;
+    max-height: 260px;
     overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 body.home-international .home-location-suggest-panel button,
@@ -588,6 +621,15 @@ html body.goi-global-theme.home-international .home-location-suggest-panel small
     font-size: 0.68rem !important;
     font-weight: 800 !important;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.home-international .home-location-suggest-panel[hidden],
+body.home-international .home-location-suggest-panel:empty,
+html body.goi-global-theme.home-international .home-location-suggest-panel[hidden],
+html body.goi-global-theme.home-international .home-location-suggest-panel:empty {
+    display: none !important;
 }
 
 body.home-international .home-suggestion-row {
@@ -632,6 +674,16 @@ body.home-international .home-form-status {
     font-size: 0.72rem !important;
     line-height: 1.35 !important;
     opacity: 1 !important;
+}
+
+body.home-international .home-form-status.is-success {
+    color: var(--home-teal-dark) !important;
+    font-weight: 800;
+}
+
+body.home-international .home-form-status.is-error {
+    color: #9f1239 !important;
+    font-weight: 800;
 }
 
 body.home-international .home-route-line {

@@ -64,6 +64,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   const homeFooter = home.match(/<footer class="footer">[\s\S]*?<\/footer>/)?.[0] || '';
 
   assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
+  assert.match(home, /home-international\.css\?v=20260610-location-ui2/);
+  assert.match(home, /Airport, city and intercity cab booking/);
+  assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
+  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260610-location-ui2/);
+  assert.doesNotMatch(home, /20260610-location-ui1/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
   assert.match(homeNavbar, /href="\.\/pages\/signup\.html"[^>]*rel="nofollow"/);
@@ -119,12 +124,17 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /setTripPlan\(tripPlan, true\)/);
   assert.match(shortcut, /setFieldValue\(fields\.pickup, params\.get\('pickup'\), 180\)/);
   assert.match(shortcut, /setFieldValue\(fields\.phone, params\.get\('phone'\) \|\| params\.get\('customerPhone'\), 40\)/);
-  assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_LOCATION_SUGGESTIONS/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_BASE_LOCATION_SUGGESTIONS/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /buildHomeLocationSuggestions/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /getHomeLocationSuggestions\(query\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /return suggestions;/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /function renderHomeSuggestions\(/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /dataset\.bookingValue/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /getBookingLocationValue\(pickupInput\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /navigator\.geolocation/);
-  assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, 'Current location', `Current location \(\$\{lat\}, \$\{lng\}\)`\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, 'Current location selected', `Current location \(\$\{lat\}, \$\{lng\}\)`\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /GPS selected:/);
+  assert.doesNotMatch(read('shared/chunks/home/scripts/index.js'), /slice\(0, 6\)/);
 
   assert.match(adminApp, /fallback\/admin-review-queue\?limit=500&status=/);
   assert.match(adminApp, /mapBackendBookingRow\(row, "backend_fallback_admin_review_queue"\)/);

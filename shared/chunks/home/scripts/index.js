@@ -1,5 +1,5 @@
 // Live homepage booking handoff
-        const HOME_LOCATION_SUGGESTIONS = [
+        const HOME_BASE_LOCATION_SUGGESTIONS = [
             { label: 'Delhi Airport', detail: 'Airport pickup' },
             { label: 'Jaipur', detail: 'City and outstation' },
             { label: 'Udaipur', detail: 'City, hotel and airport' },
@@ -13,9 +13,130 @@
             { label: 'Ahmedabad Airport', detail: 'Airport transfer' },
             { label: 'Mumbai Airport', detail: 'Airport transfer' }
         ];
+        let homeLocationSuggestionsCache = null;
 
         function cleanBookingValue(value) {
             return String(value || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
+        }
+
+        function simplifyHomeLocation(value) {
+            return cleanBookingValue(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function homeCategoryLabel(key) {
+            const labels = {
+                airports: 'Airport',
+                railway_stations: 'Railway station',
+                bus_stands: 'Bus stand',
+                tourist_places: 'Tourist place',
+                forts: 'Fort',
+                temples: 'Temple',
+                hospitals: 'Hospital',
+                markets: 'Market',
+                landmarks: 'Landmark'
+            };
+            return labels[key] || cleanBookingValue(key).replace(/_/g, ' ');
+        }
+
+        function addHomeLocationSuggestion(items, seen, label, detail, priority) {
+            const cleanLabel = cleanBookingValue(label);
+            if (!cleanLabel) return;
+            const key = simplifyHomeLocation(cleanLabel);
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            items.push({
+                label: cleanLabel,
+                detail: cleanBookingValue(detail) || 'Location',
+                priority: Number.isFinite(priority) ? priority : 40
+            });
+        }
+
+        function buildHomeLocationSuggestions() {
+            if (homeLocationSuggestionsCache) return homeLocationSuggestionsCache;
+
+            const items = [];
+            const seen = new Set();
+            HOME_BASE_LOCATION_SUGGESTIONS.forEach((item, index) => {
+                addHomeLocationSuggestion(items, seen, item.label, item.detail, index);
+            });
+
+            const data = window.locationsData || {};
+            const states = data.states && typeof data.states === 'object' ? data.states : {};
+            Object.entries(states).forEach(([state, cities]) => {
+                if (!Array.isArray(cities)) return;
+                cities.forEach((city) => {
+                    addHomeLocationSuggestion(items, seen, city, `${state} city`, state === 'Rajasthan' ? 18 : 60);
+                });
+            });
+
+            const rajasthan = data.rajasthan && typeof data.rajasthan === 'object' ? data.rajasthan : {};
+            Object.entries(rajasthan).forEach(([district, groups]) => {
+                addHomeLocationSuggestion(items, seen, district, 'Rajasthan district', 20);
+                if (!groups || typeof groups !== 'object') return;
+                Object.entries(groups).forEach(([groupKey, values]) => {
+                    if (!Array.isArray(values)) return;
+                    const label = homeCategoryLabel(groupKey);
+                    const priority = groupKey === 'airports' ? 4
+                        : groupKey === 'railway_stations' ? 8
+                        : groupKey === 'bus_stands' ? 12
+                            : groupKey === 'landmarks' ? 24
+                                : groupKey === 'tourist_places' ? 28
+                                    : 34;
+
+                    values.forEach((place) => {
+                        const cleanPlace = cleanBookingValue(place);
+                        if (!cleanPlace) return;
+                        const hasDistrict = simplifyHomeLocation(cleanPlace).includes(simplifyHomeLocation(district));
+                        addHomeLocationSuggestion(
+                            items,
+                            seen,
+                            hasDistrict ? cleanPlace : `${cleanPlace}, ${district}`,
+                            `${label} · ${district}`,
+                            priority
+                        );
+                    });
+                });
+            });
+
+            homeLocationSuggestionsCache = items.sort((a, b) => (
+                a.priority - b.priority || a.label.localeCompare(b.label)
+            ));
+            return homeLocationSuggestionsCache;
+        }
+
+        function homeSuggestionScore(item, query, compactQuery) {
+            const label = cleanBookingValue(item.label).toLowerCase();
+            const detail = cleanBookingValue(item.detail).toLowerCase();
+            const compactLabel = simplifyHomeLocation(item.label);
+            if (!query) return item.priority;
+            if (label.startsWith(query)) return 0;
+            if (compactLabel.startsWith(compactQuery)) return 1;
+            if (label.includes(query)) return 2;
+            if (compactLabel.includes(compactQuery)) return 3;
+            if (detail.includes(query)) return 4;
+            return 9;
+        }
+
+        function getHomeLocationSuggestions(query) {
+            const cleanQuery = cleanBookingValue(query).toLowerCase();
+            const compactQuery = simplifyHomeLocation(query);
+            const suggestions = buildHomeLocationSuggestions();
+            if (!cleanQuery) return suggestions;
+
+            return suggestions
+                .filter((item) => {
+                    const label = cleanBookingValue(item.label).toLowerCase();
+                    const detail = cleanBookingValue(item.detail).toLowerCase();
+                    const compactLabel = simplifyHomeLocation(item.label);
+                    return label.includes(cleanQuery)
+                        || compactLabel.includes(compactQuery)
+                        || detail.includes(cleanQuery);
+                })
+                .sort((a, b) => (
+                    homeSuggestionScore(a, cleanQuery, compactQuery) - homeSuggestionScore(b, cleanQuery, compactQuery)
+                    || a.priority - b.priority
+                    || a.label.localeCompare(b.label)
+                ));
         }
 
         function buildBookingUrl(params = {}) {
@@ -69,14 +190,18 @@
             const suggestionPanel = document.getElementById('homeLocationSuggestPanel');
             const currentLocationButton = document.getElementById('homeUseLocationBtn');
 
-            function setHomeStatus(message) {
-                if (status) status.textContent = message || '';
+            function setHomeStatus(message, tone) {
+                if (!status) return;
+                status.textContent = message || '';
+                status.classList.toggle('is-success', tone === 'success');
+                status.classList.toggle('is-error', tone === 'error');
             }
 
             function hideHomeSuggestions() {
                 if (suggestionPanel) {
                     suggestionPanel.hidden = true;
                     suggestionPanel.replaceChildren();
+                    suggestionPanel.removeAttribute('style');
                     [pickupInput, dropInput].filter(Boolean).forEach((input) => {
                         input.setAttribute('aria-expanded', 'false');
                     });
@@ -102,17 +227,13 @@
 
             function renderHomeSuggestions(input) {
                 if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
-                delete input.dataset.bookingValue;
                 const query = cleanBookingValue(input.value).toLowerCase();
-                const matches = HOME_LOCATION_SUGGESTIONS
-                    .filter((item) => !query || item.label.toLowerCase().includes(query))
-                    .sort((a, b) => {
-                        if (!query) return 0;
-                        const aStarts = a.label.toLowerCase().startsWith(query);
-                        const bStarts = b.label.toLowerCase().startsWith(query);
-                        return Number(bStarts) - Number(aStarts);
-                    })
-                    .slice(0, 6);
+                if (input.dataset.bookingValue && query.startsWith('current location selected')) {
+                    hideHomeSuggestions();
+                    return;
+                }
+
+                const matches = getHomeLocationSuggestions(query);
 
                 if (!matches.length) {
                     hideHomeSuggestions();
@@ -147,7 +268,13 @@
 
             [pickupInput, dropInput].filter(Boolean).forEach((input) => {
                 input.addEventListener('focus', () => renderHomeSuggestions(input));
-                input.addEventListener('input', () => renderHomeSuggestions(input));
+                input.addEventListener('input', () => {
+                    delete input.dataset.bookingValue;
+                    if (input === pickupInput && currentLocationButton) {
+                        currentLocationButton.classList.remove('is-success');
+                    }
+                    renderHomeSuggestions(input);
+                });
                 input.addEventListener('keydown', (event) => {
                     if (event.key === 'Escape') hideHomeSuggestions();
                 });
@@ -177,21 +304,30 @@
             if (currentLocationButton && pickupInput) {
                 currentLocationButton.addEventListener('click', () => {
                     if (!navigator.geolocation) {
-                        setHomeStatus('Current location is not available in this browser.');
+                        setHomeStatus('Current location is not available in this browser. Search pickup manually.', 'error');
                         return;
                     }
 
                     currentLocationButton.disabled = true;
-                    setHomeStatus('Finding current location...');
+                    currentLocationButton.classList.add('is-loading');
+                    currentLocationButton.classList.remove('is-success');
+                    hideHomeSuggestions();
+                    setHomeStatus('Detecting GPS location...', '');
                     navigator.geolocation.getCurrentPosition((position) => {
                         const lat = Number(position.coords.latitude || 0).toFixed(5);
                         const lng = Number(position.coords.longitude || 0).toFixed(5);
-                        fillHomeLocation(pickupInput, 'Current location', `Current location (${lat}, ${lng})`);
+                        fillHomeLocation(pickupInput, 'Current location selected', `Current location (${lat}, ${lng})`);
                         currentLocationButton.disabled = false;
-                        setHomeStatus('Current location added.');
-                    }, () => {
+                        currentLocationButton.classList.remove('is-loading');
+                        currentLocationButton.classList.add('is-success');
+                        setHomeStatus(`GPS selected: ${lat}, ${lng}. Exact pickup will be sent with booking.`, 'success');
+                    }, (error) => {
                         currentLocationButton.disabled = false;
-                        setHomeStatus('Location permission was not allowed. Type pickup manually.');
+                        currentLocationButton.classList.remove('is-loading');
+                        const denied = error && error.code === 1;
+                        setHomeStatus(denied
+                            ? 'Location permission was not allowed. Search pickup manually.'
+                            : 'Current location could not be detected. Search pickup manually.', 'error');
                     }, {
                         enableHighAccuracy: true,
                         timeout: 9000,
