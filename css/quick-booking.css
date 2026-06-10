@@ -447,8 +447,7 @@ a:focus-visible {
     display: grid;
 }
 
-.booking-panel.is-multi-city .stop-field,
-.booking-panel.is-round-trip .stop-field {
+.booking-panel.is-multi-city .stop-field {
     display: grid;
 }
 
