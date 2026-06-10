@@ -22,7 +22,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/quick-booking.css?v=20260607-direct-booking1">
+    <link rel="stylesheet" href="./css/quick-booking.css?v=20260610-plan-modes1">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -182,6 +182,15 @@
                         </button>
                     </div>
 
+                    <section class="trip-plan-detail" id="tripPlanDetail" aria-live="polite" aria-label="Selected booking mode details">
+                        <div class="trip-plan-heading">
+                            <span id="tripPlanKicker">Airport booking mode</span>
+                            <strong id="tripPlanTitle">Airport pickup, drop and transfer</strong>
+                        </div>
+                        <p id="tripPlanCopy">Choose the exact airport service, add terminal, flight, luggage and waiting details, then send the request to admin review.</p>
+                        <div class="trip-plan-points" id="tripPlanPoints" aria-label="Selected mode features"></div>
+                    </section>
+
                     <div class="journey-toggle" aria-label="Journey type">
                         <button type="button" class="journey-btn is-active" data-journey="one_way">One way</button>
                         <button type="button" class="journey-btn" data-journey="round_trip">Round trip</button>
@@ -208,11 +217,31 @@
                             <span>Cab model</span>
                             <select id="vehicleModelInput" name="vehicleModel">
                                 <option value="">Any clean cab</option>
-                                <option value="hatchback">Hatchback</option>
-                                <option value="sedan_ac">AC Sedan</option>
-                                <option value="suv_ac">AC SUV</option>
-                                <option value="traveller">Traveller / Minivan</option>
+                                <option value="hatchback_car">Hatchback Car</option>
+                                <option value="ecco_car">Ecco Car</option>
+                                <option value="sedan_car">Sedan Car</option>
+                                <option value="swift_dzire">Swift Dzire</option>
+                                <option value="toyota_etios">Toyota Etios</option>
+                                <option value="suv_ertiga_car">SUV Ertiga Car</option>
+                                <option value="toyota_rumion">Toyota Rumion</option>
+                                <option value="kia_carens">Kia Carens</option>
+                                <option value="suv_innova_car">SUV Innova Car</option>
+                                <option value="toyota_innova">Toyota Innova</option>
+                                <option value="suv_crysta_car">SUV Crysta Car</option>
+                                <option value="toyota_hycross">Toyota Hycross</option>
+                                <option value="tempo_traveller">Tempo Traveller</option>
+                                <option value="force_urbania">Force Urbania</option>
+                                <option value="force_trax_cruiser">Force Trax Cruiser</option>
+                                <option value="small_coach">Small Coach</option>
+                                <option value="luxury_coach">Luxury Coach</option>
+                                <option value="premium_car">Premium Car</option>
                                 <option value="business_sedan">Business Sedan</option>
+                                <option value="wheelchair_accessible_car">Wheelchair Accessible Car</option>
+                                <option value="ev_car">EV Car</option>
+                                <option value="parcel_only">Parcel</option>
+                                <option value="driver_only">Driver</option>
+                                <option value="ambulance">Ambulance</option>
+                                <option value="loading_auto_truck">Loading Auto & Truck</option>
                             </select>
                         </label>
                     </div>
@@ -347,6 +376,48 @@
                                 <input id="flightInput" name="flightNumber" type="text" placeholder="Flight or train number">
                             </label>
                             <label class="field-shell">
+                                <span>Airline / carrier</span>
+                                <input id="airlineInput" name="airlineName" type="text" placeholder="Air India, IndiGo, train name">
+                            </label>
+                            <label class="field-shell">
+                                <span>Meet & greet name</span>
+                                <input id="meetGreetInput" name="meetGreetName" type="text" placeholder="Placard name or guest name">
+                            </label>
+                            <label class="field-shell">
+                                <span>Waiting buffer</span>
+                                <select id="waitingBufferInput" name="waitingBuffer">
+                                    <option value="standard_15">Standard - 15 min</option>
+                                    <option value="airport_30">Airport / luggage - 30 min</option>
+                                    <option value="premium_45">Premium - 45 min</option>
+                                    <option value="extended_60">Extended - 60 min</option>
+                                </select>
+                            </label>
+                            <label class="field-shell">
+                                <span>Reschedule</span>
+                                <select id="rescheduleInput" name="reschedulePreference">
+                                    <option value="standard_policy">Standard policy</option>
+                                    <option value="same_day_flexible">Same-day flexible if driver available</option>
+                                    <option value="flight_delay_adjust">Adjust for flight delay</option>
+                                </select>
+                            </label>
+                            <label class="field-shell">
+                                <span>Cancellation</span>
+                                <select id="cancellationInput" name="cancellationPreference">
+                                    <option value="standard_policy">Standard cancellation policy</option>
+                                    <option value="flexible_preferred">Flexible cancellation preferred</option>
+                                    <option value="admin_confirm_before_charge">Admin confirm before charge</option>
+                                </select>
+                            </label>
+                            <label class="field-shell">
+                                <span>Driver call</span>
+                                <select id="driverCallInput" name="driverCallPreference">
+                                    <option value="call_30_min_before">Call 30 min before pickup</option>
+                                    <option value="call_after_assignment">Call after driver assignment</option>
+                                    <option value="message_only">Message first, call if needed</option>
+                                    <option value="no_call_unless_urgent">No call unless urgent</option>
+                                </select>
+                            </label>
+                            <label class="field-shell">
                                 <span>Fuel</span>
                                 <select id="fuelPreferenceInput" name="fuelPreference">
                                     <option value="">Any fuel</option>
@@ -373,6 +444,12 @@
                             <label><input type="checkbox" data-addon="waterBottle"> Water bottle</label>
                             <label><input type="checkbox" data-addon="phoneCharger"> Phone charger</label>
                             <label><input type="checkbox" data-addon="wifi"> WiFi request</label>
+                            <label><input type="checkbox" data-addon="flightTrackingConsent"> Flight delay notes</label>
+                            <label><input type="checkbox" data-addon="gstInvoiceRequired"> GST invoice required</label>
+                            <label><input type="checkbox" data-addon="driverCallBeforeArrival" checked> Driver call before arrival</label>
+                            <label><input type="checkbox" data-addon="extraWaitApproval"> Extra waiting approval</label>
+                            <label><input type="checkbox" data-addon="roofCarrier"> Roof carrier needed</label>
+                            <label><input type="checkbox" data-addon="newVehiclePreferred"> New vehicle preferred</label>
                             <label><input type="checkbox" data-safety="womenDriverPref"> Women driver pref.</label>
                             <label><input type="checkbox" data-safety="childseat"> Child seat</label>
                             <label><input type="checkbox" data-safety="wheelchairassist"> Wheelchair assist</label>
@@ -448,6 +525,6 @@
     </main>
 
     <script src="./js/booking-fare-calculator.js?v=20260607-direct-booking1"></script>
-    <script src="./js/quick-booking.js?v=20260607-direct-booking1"></script>
+    <script src="./js/quick-booking.js?v=20260610-plan-modes1"></script>
 </body>
 </html>

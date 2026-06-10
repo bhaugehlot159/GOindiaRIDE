@@ -38,6 +38,12 @@
         notes: document.getElementById('notesInput'),
         terminal: document.getElementById('terminalInput'),
         flight: document.getElementById('flightInput'),
+        airline: document.getElementById('airlineInput'),
+        meetGreet: document.getElementById('meetGreetInput'),
+        waitingBuffer: document.getElementById('waitingBufferInput'),
+        reschedule: document.getElementById('rescheduleInput'),
+        cancellation: document.getElementById('cancellationInput'),
+        driverCall: document.getElementById('driverCallInput'),
         fuelPreference: document.getElementById('fuelPreferenceInput'),
         gstCompany: document.getElementById('gstCompanyInput'),
         gstNumber: document.getElementById('gstNumberInput'),
@@ -53,6 +59,14 @@
     const whatsAppBookingLink = document.getElementById('whatsAppBookingLink');
     const loadBookingBtn = document.getElementById('loadBookingBtn');
     const newBookingBtn = document.getElementById('newBookingBtn');
+    const routeSuggestions = document.querySelector('.route-suggestions');
+    const tripPlanDetail = {
+        shell: document.getElementById('tripPlanDetail'),
+        kicker: document.getElementById('tripPlanKicker'),
+        title: document.getElementById('tripPlanTitle'),
+        copy: document.getElementById('tripPlanCopy'),
+        points: document.getElementById('tripPlanPoints')
+    };
 
     const state = {
         tripPlan: 'airport',
@@ -61,6 +75,221 @@
         lastFare: null,
         editingBookingId: '',
         editOriginal: null
+    };
+
+    const VEHICLE_MODEL_OPTIONS = [
+        { value: '', label: 'Any clean cab' },
+        { value: 'hatchback_car', label: 'Hatchback Car' },
+        { value: 'ecco_car', label: 'Ecco Car' },
+        { value: 'sedan_car', label: 'Sedan Car' },
+        { value: 'swift_dzire', label: 'Swift Dzire' },
+        { value: 'toyota_etios', label: 'Toyota Etios' },
+        { value: 'suv_ertiga_car', label: 'SUV Ertiga Car' },
+        { value: 'ertiga', label: 'Ertiga' },
+        { value: 'toyota_rumion', label: 'Toyota Rumion' },
+        { value: 'kia_carens', label: 'Kia Carens' },
+        { value: 'suv_innova_car', label: 'SUV Innova Car' },
+        { value: 'toyota_innova', label: 'Toyota Innova' },
+        { value: 'suv_crysta_car', label: 'SUV Crysta Car' },
+        { value: 'innova_crysta', label: 'Innova Crysta' },
+        { value: 'toyota_hycross', label: 'Toyota Hycross' },
+        { value: 'tempo_traveller', label: 'Tempo Traveller' },
+        { value: 'twelve_seater_traveller', label: '12 Seater Traveller' },
+        { value: 'force_urbania', label: 'Force Urbania' },
+        { value: 'force_trax_cruiser', label: 'Force Trax Cruiser' },
+        { value: 'small_coach', label: 'Small Coach' },
+        { value: 'luxury_coach', label: 'Luxury Coach' },
+        { value: 'premium_car', label: 'Premium Car' },
+        { value: 'business_sedan', label: 'Business Sedan' },
+        { value: 'wheelchair_accessible_car', label: 'Wheelchair Accessible Car' },
+        { value: 'ev_car', label: 'EV Car' },
+        { value: 'parcel_only', label: 'Parcel' },
+        { value: 'driver_only', label: 'Driver' },
+        { value: 'ambulance', label: 'Ambulance' },
+        { value: 'loading_auto_truck', label: 'Loading Auto & Truck' },
+        { value: 'hatchback', label: 'Hatchback' },
+        { value: 'sedan_ac', label: 'AC Sedan' },
+        { value: 'suv_ac', label: 'AC SUV' },
+        { value: 'traveller', label: 'Traveller / Minivan' }
+    ];
+
+    const TRIP_PLAN_CONFIG = {
+        airport: {
+            kicker: 'Airport booking mode',
+            title: 'Airport pickup, drop, transfer and hourly duty',
+            copy: 'Airport mode keeps terminal, flight or train, meet and greet, luggage fit, waiting buffer, delay notes and airport-city route details together for admin review.',
+            points: [
+                'Airport Drop, Airport Pickup, Terminal Transfer, Return Pickup, Hourly and Multi-stop airport duties are separate service choices.',
+                'Terminal / gate, flight number, carrier, placard name, waiting buffer and luggage details stay visible before submit.',
+                'Best for city to airport, airport to city, airport to airport, hotel transfer, railway station and flight-delay coordination.'
+            ],
+            serviceModes: [
+                { value: 'airport_drop', label: 'Airport Drop - city to airport' },
+                { value: 'airport_pickup', label: 'Airport Pickup - airport to city' },
+                { value: 'airport_transfer', label: 'Airport Transfer - terminal / airport to airport' },
+                { value: 'airport_to_airport', label: 'Airport to Airport / Terminal Transfer' },
+                { value: 'airport_round', label: 'Airport Return Pickup' },
+                { value: 'airport_hourly', label: 'Airport Hourly - airport plus city' },
+                { value: 'airport_day', label: 'Airport Full Day Duty' },
+                { value: 'airport_multi', label: 'Airport Multi-stop Route' },
+                { value: 'railway_station_transfer', label: 'Railway Station Transfer' }
+            ],
+            journeyModes: {
+                one_way: 'airport_drop',
+                round_trip: 'airport_round',
+                multi_city: 'airport_multi'
+            },
+            labels: {
+                pickup: 'Pickup',
+                drop: 'Drop',
+                notes: 'Airport notes'
+            },
+            placeholders: {
+                pickup: 'City, hotel, station, or airport terminal',
+                drop: 'Airport terminal, hotel, city, or station',
+                terminal: 'Terminal, gate, pillar, arrival/departure point',
+                flight: 'Flight or train number',
+                stopOne: 'Terminal, hotel, station, or city stop',
+                stopTwo: 'Second airport/city stop',
+                notes: 'Flight delay, luggage, meet and greet, pickup point'
+            },
+            suggestions: [
+                { pickup: 'Jaipur Airport', drop: 'Jaipur City', label: 'Jaipur Airport to City' },
+                { pickup: 'Udaipur Airport', drop: 'Udaipur Hotel', label: 'Udaipur Airport to Hotel' },
+                { pickup: 'Delhi Airport', drop: 'Jaipur', label: 'Delhi Airport to Jaipur' },
+                { pickup: 'Ahmedabad Airport', drop: 'Udaipur', label: 'Ahmedabad Airport to Udaipur' }
+            ]
+        },
+        city: {
+            kicker: 'Local booking mode',
+            title: 'Local point-to-point, hourly and city tour cabs',
+            copy: 'Local mode is for within-city pickup/drop, station transfer, city tour, office duty, errands and hourly disposal with stops and passenger preferences.',
+            points: [
+                'Local Point to Point, Local Hourly, City Tour, Station Transfer and Corporate City Ride are separate choices.',
+                'Use Multi stop for markets, hospitals, meetings or sightseeing points; use Round trip when driver wait and return are needed.',
+                'Payment, passengers, luggage, add-ons, safety preferences and admin approval remain on the same public booking page.'
+            ],
+            serviceModes: [
+                { value: 'local_point', label: 'Local Point to Point' },
+                { value: 'local_hourly', label: 'Local Hourly / Disposal' },
+                { value: 'local_city_tour', label: 'Local City Tour' },
+                { value: 'local_round_wait', label: 'Local Return with Waiting' },
+                { value: 'local_multi_stop', label: 'Local Multi-stop Ride' },
+                { value: 'railway_station_transfer', label: 'Railway Station Transfer' },
+                { value: 'corporate_city_ride', label: 'Corporate City Ride' }
+            ],
+            journeyModes: {
+                one_way: 'local_point',
+                round_trip: 'local_round_wait',
+                multi_city: 'local_multi_stop'
+            },
+            labels: {
+                pickup: 'Pickup',
+                drop: 'Drop',
+                notes: 'Local ride notes'
+            },
+            placeholders: {
+                pickup: 'Home, hotel, office, railway station',
+                drop: 'Mall, hospital, meeting, tourist place',
+                terminal: 'Station platform, gate, landmark, office block',
+                flight: 'Train number or local reference',
+                stopOne: 'Market, office, hospital, tourist stop',
+                stopTwo: 'Second local stop',
+                notes: 'Waiting, local stops, driver call timing, landmark'
+            },
+            suggestions: [
+                { pickup: 'Jaipur Railway Station', drop: 'Jaipur Hotel', label: 'Jaipur Station to Hotel' },
+                { pickup: 'Udaipur Hotel', drop: 'City Palace Udaipur', label: 'Udaipur City Tour' },
+                { pickup: 'Jodhpur Airport Road', drop: 'Mehrangarh Fort', label: 'Jodhpur Local Ride' },
+                { pickup: 'Kota Railway Station', drop: 'Kota City', label: 'Kota Station to City' }
+            ]
+        },
+        outstation: {
+            kicker: 'Outstation booking mode',
+            title: 'Intercity one way, round trip and multi-city routes',
+            copy: 'Outstation mode captures intercity distance, return plan, route stops, toll/admin review notes, luggage fit and route approval before dispatch.',
+            points: [
+                'Outstation One Way, Round Trip, Multi-city, Pilgrimage, Hill Station and Long Route Duty are separate service modes.',
+                'Round trip opens return date/time; Multi stop opens extra route fields for cities, temples, hotels or sightseeing points.',
+                'Fare estimate, customer budget, vehicle segment, toll-ready admin review and WhatsApp confirmation stay connected.'
+            ],
+            serviceModes: [
+                { value: 'outstation_one_way', label: 'Outstation One Way' },
+                { value: 'outstation_round_trip', label: 'Outstation Round Trip' },
+                { value: 'outstation_multi_city', label: 'Outstation Multi-city' },
+                { value: 'outstation_pilgrimage', label: 'Pilgrimage / Temple Route' },
+                { value: 'outstation_hill_station', label: 'Hill Station Route' },
+                { value: 'outstation_long_route', label: 'Long Route Duty' }
+            ],
+            journeyModes: {
+                one_way: 'outstation_one_way',
+                round_trip: 'outstation_round_trip',
+                multi_city: 'outstation_multi_city'
+            },
+            labels: {
+                pickup: 'Pickup city',
+                drop: 'Drop city',
+                notes: 'Outstation notes'
+            },
+            placeholders: {
+                pickup: 'Start city / pickup address',
+                drop: 'Destination city / final address',
+                terminal: 'Hotel, landmark, pickup gate, route point',
+                flight: 'Train/flight reference if connected',
+                stopOne: 'Intermediate city or route stop',
+                stopTwo: 'Second route stop',
+                notes: 'Route preference, tolls, night halt, luggage, driver stay'
+            },
+            suggestions: [
+                { pickup: 'Jaipur', drop: 'Udaipur', label: 'Jaipur to Udaipur' },
+                { pickup: 'Udaipur', drop: 'Mount Abu', label: 'Udaipur to Mount Abu' },
+                { pickup: 'Jodhpur', drop: 'Jaisalmer', label: 'Jodhpur to Jaisalmer' },
+                { pickup: 'Delhi', drop: 'Jaipur', label: 'Delhi to Jaipur' }
+            ]
+        },
+        rental: {
+            kicker: 'Rental booking mode',
+            title: 'Hourly, half-day, full-day and event cab rental',
+            copy: 'Rental mode is for disposal duty where the cab stays with the customer for hours, km packages, city stops, events, wedding duty or multi-day usage.',
+            points: [
+                'Half Day, Full Day, 8 hr / 80 km, 12 hr / 120 km, Multi-day Rental and Event Shuttle are separate choices.',
+                'Use stops for package route points, add waiting buffer, roof carrier, new vehicle preference and driver call preference in full details.',
+                'Best for city sightseeing, meetings, wedding guest movement, business disposal and hotel-to-hotel day plans.'
+            ],
+            serviceModes: [
+                { value: 'rental_half_day', label: 'Rental Half Day' },
+                { value: 'rental_full_day', label: 'Rental Full Day' },
+                { value: 'rental_8h80km', label: 'Rental 8 hr / 80 km' },
+                { value: 'rental_12h120km', label: 'Rental 12 hr / 120 km' },
+                { value: 'rental_multi_day', label: 'Multi-day Rental' },
+                { value: 'event_shuttle', label: 'Event / Wedding Shuttle' }
+            ],
+            journeyModes: {
+                one_way: 'rental_full_day',
+                round_trip: 'rental_12h120km',
+                multi_city: 'rental_multi_day'
+            },
+            labels: {
+                pickup: 'Rental start',
+                drop: 'Rental end / base',
+                notes: 'Rental notes'
+            },
+            placeholders: {
+                pickup: 'Hotel, home, office, venue start point',
+                drop: 'End point or base city',
+                terminal: 'Venue gate, hotel lobby, office block',
+                flight: 'Event, guest, flight or train reference',
+                stopOne: 'Package route or venue stop',
+                stopTwo: 'Second route or venue stop',
+                notes: 'Hours, km package, event duty, waiting, driver stay'
+            },
+            suggestions: [
+                { pickup: 'Jaipur Hotel', drop: 'Jaipur City Rental', label: 'Jaipur Full Day Rental' },
+                { pickup: 'Udaipur Hotel', drop: 'Udaipur Sightseeing', label: 'Udaipur Sightseeing Rental' },
+                { pickup: 'Jodhpur Hotel', drop: 'Jodhpur Local Rental', label: 'Jodhpur Rental' },
+                { pickup: 'Wedding Venue', drop: 'Guest Hotel Shuttle', label: 'Wedding Shuttle' }
+            ]
+        }
     };
 
     function cleanText(value, maxLen) {
@@ -144,35 +373,54 @@
 
     function readSpecialRequests() {
         const addOns = readBookingAddOns();
+        const gstRequested = Boolean(addOns.gstInvoiceRequired || cleanText(fields.gstCompany && fields.gstCompany.value, 140) || cleanText(fields.gstNumber && fields.gstNumber.value, 40));
         return {
             aircondition: true,
             meetassist: Boolean(addOns.meetAssist),
             waterbottle: Boolean(addOns.waterBottle),
             charger: Boolean(addOns.phoneCharger),
             wifi: Boolean(addOns.wifi),
-            gstinvoice: Boolean(cleanText(fields.gstCompany && fields.gstCompany.value, 140) || cleanText(fields.gstNumber && fields.gstNumber.value, 40))
+            gstinvoice: gstRequested,
+            roofcarrier: Boolean(addOns.roofCarrier),
+            newvehiclepreferred: Boolean(addOns.newVehiclePreferred),
+            drivercallbeforearrival: Boolean(addOns.driverCallBeforeArrival),
+            extrawaitapproval: Boolean(addOns.extraWaitApproval)
         };
     }
 
     function readTravelAssurance() {
+        const addOns = readBookingAddOns();
+        const safetyAccessibility = readSafetyAccessibility();
+        const gstRequested = Boolean(addOns.gstInvoiceRequired || cleanText(fields.gstCompany && fields.gstCompany.value, 140) || cleanText(fields.gstNumber && fields.gstNumber.value, 40));
         return {
             flightDetails: {
                 flightNumber: cleanText(fields.flight && fields.flight.value, 80),
                 terminal: cleanText(fields.terminal && fields.terminal.value, 120),
-                pickupPoint: cleanText(fields.terminal && fields.terminal.value, 120)
+                pickupPoint: cleanText(fields.terminal && fields.terminal.value, 120),
+                airlineName: cleanText(fields.airline && fields.airline.value, 120),
+                meetAndGreetName: cleanText(fields.meetGreet && fields.meetGreet.value, 120)
             },
             policyPreferences: {
                 flexibleCancellation: true,
                 adminReviewBeforeDispatch: true,
                 customerEditRequested: Boolean(state.editingBookingId),
-                liveTripShare: Boolean(readSafetyAccessibility().livetripshare)
+                liveTripShare: Boolean(safetyAccessibility.livetripshare),
+                waitingBuffer: cleanText(fields.waitingBuffer && fields.waitingBuffer.value, 80),
+                rescheduleWindow: cleanText(fields.reschedule && fields.reschedule.value, 80),
+                cancellationPreference: cleanText(fields.cancellation && fields.cancellation.value, 80),
+                driverCallPreference: cleanText(fields.driverCall && fields.driverCall.value, 80),
+                flightTrackingConsent: Boolean(addOns.flightTrackingConsent),
+                driverCallBeforeArrival: Boolean(addOns.driverCallBeforeArrival),
+                extraWaitApproval: Boolean(addOns.extraWaitApproval),
+                roofCarrierNeeded: Boolean(addOns.roofCarrier),
+                newVehiclePreferred: Boolean(addOns.newVehiclePreferred)
             },
             billingDetails: {
-                gstInvoiceRequired: Boolean(cleanText(fields.gstCompany && fields.gstCompany.value, 140) || cleanText(fields.gstNumber && fields.gstNumber.value, 40)),
+                gstInvoiceRequired: gstRequested,
                 gstCompanyName: cleanText(fields.gstCompany && fields.gstCompany.value, 140),
                 gstNumber: cleanText(fields.gstNumber && fields.gstNumber.value, 40)
             },
-            addOns: readBookingAddOns()
+            addOns
         };
     }
 
@@ -207,16 +455,23 @@
             details.journey ? `Journey: ${details.journey}` : '',
             details.terminal ? `Terminal/Gate: ${details.terminal}` : '',
             details.flight ? `Flight/Train: ${details.flight}` : '',
+            details.airline ? `Airline/Carrier: ${details.airline}` : '',
+            details.meetGreet ? `Meet/Greet: ${details.meetGreet}` : '',
+            details.waitingBuffer ? `Waiting buffer: ${details.waitingBuffer}` : '',
+            details.reschedule ? `Reschedule: ${details.reschedule}` : '',
+            details.cancellation ? `Cancellation: ${details.cancellation}` : '',
+            details.driverCall ? `Driver call: ${details.driverCall}` : '',
             details.stops && details.stops.length ? `Stops: ${details.stops.join(' | ')}` : '',
             details.luggage ? `Luggage: ${details.luggage}` : '',
             details.vehicleModel ? `Cab model: ${details.vehicleModel}` : '',
             details.fuelPreference ? `Fuel preference: ${details.fuelPreference}` : '',
+            details.addOns ? `Add-ons: ${details.addOns}` : '',
             details.budgetAmount ? `Customer budget: INR ${details.budgetAmount}` : '',
             details.promoCode ? `Promo: ${details.promoCode}` : '',
             details.gstCompany || details.gstNumber ? `GST: ${details.gstCompany || 'Company not set'} ${details.gstNumber || ''}` : '',
             details.editReason ? `Customer edit note: ${details.editReason}` : ''
         ].filter(Boolean);
-        return cleanText(lines.join(' | '), 600);
+        return cleanText(lines.join(' | '), 1200);
     }
 
     function computeChangedFields(previous = {}, next = {}) {
@@ -490,22 +745,39 @@
         const terminal = cleanText(fields.terminal && fields.terminal.value, 120);
         const flightNumber = cleanText(fields.flight && fields.flight.value, 80);
         const serviceMode = normalizeTripServiceType();
+        const serviceModeLabel = selectLabel(fields.serviceMode, serviceMode);
         const vehicleModel = cleanText(fields.vehicleModel && fields.vehicleModel.value, 80);
+        const vehicleModelLabel = selectLabel(fields.vehicleModel, vehicleModel);
         const fuelPreference = cleanText(fields.fuelPreference && fields.fuelPreference.value, 80);
+        const fuelPreferenceLabel = selectLabel(fields.fuelPreference, fuelPreference);
         const luggage = cleanText(fields.luggage && fields.luggage.value, 80);
+        const airline = cleanText(fields.airline && fields.airline.value, 120);
+        const meetGreet = cleanText(fields.meetGreet && fields.meetGreet.value, 120);
+        const waitingBuffer = selectLabel(fields.waitingBuffer, fields.waitingBuffer && fields.waitingBuffer.value);
+        const reschedule = selectLabel(fields.reschedule, fields.reschedule && fields.reschedule.value);
+        const cancellation = selectLabel(fields.cancellation, fields.cancellation && fields.cancellation.value);
+        const driverCall = selectLabel(fields.driverCall, fields.driverCall && fields.driverCall.value);
+        const addOnLabels = checkedLabels('[data-addon], [data-safety]');
         const budgetAmount = toNumber(fields.budget && fields.budget.value, 0);
         const promoCode = cleanText(fields.promo && fields.promo.value, 40).toUpperCase();
         const editReason = cleanText(fields.editReason && fields.editReason.value, 180);
         const locationPins = buildLocationPins(pickup, drop, stops);
         const fullNotes = buildFullDetailNotes(fields.notes.value, {
-            serviceMode,
+            serviceMode: serviceModeLabel,
             journey: state.journey,
             terminal,
             flight: flightNumber,
+            airline,
+            meetGreet,
+            waitingBuffer,
+            reschedule,
+            cancellation,
+            driverCall,
             stops,
             luggage,
-            vehicleModel,
-            fuelPreference,
+            vehicleModel: vehicleModelLabel,
+            fuelPreference: fuelPreferenceLabel,
+            addOns: addOnLabels,
             budgetAmount,
             promoCode,
             gstCompany: cleanText(fields.gstCompany && fields.gstCompany.value, 140),
@@ -587,9 +859,11 @@
             journeyType: state.journey,
             tripPlan: state.tripPlan,
             tripServiceType: serviceMode,
+            tripServiceTypeLabel: serviceModeLabel,
             serviceType: serviceMode,
+            serviceTypeLabel: serviceModeLabel,
             airportServiceMode: serviceMode,
-            airportServiceLabel: serviceMode.replace(/_/g, ' '),
+            airportServiceLabel: serviceModeLabel,
             airportTerminalNote: terminal,
             travelAssurance,
             flightDetails: travelAssurance.flightDetails,
@@ -599,7 +873,9 @@
             vehicleType: state.vehicleType,
             rideType: state.vehicleType,
             vehicleModel,
+            vehicleModelLabel,
             vehicleFuelPreference: fuelPreference,
+            vehicleFuelPreferenceLabel: fuelPreferenceLabel,
             fuelPreference,
             passengers: toNumber(fields.passengers.value, 1),
             luggage,
@@ -761,33 +1037,137 @@
         return null;
     }
 
+    function planConfig(plan) {
+        return TRIP_PLAN_CONFIG[plan] || TRIP_PLAN_CONFIG.city;
+    }
+
+    function optionExists(input, value) {
+        if (!input || input.tagName !== 'SELECT') return false;
+        return Array.from(input.options || []).some((option) => option.value === value);
+    }
+
+    function setSelectOptions(input, options, preferredValue) {
+        if (!input || input.tagName !== 'SELECT') return;
+        const cleanPreferred = cleanText(preferredValue, 100);
+        input.innerHTML = '';
+        options.forEach((item) => {
+            const option = document.createElement('option');
+            option.value = item.value;
+            option.textContent = item.label;
+            input.appendChild(option);
+        });
+        if (cleanPreferred && optionExists(input, cleanPreferred)) {
+            input.value = cleanPreferred;
+            return;
+        }
+        input.value = options[0] ? options[0].value : '';
+    }
+
+    function selectLabel(input, value) {
+        if (!input || input.tagName !== 'SELECT') return cleanText(value, 140);
+        const clean = cleanText(value, 100);
+        const match = Array.from(input.options || []).find((option) => option.value === clean);
+        return cleanText(match ? match.textContent : clean, 160);
+    }
+
+    function checkedLabels(selector) {
+        return Array.from(document.querySelectorAll(selector))
+            .filter((input) => input.checked)
+            .map((input) => cleanText(input.parentElement ? input.parentElement.textContent : input.dataset.addon || input.dataset.safety, 120))
+            .filter(Boolean)
+            .join(', ');
+    }
+
     function defaultServiceModeForTripPlan(plan) {
-        if (plan === 'airport') return 'airport_drop';
-        if (plan === 'outstation') return state.journey === 'round_trip' ? 'outstation_round_trip' : 'outstation_one_way';
-        if (plan === 'rental') return 'rental_full_day';
-        return 'local_point';
+        const config = planConfig(plan);
+        return config.journeyModes[state.journey] || (config.serviceModes[0] && config.serviceModes[0].value) || '';
+    }
+
+    function renderTripPlanDetail(config) {
+        if (!tripPlanDetail.shell) return;
+        tripPlanDetail.kicker.textContent = config.kicker;
+        tripPlanDetail.title.textContent = config.title;
+        tripPlanDetail.copy.textContent = config.copy;
+        tripPlanDetail.points.innerHTML = '';
+        config.points.forEach((point) => {
+            const item = document.createElement('span');
+            item.className = 'trip-plan-point';
+            item.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+            const text = document.createElement('span');
+            text.textContent = point;
+            item.appendChild(text);
+            tripPlanDetail.points.appendChild(item);
+        });
+    }
+
+    function renderRouteSuggestions(config) {
+        if (!routeSuggestions) return;
+        routeSuggestions.innerHTML = '';
+        config.suggestions.forEach((suggestion) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.pickup = suggestion.pickup;
+            button.dataset.drop = suggestion.drop;
+            button.textContent = suggestion.label;
+            routeSuggestions.appendChild(button);
+        });
+    }
+
+    function applyPlanLabels(config) {
+        const labelMap = [
+            [fields.pickup, config.labels.pickup, config.placeholders.pickup],
+            [fields.drop, config.labels.drop, config.placeholders.drop],
+            [fields.notes, config.labels.notes, config.placeholders.notes],
+            [fields.terminal, null, config.placeholders.terminal],
+            [fields.flight, null, config.placeholders.flight],
+            [fields.stopOne, null, config.placeholders.stopOne],
+            [fields.stopTwo, null, config.placeholders.stopTwo]
+        ];
+        labelMap.forEach(([input, label, placeholder]) => {
+            if (!input) return;
+            if (placeholder) input.placeholder = placeholder;
+            if (label && input.previousElementSibling) input.previousElementSibling.textContent = label;
+        });
+    }
+
+    function syncPlanControls(keepServiceMode = false) {
+        const config = planConfig(state.tripPlan);
+        setSelectOptions(fields.vehicleModel, VEHICLE_MODEL_OPTIONS, fields.vehicleModel && fields.vehicleModel.value);
+        setSelectOptions(
+            fields.serviceMode,
+            config.serviceModes,
+            keepServiceMode ? fields.serviceMode && fields.serviceMode.value : defaultServiceModeForTripPlan(state.tripPlan)
+        );
+        renderTripPlanDetail(config);
+        renderRouteSuggestions(config);
+        applyPlanLabels(config);
+        form.dataset.tripPlan = state.tripPlan;
     }
 
     function setTripPlan(plan, keepServiceMode = false) {
-        state.tripPlan = cleanText(plan, 40) || 'city';
+        const cleanPlan = cleanText(plan, 40) || 'city';
+        state.tripPlan = TRIP_PLAN_CONFIG[cleanPlan] ? cleanPlan : 'city';
         document.querySelectorAll('.service-tab').forEach((tab) => {
             const active = tab.dataset.tripPlan === state.tripPlan;
             tab.classList.toggle('is-active', active);
             tab.setAttribute('aria-selected', active ? 'true' : 'false');
         });
-        if (!keepServiceMode && fields.serviceMode) {
-            fields.serviceMode.value = defaultServiceModeForTripPlan(state.tripPlan);
-        }
+        syncPlanControls(keepServiceMode);
     }
 
-    function setJourney(journey) {
+    function setJourney(journey, keepServiceMode = false) {
         state.journey = cleanText(journey, 40) || 'one_way';
-        document.querySelectorAll('.journey-btn').forEach((tab) => tab.classList.toggle('is-active', tab.dataset.journey === state.journey));
+        document.querySelectorAll('.journey-btn').forEach((tab) => {
+            const active = tab.dataset.journey === state.journey;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
         form.classList.toggle('is-round-trip', state.journey === 'round_trip');
         form.classList.toggle('is-multi-city', state.journey === 'multi_city');
-        if (fields.serviceMode && state.tripPlan === 'outstation') {
+        if (fields.serviceMode && !keepServiceMode) {
             fields.serviceMode.value = defaultServiceModeForTripPlan(state.tripPlan);
         }
+        renderTripPlanDetail(planConfig(state.tripPlan));
     }
 
     function setVehicle(vehicleType) {
@@ -912,6 +1292,11 @@
         const customer = booking.customerSnapshot || {};
         const features = booking.customerFeatures || {};
         const travel = booking.travelAssurance || features.travelAssurance || {};
+        const policy = booking.policyPreferences || travel.policyPreferences || {};
+        const desiredVehicleModel = cleanText(booking.vehicleModel, 80);
+        const desiredServiceMode = cleanText(booking.tripServiceType || booking.serviceType || booking.airportServiceMode, 80);
+        const bookingTripPlan = cleanText(booking.tripPlan, 40) || 'city';
+        const bookingJourney = cleanText(booking.journeyType, 40) || (stops.length ? 'multi_city' : (returnEnabled ? 'round_trip' : 'one_way'));
         fields.pickup.value = pickup;
         fields.drop.value = drop;
         fields.rideDate.value = cleanText(booking.rideDate, 40) || fields.rideDate.value;
@@ -931,15 +1316,21 @@
         fields.notes.value = cleanText(booking.notes, 300);
         fields.terminal.value = cleanText(booking.airportTerminalNote || booking.flightDetails?.terminal || travel.flightDetails?.terminal || features.airportTerminalNote, 120);
         fields.flight.value = cleanText(booking.flightDetails?.flightNumber || travel.flightDetails?.flightNumber, 80);
+        fields.airline.value = cleanText(booking.flightDetails?.airlineName || travel.flightDetails?.airlineName, 120);
+        fields.meetGreet.value = cleanText(booking.flightDetails?.meetAndGreetName || travel.flightDetails?.meetAndGreetName, 120);
+        fields.waitingBuffer.value = cleanText(policy.waitingBuffer, 80) || fields.waitingBuffer.value;
+        fields.reschedule.value = cleanText(policy.rescheduleWindow, 80) || fields.reschedule.value;
+        fields.cancellation.value = cleanText(policy.cancellationPreference, 80) || fields.cancellation.value;
+        fields.driverCall.value = cleanText(policy.driverCallPreference, 80) || fields.driverCall.value;
         fields.fuelPreference.value = cleanText(booking.vehicleFuelPreference || booking.fuelPreference || features.vehicleFuelPreference, 80);
-        fields.vehicleModel.value = cleanText(booking.vehicleModel, 80);
-        fields.serviceMode.value = cleanText(booking.tripServiceType || booking.serviceType || booking.airportServiceMode, 80) || fields.serviceMode.value;
         fields.gstCompany.value = cleanText(booking.billingDetails?.gstCompanyName || travel.billingDetails?.gstCompanyName, 140);
         fields.gstNumber.value = cleanText(booking.billingDetails?.gstNumber || travel.billingDetails?.gstNumber, 40);
         writeCheckboxMap('[data-addon]', booking.bookingAddOns || travel.addOns || features.addOns || {});
         writeCheckboxMap('[data-safety]', booking.safetyAccessibility || features.safetyAccessibility || {});
-        setTripPlan(cleanText(booking.tripPlan, 40) || 'city', true);
-        setJourney(cleanText(booking.journeyType, 40) || (stops.length ? 'multi_city' : (returnEnabled ? 'round_trip' : 'one_way')));
+        setTripPlan(bookingTripPlan, true);
+        setJourney(bookingJourney, true);
+        setFieldValue(fields.vehicleModel, desiredVehicleModel, 80);
+        setFieldValue(fields.serviceMode, desiredServiceMode, 80);
         setVehicle(cleanText(booking.vehicleType || booking.rideType, 40) || 'economy');
         setEditMode(booking);
         estimateFare();
@@ -1072,13 +1463,15 @@
             });
         });
 
-        document.querySelectorAll('.route-suggestions button').forEach((button) => {
-            button.addEventListener('click', () => {
+        if (routeSuggestions) {
+            routeSuggestions.addEventListener('click', (event) => {
+                const button = event.target && event.target.closest ? event.target.closest('button') : null;
+                if (!button || !routeSuggestions.contains(button)) return;
                 fields.pickup.value = button.dataset.pickup || '';
                 fields.drop.value = button.dataset.drop || '';
                 estimateFare();
             });
-        });
+        }
     }
 
     function wireManageButtons() {
@@ -1121,6 +1514,9 @@
         fields.returnDate.min = today;
         fields.rideDate.value = fields.rideDate.value || today;
         fields.rideTime.value = fields.rideTime.value || defaultTimeValue();
+        setTripPlan(state.tripPlan, true);
+        setJourney(state.journey, true);
+        setVehicle(state.vehicleType);
         Object.values(fields).forEach((input) => {
             if (input) input.addEventListener('input', estimateFare);
             if (input && input.tagName === 'SELECT') input.addEventListener('change', estimateFare);

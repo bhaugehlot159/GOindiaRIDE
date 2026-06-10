@@ -298,6 +298,79 @@ a:focus-visible {
     border-color: var(--green-dark);
 }
 
+.trip-plan-detail {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 12px;
+    background: #f2faf7;
+    border: 1px solid #cce3da;
+    border-radius: 8px;
+}
+
+.trip-plan-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.trip-plan-heading span,
+.trip-plan-heading strong,
+.trip-plan-detail p,
+.trip-plan-point span {
+    overflow-wrap: anywhere;
+}
+
+.trip-plan-heading span {
+    color: var(--green);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.trip-plan-heading strong {
+    color: var(--ink);
+    font-size: 0.96rem;
+    line-height: 1.3;
+    text-align: right;
+}
+
+.trip-plan-detail p {
+    margin: 0;
+    color: #34423f;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.trip-plan-points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.trip-plan-point {
+    display: flex;
+    align-items: flex-start;
+    min-width: 0;
+    gap: 7px;
+    padding: 8px;
+    color: #233c38;
+    background: #ffffff;
+    border: 1px solid #d9e6e1;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.38;
+}
+
+.trip-plan-point i {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: var(--green);
+    font-size: 0.72rem;
+}
+
 .service-detail-row,
 .route-grid,
 .details-grid {
@@ -381,15 +454,13 @@ a:focus-visible {
 
 .route-suggestions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin: 12px 0;
-    padding-bottom: 3px;
-    overflow-x: auto;
-    scrollbar-width: thin;
 }
 
 .route-suggestions button {
-    flex: 0 0 auto;
+    flex: 1 1 130px;
     min-height: 36px;
     padding: 0 11px;
     color: #123633;
@@ -398,7 +469,8 @@ a:focus-visible {
     border-radius: 8px;
     font-size: 0.8rem;
     font-weight: 800;
-    white-space: nowrap;
+    text-align: center;
+    white-space: normal;
 }
 
 .route-suggestions button:hover,
@@ -716,6 +788,19 @@ a:focus-visible {
 
     .service-tabs {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .trip-plan-heading {
+        display: grid;
+        gap: 4px;
+    }
+
+    .trip-plan-heading strong {
+        text-align: left;
+    }
+
+    .trip-plan-points {
+        grid-template-columns: 1fr;
     }
 
     .service-detail-row,
