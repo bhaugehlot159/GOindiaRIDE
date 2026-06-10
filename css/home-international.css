@@ -71,7 +71,10 @@ html body.goi-global-theme.home-international nav.navbar.navbar {
     padding: 0 !important;
 }
 
-body.home-international .navbar .container {
+body.home-international .navbar .container,
+html body.goi-global-theme.home-international nav.navbar.navbar .container {
+    width: min(1440px, calc(100% - 32px)) !important;
+    max-width: 1440px !important;
     min-height: 78px;
     display: flex !important;
     align-items: center !important;

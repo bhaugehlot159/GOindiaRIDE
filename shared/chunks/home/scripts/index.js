@@ -505,7 +505,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260610-layout-polish1';
+                const swVersion = '20260610-layout-polish2';
                 navigator.serviceWorker
                     .register(`./sw.js?v=${swVersion}`)
                     .then((registration) => {
