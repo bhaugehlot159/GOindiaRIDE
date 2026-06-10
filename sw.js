@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v53-20260610-current-location-display';
+const CACHE_NAME = 'goindiaride-pwa-v54-20260610-current-location-name';
 const ASSETS = [
   './',
   './index.html',

@@ -177,13 +177,17 @@
     }
 
     function buildLocationPins(pickup, drop, stops) {
-        const currentMatch = /^current location \((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)$/i.exec(pickup || '');
+        const coordinateSuffixPattern = /\((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)\s*$/i;
+        const currentMatch = coordinateSuffixPattern.exec(pickup || '');
         const pickupCoordinates = currentMatch
             ? { lat: Number(currentMatch[1]), lng: Number(currentMatch[2]), source: 'browser_geolocation' }
             : null;
+        const pickupLabel = currentMatch
+            ? cleanText(String(pickup || '').replace(coordinateSuffixPattern, '').trim(), 180) || pickup
+            : pickup;
         return {
             pickup: {
-                label: pickup,
+                label: pickupLabel,
                 coordinates: pickupCoordinates,
                 googleMapsUrl: pickupCoordinates ? `https://www.google.com/maps?q=${pickupCoordinates.lat},${pickupCoordinates.lng}` : ''
             },

@@ -212,6 +212,69 @@
                 return cleanBookingValue((input && input.dataset && input.dataset.bookingValue) || (input && input.value));
             }
 
+            function uniqueHomeAddressParts(parts) {
+                const seen = new Set();
+                return parts
+                    .map((part) => cleanBookingValue(part))
+                    .filter((part) => {
+                        const key = simplifyHomeLocation(part);
+                        if (!key || seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+            }
+
+            function formatHomeReverseLocation(data) {
+                if (!data || typeof data !== 'object') return '';
+                const address = data.address && typeof data.address === 'object' ? data.address : {};
+                const primary = cleanBookingValue(
+                    data.name
+                    || address.road
+                    || address.neighbourhood
+                    || address.suburb
+                    || address.village
+                    || address.town
+                    || address.city
+                );
+                const parts = uniqueHomeAddressParts([
+                    primary,
+                    address.neighbourhood || address.suburb || address.village || address.town || address.city,
+                    address.city || address.state_district || address.county,
+                    address.state,
+                    address.postcode
+                ]);
+                const compact = cleanBookingValue(parts.join(', '));
+                if (compact) return compact.slice(0, 180);
+                return cleanBookingValue(data.display_name).split(',').slice(0, 5).join(', ').trim().slice(0, 180);
+            }
+
+            async function resolveHomeLocationName(lat, lng) {
+                if (!window.fetch) return '';
+                const controller = window.AbortController ? new AbortController() : null;
+                const timeoutId = controller ? window.setTimeout(() => controller.abort(), 7000) : null;
+                const url = new URL('https://nominatim.openstreetmap.org/reverse');
+                url.searchParams.set('format', 'jsonv2');
+                url.searchParams.set('lat', lat);
+                url.searchParams.set('lon', lng);
+                url.searchParams.set('zoom', '18');
+                url.searchParams.set('addressdetails', '1');
+                url.searchParams.set('accept-language', 'en');
+                url.searchParams.set('email', 'support@goindiaride.in');
+
+                try {
+                    const response = await fetch(url.toString(), {
+                        headers: { Accept: 'application/json' },
+                        signal: controller ? controller.signal : undefined
+                    });
+                    if (!response.ok) return '';
+                    return formatHomeReverseLocation(await response.json());
+                } catch (error) {
+                    return '';
+                } finally {
+                    if (timeoutId) window.clearTimeout(timeoutId);
+                }
+            }
+
             function fillHomeLocation(input, value, bookingValue) {
                 if (!input) return;
                 input.value = cleanBookingValue(value);
@@ -228,7 +291,7 @@
             function renderHomeSuggestions(input) {
                 if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
                 const query = cleanBookingValue(input.value).toLowerCase();
-                if (query.startsWith('current location (')) {
+                if (input.dataset.bookingValue || query.startsWith('current location (')) {
                     hideHomeSuggestions();
                     return;
                 }
@@ -316,11 +379,21 @@
                     navigator.geolocation.getCurrentPosition((position) => {
                         const lat = Number(position.coords.latitude || 0).toFixed(5);
                         const lng = Number(position.coords.longitude || 0).toFixed(5);
-                        fillHomeLocation(pickupInput, `Current location (${lat}, ${lng})`);
+                        const gpsLabel = `Current location (${lat}, ${lng})`;
+                        fillHomeLocation(pickupInput, gpsLabel);
                         currentLocationButton.disabled = false;
                         currentLocationButton.classList.remove('is-loading');
                         currentLocationButton.classList.add('is-success');
-                        setHomeStatus(`GPS selected: ${lat}, ${lng}. Exact pickup will be sent with booking.`, 'success');
+                        setHomeStatus(`GPS selected: ${lat}, ${lng}. Finding address name...`, 'success');
+                        resolveHomeLocationName(lat, lng).then((addressLabel) => {
+                            if (!pickupInput || pickupInput.value !== gpsLabel) return;
+                            if (!addressLabel) {
+                                setHomeStatus(`GPS selected: ${lat}, ${lng}. Exact pickup will be sent with booking.`, 'success');
+                                return;
+                            }
+                            fillHomeLocation(pickupInput, addressLabel, `${addressLabel} (${lat}, ${lng})`);
+                            setHomeStatus(`Pickup selected: ${addressLabel}. GPS: ${lat}, ${lng}.`, 'success');
+                        });
                     }, (error) => {
                         currentLocationButton.disabled = false;
                         currentLocationButton.classList.remove('is-loading');
@@ -431,7 +504,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260610-current-location-display1';
+                const swVersion = '20260610-current-location-name1';
                 navigator.serviceWorker
                     .register(`./sw.js?v=${swVersion}`)
                     .then((registration) => {
