@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v58-20260610-feature-match';
+const CACHE_NAME = 'goindiaride-pwa-v59-20260610-sms-reference';
 const ASSETS = [
   './',
   './index.html',

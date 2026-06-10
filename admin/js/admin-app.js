@@ -1343,7 +1343,9 @@
                 ["Last edited", formatDate(booking.lastEditedAt)],
                 ["Edit count", booking.editCount],
                 ["Admin email", formatObjectSummary(booking.adminEmailDispatch)],
-                ["Customer email", formatObjectSummary(booking.customerEmailDispatch)]
+                ["Customer email", formatObjectSummary(booking.customerEmailDispatch)],
+                ["Admin WhatsApp", formatObjectSummary(booking.adminWhatsAppDispatch)],
+                ["Customer SMS", formatObjectSummary(booking.customerSmsDispatch)]
             ]),
             renderDetailSection("Requests", [
                 ["Special requests", formatEnabledFlags(specialRequests)],

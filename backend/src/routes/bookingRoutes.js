@@ -16,6 +16,7 @@ const { verifyApiSignature } = require('../middleware/requestSignatureMiddleware
 const { logSecurityEvent } = require('../services/securityLogService');
 const { sendEmail } = require('../utils/mailer');
 const { sendWhatsAppMessage, normalizePhone, maskPhone } = require('../utils/whatsapp');
+const { sendSms } = require('../utils/sms');
 const logger = require('../utils/logger');
 const { createBookingPortalNotifications } = require('../services/portalNotificationService');
 const {
@@ -58,6 +59,10 @@ const DEFAULT_ADMIN_ALERT_EMAIL = String(process.env.DEFAULT_ADMIN_ALERT_EMAIL |
 const BOOKING_ADMIN_WHATSAPP_ENABLED = String(process.env.BOOKING_ADMIN_WHATSAPP_ENABLED || 'true').trim().toLowerCase() !== 'false';
 const BOOKING_ADMIN_WHATSAPP_PROVIDER = String(process.env.BOOKING_ADMIN_WHATSAPP_PROVIDER || process.env.BOOKING_WHATSAPP_PROVIDER || process.env.WHATSAPP_PROVIDER || 'meta').trim().toLowerCase();
 const BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY = String(process.env.BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY || '91').replace(/\D/g, '') || '91';
+const BOOKING_CUSTOMER_SMS_ENABLED = String(process.env.BOOKING_CUSTOMER_SMS_ENABLED || 'true').trim().toLowerCase() !== 'false';
+const BOOKING_CUSTOMER_SMS_PROVIDER = String(process.env.BOOKING_CUSTOMER_SMS_PROVIDER || process.env.SMS_PROVIDER || process.env.OTP_SMS_PROVIDER || '').trim().toLowerCase();
+const BOOKING_CUSTOMER_SMS_DEFAULT_COUNTRY = String(process.env.BOOKING_CUSTOMER_SMS_DEFAULT_COUNTRY || '91').replace(/\D/g, '') || '91';
+const BOOKING_CUSTOMER_SUPPORT_PHONE = String(process.env.BOOKING_CUSTOMER_SUPPORT_PHONE || process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471').replace(/[^\d+]/g, '') || '8426891471';
 const ADMIN_WHATSAPP_RECIPIENT_VARS = [
   'BOOKING_ADMIN_WHATSAPP_NUMBERS',
   'BOOKING_ADMIN_WHATSAPP_NUMBER',
@@ -615,6 +620,12 @@ function formatCustomerPhoneForEmail(value) {
   return normalized || sanitizeText(value, 40);
 }
 
+function normalizeCustomerSmsPhone(value) {
+  const direct = normalizeIndianPhone(value);
+  if (direct) return direct;
+  return normalizePhone(value, BOOKING_CUSTOMER_SMS_DEFAULT_COUNTRY);
+}
+
 function isLikelyEmail(value) {
   const email = normalizeEmail(value);
   return Boolean(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
@@ -993,6 +1004,8 @@ function normalizeFallbackQueueBooking(raw = {}, options = {}) {
     },
     adminEmailDispatch: raw.adminEmailDispatch && typeof raw.adminEmailDispatch === 'object' ? raw.adminEmailDispatch : {},
     customerEmailDispatch: raw.customerEmailDispatch && typeof raw.customerEmailDispatch === 'object' ? raw.customerEmailDispatch : {},
+    adminWhatsAppDispatch: raw.adminWhatsAppDispatch && typeof raw.adminWhatsAppDispatch === 'object' ? raw.adminWhatsAppDispatch : {},
+    customerSmsDispatch: raw.customerSmsDispatch && typeof raw.customerSmsDispatch === 'object' ? raw.customerSmsDispatch : {},
     createdAt: raw.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     fallbackQueuedAt: raw.fallbackQueuedAt || new Date().toISOString()
@@ -1171,6 +1184,10 @@ function mapFallbackQueueRowForAdmin(row = {}) {
     payment: row.payment && typeof row.payment === 'object' ? row.payment : {},
     promo: row.promo && typeof row.promo === 'object' ? row.promo : {},
     customerFeatures: row.customerFeatures && typeof row.customerFeatures === 'object' ? row.customerFeatures : {},
+    adminEmailDispatch: row.adminEmailDispatch && typeof row.adminEmailDispatch === 'object' ? row.adminEmailDispatch : {},
+    customerEmailDispatch: row.customerEmailDispatch && typeof row.customerEmailDispatch === 'object' ? row.customerEmailDispatch : {},
+    adminWhatsAppDispatch: row.adminWhatsAppDispatch && typeof row.adminWhatsAppDispatch === 'object' ? row.adminWhatsAppDispatch : {},
+    customerSmsDispatch: row.customerSmsDispatch && typeof row.customerSmsDispatch === 'object' ? row.customerSmsDispatch : {},
     driverId: row.driverId || null,
     adminReviewedBy: row.adminReviewedBy || null,
     adminReviewedAt: row.adminReviewedAt || null,
@@ -1222,6 +1239,10 @@ function mapStoredBookingRowForAdmin(row = {}) {
           phone: row.customerSnapshot.phone || ''
         }
       : null,
+    adminEmailDispatch: row.adminEmailDispatch && typeof row.adminEmailDispatch === 'object' ? row.adminEmailDispatch : {},
+    customerEmailDispatch: row.customerEmailDispatch && typeof row.customerEmailDispatch === 'object' ? row.customerEmailDispatch : {},
+    adminWhatsAppDispatch: row.adminWhatsAppDispatch && typeof row.adminWhatsAppDispatch === 'object' ? row.adminWhatsAppDispatch : {},
+    customerSmsDispatch: row.customerSmsDispatch && typeof row.customerSmsDispatch === 'object' ? row.customerSmsDispatch : {},
     driverId: row.driverId || null,
     adminReviewedBy: row.adminReviewedBy || null,
     adminReviewedAt: row.adminReviewedAt || null,
@@ -1658,6 +1679,51 @@ async function sendBookingCustomerConfirmationEmail({ booking, context, customer
   }
 }
 
+function buildBookingCustomerSmsText({ booking, context }) {
+  const rideDateTime = `${context.rideDate || 'date pending'} ${context.rideTime || ''}`.trim();
+  const fare = Number(booking.amount || booking.totalFare || 0);
+  const fareText = Number.isFinite(fare) && fare > 0 ? `INR ${Math.round(fare)}` : 'fare pending';
+  const route = `${context.pickupLocation || 'Pickup pending'} to ${context.dropLocation || 'Drop pending'}`;
+  return [
+    `GO India RIDE booking received.`,
+    `Ref: ${booking.bookingId}.`,
+    `Route: ${route}.`,
+    `When: ${rideDateTime}.`,
+    `Est fare: ${fareText}.`,
+    `Use this ref to edit booking. Support: ${BOOKING_CUSTOMER_SUPPORT_PHONE}`
+  ].join(' ');
+}
+
+async function sendBookingCustomerReferenceSms({ booking, context, customer }) {
+  if (!BOOKING_CUSTOMER_SMS_ENABLED) {
+    return { sent: false, skipped: true, reason: 'sms_disabled' };
+  }
+
+  const recipient = normalizeCustomerSmsPhone(
+    customer?.phone
+    || booking?.customerPhone
+    || booking?.customerSnapshot?.phone
+  );
+
+  if (!recipient) {
+    return { sent: false, skipped: true, reason: 'missing_customer_phone' };
+  }
+
+  const text = buildBookingCustomerSmsText({ booking, context });
+  const result = await sendSms({
+    to: recipient,
+    text,
+    provider: BOOKING_CUSTOMER_SMS_PROVIDER
+  });
+
+  return {
+    ...(result && typeof result === 'object' ? result : { sent: false, reason: 'sms_unknown_response' }),
+    channel: 'sms',
+    recipientMasked: (result && result.recipientMasked) || maskPhone(recipient),
+    bookingReference: booking.bookingId
+  };
+}
+
 async function sendBookingAdminWhatsAppAlert({ booking, context, customer }) {
   if (!BOOKING_ADMIN_WHATSAPP_ENABLED) {
     return { sent: false, skipped: true, reason: 'whatsapp_disabled' };
@@ -1727,6 +1793,7 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
   const cachedAdminSent = Boolean(cachedPayload.adminEmail && cachedPayload.adminEmail.sent === true);
   const cachedCustomerSent = Boolean(cachedPayload.customerEmail && cachedPayload.customerEmail.sent === true);
   const cachedAdminWhatsAppSent = Boolean(cachedPayload.adminWhatsApp && cachedPayload.adminWhatsApp.sent === true);
+  const cachedCustomerSmsSent = Boolean(cachedPayload.customerSms && cachedPayload.customerSms.sent === true);
   const customerEmailAddress = normalizeEmail(customer && customer.email);
   let adminRecipients = [];
   try {
@@ -1744,13 +1811,21 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
     && adminRecipients.includes(customerEmailAddress)
   );
 
-  if (cachedAdminSent && cachedCustomerSent && (!BOOKING_ADMIN_WHATSAPP_ENABLED || cachedAdminWhatsAppSent)) {
+  if (
+    cachedAdminSent
+    && cachedCustomerSent
+    && (!BOOKING_ADMIN_WHATSAPP_ENABLED || cachedAdminWhatsAppSent)
+    && (!BOOKING_CUSTOMER_SMS_ENABLED || cachedCustomerSmsSent)
+  ) {
     return {
       adminEmail: buildDuplicateSuppressedEmailResult(cachedPayload.adminEmail, 'admin_email'),
       customerEmail: buildDuplicateSuppressedEmailResult(cachedPayload.customerEmail, 'customer_email'),
       adminWhatsApp: BOOKING_ADMIN_WHATSAPP_ENABLED
         ? buildDuplicateSuppressedEmailResult(cachedPayload.adminWhatsApp, 'admin_whatsapp')
-        : { sent: false, skipped: true, reason: 'whatsapp_disabled' }
+        : { sent: false, skipped: true, reason: 'whatsapp_disabled' },
+      customerSms: BOOKING_CUSTOMER_SMS_ENABLED
+        ? buildDuplicateSuppressedEmailResult(cachedPayload.customerSms, 'customer_sms')
+        : { sent: false, skipped: true, reason: 'sms_disabled' }
     };
   }
 
@@ -1785,10 +1860,19 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
         : sendBookingAdminWhatsAppAlert({ booking, context, customer })
     );
 
-  const [adminOutcome, customerOutcome, adminWhatsAppOutcome] = await Promise.allSettled([
+  const customerSmsPromise = !BOOKING_CUSTOMER_SMS_ENABLED
+    ? Promise.resolve({ sent: false, skipped: true, reason: 'sms_disabled' })
+    : (
+      cachedCustomerSmsSent
+        ? Promise.resolve(buildDuplicateSuppressedEmailResult(cachedPayload.customerSms, 'customer_sms'))
+        : sendBookingCustomerReferenceSms({ booking, context, customer })
+    );
+
+  const [adminOutcome, customerOutcome, adminWhatsAppOutcome, customerSmsOutcome] = await Promise.allSettled([
     adminEmailPromise,
     customerEmailPromise,
-    adminWhatsAppPromise
+    adminWhatsAppPromise,
+    customerSmsPromise
   ]);
 
   const adminEmail = adminOutcome.status === 'fulfilled'
@@ -1818,6 +1902,15 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
         message: adminWhatsAppOutcome.reason?.message || 'send_failed'
       };
 
+  const customerSms = customerSmsOutcome.status === 'fulfilled'
+    ? normalizeEmailDispatchResult(customerSmsOutcome.value)
+    : {
+        sent: false,
+        skipped: false,
+        reason: 'send_failed',
+        message: customerSmsOutcome.reason?.message || 'send_failed'
+      };
+
   if (adminOutcome.status !== 'fulfilled') {
     logger.error('booking_admin_email_dispatch_failed', {
       bookingId: booking.bookingId,
@@ -1839,6 +1932,13 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
       message: adminWhatsAppOutcome.reason?.message || 'send_failed'
     });
   }
+  if (customerSmsOutcome.status !== 'fulfilled') {
+    logger.error('booking_customer_sms_dispatch_failed', {
+      bookingId: booking.bookingId,
+      source,
+      message: customerSmsOutcome.reason?.message || 'send_failed'
+    });
+  }
 
   const cacheAdminEmail = adminEmail && adminEmail.sent === true
     ? { ...adminEmail, deduped: false }
@@ -1849,23 +1949,28 @@ async function dispatchBookingEmails({ booking, context, customer, source = 'boo
   const cacheAdminWhatsApp = adminWhatsApp && adminWhatsApp.sent === true
     ? { ...adminWhatsApp, deduped: false }
     : (cachedPayload.adminWhatsApp || adminWhatsApp);
+  const cacheCustomerSms = customerSms && customerSms.sent === true
+    ? { ...customerSms, deduped: false }
+    : (cachedPayload.customerSms || customerSms);
   if (
     safeBookingId
     && (
       (cacheAdminEmail && cacheAdminEmail.sent === true)
       || (cacheCustomerEmail && cacheCustomerEmail.sent === true)
       || (cacheAdminWhatsApp && cacheAdminWhatsApp.sent === true)
+      || (cacheCustomerSms && cacheCustomerSms.sent === true)
     )
   ) {
     rememberRecentBookingEmailDispatch(safeBookingId, {
       adminEmail: cacheAdminEmail,
       customerEmail: cacheCustomerEmail,
       adminWhatsApp: cacheAdminWhatsApp,
+      customerSms: cacheCustomerSms,
       source
     });
   }
 
-  return { adminEmail, customerEmail, adminWhatsApp };
+  return { adminEmail, customerEmail, adminWhatsApp, customerSms };
 }
 
 function sendBookingCustomerConfirmationEmailAsync({ booking, context, customer, source = 'unknown' }) {
@@ -2089,6 +2194,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
       },
       customerEmail: cachedDispatch.payload.customerEmail || null,
       adminWhatsApp: cachedDispatch.payload.adminWhatsApp || null,
+      customerSms: cachedDispatch.payload.customerSms || null,
       notifications: {
         adminReview: cachedDispatch.payload.reviewAlert || null
       }
@@ -2182,11 +2288,29 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     });
   }
 
-  const { adminEmail, customerEmail, adminWhatsApp } = await dispatchBookingEmails({
+  const { adminEmail, customerEmail, adminWhatsApp, customerSms } = await dispatchBookingEmails({
     booking,
     context: bookingContext,
     customer: customerSnapshot,
     source: 'fallback_admin_alert'
+  });
+
+  const dispatchPatch = {
+    adminEmailDispatch: adminEmail || { sent: false, reason: 'unknown' },
+    customerEmailDispatch: customerEmail || { sent: false, reason: 'unknown' },
+    adminWhatsAppDispatch: adminWhatsApp || { sent: false, reason: 'unknown' },
+    customerSmsDispatch: customerSms || { sent: false, reason: 'unknown' }
+  };
+  const dispatchQueueResult = queueFallbackBookingForAdminReview({
+    ...req.body,
+    ...dispatchPatch
+  }, {
+    bookingId,
+    bookingContext,
+    fareEstimate,
+    customerSnapshot,
+    sourceKey: 'fallback_admin_alert_email',
+    mode: 'fallback_admin_alert_email'
   });
 
   if (!adminEmail || adminEmail.sent !== true) {
@@ -2197,11 +2321,12 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
       adminEmail: adminEmail || { sent: false, reason: 'unknown' },
       customerEmail: customerEmail || { sent: false, reason: 'unknown' },
       adminWhatsApp: adminWhatsApp || { sent: false, reason: 'unknown' },
-      adminReviewQueue: queueResult.queued ? {
-        state: queueResult.state,
-        sourceKey: queueResult.item?.sourceKey || 'fallback_admin_alert_email'
+      customerSms: customerSms || { sent: false, reason: 'unknown' },
+      adminReviewQueue: (dispatchQueueResult.queued || queueResult.queued) ? {
+        state: dispatchQueueResult.state || queueResult.state,
+        sourceKey: dispatchQueueResult.item?.sourceKey || queueResult.item?.sourceKey || 'fallback_admin_alert_email'
       } : {
-        state: queueResult.state || 'not_queued'
+        state: dispatchQueueResult.state || queueResult.state || 'not_queued'
       },
       notifications: {
         adminReview: reviewAlert
@@ -2213,6 +2338,7 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     adminEmail,
     customerEmail,
     adminWhatsApp,
+    customerSms,
     reviewAlert
   });
 
@@ -2223,11 +2349,12 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     adminEmail,
     customerEmail,
     adminWhatsApp,
-    adminReviewQueue: queueResult.queued ? {
-      state: queueResult.state,
-      sourceKey: queueResult.item?.sourceKey || 'fallback_admin_alert_email'
+    customerSms,
+    adminReviewQueue: (dispatchQueueResult.queued || queueResult.queued) ? {
+      state: dispatchQueueResult.state || queueResult.state,
+      sourceKey: dispatchQueueResult.item?.sourceKey || queueResult.item?.sourceKey || 'fallback_admin_alert_email'
     } : {
-      state: queueResult.state || 'not_queued'
+      state: dispatchQueueResult.state || queueResult.state || 'not_queued'
     },
     notifications: {
       adminReview: reviewAlert
@@ -2439,6 +2566,7 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   let adminEmail = null;
   let customerEmail = null;
   let adminWhatsApp = null;
+  let customerSms = null;
   try {
     const reviewAlert = await createBookingAdminReviewAlert({
       bookingId: booking.bookingId,
@@ -2487,11 +2615,24 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     adminEmail = emailDispatch.adminEmail;
     customerEmail = emailDispatch.customerEmail;
     adminWhatsApp = emailDispatch.adminWhatsApp;
+    customerSms = emailDispatch.customerSms;
+    await Booking.updateOne(
+      { _id: booking._id },
+      {
+        $set: {
+          adminEmailDispatch: adminEmail || {},
+          customerEmailDispatch: customerEmail || {},
+          adminWhatsAppDispatch: adminWhatsApp || {},
+          customerSmsDispatch: customerSms || {}
+        }
+      }
+    );
     if (adminEmail && adminEmail.sent === true) {
       rememberRecentFallbackAdminEmailDispatch(booking.bookingId, {
         adminEmail,
         customerEmail,
         adminWhatsApp,
+        customerSms,
         reviewAlert
       });
     }
@@ -2514,7 +2655,8 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     notifications: notificationSummary,
     adminEmail,
     customerEmail,
-    adminWhatsApp
+    adminWhatsApp,
+    customerSms
   });
 });
 
@@ -3622,6 +3764,10 @@ router.get('/admin/pending', authenticate, async (req, res) => {
     payment: row.payment && typeof row.payment === 'object' ? row.payment : {},
     promo: row.promo && typeof row.promo === 'object' ? row.promo : {},
     customerFeatures: row.customerFeatures && typeof row.customerFeatures === 'object' ? row.customerFeatures : {},
+    adminEmailDispatch: row.adminEmailDispatch && typeof row.adminEmailDispatch === 'object' ? row.adminEmailDispatch : {},
+    customerEmailDispatch: row.customerEmailDispatch && typeof row.customerEmailDispatch === 'object' ? row.customerEmailDispatch : {},
+    adminWhatsAppDispatch: row.adminWhatsAppDispatch && typeof row.adminWhatsAppDispatch === 'object' ? row.adminWhatsAppDispatch : {},
+    customerSmsDispatch: row.customerSmsDispatch && typeof row.customerSmsDispatch === 'object' ? row.customerSmsDispatch : {},
     driverId: row.driverId || null,
     adminReviewedBy: row.adminReviewedBy || null,
     adminReviewedAt: row.adminReviewedAt || null,

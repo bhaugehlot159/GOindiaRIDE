@@ -11,6 +11,11 @@ function normalizePhone(value, defaultCountryCode = '91') {
 
   const normalizedDefaultCountry = sanitizeText(defaultCountryCode, 6).replace(/\D/g, '') || '91';
 
+  if (raw.startsWith('00')) {
+    const digits = raw.slice(2).replace(/\D/g, '');
+    return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : '';
+  }
+
   if (raw.startsWith('+')) {
     const digits = raw.slice(1).replace(/\D/g, '');
     return digits.length >= 8 && digits.length <= 15 ? `+${digits}` : '';
@@ -240,4 +245,3 @@ module.exports = {
   maskPhone,
   sendWhatsAppMessage
 };
-

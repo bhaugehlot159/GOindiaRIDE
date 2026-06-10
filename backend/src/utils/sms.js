@@ -6,12 +6,15 @@ function sanitizeText(value, maxLength = 500) {
   return String(value).trim().slice(0, maxLength);
 }
 
-function pickProvider() {
-  const explicit = sanitizeText(process.env.OTP_SMS_PROVIDER || process.env.SMS_PROVIDER, 40).toLowerCase();
+function pickProvider({ hasOtp = false } = {}) {
+  const explicit = sanitizeText(
+    process.env.SMS_PROVIDER || (hasOtp ? process.env.OTP_SMS_PROVIDER : ''),
+    40
+  ).toLowerCase();
   if (explicit) return explicit;
   if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && (process.env.TWILIO_SMS_FROM || process.env.SMS_TWILIO_FROM)) return 'twilio';
-  if (process.env.MSG91_AUTH_KEY && process.env.MSG91_TEMPLATE_ID) return 'msg91';
-  if (process.env.FAST2SMS_API_KEY) return 'fast2sms';
+  if (hasOtp && process.env.MSG91_AUTH_KEY && process.env.MSG91_TEMPLATE_ID) return 'msg91';
+  if (hasOtp && process.env.FAST2SMS_API_KEY) return 'fast2sms';
   if ((process.env.WHATSAPP_META_ACCESS_TOKEN || process.env.META_WHATSAPP_ACCESS_TOKEN)
     && (process.env.WHATSAPP_META_PHONE_NUMBER_ID || process.env.META_WHATSAPP_PHONE_NUMBER_ID)) return 'whatsapp';
   if ((process.env.WHATSAPP_TWILIO_ACCOUNT_SID || process.env.TWILIO_ACCOUNT_SID)
@@ -187,13 +190,16 @@ async function sendViaFast2Sms({ to, otp }) {
 }
 
 async function sendSms({ to, text, otp, provider = '' }) {
-  const resolvedProvider = sanitizeText(provider || pickProvider(), 40).toLowerCase();
+  const resolvedProvider = sanitizeText(provider || pickProvider({ hasOtp: Boolean(otp) }), 40).toLowerCase();
   if (!to || !text) {
     return { sent: false, skipped: true, reason: 'missing_sms_payload' };
   }
 
   try {
     if (resolvedProvider === 'twilio') return await sendViaTwilio({ to, text });
+    if (!otp && (resolvedProvider === 'msg91' || resolvedProvider === 'fast2sms')) {
+      return { sent: false, skipped: true, reason: 'sms_provider_requires_otp_template' };
+    }
     if (resolvedProvider === 'msg91') return await sendViaMsg91({ to, otp });
     if (resolvedProvider === 'fast2sms') return await sendViaFast2Sms({ to, otp });
     if (resolvedProvider === 'whatsapp') {

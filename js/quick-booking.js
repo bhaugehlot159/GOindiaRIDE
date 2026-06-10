@@ -1433,6 +1433,11 @@
             syncStatus.textContent = 'Queued';
         }
         emailResult = await postJsonAcrossBases('/api/bookings/fallback/admin-alert-email', booking, 18000);
+        const dispatchData = emailResult && emailResult.data && typeof emailResult.data === 'object' ? emailResult.data : {};
+        const adminEmail = dispatchData.adminEmail && typeof dispatchData.adminEmail === 'object' ? dispatchData.adminEmail : null;
+        const customerEmail = dispatchData.customerEmail && typeof dispatchData.customerEmail === 'object' ? dispatchData.customerEmail : null;
+        const adminWhatsApp = dispatchData.adminWhatsApp && typeof dispatchData.adminWhatsApp === 'object' ? dispatchData.adminWhatsApp : null;
+        const customerSms = dispatchData.customerSms && typeof dispatchData.customerSms === 'object' ? dispatchData.customerSms : null;
 
         const backendStatus = emailResult.ok
             ? (isEdit ? 'admin_alert_sent_after_customer_edit' : 'admin_alert_sent')
@@ -1445,8 +1450,28 @@
             adminQueueSyncStatus: queueResult.ok ? 'queued' : 'pending',
             adminQueueSyncReason: queueResult.ok ? '' : cleanText(queueResult.reason || 'api_unavailable', 120),
             adminEmailDispatch: {
-                state: emailResult.ok ? 'sent' : 'pending',
-                reason: emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120),
+                state: adminEmail && adminEmail.sent ? 'sent' : (emailResult.ok ? 'sent' : 'pending'),
+                reason: adminEmail ? cleanText(adminEmail.reason || adminEmail.message || '', 120) : (emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120)),
+                ...adminEmail,
+                updatedAt: new Date().toISOString()
+            },
+            customerEmailDispatch: {
+                state: customerEmail && customerEmail.sent ? 'sent' : (customerEmail && customerEmail.skipped ? 'skipped' : 'pending'),
+                reason: customerEmail ? cleanText(customerEmail.reason || customerEmail.message || '', 120) : '',
+                ...customerEmail,
+                updatedAt: new Date().toISOString()
+            },
+            adminWhatsAppDispatch: {
+                state: adminWhatsApp && adminWhatsApp.sent ? 'sent' : (adminWhatsApp && adminWhatsApp.skipped ? 'skipped' : 'pending'),
+                reason: adminWhatsApp ? cleanText(adminWhatsApp.reason || adminWhatsApp.message || '', 120) : '',
+                ...adminWhatsApp,
+                updatedAt: new Date().toISOString()
+            },
+            customerSmsDispatch: {
+                state: customerSms && customerSms.sent ? 'sent' : (customerSms && customerSms.skipped ? 'skipped' : 'pending'),
+                reason: customerSms ? cleanText(customerSms.reason || customerSms.message || '', 120) : (emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120)),
+                bookingReference: booking.bookingId,
+                ...customerSms,
                 updatedAt: new Date().toISOString()
             },
             updatedAt: new Date().toISOString()
