@@ -185,6 +185,68 @@ html body.goi-global-theme.home-international nav.navbar.navbar .btn-admin {
     border-color: #f2d084 !important;
 }
 
+body.home-international .auth-buttons .btn-login,
+body.home-international .auth-buttons .btn-signup,
+body.home-international .auth-buttons .btn-admin,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    gap: 0.4rem !important;
+    background: #ffffff !important;
+    color: var(--home-ink) !important;
+    border-color: var(--home-line) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+body.home-international .auth-buttons .btn-admin i {
+    flex: 0 0 auto;
+    color: #d88a16 !important;
+}
+
+body.home-international .auth-buttons .btn-login:hover,
+body.home-international .auth-buttons .btn-signup:hover,
+body.home-international .auth-buttons .btn-admin:hover,
+body.home-international .auth-buttons .btn-login:focus-visible,
+body.home-international .auth-buttons .btn-signup:focus-visible,
+body.home-international .auth-buttons .btn-admin:focus-visible,
+body.home-international .auth-buttons .btn-login:active,
+body.home-international .auth-buttons .btn-signup:active,
+body.home-international .auth-buttons .btn-admin:active,
+body.home-international .auth-buttons .btn-login.is-active,
+body.home-international .auth-buttons .btn-signup.is-active,
+body.home-international .auth-buttons .btn-admin.is-active,
+body.home-international .auth-buttons [aria-current="page"],
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login:hover,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup:hover,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin:hover,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login:focus-visible,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup:focus-visible,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin:focus-visible,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login:active,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup:active,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin:active,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login.is-active,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup.is-active,
+html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin.is-active {
+    background: var(--home-black) !important;
+    color: #ffffff !important;
+    border-color: var(--home-black) !important;
+}
+
+body.home-international .auth-buttons .btn-admin:hover i,
+body.home-international .auth-buttons .btn-admin:focus-visible i,
+body.home-international .auth-buttons .btn-admin:active i,
+body.home-international .auth-buttons .btn-admin.is-active i,
+body.home-international .auth-buttons [aria-current="page"].btn-admin i {
+    color: #ffffff !important;
+}
+
 html body.goi-global-theme.home-international nav.navbar.navbar .lang-btn,
 html body.goi-global-theme.home-international nav.navbar.navbar .currency-btn,
 html body.goi-global-theme.home-international nav.navbar.navbar .lang-option,
@@ -1518,9 +1580,28 @@ body.home-international .pricing {
     body.home-international .btn-signup,
     body.home-international .btn-admin {
         min-height: 38px;
-        padding: 0.55rem 0.35rem !important;
-        font-size: 0.8rem !important;
+        padding: 0.55rem 0.25rem !important;
+        font-size: 0.74rem !important;
         width: 100%;
+        gap: 0.25rem !important;
+        white-space: normal !important;
+        line-height: 1.1 !important;
+        overflow-wrap: anywhere;
+    }
+
+    body.home-international .auth-buttons .btn-login,
+    body.home-international .auth-buttons .btn-signup,
+    body.home-international .auth-buttons .btn-admin,
+    html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login,
+    html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup,
+    html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin {
+        white-space: normal !important;
+        text-overflow: clip !important;
+        line-height: 1.05 !important;
+    }
+
+    body.home-international .auth-buttons .btn-admin i {
+        display: none !important;
     }
 
     body.home-international .btn-primary,

@@ -13,6 +13,7 @@
             { label: 'Ahmedabad Airport', detail: 'Airport transfer' },
             { label: 'Mumbai Airport', detail: 'Airport transfer' }
         ];
+        const HOME_BOOKING_HANDOFF_KEY = 'goindiaride_home_booking_handoff_v2';
         let homeLocationSuggestionsCache = null;
 
         function cleanBookingValue(value) {
@@ -139,9 +140,33 @@
                 ));
         }
 
-        function buildBookingUrl(params = {}) {
-            const query = new URLSearchParams();
+        function makeHomeHandoffId() {
+            return `home_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        }
+
+        function writeHomeBookingHandoff(params = {}) {
+            const payload = {};
             Object.entries(params).forEach(([key, value]) => {
+                const clean = cleanBookingValue(value);
+                if (clean) payload[key] = clean;
+            });
+            payload.handoffId = payload.handoffId || makeHomeHandoffId();
+            payload.createdAt = new Date().toISOString();
+            payload.expiresAt = Date.now() + 20 * 60 * 1000;
+            try {
+                sessionStorage.setItem(HOME_BOOKING_HANDOFF_KEY, JSON.stringify(payload));
+                localStorage.setItem(HOME_BOOKING_HANDOFF_KEY, JSON.stringify(payload));
+            } catch (_error) {
+                // The URL still carries the same fields when storage is unavailable.
+            }
+            return payload;
+        }
+
+        function buildBookingUrl(params = {}) {
+            const handoff = writeHomeBookingHandoff(params);
+            const query = new URLSearchParams();
+            Object.entries(handoff).forEach(([key, value]) => {
+                if (key === 'createdAt' || key === 'expiresAt') return;
                 const clean = cleanBookingValue(value);
                 if (clean) query.set(key, clean);
             });
@@ -505,7 +530,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260610-layout-polish2';
+                const swVersion = '20260610-handoff-nav1';
                 navigator.serviceWorker
                     .register(`./sw.js?v=${swVersion}`)
                     .then((registration) => {

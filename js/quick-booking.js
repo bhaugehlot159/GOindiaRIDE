@@ -12,6 +12,7 @@
     ];
     const ADMIN_REVIEW_KEY = 'goindiaride_admin_review_inbox_v1';
     const LAST_BOOKING_KEY = 'goindiaride_last_public_shortcut_booking_v1';
+    const HOME_BOOKING_HANDOFF_KEY = 'goindiaride_home_booking_handoff_v2';
 
     const form = document.getElementById('quickBookingForm');
     if (!form) return;
@@ -1189,10 +1190,49 @@
         return true;
     }
 
+    function parseStoredObject(value) {
+        try {
+            const parsed = JSON.parse(value || '{}');
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_error) {
+            return {};
+        }
+    }
+
+    function readHomepageHandoff(params) {
+        const handoffId = cleanText(params.get('handoffId'), 120);
+        const source = cleanText(params.get('source'), 80);
+        let cameFromHome = false;
+        try {
+            const referrer = document.referrer ? new URL(document.referrer) : null;
+            cameFromHome = Boolean(referrer && referrer.origin === window.location.origin && /^\/(?:index\.html)?$/i.test(referrer.pathname || '/'));
+        } catch (_error) {
+            cameFromHome = false;
+        }
+        const mayUseStored = Boolean(handoffId || source.startsWith('home_') || cameFromHome);
+        const stores = [];
+        try {
+            stores.push(parseStoredObject(sessionStorage.getItem(HOME_BOOKING_HANDOFF_KEY)));
+            stores.push(parseStoredObject(localStorage.getItem(HOME_BOOKING_HANDOFF_KEY)));
+        } catch (_error) {
+            // Storage can be unavailable in privacy mode.
+        }
+        const now = Date.now();
+        return stores.find((item) => {
+            if (!item || typeof item !== 'object') return false;
+            if (item.expiresAt && Number(item.expiresAt) < now) return false;
+            if (handoffId) return cleanText(item.handoffId, 120) === handoffId;
+            return mayUseStored && cleanText(item.source, 80).startsWith('home_');
+        }) || {};
+    }
+
     function applyHomepagePrefillFromUrl() {
         const params = new URLSearchParams(window.location.search || '');
+        const handoff = readHomepageHandoff(params);
+        const getPrefill = (key) => params.get(key) || handoff[key] || '';
         const prefillKeys = [
             'source',
+            'handoffId',
             'tripPlan',
             'journey',
             'serviceMode',
@@ -1217,32 +1257,32 @@
             'promo',
             'notes'
         ];
-        if (!prefillKeys.some((key) => params.has(key))) return false;
+        if (!prefillKeys.some((key) => params.has(key) || cleanText(handoff[key], 300))) return false;
 
-        const tripPlan = cleanText(params.get('tripPlan'), 40);
-        const journey = cleanText(params.get('journey'), 40);
-        const vehicleType = cleanText(params.get('vehicleType'), 40);
+        const tripPlan = cleanText(getPrefill('tripPlan'), 40);
+        const journey = cleanText(getPrefill('journey'), 40);
+        const vehicleType = cleanText(getPrefill('vehicleType'), 40);
         if (tripPlan) setTripPlan(tripPlan, true);
         if (journey) setJourney(journey);
         if (vehicleType) setVehicle(vehicleType);
 
-        setFieldValue(fields.serviceMode, params.get('serviceMode'), 80);
-        setFieldValue(fields.vehicleModel, params.get('vehicleModel'), 80);
-        setFieldValue(fields.pickup, params.get('pickup'), 180);
-        setFieldValue(fields.drop, params.get('drop'), 180);
-        setFieldValue(fields.phone, params.get('phone') || params.get('customerPhone'), 40);
-        setFieldValue(fields.name, params.get('name') || params.get('customerName'), 140);
-        setFieldValue(fields.email, params.get('email') || params.get('customerEmail'), 180);
-        setFieldValue(fields.rideDate, params.get('rideDate'), 40);
-        setFieldValue(fields.rideTime, params.get('rideTime'), 40);
-        setFieldValue(fields.returnDate, params.get('returnDate'), 40);
-        setFieldValue(fields.returnTime, params.get('returnTime'), 40);
-        setFieldValue(fields.passengers, params.get('passengers'), 20);
-        setFieldValue(fields.luggage, params.get('luggage'), 80);
-        setFieldValue(fields.payment, params.get('paymentMethod'), 80);
-        setFieldValue(fields.budget, params.get('budget'), 40);
-        setFieldValue(fields.promo, params.get('promo'), 40);
-        setFieldValue(fields.notes, params.get('notes'), 300);
+        setFieldValue(fields.serviceMode, getPrefill('serviceMode'), 80);
+        setFieldValue(fields.vehicleModel, getPrefill('vehicleModel'), 80);
+        setFieldValue(fields.pickup, getPrefill('pickup'), 180);
+        setFieldValue(fields.drop, getPrefill('drop'), 180);
+        setFieldValue(fields.phone, getPrefill('phone') || getPrefill('customerPhone'), 40);
+        setFieldValue(fields.name, getPrefill('name') || getPrefill('customerName'), 140);
+        setFieldValue(fields.email, getPrefill('email') || getPrefill('customerEmail'), 180);
+        setFieldValue(fields.rideDate, getPrefill('rideDate'), 40);
+        setFieldValue(fields.rideTime, getPrefill('rideTime'), 40);
+        setFieldValue(fields.returnDate, getPrefill('returnDate'), 40);
+        setFieldValue(fields.returnTime, getPrefill('returnTime'), 40);
+        setFieldValue(fields.passengers, getPrefill('passengers'), 20);
+        setFieldValue(fields.luggage, getPrefill('luggage'), 80);
+        setFieldValue(fields.payment, getPrefill('paymentMethod'), 80);
+        setFieldValue(fields.budget, getPrefill('budget'), 40);
+        setFieldValue(fields.promo, getPrefill('promo'), 40);
+        setFieldValue(fields.notes, getPrefill('notes'), 300);
 
         if (state.journey === 'round_trip' && !fields.returnDate.value) {
             fields.returnDate.value = fields.rideDate.value || todayValue();

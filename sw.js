@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v56-20260610-layout-polish';
+const CACHE_NAME = 'goindiaride-pwa-v57-20260610-handoff-nav';
 const ASSETS = [
   './',
   './index.html',
