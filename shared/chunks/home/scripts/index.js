@@ -279,6 +279,7 @@
                 if (!input) return;
                 input.value = cleanBookingValue(value);
                 const exact = cleanBookingValue(bookingValue);
+                input.title = exact || input.value;
                 if (exact && exact !== input.value) {
                     input.dataset.bookingValue = exact;
                 } else {
@@ -504,7 +505,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260610-current-location-name1';
+                const swVersion = '20260610-layout-polish1';
                 navigator.serviceWorker
                     .register(`./sw.js?v=${swVersion}`)
                     .then((registration) => {

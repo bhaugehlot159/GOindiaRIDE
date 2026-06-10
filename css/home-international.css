@@ -90,13 +90,13 @@ html body.goi-global-theme.home-international nav.navbar.navbar .logo {
 }
 
 body.home-international .navbar .logo i {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background: #0b3554 url("../icons/icon-192.png") center / cover no-repeat;
+    background: #0b3554 url("../icons/icon-192.png") center / contain no-repeat;
     color: transparent !important;
     font-size: 0 !important;
     overflow: hidden;
@@ -490,6 +490,8 @@ body.home-international .home-route-point input {
     font-weight: 800;
     padding: 0;
     box-shadow: none !important;
+    min-width: 0;
+    text-overflow: ellipsis;
 }
 
 body.home-international .home-route-point input::placeholder {
@@ -674,6 +676,7 @@ body.home-international .home-form-status {
     font-size: 0.72rem !important;
     line-height: 1.35 !important;
     opacity: 1 !important;
+    overflow-wrap: anywhere;
 }
 
 body.home-international .home-form-status.is-success {
@@ -720,6 +723,7 @@ body.home-international .home-card-note {
     line-height: 1.38;
     margin: 0.58rem 0 0 !important;
     opacity: 1 !important;
+    overflow-wrap: anywhere;
 }
 
 html body.goi-global-theme.home-international .home-card-note {
@@ -747,6 +751,7 @@ body.home-international .features,
 body.home-international .how-it-works,
 body.home-international .pricing {
     padding: 4rem 0 !important;
+    scroll-margin-top: 96px;
 }
 
 body.home-international .home-confidence {
@@ -1293,6 +1298,95 @@ body.home-international .footer-bottom p {
     font-size: 0.92rem !important;
 }
 
+body.home-international .home-booking-card,
+body.home-international .home-route-preview,
+body.home-international .home-route-point,
+body.home-international .home-service-tabs button,
+body.home-international .home-suggestion-row button,
+body.home-international .home-booking-card-cta,
+body.home-international .home-trust-row span,
+body.home-international .stat-item,
+body.home-international .step,
+body.home-international .feature-card,
+body.home-international .pricing-card {
+    min-width: 0;
+}
+
+body.home-international .home-service-tabs button,
+body.home-international .home-suggestion-row button,
+body.home-international .home-booking-card-cta span,
+body.home-international .home-trust-row span,
+body.home-international .stat-item h3,
+body.home-international .step h3,
+body.home-international .feature-card h3,
+body.home-international .pricing-card h3 {
+    overflow-wrap: anywhere;
+}
+
+body.home-international .pricing {
+    padding-top: 4.75rem !important;
+}
+
+@media (min-width: 1101px) and (max-width: 1280px) {
+    body.home-international .container,
+    html body.goi-global-theme.home-international .container {
+        width: min(1180px, calc(100% - 20px)) !important;
+    }
+
+    body.home-international .navbar .container {
+        min-height: 76px;
+        flex-wrap: nowrap !important;
+        gap: 0.65rem !important;
+    }
+
+    body.home-international .navbar .logo,
+    html body.goi-global-theme.home-international nav.navbar.navbar .logo {
+        font-size: 1.12rem !important;
+        gap: 0.5rem;
+        flex: 0 0 auto;
+    }
+
+    body.home-international .navbar .logo i {
+        width: 42px;
+        height: 42px;
+    }
+
+    body.home-international .navbar-links {
+        flex-wrap: nowrap !important;
+        gap: 0.55rem !important;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    body.home-international .navbar-links > a,
+    html body.goi-global-theme.home-international nav.navbar.navbar .navbar-links > a {
+        font-size: 0.84rem !important;
+    }
+
+    body.home-international .auth-buttons {
+        flex-wrap: nowrap !important;
+        gap: 0.38rem !important;
+    }
+
+    body.home-international .btn-login,
+    body.home-international .btn-signup,
+    body.home-international .btn-admin,
+    html body.goi-global-theme.home-international nav.navbar.navbar .btn-login,
+    html body.goi-global-theme.home-international nav.navbar.navbar .btn-signup,
+    html body.goi-global-theme.home-international nav.navbar.navbar .btn-admin {
+        min-height: 40px;
+        padding: 0.58rem 0.72rem !important;
+        font-size: 0.84rem !important;
+    }
+
+    html body.goi-global-theme.home-international nav.navbar.navbar .lang-btn,
+    html body.goi-global-theme.home-international nav.navbar.navbar .currency-btn {
+        min-height: 40px !important;
+        padding: 0.58rem 0.62rem !important;
+        font-size: 0.84rem !important;
+    }
+}
+
 @media (max-width: 1100px) {
     body.home-international .navbar .container {
         min-height: auto;
@@ -1313,7 +1407,7 @@ body.home-international .footer-bottom p {
     body.home-international .home-route-grid,
     body.home-international .stats-grid,
     body.home-international .footer-content {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 
