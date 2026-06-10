@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v52-20260608-search-sitelink-cleanup';
+const CACHE_NAME = 'goindiaride-pwa-v53-20260610-current-location-display';
 const ASSETS = [
   './',
   './index.html',

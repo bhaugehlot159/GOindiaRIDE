@@ -228,7 +228,7 @@
             function renderHomeSuggestions(input) {
                 if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
                 const query = cleanBookingValue(input.value).toLowerCase();
-                if (input.dataset.bookingValue && query.startsWith('current location selected')) {
+                if (query.startsWith('current location (')) {
                     hideHomeSuggestions();
                     return;
                 }
@@ -316,7 +316,7 @@
                     navigator.geolocation.getCurrentPosition((position) => {
                         const lat = Number(position.coords.latitude || 0).toFixed(5);
                         const lng = Number(position.coords.longitude || 0).toFixed(5);
-                        fillHomeLocation(pickupInput, 'Current location selected', `Current location (${lat}, ${lng})`);
+                        fillHomeLocation(pickupInput, `Current location (${lat}, ${lng})`);
                         currentLocationButton.disabled = false;
                         currentLocationButton.classList.remove('is-loading');
                         currentLocationButton.classList.add('is-success');
@@ -431,7 +431,7 @@
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swVersion = '20260522-booking-back-guard1';
+                const swVersion = '20260610-current-location-display1';
                 navigator.serviceWorker
                     .register(`./sw.js?v=${swVersion}`)
                     .then((registration) => {
