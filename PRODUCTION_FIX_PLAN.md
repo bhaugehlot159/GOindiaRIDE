@@ -667,7 +667,7 @@ async function estimateBookingFare(pickup, dropoff) {
 FIREBASE_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 JWT_SECRET=your_long_secure_random_string_here
 JWT_REFRESH_SECRET=another_long_secure_random_string
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname
+MONGO_URI=<your_mongodb_atlas_connection_string>
 
 # Optional but recommended
 NODE_ENV=production

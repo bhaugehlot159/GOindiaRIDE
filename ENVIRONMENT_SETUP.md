@@ -39,7 +39,7 @@ NODE_ENV=production
 
 **Description**: MongoDB connection string for database  
 **Type**: String  
-**Format**: `mongodb+srv://username:password@cluster.mongodb.net/database-name`  
+**Format**: MongoDB Atlas connection string from the dashboard
 **Required**: ✅ YES
 
 **How to Get**:
@@ -53,7 +53,7 @@ NODE_ENV=production
 
 **Example**:
 ```bash
-MONGO_URI=mongodb+srv://goindiaride_prod:aBcD1234eFgh5678@cluster0.mongodb.net/goindiaride-prod
+MONGO_URI=<your-mongodb-atlas-connection-string>
 ```
 
 **Validation**:

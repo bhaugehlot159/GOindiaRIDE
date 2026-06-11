@@ -13,7 +13,7 @@ if (missingVars.length > 0 && process.env.NODE_ENV !== 'test') {
   console.error('   export FIREBASE_API_KEY=your_firebase_api_key');
   console.error('   export JWT_SECRET=your_jwt_secret_key');
   console.error('   export JWT_REFRESH_SECRET=your_refresh_secret_key');
-  console.error('   export MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/db\n');
+  console.error('   export MONGO_URI=your_mongodb_atlas_connection_string\n');
   if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   }

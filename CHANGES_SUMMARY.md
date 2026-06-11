@@ -264,7 +264,7 @@ Critical Functionality: ✅ ALL WORKING
 NODE_ENV=production
 JWT_SECRET=<32+ character random value>
 JWT_REFRESH_SECRET=<32+ character random value>
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/dbname
+MONGO_URI=<your_mongodb_atlas_connection_string>
 FIREBASE_API_KEY=<your_firebase_api_key>
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=<your_webhook_token>
 ```
