@@ -365,7 +365,7 @@ async function verifyAdminPasswordForOtp({ channel, email, phone, password }) {
 
 function getFirebaseClientConfig() {
   const fallbackConfig = {
-    apiKey: 'AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik',
+    apiKey: process.env.FIREBASE_API_KEY || process.env.FIREBASE_KEY || process.env.FIREBASE_WEB_API_KEY || null,
     authDomain: 'gehlot-86e38.firebaseapp.com',
     projectId: 'gehlot-86e38',
     storageBucket: 'gehlot-86e38.firebasestorage.app',

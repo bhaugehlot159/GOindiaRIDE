@@ -47,7 +47,7 @@ Remaining:      ~5% feature completion needed
 **Before**:
 ```javascript
 // Line 359 in authRoutes.js
-const firebaseApiKey = 'AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik';
+const firebaseApiKey = 'YOUR_FIREBASE_API_KEY';
 ```
 
 **After**:

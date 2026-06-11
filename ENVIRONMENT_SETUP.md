@@ -162,7 +162,7 @@ JWT_REFRESH_SECRET=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
 
 **Example** (don't use this exact value):
 ```bash
-FIREBASE_API_KEY=AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik
+FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
 ```
 
 **Purpose**: Enables Firebase authentication (phone OTP, email/password)  

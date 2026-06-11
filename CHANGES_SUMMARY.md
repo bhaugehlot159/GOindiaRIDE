@@ -29,7 +29,7 @@ This document details all security and production-readiness improvements made to
 **Risk Level**: 🔴 CRITICAL - Immediate exposure if repository is compromised
 
 **Problem**:
-- Firebase API key hardcoded in source code: `AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik`
+- Firebase API key hardcoded in source code: `YOUR_FIREBASE_API_KEY`
 - Located in multiple frontend files
 - Exposed in public GitHub repository (if public)
 - Anyone with repository access can impersonate app
