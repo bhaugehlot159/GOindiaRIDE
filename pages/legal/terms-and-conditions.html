@@ -18,14 +18,17 @@
         .links { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
         .links a { color: #0b2545; font-weight: 600; }
     </style>
-        <link rel="stylesheet" href="../../brand-theme.css">
-<link rel="stylesheet" href="../../fit-screen.css">
-    <script defer src="../../js/non-home-fit.js"></script>
     <link rel="stylesheet" href="../../css/professional-purple-theme.css">
     <link rel="stylesheet" href="../footer-content.css">
 </head>
-<body class="legal-content-page">
-    <div class="topbar"><a href="../../index.html">GO India RIDE</a></div>
+<body class="legal-content-page" data-goi-nav-static="1">
+    <div class="topbar">
+        <a href="../../index.html">GO India RIDE</a>
+        <div class="content-actions">
+            <button type="button" class="utility-btn" onclick="window.history.length > 1 ? window.history.back() : window.location.href='../../index.html'">Back</button>
+            <a class="utility-btn utility-primary" href="../../index.html">Home</a>
+        </div>
+    </div>
     <main class="container">
         <h1>Terms & Conditions</h1>
         <p class="meta">Last updated: 11 June 2026</p>
@@ -135,7 +138,6 @@
         <p>GO India RIDE legal center: <a href="privacy-policy.html">Privacy</a> | <a href="../contact.html#legal-notices">Legal help</a> | <a href="../../index.html">Home</a></p>
     </footer>
 
-    <script src="../../js/global-ui.js?v=20260314-nav5"></script>
 <script src="../../optimization.js?v=20260531-opt2" async></script>
 </body>
 </html>

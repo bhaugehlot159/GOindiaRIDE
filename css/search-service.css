@@ -29,6 +29,7 @@ a {
     top: 0;
     z-index: 10;
     display: flex;
+    gap: 12px;
     align-items: center;
     justify-content: space-between;
     min-height: 66px;
@@ -57,15 +58,22 @@ a {
 
 .seo-nav {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: 10px;
     font-size: 0.92rem;
     font-weight: 800;
 }
 
 .seo-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
     padding: 10px 12px;
     border-radius: 8px;
+    text-align: center;
 }
 
 .seo-nav a:hover {
@@ -256,12 +264,17 @@ a {
 
     .seo-nav {
         width: 100%;
-        overflow-x: auto;
-        padding-bottom: 4px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
     }
 
     .seo-nav a {
-        flex: 0 0 auto;
+        width: 100%;
+        min-height: 42px;
+        padding: 9px 10px;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .seo-hero {
