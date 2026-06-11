@@ -22,7 +22,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/quick-booking.css?v=20260610-feature-match1">
+    <link rel="stylesheet" href="./css/quick-booking.css?v=20260611-location-autofill1">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -249,14 +249,16 @@
                     <div class="route-grid">
                         <label class="field-shell field-wide">
                             <span>Pickup</span>
-                            <input id="pickupInput" name="pickup" type="text" autocomplete="street-address" placeholder="City, airport, hotel, station" required>
+                            <input id="pickupInput" name="pickup" type="text" autocomplete="street-address" placeholder="City, airport, hotel, station" aria-controls="pickupLocationSuggestPanel" aria-expanded="false" required>
                             <button class="field-icon-btn" type="button" id="useLocationBtn" aria-label="Use current location" title="Use current location">
                                 <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
                             </button>
+                            <div class="location-suggest-panel" id="pickupLocationSuggestPanel" role="listbox" aria-label="Pickup location suggestions" hidden></div>
                         </label>
                         <label class="field-shell field-wide">
                             <span>Drop</span>
-                            <input id="dropInput" name="drop" type="text" autocomplete="street-address" placeholder="Destination city or exact place" required>
+                            <input id="dropInput" name="drop" type="text" autocomplete="street-address" placeholder="Destination city or exact place" aria-controls="dropLocationSuggestPanel" aria-expanded="false" required>
+                            <div class="location-suggest-panel" id="dropLocationSuggestPanel" role="listbox" aria-label="Drop location suggestions" hidden></div>
                         </label>
                         <label class="field-shell">
                             <span>Date</span>
@@ -529,8 +531,9 @@
         </section>
     </main>
 
+    <script src="./js/locations.js?v=20260611-location-autofill1"></script>
     <script src="./js/route-suggestions.js?v=20260611-real-toll1"></script>
     <script src="./js/booking-fare-calculator.js?v=20260611-real-toll1"></script>
-    <script src="./js/quick-booking.js?v=20260611-fast-toll1"></script>
+    <script src="./js/quick-booking.js?v=20260611-location-autofill1"></script>
 </body>
 </html>

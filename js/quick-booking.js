@@ -63,6 +63,10 @@
     const loadBookingBtn = document.getElementById('loadBookingBtn');
     const newBookingBtn = document.getElementById('newBookingBtn');
     const routeSuggestions = document.querySelector('.route-suggestions');
+    const locationSuggestPanels = {
+        pickup: document.getElementById('pickupLocationSuggestPanel'),
+        drop: document.getElementById('dropLocationSuggestPanel')
+    };
     const tripPlanDetail = {
         shell: document.getElementById('tripPlanDetail'),
         kicker: document.getElementById('tripPlanKicker'),
@@ -77,7 +81,8 @@
         vehicleType: 'economy',
         lastFare: null,
         editingBookingId: '',
-        editOriginal: null
+        editOriginal: null,
+        locationOptions: null
     };
 
     const VEHICLE_MODEL_OPTIONS = [
@@ -301,6 +306,227 @@
             .replace(/\s+/g, ' ')
             .trim()
             .slice(0, maxLen || 220);
+    }
+
+    function compactLocation(value) {
+        return cleanText(value, 220).toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function locationCategoryLabel(key) {
+        const labels = {
+            airports: 'Airport',
+            railway_stations: 'Railway station',
+            bus_stands: 'Bus stand',
+            tourist_places: 'Tourist place',
+            forts: 'Fort',
+            temples: 'Temple',
+            hospitals: 'Hospital',
+            markets: 'Market',
+            landmarks: 'Landmark'
+        };
+        return labels[key] || cleanText(key).replace(/_/g, ' ');
+    }
+
+    function addLocationOption(rows, seen, label, detail, priority) {
+        const cleanLabel = cleanText(label, 180);
+        if (!cleanLabel) return;
+        const key = compactLocation(cleanLabel);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        rows.push({
+            label: cleanLabel,
+            detail: cleanText(detail, 120) || 'Location',
+            priority: Number.isFinite(priority) ? priority : 80,
+            compact: key
+        });
+    }
+
+    function buildLocationOptions() {
+        if (state.locationOptions) return state.locationOptions;
+        const rows = [];
+        const seen = new Set();
+        [
+            ['Udaipur', 'Rajasthan city', 1],
+            ['Udaipur Airport', 'Airport pickup/drop', 2],
+            ['Maharana Pratap Airport', 'Udaipur airport', 3],
+            ['Udaipur City Railway Station', 'Railway station', 4],
+            ['Jaipur', 'Rajasthan city', 5],
+            ['Jaipur Airport', 'Airport pickup/drop', 6],
+            ['Jaipur Railway Station', 'Railway station', 7],
+            ['Jodhpur', 'Rajasthan city', 8],
+            ['Kota', 'Rajasthan city', 9],
+            ['Ajmer', 'Rajasthan city', 10],
+            ['Bikaner', 'Rajasthan city', 11],
+            ['Delhi Airport', 'Airport transfer', 12],
+            ['Ahmedabad Airport', 'Airport transfer', 13],
+            ['Mumbai Airport', 'Airport transfer', 14]
+        ].forEach(([label, detail, priority]) => addLocationOption(rows, seen, label, detail, priority));
+
+        Object.values(TRIP_PLAN_CONFIG).forEach((config, configIndex) => {
+            (config.suggestions || []).forEach((suggestion, suggestionIndex) => {
+                addLocationOption(rows, seen, suggestion.pickup, `${config.kicker} pickup`, 20 + configIndex + suggestionIndex);
+                addLocationOption(rows, seen, suggestion.drop, `${config.kicker} drop`, 24 + configIndex + suggestionIndex);
+            });
+        });
+
+        const data = window.locationsData || {};
+        const states = data.states && typeof data.states === 'object' ? data.states : {};
+        Object.entries(states).forEach(([stateName, cities]) => {
+            if (!Array.isArray(cities)) return;
+            cities.forEach((city, index) => {
+                addLocationOption(rows, seen, city, `${stateName} city`, stateName === 'Rajasthan' ? 30 + index : 90 + index);
+            });
+        });
+
+        const rajasthan = data.rajasthan && typeof data.rajasthan === 'object' ? data.rajasthan : {};
+        Object.entries(rajasthan).forEach(([district, groups], districtIndex) => {
+            addLocationOption(rows, seen, district, 'Rajasthan district', 32 + districtIndex);
+            if (!groups || typeof groups !== 'object') return;
+            Object.entries(groups).forEach(([groupKey, values]) => {
+                if (!Array.isArray(values)) return;
+                const category = locationCategoryLabel(groupKey);
+                const priority = groupKey === 'airports' ? 15
+                    : groupKey === 'railway_stations' ? 18
+                        : groupKey === 'bus_stands' ? 35
+                            : groupKey === 'landmarks' ? 42
+                                : groupKey === 'tourist_places' ? 48
+                                    : 55;
+                values.forEach((place, placeIndex) => {
+                    const cleanPlace = cleanText(place, 180);
+                    if (!cleanPlace) return;
+                    const hasDistrict = compactLocation(cleanPlace).includes(compactLocation(district));
+                    addLocationOption(
+                        rows,
+                        seen,
+                        hasDistrict ? cleanPlace : `${cleanPlace}, ${district}`,
+                        `${category} - ${district}`,
+                        priority + placeIndex
+                    );
+                });
+            });
+        });
+
+        state.locationOptions = rows.sort((a, b) => a.priority - b.priority || a.label.localeCompare(b.label));
+        return state.locationOptions;
+    }
+
+    function locationSuggestionScore(item, query, compactQuery) {
+        const label = item.label.toLowerCase();
+        const detail = item.detail.toLowerCase();
+        if (!query) return item.priority;
+        if (label === query || item.compact === compactQuery) return -2;
+        if (label.startsWith(query) || item.compact.startsWith(compactQuery)) return 0;
+        if (label.includes(query) || item.compact.includes(compactQuery)) return 2;
+        if (detail.includes(query)) return 4;
+        return 10;
+    }
+
+    function getLocationSuggestions(query) {
+        const cleanQuery = cleanText(query, 80).toLowerCase();
+        const compactQuery = compactLocation(query);
+        const options = buildLocationOptions();
+        const matches = cleanQuery
+            ? options.filter((item) => {
+                const label = item.label.toLowerCase();
+                const detail = item.detail.toLowerCase();
+                return label.includes(cleanQuery) || item.compact.includes(compactQuery) || detail.includes(cleanQuery);
+            })
+            : options;
+        return matches
+            .sort((a, b) => (
+                locationSuggestionScore(a, cleanQuery, compactQuery) - locationSuggestionScore(b, cleanQuery, compactQuery)
+                || a.priority - b.priority
+                || a.label.localeCompare(b.label)
+            ))
+            .slice(0, 9);
+    }
+
+    function locationTargetForInput(input) {
+        if (input === fields.pickup) return 'pickup';
+        if (input === fields.drop) return 'drop';
+        return '';
+    }
+
+    function hideLocationSuggestions(input) {
+        const target = input ? locationTargetForInput(input) : '';
+        Object.entries(locationSuggestPanels).forEach(([key, panel]) => {
+            if (!panel || (target && key !== target)) return;
+            panel.hidden = true;
+            panel.replaceChildren();
+        });
+        const inputs = input ? [input] : [fields.pickup, fields.drop];
+        inputs.filter(Boolean).forEach((field) => field.setAttribute('aria-expanded', 'false'));
+    }
+
+    function setActiveLocationSuggestion(panel, index) {
+        const buttons = Array.from(panel.querySelectorAll('button'));
+        buttons.forEach((button, itemIndex) => {
+            const active = itemIndex === index;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+            if (active) button.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
+    function renderLocationSuggestions(input) {
+        const target = locationTargetForInput(input);
+        const panel = target ? locationSuggestPanels[target] : null;
+        if (!input || !panel) return;
+        const matches = getLocationSuggestions(input.value);
+        if (!matches.length) {
+            hideLocationSuggestions(input);
+            return;
+        }
+        const buttons = matches.map((item, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.setAttribute('role', 'option');
+            button.dataset.value = item.label;
+            button.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+            if (index === 0) button.classList.add('is-active');
+            const label = document.createElement('strong');
+            label.textContent = item.label;
+            const detail = document.createElement('small');
+            detail.textContent = item.detail;
+            button.append(label, detail);
+            return button;
+        });
+        panel.replaceChildren(...buttons);
+        panel.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+    }
+
+    function applyLocationSuggestion(input, value) {
+        const clean = cleanText(value, 180);
+        if (!input || !clean) return;
+        input.value = clean;
+        input.title = clean;
+        hideLocationSuggestions(input);
+        estimateFare();
+    }
+
+    function moveLocationSuggestion(input, direction) {
+        const target = locationTargetForInput(input);
+        const panel = target ? locationSuggestPanels[target] : null;
+        if (!panel || panel.hidden) {
+            renderLocationSuggestions(input);
+            return;
+        }
+        const buttons = Array.from(panel.querySelectorAll('button'));
+        if (!buttons.length) return;
+        const current = Math.max(0, buttons.findIndex((button) => button.classList.contains('is-active')));
+        const next = (current + direction + buttons.length) % buttons.length;
+        setActiveLocationSuggestion(panel, next);
+    }
+
+    function chooseActiveLocationSuggestion(input) {
+        const target = locationTargetForInput(input);
+        const panel = target ? locationSuggestPanels[target] : null;
+        if (!panel || panel.hidden) return false;
+        const active = panel.querySelector('button.is-active') || panel.querySelector('button');
+        if (!active) return false;
+        applyLocationSuggestion(input, active.dataset.value);
+        return true;
     }
 
     function toNumber(value, fallback) {
@@ -1554,6 +1780,7 @@
                 if (!button || !routeSuggestions.contains(button)) return;
                 fields.pickup.value = button.dataset.pickup || '';
                 fields.drop.value = button.dataset.drop || '';
+                hideLocationSuggestions();
                 estimateFare();
             });
         }
@@ -1576,6 +1803,7 @@
                 return;
             }
             button.disabled = true;
+            hideLocationSuggestions(fields.pickup);
             navigator.geolocation.getCurrentPosition((position) => {
                 const lat = Number(position.coords.latitude || 0).toFixed(5);
                 const lng = Number(position.coords.longitude || 0).toFixed(5);
@@ -1590,6 +1818,48 @@
                 timeout: 9000,
                 maximumAge: 120000
             });
+        });
+    }
+
+    function wireLocationAutocomplete() {
+        [fields.pickup, fields.drop].filter(Boolean).forEach((input) => {
+            input.addEventListener('focus', () => renderLocationSuggestions(input));
+            input.addEventListener('input', () => renderLocationSuggestions(input));
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    moveLocationSuggestion(input, 1);
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    moveLocationSuggestion(input, -1);
+                } else if (event.key === 'Enter' && chooseActiveLocationSuggestion(input)) {
+                    event.preventDefault();
+                } else if (event.key === 'Escape') {
+                    hideLocationSuggestions(input);
+                }
+            });
+            input.addEventListener('blur', () => {
+                window.setTimeout(() => hideLocationSuggestions(input), 120);
+            });
+        });
+
+        Object.entries(locationSuggestPanels).forEach(([target, panel]) => {
+            if (!panel) return;
+            panel.addEventListener('mousedown', (event) => event.preventDefault());
+            panel.addEventListener('click', (event) => {
+                const button = event.target && event.target.closest ? event.target.closest('button') : null;
+                const input = target === 'pickup' ? fields.pickup : fields.drop;
+                if (!button || !panel.contains(button) || !input) return;
+                applyLocationSuggestion(input, button.dataset.value);
+                input.focus();
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            const isLocationField = target === fields.pickup || target === fields.drop;
+            const isPanelClick = Object.values(locationSuggestPanels).some((panel) => panel && panel.contains(target));
+            if (!isLocationField && !isPanelClick) hideLocationSuggestions();
         });
     }
 
@@ -1612,6 +1882,7 @@
     wireTabs();
     wireManageButtons();
     wireLocationButton();
+    wireLocationAutocomplete();
     initDefaults();
     applyHomepagePrefillFromUrl();
     form.addEventListener('submit', submitBooking);

@@ -94,6 +94,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('pages/legal/gdpr-notice.html'), /<meta name="googlebot" content="noindex, follow">/);
   assert.match(publicBooking, /id="quickBookingForm"/);
   assert.match(publicBooking, /Direct cab booking, no login/);
+  assert.match(publicBooking, /css\/quick-booking\.css\?v=20260611-location-autofill1/);
+  assert.match(publicBooking, /id="pickupInput"[^>]*aria-controls="pickupLocationSuggestPanel"/);
+  assert.match(publicBooking, /id="dropInput"[^>]*aria-controls="dropLocationSuggestPanel"/);
+  assert.match(publicBooking, /id="pickupLocationSuggestPanel"[^>]*role="listbox"/);
+  assert.match(publicBooking, /id="dropLocationSuggestPanel"[^>]*role="listbox"/);
   assert.match(publicBooking, /id="phoneInput"[^>]*name="customerPhone"[^>]*required[^>]*aria-required="true"/);
   assert.match(publicBooking, /id="serviceModeInput"/);
   assert.match(publicBooking, /id="vehicleModelInput"/);
@@ -108,6 +113,7 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(publicBooking, /id="gstNumberInput"/);
   assert.match(publicBooking, /id="manageBookingInput"/);
   assert.match(publicBooking, /id="editReasonInput"/);
+  assert.match(publicBooking, /js\/locations\.js\?v=20260611-location-autofill1/);
   assert.match(publicBooking, /js\/route-suggestions\.js\?v=20260611-real-toll1/);
   assert.match(publicBooking, /id="tollAmount"/);
   assert.match(publicBooking, /id="tollNote"/);
@@ -123,6 +129,10 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /customerFeatures/);
   assert.match(shortcut, /adminEmailDispatch/);
   assert.match(shortcut, /Valid mobile number is required/);
+  assert.match(shortcut, /function buildLocationOptions\(/);
+  assert.match(shortcut, /window\.locationsData/);
+  assert.match(shortcut, /function getLocationSuggestions\(query\)/);
+  assert.match(shortcut, /function wireLocationAutocomplete\(/);
   assert.match(shortcut, /function applyHomepagePrefillFromUrl\(/);
   assert.match(shortcut, /new URLSearchParams\(window\.location\.search \|\| ''\)/);
   assert.match(shortcut, /setTripPlan\(tripPlan, true\)/);
