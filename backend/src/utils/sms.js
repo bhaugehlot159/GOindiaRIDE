@@ -15,12 +15,12 @@ function pickProvider({ hasOtp = false } = {}) {
   if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && (process.env.TWILIO_SMS_FROM || process.env.SMS_TWILIO_FROM)) return 'twilio';
   if (hasOtp && process.env.MSG91_AUTH_KEY && process.env.MSG91_TEMPLATE_ID) return 'msg91';
   if (hasOtp && process.env.FAST2SMS_API_KEY) return 'fast2sms';
-  if ((process.env.WHATSAPP_META_ACCESS_TOKEN || process.env.META_WHATSAPP_ACCESS_TOKEN)
+  if (hasOtp && (process.env.WHATSAPP_META_ACCESS_TOKEN || process.env.META_WHATSAPP_ACCESS_TOKEN)
     && (process.env.WHATSAPP_META_PHONE_NUMBER_ID || process.env.META_WHATSAPP_PHONE_NUMBER_ID)) return 'whatsapp';
-  if ((process.env.WHATSAPP_TWILIO_ACCOUNT_SID || process.env.TWILIO_ACCOUNT_SID)
+  if (hasOtp && (process.env.WHATSAPP_TWILIO_ACCOUNT_SID || process.env.TWILIO_ACCOUNT_SID)
     && (process.env.WHATSAPP_TWILIO_AUTH_TOKEN || process.env.TWILIO_AUTH_TOKEN)
     && (process.env.WHATSAPP_TWILIO_FROM || process.env.TWILIO_WHATSAPP_FROM || process.env.WHATSAPP_FROM)) return 'whatsapp';
-  if (String(process.env.OTP_SMS_WHATSAPP_FALLBACK || '').toLowerCase() === 'true') return 'whatsapp';
+  if (hasOtp && String(process.env.OTP_SMS_WHATSAPP_FALLBACK || '').toLowerCase() === 'true') return 'whatsapp';
   return '';
 }
 

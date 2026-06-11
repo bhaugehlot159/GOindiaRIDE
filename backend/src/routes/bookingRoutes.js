@@ -60,7 +60,7 @@ const BOOKING_ADMIN_WHATSAPP_ENABLED = String(process.env.BOOKING_ADMIN_WHATSAPP
 const BOOKING_ADMIN_WHATSAPP_PROVIDER = String(process.env.BOOKING_ADMIN_WHATSAPP_PROVIDER || process.env.BOOKING_WHATSAPP_PROVIDER || process.env.WHATSAPP_PROVIDER || 'meta').trim().toLowerCase();
 const BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY = String(process.env.BOOKING_ADMIN_WHATSAPP_DEFAULT_COUNTRY || '91').replace(/\D/g, '') || '91';
 const BOOKING_CUSTOMER_SMS_ENABLED = String(process.env.BOOKING_CUSTOMER_SMS_ENABLED || 'true').trim().toLowerCase() !== 'false';
-const BOOKING_CUSTOMER_SMS_PROVIDER = String(process.env.BOOKING_CUSTOMER_SMS_PROVIDER || process.env.SMS_PROVIDER || process.env.OTP_SMS_PROVIDER || '').trim().toLowerCase();
+const BOOKING_CUSTOMER_SMS_PROVIDER = resolveBookingCustomerSmsProvider();
 const BOOKING_CUSTOMER_SMS_DEFAULT_COUNTRY = String(process.env.BOOKING_CUSTOMER_SMS_DEFAULT_COUNTRY || '91').replace(/\D/g, '') || '91';
 const BOOKING_CUSTOMER_SUPPORT_PHONE = String(process.env.BOOKING_CUSTOMER_SUPPORT_PHONE || process.env.DEFAULT_ADMIN_WHATSAPP_NUMBER || '8426891471').replace(/[^\d+]/g, '') || '8426891471';
 const ADMIN_WHATSAPP_RECIPIENT_VARS = [
@@ -587,6 +587,17 @@ function splitCsvValues(value) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function resolveBookingCustomerSmsProvider() {
+  const explicit = String(process.env.BOOKING_CUSTOMER_SMS_PROVIDER || process.env.BOOKING_SMS_PROVIDER || '').trim().toLowerCase();
+  if (explicit) return explicit;
+
+  const genericSmsProvider = String(process.env.SMS_PROVIDER || '').trim().toLowerCase();
+  if (['whatsapp', 'meta', 'twilio_whatsapp'].includes(genericSmsProvider)) {
+    return '';
+  }
+  return genericSmsProvider;
 }
 
 function normalizeEmail(value) {
