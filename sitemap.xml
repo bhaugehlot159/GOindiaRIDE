@@ -35,4 +35,83 @@
     <changefreq>weekly</changefreq>
   </url>
 
+  <!-- Footer information pages -->
+  <url>
+    <loc>https://goindiaride.in/pages/home.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.80</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/services.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/pricing.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/driver-guide.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/contact.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.75</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Legal pages -->
+  <url>
+    <loc>https://goindiaride.in/pages/legal/terms-and-conditions.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.60</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/legal/privacy-policy.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.60</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/legal/refund-policy.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.55</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/legal/cookie-policy.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/legal/gdpr-notice.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.50</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://goindiaride.in/pages/legal/driver-agreement.html</loc>
+    <lastmod>2026-06-11</lastmod>
+    <priority>0.55</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
 </urlset>
