@@ -64,10 +64,10 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   const homeFooter = home.match(/<footer class="footer">[\s\S]*?<\/footer>/)?.[0] || '';
 
   assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
-  assert.match(home, /home-international\.css\?v=20260610-location-ui2/);
+  assert.match(home, /home-international\.css\?v=20260610-handoff-nav1/);
   assert.match(home, /Airport, city and intercity cab booking/);
   assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
-  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260610-location-ui2/);
+  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260610-handoff-nav1/);
   assert.doesNotMatch(home, /20260610-location-ui1/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
@@ -108,9 +108,13 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(publicBooking, /id="gstNumberInput"/);
   assert.match(publicBooking, /id="manageBookingInput"/);
   assert.match(publicBooking, /id="editReasonInput"/);
+  assert.match(publicBooking, /js\/route-suggestions\.js\?v=20260611-real-toll1/);
+  assert.match(publicBooking, /id="tollAmount"/);
+  assert.match(publicBooking, /id="tollNote"/);
 
   assert.match(shortcut, /\/api\/bookings\/fallback\/admin-review-queue/);
   assert.match(shortcut, /\/api\/bookings\/fallback\/admin-alert-email/);
+  assert.match(shortcut, /syncBookingInBackground\(booking, isEdit\)/);
   assert.match(shortcut, /makeIdempotencyKey\(body, path\)/);
   assert.match(shortcut, /sourceKey:\s*existing\.bookingId \? 'shortcut_customer_edit' : 'shortcut_public_booking'/);
   assert.match(shortcut, /mode:\s*existing\.bookingId \? 'public_no_login_customer_edit' : 'public_no_login_shortcut'/);
@@ -122,8 +126,8 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /function applyHomepagePrefillFromUrl\(/);
   assert.match(shortcut, /new URLSearchParams\(window\.location\.search \|\| ''\)/);
   assert.match(shortcut, /setTripPlan\(tripPlan, true\)/);
-  assert.match(shortcut, /setFieldValue\(fields\.pickup, params\.get\('pickup'\), 180\)/);
-  assert.match(shortcut, /setFieldValue\(fields\.phone, params\.get\('phone'\) \|\| params\.get\('customerPhone'\), 40\)/);
+  assert.match(shortcut, /setFieldValue\(fields\.pickup, getPrefill\('pickup'\), 180\)/);
+  assert.match(shortcut, /setFieldValue\(fields\.phone, getPrefill\('phone'\) \|\| getPrefill\('customerPhone'\), 40\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_BASE_LOCATION_SUGGESTIONS/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /buildHomeLocationSuggestions/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /getHomeLocationSuggestions\(query\)/);
@@ -132,7 +136,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('shared/chunks/home/scripts/index.js'), /dataset\.bookingValue/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /getBookingLocationValue\(pickupInput\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /navigator\.geolocation/);
-  assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, 'Current location selected', `Current location \(\$\{lat\}, \$\{lng\}\)`\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /const gpsLabel = `Current location \(\$\{lat\}, \$\{lng\}\)`/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, gpsLabel\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, addressLabel, `\$\{addressLabel\} \(\$\{lat\}, \$\{lng\}\)`\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /GPS selected:/);
   assert.doesNotMatch(read('shared/chunks/home/scripts/index.js'), /slice\(0, 6\)/);
 
@@ -143,7 +149,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(sitemap, /https:\/\/goindiaride\.in\/book-cab\.html/);
   assert.match(sitemap, /https:\/\/goindiaride\.in\/taxi-service\.html/);
   assert.match(sitemap, /<lastmod>2026-06-08<\/lastmod>/);
-  assert.doesNotMatch(sitemap, /pages\/login\.html|pages\/signup\.html|admin\/|terms-and-conditions\.html|privacy-policy\.html/);
+  assert.match(sitemap, /https:\/\/goindiaride\.in\/pages\/legal\/terms-and-conditions\.html/);
+  assert.match(sitemap, /https:\/\/goindiaride\.in\/pages\/legal\/privacy-policy\.html/);
+  assert.doesNotMatch(sitemap, /pages\/login\.html|pages\/signup\.html|admin\//);
   assert.match(robots, /Sitemap:\s*https:\/\/goindiaride\.in\/sitemap\.xml/);
 });
 
@@ -236,7 +244,7 @@ test('admin app has unified live control center and fresh service worker coverag
   const center = read('admin/js/admin-live-control-center.js');
   const sw = read('sw.js');
 
-  assert.match(admin, /admin-app\.js\?v=20260528-admin-hangfix1/);
+  assert.match(admin, /admin-app\.js\?v=20260610-sms-reference1/);
   assert.match(admin, /admin-live-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(legacyAdmin, /admin-live-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(center, /Unified Admin Control Center/);
@@ -257,7 +265,7 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v52-20260608-search-sitelink-cleanup/);
+  assert.match(sw, /goindiaride-pwa-v59-20260610-sms-reference/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });
 

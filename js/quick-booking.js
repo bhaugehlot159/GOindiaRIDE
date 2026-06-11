@@ -54,6 +54,8 @@
 
     const fareAmount = document.getElementById('fareAmount');
     const distanceAmount = document.getElementById('distanceAmount');
+    const tollAmount = document.getElementById('tollAmount');
+    const tollNote = document.getElementById('tollNote');
     const syncStatus = document.getElementById('syncStatus');
     const formMessage = document.getElementById('formMessage');
     const submitBtn = document.getElementById('submitBookingBtn');
@@ -314,6 +316,18 @@
     function formatDistance(value) {
         const km = Math.max(0, toNumber(value, 0));
         return `${km.toLocaleString('en-IN', { maximumFractionDigits: 1 })} km`;
+    }
+
+    function formatTollNote(fare) {
+        const plazas = Array.isArray(fare && fare.tollPlazas) ? fare.tollPlazas : [];
+        if (plazas.length) {
+            const names = plazas.map((item) => cleanText(item && item.name, 80)).filter(Boolean).slice(0, 2).join(', ');
+            const more = plazas.length > 2 ? ` +${plazas.length - 2} more` : '';
+            return `${names}${more}${fare.tollUsedReturnRate ? ' return rate' : ''}`;
+        }
+        if (fare && fare.tollRequiresAdminReview) return 'Admin review';
+        if (fare && fare.tollSource === 'local_no_mapped_toll') return 'No mapped toll';
+        return 'Mapped route check';
     }
 
     function todayValue() {
@@ -603,6 +617,8 @@
         state.lastFare = fare;
         fareAmount.textContent = formatMoney(fare.totalFare || fare.amount || fare.finalFare || 0);
         distanceAmount.textContent = formatDistance(fare.distanceKm || 0);
+        if (tollAmount) tollAmount.textContent = formatMoney(fare.tollCharge || 0);
+        if (tollNote) tollNote.textContent = formatTollNote(fare);
         updateWhatsAppLink();
         return fare;
     }
@@ -727,6 +743,77 @@
             }
         }
         return { ok: false, attempts, reason: attempts.length ? attempts[attempts.length - 1].reason : 'api_unavailable' };
+    }
+
+    function buildDispatchUpdate(booking, isEdit, queueResult, emailResult) {
+        const dispatchData = emailResult && emailResult.data && typeof emailResult.data === 'object' ? emailResult.data : {};
+        const adminEmail = dispatchData.adminEmail && typeof dispatchData.adminEmail === 'object' ? dispatchData.adminEmail : null;
+        const customerEmail = dispatchData.customerEmail && typeof dispatchData.customerEmail === 'object' ? dispatchData.customerEmail : null;
+        const adminWhatsApp = dispatchData.adminWhatsApp && typeof dispatchData.adminWhatsApp === 'object' ? dispatchData.adminWhatsApp : null;
+        const customerSms = dispatchData.customerSms && typeof dispatchData.customerSms === 'object' ? dispatchData.customerSms : null;
+        const backendStatus = emailResult.ok
+            ? (isEdit ? 'admin_alert_sent_after_customer_edit' : 'admin_alert_sent')
+            : queueResult.ok
+                ? (isEdit ? 'admin_queue_synced_customer_edit_email_pending' : 'admin_queue_synced_email_pending')
+                : (isEdit ? 'customer_edit_local_saved_sync_pending' : 'local_saved_sync_pending');
+        return {
+            ...booking,
+            backendStatus,
+            adminQueueSyncStatus: queueResult.ok ? 'queued' : 'pending',
+            adminQueueSyncReason: queueResult.ok ? '' : cleanText(queueResult.reason || 'api_unavailable', 120),
+            adminEmailDispatch: {
+                state: adminEmail && adminEmail.sent ? 'sent' : (emailResult.ok ? 'sent' : 'pending'),
+                reason: adminEmail ? cleanText(adminEmail.reason || adminEmail.message || '', 120) : (emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120)),
+                ...adminEmail,
+                updatedAt: new Date().toISOString()
+            },
+            customerEmailDispatch: {
+                state: customerEmail && customerEmail.sent ? 'sent' : (customerEmail && customerEmail.skipped ? 'skipped' : 'pending'),
+                reason: customerEmail ? cleanText(customerEmail.reason || customerEmail.message || '', 120) : '',
+                ...customerEmail,
+                updatedAt: new Date().toISOString()
+            },
+            adminWhatsAppDispatch: {
+                state: adminWhatsApp && adminWhatsApp.sent ? 'sent' : (adminWhatsApp && adminWhatsApp.skipped ? 'skipped' : 'pending'),
+                reason: adminWhatsApp ? cleanText(adminWhatsApp.reason || adminWhatsApp.message || '', 120) : '',
+                ...adminWhatsApp,
+                updatedAt: new Date().toISOString()
+            },
+            customerSmsDispatch: {
+                state: customerSms && customerSms.sent ? 'sent' : (customerSms && customerSms.skipped ? 'skipped' : 'pending'),
+                reason: customerSms ? cleanText(customerSms.reason || customerSms.message || '', 120) : (emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120)),
+                bookingReference: booking.bookingId,
+                ...customerSms,
+                updatedAt: new Date().toISOString()
+            },
+            updatedAt: new Date().toISOString()
+        };
+    }
+
+    async function syncBookingInBackground(booking, isEdit) {
+        const queueBody = {
+            source: isEdit ? 'shortcut_customer_edit' : 'shortcut_public_booking',
+            reason: isEdit ? (booking.customerEditReason || 'public_no_login_customer_edit') : 'public_no_login_shortcut',
+            mode: booking.mode,
+            changedFields: booking.changedFields || [],
+            bookings: [booking]
+        };
+        const queueResult = await postJsonAcrossBases('/api/bookings/fallback/admin-review-queue', queueBody, 5000);
+        if (queueResult.ok && activeBookingId() === booking.bookingId) syncStatus.textContent = 'Queued';
+        const emailResult = await postJsonAcrossBases('/api/bookings/fallback/admin-alert-email', booking, 7000);
+        const updated = buildDispatchUpdate(booking, isEdit, queueResult, emailResult);
+        persistBooking(updated);
+        if (activeBookingId() === booking.bookingId) {
+            syncStatus.textContent = emailResult.ok ? 'Sent' : (queueResult.ok ? 'Queued' : 'Saved');
+            if (emailResult.ok || queueResult.ok) {
+                setMessage(
+                    isEdit
+                        ? `Booking ${booking.bookingId} updated. Admin portal will show the latest details.`
+                        : `Booking ${booking.bookingId} received. GO India RIDE will confirm on your mobile.`,
+                    'success'
+                );
+            }
+        }
     }
 
     function buildBookingPayload(existingId) {
@@ -1419,88 +1506,21 @@
         persistBooking(booking);
         updateWhatsAppLink(booking);
 
-        const queueBody = {
-            source: isEdit ? 'shortcut_customer_edit' : 'shortcut_public_booking',
-            reason: isEdit ? (booking.customerEditReason || 'public_no_login_customer_edit') : 'public_no_login_shortcut',
-            mode: booking.mode,
-            changedFields: booking.changedFields || [],
-            bookings: [booking]
-        };
-        const queueResult = await postJsonAcrossBases('/api/bookings/fallback/admin-review-queue', queueBody, 12000);
-
-        let emailResult = { ok: false, reason: 'not_attempted' };
-        if (queueResult.ok) {
-            syncStatus.textContent = 'Queued';
-        }
-        emailResult = await postJsonAcrossBases('/api/bookings/fallback/admin-alert-email', booking, 18000);
-        const dispatchData = emailResult && emailResult.data && typeof emailResult.data === 'object' ? emailResult.data : {};
-        const adminEmail = dispatchData.adminEmail && typeof dispatchData.adminEmail === 'object' ? dispatchData.adminEmail : null;
-        const customerEmail = dispatchData.customerEmail && typeof dispatchData.customerEmail === 'object' ? dispatchData.customerEmail : null;
-        const adminWhatsApp = dispatchData.adminWhatsApp && typeof dispatchData.adminWhatsApp === 'object' ? dispatchData.adminWhatsApp : null;
-        const customerSms = dispatchData.customerSms && typeof dispatchData.customerSms === 'object' ? dispatchData.customerSms : null;
-
-        const backendStatus = emailResult.ok
-            ? (isEdit ? 'admin_alert_sent_after_customer_edit' : 'admin_alert_sent')
-            : queueResult.ok
-                ? (isEdit ? 'admin_queue_synced_customer_edit_email_pending' : 'admin_queue_synced_email_pending')
-                : (isEdit ? 'customer_edit_local_saved_sync_pending' : 'local_saved_sync_pending');
-        const updated = {
-            ...booking,
-            backendStatus,
-            adminQueueSyncStatus: queueResult.ok ? 'queued' : 'pending',
-            adminQueueSyncReason: queueResult.ok ? '' : cleanText(queueResult.reason || 'api_unavailable', 120),
-            adminEmailDispatch: {
-                state: adminEmail && adminEmail.sent ? 'sent' : (emailResult.ok ? 'sent' : 'pending'),
-                reason: adminEmail ? cleanText(adminEmail.reason || adminEmail.message || '', 120) : (emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120)),
-                ...adminEmail,
-                updatedAt: new Date().toISOString()
-            },
-            customerEmailDispatch: {
-                state: customerEmail && customerEmail.sent ? 'sent' : (customerEmail && customerEmail.skipped ? 'skipped' : 'pending'),
-                reason: customerEmail ? cleanText(customerEmail.reason || customerEmail.message || '', 120) : '',
-                ...customerEmail,
-                updatedAt: new Date().toISOString()
-            },
-            adminWhatsAppDispatch: {
-                state: adminWhatsApp && adminWhatsApp.sent ? 'sent' : (adminWhatsApp && adminWhatsApp.skipped ? 'skipped' : 'pending'),
-                reason: adminWhatsApp ? cleanText(adminWhatsApp.reason || adminWhatsApp.message || '', 120) : '',
-                ...adminWhatsApp,
-                updatedAt: new Date().toISOString()
-            },
-            customerSmsDispatch: {
-                state: customerSms && customerSms.sent ? 'sent' : (customerSms && customerSms.skipped ? 'skipped' : 'pending'),
-                reason: customerSms ? cleanText(customerSms.reason || customerSms.message || '', 120) : (emailResult.ok ? '' : cleanText(emailResult.reason || 'api_unavailable', 120)),
-                bookingReference: booking.bookingId,
-                ...customerSms,
-                updatedAt: new Date().toISOString()
-            },
-            updatedAt: new Date().toISOString()
-        };
-        persistBooking(updated);
         setBusy(false);
-
-        if (emailResult.ok || queueResult.ok) {
-            syncStatus.textContent = emailResult.ok ? 'Sent' : 'Queued';
-            fields.manageBooking.value = booking.bookingId;
-            setEditMode(booking);
-            setMessage(
-                isEdit
-                    ? `Booking ${booking.bookingId} updated. Admin portal will show the latest details.`
-                    : `Booking ${booking.bookingId} received. GO India RIDE will confirm on your mobile.`,
-                'success'
-            );
-            return;
-        }
-
         syncStatus.textContent = 'Saved';
         fields.manageBooking.value = booking.bookingId;
         setEditMode(booking);
         setMessage(
             isEdit
-                ? `Booking ${booking.bookingId} edit is saved on this device. Use WhatsApp or call for instant confirmation.`
-                : `Booking ${booking.bookingId} is saved on this device. Use WhatsApp or call for instant confirmation.`,
+                ? `Booking ${booking.bookingId} edit is saved. Admin sync is running in background.`
+                : `Booking ${booking.bookingId} received. Admin sync is running in background.`,
             'success'
         );
+        window.setTimeout(() => {
+            syncBookingInBackground(booking, isEdit).catch(() => {
+                if (activeBookingId() === booking.bookingId) syncStatus.textContent = 'Saved';
+            });
+        }, 0);
     }
 
     function wireTabs() {

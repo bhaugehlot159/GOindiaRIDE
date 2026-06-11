@@ -517,7 +517,7 @@ a:focus-visible {
 
 .fare-strip {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     margin-top: 12px;
 }
@@ -547,6 +547,16 @@ a:focus-visible {
     margin-top: 4px;
     color: var(--ink);
     font-size: 0.96rem;
+}
+
+.fare-strip small {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 
 .detail-drawer {

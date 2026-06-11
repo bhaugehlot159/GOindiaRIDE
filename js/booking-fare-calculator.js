@@ -96,7 +96,7 @@
     'tourist'
   ];
 
-  const TOLL_RATE_DATA_VERSION = 'NHTIS/TollBetween source table, reviewed 2026-05-09';
+  const TOLL_RATE_DATA_VERSION = 'Mapped NHAI/NHTIS toll-plaza table, reviewed 2026-06-11';
 
   const TOLL_PLAZA_RATES = {
     mandawadaGomati: {
@@ -808,6 +808,15 @@
         matched: true
       };
     }
+    const parts = directKey ? directKey.split('-') : [];
+    const reverseKey = parts.length === 2 ? `${parts[1]}-${parts[0]}` : '';
+    if (reverseKey && ROUTE_TOLL_CORRIDORS[reverseKey]) {
+      return {
+        routeKey: reverseKey,
+        plazaIds: ROUTE_TOLL_CORRIDORS[reverseKey].slice().reverse(),
+        matched: true
+      };
+    }
 
     return {
       routeKey: directKey,
@@ -853,50 +862,24 @@
       routeKey,
       plazaCount: plazas.length,
       plazas,
-      usedReturnRate: Boolean(useReturnRate)
+      usedReturnRate: Boolean(useReturnRate),
+      requiresAdminReview: false
     };
   }
 
-  function estimateDistanceBandTollCharge({
+  function isLocalNoTollRoute({
     distanceKm,
-    pickup,
-    dropoff,
-    routeData,
     pickupState,
     dropState,
     tripPlan,
     serviceType
   }) {
-    const combinedText = `${pickup} ${dropoff}`;
     const normalizedTripPlan = normalizeTripPlan(tripPlan);
     const normalizedServiceType = normalizeServiceType(serviceType);
-    const routeKnown = Boolean(routeData);
-    const distanceBand =
-      distanceKm >= 500 ? 220 :
-      distanceKm >= 300 ? 160 :
-      distanceKm >= 150 ? 110 :
-      distanceKm >= 75 ? 70 :
-      distanceKm >= 25 ? 35 : 18;
-
-    let toll = distanceBand;
-
-    if (pickupState && dropState && pickupState !== dropState) {
-      toll += 60;
-    }
-    if (routeKnown) {
-      toll += 20;
-    }
-    if (hasAnyKeyword(combinedText, ['highway', 'express', 'nh', 'motorway'])) {
-      toll += 35;
-    }
-    if (normalizedTripPlan === 'outstation') {
-      toll += 20;
-    }
-    if (normalizedTripPlan === 'airport' || normalizedServiceType === 'airport_transfer') {
-      toll += 15;
-    }
-
-    return roundMoney(toll);
+    return distanceKm < 25 &&
+      normalizedTripPlan === 'city' &&
+      normalizedServiceType !== 'airport_transfer' &&
+      (!pickupState || !dropState || pickupState === dropState);
   }
 
   function estimateTollChargeDetails({
@@ -921,25 +904,34 @@
       );
     }
 
-    const fallbackAmount = estimateDistanceBandTollCharge({
+    if (isLocalNoTollRoute({
       distanceKm,
-      pickup,
-      dropoff,
-      routeData,
       pickupState,
       dropState,
       tripPlan,
       serviceType
-    });
+    })) {
+      return {
+        amount: 0,
+        source: 'local_no_mapped_toll',
+        dataVersion: TOLL_RATE_DATA_VERSION,
+        routeKey: corridor.routeKey,
+        plazaCount: 0,
+        plazas: [],
+        usedReturnRate: false,
+        requiresAdminReview: false
+      };
+    }
 
     return {
-      amount: fallbackAmount,
-      source: 'distance_band_fallback',
+      amount: 0,
+      source: 'mapped_route_required_admin_review',
       dataVersion: TOLL_RATE_DATA_VERSION,
       routeKey: corridor.routeKey,
       plazaCount: 0,
       plazas: [],
-      usedReturnRate: false
+      usedReturnRate: false,
+      requiresAdminReview: true
     };
   }
 
@@ -1203,6 +1195,7 @@
       tollPlazaCount: tollDetails.plazaCount,
       tollPlazas: tollDetails.plazas,
       tollUsedReturnRate: tollDetails.usedReturnRate,
+      tollRequiresAdminReview: Boolean(tollDetails.requiresAdminReview),
       parkingCharge,
       stateTax,
       nightCharge,

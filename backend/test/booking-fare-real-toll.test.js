@@ -48,7 +48,7 @@ test('fare calculator keeps route-direction toll data when reversed', () => {
   );
 });
 
-test('fare calculator falls back only when a route has no mapped toll corridor', () => {
+test('fare calculator does not invent toll when a route has no mapped toll corridor', () => {
   const estimate = estimateBookingFare({
     pickup: 'Kota, Rajasthan',
     drop: 'Bikaner, Rajasthan',
@@ -62,9 +62,29 @@ test('fare calculator falls back only when a route has no mapped toll corridor',
     distanceSource: 'server_coordinate'
   });
 
-  assert.equal(estimate.tollSource, 'distance_band_fallback');
+  assert.equal(estimate.tollSource, 'mapped_route_required_admin_review');
   assert.equal(estimate.tollPlazaCount, 0);
-  assert.ok(estimate.tollCharge > 0);
+  assert.equal(estimate.tollCharge, 0);
+  assert.equal(estimate.tollRequiresAdminReview, true);
+});
+
+test('fare calculator marks short local city rides as no mapped toll', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Jaipur Railway Station',
+    drop: 'Jaipur Hotel',
+    tripPlan: 'city',
+    tripServiceType: 'local_point',
+    vehicleType: 'economy',
+    vehicleModel: 'hatchback_car',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 12,
+    distanceSource: 'shortcut_estimate'
+  });
+
+  assert.equal(estimate.tollSource, 'local_no_mapped_toll');
+  assert.equal(estimate.tollCharge, 0);
+  assert.equal(estimate.tollRequiresAdminReview, false);
 });
 
 test('fare calculator trusts exact booking coordinates from current location', () => {
