@@ -286,12 +286,12 @@
             const point = normalizeBookingMapCoords(coords);
             if (!point) return false;
             const accuracy = Number(point.accuracy ?? Number.POSITIVE_INFINITY);
-            return Number.isFinite(accuracy) && accuracy <= BOOKING_GPS_WEAK_ACCURACY_METERS;
+            return Number.isFinite(accuracy) && accuracy <= BOOKING_GPS_TARGET_ACCURACY_METERS;
         }
 
         function formatBookingPreciseLocationRequiredMessage(coords) {
             const accuracy = formatBookingMapAccuracy(coords);
-            return `Exact current location nahi mila${accuracy ? ` (${accuracy})` : ''}. Browser/Windows me Location + Precise location ON karke retry karein, ya pickup manually type karein.`;
+            return `Exact current location nahi mila${accuracy ? ` (${accuracy})` : ''}. Exact pickup ke liye GPS <= ${BOOKING_GPS_TARGET_ACCURACY_METERS}m chahiye. Browser/Windows me Location + Precise location ON karke retry karein, ya pickup manually type karein.`;
         }
 
         function formatBookingMapCoords(coords) {

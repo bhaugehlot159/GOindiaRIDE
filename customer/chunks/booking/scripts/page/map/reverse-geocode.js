@@ -1,12 +1,24 @@
         function buildBookingReverseAddress(address = {}) {
+            const landmark = address.amenity
+                || address.building
+                || address.shop
+                || address.office
+                || address.tourism
+                || address.leisure
+                || address.hostel
+                || address.hotel;
+            const street = address.house_number && address.road
+                ? `${address.house_number}, ${address.road}`
+                : (address.road || address.neighbourhood || address.suburb);
             const parts = [
-                address.house_number && address.road ? `${address.house_number}, ${address.road}` : (address.road || address.neighbourhood || address.suburb),
+                landmark,
+                street,
                 address.city || address.town || address.village || address.county,
                 address.state,
                 address.postcode,
                 address.country
-            ].filter(Boolean);
-            return parts.join(', ');
+            ].map((part) => normalizeBookingAddressCandidate(part)).filter(Boolean);
+            return [...new Set(parts)].join(', ');
         }
 
         async function fetchBookingJsonWithTimeout(url, options = {}, timeoutMs = 2200) {
@@ -216,7 +228,7 @@
             const detailHints = [
                 'road', 'rd', 'street', 'st', 'gali', 'nagar', 'colony', 'sector', 'lane',
                 'market', 'mall', 'hospital', 'hotel', 'temple', 'chowk', 'circle', 'gate',
-                'station', 'airport', 'school', 'shop'
+                'station', 'airport', 'school', 'shop', 'tower', 'building', 'office'
             ];
             const hasDetailHint = detailHints.some((hint) => new RegExp(`\\b${hint}\\b`, 'i').test(address));
             if (hasDetailHint) {

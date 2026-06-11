@@ -84,6 +84,10 @@
         editOriginal: null,
         locationOptions: null
     };
+    const CURRENT_LOCATION_TARGET_ACCURACY_METERS = 35;
+    const CURRENT_LOCATION_FIRST_FIX_TIMEOUT_MS = 8000;
+    const CURRENT_LOCATION_REFINE_TIMEOUT_MS = 6000;
+    const CURRENT_LOCATION_INSTANT_TIMEOUT_MS = 1800;
 
     const VEHICLE_MODEL_OPTIONS = [
         { value: '', label: 'Any clean cab' },
@@ -532,6 +536,222 @@
     function toNumber(value, fallback) {
         const number = Number(value);
         return Number.isFinite(number) ? number : (fallback || 0);
+    }
+
+    function normalizeCurrentPosition(position) {
+        const coords = position && position.coords ? position.coords : {};
+        const lat = Number(coords.latitude);
+        const lng = Number(coords.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+        const accuracy = Number(coords.accuracy);
+        return {
+            lat,
+            lng,
+            accuracy: Number.isFinite(accuracy) ? Math.max(0, Math.round(accuracy)) : Number.POSITIVE_INFINITY,
+            capturedAt: new Date(Number(position.timestamp) || Date.now()).toISOString()
+        };
+    }
+
+    function isPreciseCurrentPosition(point) {
+        return Boolean(point && Number.isFinite(point.accuracy) && point.accuracy <= CURRENT_LOCATION_TARGET_ACCURACY_METERS);
+    }
+
+    function formatCurrentAccuracy(point) {
+        return point && Number.isFinite(point.accuracy) ? `GPS ±${Math.max(1, Math.round(point.accuracy))}m` : '';
+    }
+
+    function formatCurrentLocationValue(point, address = '') {
+        const safePoint = point || {};
+        const lat = Number(safePoint.lat);
+        const lng = Number(safePoint.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return cleanText(address, 180);
+        const prefix = cleanText(address, 150) || 'Current location';
+        return `${prefix} (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+    }
+
+    function isBetterCurrentPosition(candidate, currentBest) {
+        if (!candidate) return false;
+        if (!currentBest) return true;
+        const nextAccuracy = Number.isFinite(candidate.accuracy) ? candidate.accuracy : Number.POSITIVE_INFINITY;
+        const bestAccuracy = Number.isFinite(currentBest.accuracy) ? currentBest.accuracy : Number.POSITIVE_INFINITY;
+        if (nextAccuracy + 3 < bestAccuracy) return true;
+        const nextTime = Date.parse(candidate.capturedAt || '');
+        const bestTime = Date.parse(currentBest.capturedAt || '');
+        return Number.isFinite(nextTime) && Number.isFinite(bestTime) && nextTime > bestTime + 2500 && nextAccuracy <= bestAccuracy + 10;
+    }
+
+    function getCurrentPositionOnce(options) {
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const point = normalizeCurrentPosition(position);
+                if (point) resolve(point);
+                else reject(new Error('invalid_position'));
+            }, reject, options);
+        });
+    }
+
+    function getCurrentPositionWatchBest(timeoutMs, onBetterPoint) {
+        if (!navigator.geolocation.watchPosition) return Promise.resolve(null);
+        return new Promise((resolve) => {
+            let bestPoint = null;
+            let settled = false;
+            let watchId = null;
+            const finish = () => {
+                if (settled) return;
+                settled = true;
+                if (watchId !== null) {
+                    try {
+                        navigator.geolocation.clearWatch(watchId);
+                    } catch (_error) {
+                        // Ignore clearWatch failure; bestPoint is already captured.
+                    }
+                }
+                window.clearTimeout(timer);
+                resolve(bestPoint);
+            };
+            const rememberPoint = (point) => {
+                if (!isBetterCurrentPosition(point, bestPoint)) return;
+                bestPoint = point;
+                if (typeof onBetterPoint === 'function') onBetterPoint(bestPoint);
+                if (isPreciseCurrentPosition(bestPoint)) finish();
+            };
+            const timer = window.setTimeout(finish, timeoutMs);
+            try {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => rememberPoint(normalizeCurrentPosition(position)),
+                    finish,
+                    { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs }
+                );
+            } catch (_error) {
+                finish();
+            }
+        });
+    }
+
+    function getBestCurrentLocation(onBetterPoint) {
+        return new Promise((resolve) => {
+            let bestPoint = null;
+            let pending = 0;
+            let settled = false;
+            const settle = () => {
+                if (settled) return;
+                settled = true;
+                window.clearTimeout(maxTimer);
+                resolve(bestPoint);
+            };
+            const rememberPoint = (point) => {
+                if (!isBetterCurrentPosition(point, bestPoint)) return;
+                bestPoint = point;
+                if (typeof onBetterPoint === 'function') onBetterPoint(bestPoint);
+                if (isPreciseCurrentPosition(bestPoint)) settle();
+            };
+            const runProbe = (promise) => {
+                pending += 1;
+                promise
+                    .then(rememberPoint)
+                    .catch(() => null)
+                    .finally(() => {
+                        pending -= 1;
+                        if (pending <= 0) settle();
+                    });
+            };
+            const maxTimer = window.setTimeout(settle, CURRENT_LOCATION_FIRST_FIX_TIMEOUT_MS + 900);
+            runProbe(getCurrentPositionOnce({
+                enableHighAccuracy: false,
+                maximumAge: 180000,
+                timeout: CURRENT_LOCATION_INSTANT_TIMEOUT_MS
+            }));
+            runProbe(getCurrentPositionOnce({
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: CURRENT_LOCATION_FIRST_FIX_TIMEOUT_MS
+            }));
+            runProbe(getCurrentPositionWatchBest(CURRENT_LOCATION_REFINE_TIMEOUT_MS, rememberPoint));
+        });
+    }
+
+    function buildReverseAddress(data = {}) {
+        const address = data.address && typeof data.address === 'object' ? data.address : {};
+        const primary = cleanText(
+            data.name
+            || address.amenity
+            || address.building
+            || address.shop
+            || address.office
+            || address.tourism
+            || address.road
+            || address.neighbourhood
+            || address.suburb
+            || address.village
+            || address.town
+            || address.city,
+            80
+        );
+        const parts = [
+            primary,
+            address.neighbourhood || address.suburb || address.village || address.town || address.city,
+            address.city || address.state_district || address.county,
+            address.state,
+            address.postcode,
+            address.country
+        ].map((item) => cleanText(item, 80)).filter(Boolean);
+        const unique = parts.filter((part, index) => parts.findIndex((item) => item.toLowerCase() === part.toLowerCase()) === index);
+        return cleanText(unique.join(', '), 180) || cleanText(data.display_name, 180);
+    }
+
+    async function resolveCurrentLocationAddress(point) {
+        if (!point || !window.fetch) return '';
+        const controller = window.AbortController ? new AbortController() : null;
+        const timeoutId = controller ? window.setTimeout(() => controller.abort(), 4500) : null;
+        const url = new URL('https://nominatim.openstreetmap.org/reverse');
+        url.searchParams.set('format', 'jsonv2');
+        url.searchParams.set('lat', String(point.lat));
+        url.searchParams.set('lon', String(point.lng));
+        url.searchParams.set('zoom', '18');
+        url.searchParams.set('addressdetails', '1');
+        url.searchParams.set('accept-language', 'en-IN,en');
+        url.searchParams.set('email', 'support@goindiaride.in');
+        try {
+            const response = await fetch(url.toString(), {
+                headers: { Accept: 'application/json' },
+                signal: controller ? controller.signal : undefined
+            });
+            if (response.ok) {
+                const osmAddress = buildReverseAddress(await response.json());
+                if (osmAddress) return osmAddress;
+            }
+        } catch (_error) {
+            // Try the secondary reverse-geocode source below.
+        } finally {
+            if (timeoutId) window.clearTimeout(timeoutId);
+        }
+        const cloudController = window.AbortController ? new AbortController() : null;
+        const cloudTimeoutId = cloudController ? window.setTimeout(() => cloudController.abort(), 3000) : null;
+        const cloudUrl = new URL('https://api.bigdatacloud.net/data/reverse-geocode-client');
+        cloudUrl.searchParams.set('latitude', String(point.lat));
+        cloudUrl.searchParams.set('longitude', String(point.lng));
+        cloudUrl.searchParams.set('localityLanguage', 'en');
+        try {
+            const response = await fetch(cloudUrl.toString(), {
+                headers: { Accept: 'application/json' },
+                signal: cloudController ? cloudController.signal : undefined
+            });
+            if (!response.ok) return '';
+            const data = await response.json();
+            const parts = [
+                data.locality,
+                data.city,
+                data.principalSubdivision,
+                data.postcode,
+                data.countryName
+            ].map((item) => cleanText(item, 80)).filter(Boolean);
+            return cleanText(parts.filter((part, index) => parts.findIndex((item) => item.toLowerCase() === part.toLowerCase()) === index).join(', '), 180);
+        } catch (_error) {
+            return '';
+        } finally {
+            if (cloudTimeoutId) window.clearTimeout(cloudTimeoutId);
+        }
     }
 
     function formatMoney(value) {
@@ -1797,27 +2017,51 @@
     function wireLocationButton() {
         const button = document.getElementById('useLocationBtn');
         if (!button) return;
-        button.addEventListener('click', () => {
+        button.addEventListener('click', async () => {
             if (!navigator.geolocation) {
                 setMessage('Current location is not available in this browser.', 'error');
                 return;
             }
             button.disabled = true;
             hideLocationSuggestions(fields.pickup);
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = Number(position.coords.latitude || 0).toFixed(5);
-                const lng = Number(position.coords.longitude || 0).toFixed(5);
-                fields.pickup.value = `Current location (${lat}, ${lng})`;
-                button.disabled = false;
+            setMessage(`Exact current location detect ho rahi hai. GPS <= ${CURRENT_LOCATION_TARGET_ACCURACY_METERS}m chahiye.`, 'success');
+            try {
+                const point = await getBestCurrentLocation((candidate) => {
+                    if (!candidate || isPreciseCurrentPosition(candidate)) return;
+                    setMessage(`${formatCurrentAccuracy(candidate) || 'Approx GPS'} mila, exact GPS verify ho raha hai...`, 'success');
+                });
+                if (!isPreciseCurrentPosition(point)) {
+                    button.disabled = false;
+                    const accuracy = formatCurrentAccuracy(point);
+                    setMessage(
+                        `Exact current location nahi mila${accuracy ? ` (${accuracy})` : ''}. Browser/Windows me Location + Precise location ON karke retry karein, ya pickup manually type karein.`,
+                        'error'
+                    );
+                    fields.pickup.focus();
+                    renderLocationSuggestions(fields.pickup);
+                    return;
+                }
+                const gpsValue = formatCurrentLocationValue(point);
+                fields.pickup.value = gpsValue;
+                fields.pickup.title = gpsValue;
                 estimateFare();
-            }, () => {
                 button.disabled = false;
-                setMessage('Location permission was not allowed.', 'error');
-            }, {
-                enableHighAccuracy: true,
-                timeout: 9000,
-                maximumAge: 120000
-            });
+                setMessage(`${formatCurrentAccuracy(point)} exact pickup selected. Address name load ho raha hai...`, 'success');
+                const address = await resolveCurrentLocationAddress(point);
+                if (fields.pickup.value !== gpsValue) return;
+                if (address) {
+                    const addressValue = formatCurrentLocationValue(point, address);
+                    fields.pickup.value = addressValue;
+                    fields.pickup.title = addressValue;
+                    estimateFare();
+                    setMessage(`Pickup selected: ${address}. Exact coordinates booking ke saath save rahenge.`, 'success');
+                } else {
+                    setMessage(`${formatCurrentAccuracy(point)} exact pickup selected. Address name nahi mila, exact coordinates booking ke saath save rahenge.`, 'success');
+                }
+            } catch (_error) {
+                button.disabled = false;
+                setMessage('Location permission was not allowed. Browser/Windows Location permission ON karke retry karein.', 'error');
+            }
         });
     }
 

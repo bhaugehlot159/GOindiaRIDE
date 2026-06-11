@@ -56,7 +56,11 @@ test('customer booking flow is backend-first and persists real admin review fall
 test('public no-login booking shortcut keeps admin queue, email, edit, and search signals connected', () => {
   const home = read('index.html');
   const publicBooking = read('book-cab.html');
+  const customerBookingPage = read('pages/booking.html');
   const shortcut = read('js/quick-booking.js');
+  const bookingMapCore = read('customer/chunks/booking/scripts/page/map/core-route.js');
+  const bookingReverseGeocode = read('customer/chunks/booking/scripts/page/map/reverse-geocode.js');
+  const bookingGps = read('customer/chunks/booking/scripts/page/map/gps-current-location.js');
   const adminApp = read('admin/js/admin-app.js');
   const sitemap = read('sitemap.xml');
   const robots = read('robots.txt');
@@ -89,8 +93,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.doesNotMatch(homeFooter, /href="#(?:about|careers|press|blog|faq|support|safety|driver-signup|driver-faq|driver-support|documents)"/);
   assert.match(home, /href="\.\/pages\/legal\/gdpr-notice\.html"[^>]*rel="nofollow"/);
   assert.match(read('pages/login.html'), /<meta name="googlebot" content="noindex, follow">/);
-  assert.match(read('pages/booking.html'), /<meta name="googlebot" content="noindex, follow">/);
-  assert.match(read('pages/booking.html'), /<link rel="canonical" href="https:\/\/goindiaride\.in\/book-cab\.html">/);
+  assert.match(customerBookingPage, /<meta name="googlebot" content="noindex, follow">/);
+  assert.match(customerBookingPage, /<link rel="canonical" href="https:\/\/goindiaride\.in\/book-cab\.html">/);
+  assert.match(customerBookingPage, /core-route\.js\?v=20260611-exact-location1/);
+  assert.match(customerBookingPage, /reverse-geocode\.js\?v=20260611-exact-location1/);
+  assert.match(customerBookingPage, /gps-current-location\.js\?v=20260611-exact-location1/);
   assert.match(read('pages/legal/gdpr-notice.html'), /<meta name="googlebot" content="noindex, follow">/);
   assert.match(publicBooking, /id="quickBookingForm"/);
   assert.match(publicBooking, /Direct cab booking, no login/);
@@ -115,6 +122,7 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(publicBooking, /id="editReasonInput"/);
   assert.match(publicBooking, /js\/locations\.js\?v=20260611-location-autofill1/);
   assert.match(publicBooking, /js\/route-suggestions\.js\?v=20260611-real-toll1/);
+  assert.match(publicBooking, /js\/quick-booking\.js\?v=20260611-exact-location1/);
   assert.match(publicBooking, /id="tollAmount"/);
   assert.match(publicBooking, /id="tollNote"/);
 
@@ -133,6 +141,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /window\.locationsData/);
   assert.match(shortcut, /function getLocationSuggestions\(query\)/);
   assert.match(shortcut, /function wireLocationAutocomplete\(/);
+  assert.match(shortcut, /CURRENT_LOCATION_TARGET_ACCURACY_METERS = 35/);
+  assert.match(shortcut, /function getBestCurrentLocation\(onBetterPoint\)/);
+  assert.match(shortcut, /function resolveCurrentLocationAddress\(point\)/);
+  assert.match(shortcut, /Exact current location nahi mila/);
+  assert.match(shortcut, /Location \+ Precise location ON/);
   assert.match(shortcut, /function applyHomepagePrefillFromUrl\(/);
   assert.match(shortcut, /new URLSearchParams\(window\.location\.search \|\| ''\)/);
   assert.match(shortcut, /setTripPlan\(tripPlan, true\)/);
@@ -151,6 +164,19 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, addressLabel, `\$\{addressLabel\} \(\$\{lat\}, \$\{lng\}\)`\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /GPS selected:/);
   assert.doesNotMatch(read('shared/chunks/home/scripts/index.js'), /slice\(0, 6\)/);
+  assert.match(bookingMapCore, /const BOOKING_GPS_TARGET_ACCURACY_METERS = 35/);
+  assert.match(bookingMapCore, /accuracy <= BOOKING_GPS_TARGET_ACCURACY_METERS/);
+  assert.match(bookingMapCore, /GPS <= \$\{BOOKING_GPS_TARGET_ACCURACY_METERS\}m chahiye/);
+  assert.match(bookingReverseGeocode, /const landmark = address\.amenity/);
+  assert.match(bookingReverseGeocode, /'tower', 'building', 'office'/);
+  assert.match(bookingGps, /function getBookingCurrentPositionWatchBest\(/);
+  assert.match(bookingGps, /function getBestBookingCurrentLocation\(onBetterPoint = null\)/);
+  assert.match(bookingGps, /runProbe\(getBookingCurrentPositionInstant/);
+  assert.match(bookingGps, /runProbe\(getBookingCurrentPositionWatchBest/);
+  assert.match(bookingGps, /if \(!isBookingPreciseCurrentLocationPoint\(bestPoint\)\) return;/);
+  assert.match(bookingGps, /await applyBookingMapCoordinates\(safeTarget, warmedPoint/);
+  assert.match(bookingGps, /function focusManualLocationInputAfterWeakGps\(target\)/);
+  assert.match(bookingGps, /showQuickLocationSuggestions\(input, \{ inputType: 'insertText' \}\)/);
 
   assert.match(adminApp, /fallback\/admin-review-queue\?limit=500&status=/);
   assert.match(adminApp, /mapBackendBookingRow\(row, "backend_fallback_admin_review_queue"\)/);

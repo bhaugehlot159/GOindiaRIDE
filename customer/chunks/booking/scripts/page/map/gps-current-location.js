@@ -95,6 +95,50 @@
             });
         }
 
+        function getBookingCurrentPositionWatchBest(timeoutMs = BOOKING_GPS_REFINE_WINDOW_MS, onBetterPoint = null) {
+            if (!navigator.geolocation?.watchPosition) {
+                return Promise.resolve(null);
+            }
+            return new Promise((resolve) => {
+                let bestPoint = null;
+                let settled = false;
+                let watchId = null;
+                const finish = () => {
+                    if (settled) return;
+                    settled = true;
+                    if (watchId !== null) {
+                        try {
+                            navigator.geolocation.clearWatch(watchId);
+                        } catch (error) {
+                            // Ignore clearWatch issues; the best captured point is enough.
+                        }
+                    }
+                    window.clearTimeout(timer);
+                    resolve(bestPoint);
+                };
+                const rememberPoint = (point) => {
+                    if (!isBetterBookingGeoPoint(point, bestPoint)) return;
+                    bestPoint = point;
+                    if (typeof onBetterPoint === 'function') onBetterPoint(bestPoint);
+                    if (isBookingPreciseCurrentLocationPoint(bestPoint)) finish();
+                };
+                const timer = window.setTimeout(finish, timeoutMs);
+                try {
+                    watchId = navigator.geolocation.watchPosition((position) => {
+                        rememberPoint(normalizeBookingGeoPosition(position));
+                    }, () => {
+                        finish();
+                    }, {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: timeoutMs
+                    });
+                } catch (error) {
+                    finish();
+                }
+            });
+        }
+
         function refineBookingCurrentPosition(initialPoint, onBetterPoint = null) {
             if (!navigator.geolocation?.watchPosition) {
                 return Promise.resolve(initialPoint);
@@ -140,19 +184,46 @@
             });
         }
 
-        async function getBestBookingCurrentLocation() {
-            let quickPoint = null;
-            try {
-                quickPoint = await getBookingCurrentPositionQuick();
-                if (Number(quickPoint?.accuracy ?? Number.POSITIVE_INFINITY) <= BOOKING_GPS_TARGET_ACCURACY_METERS) {
-                    return quickPoint;
-                }
-            } catch (_error) {
-                quickPoint = null;
-            }
-            const precisePoint = await getBookingCurrentPositionOnce();
-            if (!quickPoint) return precisePoint;
-            return isBetterBookingGeoPoint(precisePoint, quickPoint) ? precisePoint : quickPoint;
+        function getBestBookingCurrentLocation(onBetterPoint = null) {
+            return new Promise((resolve) => {
+                let bestPoint = null;
+                let pending = 0;
+                let settled = false;
+                const settle = () => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(maxTimer);
+                    resolve(bestPoint);
+                };
+                const rememberPoint = (point) => {
+                    if (!isBetterBookingGeoPoint(point, bestPoint)) return;
+                    bestPoint = point;
+                    if (typeof onBetterPoint === 'function') onBetterPoint(bestPoint);
+                    if (isBookingPreciseCurrentLocationPoint(bestPoint)) settle();
+                };
+                const runProbe = (promise) => {
+                    pending += 1;
+                    promise
+                        .then(rememberPoint)
+                        .catch(() => null)
+                        .finally(() => {
+                            pending -= 1;
+                            if (pending <= 0) settle();
+                        });
+                };
+                const maxTimer = window.setTimeout(
+                    settle,
+                    Math.max(BOOKING_GPS_FIRST_FIX_TIMEOUT_MS, BOOKING_GPS_REFINE_WINDOW_MS) + 700
+                );
+
+                runProbe(getBookingCurrentPositionInstant(BOOKING_GPS_INSTANT_FIX_TIMEOUT_MS));
+                runProbe(getBookingCurrentPositionQuick(BOOKING_GPS_QUICK_FIX_TIMEOUT_MS, BOOKING_GPS_QUICK_ACCEPT_ACCURACY_METERS));
+                runProbe(getBookingCurrentPositionOnce(BOOKING_GPS_FIRST_FIX_TIMEOUT_MS));
+                runProbe(getBookingCurrentPositionWatchBest(
+                    Math.max(BOOKING_GPS_FIRST_FIX_TIMEOUT_MS, BOOKING_GPS_REFINE_WINDOW_MS),
+                    rememberPoint
+                ));
+            });
         }
 
         function pointsAreNearEnoughForRefinement(basePoint, nextPoint) {
@@ -193,7 +264,7 @@
                     if (isBetterBookingGeoPoint(precisePoint, bestPoint)) {
                         bestPoint = precisePoint;
                     }
-                    if (!bestPoint) return;
+                    if (!isBookingPreciseCurrentLocationPoint(bestPoint)) return;
                     bookingGoogleMapState.warmCurrentLocation = bestPoint;
                     await reverseGeocodeBookingCoords(bestPoint).catch(() => '');
                 } catch (_error) {
@@ -239,10 +310,23 @@
             });
         }
 
-        function setPreciseCurrentLocationNeededStatus(point) {
+        function focusManualLocationInputAfterWeakGps(target) {
+            const safeTarget = ['pickup', 'dropoff'].includes(target) ? target : 'pickup';
+            const inputIds = safeTarget === 'dropoff'
+                ? ['cabQuickDropoffInput', 'dropoff']
+                : ['cabQuickPickupInput', 'pickup'];
+            const input = inputIds.map((inputId) => document.getElementById(inputId)).find(Boolean);
+            if (!input) return;
+            input.focus({ preventScroll: false });
+            input.select?.();
+            showQuickLocationSuggestions(input, { inputType: 'insertText' });
+        }
+
+        function setPreciseCurrentLocationNeededStatus(point, target = 'pickup') {
             const message = formatBookingPreciseLocationRequiredMessage(point);
             setBookingMapStatus(message, 'error');
             showBookingLocationNotice(message, 'error');
+            focusManualLocationInputAfterWeakGps(target);
         }
 
         function clearWeakCurrentLocationTarget(target) {
@@ -312,16 +396,11 @@
                 ? normalizeBookingMapCoords(bookingGoogleMapState.warmCurrentLocation)
                 : null;
             if (warmedPoint) {
-                updateBookingMapFieldValue(
-                    safeTarget,
-                    formatBookingMapCoords(warmedPoint),
-                    warmedPoint,
-                    {
-                        source: 'current',
-                        preferCoordinatesFirst: true,
-                        stopInput: options.stopInput || null
-                    }
-                );
+                await applyBookingMapCoordinates(safeTarget, warmedPoint, {
+                    source: 'current',
+                    preferCoordinatesFirst: true,
+                    stopInput: options.stopInput || null
+                });
                 releaseBusy();
                 const warmAccuracy = formatBookingMapAccuracy(warmedPoint);
                 setBookingMapStatus(
@@ -351,16 +430,16 @@
                     }
                 }
 
-                let coords = await getBestBookingCurrentLocation();
-                if (!isBookingPreciseCurrentLocationPoint(coords)) {
-                    const refinedPoint = await refineBookingCurrentPosition(coords);
-                    if (isBetterBookingGeoPoint(refinedPoint, coords)) {
-                        coords = refinedPoint;
-                    }
-                }
+                let coords = await getBestBookingCurrentLocation((betterPoint) => {
+                    if (!isBookingPreciseCurrentLocationPoint(betterPoint)) return;
+                    setBookingMapStatus(
+                        `${formatBookingMapAccuracy(betterPoint) || 'Exact GPS'} mila. Pickup apply ho raha hai...`,
+                        'info'
+                    );
+                });
                 if (!isBookingPreciseCurrentLocationPoint(coords)) {
                     bookingGoogleMapState.warmCurrentLocation = null;
-                    setPreciseCurrentLocationNeededStatus(coords);
+                    setPreciseCurrentLocationNeededStatus(coords, safeTarget);
                     releaseBusy();
                     return;
                 }
