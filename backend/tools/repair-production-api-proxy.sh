@@ -108,8 +108,18 @@ if [ -d "${BACKEND_ROOT}" ]; then
     curl -fsS --max-time 10 "${UPSTREAM}/health" || true
     curl -fsS --max-time 10 "${UPSTREAM}/api/future-runtime/status" || true
 
-    AUTH_PROBE_PAYLOAD='{"email":"diagnose+auth@goindiaride.in","password":"Diagnose@123","website":"","submittedAt":1700000000000,"recaptchaToken":"gir_probe_abcdefghijklmnopqrstuvwxyz0123456789"}'
-    for AUTH_PROBE_URL in \
+    # Load test credentials from environment or skip auth probe
+    DIAGNOSTIC_EMAIL="${DIAGNOSTIC_TEST_EMAIL:-diagnose@goindiaride.in}"
+    DIAGNOSTIC_PASSWORD="${DIAGNOSTIC_TEST_PASSWORD:-}"
+    
+    if [ -z "$DIAGNOSTIC_PASSWORD" ]; then
+      echo "⚠️  WARNING: Skipping auth probe - DIAGNOSTIC_TEST_PASSWORD not set"
+      AUTH_PROBE_PAYLOAD=""
+    else
+      AUTH_PROBE_PAYLOAD="{\"email\":\"${DIAGNOSTIC_EMAIL}\",\"password\":\"${DIAGNOSTIC_PASSWORD}\",\"website\":\"\",\"submittedAt\":$(date +%s)000,\"recaptchaToken\":\"gir_probe_abcdefghijklmnopqrstuvwxyz0123456789\"}"
+    fi
+    
+    [ -z "$AUTH_PROBE_PAYLOAD" ] || for AUTH_PROBE_URL in \
       "https://${SITE_HOST}/api/auth/login" \
       "https://${SITE_HOST}/backend/api/auth/login" \
       "https://${API_HOST}/api/auth/login"; do

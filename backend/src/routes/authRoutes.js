@@ -1,4 +1,4 @@
-﻿console.log("AUTH ROUTES LOADED FROM:", __filename);
+﻿// AUTH ROUTES - Security-first authentication service
 const QRCode = require("qrcode");
 const speakeasy = require("speakeasy");
 const express = require('express');
@@ -46,8 +46,17 @@ function isProductionRuntime() {
 }
 
 function allowOtpDevResponse() {
-  if (isProductionRuntime()) return false;
-  return String(process.env.OTP_DEV_RESPONSE_ENABLED || process.env.TEST_MODE || '').toLowerCase().trim() === 'true';
+  // SECURITY: OTP verification is ALWAYS required
+  // Dev mode OTP bypass is DISABLED in production
+  // Even in development, OTP should use real Firebase or backend SMS provider
+  if (isProductionRuntime()) {
+    if (process.env.OTP_DEV_RESPONSE_ENABLED === 'true') {
+      console.error('SECURITY ALERT: OTP dev bypass attempted in production!');
+    }
+    return false;
+  }
+  // In development, still prefer real OTP validation
+  return false;
 }
 
 function findTrustedDevice(user, deviceFingerprint) {

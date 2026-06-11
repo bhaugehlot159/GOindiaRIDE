@@ -40,6 +40,65 @@ const logger = require('./utils/logger');
 
 const app = express();
 
+// ============================================================================
+// STARTUP VALIDATION: Ensure all critical configuration is present
+// ============================================================================
+function validateProductionConfiguration() {
+  const isProd = process.env.NODE_ENV === 'production';
+  
+  const criticalVars = {
+    'JWT_SECRET': process.env.JWT_SECRET,
+    'JWT_REFRESH_SECRET': process.env.JWT_REFRESH_SECRET,
+    'MONGO_URI': process.env.MONGO_URI,
+    'FIREBASE_API_KEY': process.env.FIREBASE_API_KEY
+  };
+  
+  const missingVars = Object.entries(criticalVars)
+    .filter(([name, value]) => !value)
+    .map(([name]) => name);
+  
+  if (missingVars.length > 0) {
+    const message = `❌ FATAL: Missing critical environment variables:\n${missingVars.map(v => `   - ${v}`).join('\n')}`;
+    logger.error('startup_configuration_invalid', {
+      missingVariables: missingVars,
+      environment: process.env.NODE_ENV
+    });
+    
+    if (isProd) {
+      console.error(`\n${message}\n`);
+      console.error('📋 Set these variables before starting:');
+      console.error('   export JWT_SECRET=<your-jwt-secret>');
+      console.error('   export JWT_REFRESH_SECRET=<your-jwt-refresh-secret>');
+      console.error('   export MONGO_URI=<your-mongodb-uri>');
+      console.error('   export FIREBASE_API_KEY=<your-firebase-api-key>\n');
+      process.exit(1);
+    }
+  }
+  
+  // Log sanitized startup info
+  logger.info('startup_configuration_valid', {
+    environment: process.env.NODE_ENV,
+    mongoUri: process.env.MONGO_URI?.substring(0, 30) + '...' || 'NOT_SET',
+    jwtSecretSet: !!process.env.JWT_SECRET,
+    firebaseKeySet: !!process.env.FIREBASE_API_KEY,
+    port: env.port,
+    corsOrigin: env.corsOrigin
+  });
+}
+
+// Run validation when app starts
+try {
+  validateProductionConfiguration();
+} catch (err) {
+  logger.error('startup_validation_error', {
+    message: err.message,
+    environment: process.env.NODE_ENV
+  });
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
@@ -79,11 +138,21 @@ const allowedOrigins = new Set([
   ...(Array.isArray(env.securityAllowedOrigins) ? env.securityAllowedOrigins : [])
 ]);
 
+// SECURITY: WhatsApp webhook token must be configured via environment
+// Never use hardcoded tokens - they expose the webhook to unauthorized requests
 const whatsappWebhookVerifyToken = String(
   process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
     || process.env.META_WHATSAPP_WEBHOOK_VERIFY_TOKEN
-    || 'GOIndiaRideSecurityToken123'
+    || ''
 ).trim();
+
+if (!whatsappWebhookVerifyToken && process.env.NODE_ENV === 'production') {
+  logger.warn('security_warning_missing_whatsapp_token', {
+    message: 'WhatsApp webhook token not configured. Webhook will reject all requests.',
+    environment: 'production',
+    recommendation: 'Set WHATSAPP_WEBHOOK_VERIFY_TOKEN environment variable'
+  });
+}
 
 function verifyWhatsAppWebhook(req, res) {
   const mode = String(req.query['hub.mode'] || '').trim();

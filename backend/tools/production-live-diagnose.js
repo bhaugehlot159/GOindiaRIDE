@@ -150,13 +150,21 @@ async function run() {
     rideDate: '2026-04-22',
     rideTime: '10:00'
   };
-  const authPayload = {
-    email: 'diagnose+auth@goindiaride.in',
-    password: 'Diagnose@123',
+  // Use environment variable for diagnostic test credentials or skip authentication test
+  const diagnosticEmail = process.env.DIAGNOSTIC_TEST_EMAIL || 'diagnose@goindiaride.in';
+  const diagnosticPassword = process.env.DIAGNOSTIC_TEST_PASSWORD || null;
+  
+  if (!diagnosticPassword) {
+    console.warn('⚠️  DIAGNOSTIC: Skipping auth test - DIAGNOSTIC_TEST_PASSWORD not set');
+  }
+  
+  const authPayload = diagnosticPassword ? {
+    email: diagnosticEmail,
+    password: diagnosticPassword,
     website: '',
     submittedAt: Date.now() - 2000,
     recaptchaToken: `gir_diagnose_${Date.now()}_abcdefghijklmnopqrstuvwxyz`
-  };
+  } : null;
 
   const dnsSite = await resolveDns(toHost(siteBase));
   const dnsApi = await resolveDns(toHost(apiBase));

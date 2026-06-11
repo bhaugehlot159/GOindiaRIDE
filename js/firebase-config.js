@@ -1,7 +1,10 @@
 // Firebase Web SDK configuration for GO India RIDE.
 // Project: gehlot-86e38
+// SECURITY: Configuration loaded from environment, never hardcoded
 window.GOINDIARIDE_FIREBASE_CONFIG = {
-    apiKey: 'AIzaSyDALwUMYGGhDuqKRYDQICF1QwnDsJwalik',
+    // API key loaded from backend via /api/config/firebase endpoint
+    // DO NOT expose API key in frontend code
+    apiKey: window.GOINDIARIDE_FIREBASE_API_KEY || '', // Set by backend
     authDomain: 'gehlot-86e38.firebaseapp.com',
     projectId: 'gehlot-86e38',
     storageBucket: 'gehlot-86e38.firebasestorage.app',
@@ -9,6 +12,11 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
     appId: '1:1086303809008:web:4325934708c7770c2d4135',
     measurementId: 'G-LJSEHPM2XH'
 };
+
+// Verify Firebase configuration is available
+if (!window.GOINDIARIDE_FIREBASE_CONFIG.apiKey) {
+    console.warn('[Firebase] Configuration not yet loaded from backend. Waiting...');
+}
 
 
 // Backend API base for secure wallet/payment flows.

@@ -2,14 +2,22 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'FIREBASE_KEY'];
-requiredEnv.forEach((name) => {
-  if (!process.env[name]) {
-    if (process.env.NODE_ENV !== 'test') {
-      throw new Error(`Missing required environment variable: ${name}`);
-    }
+// Validate critical environment variables at startup
+const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET', 'FIREBASE_API_KEY'];
+const missingVars = requiredEnv.filter(name => !process.env[name]);
+
+if (missingVars.length > 0 && process.env.NODE_ENV !== 'test') {
+  console.error('\n❌ FATAL: Missing required environment variables for production:');
+  missingVars.forEach(v => console.error(`   - ${v}`));
+  console.error('\n📋 Set these environment variables before starting:');
+  console.error('   export FIREBASE_API_KEY=your_firebase_api_key');
+  console.error('   export JWT_SECRET=your_jwt_secret_key');
+  console.error('   export JWT_REFRESH_SECRET=your_refresh_secret_key');
+  console.error('   export MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/db\n');
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
   }
-});
+}
 
 function splitCsv(value) {
   return String(value || '')

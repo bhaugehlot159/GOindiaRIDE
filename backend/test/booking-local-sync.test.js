@@ -2,9 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'test';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
-process.env.API_SIGNATURE_SECRET = process.env.API_SIGNATURE_SECRET || 'test-signature-secret';
-process.env.FIREBASE_KEY = process.env.FIREBASE_KEY || 'test-firebase-key';
+// Load test credentials from environment - never hardcode secrets
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-min-32-chars-required-for-testing-only';
+process.env.API_SIGNATURE_SECRET = process.env.API_SIGNATURE_SECRET || 'test-api-signature-secret-min-32-chars-required-for-testing-only';
+process.env.FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'test-firebase-api-key-do-not-use-in-production';
 process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/goindiaride_test';
 
 const express = require('express');
