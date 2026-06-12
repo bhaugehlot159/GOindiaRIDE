@@ -368,6 +368,7 @@ function getFirebaseClientConfig() {
     apiKey: process.env.FIREBASE_API_KEY || process.env.FIREBASE_KEY || process.env.FIREBASE_WEB_API_KEY || null,
     authDomain: 'gehlot-86e38.firebaseapp.com',
     projectId: 'gehlot-86e38',
+    databaseURL: '',
     storageBucket: 'gehlot-86e38.firebasestorage.app',
     messagingSenderId: '1086303809008',
     appId: '1:1086303809008:web:4325934708c7770c2d4135',
@@ -398,6 +399,27 @@ function getFirebaseClientConfig() {
     ? rawStorageBucket
     : fallbackConfig.storageBucket;
 
+  const rawDatabaseUrl = String(
+    process.env.FIREBASE_REALTIME_DATABASE_URL
+    || process.env.FIREBASE_DATABASE_URL
+    || process.env.FIREBASE_RTDB_URL
+    || ''
+  ).trim().replace(/\/+$/, '');
+  let databaseURL = fallbackConfig.databaseURL;
+  try {
+    const parsedDatabaseUrl = rawDatabaseUrl ? new URL(rawDatabaseUrl) : null;
+    const databaseHost = String(parsedDatabaseUrl?.hostname || '').toLowerCase();
+    const isFirebaseDatabaseHost = databaseHost.endsWith('.firebaseio.com')
+      || databaseHost.endsWith('.firebasedatabase.app');
+    if (parsedDatabaseUrl && parsedDatabaseUrl.protocol === 'https:' && isFirebaseDatabaseHost) {
+      parsedDatabaseUrl.search = '';
+      parsedDatabaseUrl.hash = '';
+      databaseURL = parsedDatabaseUrl.toString().replace(/\/+$/, '');
+    }
+  } catch (_error) {
+    databaseURL = fallbackConfig.databaseURL;
+  }
+
   const rawSenderId = String(process.env.FIREBASE_MESSAGING_SENDER_ID || '').trim();
   const messagingSenderId = /^\d{6,20}$/.test(rawSenderId) ? rawSenderId : fallbackConfig.messagingSenderId;
 
@@ -411,6 +433,7 @@ function getFirebaseClientConfig() {
     apiKey,
     authDomain,
     projectId,
+    databaseURL,
     storageBucket,
     messagingSenderId,
     appId,
@@ -58198,4 +58221,3 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
 // === FUTURE_ROUTES_BUSINESS_AUTHROUTES_END ===
 
 module.exports = router;
-

@@ -100,6 +100,8 @@ test -n "$JWT_SECRET" && echo "✓ JWT_SECRET set" || echo "✗ JWT_SECRET missi
 test -n "$JWT_REFRESH_SECRET" && echo "✓ JWT_REFRESH_SECRET set" || echo "✗ JWT_REFRESH_SECRET missing"
 test -n "$MONGO_URI" && echo "✓ MONGO_URI set" || echo "✗ MONGO_URI missing"
 test -n "$FIREBASE_API_KEY" && echo "✓ FIREBASE_API_KEY set" || echo "✗ FIREBASE_API_KEY missing"
+test -n "$FIREBASE_REALTIME_DATABASE_URL" && echo "✓ FIREBASE_REALTIME_DATABASE_URL set" || echo "⚠ FIREBASE_REALTIME_DATABASE_URL missing (live RTDB mirror disabled)"
+test -n "$GOOGLE_APPLICATION_CREDENTIALS$FIREBASE_SERVICE_ACCOUNT_BASE64$FIREBASE_SERVICE_ACCOUNT_JSON$FIREBASE_REALTIME_DATABASE_ACCESS_TOKEN" && echo "✓ Firebase RTDB server credential set" || echo "⚠ Firebase RTDB server credential missing (backend cannot write live RTDB)"
 test -n "$WHATSAPP_WEBHOOK_VERIFY_TOKEN" && echo "✓ WHATSAPP_WEBHOOK_VERIFY_TOKEN set" || echo "✗ WHATSAPP_WEBHOOK_VERIFY_TOKEN missing"
 ```
 

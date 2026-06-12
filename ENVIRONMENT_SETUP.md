@@ -185,6 +185,43 @@ console.log('✓ Firebase API Key is set: ' + (process.env.FIREBASE_API_KEY ? 'Y
 
 ---
 
+### FIREBASE_REALTIME_DATABASE_URL
+
+**Description**: Firebase Realtime Database URL used by the backend live mirror and exposed to the Web SDK config
+**Type**: URL
+**Required**: Recommended for live booking/admin/customer sync
+
+**How to Get**:
+1. Go to Firebase Console
+2. Open "Realtime Database"
+3. Create/select the production database
+4. Copy the database URL, for example:
+
+```bash
+FIREBASE_REALTIME_DATABASE_URL=https://your-project-id-default-rtdb.firebaseio.com
+```
+
+**Server Write Credentials**:
+Set one secure server credential option so backend writes can publish booking lifecycle updates:
+
+```bash
+# Recommended on servers:
+GOOGLE_APPLICATION_CREDENTIALS=/secure/path/to/firebase-service-account.json
+
+# Alternative for env-only hosts:
+FIREBASE_SERVICE_ACCOUNT_BASE64=base64_encoded_service_account_json
+```
+
+**Purpose**: Mirrors successful booking create/sync/edit/review/complete/cancel/refund events into Realtime Database paths under `/goindiaride`.
+
+**Safety Notes**:
+- Do not commit service account JSON or private keys.
+- Realtime Database mirroring is non-blocking by default; MongoDB remains the primary source of truth.
+- To verify writes during deployment smoke tests, temporarily set `FIREBASE_REALTIME_DATABASE_WAIT_FOR_WRITE=true`.
+- To pause mirroring without changing code, set `FIREBASE_REALTIME_DATABASE_ENABLED=false`.
+
+---
+
 ## 🟡 Security Variables
 
 ### WHATSAPP_WEBHOOK_VERIFY_TOKEN

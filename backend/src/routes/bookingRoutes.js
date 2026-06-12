@@ -32,6 +32,7 @@ const {
   processDriverRideRefund,
   resolveDriverCommissionRegion
 } = require('../services/driverCommissionWalletService');
+const { mirrorBookingRealtimeUpdate } = require('../services/firebaseRealtimeDatabaseService');
 const { estimateBookingFare } = require('../../../js/booking-fare-calculator');
 
 
@@ -140,6 +141,26 @@ const FALLBACK_BOOKING_REVIEW_QUEUE_MAX = Math.max(
 );
 const recentFallbackAdminEmailDispatchCache = new Map();
 const recentBookingEmailDispatchCache = new Map();
+
+async function queueBookingRealtimeMirror(booking, options = {}) {
+  const shouldWait = String(process.env.FIREBASE_REALTIME_DATABASE_WAIT_FOR_WRITE || '')
+    .trim()
+    .toLowerCase() === 'true';
+  if (shouldWait) {
+    return mirrorBookingRealtimeUpdate(booking, options);
+  }
+
+  setImmediate(() => {
+    mirrorBookingRealtimeUpdate(booking, options).catch((error) => {
+      logger.warn('booking_realtime_database_mirror_unhandled_failure', {
+        bookingId: booking && booking.bookingId,
+        eventType: options.eventType || 'booking_updated',
+        message: sanitizeText(error.message, 180)
+      });
+    });
+  });
+  return { ok: true, queued: true };
+}
 
 function hasBearerAuth(req) {
   const authHeader = String(req.headers.authorization || '').trim();
@@ -2147,7 +2168,7 @@ router.post('/fallback/admin-review-queue', bookingFallbackEmailLimiter, async (
     items: []
   };
 
-  rows.forEach((row) => {
+  for (const row of rows) {
     const sourceKey = sanitizeText(req.body?.source || row?.sourceKey || 'customer_dashboard_public_sync', 120);
     const mode = sanitizeText(row?.mode || req.body?.mode || sourceKey, 80);
     const queued = queueFallbackBookingForAdminReview(row, { sourceKey, mode });
@@ -2155,17 +2176,23 @@ router.post('/fallback/admin-review-queue', bookingFallbackEmailLimiter, async (
     if (!queued.queued) {
       result.invalid += 1;
       result.items.push({ bookingId, state: queued.state || 'invalid' });
-      return;
+      continue;
     }
     if (queued.state === 'existing') result.existing += 1;
     else result.queued += 1;
+    await queueBookingRealtimeMirror(queued.item, {
+      eventType: queued.state === 'existing' ? 'fallback_booking_seen' : 'fallback_booking_queued',
+      actorRole: 'customer',
+      source: sourceKey,
+      metadata: { mode, queueState: queued.state }
+    });
     result.items.push({
       bookingId: queued.item.bookingId,
       state: queued.state,
       adminReviewStatus: queued.item.adminReviewStatus,
       status: queued.item.status
     });
-  });
+  }
 
   return res.status(result.queued || result.existing ? 200 : 202).json(result);
 });
@@ -2260,6 +2287,14 @@ router.post('/fallback/admin-alert-email', bookingFallbackEmailLimiter, async (r
     sourceKey: 'fallback_admin_alert_email',
     mode: 'fallback_admin_alert_email'
   });
+  if (queueResult && queueResult.item) {
+    await queueBookingRealtimeMirror(queueResult.item, {
+      eventType: queueResult.state === 'existing' ? 'fallback_admin_alert_seen' : 'fallback_admin_alert_queued',
+      actorRole: 'customer',
+      source: 'fallback_admin_alert_email',
+      metadata: { queueState: queueResult.state }
+    });
+  }
 
   let reviewAlert = null;
   try {
@@ -2549,6 +2584,17 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     }
   );
   booking.adminReviewStatus = 'pending';
+  await queueBookingRealtimeMirror(booking, {
+    eventType: 'booking_created',
+    actorRole: 'customer',
+    actorId: req.user.id,
+    source: 'live_booking_create',
+    metadata: {
+      awaitingAdminReview: true,
+      paymentMethod: booking.paymentMethod,
+      tripPlan: booking.tripPlan
+    }
+  });
 
   await trackBehaviorEvent({
     userId: req.user.id,
@@ -2800,7 +2846,7 @@ router.post('/sync-local', authenticate, continuousRiskGate, async (req, res) =>
         continue;
       }
 
-      await Booking.create({
+      const syncedBooking = await Booking.create({
         ...normalized,
         ip,
         statusHistory: [{
@@ -2808,6 +2854,12 @@ router.post('/sync-local', authenticate, continuousRiskGate, async (req, res) =>
           source: 'customer_dashboard_local_sync',
           note: 'Recovered from customer browser storage after login'
         }]
+      });
+      await queueBookingRealtimeMirror(syncedBooking, {
+        eventType: 'booking_local_synced',
+        actorRole: 'customer',
+        actorId: req.user.id,
+        source: 'customer_dashboard_local_sync'
       });
       result.synced += 1;
       result.items.push({ ...itemResult, state: 'synced' });
@@ -3062,6 +3114,17 @@ router.post('/:id/edit', authenticate, continuousRiskGate, async (req, res) => {
   });
 
   await booking.save();
+  await queueBookingRealtimeMirror(booking, {
+    eventType: 'booking_customer_edited',
+    actorRole: 'customer',
+    actorId: req.user.id,
+    source: 'customer_dashboard',
+    changedFields,
+    metadata: {
+      windowTier: policy.windowTier,
+      editCount: getBookingEditCount(booking)
+    }
+  });
 
   return res.status(200).json({
     message: 'Booking updated successfully',
@@ -3174,6 +3237,14 @@ router.post('/:id/admin/edit', authenticate, continuousRiskGate, async (req, res
     if (!fallbackBooking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
+    await queueBookingRealtimeMirror(fallbackBooking, {
+      eventType: 'booking_admin_edited',
+      actorRole: 'admin',
+      actorId: req.user.id,
+      source: 'admin_portal_fallback_queue',
+      changedFields: Array.isArray(req.body.changedFields) ? req.body.changedFields : [],
+      note: reason
+    });
     return res.status(200).json({
       message: 'Fallback booking updated by admin',
       booking: mapFallbackQueueRowForAdmin(fallbackBooking),
@@ -3308,6 +3379,14 @@ router.post('/:id/admin/edit', authenticate, continuousRiskGate, async (req, res
   });
 
   await booking.save();
+  await queueBookingRealtimeMirror(booking, {
+    eventType: 'booking_admin_edited',
+    actorRole: 'admin',
+    actorId: req.user.id,
+    source: 'admin_portal',
+    changedFields,
+    note: reason
+  });
 
   return res.status(200).json({
     message: 'Booking updated by admin',
@@ -3501,6 +3580,17 @@ router.post('/:id/complete', authenticate, continuousRiskGate, async (req, res) 
   booking.completedByAccountType = actorType;
   booking.completedByUserId = String(req.user.id);
   await booking.save();
+  await queueBookingRealtimeMirror(booking, {
+    eventType: driverSettlementPendingApproval ? 'booking_completion_pending_admin_approval' : 'booking_completed',
+    actorRole: actorType,
+    actorId: req.user.id,
+    source: 'booking_complete',
+    metadata: {
+      driverSettlementPendingApproval,
+      paymentSettled: Boolean(paymentSettlement),
+      driverSettled: Boolean(driverSettlement)
+    }
+  });
 
   let notificationSummary = null;
   try {
@@ -3581,6 +3671,17 @@ router.post('/:id/refund', authenticate, continuousRiskGate, async (req, res) =>
     booking.driverId = driverId;
     booking.settlementReference = refund.providerReference || refund.clientReference || booking.settlementReference;
     await booking.save();
+    await queueBookingRealtimeMirror(booking, {
+      eventType: 'booking_refund_processed',
+      actorRole: 'admin',
+      actorId: req.user.id,
+      source: 'booking_refund',
+      metadata: {
+        driverId,
+        refundAmount: refund.refundAmount || refund.amount || null,
+        providerReference: refund.providerReference || refund.clientReference || ''
+      }
+    });
 
     return res.status(200).json({
       bookingId: booking.bookingId,
@@ -3608,6 +3709,12 @@ router.post('/:id/cancel', authenticate, continuousRiskGate, async (req, res) =>
     ip,
     city: req.headers['x-city'] || 'unknown',
     metadata: { bookingId: booking.bookingId }
+  });
+  await queueBookingRealtimeMirror(booking, {
+    eventType: 'booking_cancelled',
+    actorRole: resolveCompletionActor(req),
+    actorId: req.user.id,
+    source: 'booking_cancel'
   });
 
   let notificationSummary = null;
@@ -3824,6 +3931,14 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
     if (!fallbackBooking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
+    await queueBookingRealtimeMirror(fallbackBooking, {
+      eventType: 'booking_admin_reviewed',
+      actorRole: 'admin',
+      actorId: req.user.id,
+      source: 'admin_review_fallback_queue',
+      note,
+      metadata: { decision }
+    });
     return res.status(200).json({
       bookingId: fallbackBooking.bookingId,
       status: fallbackBooking.status,
@@ -3854,6 +3969,14 @@ router.post('/:id/admin/review', authenticate, continuousRiskGate, async (req, r
   }
 
   await booking.save();
+  await queueBookingRealtimeMirror(booking, {
+    eventType: 'booking_admin_reviewed',
+    actorRole: 'admin',
+    actorId: req.user.id,
+    source: 'admin_review',
+    note,
+    metadata: { decision, driverId: requestedDriverId || booking.driverId || null }
+  });
 
   try {
     await createBookingCustomerReviewNotification({

@@ -228,6 +228,75 @@ test('customer local booking sync persists browser booking into backend store', 
   assert.ok(BookingMock.rows[0].cardHash);
 });
 
+test('customer local booking sync mirrors successful booking writes to Firebase Realtime Database', async (t) => {
+  const previousEnv = {
+    FIREBASE_REALTIME_DATABASE_URL: process.env.FIREBASE_REALTIME_DATABASE_URL,
+    FIREBASE_REALTIME_DATABASE_ACCESS_TOKEN: process.env.FIREBASE_REALTIME_DATABASE_ACCESS_TOKEN,
+    FIREBASE_REALTIME_DATABASE_NAMESPACE: process.env.FIREBASE_REALTIME_DATABASE_NAMESPACE,
+    FIREBASE_REALTIME_DATABASE_WAIT_FOR_WRITE: process.env.FIREBASE_REALTIME_DATABASE_WAIT_FOR_WRITE
+  };
+  const previousFetch = global.fetch;
+  const firebaseWrites = [];
+
+  process.env.FIREBASE_REALTIME_DATABASE_URL = 'https://goindiaride-test-default-rtdb.firebaseio.com';
+  process.env.FIREBASE_REALTIME_DATABASE_ACCESS_TOKEN = 'test-access-token';
+  process.env.FIREBASE_REALTIME_DATABASE_NAMESPACE = 'goindiaride_test';
+  process.env.FIREBASE_REALTIME_DATABASE_WAIT_FOR_WRITE = 'true';
+  global.fetch = async (url, options = {}) => {
+    firebaseWrites.push({
+      url: String(url),
+      method: options.method,
+      body: JSON.parse(String(options.body || 'null')),
+      authorization: options.headers && options.headers.Authorization
+    });
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { ok: true };
+      }
+    };
+  };
+
+  t.after(() => {
+    Object.entries(previousEnv).forEach(([key, value]) => {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    });
+    global.fetch = previousFetch;
+    try {
+      require('../src/services/firebaseRealtimeDatabaseService').resetFirebaseRealtimeDatabaseServiceForTests();
+    } catch (_error) {}
+  });
+
+  require('../src/services/firebaseRealtimeDatabaseService').resetFirebaseRealtimeDatabaseServiceForTests();
+  const BookingMock = createBookingModelMock();
+  const app = createApp(loadBookingRouter(BookingMock));
+
+  const response = await request(app)
+    .post('/api/bookings/sync-local')
+    .set('Authorization', 'Bearer test-token')
+    .send({ bookings: [createLocalBookingPayload()] });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.synced, 1);
+  assert.ok(firebaseWrites.length >= 5);
+  assert.ok(firebaseWrites.every((write) => write.authorization === 'Bearer test-access-token'));
+
+  const byIdWrite = firebaseWrites.find((write) => write.url.includes('/goindiaride_test/bookings/byId/RIDLOCAL123.json'));
+  assert.ok(byIdWrite);
+  assert.equal(byIdWrite.method, 'PUT');
+  assert.equal(byIdWrite.body.bookingId, 'RIDLOCAL123');
+  assert.equal(byIdWrite.body.userId, TEST_USER_ID);
+  assert.equal(byIdWrite.body.pickupLocation, 'Jaipur');
+  assert.equal(byIdWrite.body.adminReviewStatus, 'pending');
+
+  assert.ok(firebaseWrites.some((write) => write.url.includes(`/goindiaride_test/bookings/byCustomer/${TEST_USER_ID}/RIDLOCAL123.json`)));
+  assert.ok(firebaseWrites.some((write) => write.url.includes('/goindiaride_test/admin/bookingReview/RIDLOCAL123.json')));
+  assert.ok(firebaseWrites.some((write) => write.url.includes('/goindiaride_test/bookings/events/RIDLOCAL123/')));
+  assert.ok(firebaseWrites.some((write) => write.body && write.body.eventType === 'booking_local_synced'));
+});
+
 test('customer local booking sync is idempotent and does not overwrite existing bookings', async () => {
   const BookingMock = createBookingModelMock();
   const app = createApp(loadBookingRouter(BookingMock));

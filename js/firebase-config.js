@@ -7,6 +7,7 @@ window.GOINDIARIDE_FIREBASE_CONFIG = {
     apiKey: window.GOINDIARIDE_FIREBASE_API_KEY || '', // Set by backend
     authDomain: 'gehlot-86e38.firebaseapp.com',
     projectId: 'gehlot-86e38',
+    databaseURL: window.GOINDIARIDE_FIREBASE_DATABASE_URL || '',
     storageBucket: 'gehlot-86e38.firebasestorage.app',
     messagingSenderId: '1086303809008',
     appId: '1:1086303809008:web:4325934708c7770c2d4135',

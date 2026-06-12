@@ -64,6 +64,8 @@ chmod 600 .env.production
 - `JWT_SECRET` - Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 - `JWT_REFRESH_SECRET` - Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 - `FIREBASE_API_KEY` - From Firebase Console
+- `FIREBASE_REALTIME_DATABASE_URL` - From Firebase Console > Realtime Database
+- `GOOGLE_APPLICATION_CREDENTIALS` or `FIREBASE_SERVICE_ACCOUNT_BASE64` - Server-only Firebase service account for Realtime Database writes
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN` - Your webhook token
 
 👉 **See `ENVIRONMENT_SETUP.md` for detailed instructions on each variable**
