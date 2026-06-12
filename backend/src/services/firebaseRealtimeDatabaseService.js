@@ -399,6 +399,88 @@ function buildEvent(snapshot, options = {}) {
   };
 }
 
+function normalizeLiveSubjectType(value) {
+  const type = cleanString(value, 40).toLowerCase();
+  if (type === 'driver' || type === 'admin') return type;
+  return 'customer';
+}
+
+function normalizeFiniteNumber(value, min, max, precision = 7) {
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue)) return null;
+  if (Number.isFinite(min) && numberValue < min) return null;
+  if (Number.isFinite(max) && numberValue > max) return null;
+  return Number(numberValue.toFixed(precision));
+}
+
+function normalizeLiveLocationSnapshot(location) {
+  const source = safeMixedObject(location);
+  const lat = normalizeFiniteNumber(source.lat ?? source.latitude, -90, 90);
+  const lng = normalizeFiniteNumber(source.lng ?? source.lon ?? source.longitude, -180, 180);
+  if (lat === null || lng === null) return null;
+
+  const subjectType = normalizeLiveSubjectType(source.subjectType || source.accountType || source.role);
+  const userId = normalizeEntityId(source.userId || source.driverId || source.customerId || source.adminId);
+  const sessionId = cleanString(source.sessionId || source.trackingSessionId, 160)
+    || `${subjectType}_${userId || 'anonymous'}`;
+
+  return {
+    subjectType,
+    userId: userId || 'anonymous',
+    bookingId: cleanString(source.bookingId || source.rideId || source.tripId, 120).toUpperCase() || null,
+    sessionId,
+    status: cleanString(source.status || 'tracking', 40).toLowerCase() === 'stopped' ? 'stopped' : 'tracking',
+    lat,
+    lng,
+    coordinates: { lat, lng },
+    accuracy: normalizeFiniteNumber(source.accuracy, 0, 100000, 2),
+    speed: normalizeFiniteNumber(source.speed, -1, 500, 2),
+    heading: normalizeFiniteNumber(source.heading, 0, 360, 2),
+    altitude: normalizeFiniteNumber(source.altitude, -1000, 10000, 2),
+    source: cleanString(source.source || 'web_geolocation', 120),
+    capturedAt: toIsoString(source.capturedAt || source.timestamp) || new Date().toISOString(),
+    updatedAt: toIsoString(source.updatedAt) || new Date().toISOString(),
+    metadata: safeMixedObject(source.metadata)
+  };
+}
+
+function liveLocationSummary(snapshot) {
+  return {
+    subjectType: snapshot.subjectType,
+    userId: snapshot.userId,
+    bookingId: snapshot.bookingId,
+    sessionId: snapshot.sessionId,
+    status: snapshot.status,
+    lat: snapshot.lat,
+    lng: snapshot.lng,
+    accuracy: snapshot.accuracy,
+    speed: snapshot.speed,
+    heading: snapshot.heading,
+    source: snapshot.source,
+    capturedAt: snapshot.capturedAt,
+    updatedAt: snapshot.updatedAt
+  };
+}
+
+function buildLiveLocationEvent(snapshot, options = {}) {
+  return {
+    eventId: `${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+    eventType: cleanString(options.eventType || `live_location_${snapshot.status}`, 80),
+    subjectType: snapshot.subjectType,
+    userId: snapshot.userId,
+    bookingId: snapshot.bookingId,
+    sessionId: snapshot.sessionId,
+    status: snapshot.status,
+    lat: snapshot.lat,
+    lng: snapshot.lng,
+    accuracy: snapshot.accuracy,
+    actorRole: cleanString(options.actorRole, 40) || snapshot.subjectType,
+    actorId: cleanString(options.actorId, 140) || snapshot.userId,
+    source: cleanString(options.source || snapshot.source || 'backend_live_tracking', 120),
+    emittedAt: new Date().toISOString()
+  };
+}
+
 async function writeRealtimeValue(config, pathValue, value, method = 'PUT') {
   if (typeof fetch !== 'function') {
     return { ok: false, skipped: true, reason: 'fetch_unavailable' };
@@ -506,6 +588,51 @@ async function publishBookingRealtimeUpdate(booking, options = {}) {
   };
 }
 
+async function publishLiveLocationRealtimeUpdate(location, options = {}) {
+  const config = getRealtimeConfig();
+  if (!config.enabled) return { ok: false, skipped: true, reason: 'disabled' };
+  if (!config.databaseURL) return { ok: false, skipped: true, reason: 'database_url_missing' };
+
+  const snapshot = normalizeLiveLocationSnapshot(location);
+  if (!snapshot) return { ok: false, skipped: true, reason: 'location_invalid' };
+
+  const event = buildLiveLocationEvent(snapshot, options);
+  const subjectKey = toRealtimeKey(`${snapshot.subjectType}_${snapshot.userId}`);
+  const sessionKey = toRealtimeKey(snapshot.sessionId);
+  const subjectBookingKey = toRealtimeKey(`${snapshot.subjectType}_${snapshot.userId}_${snapshot.sessionId}`);
+  const writes = [
+    { path: `${config.namespace}/liveTracking/latest/bySubject/${snapshot.subjectType}/${subjectKey}`, value: snapshot },
+    { path: `${config.namespace}/liveTracking/latest/all/${subjectKey}`, value: liveLocationSummary(snapshot) },
+    { path: `${config.namespace}/liveTracking/sessions/${sessionKey}/latest`, value: snapshot },
+    { path: `${config.namespace}/liveTracking/events/${subjectKey}/${event.eventId}`, value: event },
+    { path: `${config.namespace}/liveTracking/meta/lastLocationEvent`, value: event }
+  ];
+
+  const bookingKey = toRealtimeKey(snapshot.bookingId);
+  if (bookingKey) {
+    writes.push({
+      path: `${config.namespace}/liveTracking/latest/byBooking/${bookingKey}/${subjectBookingKey}`,
+      value: snapshot
+    });
+  }
+
+  const results = [];
+  for (const write of writes) {
+    results.push(await writeRealtimeValue(config, write.path, write.value));
+  }
+
+  const failed = results.filter((result) => !result.ok && !result.skipped);
+  const skipped = results.filter((result) => result.skipped);
+  return {
+    ok: failed.length === 0 && skipped.length === 0,
+    skipped: skipped.length === results.length,
+    reason: skipped.length === results.length ? skipped[0]?.reason || 'skipped' : undefined,
+    written: results.filter((result) => result.ok).length,
+    failed: failed.length,
+    results
+  };
+}
+
 async function mirrorBookingRealtimeUpdate(booking, options = {}) {
   try {
     const result = await publishBookingRealtimeUpdate(booking, options);
@@ -536,6 +663,36 @@ async function mirrorBookingRealtimeUpdate(booking, options = {}) {
   }
 }
 
+async function mirrorLiveLocationRealtimeUpdate(location, options = {}) {
+  try {
+    const result = await publishLiveLocationRealtimeUpdate(location, options);
+    if (result.skipped && rememberSkip(`live_location_${result.reason}`)) {
+      logger.info('firebase_realtime_database_live_location_skipped', {
+        reason: result.reason,
+        eventType: options.eventType || 'live_location_updated'
+      });
+    }
+    if (result.failed) {
+      logger.warn('firebase_realtime_database_live_location_partial_failure', {
+        failed: result.failed,
+        written: result.written,
+        eventType: options.eventType || 'live_location_updated'
+      });
+    }
+    return result;
+  } catch (error) {
+    logger.warn('firebase_realtime_database_live_location_failed', {
+      eventType: options.eventType || 'live_location_updated',
+      message: cleanString(error.message, 180)
+    });
+    return {
+      ok: false,
+      skipped: false,
+      reason: cleanString(error.message, 180)
+    };
+  }
+}
+
 function resetFirebaseRealtimeDatabaseServiceForTests() {
   cachedAccessToken = '';
   cachedAccessTokenExpiresAt = 0;
@@ -545,7 +702,10 @@ function resetFirebaseRealtimeDatabaseServiceForTests() {
 module.exports = {
   getRealtimeConfig,
   normalizeBookingSnapshot,
+  normalizeLiveLocationSnapshot,
   publishBookingRealtimeUpdate,
   mirrorBookingRealtimeUpdate,
+  publishLiveLocationRealtimeUpdate,
+  mirrorLiveLocationRealtimeUpdate,
   resetFirebaseRealtimeDatabaseServiceForTests
 };

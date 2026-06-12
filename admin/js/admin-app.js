@@ -17,7 +17,7 @@
         "goindiaride_live_customer_booking_queue_v1"
     ];
     const DRIVER_KEYS = ["drivers", "goride_drivers"];
-    const DRIVER_LOCATION_KEYS = ["goindiaride_driver_live_locations_v1", "goindiaride_driver_locations", "driver_live_locations"];
+    const DRIVER_LOCATION_KEYS = ["goindiaride_driver_live_locations_v1", "goindiaride_customer_live_locations_v1", "goindiaride_admin_live_tracking_cache_v1", "goindiaride_driver_locations", "driver_live_locations"];
     const USER_KEYS = ["users", "goride_users"];
     const NOTIFICATION_KEY = "goindiaride_portal_notifications";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";

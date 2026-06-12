@@ -5,12 +5,65 @@
 
 // SAFETY & MONITORING FEATURES (Functions 1-8)
 
+const SAFETY_LIVE_TRACKING_KEYS = [
+    'goindiaride_driver_live_locations_v1',
+    'goindiaride_customer_live_locations_v1',
+    'goindiaride_admin_live_tracking_cache_v1',
+    'goindiaride_driver_locations',
+    'driver_live_locations'
+];
+
 function createHealthMonitorContent() {
     return `<div class="section-header"><h2>Driver Health Monitor</h2><p>Track driver working hours, fatigue alerts, and health check reminders</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #ff6b6b;"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-content"><div class="stat-label">Fatigue Alerts</div><div class="stat-value">5</div></div></div></div><div class="card mt-20"><h3>Driver Working Hours</h3><table class="data-table"><thead><tr><th>Driver</th><th>Hours</th><th>Status</th></tr></thead><tbody><tr><td>Ravi Kumar</td><td>9.5 hrs</td><td><span class="status-badge status-blocked">Fatigue Alert</span></td></tr></tbody></table></div>`;
 }
 
 function createLiveTrackingContent() {
-    return `<div class="section-header"><h2>Live Map Tracking</h2><p>Real-time location of all active drivers</p></div><div class="card"><h3>Live Map</h3><div style="height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;"><div class="text-center"><i class="fas fa-map fa-3x mb-20"></i><p>Live Tracking Integration</p></div></div></div>`;
+    const rows = getSafetyLiveTrackingRows();
+    const stats = getSafetyLiveTrackingStats(rows);
+    window.setTimeout(function () {
+        if (typeof refreshLiveTrackingSection === 'function') refreshLiveTrackingSection();
+    }, 200);
+    return `
+        <div class="section-header">
+            <h2>Live Map Tracking</h2>
+            <p>Real-time GPS stream from driver and customer portals</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#00b894;"><i class="fas fa-location-crosshairs"></i></div>
+                <div class="stat-content"><div class="stat-label">Active GPS</div><div class="stat-value" id="liveTrackingActiveCount">${stats.active}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#0984e3;"><i class="fas fa-satellite-dish"></i></div>
+                <div class="stat-content"><div class="stat-label">Backend Rows</div><div class="stat-value" id="liveTrackingBackendCount">${stats.backend}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#feca57;"><i class="fas fa-clock"></i></div>
+                <div class="stat-content"><div class="stat-label">Stale</div><div class="stat-value" id="liveTrackingStaleCount">${stats.stale}</div></div>
+            </div>
+        </div>
+        <div class="card mt-20">
+            <div class="flex-between mb-20">
+                <h3>Live GPS Locations</h3>
+                <button class="btn btn-secondary" type="button" onclick="refreshLiveTrackingSection()"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+            <div id="liveTrackingStatus" style="margin-bottom:12px;color:#475569;font-size:13px;">Showing local GPS cache while backend sync runs.</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Portal</th>
+                        <th>Subject</th>
+                        <th>Booking</th>
+                        <th>Coordinates</th>
+                        <th>Accuracy</th>
+                        <th>Status</th>
+                        <th>Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="liveTrackingRowsBody">${renderSafetyLiveTrackingRows(rows)}</tbody>
+            </table>
+        </div>
+    `;
 }
 
 function createSOSAlertsContent() {
@@ -372,6 +425,160 @@ function readSafetyJson(key, fallback) {
     } catch (_error) {
         return fallback;
     }
+}
+
+function getSafetyBackendAccessToken() {
+    return String(
+        localStorage.getItem('accessToken') ||
+        localStorage.getItem('authToken') ||
+        localStorage.getItem('token') ||
+        ''
+    ).trim();
+}
+
+function getSafetyBackendApiBase() {
+    const fromWindow = String(window.GOINDIARIDE_API_BASE || window.__GOINDIARIDE_RUNTIME_API_ORIGIN__ || window.__GOINDIARIDE_API_ORIGIN__ || '').trim();
+    const fromStorage = String(localStorage.getItem('goindiaride_admin_api_base') || localStorage.getItem('goindiaride_api_base') || '').trim();
+    const host = String(window.location && window.location.hostname || '').toLowerCase();
+    const sameOrigin = String(window.location && window.location.origin || '').replace(/\/$/, '');
+    if (fromWindow) return fromWindow.replace(/\/$/, '');
+    if (fromStorage) return fromStorage.replace(/\/$/, '');
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:5000';
+    if (host === 'goindiaride.in' || host === 'www.goindiaride.in') return 'https://goindiaride.onrender.com';
+    return sameOrigin || 'https://goindiaride.onrender.com';
+}
+
+function normalizeSafetyLiveRow(item, sourceKey) {
+    if (!item || typeof item !== 'object') return null;
+    const lat = Number(item.lat ?? item.latitude ?? item.coordinates?.lat);
+    const lng = Number(item.lng ?? item.lon ?? item.longitude ?? item.coordinates?.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+    const subjectType = String(item.subjectType || item.portal || item.accountType || (sourceKey.includes('customer') ? 'customer' : 'driver')).toLowerCase();
+    const subjectId = String(item.userId || item.driverId || item.customerId || item.id || '').trim();
+    return {
+        ...item,
+        id: subjectId || `${subjectType}:${lat.toFixed(5)}:${lng.toFixed(5)}`,
+        subjectType,
+        subjectLabel: item.driverName || item.customerName || item.name || item.userId || item.driverId || item.customerId || subjectType,
+        bookingId: item.bookingId || item.rideId || item.tripId || '',
+        lat,
+        lng,
+        accuracy: Number.isFinite(Number(item.accuracy)) ? Math.round(Number(item.accuracy)) : null,
+        status: item.status || (item.isOnline === false ? 'stopped' : 'tracking'),
+        sourceKey,
+        updatedAt: item.updatedAt || item.lastReportedAt || item.capturedAt || item.timestamp || ''
+    };
+}
+
+function getSafetyLiveTrackingRows() {
+    const rows = [];
+    SAFETY_LIVE_TRACKING_KEYS.forEach((key) => {
+        const parsed = readSafetyJson(key, []);
+        const values = Array.isArray(parsed) ? parsed : Object.values(parsed && typeof parsed === 'object' ? parsed : {});
+        values.forEach((item) => {
+            const row = normalizeSafetyLiveRow(item, key);
+            if (row) rows.push(row);
+        });
+    });
+
+    const merged = {};
+    rows.forEach((row) => {
+        const key = `${row.subjectType}:${row.id}`;
+        const existing = merged[key];
+        if (!existing || new Date(row.updatedAt || 0).getTime() >= new Date(existing.updatedAt || 0).getTime()) {
+            merged[key] = row;
+        }
+    });
+    return Object.values(merged).sort((left, right) => new Date(right.updatedAt || 0).getTime() - new Date(left.updatedAt || 0).getTime());
+}
+
+function isSafetyLiveRowActive(row) {
+    const ageMs = Date.now() - new Date(row.updatedAt || row.capturedAt || 0).getTime();
+    return String(row.status || '').toLowerCase() === 'tracking' && ageMs >= 0 && ageMs <= 2 * 60 * 1000;
+}
+
+function getSafetyLiveTrackingStats(rows) {
+    return {
+        active: rows.filter(isSafetyLiveRowActive).length,
+        backend: rows.filter((row) => String(row.sourceKey || '').includes('backend') || String(row.syncStatus || '').includes('backend')).length,
+        stale: rows.filter((row) => !isSafetyLiveRowActive(row)).length
+    };
+}
+
+function formatSafetyLiveAge(value) {
+    const time = new Date(value || 0).getTime();
+    if (!time) return 'Unknown';
+    const seconds = Math.max(0, Math.round((Date.now() - time) / 1000));
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    return `${Math.round(minutes / 60)}h ago`;
+}
+
+function renderSafetyLiveTrackingRows(rows) {
+    if (!rows.length) {
+        return '<tr><td colspan="7">No live GPS rows yet. Ask a driver/customer to start tracking, then refresh.</td></tr>';
+    }
+    return rows.slice(0, 80).map((row) => {
+        const active = isSafetyLiveRowActive(row);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.lat},${row.lng}`)}`;
+        return `
+            <tr>
+                <td>${escapeSafetyHtml(row.subjectType)}</td>
+                <td>${escapeSafetyHtml(row.subjectLabel || row.id)}<br><small>${escapeSafetyHtml(row.sourceKey || '')}</small></td>
+                <td>${escapeSafetyHtml(row.bookingId || '-')}</td>
+                <td><a href="${mapsUrl}" target="_blank" rel="noopener noreferrer">${escapeSafetyHtml(row.lat.toFixed(5))}, ${escapeSafetyHtml(row.lng.toFixed(5))}</a></td>
+                <td>${row.accuracy === null ? '-' : `${escapeSafetyHtml(row.accuracy)}m`}</td>
+                <td><span class="status-badge ${active ? 'status-approved' : 'status-pending'}">${escapeSafetyHtml(row.status || 'tracking')}</span></td>
+                <td>${escapeSafetyHtml(formatSafetyLiveAge(row.updatedAt || row.capturedAt))}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateLiveTrackingSection(rows, note) {
+    const body = document.getElementById('liveTrackingRowsBody');
+    const status = document.getElementById('liveTrackingStatus');
+    const activeCount = document.getElementById('liveTrackingActiveCount');
+    const backendCount = document.getElementById('liveTrackingBackendCount');
+    const staleCount = document.getElementById('liveTrackingStaleCount');
+    const stats = getSafetyLiveTrackingStats(rows);
+    if (body) body.innerHTML = renderSafetyLiveTrackingRows(rows);
+    if (status) status.textContent = note || `Showing ${rows.length} live GPS row(s).`;
+    if (activeCount) activeCount.textContent = String(stats.active);
+    if (backendCount) backendCount.textContent = String(stats.backend);
+    if (staleCount) staleCount.textContent = String(stats.stale);
+}
+
+async function refreshLiveTrackingSection() {
+    const token = getSafetyBackendAccessToken();
+    let note = 'Showing local GPS cache. Backend auth token not found.';
+    if (token) {
+        try {
+            const response = await fetch(`${getSafetyBackendApiBase()}/api/live-tracking/locations?limit=120`, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                    'X-GoindiaRide-Live-Tracking': 'admin-safety'
+                },
+                credentials: 'omit'
+            });
+            const data = await response.json().catch(() => ({}));
+            if (response.ok && data && Array.isArray(data.items)) {
+                localStorage.setItem('goindiaride_admin_live_tracking_cache_v1', JSON.stringify(data.items.map((item) => ({
+                    ...item,
+                    sourceKey: 'backend_live_tracking'
+                }))));
+                note = `Backend synced ${data.items.length} GPS row(s).`;
+            } else {
+                note = `Backend live tracking returned ${response.status}. Showing local cache.`;
+            }
+        } catch (_error) {
+            note = 'Backend live tracking is unreachable. Showing local cache.';
+        }
+    }
+    updateLiveTrackingSection(getSafetyLiveTrackingRows(), note);
 }
 
 function getCustomerSupportTickets() {

@@ -27,9 +27,14 @@ let driverState = {
 const DRIVER_BACKEND_BOOKING_ALERT_POLL_MS = 5000;
 const DRIVER_BOOKING_ALARM_PREF_KEY = 'goindiaride_driver_booking_alarm_enabled';
 const DRIVER_BOOKING_ALARM_BTN_ID = 'goiEnableDriverBookingAlarm';
+const DRIVER_LIVE_LOCATION_KEY = 'goindiaride_driver_live_locations_v1';
+const DRIVER_LIVE_LOCATION_MIN_INTERVAL_MS = 5000;
+const DRIVER_LIVE_LOCATION_MIN_DISTANCE_M = 10;
 let driverBackendBookingAlertTimer = null;
 let driverBackendAlarmContext = null;
 let driverBackendAlarmLastAt = 0;
+let driverLiveTrackingLastPostAt = 0;
+let driverLiveTrackingLastPoint = null;
 const driverSeenNotificationIds = new Set();
 let adminDriverBlockedNoticeAt = 0;
 
@@ -322,8 +327,10 @@ function checkGPSStatus() {
                 driverState.location = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
-                    accuracy: position.coords.accuracy
+                    accuracy: position.coords.accuracy,
+                    timestamp: position.timestamp
                 };
+                writeDriverLiveLocationCache(getPositionPayload(position, driverState.isOnline ? 'tracking' : 'stopped'), 'gps_ready');
             },
             function(error) {
                 gpsStatus.textContent = 'Disabled';
@@ -348,9 +355,13 @@ function startGPSTracking() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     accuracy: position.coords.accuracy,
+                    speed: position.coords.speed,
+                    heading: position.coords.heading,
+                    altitude: position.coords.altitude,
                     timestamp: position.timestamp
                 };
-                
+                publishDriverLiveLocation(position, 'tracking').catch(function () {});
+                 
                 // Update speed monitoring if in ride
                 if (driverState.currentRide) {
                     updateSpeedMonitoring(position.coords.speed);
@@ -374,6 +385,7 @@ function stopGPSTracking() {
         navigator.geolocation.clearWatch(driverState.watchId);
         driverState.watchId = null;
     }
+    stopDriverLiveLocationSession().catch(function () {});
 }
 
 // Toggle Night Mode
@@ -513,6 +525,220 @@ function getBackendAccessToken() {
         localStorage.getItem('token') ||
         ''
     );
+}
+
+function getDriverIdentityForLiveTracking() {
+    const currentDriver = getCurrentDriverForAdminControl();
+    return {
+        id: String(currentDriver.id || currentDriver.driverId || currentDriver._id || currentDriver.email || currentDriver.phone || 'driver').trim(),
+        name: String(currentDriver.name || currentDriver.fullname || currentDriver.driverName || 'Driver').trim(),
+        phone: String(currentDriver.phone || currentDriver.mobile || '').trim(),
+        vehicle: String(currentDriver.vehicle || currentDriver.vehicleType || currentDriver.vehicleModel || '').trim()
+    };
+}
+
+function getDriverLiveTrackingSessionId() {
+    if (!driverState.liveTrackingSessionId) {
+        const driver = getDriverIdentityForLiveTracking();
+        driverState.liveTrackingSessionId = `driver:${driver.id || 'unknown'}:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`;
+    }
+    return driverState.liveTrackingSessionId;
+}
+
+function getCurrentDriverBookingId() {
+    const ride = driverState.currentRide || {};
+    return String(ride.bookingId || ride.id || ride.rideId || '').replace(/^#/, '').trim();
+}
+
+function getPositionPayload(position, status = 'tracking') {
+    const coords = (position && position.coords) || {};
+    const timestamp = position && position.timestamp ? position.timestamp : Date.now();
+    return {
+        lat: Number(coords.latitude),
+        lng: Number(coords.longitude),
+        accuracy: Number.isFinite(Number(coords.accuracy)) ? Number(coords.accuracy) : null,
+        speed: Number.isFinite(Number(coords.speed)) ? Number(coords.speed) : null,
+        heading: Number.isFinite(Number(coords.heading)) ? Number(coords.heading) : null,
+        altitude: Number.isFinite(Number(coords.altitude)) ? Number(coords.altitude) : null,
+        capturedAt: new Date(timestamp).toISOString(),
+        status
+    };
+}
+
+function buildPositionFromDriverLocation() {
+    if (!driverState.location) return null;
+    return {
+        coords: {
+            latitude: driverState.location.lat,
+            longitude: driverState.location.lng,
+            accuracy: driverState.location.accuracy,
+            speed: driverState.location.speed,
+            heading: driverState.location.heading,
+            altitude: driverState.location.altitude
+        },
+        timestamp: driverState.location.timestamp || Date.now()
+    };
+}
+
+function distanceBetweenDriverPoints(left, right) {
+    if (!left || !right) return Infinity;
+    const toRad = (value) => Number(value) * Math.PI / 180;
+    const earthM = 6371000;
+    const dLat = toRad(right.lat - left.lat);
+    const dLng = toRad(right.lng - left.lng);
+    const lat1 = toRad(left.lat);
+    const lat2 = toRad(right.lat);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * earthM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function shouldPublishDriverLiveLocation(point, force) {
+    if (force) return true;
+    const now = Date.now();
+    if (now - driverLiveTrackingLastPostAt >= DRIVER_LIVE_LOCATION_MIN_INTERVAL_MS) return true;
+    return distanceBetweenDriverPoints(driverLiveTrackingLastPoint, point) >= DRIVER_LIVE_LOCATION_MIN_DISTANCE_M;
+}
+
+function writeDriverLiveLocationCache(payload, syncStatus) {
+    try {
+        const driver = getDriverIdentityForLiveTracking();
+        const bookingId = getCurrentDriverBookingId();
+        const nowIso = new Date().toISOString();
+        const row = {
+            id: `driver:${driver.id || 'unknown'}`,
+            subjectType: 'driver',
+            userId: driver.id,
+            driverId: driver.id,
+            driverName: driver.name,
+            driverPhone: driver.phone,
+            vehicle: driver.vehicle,
+            bookingId,
+            sessionId: getDriverLiveTrackingSessionId(),
+            lat: payload.lat,
+            lng: payload.lng,
+            accuracy: payload.accuracy,
+            speed: payload.speed,
+            heading: payload.heading,
+            status: payload.status || 'tracking',
+            isOnline: Boolean(driverState.isOnline),
+            currentRideStatus: driverState.currentRide ? driverState.currentRide.status : '',
+            source: 'driver_portal_geolocation',
+            syncStatus: syncStatus || 'pending',
+            capturedAt: payload.capturedAt || nowIso,
+            updatedAt: nowIso
+        };
+        const parsed = JSON.parse(localStorage.getItem(DRIVER_LIVE_LOCATION_KEY) || '[]');
+        const rows = Array.isArray(parsed) ? parsed : Object.values(parsed || {});
+        const nextRows = rows.filter((item) => {
+            return String(item && (item.driverId || item.userId || item.id)) !== String(row.driverId || row.userId || row.id);
+        });
+        nextRows.unshift(row);
+        localStorage.setItem(DRIVER_LIVE_LOCATION_KEY, JSON.stringify(nextRows.slice(0, 80)));
+    } catch (error) {
+        // Location cache must never block driver portal flow.
+    }
+}
+
+async function publishDriverLiveLocation(position, status = 'tracking', options = {}) {
+    const point = getPositionPayload(position, status);
+    if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) return { ok: false, reason: 'invalid_position' };
+    if (!shouldPublishDriverLiveLocation(point, Boolean(options.force))) {
+        writeDriverLiveLocationCache(point, 'local_throttled');
+        return { ok: true, skipped: true, reason: 'throttled' };
+    }
+
+    driverLiveTrackingLastPostAt = Date.now();
+    driverLiveTrackingLastPoint = { lat: point.lat, lng: point.lng };
+    writeDriverLiveLocationCache(point, 'syncing');
+
+    const token = String(getBackendAccessToken() || '').trim();
+    if (!token) {
+        writeDriverLiveLocationCache(point, 'local_missing_token');
+        return { ok: false, reason: 'missing_access_token' };
+    }
+
+    const driver = getDriverIdentityForLiveTracking();
+    const payload = {
+        ...point,
+        subjectType: 'driver',
+        userId: driver.id,
+        bookingId: getCurrentDriverBookingId(),
+        sessionId: getDriverLiveTrackingSessionId(),
+        source: 'driver_portal_geolocation',
+        metadata: {
+            driverName: driver.name,
+            driverPhone: driver.phone,
+            vehicle: driver.vehicle,
+            isOnline: Boolean(driverState.isOnline),
+            currentRideStatus: driverState.currentRide ? driverState.currentRide.status : ''
+        }
+    };
+
+    try {
+        const response = await fetch(`${getBackendApiBase()}/api/live-tracking/location`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                'X-GoindiaRide-Live-Tracking': 'driver-portal'
+            },
+            credentials: 'omit',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data || data.ok === false) {
+            writeDriverLiveLocationCache(point, `backend_${response.status}`);
+            return { ok: false, reason: `backend_${response.status}` };
+        }
+        writeDriverLiveLocationCache(point, data.realtime && data.realtime.ok ? 'backend_rtdb_synced' : 'backend_synced');
+        return data;
+    } catch (error) {
+        writeDriverLiveLocationCache(point, 'backend_unreachable');
+        return { ok: false, reason: 'backend_unreachable' };
+    }
+}
+
+async function stopDriverLiveLocationSession() {
+    const token = String(getBackendAccessToken() || '').trim();
+    const payload = {
+        subjectType: 'driver',
+        bookingId: getCurrentDriverBookingId(),
+        sessionId: getDriverLiveTrackingSessionId(),
+        source: 'driver_portal_geolocation',
+        metadata: { reason: 'driver_portal_stop' }
+    };
+    if (driverState.location) {
+        payload.lat = driverState.location.lat;
+        payload.lng = driverState.location.lng;
+        payload.accuracy = driverState.location.accuracy;
+        payload.capturedAt = new Date(driverState.location.timestamp || Date.now()).toISOString();
+    }
+
+    if (Number.isFinite(Number(payload.lat)) && Number.isFinite(Number(payload.lng))) {
+        writeDriverLiveLocationCache({ ...payload, status: 'stopped' }, 'stopping');
+    }
+    if (!token) {
+        driverState.liveTrackingSessionId = null;
+        return;
+    }
+
+    try {
+        await fetch(`${getBackendApiBase()}/api/live-tracking/location/stop`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                'X-GoindiaRide-Live-Tracking': 'driver-portal'
+            },
+            credentials: 'omit',
+            body: JSON.stringify(payload)
+        });
+    } catch (error) {
+        // Stop sync is best-effort.
+    }
+    driverState.liveTrackingSessionId = null;
 }
 
 function isDriverBookingAlarmEnabled() {
@@ -890,6 +1116,10 @@ function acceptRequest() {
     }
 
     showToast('Ride accepted! Navigate to pickup location.', 'success');
+    const acceptedPosition = buildPositionFromDriverLocation();
+    if (acceptedPosition) {
+        publishDriverLiveLocation(acceptedPosition, 'tracking', { force: true }).catch(function () {});
+    }
     driverState.pendingRequest = null;
     saveDriverData();
 }
@@ -993,8 +1223,14 @@ function completeRide() {
         });
     }
 
+    const completedPosition = buildPositionFromDriverLocation();
+    if (completedPosition) {
+        publishDriverLiveLocation(completedPosition, 'stopped', { force: true }).catch(function () {});
+    }
+
     // Clear current ride
     driverState.currentRide = null;
+    driverState.liveTrackingSessionId = null;
     document.getElementById('currentRideSection').style.display = 'none';
 
     // Update dashboard

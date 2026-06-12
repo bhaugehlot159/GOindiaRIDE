@@ -16,6 +16,7 @@ const securityRoutes = require('./routes/securityRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const walletRoutes = require('./routes/walletRoutes');
+const liveTrackingRoutes = require('./routes/liveTrackingRoutes');
 const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { globalLimiter } = require('./middleware/rateLimiters');
@@ -251,6 +252,7 @@ app.use(cors({
     'X-GoindiaRide-Runtime',
     'X-GoindiaRide-Dashboard-Live',
     'X-GoindiaRide-Live-Runner',
+    'X-GoindiaRide-Live-Tracking',
     'X-Request-Id',
     'X-Timestamp',
     'X-Signature',
@@ -411,6 +413,7 @@ app.use('/api/security', securityControlPlaneShieldMiddleware({
 app.use('/api/notifications', strictCsrfShield);
 app.use('/api/wallet', strictCsrfShield);
 app.use('/api/wallets', strictCsrfShield);
+app.use('/api/live-tracking', strictCsrfShield);
 app.use('/api/auth', authPersistentAbuseShieldMiddleware({
   enabled: env.authAbusePersistentEnabled,
   failOpen: env.authAbusePersistentFailOpen,
@@ -464,6 +467,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/wallets', walletRoutes);
+app.use('/api/live-tracking', liveTrackingRoutes);
 app.use('/api/future-runtime', futureRuntimeRoutes);
 app.use('/api/future-runtime-business', futureBusinessRoutes);
 

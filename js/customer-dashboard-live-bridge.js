@@ -16,7 +16,12 @@
   var RUNTIME_BOOKING_MAX_ROWS_PER_KEY = 140;
   var RUNTIME_BOOKING_MAX_VALUE_CHARS = 360000;
   var RUNTIME_BOOKING_WRITE_LIMIT = 140;
+  var CUSTOMER_LIVE_LOCATION_KEY = 'goindiaride_customer_live_locations_v1';
+  var CUSTOMER_LIVE_LOCATION_MIN_INTERVAL_MS = 5000;
+  var CUSTOMER_LIVE_LOCATION_MIN_DISTANCE_M = 10;
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
+  bridge.liveTrackingLastPostAt = Number(bridge.liveTrackingLastPostAt || 0);
+  bridge.liveTrackingLastPoint = bridge.liveTrackingLastPoint || null;
   window.__GOINDIARIDE_DISABLE_AUTOMATED_CHAT_SEED__ = true;
 
   function scheduleRuntimeIdle(callback, delayMs) {
@@ -168,6 +173,166 @@
       } catch (_error) {}
     }
     return null;
+  }
+
+  async function requestLiveTracking(method, path, payload) {
+    var token = getDashboardAccessTokenSafe();
+    if (!token) return { ok: false, reason: 'missing_access_token' };
+    var route = String(path || '/').trim() || '/';
+    if (route.charAt(0) !== '/') route = '/' + route;
+    var bases = getDashboardApiBasesSafe();
+    for (var i = 0; i < bases.length; i += 1) {
+      try {
+        var response = await fetchWithTimeoutSafe(bases[i] + '/api/live-tracking' + route, {
+          method: method,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + token,
+            'X-GoindiaRide-Live-Tracking': 'customer-dashboard',
+            'X-Idempotency-Key': createDashboardIdempotencyKey('gir-customer-live-location')
+          },
+          credentials: 'omit',
+          body: method === 'GET' ? undefined : JSON.stringify(payload || {})
+        }, 15000);
+        var data = await response.json().catch(function () { return {}; });
+        if (response.ok && data && data.ok !== false) return data;
+      } catch (_error) {}
+    }
+    return { ok: false, reason: 'live_tracking_backend_unreachable' };
+  }
+
+  function getCustomerLiveTrackingBookingId() {
+    var selected = normalizeTextValue(bridge.activeTrackingRideId || bridge.activeTrackingBookingId || '', 120);
+    if (selected) return selected;
+    var bookings = safeArray(window.__GOINDIARIDE_CUSTOMER_DASHBOARD_BOOKINGS__);
+    var liveStatuses = ['driver_assigned', 'accepted', 'started', 'in_progress', 'ongoing', 'created', 'pending_admin_review'];
+    for (var i = 0; i < bookings.length; i += 1) {
+      var row = bookings[i] || {};
+      var status = normalizeTextValue(row.status || row.adminReviewStatus || '', 80).toLowerCase();
+      if (liveStatuses.indexOf(status) >= 0) return getBookingRef(row);
+    }
+    return '';
+  }
+
+  function distanceBetweenLivePoints(left, right) {
+    if (!left || !right) return Infinity;
+    var toRad = function (value) { return Number(value) * Math.PI / 180; };
+    var earthM = 6371000;
+    var dLat = toRad(right.lat - left.lat);
+    var dLng = toRad(right.lng - left.lng);
+    var lat1 = toRad(left.lat);
+    var lat2 = toRad(right.lat);
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+      + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * earthM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function shouldPublishCustomerLivePoint(point, force) {
+    if (force) return true;
+    if (Date.now() - Number(bridge.liveTrackingLastPostAt || 0) >= CUSTOMER_LIVE_LOCATION_MIN_INTERVAL_MS) return true;
+    return distanceBetweenLivePoints(bridge.liveTrackingLastPoint, point) >= CUSTOMER_LIVE_LOCATION_MIN_DISTANCE_M;
+  }
+
+  function buildCustomerLiveLocationPayload(position, status) {
+    var coords = position && position.coords ? position.coords : {};
+    var user = getStoredUser() || {};
+    var identity = bootstrapIdentityFromUser(user);
+    var timestamp = position && position.timestamp ? position.timestamp : Date.now();
+    return {
+      subjectType: 'customer',
+      userId: identity.profile && identity.profile.id ? identity.profile.id : identity.userKey,
+      bookingId: getCustomerLiveTrackingBookingId(),
+      sessionId: bridge.liveTrackingSessionId || '',
+      lat: Number(coords.latitude),
+      lng: Number(coords.longitude),
+      accuracy: Number.isFinite(Number(coords.accuracy)) ? Number(coords.accuracy) : null,
+      speed: Number.isFinite(Number(coords.speed)) ? Number(coords.speed) : null,
+      heading: Number.isFinite(Number(coords.heading)) ? Number(coords.heading) : null,
+      altitude: Number.isFinite(Number(coords.altitude)) ? Number(coords.altitude) : null,
+      capturedAt: new Date(timestamp).toISOString(),
+      status: status || 'tracking',
+      source: 'customer_dashboard_geolocation',
+      metadata: {
+        userKey: identity.userKey,
+        customerName: normalizeTextValue(user.fullname || user.name || '', 140),
+        customerPhone: normalizeTextValue(user.phone || user.mobile || '', 40),
+        customerEmail: normalizeTextValue(user.email || '', 180)
+      }
+    };
+  }
+
+  function writeCustomerLiveLocationCache(payload, syncStatus) {
+    try {
+      var nowIso = new Date().toISOString();
+      var row = {
+        id: 'customer:' + (payload.userId || getRuntimeUserKey()),
+        subjectType: 'customer',
+        userId: payload.userId || getRuntimeUserKey(),
+        bookingId: payload.bookingId || '',
+        sessionId: payload.sessionId || bridge.liveTrackingSessionId || '',
+        lat: payload.lat,
+        lng: payload.lng,
+        accuracy: payload.accuracy,
+        speed: payload.speed,
+        heading: payload.heading,
+        status: payload.status || 'tracking',
+        source: 'customer_dashboard_geolocation',
+        syncStatus: syncStatus || 'pending',
+        capturedAt: payload.capturedAt || nowIso,
+        updatedAt: nowIso
+      };
+      var parsed = parseJson(localStorage.getItem(CUSTOMER_LIVE_LOCATION_KEY) || '[]', []);
+      var rows = Array.isArray(parsed) ? parsed : Object.values(parsed || {});
+      var nextRows = rows.filter(function (item) {
+        return String(item && (item.userId || item.id)) !== String(row.userId || row.id);
+      });
+      nextRows.unshift(row);
+      localStorage.setItem(CUSTOMER_LIVE_LOCATION_KEY, JSON.stringify(nextRows.slice(0, 80)));
+    } catch (_error) {}
+  }
+
+  async function publishCustomerLiveLocation(position, status, options) {
+    var payload = buildCustomerLiveLocationPayload(position, status || 'tracking');
+    if (!Number.isFinite(payload.lat) || !Number.isFinite(payload.lng)) return { ok: false, reason: 'invalid_position' };
+    if (!bridge.liveTrackingSessionId) {
+      bridge.liveTrackingSessionId = 'customer:' + getRuntimeUserKey() + ':' + Date.now() + ':' + Math.random().toString(36).slice(2, 10);
+      payload.sessionId = bridge.liveTrackingSessionId;
+    }
+    if (!shouldPublishCustomerLivePoint(payload, Boolean(options && options.force))) {
+      writeCustomerLiveLocationCache(payload, 'local_throttled');
+      return { ok: true, skipped: true, reason: 'throttled' };
+    }
+
+    bridge.liveTrackingLastPostAt = Date.now();
+    bridge.liveTrackingLastPoint = { lat: payload.lat, lng: payload.lng };
+    writeCustomerLiveLocationCache(payload, 'syncing');
+    var response = await requestLiveTracking('POST', '/location', payload);
+    writeCustomerLiveLocationCache(payload, response && response.ok
+      ? (response.realtime && response.realtime.ok ? 'backend_rtdb_synced' : 'backend_synced')
+      : (response && response.reason ? response.reason : 'backend_failed'));
+    return response;
+  }
+
+  async function stopCustomerLiveTracking(position) {
+    var payload = position
+      ? buildCustomerLiveLocationPayload(position, 'stopped')
+      : {
+          subjectType: 'customer',
+          bookingId: getCustomerLiveTrackingBookingId(),
+          sessionId: bridge.liveTrackingSessionId || '',
+          status: 'stopped',
+          source: 'customer_dashboard_geolocation',
+          metadata: { userKey: getRuntimeUserKey() }
+        };
+    payload.status = 'stopped';
+    writeCustomerLiveLocationCache(payload, 'stopping');
+    var response = await requestLiveTracking('POST', '/location/stop', payload);
+    writeCustomerLiveLocationCache(payload, response && response.ok ? 'backend_stopped' : 'local_stopped');
+    bridge.liveTrackingSessionId = null;
+    bridge.liveTrackingLastPoint = null;
+    bridge.liveTrackingLastPostAt = 0;
+    return response;
   }
 
   function getBookingRef(row) {
@@ -1142,11 +1307,20 @@
         return;
       }
       bridge.liveTrackingWatchId = navigator.geolocation.watchPosition(async function (position) {
+        bridge.liveTrackingLastPosition = position;
         var lat = Number(position.coords && position.coords.latitude || 0);
         var lng = Number(position.coords && position.coords.longitude || 0);
         var accuracy = Number(position.coords && position.coords.accuracy || 0);
         var updateText = 'Tracking live at ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' | Accuracy ' + accuracy.toFixed(0) + 'm';
         setTrackingStatus(updateText);
+        var liveSync = await publishCustomerLiveLocation(position, 'tracking');
+        if (liveSync && liveSync.ok && liveSync.realtime && liveSync.realtime.ok) {
+          setTrackingStatus(updateText + ' | backend + realtime synced');
+        } else if (liveSync && liveSync.ok) {
+          setTrackingStatus(updateText + ' | backend synced');
+        } else {
+          setTrackingStatus(updateText + ' | local only: ' + String((liveSync && liveSync.reason) || 'login required'));
+        }
         await requestDashboardBusiness('POST', '/feature/state', {
           userKey: getRuntimeUserKey(),
           featureId: 'customer_dashboard_live_tracking',
@@ -1166,6 +1340,7 @@
       }
       bridge.liveTrackingWatchId = null;
       setTrackingStatus('Tracking stopped for this session.');
+      await stopCustomerLiveTracking(bridge.liveTrackingLastPosition || null);
       await requestDashboardBusiness('POST', '/feature/state', {
         userKey: getRuntimeUserKey(),
         featureId: 'customer_dashboard_live_tracking',
@@ -1286,7 +1461,8 @@
     };
   }
 
-  window.trackRide = async function () {
+  window.trackRide = async function (rideId) {
+    bridge.activeTrackingRideId = normalizeTextValue(rideId || '', 120);
     await getBookings({ forceSync: false });
     if (typeof switchTab === 'function') switchTab('active');
     setTimeout(function () {
