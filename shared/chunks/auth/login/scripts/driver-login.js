@@ -8,6 +8,8 @@ async function driverSendOTP(){
   try{driverConfirmation=await sendOtpByFirebase(phone);document.getElementById('driverOTPSection').classList.add('show');document.getElementById('driverPhone').disabled=true;showSuccess('OTP sent successfully.');setupOTPInputs('.driver-otp');}
   catch(e){console.error('driver otp send failed',e);driverConfirmation=null;showError(e.message||'OTP send failed.');}
 }
+function getDriverDashboardAuthRoute(){return getAuthDashboardRoute('driver');}
+function getCustomerDashboardAuthRoute(){return getAuthDashboardRoute('customer');}
 async function driverVerifyOTP(){
   const otp=readOtpDigits('.driver-otp');const phone=normalizePhoneForLookup(document.getElementById('driverPhone').value);
   try{await verifyOtpByFirebase(driverConfirmation,otp);await driverLoginOTP(phone);}catch(e){console.error('driver otp verify failed',e);showError(e.message||'OTP verification failed.');}
@@ -21,13 +23,13 @@ async function driverLoginOTP(phone){
   setDriverSession(verifiedDriver);
   startBackendSessionSync({record:verifiedDriver,role:'driver',source:'driver_otp'});
   showSuccess('Login successful.');
-  redirectAfterLogin('./driver-dashboard.html');
+  redirectAfterLogin(getDriverDashboardAuthRoute());
 }
 function driverResetOTP(){driverConfirmation=null;document.getElementById('driverOTPSection').classList.remove('show');document.getElementById('driverPhone').disabled=false;document.querySelectorAll('.driver-otp').forEach((i)=>{i.value='';});}
 async function driverLoginEmail(){
   const email=sanitizeEmail(document.getElementById('driverEmail').value);const password=document.getElementById('driverPassword').value;
   if(!email){showError('Please enter valid email address.');return;} if(!password){showError('Please enter your password.');return;}
-  const instantLogin=await tryInstantCachedRoleLogin({role:'driver',email,password,target:'./driver-dashboard.html'});
+  const instantLogin=await tryInstantCachedRoleLogin({role:'driver',email,password,target:getDriverDashboardAuthRoute()});
   if(instantLogin.handled)return;
   const liveLogin=await loginViaBackendAndRestoreLocal({role:'driver',email,password});
   let resolvedLogin=liveLogin;
@@ -46,7 +48,7 @@ async function driverLoginEmail(){
     setDriverSession(resolvedLogin.record);
     if(readBackendAccessToken())markBackendAuthMode('secure_backend');
     else await ensureBackendSessionForRole({record:resolvedLogin.record,password,role:'driver',source:'driver_backend_login'});
-    showSuccess('Login successful.');redirectAfterLogin('./driver-dashboard.html');
+    showSuccess('Login successful.');redirectAfterLogin(getDriverDashboardAuthRoute());
     return;
   }
 
@@ -68,7 +70,7 @@ async function driverLoginEmail(){
       }
       setDriverSession(account.record);
       startBackendSessionSync({record:account.record,password,role:'driver',source:'driver_local_restore'});
-      showSuccess('Login successful.');redirectAfterLogin('./driver-dashboard.html');
+      showSuccess('Login successful.');redirectAfterLogin(getDriverDashboardAuthRoute());
       return;
     }
     localPasswordMismatch=true;
@@ -87,7 +89,7 @@ async function driverLoginEmail(){
       }
       setUserSession(customerAccount.record);
       startBackendSessionSync({record:customerAccount.record,password,role:'customer',source:'driver_switch_customer'});
-      showSuccess('Yeh account customer role me hai. Customer portal open kiya ja raha hai.');redirectAfterLogin('./customer-dashboard.html');
+      showSuccess('Yeh account customer role me hai. Customer portal open kiya ja raha hai.');redirectAfterLogin(getCustomerDashboardAuthRoute());
       return;
     }
     localPasswordMismatch=true;
@@ -100,7 +102,7 @@ async function driverLoginEmail(){
         setDriverSession(emergencyReset.record);
         startBackendSessionSync({record:emergencyReset.record,password,role:'driver',source:'driver_emergency_reset'});
         showSuccess('Live server unavailable. Local restore mode me password sync karke login kar diya gaya.');
-        redirectAfterLogin('./driver-dashboard.html');
+        redirectAfterLogin(getDriverDashboardAuthRoute());
         return;
       }
     }
@@ -124,7 +126,7 @@ async function driverLoginEmail(){
       showSuccess(emergency.created
         ? 'Live server temporary unavailable. Local restore mode me account recover karke login kar diya gaya.'
         : 'Login successful (local restore mode).');
-      redirectAfterLogin('./driver-dashboard.html');
+      redirectAfterLogin(getDriverDashboardAuthRoute());
       return;
     }
   }

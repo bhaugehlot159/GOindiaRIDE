@@ -33,7 +33,7 @@ async function sendForgotPasswordOtp(){
   };
   if(identifier.kind==='email')payload.email=identifier.value;
   if(identifier.kind==='phone')payload.phone=identifier.value;
-  const result=await callBackendAuth('/api/auth/forgot-password/request',payload);
+  const result=await callBackendAuth(resolveAuthEndpoint('forgotPasswordRequest'),payload);
   if(!result.ok){showError(result.data?.message||'Password reset OTP send nahi ho paya. SMTP settings check karein.');return;}
   const delivery=result.data?.delivery||null;
   if(delivery&&delivery.sent===false){
@@ -65,7 +65,7 @@ async function handleForgotPasswordReset(){
     };
     if(identifier.kind==='email')payload.email=identifier.value;
     if(identifier.kind==='phone')payload.phone=identifier.value;
-    const result=await callBackendAuth('/api/auth/forgot-password/confirm',payload);
+    const result=await callBackendAuth(resolveAuthEndpoint('forgotPasswordConfirm'),payload);
     if(!result.ok){showError(result.data?.message||'Password reset failed.');return;}
     await updateLocalPasswordRecordAfterReset(role,identifier,newPassword);
     notifyAdminSecurityEvent('Password reset',role+' account password reset completed.',{role,identifierKind:identifier.kind,source:'backend_otp'});

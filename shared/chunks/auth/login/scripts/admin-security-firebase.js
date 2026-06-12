@@ -33,7 +33,7 @@ async function verifyStoredAdminProfile(email,password){
   return{ok:true,profile,source:'stored_admin_profile'};
 }
 async function verifyBackendAdminPassword(email,password){
-  const result=await callBackendAuth('/api/auth/admin/password-check',{
+  const result=await callBackendAuth(resolveAuthEndpoint('adminPasswordCheck'),{
     email,
     password,
     accountType:'admin',

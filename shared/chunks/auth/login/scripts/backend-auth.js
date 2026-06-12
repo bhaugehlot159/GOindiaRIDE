@@ -16,6 +16,15 @@ async function fetchBackendPost(url,body){
     clearTimeout(timer);
   }
 }
+function resolveAuthEndpoint(nameOrPath,fallback=''){
+  if(typeof getAuthEndpoint==='function'){
+    const resolved=getAuthEndpoint(nameOrPath,fallback);
+    if(resolved)return resolved;
+  }
+  const direct=String(nameOrPath||'').trim();
+  if(direct.charAt(0)==='/')return direct;
+  return String(fallback||'');
+}
 async function callBackendAuth(path,payload){
   const normalizedPath=String(path||'');
   const body=JSON.stringify(payload||{});
@@ -111,10 +120,10 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
   if(!email||!phone||!plainPassword)return{synced:false,reason:'missing_identity'};
 
   const loginPayload={email,password:plainPassword,accountType,website:'',submittedAt:Date.now()-1500,recaptchaToken:createPseudoRecaptchaToken('gir-login-sync')};
-  let loginResult=await callBackendAuth('/api/auth/login',loginPayload);
+  let loginResult=await callBackendAuth(resolveAuthEndpoint('login'),loginPayload);
 
   if(!loginResult.ok&&(loginResult.status===401||loginResult.status===404||loginResult.status===409)){
-    await callBackendAuth('/api/auth/register',{
+    await callBackendAuth(resolveAuthEndpoint('register'),{
       name,
       email,
       phone,
@@ -126,7 +135,7 @@ async function syncBackendSessionForLocalAccount({record,password,role}){
       recaptchaToken:createPseudoRecaptchaToken('gir-register-sync')
     });
 
-    loginResult=await callBackendAuth('/api/auth/login',loginPayload);
+    loginResult=await callBackendAuth(resolveAuthEndpoint('login'),loginPayload);
   }
 
   if(loginResult.ok&&loginResult.data&&loginResult.data.accessToken){
@@ -299,7 +308,7 @@ async function fetchBackendProfile(accessToken){
   const token=String(accessToken||'').trim();
   if(!token)return null;
   try{
-    const response=await fetch(`${getBackendApiBase()}/api/user/profile`,{
+    const response=await fetch(`${getBackendApiBase()}${resolveAuthEndpoint('profile')}`,{
       method:'GET',
       headers:{Accept:'application/json',Authorization:`Bearer ${token}`},
       credentials:'include'
@@ -325,7 +334,7 @@ async function loginViaBackendAndRestoreLocal({role,email,password}){
     return{ok:false,status:400,message:'Email and password required'};
   }
 
-  const backendLogin=await callBackendAuth('/api/auth/login',{
+  const backendLogin=await callBackendAuth(resolveAuthEndpoint('login'),{
     email:safeEmail,
     password:safePassword,
     accountType:safeRole,

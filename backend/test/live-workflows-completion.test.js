@@ -211,9 +211,11 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(login, /id="customerForm"/);
   assert.match(login, /id="driverForm"/);
   assert.match(login, /id="adminForm"/);
-  assert.match(login, /customerSendOTP\(\)/);
-  assert.match(login, /driverSendOTP\(\)/);
-  assert.match(login, /adminStep1Login\(\)/);
+  assert.match(login, /auth-routes\.js\?v=20260612-auth-routes1/);
+  assert.doesNotMatch(login, /\son(?:click|change)=/);
+  assert.match(login, /data-auth-action="customer-send-otp"/);
+  assert.match(login, /data-auth-action="driver-send-otp"/);
+  assert.match(login, /data-auth-action="admin-step1-login"/);
   assert.match(login, /guardPhoneAutofillLeak/);
   assert.match(login, /class="auth-ride-preview"/);
 

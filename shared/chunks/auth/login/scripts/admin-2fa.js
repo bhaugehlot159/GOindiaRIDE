@@ -78,7 +78,7 @@ async function completeAdminLogin(verifiedData={}){
   adminStep1Context=null;
   showSuccess('Admin login successful.');
   const nextPath=resolveAdminNextPath();
-  setTimeout(()=>{window.location.href=nextPath;},700);
+  setTimeout(()=>{redirectAfterLogin(nextPath);},700);
 }
 async function sendAdmin2FAOTP(){
   const method=document.querySelector('input[name="admin2FAMethod"]:checked').value;
@@ -132,7 +132,7 @@ async function sendAdmin2FAOTP(){
     }
   }
 
-  const result=await callBackendAuth('/api/auth/request-otp',payload);
+  const result=await callBackendAuth(resolveAuthEndpoint('otpRequest'),payload);
   if(!result.ok){
     const status=Number(result.status||0);
     const canTryReceivedCode=channel==='sms'&&(status===0||status===429||status>=500);
@@ -157,7 +157,10 @@ async function sendAdmin2FAOTP(){
   openAdminOtpEntryStep();
 }
 function resolveAdminNextPath(){
-  const fallback='../admin/index.html';
+  if(window.GoIndiaRideAuthRoutes&&typeof window.GoIndiaRideAuthRoutes.resolveAdminNextPath==='function'){
+    return window.GoIndiaRideAuthRoutes.resolveAdminNextPath();
+  }
+  const fallback=getAuthUiRoute('adminHome');
   try{
     const query=new URLSearchParams(window.location.search||'');
     const next=String(query.get('next')||'').trim();
@@ -210,7 +213,7 @@ async function verifyAdmin2FA(){
     submittedAt:Date.now()-1500,
     recaptchaToken:createPseudoRecaptchaToken('gir-admin-otp-verify')
   };
-  const verified=await callBackendAuth('/api/auth/otp/verify',verifyPayload);
+  const verified=await callBackendAuth(resolveAuthEndpoint('otpVerify'),verifyPayload);
   if(!verified.ok){showError(verified.data?.message||'Wrong 2FA code.');return;}
   await completeAdminLogin(verified.data||{});
 }

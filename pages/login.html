@@ -554,12 +554,12 @@
 
         <!-- Right Panel -->
         <div class="login-right">
-            <button class="admin-portal-link" onclick="toggleAdminLogin()">
+            <button class="admin-portal-link" data-auth-action="toggle-admin">
                 <i class="fas fa-lock"></i> Admin
             </button>
             <div class="auth-utility-nav">
-                <button type="button" class="utility-btn" onclick="window.history.length > 1 ? window.history.back() : window.location.href='../index.html'">Back</button>
-                <button type="button" class="utility-btn utility-primary" onclick="window.location.href='../index.html'">Home</button>
+                <button type="button" class="utility-btn" data-auth-action="back">Back</button>
+                <button type="button" class="utility-btn utility-primary" data-auth-action="home">Home</button>
             </div>
             <div class="auth-panel">
             <div class="auth-eyebrow">Secure Account Access</div>
@@ -577,7 +577,7 @@
             <!-- Role Selection -->
             <div class="role-selector" id="roleSelector">
                 <div>
-                    <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked onchange="updateLoginMethod()">
+                    <input type="radio" name="role" id="roleCustomer" value="customer" class="role-option" checked data-auth-action="role-change">
                     <label for="roleCustomer" class="role-label">
                         <i class="fas fa-user"></i>
                         <span>Customer</span>
@@ -585,7 +585,7 @@
                 </div>
 
                 <div>
-                    <input type="radio" name="role" id="roleDriver" value="driver" class="role-option" onchange="updateLoginMethod()">
+                    <input type="radio" name="role" id="roleDriver" value="driver" class="role-option" data-auth-action="role-change">
                     <label for="roleDriver" class="role-label">
                         <i class="fas fa-car"></i>
                         <span>Driver</span>
@@ -596,7 +596,7 @@
             <!-- Login Method Selector -->
             <div class="login-method-selector" id="loginMethodSelector">
                 <div>
-                    <input type="radio" name="loginMethod" id="methodMobile" value="mobile" class="method-option" checked onchange="updateSelectedLoginMethod()">
+                    <input type="radio" name="loginMethod" id="methodMobile" value="mobile" class="method-option" checked data-auth-action="login-method-change">
                     <label for="methodMobile" class="method-label">
                         <i class="fas fa-mobile-alt"></i>
                         <span>Mobile OTP</span>
@@ -604,7 +604,7 @@
                 </div>
 
                 <div>
-                    <input type="radio" name="loginMethod" id="methodPassword" value="password" class="method-option" onchange="updateSelectedLoginMethod()">
+                    <input type="radio" name="loginMethod" id="methodPassword" value="password" class="method-option" data-auth-action="login-method-change">
                     <label for="methodPassword" class="method-label">
                         <i class="fas fa-envelope"></i>
                         <span>Email</span>
@@ -638,7 +638,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn-send-otp" onclick="customerSendOTP()">Send OTP</button>
+                    <button type="button" class="btn-send-otp" data-auth-action="customer-send-otp">Send OTP</button>
 
                     <!-- OTP Input -->
                     <div class="otp-input-section" id="customerOTPSection">
@@ -656,8 +656,8 @@
                         </div>
 
                         <div class="form-buttons">
-                            <button type="button" class="btn-verify" onclick="customerVerifyOTP()">Verify OTP</button>
-                            <button type="button" class="btn-signup" onclick="customerResetOTP()">Back</button>
+                            <button type="button" class="btn-verify" data-auth-action="customer-verify-otp">Verify OTP</button>
+                            <button type="button" class="btn-signup" data-auth-action="customer-reset-otp">Back</button>
                         </div>
                     </div>
                 </div>
@@ -677,18 +677,18 @@
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="customerPassword" name="customerPassword" placeholder="Enter your password" autocomplete="current-password">
-                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('customerPassword')">
+                            <button type="button" class="password-toggle" data-auth-action="toggle-password" data-auth-target="customerPassword">
                                 <i class="fas fa-eye" id="customerPasswordIcon"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="action-links">
-                        <button type="button" class="link-btn" onclick="openForgotPassword('customer')">Forgot Password?</button>
+                        <button type="button" class="link-btn" data-auth-action="forgot-open" data-auth-role="customer">Forgot Password?</button>
                     </div>
                     <div class="form-buttons">
-                        <button type="button" class="btn-login" onclick="customerLoginEmail()">Login</button>
-                        <button type="button" class="btn-signup" onclick="updateSelectedLoginMethod()">Back</button>
+                        <button type="button" class="btn-login" data-auth-action="customer-login-email">Login</button>
+                        <button type="button" class="btn-signup" data-auth-action="login-method-change">Back</button>
                     </div>
                 </div>
             </form>
@@ -705,7 +705,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn-send-otp" onclick="driverSendOTP()">Send OTP</button>
+                    <button type="button" class="btn-send-otp" data-auth-action="driver-send-otp">Send OTP</button>
 
                     <!-- OTP Input -->
                     <div class="otp-input-section" id="driverOTPSection">
@@ -723,8 +723,8 @@
                         </div>
 
                         <div class="form-buttons">
-                            <button type="button" class="btn-verify" onclick="driverVerifyOTP()">Verify OTP</button>
-                            <button type="button" class="btn-signup" onclick="driverResetOTP()">Back</button>
+                            <button type="button" class="btn-verify" data-auth-action="driver-verify-otp">Verify OTP</button>
+                            <button type="button" class="btn-signup" data-auth-action="driver-reset-otp">Back</button>
                         </div>
                     </div>
                 </div>
@@ -744,18 +744,18 @@
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="driverPassword" name="driverPassword" placeholder="Enter your password" autocomplete="current-password">
-                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('driverPassword')">
+                            <button type="button" class="password-toggle" data-auth-action="toggle-password" data-auth-target="driverPassword">
                                 <i class="fas fa-eye" id="driverPasswordIcon"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="action-links">
-                        <button type="button" class="link-btn" onclick="openForgotPassword('driver')">Forgot Password?</button>
+                        <button type="button" class="link-btn" data-auth-action="forgot-open" data-auth-role="driver">Forgot Password?</button>
                     </div>
                     <div class="form-buttons">
-                        <button type="button" class="btn-login" onclick="driverLoginEmail()">Login</button>
-                        <button type="button" class="btn-signup" onclick="updateSelectedLoginMethod()">Back</button>
+                        <button type="button" class="btn-login" data-auth-action="driver-login-email">Login</button>
+                        <button type="button" class="btn-signup" data-auth-action="login-method-change">Back</button>
                     </div>
                 </div>
             </form>
@@ -801,9 +801,9 @@
                     </div>
                 </div>
                 <div class="form-buttons" style="margin-bottom: 0.4rem;">
-                    <button type="button" class="btn-send-otp" onclick="sendForgotPasswordOtp()">Send OTP</button>
-                    <button type="button" class="btn-login" onclick="handleForgotPasswordReset()">Reset Password</button>
-                    <button type="button" class="btn-signup" onclick="closeForgotPassword()">Cancel</button>
+                    <button type="button" class="btn-send-otp" data-auth-action="forgot-send-otp">Send OTP</button>
+                    <button type="button" class="btn-login" data-auth-action="forgot-reset-password">Reset Password</button>
+                    <button type="button" class="btn-signup" data-auth-action="forgot-close">Cancel</button>
                 </div>
             </div>
 
@@ -826,18 +826,18 @@
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="adminPassword" name="goindiaride_admin_password_live" placeholder="Enter admin password" autocomplete="new-password">
-                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('adminPassword')">
+                            <button type="button" class="password-toggle" data-auth-action="toggle-password" data-auth-target="adminPassword">
                                 <i class="fas fa-eye" id="adminPasswordIcon"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="action-links">
-                        <button type="button" class="link-btn" onclick="openForgotPassword('admin')">Forgot Password?</button>
+                        <button type="button" class="link-btn" data-auth-action="forgot-open" data-auth-role="admin">Forgot Password?</button>
                     </div>
                     <div class="form-buttons">
-                        <button type="button" class="btn-login" onclick="adminStep1Login()">Next (2FA)</button>
-                        <button type="button" class="btn-signup" onclick="toggleAdminLogin()">Back</button>
+                        <button type="button" class="btn-login" data-auth-action="admin-step1-login">Next (2FA)</button>
+                        <button type="button" class="btn-signup" data-auth-action="toggle-admin">Back</button>
                     </div>
                 </div>
 
@@ -850,7 +850,7 @@
 
                     <div class="login-method-selector">
                         <div>
-                            <input type="radio" name="admin2FAMethod" id="admin2FAEmail" value="email" class="method-option" checked onchange="updateAdmin2FAMethod()">
+                            <input type="radio" name="admin2FAMethod" id="admin2FAEmail" value="email" class="method-option" checked data-auth-action="admin-2fa-method-change">
                             <label for="admin2FAEmail" class="method-label">
                                 <i class="fas fa-envelope"></i>
                                 <span>Email OTP</span>
@@ -858,7 +858,7 @@
                         </div>
 
                         <div>
-                            <input type="radio" name="admin2FAMethod" id="admin2FAMobile" value="mobile" class="method-option" onchange="updateAdmin2FAMethod()">
+                            <input type="radio" name="admin2FAMethod" id="admin2FAMobile" value="mobile" class="method-option" data-auth-action="admin-2fa-method-change">
                             <label for="admin2FAMobile" class="method-label">
                                 <i class="fas fa-mobile-alt"></i>
                                 <span>Mobile OTP</span>
@@ -866,7 +866,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn-send-otp" onclick="sendAdmin2FAOTP()" style="width: 100%; margin-top: 1rem;">Send OTP</button>
+                    <button type="button" class="btn-send-otp" data-auth-action="admin-send-2fa" style="width: 100%; margin-top: 1rem;">Send OTP</button>
                 </div>
 
                 <!-- Admin Step 3: 2FA Verification -->
@@ -887,8 +887,8 @@
                     </div>
 
                     <div class="form-buttons">
-                        <button type="button" class="btn-verify" onclick="verifyAdmin2FA()">Verify 2FA</button>
-                        <button type="button" class="btn-signup" onclick="adminResetTo2FAMethod()">Back</button>
+                        <button type="button" class="btn-verify" data-auth-action="admin-verify-2fa">Verify 2FA</button>
+                        <button type="button" class="btn-signup" data-auth-action="admin-reset-2fa">Back</button>
                     </div>
                 </div>
             </form>
@@ -903,12 +903,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="../js/portal-connector.js"></script>
     <script src="../js/session-continuity.js?v=20260504-session1"></script>
-    <script>
-        window.GOINDIARIDE_API_BASE = 'https://goindiaride.onrender.com';
-        try {
-            localStorage.setItem('goindiaride_api_base', 'https://goindiaride.onrender.com');
-        } catch (error) {}
-    </script>
+    <script src="../shared/chunks/auth/login/scripts/auth-routes.js?v=20260612-auth-routes1"></script>
     <script src="../shared/chunks/auth/login/scripts/core-storage.js?v=20260531-login-fast1"></script>
     <script src="../shared/chunks/auth/login/scripts/backend-auth.js?v=20260531-login-fast1"></script>
     <script src="../shared/chunks/auth/login/scripts/admin-security-firebase.js?v=20260530-admin-entry1"></script>

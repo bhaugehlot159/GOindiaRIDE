@@ -352,7 +352,10 @@ function readBackendRefreshToken(){
   ).trim();
 }
 function redirectAfterLogin(target){
-  const nextUrl=String(target||'').trim();
+  const routes=window.GoIndiaRideAuthRoutes;
+  const nextUrl=routes&&typeof routes.resolveRouteTarget==='function'
+    ? routes.resolveRouteTarget(target)
+    : String(target||'').trim();
   if(!nextUrl)return;
   const run=()=>{window.location.replace(nextUrl);};
   const delay=Number(LOGIN_REDIRECT_DELAY_MS||0);
@@ -447,6 +450,10 @@ function isTrustedPublicApiBase(value){
 function persistBackendApiBase(base){
   const normalized=normalizeApiBaseCandidate(base);
   if(!normalized)return;
+  if(window.GoIndiaRideAuthRoutes&&typeof window.GoIndiaRideAuthRoutes.setConfiguredApiBase==='function'){
+    window.GoIndiaRideAuthRoutes.setConfiguredApiBase(normalized);
+    return;
+  }
   const host=String(window.location.hostname||'').toLowerCase();
   const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
   const isGitHubPagesHost=host==='github.io'||host.endsWith('.github.io');
@@ -460,6 +467,10 @@ function persistBackendApiBase(base){
   }
 }
 function getBackendApiBase(){
+  if(window.GoIndiaRideAuthRoutes&&typeof window.GoIndiaRideAuthRoutes.resolveApiBase==='function'){
+    const modularApiBase=normalizeApiBaseCandidate(window.GoIndiaRideAuthRoutes.resolveApiBase());
+    if(modularApiBase)return modularApiBase;
+  }
   const host=String(window.location.hostname||'').toLowerCase();
   const isLocalHost=host==='localhost'||host==='127.0.0.1'||host==='::1'||host==='[::1]';
   const isPrimaryWebsiteHost=host==='goindiaride.in'||host==='www.goindiaride.in'||host.endsWith('.goindiaride.in');
