@@ -17,6 +17,8 @@
     const DRIVER_PENALTY_KEY = "goindiaride_driver_penalties_v1";
     const ADMIN_REPORT_KEY = "goindiaride_admin_unified_control_reports_v1";
     const ADMIN_CONNECTION_KEY = "goindiaride_admin_portal_connection_v1";
+    const FRAUD_DETECTION_KEY = "goindiaride_fraud_detection_phase1_v1";
+    const FRAUD_STATUS_POLL_MS = 60 * 1000;
     const OFFER_MS = 5 * 60 * 1000;
     const ADMIN_LIVE_STARTUP_DELAY_MS = 4500;
     const ADMIN_LIVE_IDLE_TIMEOUT_MS = 12000;
@@ -45,6 +47,91 @@
 
     function writeJson(key, value) {
         localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function normalizeApiBase(value) {
+        const text = cleanText(value, 300).replace(/\/+$/, "");
+        if (!/^https?:\/\//i.test(text)) return "";
+        return text;
+    }
+
+    function resolveFraudBackendApiBase() {
+        const explicit = normalizeApiBase(
+            window.GOINDIARIDE_API_BASE
+            || window.__GOINDIARIDE_API_ORIGIN__
+            || window.__GOINDIARIDE_RUNTIME_API_ORIGIN__
+            || localStorage.getItem("goindiaride_admin_api_base")
+            || localStorage.getItem("goindiaride_api_base")
+            || ""
+        );
+        if (explicit) return explicit;
+        const host = String(window.location && window.location.hostname || "").toLowerCase();
+        if (host === "localhost" || host === "127.0.0.1") return "http://localhost:5000";
+        if (host === "goindiaride.in" || host === "www.goindiaride.in" || host.endsWith("github.io")) {
+            return "https://goindiaride.onrender.com";
+        }
+        return "";
+    }
+
+    function fetchWithTimeout(url, options, timeoutMs = 7000) {
+        if (typeof window.fetch !== "function") return Promise.reject(new Error("fetch_unavailable"));
+        const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+        return window.fetch(url, {
+            ...(options || {}),
+            signal: controller ? controller.signal : undefined
+        }).finally(() => {
+            if (timer) window.clearTimeout(timer);
+        });
+    }
+
+    async function syncFraudDetectionStatus() {
+        const apiBase = resolveFraudBackendApiBase();
+        if (!apiBase) {
+            const current = parseJson(FRAUD_DETECTION_KEY, {});
+            writeJson(FRAUD_DETECTION_KEY, {
+                ...current,
+                active: current.active !== false,
+                version: current.version || FRAUD_DETECTION_KEY,
+                backendConnected: false,
+                lastError: "api_base_unavailable",
+                checkedAt: new Date().toISOString()
+            });
+            return null;
+        }
+
+        try {
+            const response = await fetchWithTimeout(`${apiBase}/health/fraud-detection`, {
+                method: "GET",
+                headers: { "Accept": "application/json" },
+                cache: "no-store",
+                credentials: "omit"
+            });
+            if (!response.ok) throw new Error(`status_${response.status}`);
+            const payload = await response.json();
+            const next = {
+                ...payload,
+                backendConnected: true,
+                apiBase,
+                checkedAt: new Date().toISOString()
+            };
+            writeJson(FRAUD_DETECTION_KEY, next);
+            window.dispatchEvent(new CustomEvent("goindiaride:fraud-detection-status", { detail: next }));
+            return next;
+        } catch (error) {
+            const current = parseJson(FRAUD_DETECTION_KEY, {});
+            const next = {
+                ...current,
+                active: current.active !== false,
+                version: current.version || FRAUD_DETECTION_KEY,
+                backendConnected: false,
+                apiBase,
+                lastError: cleanText(error && (error.name || error.message) || "status_fetch_failed", 120),
+                checkedAt: new Date().toISOString()
+            };
+            writeJson(FRAUD_DETECTION_KEY, next);
+            return null;
+        }
     }
 
     function cleanText(value, maxLen) {
@@ -357,28 +444,80 @@
         });
     }
 
-    function fraudFlags(bookings, payments, sosLogs) {
+    function buildPhase1FraudSnapshot(bookings, payments, payouts, sosLogs, status) {
         const flags = [];
         const phoneCounts = {};
+        const emailCounts = {};
+        const routeCounts = {};
         bookings.forEach((booking) => {
             const contact = getBookingContact(booking);
             const phone = contact.phone;
+            const email = contact.email;
+            const pickup = firstText(booking.pickup, booking.pickupLocation, booking.from, booking.origin);
+            const dropoff = firstText(booking.dropoff, booking.drop, booking.dropLocation, booking.to, booking.destination);
+            const routeKey = `${pickup.toLowerCase()} -> ${dropoff.toLowerCase()}`;
             if (phone) phoneCounts[phone] = (phoneCounts[phone] || 0) + 1;
+            if (email) emailCounts[email] = (emailCounts[email] || 0) + 1;
+            if (!isPlaceholderText(pickup) && !isPlaceholderText(dropoff)) routeCounts[routeKey] = (routeCounts[routeKey] || 0) + 1;
             const amount = Number(booking.finalFare || booking.totalFare || booking.amount || booking.fare || 0);
-            if (amount <= 0) flags.push({ severity: "high", label: `${booking.bookingId}: missing fare` });
-            if (amount > 50000) flags.push({ severity: "medium", label: `${booking.bookingId}: high fare ${money(amount)}` });
-            if (!phone && !contact.email) flags.push({ severity: "medium", label: `${booking.bookingId}: no customer contact` });
+            const id = cleanText(booking.bookingId || booking.id || "Booking", 80);
+            if (amount <= 0) flags.push({ severity: "high", algorithm: "fare_integrity", label: `${id}: missing fare` });
+            if (amount > 50000) flags.push({ severity: "medium", algorithm: "fare_integrity", label: `${id}: high fare ${money(amount)}` });
+            if (!phone && !email) flags.push({ severity: "medium", algorithm: "fake_ride_pattern", label: `${id}: no customer contact` });
+            if (isPlaceholderText(pickup) || isPlaceholderText(dropoff)) {
+                flags.push({ severity: "medium", algorithm: "fake_ride_pattern", label: `${id}: route needs pickup/drop verification` });
+            }
+            const fingerprint = cleanText(booking.deviceFingerprint || booking.fingerprint || "", 120).toLowerCase();
+            if (/bot|headless|emulator/.test(fingerprint)) {
+                flags.push({ severity: "high", algorithm: "device_session_anomaly", label: `${id}: automated device fingerprint` });
+            }
         });
         Object.entries(phoneCounts).forEach(([phone, count]) => {
-            if (count > 3) flags.push({ severity: "medium", label: `${phone}: ${count} active bookings` });
+            if (count > 3) flags.push({ severity: "high", algorithm: "identity_reuse", label: `${phone}: ${count} active bookings` });
+        });
+        Object.entries(emailCounts).forEach(([email, count]) => {
+            if (count > 3) flags.push({ severity: "high", algorithm: "identity_reuse", label: `${email}: ${count} active bookings` });
+        });
+        Object.entries(routeCounts).forEach(([route, count]) => {
+            if (count > 6) flags.push({ severity: "medium", algorithm: "booking_velocity", label: `${route}: ${count} repeated route requests` });
         });
         payments.forEach((payment) => {
-            if (payment.status === "refund_initiated") flags.push({ severity: "medium", label: `${payment.bookingId}: refund in progress` });
+            const statusText = cleanText(payment.status, 80).toLowerCase();
+            if (statusText === "refund_initiated" || statusText === "chargeback" || statusText === "failed_repeatedly") {
+                flags.push({
+                    severity: statusText === "chargeback" ? "high" : "medium",
+                    algorithm: "payment_cashout_risk",
+                    label: `${cleanText(payment.bookingId || payment.id || "Payment", 80)}: ${statusText.replace(/_/g, " ")}`
+                });
+            }
+        });
+        payouts.forEach((payout) => {
+            const amount = Number(payout.amount || payout.payoutAmount || 0);
+            const statusText = cleanText(payout.status, 80).toLowerCase();
+            if ((statusText === "pending" || statusText === "requested") && amount >= 20000) {
+                flags.push({ severity: "medium", algorithm: "payment_cashout_risk", label: `${cleanText(payout.id || payout.payoutId || "Payout", 80)}: high pending payout` });
+            }
         });
         sosLogs.filter((item) => item.status === "active").forEach((item) => {
-            flags.push({ severity: "critical", label: `${item.id || "SOS"}: active customer SOS` });
+            flags.push({ severity: "critical", algorithm: "sos_safety_signal", label: `${item.id || "SOS"}: active customer SOS` });
         });
-        return flags.slice(0, 8);
+        const algorithms = new Set(flags.map((flag) => flag.algorithm).filter(Boolean));
+        return {
+            version: FRAUD_DETECTION_KEY,
+            active: status && status.active === false ? false : true,
+            backendConnected: Boolean(status && status.backendConnected),
+            algorithms,
+            flags: flags.slice(0, 12),
+            summary: {
+                activeFlags: flags.length,
+                criticalFlags: flags.filter((flag) => flag.severity === "critical").length,
+                highFlags: flags.filter((flag) => flag.severity === "high").length
+            }
+        };
+    }
+
+    function fraudFlags(bookings, payments, sosLogs, payouts) {
+        return buildPhase1FraudSnapshot(bookings, payments, payouts || [], sosLogs, parseJson(FRAUD_DETECTION_KEY, {})).flags;
     }
 
     function demandSummary(bookings) {
@@ -460,8 +599,8 @@
     }
 
     function renderFlags(flags) {
-        if (!flags.length) return '<div class="admin-live-empty">No fraud or SOS flags currently active.</div>';
-        return flags.map((flag) => `<li class="admin-live-flag ${cleanText(flag.severity, 20)}">${cleanText(flag.label, 140)}</li>`).join("");
+        if (!flags.length) return '<div class="admin-live-empty">Phase 1 fraud detection live. No fraud or SOS flags currently active.</div>';
+        return flags.map((flag) => `<li class="admin-live-flag ${cleanText(flag.severity, 20)}"><span>${cleanText(flag.algorithm || "phase1", 40)}</span>${cleanText(flag.label, 140)}</li>`).join("");
     }
 
     function renderKyc(entries) {
@@ -545,9 +684,17 @@
         const payouts = parseJson(DRIVER_PAYOUT_KEY, []);
         const penalties = parseJson(DRIVER_PENALTY_KEY, []);
         const sosLogs = parseJson(SOS_KEY, []);
+        const fraudStatus = parseJson(FRAUD_DETECTION_KEY, {});
         const workflow = parseJson(DRIVER_WORKFLOW_KEY, {});
         const gross = bookings.reduce((sum, booking) => sum + Number(booking.finalFare || booking.totalFare || booking.amount || booking.fare || 0), 0);
-        const flags = fraudFlags(bookings, Array.isArray(payments) ? payments : [], Array.isArray(sosLogs) ? sosLogs : []);
+        const fraudSnapshot = buildPhase1FraudSnapshot(
+            bookings,
+            Array.isArray(payments) ? payments : [],
+            Array.isArray(payouts) ? payouts : [],
+            Array.isArray(sosLogs) ? sosLogs : [],
+            fraudStatus
+        );
+        const flags = fraudSnapshot.flags;
         const demand = demandSummary(bookings);
         syncAdminConnectionState({
             bookingCount: bookings.length,
@@ -568,6 +715,7 @@
                 ${card("Bookings", bookings.length, "Customer + driver queues")}
                 ${card("Income Pipeline", money(gross), "Gross ride value")}
                 ${card("Alerts", flags.length, "Fraud/SOS/compliance")}
+                ${card("Fraud Engine", fraudSnapshot.backendConnected ? "Phase 1 live" : "Phase 1 local", `${fraudSnapshot.algorithms.size || 6} algorithms active`)}
                 ${card("Payout Requests", Array.isArray(payouts) ? payouts.length : 0, `${Array.isArray(penalties) ? penalties.length : 0} penalties`)}
                 ${card("Deposit", workflow.securityDeposit?.status || "required", workflow.securityDeposit?.amount ? money(workflow.securityDeposit.amount) : "Driver security")}
             </div>
@@ -577,7 +725,7 @@
                     ${renderBookingRows(bookings)}
                 </section>
                 <section>
-                    <h3>Fraud & SOS Flags</h3>
+                    <h3>Phase 1 Fraud & SOS Flags</h3>
                     <ul class="admin-live-flags">${renderFlags(flags)}</ul>
                     <h3>Demand Prediction</h3>
                     <div class="admin-live-demand">
@@ -627,10 +775,11 @@
             if (event.target.closest("[data-admin-live-export]")) exportReport();
         });
         window.addEventListener("storage", (event) => {
-            const watched = [...BOOKING_KEYS, PAYMENT_KEY, SOS_KEY, DRIVER_WORKFLOW_KEY, DRIVER_PAYOUT_KEY, DRIVER_PENALTY_KEY];
+            const watched = [...BOOKING_KEYS, PAYMENT_KEY, SOS_KEY, DRIVER_WORKFLOW_KEY, DRIVER_PAYOUT_KEY, DRIVER_PENALTY_KEY, FRAUD_DETECTION_KEY];
             if (watched.includes(event.key) || String(event.key || "").startsWith("kyc_data")) render();
         });
         window.addEventListener("goindiaride:admin-live-control-updated", render);
+        window.addEventListener("goindiaride:fraud-detection-status", render);
     }
 
     function installStyles() {
@@ -643,7 +792,7 @@
             .admin-live-title span { color: #667085; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0; }
             .admin-live-title h2 { margin: 0.15rem 0 0; font-size: 1.25rem; }
             .admin-live-title button, .admin-live-actions button, .admin-live-kyc button { border: 0; border-radius: 7px; padding: 0.55rem 0.7rem; background: #0f766e; color: #fff; font-weight: 800; cursor: pointer; }
-            .admin-live-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.65rem; margin-bottom: 1rem; }
+            .admin-live-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.65rem; margin-bottom: 1rem; }
             .admin-live-card, .admin-live-row, .admin-live-kyc { border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fbff; padding: 0.75rem; }
             .admin-live-card small, .admin-live-card span, .admin-live-row small, .admin-live-row span, .admin-live-kyc span { display: block; color: #667085; }
             .admin-live-card strong { display: block; margin: 0.2rem 0; font-size: 1.1rem; }
@@ -655,6 +804,7 @@
             .admin-live-actions button:nth-child(3) { background: #be123c; }
             .admin-live-flags { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
             .admin-live-flag { border-radius: 7px; padding: 0.55rem; background: #eef6ff; color: #173b67; }
+            .admin-live-flag span { display: block; margin-bottom: 0.15rem; color: inherit; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0; opacity: 0.78; }
             .admin-live-flag.critical { background: #ffe4e6; color: #9f1239; }
             .admin-live-flag.high, .admin-live-flag.medium { background: #fff3d0; color: #92400e; }
             .admin-live-demand { display: flex; flex-wrap: wrap; gap: 0.4rem; color: #475467; }
@@ -668,7 +818,9 @@
     function init() {
         installStyles();
         bind();
+        scheduleIdle(syncFraudDetectionStatus, 500);
         scheduleIdle(render, ADMIN_LIVE_STARTUP_DELAY_MS);
+        setInterval(() => scheduleIdle(syncFraudDetectionStatus), FRAUD_STATUS_POLL_MS);
         setInterval(() => scheduleIdle(render), ADMIN_LIVE_RENDER_INTERVAL_MS);
     }
 
@@ -686,6 +838,8 @@
         approveKyc,
         approvePayout,
         buildReport,
-        keys: { BOOKING_KEYS, PAYMENT_KEY, SOS_KEY, DRIVER_WORKFLOW_KEY, DRIVER_PAYOUT_KEY, DRIVER_PENALTY_KEY }
+        syncFraudDetectionStatus,
+        fraudFlags,
+        keys: { BOOKING_KEYS, PAYMENT_KEY, SOS_KEY, DRIVER_WORKFLOW_KEY, DRIVER_PAYOUT_KEY, DRIVER_PENALTY_KEY, FRAUD_DETECTION_KEY }
     };
 })();

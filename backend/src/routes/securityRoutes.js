@@ -9,6 +9,7 @@ const { logSecurityEvent } = require('../services/securityLogService');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { evaluateAiThreat, applyAutoResponse } = require('../services/aiSecurityDetectiveService');
+const { getFraudDetectionStatus } = require('../services/fraudDetectionService');
 const env = require('../config/env');
 const {
   getAuthAbuseShieldSnapshot,
@@ -706,6 +707,10 @@ router.get('/automation/summary', authenticate, async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: 'Unable to fetch automation summary' });
   }
+});
+
+router.get('/fraud-detection/status', async (req, res) => {
+  return res.status(200).json(getFraudDetectionStatus());
 });
 
 router.get('/incidents', authenticate, requireAdmin, async (req, res) => {
@@ -60689,4 +60694,3 @@ router.post('/audit/admin-chain/verify', authenticate, requireAdmin, async (req,
 // === FUTURE_ROUTES_RUNTIME_SECURITYROUTES_END ===
 
 module.exports = router;
-

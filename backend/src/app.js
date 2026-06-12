@@ -19,6 +19,7 @@ const walletRoutes = require('./routes/walletRoutes');
 const liveTrackingRoutes = require('./routes/liveTrackingRoutes');
 const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
+const { getFraudDetectionStatus } = require('./services/fraudDetectionService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { globalLockdownShieldMiddleware } = require('./middleware/globalLockdownShieldMiddleware');
@@ -283,6 +284,10 @@ app.get('/', (req, res) => {
 
 app.get('/health', (req, res) => {
   return res.status(200).json({ status: 'ok', security: 'hardened' });
+});
+
+app.get('/health/fraud-detection', (req, res) => {
+  return res.status(200).json(getFraudDetectionStatus());
 });
 
 app.get('/api/auth', (req, res) => {

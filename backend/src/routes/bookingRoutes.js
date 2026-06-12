@@ -8,7 +8,11 @@ const Booking = require('../models/Booking');
 const WalletAccount = require('../models/WalletAccount');
 const WalletPaymentMode = require('../models/WalletPaymentMode');
 const User = require('../models/User');
-const { detectBookingFraud, detectFakeRideSignals } = require('../services/riskService');
+const {
+  detectBookingFraud,
+  detectFakeRideSignals,
+  recordFraudDetectionIncident
+} = require('../services/riskService');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const { verifyFareIntegrity, computeFareHash, estimateTrustedBookingFare } = require('../middleware/fareIntegrityMiddleware');
 const { walletCriticalLimiter, bookingFallbackEmailLimiter } = require('../middleware/rateLimiters');
@@ -2458,7 +2462,19 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
   };
   const cardHash = crypto.createHash('sha256').update(cardToken).digest('hex');
 
-  const fraud = await detectBookingFraud({ userId: req.user.id, ip, cardHash });
+  const fraud = await detectBookingFraud({
+    userId: req.user.id,
+    ip,
+    cardHash,
+    booking: {
+      ...req.body,
+      customerSnapshot,
+      amount,
+      distanceKm
+    },
+    deviceFingerprint: device.fingerprint,
+    referralCode
+  });
 
   const fakeRideSignals = await detectFakeRideSignals({
     ip,
@@ -2467,22 +2483,48 @@ router.post('/', authenticate, continuousRiskGate, verifyFareIntegrity, async (r
     cardHash
   });
   if (fakeRideSignals.suspicious) {
+    const riskScore = Math.max(90, Number(fakeRideSignals.phase1?.riskScore || 0));
     await User.findByIdAndUpdate(req.user.id, {
       isTemporarilyBannedUntil: new Date(Date.now() + 60 * 60 * 1000),
-      riskScore: 90,
+      riskScore,
       lastRiskUpdate: new Date()
     });
-    await logSecurityEvent({ userId: req.user.id, action: 'fake_ride_detected', ip, riskScore: 90, result: 'blocked', metadata: fakeRideSignals });
+    await recordFraudDetectionIncident({
+      userId: req.user.id,
+      email: customerSnapshot.email || req.user.email,
+      ip,
+      deviceFingerprint: device.fingerprint,
+      eventType: 'phase1_fake_ride_detected',
+      fraudResult: fakeRideSignals,
+      metadata: {
+        referralCode,
+        bookingChannel: req.body?.source || 'customer_booking'
+      }
+    });
+    await logSecurityEvent({ userId: req.user.id, action: 'fake_ride_detected', ip, riskScore, result: 'blocked', metadata: fakeRideSignals });
     return res.status(403).json({ message: 'Fake-ride or promo-abuse pattern detected', fakeRideSignals });
   }
 
   if (fraud.isFraud) {
+    const riskScore = Math.max(85, Number(fraud.riskScore || 0));
     await User.findByIdAndUpdate(req.user.id, {
       isTemporarilyBannedUntil: new Date(Date.now() + 60 * 60 * 1000),
-      riskScore: 85,
+      riskScore,
       lastRiskUpdate: new Date()
     });
-    await logSecurityEvent({ userId: req.user.id, action: 'booking_fraud_detected', ip, riskScore: 85, result: 'blocked', metadata: fraud });
+    await recordFraudDetectionIncident({
+      userId: req.user.id,
+      email: customerSnapshot.email || req.user.email,
+      ip,
+      deviceFingerprint: device.fingerprint,
+      eventType: 'phase1_booking_fraud_detected',
+      fraudResult: fraud,
+      metadata: {
+        referralCode,
+        bookingChannel: req.body?.source || 'customer_booking'
+      }
+    });
+    await logSecurityEvent({ userId: req.user.id, action: 'booking_fraud_detected', ip, riskScore, result: 'blocked', metadata: fraud });
     return res.status(403).json({ message: 'Fraud pattern detected, temporary ban applied', fraud });
   }
 
