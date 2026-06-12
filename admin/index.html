@@ -16,14 +16,14 @@
     <link rel="stylesheet" href="../css/professional-purple-theme.css">
     <script src="../js/data-preservation-guard.js?v=20260528-hangfix1"></script>
 </head>
-<body data-fit-screen="off">
+<body data-fit-screen="off" data-admin-control-panel="legacy-portal">
     <!-- Theme Toggle -->
     <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">
         <i class="fas fa-moon"></i>
     </button>
 
     <!-- Sidebar Navigation -->
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar" id="sidebar" aria-label="Admin control panel navigation" data-admin-control-region="sidebar">
         <div class="sidebar-header">
             <div class="logo">
                 <i class="fas fa-taxi"></i>
@@ -167,7 +167,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" id="adminLegacyControlDashboard" data-admin-control-dashboard="legacy-portal" data-admin-control-region="main" aria-labelledby="pageTitle">
         <!-- Top Bar -->
         <header class="topbar">
             <button class="menu-toggle" id="menuToggle">
@@ -198,6 +198,17 @@
         <div class="content-area" id="contentArea">
             <!-- Dashboard Section (Default) -->
             <section id="section-dashboard" class="content-section active">
+                <div class="admin-control-dashboard-structure" data-admin-control-structure="dashboard">
+                    <div>
+                        <span class="control-kicker">Admin control panel</span>
+                        <h2>Admin Control Panel Dashboard</h2>
+                        <p>Structured command center for live operations, booking controls, driver safety, finance review and system configuration.</p>
+                    </div>
+                    <a class="control-app-link" href="./app.html?view=overview">
+                        <i class="fas fa-network-wired"></i>
+                        <span>Open live control app</span>
+                    </a>
+                </div>
                 <div class="section-header">
                     <h2>Welcome to Admin Portal</h2>
                     <p>Customer live operations and connected admin controls</p>

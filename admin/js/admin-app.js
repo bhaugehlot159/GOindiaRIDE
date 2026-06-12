@@ -4505,6 +4505,11 @@
         const controlCount = Object.keys((state.controls && state.controls.customers) || {}).length
             + Object.keys((state.controls && state.controls.drivers) || {}).length;
         setText("#navPortalCount", Math.max(2, controlCount));
+        setText("#controlBookingsCount", pending);
+        setText("#controlPortalsCount", Math.max(2, controlCount));
+        setText("#controlDriversCount", state.drivers.length);
+        setText("#controlFinanceCount", formatMoney(farePipeline));
+        setText("#controlSafetyCount", actionNeeded);
         setText("#navBenchmarkGapCount", benchmarkSummary.gap);
         setText("#navEnterpriseGapCount", enterpriseSummary.gap);
     }
@@ -5883,6 +5888,7 @@
     function switchView(view) {
         state.view = view;
         $all(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
+        $all("[data-control-panel-view]").forEach((item) => item.classList.toggle("active", item.dataset.controlPanelView === view));
         $all(".view-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `view-${view}`));
         setText("#viewTitle", viewTitles[view] || "Admin App");
         $("#appSidebar")?.classList.remove("open");
@@ -5892,6 +5898,10 @@
     function setupEvents() {
         $all(".nav-item").forEach((item) => {
             item.addEventListener("click", () => switchView(item.dataset.view || "overview"));
+        });
+
+        $all("[data-control-panel-view]").forEach((button) => {
+            button.addEventListener("click", () => switchView(button.dataset.controlPanelView || "overview"));
         });
 
         $all("[data-admin-logout]").forEach((button) => {

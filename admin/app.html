@@ -129,9 +129,9 @@
     </script>
     <script src="../js/data-preservation-guard.js?v=20260528-hangfix1"></script>
 </head>
-<body class="admin-app-shell">
+<body class="admin-app-shell" data-admin-control-panel="app">
     <div class="app-layout">
-        <aside class="app-sidebar" id="appSidebar">
+        <aside class="app-sidebar" id="appSidebar" aria-label="Admin control panel sidebar" data-admin-control-region="sidebar">
             <div class="brand-lockup">
                 <div class="brand-mark"><i class="fas fa-route"></i></div>
                 <div>
@@ -165,7 +165,7 @@
             </div>
         </aside>
 
-        <main class="app-main">
+        <main class="app-main" id="adminControlPanelDashboard" aria-labelledby="viewTitle" data-admin-control-dashboard="app" data-admin-control-region="main">
             <header class="app-topbar">
                 <button class="icon-button mobile-menu-btn" id="mobileMenuBtn" type="button" title="Menu">
                     <i class="fas fa-bars"></i>
@@ -194,6 +194,51 @@
                     </button>
                 </div>
             </header>
+
+            <section class="control-panel-dashboard" id="adminControlPanelStructure" aria-labelledby="adminControlPanelTitle" data-admin-control-structure="dashboard">
+                <div class="control-panel-copy">
+                    <span class="section-kicker">Admin control panel</span>
+                    <h2 id="adminControlPanelTitle">Admin Control Panel Dashboard</h2>
+                    <p>Live operations command center for bookings, portals, drivers, finance, safety and workspace settings.</p>
+                </div>
+                <div class="control-panel-modules" aria-label="Admin control dashboard modules">
+                    <button class="control-module active" data-control-panel-view="overview" type="button">
+                        <i class="fas fa-gauge-high"></i>
+                        <span>Overview</span>
+                        <strong id="controlOverviewCount">Live</strong>
+                    </button>
+                    <button class="control-module" data-control-panel-view="bookings" type="button">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Bookings</span>
+                        <strong id="controlBookingsCount">0</strong>
+                    </button>
+                    <button class="control-module" data-control-panel-view="portals" type="button">
+                        <i class="fas fa-network-wired"></i>
+                        <span>Portals</span>
+                        <strong id="controlPortalsCount">2</strong>
+                    </button>
+                    <button class="control-module" data-control-panel-view="drivers" type="button">
+                        <i class="fas fa-id-card"></i>
+                        <span>Drivers</span>
+                        <strong id="controlDriversCount">0</strong>
+                    </button>
+                    <button class="control-module" data-control-panel-view="finance" type="button">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Finance</span>
+                        <strong id="controlFinanceCount">INR 0</strong>
+                    </button>
+                    <button class="control-module" data-control-panel-view="safety" type="button">
+                        <i class="fas fa-shield-halved"></i>
+                        <span>Safety</span>
+                        <strong id="controlSafetyCount">0</strong>
+                    </button>
+                    <button class="control-module" data-control-panel-view="settings" type="button">
+                        <i class="fas fa-sliders"></i>
+                        <span>Settings</span>
+                        <strong>Ready</strong>
+                    </button>
+                </div>
+            </section>
 
             <section class="ops-strip" aria-label="Operations summary">
                 <article class="metric-tile">
