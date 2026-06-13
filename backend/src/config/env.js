@@ -45,9 +45,7 @@ module.exports = {
   adminAllowedIps: splitCsv(process.env.ADMIN_ALLOWED_IPS),
   admin2FASecret: process.env.ADMIN_2FA_SECRET,
 
-  strictSecurityMode: process.env.NODE_ENV === 'production'
-    ? true
-    : String(process.env.STRICT_SECURITY_MODE || 'true').toLowerCase() === 'true',
+  strictSecurityMode: true,
   maxJsonBodyKb: Number(process.env.MAX_JSON_BODY_KB || 128),
   requestAutoBlockScore: Number(process.env.REQUEST_AUTO_BLOCK_SCORE || 85),
   requestIncidentScore: Number(process.env.REQUEST_INCIDENT_SCORE || 55),

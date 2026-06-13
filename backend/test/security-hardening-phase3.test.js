@@ -121,7 +121,7 @@ test('phase 3 hardening is wired without removing prior phase health checks', ()
   assert.match(appSource, /['"]\/health\/security-hardening['"]/);
   assert.match(appSource, /['"]\/health\/fraud-detection['"]/);
   assert.match(appSource, /['"]\/health\/gdpr-compliance['"]/);
-  assert.match(envSource, /NODE_ENV === 'production'\s*\?\s*true/);
+  assert.match(envSource, /strictSecurityMode:\s*true/);
   assert.match(securityRoutes, /['"]\/hardening\/status['"]/);
   assert.match(securityRoutes, /authenticate,\s*requireAdmin/);
   assert.match(headerMiddleware, /METHOD_NOT_ALLOWED/);
@@ -129,6 +129,6 @@ test('phase 3 hardening is wired without removing prior phase health checks', ()
   assert.match(headerMiddleware, /geolocation=\(\)/);
   assert.doesNotMatch(legacyCsrfMiddleware, /require\(['"]csurf['"]\)/);
   assert.match(legacyCsrfMiddleware, /csrfShieldMiddleware/);
-  assert.match(hardeningService, /goindiaride_security_hardening_phase3_v1/);
+  assert.match(hardeningService, /goindiaride_security_hardening_phase3_v2/);
   assert.match(hardeningService, /OWASP API Security Top 10 2023/);
 });

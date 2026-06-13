@@ -1,7 +1,7 @@
 const env = require('../config/env');
 const { ALLOW_HEADER_VALUE } = require('../middleware/apiSecurityHeadersMiddleware');
 
-const PHASE3_SECURITY_HARDENING_VERSION = 'goindiaride_security_hardening_phase3_v1';
+const PHASE3_SECURITY_HARDENING_VERSION = 'goindiaride_security_hardening_phase3_v2';
 const SECURITY_POLICY_VERSION = '2026-06-13-security-phase3';
 
 function enabled(value) {
