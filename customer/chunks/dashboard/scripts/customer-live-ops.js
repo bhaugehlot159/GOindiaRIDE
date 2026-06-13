@@ -10,6 +10,7 @@
         'goindiaride_admin_customer_bookings_current_v1',
         'goindiaride_live_customer_booking_queue_v1'
     ];
+    var driverGpsTimer = null;
 
     function safeText(value, fallback) {
         var text = String(value == null ? '' : value)
@@ -252,12 +253,121 @@
     }
 
     function closeLiveModal() {
+        clearDriverGpsTimer();
         var existing = document.getElementById('dashboardLiveOpsModal');
         if (existing) existing.remove();
     }
 
+    function clearDriverGpsTimer() {
+        if (driverGpsTimer) {
+            clearInterval(driverGpsTimer);
+            driverGpsTimer = null;
+        }
+    }
+
     function rideField(label, value) {
         return '<div class="live-ops-field"><span>' + label + '</span><strong>' + safeText(value, '-').slice(0, 160) + '</strong></div>';
+    }
+
+    function driverGpsPanelMarkup() {
+        return '<section class="live-driver-gps" data-live-driver-gps data-state="loading">' +
+            '<div class="live-driver-gps-head">' +
+                '<span><i class="fas fa-location-crosshairs"></i> Driver live GPS</span>' +
+                '<strong data-driver-gps-status>Checking...</strong>' +
+            '</div>' +
+            '<div class="live-driver-gps-body" data-driver-gps-body>' +
+                '<p>Checking assigned driver location from the live tracking backend.</p>' +
+            '</div>' +
+        '</section>';
+    }
+
+    function getBridge() {
+        return window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__;
+    }
+
+    function formatDriverGpsTime(value) {
+        var time = new Date(value || 0).getTime();
+        if (!Number.isFinite(time) || !time) return 'time unavailable';
+        var seconds = Math.max(0, Math.round((Date.now() - time) / 1000));
+        if (seconds < 60) return seconds + 's ago';
+        var minutes = Math.round(seconds / 60);
+        if (minutes < 60) return minutes + 'm ago';
+        var hours = Math.round(minutes / 60);
+        return hours + 'h ago';
+    }
+
+    function getDriverGpsRows(response) {
+        return response && Array.isArray(response.items) ? response.items : [];
+    }
+
+    async function fetchDriverGps(rideId) {
+        var bridge = getBridge();
+        if (!bridge || typeof bridge.requestLiveTracking !== 'function') {
+            return { ok: false, reason: 'live_tracking_bridge_unavailable' };
+        }
+        var id = safeText(rideId, '');
+        if (!id) {
+            return { ok: false, reason: 'booking_id_missing' };
+        }
+        return bridge.requestLiveTracking('GET', '/locations?bookingId=' + encodeURIComponent(id) + '&subjectType=driver&status=tracking&limit=5');
+    }
+
+    function renderDriverGps(modal, response, rideId) {
+        var panel = modal && modal.querySelector('[data-live-driver-gps]');
+        if (!panel) return;
+        var statusNode = panel.querySelector('[data-driver-gps-status]');
+        var bodyNode = panel.querySelector('[data-driver-gps-body]');
+        if (!statusNode || !bodyNode) return;
+
+        var rows = getDriverGpsRows(response);
+        var row = rows[0];
+        if (!response || response.ok === false) {
+            panel.setAttribute('data-state', 'attention');
+            statusNode.textContent = 'Login required';
+            bodyNode.innerHTML = '<p>Driver GPS needs a signed-in booking session. Ride ' + safeText(rideId, '-') + ' is still protected.</p>';
+            return;
+        }
+        if (!row) {
+            panel.setAttribute('data-state', 'attention');
+            statusNode.textContent = response.accessScope === 'customer_waiting_for_assigned_driver' ? 'Driver pending' : 'Waiting for GPS';
+            bodyNode.innerHTML = '<p>No assigned driver GPS point is available yet. This will update after driver assignment and driver app tracking starts.</p>';
+            return;
+        }
+
+        var lat = safeNumber(row.lat, 0);
+        var lng = safeNumber(row.lng, 0);
+        var accuracy = row.accuracy == null ? '-' : Math.round(safeNumber(row.accuracy, 0)) + 'm';
+        var freshness = row.safety && row.safety.freshnessStatus ? row.safety.freshnessStatus : safeText(row.status, 'tracking');
+        var updatedAt = row.updatedAt || row.lastReportedAt || row.capturedAt;
+        var mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(lat.toFixed(6) + ',' + lng.toFixed(6));
+        var embedUrl = 'https://maps.google.com/maps?q=' + encodeURIComponent(lat.toFixed(6) + ',' + lng.toFixed(6)) + '&z=15&output=embed';
+
+        panel.setAttribute('data-state', freshness === 'fresh' || freshness === 'warm' ? 'ready' : 'attention');
+        statusNode.textContent = freshness + ' | ' + formatDriverGpsTime(updatedAt);
+        bodyNode.innerHTML =
+            '<iframe class="live-driver-map" title="Assigned driver live location" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="' + embedUrl + '"></iframe>' +
+            '<div class="live-driver-gps-meta">' +
+                '<span>Lat ' + lat.toFixed(6) + '</span>' +
+                '<span>Lng ' + lng.toFixed(6) + '</span>' +
+                '<span>Accuracy ' + accuracy + '</span>' +
+                '<span>Updated ' + formatDriverGpsTime(updatedAt) + '</span>' +
+            '</div>' +
+            '<a class="live-driver-map-link" href="' + mapsUrl + '" target="_blank" rel="noopener"><i class="fas fa-map-location-dot"></i> Open driver on map</a>';
+    }
+
+    function startDriverGpsRefresh(modal, rideId) {
+        clearDriverGpsTimer();
+        var id = safeText(rideId, '');
+        if (!id || !modal) return;
+        var refresh = async function () {
+            if (!document.body.contains(modal)) {
+                clearDriverGpsTimer();
+                return;
+            }
+            renderDriverGps(modal, await fetchDriverGps(id), id);
+        };
+        refresh();
+        driverGpsTimer = setInterval(refresh, 15000);
     }
 
     function openTrackingFallback(rideId) {
@@ -279,12 +389,18 @@
                 rideField('Fare', formatInrLive(ride.totalFare || ride.fare || ride.amount || 0)) +
                 rideField('Vehicle', ride.vehicleType || ride.rideType || 'Assigned after approval') +
             '</div>' +
+            driverGpsPanelMarkup() +
             '<div class="live-ops-actions">' +
+                '<button type="button" data-live-refresh-driver><i class="fas fa-arrows-rotate"></i> Refresh Driver GPS</button>' +
                 '<button type="button" data-live-share><i class="fas fa-share-alt"></i> Share Trip</button>' +
                 '<button type="button" data-live-safety><i class="fas fa-shield-alt"></i> Open Safety</button>' +
                 '<button type="button" data-live-copy><i class="fas fa-copy"></i> Copy Ride ID</button>' +
             '</div>';
         var modal = modalShell('Live Trip Tracking', 'Runtime tracking is connected. If live GPS is delayed, this panel shows the latest synced ride state.', body);
+        startDriverGpsRefresh(modal, id);
+        modal.querySelector('[data-live-refresh-driver]')?.addEventListener('click', async function () {
+            renderDriverGps(modal, await fetchDriverGps(id), id);
+        });
         modal.querySelector('[data-live-share]')?.addEventListener('click', function () {
             var text = 'GO India RIDE trip ' + id + ': ' + safeText(ride.pickup || ride.pickupLocation, 'Pickup') + ' to ' + safeText(ride.dropoff || ride.dropLocation || ride.drop, 'Drop') + '. Status: ' + safeText(ride.status, 'Pending') + '.';
             window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');

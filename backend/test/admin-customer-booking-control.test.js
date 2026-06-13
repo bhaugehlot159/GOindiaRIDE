@@ -515,7 +515,7 @@ test('customer runtime bridge preserves fresher admin-edited rows until backend 
   assert.match(adminApp, /mode:\s*cleanText\(mode \|\| "admin_edit"/);
   assert.match(adminApp, /syncAdminBookingUpdateToFallbackQueue\(updatedBooking,\s*"admin_edit"/);
   assert.match(customerDashboardPage, /goindiaride_admin_customer_bookings_current_v1/);
-  assert.match(customerDashboard, /customer-dashboard-live-bridge\.js\?v=20260531-customer-freeze1/);
+  assert.match(customerDashboard, /customer-dashboard-live-bridge\.js\?v=20260613-driver-gps1/);
 
   assert.match(runtimeBridge, /LOCAL_BOOKING_KEYS/);
   assert.match(runtimeBridge, /goindiaride_admin_customer_bookings_current_v1/);

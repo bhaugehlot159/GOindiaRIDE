@@ -294,6 +294,8 @@ test('customer local booking sync mirrors successful booking writes to Firebase 
   assert.ok(firebaseWrites.some((write) => write.url.includes(`/goindiaride_test/bookings/byCustomer/${TEST_USER_ID}/RIDLOCAL123.json`)));
   assert.ok(firebaseWrites.some((write) => write.url.includes('/goindiaride_test/admin/bookingReview/RIDLOCAL123.json')));
   assert.ok(firebaseWrites.some((write) => write.url.includes('/goindiaride_test/bookings/events/RIDLOCAL123/')));
+  assert.ok(firebaseWrites.some((write) => write.url.includes('/goindiaride_test/rides/RIDLOCAL123/status.json')));
+  assert.ok(firebaseWrites.some((write) => write.url.includes('/goindiaride_test/rides/RIDLOCAL123/summary.json')));
   assert.ok(firebaseWrites.some((write) => write.body && write.body.eventType === 'booking_local_synced'));
 });
 

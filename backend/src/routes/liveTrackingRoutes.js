@@ -1,5 +1,6 @@
 const express = require('express');
 const LiveLocation = require('../models/LiveLocation');
+const Booking = require('../models/Booking');
 const { authenticate } = require('../middleware/authMiddleware');
 const { getClientIp } = require('../utils/device');
 const { mirrorLiveLocationRealtimeUpdate } = require('../services/firebaseRealtimeDatabaseService');
@@ -32,6 +33,18 @@ function cleanDate(value) {
 
 function isAdminUser(user = {}) {
   return user.role === 'admin' || user.accountType === 'admin';
+}
+
+function entityId(value) {
+  if (!value) return '';
+  if (typeof value === 'object') {
+    return cleanString(value._id || value.id, 140);
+  }
+  return cleanString(value, 140);
+}
+
+function getActorId(user = {}) {
+  return entityId(user.id || user._id || user.sub);
 }
 
 function resolveSubjectType(user = {}, requested) {
@@ -110,6 +123,56 @@ function serializeLocation(row) {
     metadata: source.metadata || {},
     history: Array.isArray(source.history) ? source.history : undefined
   };
+}
+
+async function resolveParticipantLocationAccess(req, bookingId, requestedSubjectType) {
+  if (!bookingId) {
+    return { error: 'bookingId is required to read another participant location', status: 400 };
+  }
+
+  const booking = await Booking.findOne({ bookingId }).lean();
+  const actorSubjectType = resolveSubjectType(req.user);
+  const actorId = getActorId(req.user);
+  const bookingCustomerId = entityId(booking && booking.userId);
+  const bookingDriverId = entityId(booking && booking.driverId);
+
+  if (!booking || !actorId) {
+    return { error: 'Booking participant access required for live location', status: 403 };
+  }
+
+  if (actorSubjectType === 'customer') {
+    if (bookingCustomerId !== actorId || requestedSubjectType !== 'driver') {
+      return { error: 'Booking participant access required for live location', status: 403 };
+    }
+    if (!bookingDriverId) {
+      return { empty: true, accessScope: 'customer_waiting_for_assigned_driver' };
+    }
+    return {
+      accessScope: 'customer_assigned_driver_location',
+      filter: {
+        subjectType: 'driver',
+        userId: bookingDriverId
+      }
+    };
+  }
+
+  if (actorSubjectType === 'driver') {
+    if (bookingDriverId !== actorId || requestedSubjectType !== 'customer') {
+      return { error: 'Booking participant access required for live location', status: 403 };
+    }
+    if (!bookingCustomerId) {
+      return { empty: true, accessScope: 'driver_waiting_for_customer_location' };
+    }
+    return {
+      accessScope: 'driver_assigned_customer_location',
+      filter: {
+        subjectType: 'customer',
+        userId: bookingCustomerId
+      }
+    };
+  }
+
+  return { error: 'Booking participant access required for live location', status: 403 };
 }
 
 async function mirrorLocation(row, eventType, req) {
@@ -276,18 +339,40 @@ router.get('/locations', authenticate, async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit || 80), 1), 250);
   const bookingId = cleanString(req.query.bookingId || req.query.rideId || req.query.tripId, 120).toUpperCase();
   const subjectType = cleanString(req.query.subjectType, 40).toLowerCase();
+  const requestedSubjectType = SUBJECT_TYPES.has(subjectType) ? subjectType : '';
   const status = cleanString(req.query.status, 40).toLowerCase();
   const filter = {};
+  let accessScope = isAdminUser(req.user) ? 'admin' : 'self';
 
   if (bookingId) filter.bookingId = bookingId;
-  if (SUBJECT_TYPES.has(subjectType)) filter.subjectType = subjectType;
   if (status === 'tracking' || status === 'stopped') filter.status = status;
 
-  if (!isAdminUser(req.user)) {
-    filter.userId = cleanString(req.user.id, 140);
-    filter.subjectType = resolveSubjectType(req.user, subjectType);
-  } else if (req.query.userId) {
-    filter.userId = cleanString(req.query.userId, 140);
+  if (isAdminUser(req.user)) {
+    if (requestedSubjectType) filter.subjectType = requestedSubjectType;
+    if (req.query.userId) filter.userId = cleanString(req.query.userId, 140);
+  } else {
+    const actorSubjectType = resolveSubjectType(req.user);
+    if (bookingId && requestedSubjectType && requestedSubjectType !== actorSubjectType) {
+      const participantAccess = await resolveParticipantLocationAccess(req, bookingId, requestedSubjectType);
+      if (participantAccess.error) {
+        return res.status(participantAccess.status || 403).json({ ok: false, message: participantAccess.error });
+      }
+      accessScope = participantAccess.accessScope || 'participant';
+      if (participantAccess.empty) {
+        return res.status(200).json({
+          ok: true,
+          version: PHASE7_LIVE_LOCATION_TRACKING_VERSION,
+          policyVersion: LIVE_LOCATION_TRACKING_POLICY_VERSION,
+          accessScope,
+          count: 0,
+          items: []
+        });
+      }
+      Object.assign(filter, participantAccess.filter || {});
+    } else {
+      filter.userId = getActorId(req.user);
+      filter.subjectType = actorSubjectType;
+    }
   }
 
   let query = LiveLocation.find(filter).sort({ updatedAt: -1 }).limit(limit);
@@ -300,6 +385,7 @@ router.get('/locations', authenticate, async (req, res) => {
     ok: true,
     version: PHASE7_LIVE_LOCATION_TRACKING_VERSION,
     policyVersion: LIVE_LOCATION_TRACKING_POLICY_VERSION,
+    accessScope,
     count: items.length,
     items: items.map((item) => ({
       ...serializeLocation(item),

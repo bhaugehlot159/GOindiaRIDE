@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { mirrorNotificationRealtimeUpdate } = require('./firebaseRealtimeDatabaseService');
 
 function sanitizeText(value, maxLen = 140) {
   return String(value || '')
@@ -56,6 +57,18 @@ function uniqueIds(users) {
   return [...new Set(users.map((item) => item._id.toString()))];
 }
 
+async function mirrorNotificationSafe(notification, eventType) {
+  if (!notification) return null;
+  try {
+    return mirrorNotificationRealtimeUpdate(notification, {
+      eventType,
+      source: 'portal_notification_service'
+    });
+  } catch (_error) {
+    return null;
+  }
+}
+
 async function pushAudienceNotifications({
   audience,
   bookingId,
@@ -76,7 +89,7 @@ async function pushAudienceNotifications({
   const ids = uniqueIds(users);
 
   if (!ids.length) {
-    await Notification.create({
+    const notification = await Notification.create({
       userId: null,
       audience,
       bookingId,
@@ -85,6 +98,7 @@ async function pushAudienceNotifications({
       message,
       metadata
     });
+    await mirrorNotificationSafe(notification, `booking_${action}_notification`);
 
     return { audience, count: 1, fallback: true };
   }
@@ -99,7 +113,8 @@ async function pushAudienceNotifications({
     metadata
   }));
 
-  await Notification.insertMany(docs, { ordered: false });
+  const createdDocs = await Notification.insertMany(docs, { ordered: false });
+  await Promise.all(createdDocs.map((doc) => mirrorNotificationSafe(doc, `booking_${action}_notification`)));
 
   return { audience, count: docs.length, fallback: false };
 }
@@ -241,7 +256,7 @@ async function createBookingCustomerReviewNotification({
     ? `Booking ${bookingId} approved by admin.`
     : `Booking ${bookingId} rejected by admin.`;
 
-  await Notification.create({
+  const notification = await Notification.create({
     userId: customerId || null,
     audience: 'customer',
     bookingId,
@@ -254,6 +269,7 @@ async function createBookingCustomerReviewNotification({
       adminReviewNote: sanitizeText(note, 260)
     }
   });
+  await mirrorNotificationSafe(notification, 'booking_admin_review_customer_notification');
 }
 
 module.exports.createBookingAdminReviewAlert = createBookingAdminReviewAlert;

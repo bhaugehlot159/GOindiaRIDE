@@ -1389,6 +1389,8 @@
   bridge.findRideById = findRideById;
   bridge.getRuntimeUserKey = getRuntimeUserKey;
   bridge.requestBusiness = requestDashboardBusiness;
+  bridge.requestLiveTracking = requestLiveTracking;
+  bridge.getCustomerLiveTrackingBookingId = getCustomerLiveTrackingBookingId;
   bridge.observeRuntimeCards = observeRuntimeCards;
   bridge.enhanceRuntimeCards = enhanceRuntimeCards;
   bridge.liveTrackingWatchId = null;

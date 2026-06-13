@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v63-20260613-location-phase7';
+const CACHE_NAME = 'goindiaride-pwa-v64-20260613-driver-gps';
 const ASSETS = [
   './',
   './index.html',

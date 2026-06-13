@@ -380,6 +380,44 @@ function bookingSummary(snapshot) {
   };
 }
 
+function bookingStatusSummary(snapshot) {
+  return {
+    bookingId: snapshot.bookingId,
+    status: snapshot.status,
+    adminReviewStatus: snapshot.adminReviewStatus,
+    userId: snapshot.userId,
+    driverId: snapshot.driverId,
+    updatedAt: snapshot.updatedAt,
+    sourceKey: snapshot.sourceKey
+  };
+}
+
+function normalizeNotificationSnapshot(notification) {
+  const source = safeMixedObject(notification);
+  const id = normalizeEntityId(source._id || source.id)
+    || `${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+  const userId = normalizeEntityId(source.userId) || null;
+  const audience = cleanString(source.audience || 'customer', 40).toLowerCase();
+  const createdAt = toIsoString(source.createdAt) || new Date().toISOString();
+  const updatedAt = toIsoString(source.updatedAt) || createdAt;
+
+  return {
+    id,
+    userId,
+    audience,
+    bookingId: cleanString(source.bookingId, 120).toUpperCase() || null,
+    type: cleanString(source.type || 'notification', 80),
+    title: cleanString(source.title || 'GOindiaRIDE update', 120),
+    message: cleanString(source.message || '', 400),
+    metadata: safeMixedObject(source.metadata),
+    isRead: Boolean(source.isRead),
+    readAt: toIsoString(source.readAt) || null,
+    createdAt,
+    updatedAt,
+    sourceKey: cleanString(source.sourceKey || 'backend_notification_collection', 120)
+  };
+}
+
 function buildEvent(snapshot, options = {}) {
   return {
     eventId: `${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
@@ -552,7 +590,10 @@ async function publishBookingRealtimeUpdate(booking, options = {}) {
     { path: `${config.namespace}/bookings/byId/${bookingKey}`, value: snapshot },
     { path: `${config.namespace}/bookings/events/${bookingKey}/${event.eventId}`, value: event },
     { path: `${config.namespace}/bookingEvents/latest`, value: event },
-    { path: `${config.namespace}/meta/lastBookingEvent`, value: event }
+    { path: `${config.namespace}/meta/lastBookingEvent`, value: event },
+    { path: `${config.namespace}/rides/${bookingKey}/status`, value: bookingStatusSummary(snapshot) },
+    { path: `${config.namespace}/rides/${bookingKey}/summary`, value: summary },
+    { path: `${config.namespace}/rides/${bookingKey}/events/${event.eventId}`, value: event }
   ];
 
   const customerKey = toRealtimeKey(snapshot.userId);
@@ -597,6 +638,7 @@ async function publishLiveLocationRealtimeUpdate(location, options = {}) {
   if (!snapshot) return { ok: false, skipped: true, reason: 'location_invalid' };
 
   const event = buildLiveLocationEvent(snapshot, options);
+  const entityKey = toRealtimeKey(snapshot.userId);
   const subjectKey = toRealtimeKey(`${snapshot.subjectType}_${snapshot.userId}`);
   const sessionKey = toRealtimeKey(snapshot.sessionId);
   const subjectBookingKey = toRealtimeKey(`${snapshot.subjectType}_${snapshot.userId}_${snapshot.sessionId}`);
@@ -612,6 +654,76 @@ async function publishLiveLocationRealtimeUpdate(location, options = {}) {
   if (bookingKey) {
     writes.push({
       path: `${config.namespace}/liveTracking/latest/byBooking/${bookingKey}/${subjectBookingKey}`,
+      value: snapshot
+    });
+    writes.push({
+      path: `${config.namespace}/rides/${bookingKey}/liveLocation/${snapshot.subjectType}/${entityKey}`,
+      value: snapshot
+    });
+    writes.push({
+      path: `${config.namespace}/rides/${bookingKey}/liveLocation/latest/${snapshot.subjectType}`,
+      value: liveLocationSummary(snapshot)
+    });
+  }
+
+  if (snapshot.subjectType === 'driver' && entityKey) {
+    writes.push({
+      path: `${config.namespace}/drivers/${entityKey}/location`,
+      value: snapshot
+    });
+  }
+
+  const results = [];
+  for (const write of writes) {
+    results.push(await writeRealtimeValue(config, write.path, write.value));
+  }
+
+  const failed = results.filter((result) => !result.ok && !result.skipped);
+  const skipped = results.filter((result) => result.skipped);
+  return {
+    ok: failed.length === 0 && skipped.length === 0,
+    skipped: skipped.length === results.length,
+    reason: skipped.length === results.length ? skipped[0]?.reason || 'skipped' : undefined,
+    written: results.filter((result) => result.ok).length,
+    failed: failed.length,
+    results
+  };
+}
+
+async function publishNotificationRealtimeUpdate(notification, options = {}) {
+  const config = getRealtimeConfig();
+  if (!config.enabled) return { ok: false, skipped: true, reason: 'disabled' };
+  if (!config.databaseURL) return { ok: false, skipped: true, reason: 'database_url_missing' };
+
+  const snapshot = normalizeNotificationSnapshot(notification);
+  if (!snapshot) return { ok: false, skipped: true, reason: 'notification_invalid' };
+
+  const eventId = `${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+  const targetKey = toRealtimeKey(snapshot.userId || snapshot.audience || 'global');
+  const notificationKey = toRealtimeKey(snapshot.id || eventId);
+  const event = {
+    eventId,
+    eventType: cleanString(options.eventType || 'notification_updated', 80),
+    notificationId: snapshot.id,
+    userId: snapshot.userId,
+    audience: snapshot.audience,
+    bookingId: snapshot.bookingId,
+    type: snapshot.type,
+    source: cleanString(options.source || snapshot.sourceKey || 'backend_notification_collection', 120),
+    emittedAt: new Date().toISOString()
+  };
+
+  const writes = [
+    { path: `${config.namespace}/notifications/${targetKey}/${notificationKey}`, value: snapshot },
+    { path: `${config.namespace}/notifications/latest/${targetKey}`, value: snapshot },
+    { path: `${config.namespace}/notificationEvents/${targetKey}/${event.eventId}`, value: event },
+    { path: `${config.namespace}/meta/lastNotificationEvent`, value: event }
+  ];
+
+  if (snapshot.bookingId) {
+    const bookingKey = toRealtimeKey(snapshot.bookingId);
+    writes.push({
+      path: `${config.namespace}/rides/${bookingKey}/notifications/${notificationKey}`,
       value: snapshot
     });
   }
@@ -693,6 +805,36 @@ async function mirrorLiveLocationRealtimeUpdate(location, options = {}) {
   }
 }
 
+async function mirrorNotificationRealtimeUpdate(notification, options = {}) {
+  try {
+    const result = await publishNotificationRealtimeUpdate(notification, options);
+    if (result.skipped && rememberSkip(`notification_${result.reason}`)) {
+      logger.info('firebase_realtime_database_notification_skipped', {
+        reason: result.reason,
+        eventType: options.eventType || 'notification_updated'
+      });
+    }
+    if (result.failed) {
+      logger.warn('firebase_realtime_database_notification_partial_failure', {
+        failed: result.failed,
+        written: result.written,
+        eventType: options.eventType || 'notification_updated'
+      });
+    }
+    return result;
+  } catch (error) {
+    logger.warn('firebase_realtime_database_notification_failed', {
+      eventType: options.eventType || 'notification_updated',
+      message: cleanString(error.message, 180)
+    });
+    return {
+      ok: false,
+      skipped: false,
+      reason: cleanString(error.message, 180)
+    };
+  }
+}
+
 function resetFirebaseRealtimeDatabaseServiceForTests() {
   cachedAccessToken = '';
   cachedAccessTokenExpiresAt = 0;
@@ -703,9 +845,12 @@ module.exports = {
   getRealtimeConfig,
   normalizeBookingSnapshot,
   normalizeLiveLocationSnapshot,
+  normalizeNotificationSnapshot,
   publishBookingRealtimeUpdate,
   mirrorBookingRealtimeUpdate,
   publishLiveLocationRealtimeUpdate,
   mirrorLiveLocationRealtimeUpdate,
+  publishNotificationRealtimeUpdate,
+  mirrorNotificationRealtimeUpdate,
   resetFirebaseRealtimeDatabaseServiceForTests
 };

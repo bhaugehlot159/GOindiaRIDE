@@ -125,7 +125,7 @@ test('phase 5 admin UI is wired as a modular operations center', () => {
   assert.match(css, /\.ops-signal-card/);
   assert.match(css, /\.ops-lane/);
   assert.match(css, /\.ops-health-pill/);
-  assert.match(serviceWorker, /goindiaride-pwa-v63-20260613-location-phase7/);
+  assert.match(serviceWorker, /goindiaride-pwa-v64-20260613-driver-gps/);
   assert.match(serviceWorker, /admin\/js\/admin-operations-center\.js/);
   assert.match(serviceWorker, /addEventListener\(['"]push['"]/);
   assert.match(serviceWorker, /showNotification/);

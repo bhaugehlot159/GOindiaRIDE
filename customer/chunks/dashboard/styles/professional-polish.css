@@ -531,6 +531,86 @@ body.customer-dashboard-page .live-ops-actions a {
     gap: 0.45rem;
 }
 
+body.customer-dashboard-page .live-driver-gps {
+    margin-top: 1rem;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #eff6ff;
+}
+
+body.customer-dashboard-page .live-driver-gps[data-state="attention"] {
+    border-color: #fed7aa;
+    background: #fff7ed;
+}
+
+body.customer-dashboard-page .live-driver-gps-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid rgba(37, 99, 235, 0.18);
+}
+
+body.customer-dashboard-page .live-driver-gps-head span,
+body.customer-dashboard-page .live-driver-gps-head strong {
+    color: #111827;
+    font-size: 0.86rem;
+    font-weight: 850;
+}
+
+body.customer-dashboard-page .live-driver-gps-body {
+    padding: 0.9rem;
+}
+
+body.customer-dashboard-page .live-driver-gps-body p {
+    margin: 0;
+    color: #4b5563;
+    font-weight: 700;
+}
+
+body.customer-dashboard-page .live-driver-map {
+    width: 100%;
+    height: 230px;
+    border: 0;
+    border-radius: 12px;
+    background: #e5e7eb;
+}
+
+body.customer-dashboard-page .live-driver-gps-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+}
+
+body.customer-dashboard-page .live-driver-gps-meta span {
+    min-width: 0;
+    padding: 0.55rem;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 0.76rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+body.customer-dashboard-page .live-driver-map-link {
+    margin-top: 0.75rem;
+    min-height: 38px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    color: #ffffff;
+    background: #1d4ed8;
+    text-decoration: none;
+    font-weight: 850;
+}
+
 body.customer-dashboard-page .live-rating-row {
     display: flex;
     gap: 0.45rem;
@@ -1337,6 +1417,14 @@ body.customer-dashboard-page #profileTab .profile-save-status {
     body.customer-dashboard-page .live-ops-grid,
     body.customer-dashboard-page .live-trip-progress {
         grid-template-columns: 1fr;
+    }
+
+    body.customer-dashboard-page .live-driver-gps-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.customer-dashboard-page .live-driver-map {
+        height: 190px;
     }
 
     body.customer-dashboard-page .live-feature-card {

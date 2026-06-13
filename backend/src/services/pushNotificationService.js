@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Notification = require('../models/Notification');
 const PushRuntimeConfig = require('../models/PushRuntimeConfig');
 const PushSubscription = require('../models/PushSubscription');
+const { mirrorNotificationRealtimeUpdate } = require('./firebaseRealtimeDatabaseService');
 
 const PHASE4_PUSH_NOTIFICATION_VERSION = 'goindiaride_push_notifications_phase4_v1';
 const PUSH_POLICY_VERSION = '2026-06-13-push-engagement-v1';
@@ -496,6 +497,10 @@ async function createEngagementNotification({
       url: safeText(url, 500),
       pushPolicyVersion: PUSH_POLICY_VERSION
     }
+  });
+  await mirrorNotificationRealtimeUpdate(notification, {
+    eventType: 'push_engagement_notification',
+    source: 'push_notification_service'
   });
 
   const filter = userId
