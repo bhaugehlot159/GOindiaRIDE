@@ -111,6 +111,7 @@ test('phase 3 detailed hardening route remains under protected security namespac
 
 test('phase 3 hardening is wired without removing prior phase health checks', () => {
   const appSource = read('backend/src/app.js');
+  const envSource = read('backend/src/config/env.js');
   const securityRoutes = read('backend/src/routes/securityRoutes.js');
   const headerMiddleware = read('backend/src/middleware/apiSecurityHeadersMiddleware.js');
   const legacyCsrfMiddleware = read('backend/src/middleware/csrfProtectionMiddleware.js');
@@ -120,6 +121,7 @@ test('phase 3 hardening is wired without removing prior phase health checks', ()
   assert.match(appSource, /['"]\/health\/security-hardening['"]/);
   assert.match(appSource, /['"]\/health\/fraud-detection['"]/);
   assert.match(appSource, /['"]\/health\/gdpr-compliance['"]/);
+  assert.match(envSource, /NODE_ENV === 'production'\s*\?\s*true/);
   assert.match(securityRoutes, /['"]\/hardening\/status['"]/);
   assert.match(securityRoutes, /authenticate,\s*requireAdmin/);
   assert.match(headerMiddleware, /METHOD_NOT_ALLOWED/);
