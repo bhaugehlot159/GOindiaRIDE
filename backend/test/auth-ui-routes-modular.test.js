@@ -14,6 +14,9 @@ test('login auth page binds UI through the modular auth route script', () => {
   const routes = read('shared/chunks/auth/login/scripts/auth-routes.js');
 
   assert.match(login, /auth-routes\.js\?v=20260612-auth-routes1/);
+  assert.match(login, /auth-professional\.css\?v=20260613-adminfix1/);
+  assert.match(login, /admin-2fa\.js\?v=20260613-adminfix1/);
+  assert.match(login, /document\.documentElement\.classList\.add\('admin-auth-mode'\)/);
   assert.doesNotMatch(login, /\son(?:click|change)=/i);
   assert.doesNotMatch(login, /GOINDIARIDE_API_BASE\s*=\s*['"]https:\/\/goindiaride\.onrender\.com['"]/);
 
@@ -60,6 +63,8 @@ test('auth chunks resolve endpoints and redirects from the shared auth route mod
   const adminSecurity = read('shared/chunks/auth/login/scripts/admin-security-firebase.js');
   const recovery = read('shared/chunks/auth/login/scripts/recovery-ui-init.js');
   const admin2fa = read('shared/chunks/auth/login/scripts/admin-2fa.js');
+  const coreStorage = read('shared/chunks/auth/login/scripts/core-storage.js');
+  const authCss = read('css/auth-professional.css');
   const customer = read('shared/chunks/auth/login/scripts/customer-login.js');
   const driver = read('shared/chunks/auth/login/scripts/driver-login.js');
 
@@ -71,6 +76,15 @@ test('auth chunks resolve endpoints and redirects from the shared auth route mod
   assert.match(recovery, /resolveAuthEndpoint\('forgotPasswordConfirm'\)/);
   assert.match(admin2fa, /resolveAuthEndpoint\('otpRequest'\)/);
   assert.match(admin2fa, /resolveAuthEndpoint\('otpVerify'\)/);
+  assert.match(admin2fa, /setAdminAuthMode\(true\)/);
+  assert.match(admin2fa, /backendDeliveryError/);
+  assert.match(admin2fa, /OTP requested through Firebase/);
+  assert.doesNotMatch(admin2fa, /Agar OTP mobile par aa gaya hai/);
+  assert.doesNotMatch(admin2fa, /if\(channel==='sms'\)\{\s*try\{\s*adminMobileConfirmation=await sendOtpByFirebase/);
+  assert.match(coreStorage, /AUTH_REQUEST_TIMEOUT_MS=45000/);
+  assert.match(authCss, /html body\.auth-login-page \.auth-utility-nav\s*\{[\s\S]*position: fixed !important;[\s\S]*top: 34px !important;/);
+  assert.match(authCss, /admin-auth-mode[\s\S]*#roleSelector/);
+  assert.match(authCss, /admin-auth-mode[\s\S]*#loginMethodSelector/);
 
   [backendAuth, adminSecurity, recovery, admin2fa].forEach((source) => {
     assert.doesNotMatch(source, /callBackendAuth\('\/api\/auth/);

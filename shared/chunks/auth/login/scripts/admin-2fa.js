@@ -43,6 +43,11 @@ async function adminStep1Login(){
   document.getElementById('adminStep2').style.display='block';
 }
 function updateAdmin2FAMethod(){}
+function setAdminAuthMode(active){
+  const enabled=Boolean(active);
+  document.documentElement.classList.toggle('admin-auth-mode',enabled);
+  if(document.body)document.body.classList.toggle('admin-auth-mode',enabled);
+}
 function formatOtpDeliveryTarget(delivery){
   if(!delivery||typeof delivery!=='object')return'';
   const target=sanitizeInput(delivery.target||'');
@@ -114,35 +119,34 @@ async function sendAdmin2FAOTP(){
   };
   localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
 
-  if(channel==='sms'){
-    try{
-      adminMobileConfirmation=await sendOtpByFirebase(phone);
-      context.provider='firebase-phone';
-      context.issuedAt=new Date().toISOString();
-      localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
-      localStorage.removeItem(ADMIN_OTP_KEY);
-      localStorage.setItem(ADMIN_OTP_METHOD_KEY,method);
-      showSuccess(`OTP sent as SMS to registered admin mobile (${phone.replace(/^\+(\d{2})\d+(\d{4})$/,'+$1******$2')}).`);
-      openAdminOtpEntryStep();
-      return;
-    }catch(e){
-      adminMobileConfirmation=null;
-      context.firebasePhoneError=e.message||'firebase_phone_failed';
-      localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
-    }
-  }
-
   const result=await callBackendAuth(resolveAuthEndpoint('otpRequest'),payload);
   if(!result.ok){
     const status=Number(result.status||0);
-    const canTryReceivedCode=channel==='sms'&&(status===0||status===429||status>=500);
-    if(canTryReceivedCode){
-      showSuccess('Agar OTP mobile par aa gaya hai to code enter karein.');
-      openAdminOtpEntryStep();
-      return;
+    const backendMessage=result.data?.message||'Admin OTP send nahi ho paya. SMTP/SMS settings check karein.';
+    const canTryFirebaseFallback=channel==='sms'&&(status===0||status>=500);
+    if(canTryFirebaseFallback){
+      context.backendDeliveryError=backendMessage;
+      localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
+      try{
+        adminMobileConfirmation=await sendOtpByFirebase(phone);
+        context.provider='firebase-phone';
+        context.issuedAt=new Date().toISOString();
+        localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
+        localStorage.removeItem(ADMIN_OTP_KEY);
+        localStorage.setItem(ADMIN_OTP_METHOD_KEY,method);
+        showSuccess(`OTP requested through Firebase for registered admin mobile (${phone.replace(/^\+(\d{2})\d+(\d{4})$/,'+$1******$2')}).`);
+        openAdminOtpEntryStep();
+        return;
+      }catch(e){
+        adminMobileConfirmation=null;
+        context.firebasePhoneError=e.message||'firebase_phone_failed';
+        localStorage.setItem(ADMIN_OTP_CONTEXT_KEY,JSON.stringify(context));
+        showError(`${backendMessage} ${e.message||'Firebase mobile OTP bhi fail ho gaya.'}`);
+        return;
+      }
     }
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
-    showError(result.data?.message||'Admin OTP send nahi ho paya. SMTP/SMS settings check karein.');
+    showError(backendMessage);
     return;
   }
 
@@ -227,6 +231,7 @@ function toggleAdminLogin(){
   const adminText=document.getElementById('adminDemoText');
   closeForgotPassword();
   if(adminForm.style.display==='none'){
+    setAdminAuthMode(true);
     adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';if(adminText)adminText.style.display='inline';
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
     getAdminCredentialFields().forEach((field)=>{delete field.dataset.userEdited;});
@@ -236,6 +241,7 @@ function toggleAdminLogin(){
     adminStep1Context=null;
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   }else{
+    setAdminAuthMode(false);
     adminStep1Context=null;adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';if(adminText)adminText.style.display='none';updateLoginMethod();
   }
 }

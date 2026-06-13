@@ -3632,3 +3632,75 @@ html body.auth-entry-page .form-buttons {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* v12: admin login clarity and top navigation placement */
+html body.auth-login-page .auth-utility-nav {
+  position: fixed !important;
+  top: 34px !important;
+  right: clamp(24px, 5vw, 88px) !important;
+  z-index: 1900 !important;
+  order: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.58rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body.auth-login-page .auth-utility-nav .utility-btn {
+  min-height: 42px !important;
+  padding: 0.56rem 0.95rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  background: #ffffff !important;
+  color: #202124 !important;
+  box-shadow: none !important;
+  font-size: 0.94rem !important;
+  font-weight: 780 !important;
+}
+
+html body.auth-login-page .auth-utility-nav .utility-btn.utility-primary {
+  border-color: #111111 !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+}
+
+html.admin-auth-mode body.auth-login-page #roleSelector,
+html.admin-auth-mode body.auth-login-page #loginMethodSelector,
+body.auth-login-page.admin-auth-mode #roleSelector,
+body.auth-login-page.admin-auth-mode #loginMethodSelector {
+  display: none !important;
+}
+
+html.admin-auth-mode body.auth-login-page #customerForm,
+html.admin-auth-mode body.auth-login-page #driverForm,
+body.auth-login-page.admin-auth-mode #customerForm,
+body.auth-login-page.admin-auth-mode #driverForm {
+  display: none !important;
+}
+
+html.admin-auth-mode body.auth-login-page #adminForm,
+body.auth-login-page.admin-auth-mode #adminForm {
+  display: block !important;
+}
+
+html.admin-auth-mode body.auth-login-page .login-header,
+body.auth-login-page.admin-auth-mode .login-header {
+  margin-bottom: 1.05rem !important;
+}
+
+@media (max-width: 620px) {
+  html body.auth-login-page .auth-utility-nav {
+    top: 24px !important;
+    right: 12px !important;
+    gap: 0.42rem !important;
+  }
+
+  html body.auth-login-page .auth-utility-nav .utility-btn {
+    min-height: 36px !important;
+    padding: 0.45rem 0.68rem !important;
+    font-size: 0.82rem !important;
+  }
+}
