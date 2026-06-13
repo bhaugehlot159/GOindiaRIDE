@@ -10,6 +10,7 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { evaluateAiThreat, applyAutoResponse } = require('../services/aiSecurityDetectiveService');
 const { getFraudDetectionStatus } = require('../services/fraudDetectionService');
+const { getSecurityHardeningStatus } = require('../services/securityHardeningService');
 const env = require('../config/env');
 const {
   getAuthAbuseShieldSnapshot,
@@ -711,6 +712,10 @@ router.get('/automation/summary', authenticate, async (req, res) => {
 
 router.get('/fraud-detection/status', async (req, res) => {
   return res.status(200).json(getFraudDetectionStatus());
+});
+
+router.get('/hardening/status', authenticate, requireAdmin, async (req, res) => {
+  return res.status(200).json(getSecurityHardeningStatus());
 });
 
 router.get('/incidents', authenticate, requireAdmin, async (req, res) => {

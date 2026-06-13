@@ -1,11 +1,7 @@
-const csrf = require('csurf');
+const { csrfShieldMiddleware } = require('./csrfShieldMiddleware');
 
-const csrfProtection = csrf({
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict'
-  }
+const csrfProtection = csrfShieldMiddleware({
+  strict: true
 });
 
 module.exports = { csrfProtection };

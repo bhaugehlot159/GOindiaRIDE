@@ -22,6 +22,7 @@ const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { getFraudDetectionStatus } = require('./services/fraudDetectionService');
 const { getGdprComplianceStatus } = require('./services/gdprComplianceService');
+const { getSecurityHardeningStatus } = require('./services/securityHardeningService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { globalLockdownShieldMiddleware } = require('./middleware/globalLockdownShieldMiddleware');
@@ -126,7 +127,15 @@ app.post(
 
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false
+  contentSecurityPolicy: false,
+  frameguard: {
+    action: 'deny'
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
 }));
 app.use(mongoSanitize());
 app.use(xss());
@@ -294,6 +303,10 @@ app.get('/health/fraud-detection', (req, res) => {
 
 app.get('/health/gdpr-compliance', (req, res) => {
   return res.status(200).json(getGdprComplianceStatus());
+});
+
+app.get('/health/security-hardening', (req, res) => {
+  return res.status(200).json(getSecurityHardeningStatus());
 });
 
 app.get('/api/auth', (req, res) => {
