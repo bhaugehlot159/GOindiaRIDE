@@ -197,6 +197,7 @@ async function verifyAdmin2FA(){
   if(!challenge||!challenge.challengeIssuedAt){showError('Admin 2FA session expired.');toggleAdminLogin();toggleAdminLogin();return;}
   const issuedAt=new Date(challenge.challengeIssuedAt).getTime();
   if(!Number.isFinite(issuedAt)||Date.now()-issuedAt>ADMIN_CHALLENGE_TTL_MS){showError('Admin 2FA challenge expired.');toggleAdminLogin();toggleAdminLogin();return;}
+  console.log('Admin OTP Context:', otpContext);
   if(otpContext.provider==='firebase-phone'){
     try{
       await verifyOtpByFirebase(adminMobileConfirmation,otp);
