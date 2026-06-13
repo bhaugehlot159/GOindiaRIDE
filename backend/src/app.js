@@ -22,6 +22,7 @@ const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { getFraudDetectionStatus } = require('./services/fraudDetectionService');
 const { getGdprComplianceStatus } = require('./services/gdprComplianceService');
+const { getPushNotificationStatus } = require('./services/pushNotificationService');
 const { getSecurityHardeningStatus } = require('./services/securityHardeningService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
@@ -216,7 +217,13 @@ function withApiMountVariants(paths = []) {
 const sharedGatewayBypassPaths = withApiMountVariants([
   '/api/bookings/fallback/admin-alert-email',
   '/api/bookings/fallback/admin-review-queue',
+  '/api/notifications/push/status',
+  '/api/notifications/push/public-key',
   ...authGatewayBypassPrefixes
+]);
+const publicPushNotificationReadBypassPaths = withApiMountVariants([
+  '/api/notifications/push/status',
+  '/api/notifications/push/public-key'
 ]);
 
 function removeAuthPrefix(prefixes = []) {
@@ -229,10 +236,12 @@ const relaxedNetworkIntelProtectedPrefixes = removeAuthPrefix(env.networkIntelPo
 const relaxedDenylistProtectedPrefixes = removeAuthPrefix(env.denylistShieldProtectedPrefixes);
 const relaxedGlobalLockdownBypassPrefixes = Array.from(new Set([
   ...(Array.isArray(env.globalLockdownBypassPrefixes) ? env.globalLockdownBypassPrefixes : []),
+  ...publicPushNotificationReadBypassPaths,
   ...authGatewayBypassPrefixes
 ]));
 const relaxedRouteGuardBypassPrefixes = Array.from(new Set([
   ...(Array.isArray(env.routeGuardPolicyBypassPrefixes) ? env.routeGuardPolicyBypassPrefixes : []),
+  ...publicPushNotificationReadBypassPaths,
   ...authGatewayBypassPrefixes
 ]));
 
@@ -309,6 +318,10 @@ app.get('/health/security-hardening', (req, res) => {
   return res.status(200).json(getSecurityHardeningStatus());
 });
 
+app.get('/health/push-notifications', (req, res) => {
+  return res.status(200).json(getPushNotificationStatus());
+});
+
 app.get('/api/auth', (req, res) => {
   return res.status(200).json({
     service: 'GO India RIDE Auth API',
@@ -341,7 +354,8 @@ app.use('/api', globalAbuseDefenseMiddleware({
 app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,
-  incidentScore: env.requestIncidentScore
+  incidentScore: env.requestIncidentScore,
+  bypassPrefixes: publicPushNotificationReadBypassPaths
 }));
 app.use('/api', globalLockdownShieldMiddleware({
   enabled: env.globalLockdownShieldEnabled,

@@ -303,7 +303,9 @@ test('admin app has unified live control center and fresh service worker coverag
   assert.match(admin, /admin-feature-control-center\.js\?v=20260528-admin-hangfix1/);
   assert.match(read('admin/js/admin-app.js'), /goindiaride_admin_debug_payloads/);
   assert.match(read('admin/js/admin-app.js'), /showRawPayload \? `<details class="booking-payload-details">/);
-  assert.match(sw, /goindiaride-pwa-v59-20260610-sms-reference/);
+  assert.match(sw, /goindiaride-pwa-v60-20260613-push-phase4/);
+  assert.match(sw, /addEventListener\('push'/);
+  assert.match(sw, /showNotification/);
   assert.match(sw, /path\.startsWith\('\/driver\/'\)/);
 });
 

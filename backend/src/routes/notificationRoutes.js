@@ -1,8 +1,21 @@
 ﻿const express = require('express');
 const { authenticate } = require('../middleware/authMiddleware');
 const Notification = require('../models/Notification');
+const {
+  createEngagementNotification,
+  disablePushSubscription,
+  getPushNotificationStatus,
+  getPushPublicKeyConfig,
+  listPushSubscriptionsForUser,
+  normalizeAudience,
+  savePushSubscription
+} = require('../services/pushNotificationService');
 
 const router = express.Router();
+
+function asyncHandler(handler) {
+  return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+}
 
 function getAudienceScope(user) {
   if (user.role === 'admin' || user.accountType === 'admin') {
@@ -45,6 +58,37 @@ function buildInboxFilter(user) {
   };
 }
 
+function requireAdmin(req, res, next) {
+  if (req.user && (req.user.role === 'admin' || req.user.accountType === 'admin')) {
+    return next();
+  }
+
+  return res.status(403).json({ message: 'Admin access required' });
+}
+
+function getClientIp(req) {
+  return String(
+    req.headers['x-forwarded-for']
+      || req.headers['x-real-ip']
+      || req.ip
+      || ''
+  )
+    .split(',')[0]
+    .trim();
+}
+
+function pickPushPayload(body = {}) {
+  const payload = body && typeof body === 'object' ? body : {};
+  return {
+    title: String(payload.title || 'GOindiaRIDE update').trim(),
+    message: String(payload.message || payload.body || 'Your ride update is ready.').trim(),
+    type: String(payload.type || 'engagement').trim(),
+    url: String(payload.url || payload.link || '/').trim(),
+    bookingId: payload.bookingId ? String(payload.bookingId).trim() : null,
+    metadata: payload.metadata && typeof payload.metadata === 'object' ? payload.metadata : {}
+  };
+}
+
 router.get('/', authenticate, async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit || 20), 1), 100);
   const unreadOnly = String(req.query.unreadOnly || '').toLowerCase() === 'true';
@@ -69,6 +113,94 @@ router.get('/', authenticate, async (req, res) => {
     items
   });
 });
+
+router.get('/push/status', (req, res) => {
+  return res.status(200).json(getPushNotificationStatus());
+});
+
+router.get('/push/public-key', asyncHandler(async (req, res) => {
+  return res.status(200).json(await getPushPublicKeyConfig());
+}));
+
+router.get('/push/subscriptions', authenticate, asyncHandler(async (req, res) => {
+  const items = await listPushSubscriptionsForUser(req.user);
+  return res.status(200).json({
+    ok: true,
+    count: items.length,
+    items
+  });
+}));
+
+router.post('/push/subscribe', authenticate, asyncHandler(async (req, res) => {
+  const subscription = await savePushSubscription({
+    user: req.user,
+    subscription: req.body && (req.body.subscription || req.body),
+    userAgent: req.get('user-agent') || '',
+    ipAddress: getClientIp(req),
+    consentSource: req.body && req.body.consentSource
+  });
+
+  return res.status(201).json({
+    ok: true,
+    message: 'Push subscription saved',
+    subscription
+  });
+}));
+
+router.post('/push/unsubscribe', authenticate, asyncHandler(async (req, res) => {
+  const endpoint = req.body && (
+    req.body.endpoint
+      || (req.body.subscription && req.body.subscription.endpoint)
+  );
+  const result = await disablePushSubscription({ user: req.user, endpoint });
+  return res.status(200).json(result);
+}));
+
+router.post('/push/test', authenticate, asyncHandler(async (req, res) => {
+  const payload = pickPushPayload(req.body);
+  const result = await createEngagementNotification({
+    userId: req.user.id,
+    audience: getAudienceScope(req.user),
+    type: payload.type || 'push_test',
+    title: payload.title || 'GOindiaRIDE test alert',
+    message: payload.message || 'Push notifications are connected.',
+    bookingId: payload.bookingId,
+    metadata: {
+      ...payload.metadata,
+      triggeredBy: 'self_test'
+    },
+    url: payload.url || '/'
+  });
+
+  return res.status(200).json({
+    ok: true,
+    ...result
+  });
+}));
+
+router.post('/admin/push/broadcast', authenticate, requireAdmin, asyncHandler(async (req, res) => {
+  const payload = pickPushPayload(req.body);
+  const audience = normalizeAudience((req.body && req.body.audience) || 'customer');
+  const result = await createEngagementNotification({
+    audience,
+    type: payload.type || 'admin_broadcast',
+    title: payload.title || 'GOindiaRIDE update',
+    message: payload.message || 'A new service update is available.',
+    bookingId: payload.bookingId,
+    metadata: {
+      ...payload.metadata,
+      triggeredBy: 'admin_broadcast',
+      adminUserId: req.user.id
+    },
+    url: payload.url || '/'
+  });
+
+  return res.status(200).json({
+    ok: true,
+    audience,
+    ...result
+  });
+}));
 
 router.post('/:id/read', authenticate, async (req, res) => {
   const filter = {

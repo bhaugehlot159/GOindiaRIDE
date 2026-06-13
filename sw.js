@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v59-20260610-sms-reference';
+const CACHE_NAME = 'goindiaride-pwa-v60-20260613-push-phase4';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS = [
   './css/professional-purple-theme.css',
   './js/global-ui.js',
   './js/data-preservation-guard.js',
+  './js/push-notifications.js',
   './js/wallet-core.js',
   './js/quick-booking.js',
   './assets/images/quick-booking-hero.png',
@@ -35,6 +36,91 @@ self.addEventListener('activate', (event) => {
       }
       return Promise.resolve();
     }))).then(() => self.clients.claim())
+  );
+});
+
+function parsePushPayload(event) {
+  const fallback = {
+    title: 'GOindiaRIDE update',
+    body: 'Your ride update is ready.',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
+    tag: 'goindiaride-update',
+    data: { url: './' }
+  };
+
+  if (!event.data) {
+    return fallback;
+  }
+
+  try {
+    const parsed = event.data.json();
+    return {
+      ...fallback,
+      ...parsed,
+      data: {
+        ...fallback.data,
+        ...(parsed && parsed.data ? parsed.data : {})
+      }
+    };
+  } catch (_error) {
+    const body = event.data.text();
+    return {
+      ...fallback,
+      body: body || fallback.body
+    };
+  }
+}
+
+function normalizeClientUrl(value) {
+  try {
+    const target = new URL(value || './', self.location.origin);
+    if (target.origin !== self.location.origin) {
+      return self.location.origin + '/';
+    }
+    return target.href;
+  } catch (_error) {
+    return self.location.origin + '/';
+  }
+}
+
+self.addEventListener('push', (event) => {
+  const payload = parsePushPayload(event);
+  const title = String(payload.title || 'GOindiaRIDE update').slice(0, 80);
+  const options = {
+    body: String(payload.body || payload.message || 'Your ride update is ready.').slice(0, 220),
+    icon: payload.icon || './icons/icon-192.png',
+    badge: payload.badge || './icons/icon-192.png',
+    tag: String(payload.tag || 'goindiaride-update').slice(0, 64),
+    renotify: true,
+    requireInteraction: Boolean(payload.requireInteraction),
+    data: {
+      ...(payload.data || {}),
+      url: normalizeClientUrl(payload.data && payload.data.url)
+    }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = normalizeClientUrl(event.notification && event.notification.data && event.notification.data.url);
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+
+      return undefined;
+    })
   );
 });
 

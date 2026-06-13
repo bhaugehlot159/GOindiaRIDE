@@ -31,6 +31,27 @@ const AUTOMATION_USER_AGENTS = [
   'httpclient'
 ];
 
+function normalizePathList(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item || '').trim().toLowerCase())
+      .filter(Boolean);
+  }
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function shouldBypassPath(req, bypassPrefixes = []) {
+  const path = String((req.baseUrl || '') + (req.path || req.originalUrl || req.url || ''))
+    .split('?')[0]
+    .trim()
+    .toLowerCase();
+  if (!path) return false;
+  return bypassPrefixes.some((prefix) => path.startsWith(prefix));
+}
+
 function nowTs() {
   return Date.now();
 }
@@ -153,9 +174,14 @@ async function recordIncident({
 function requestThreatShieldMiddleware(options = {}) {
   const autoBlockScore = Number(options.autoBlockScore || process.env.REQUEST_AUTO_BLOCK_SCORE || 85);
   const incidentScore = Number(options.incidentScore || process.env.REQUEST_INCIDENT_SCORE || 55);
+  const bypassPrefixes = normalizePathList(options.bypassPrefixes);
 
   return async function requestThreatShield(req, res, next) {
     try {
+      if (shouldBypassPath(req, bypassPrefixes)) {
+        return next();
+      }
+
       pruneMaps();
 
       const ip = getClientIp(req);
