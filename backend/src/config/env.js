@@ -104,7 +104,7 @@ module.exports = {
   globalLockdownFailOpen: String(process.env.GLOBAL_LOCKDOWN_FAIL_OPEN || 'false').toLowerCase() === 'true',
   globalLockdownCacheTtlMs: Number(process.env.GLOBAL_LOCKDOWN_CACHE_TTL_MS || 3000),
   globalLockdownLogThrottleMs: Number(process.env.GLOBAL_LOCKDOWN_LOG_THROTTLE_MS || 30000),
-  globalLockdownBypassPrefixes: splitCsv(process.env.GLOBAL_LOCKDOWN_BYPASS_PREFIXES || '/health,/api/security/csrf-token,/api/security/fraud-detection/status,/api/security/lockdown/global'),
+  globalLockdownBypassPrefixes: splitCsv(process.env.GLOBAL_LOCKDOWN_BYPASS_PREFIXES || '/health,/api/security/csrf-token,/api/security/fraud-detection/status,/api/gdpr/compliance/status,/api/security/lockdown/global'),
   globalLockdownDefaultDurationMs: Number(process.env.GLOBAL_LOCKDOWN_DEFAULT_DURATION_MS || 60 * 60 * 1000),
   globalLockdownMaxDurationMs: Number(process.env.GLOBAL_LOCKDOWN_MAX_DURATION_MS || 24 * 60 * 60 * 1000),
   accessTokenRevocationEnabled: String(process.env.ACCESS_TOKEN_REVOCATION_ENABLED || 'true').toLowerCase() === 'true',

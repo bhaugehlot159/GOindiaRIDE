@@ -17,9 +17,11 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const liveTrackingRoutes = require('./routes/liveTrackingRoutes');
+const gdprRoutes = require('./routes/gdprRoutes');
 const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { getFraudDetectionStatus } = require('./services/fraudDetectionService');
+const { getGdprComplianceStatus } = require('./services/gdprComplianceService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { globalLockdownShieldMiddleware } = require('./middleware/globalLockdownShieldMiddleware');
@@ -290,6 +292,10 @@ app.get('/health/fraud-detection', (req, res) => {
   return res.status(200).json(getFraudDetectionStatus());
 });
 
+app.get('/health/gdpr-compliance', (req, res) => {
+  return res.status(200).json(getGdprComplianceStatus());
+});
+
 app.get('/api/auth', (req, res) => {
   return res.status(200).json({
     service: 'GO India RIDE Auth API',
@@ -419,6 +425,7 @@ app.use('/api/notifications', strictCsrfShield);
 app.use('/api/wallet', strictCsrfShield);
 app.use('/api/wallets', strictCsrfShield);
 app.use('/api/live-tracking', strictCsrfShield);
+app.use('/api/gdpr', strictCsrfShield);
 app.use('/api/auth', authPersistentAbuseShieldMiddleware({
   enabled: env.authAbusePersistentEnabled,
   failOpen: env.authAbusePersistentFailOpen,
@@ -473,6 +480,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/live-tracking', liveTrackingRoutes);
+app.use('/api/gdpr', gdprRoutes);
 app.use('/api/future-runtime', futureRuntimeRoutes);
 app.use('/api/future-runtime-business', futureBusinessRoutes);
 

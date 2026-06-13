@@ -84,7 +84,24 @@ const userSchema = new mongoose.Schema({
       default: null
     }
   }],
-  isTemporarilyBannedUntil: { type: Date, default: null }
+  isTemporarilyBannedUntil: { type: Date, default: null },
+  privacyPreferences: {
+    marketing: { type: Boolean, default: false },
+    analytics: { type: Boolean, default: false },
+    location: { type: Boolean, default: false },
+    cookies: { type: Boolean, default: false },
+    support: { type: Boolean, default: true },
+    consentVersion: { type: String, default: '2026-06-13-gdpr-phase2', trim: true, maxlength: 80 },
+    updatedAt: { type: Date, default: null },
+    source: { type: String, default: 'system_default', trim: true, maxlength: 80 }
+  },
+  privacyFlags: {
+    restrictedProcessing: { type: Boolean, default: false },
+    objectedToProcessing: { type: Boolean, default: false },
+    erasureRequestedAt: { type: Date, default: null },
+    portabilityRequestedAt: { type: Date, default: null },
+    lastPrivacyRequestId: { type: String, default: '', trim: true, maxlength: 120 }
+  }
 }, {
   timestamps: true,
   strict: true
