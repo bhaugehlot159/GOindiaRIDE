@@ -946,6 +946,193 @@ button {
     text-align: right;
 }
 
+.live-location-ops-panel {
+    margin-bottom: 14px;
+    border-color: rgba(22, 131, 95, 0.3);
+}
+
+.live-location-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.location-ops-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 0.75fr) minmax(260px, 1fr) minmax(260px, 1fr);
+    gap: 12px;
+    align-items: stretch;
+}
+
+.location-signal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.location-signal,
+.location-lane,
+.location-row {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.location-signal {
+    min-height: 92px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    gap: 3px 10px;
+    padding: 12px;
+}
+
+.location-signal i {
+    grid-row: 1 / span 2;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    color: #ffffff;
+    background: var(--green);
+}
+
+.location-signal.warning i,
+.location-signal.pending i {
+    background: var(--amber);
+}
+
+.location-signal.critical i {
+    background: var(--red);
+}
+
+.location-signal span {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.location-signal strong {
+    font-size: 1.34rem;
+    line-height: 1;
+}
+
+.location-lane {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 8px;
+    padding: 12px;
+    background: var(--surface-soft);
+}
+
+.location-lane header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.location-lane header span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.location-lane header strong {
+    color: var(--green);
+}
+
+.location-row {
+    min-height: 56px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+}
+
+.location-row.warning {
+    border-color: rgba(184, 121, 24, 0.42);
+    background: #fff9ee;
+}
+
+.location-row.critical {
+    border-color: rgba(194, 65, 75, 0.44);
+    background: #fff1f3;
+}
+
+[data-theme="dark"] .location-row.warning,
+[data-theme="dark"] .location-row.critical {
+    background: var(--surface);
+}
+
+.location-row-main {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+
+.location-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--muted);
+}
+
+.location-status-dot.fresh,
+.location-status-dot.warm,
+.location-status-dot.normal {
+    background: var(--green);
+}
+
+.location-status-dot.stale,
+.location-status-dot.warning {
+    background: var(--amber);
+}
+
+.location-status-dot.offline,
+.location-status-dot.critical {
+    background: var(--red);
+}
+
+.location-row strong,
+.location-row span,
+.location-row small,
+.location-signal span,
+.location-signal strong {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.location-row span {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.location-row small {
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 900;
+    text-align: right;
+}
+
+.location-row .row-action {
+    min-width: 54px;
+    justify-content: center;
+}
+
 .segmented-control {
     padding: 4px;
     border: 1px solid var(--line);
@@ -2425,6 +2612,7 @@ button {
     .ops-strip,
     .ops-command-grid,
     .matching-grid,
+    .location-ops-grid,
     .driver-grid,
     .fare-audit-grid,
     .finance-grid,
@@ -2438,6 +2626,10 @@ button {
     }
 
     .matching-signal-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .location-signal-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -2523,6 +2715,8 @@ button {
     .ops-signal-grid,
     .matching-grid,
     .matching-signal-grid,
+    .location-ops-grid,
+    .location-signal-grid,
     .control-panel-modules,
     .driver-grid,
     .fare-audit-grid,
@@ -2554,6 +2748,14 @@ button {
         width: 100%;
     }
 
+    .live-location-actions {
+        justify-content: flex-start;
+    }
+
+    .live-location-actions .secondary-action {
+        width: 100%;
+    }
+
     .ops-lane-row {
         grid-template-columns: 1fr;
     }
@@ -2567,6 +2769,14 @@ button {
     }
 
     .matching-row small {
+        text-align: left;
+    }
+
+    .location-row {
+        grid-template-columns: 1fr;
+    }
+
+    .location-row small {
         text-align: left;
     }
 

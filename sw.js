@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v62-20260613-matching-phase6';
+const CACHE_NAME = 'goindiaride-pwa-v63-20260613-location-phase7';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './js/push-notifications.js',
   './admin/js/admin-operations-center.js',
   './admin/js/realtime-matching-engine.js',
+  './admin/js/live-location-operations.js',
   './js/wallet-core.js',
   './js/quick-booking.js',
   './assets/images/quick-booking-hero.png',

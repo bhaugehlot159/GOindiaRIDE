@@ -25,6 +25,7 @@ const { getAdminOperationsCenterStatus } = require('./services/adminOperationsCe
 const { getGdprComplianceStatus } = require('./services/gdprComplianceService');
 const { getPushNotificationStatus } = require('./services/pushNotificationService');
 const { getRealtimeMatchingEngineStatus } = require('./services/realtimeMatchingEngineService');
+const { getLiveLocationTrackingStatus } = require('./services/liveLocationTrackingService');
 const { getSecurityHardeningStatus } = require('./services/securityHardeningService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
@@ -330,6 +331,10 @@ app.get('/health/admin-operations-center', (req, res) => {
 
 app.get('/health/realtime-matching-engine', (req, res) => {
   return res.status(200).json(getRealtimeMatchingEngineStatus());
+});
+
+app.get('/health/live-location-tracking', (req, res) => {
+  return res.status(200).json(getLiveLocationTrackingStatus());
 });
 
 app.get('/api/auth', (req, res) => {

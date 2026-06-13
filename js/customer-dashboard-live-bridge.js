@@ -19,6 +19,8 @@
   var CUSTOMER_LIVE_LOCATION_KEY = 'goindiaride_customer_live_locations_v1';
   var CUSTOMER_LIVE_LOCATION_MIN_INTERVAL_MS = 5000;
   var CUSTOMER_LIVE_LOCATION_MIN_DISTANCE_M = 10;
+  var CUSTOMER_LIVE_LOCATION_PHASE7_VERSION = 'goindiaride_live_location_tracking_phase7_v1';
+  var CUSTOMER_LIVE_LOCATION_OPTIONS = { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 };
   var bridge = window.__GOINDIARIDE_CUSTOMER_RUNTIME_BRIDGE__ || {};
   bridge.liveTrackingLastPostAt = Number(bridge.liveTrackingLastPostAt || 0);
   bridge.liveTrackingLastPoint = bridge.liveTrackingLastPoint || null;
@@ -257,7 +259,11 @@
         userKey: identity.userKey,
         customerName: normalizeTextValue(user.fullname || user.name || '', 140),
         customerPhone: normalizeTextValue(user.phone || user.mobile || '', 40),
-        customerEmail: normalizeTextValue(user.email || '', 180)
+        customerEmail: normalizeTextValue(user.email || '', 180),
+        phase: 'phase7_live_location_tracking',
+        clientVersion: CUSTOMER_LIVE_LOCATION_PHASE7_VERSION,
+        watchMode: 'watchPosition',
+        geolocationOptions: CUSTOMER_LIVE_LOCATION_OPTIONS
       }
     };
   }
@@ -278,7 +284,9 @@
         heading: payload.heading,
         status: payload.status || 'tracking',
         source: 'customer_dashboard_geolocation',
+        clientVersion: CUSTOMER_LIVE_LOCATION_PHASE7_VERSION,
         syncStatus: syncStatus || 'pending',
+        safety: payload.safety || null,
         capturedAt: payload.capturedAt || nowIso,
         updatedAt: nowIso
       };
@@ -308,7 +316,7 @@
     bridge.liveTrackingLastPoint = { lat: payload.lat, lng: payload.lng };
     writeCustomerLiveLocationCache(payload, 'syncing');
     var response = await requestLiveTracking('POST', '/location', payload);
-    writeCustomerLiveLocationCache(payload, response && response.ok
+    writeCustomerLiveLocationCache({ ...payload, safety: response && response.safety ? response.safety : null }, response && response.ok
       ? (response.realtime && response.realtime.ok ? 'backend_rtdb_synced' : 'backend_synced')
       : (response && response.reason ? response.reason : 'backend_failed'));
     return response;
@@ -323,7 +331,11 @@
           sessionId: bridge.liveTrackingSessionId || '',
           status: 'stopped',
           source: 'customer_dashboard_geolocation',
-          metadata: { userKey: getRuntimeUserKey() }
+          metadata: {
+            userKey: getRuntimeUserKey(),
+            phase: 'phase7_live_location_tracking',
+            clientVersion: CUSTOMER_LIVE_LOCATION_PHASE7_VERSION
+          }
         };
     payload.status = 'stopped';
     writeCustomerLiveLocationCache(payload, 'stopping');
@@ -1331,7 +1343,7 @@
         });
       }, function (error) {
         setTrackingStatus('Tracking error: ' + String((error && error.message) || 'unknown'));
-      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+      }, CUSTOMER_LIVE_LOCATION_OPTIONS);
       setTrackingStatus('Live tracking started. Waiting for GPS position...');
     });
     stopBtn.addEventListener('click', async function () {

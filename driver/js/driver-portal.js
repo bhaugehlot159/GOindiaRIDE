@@ -30,6 +30,12 @@ const DRIVER_BOOKING_ALARM_BTN_ID = 'goiEnableDriverBookingAlarm';
 const DRIVER_LIVE_LOCATION_KEY = 'goindiaride_driver_live_locations_v1';
 const DRIVER_LIVE_LOCATION_MIN_INTERVAL_MS = 5000;
 const DRIVER_LIVE_LOCATION_MIN_DISTANCE_M = 10;
+const DRIVER_LIVE_LOCATION_PHASE7_VERSION = 'goindiaride_live_location_tracking_phase7_v1';
+const DRIVER_LIVE_LOCATION_OPTIONS = {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 5000
+};
 let driverBackendBookingAlertTimer = null;
 let driverBackendAlarmContext = null;
 let driverBackendAlarmLastAt = 0;
@@ -337,7 +343,8 @@ function checkGPSStatus() {
                 gpsItem.classList.remove('good', 'warning');
                 gpsItem.classList.add('danger');
                 showToast('Please enable GPS for accurate tracking', 'warning');
-            }
+            },
+            DRIVER_LIVE_LOCATION_OPTIONS
         );
     } else {
         gpsStatus.textContent = 'Not supported';
@@ -370,11 +377,7 @@ function startGPSTracking() {
             function(error) {
                 console.error('GPS tracking error:', error);
             },
-            {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0
-            }
+            DRIVER_LIVE_LOCATION_OPTIONS
         );
     }
 }
@@ -623,7 +626,9 @@ function writeDriverLiveLocationCache(payload, syncStatus) {
             isOnline: Boolean(driverState.isOnline),
             currentRideStatus: driverState.currentRide ? driverState.currentRide.status : '',
             source: 'driver_portal_geolocation',
+            clientVersion: DRIVER_LIVE_LOCATION_PHASE7_VERSION,
             syncStatus: syncStatus || 'pending',
+            safety: payload.safety || null,
             capturedAt: payload.capturedAt || nowIso,
             updatedAt: nowIso
         };
@@ -670,7 +675,11 @@ async function publishDriverLiveLocation(position, status = 'tracking', options 
             driverPhone: driver.phone,
             vehicle: driver.vehicle,
             isOnline: Boolean(driverState.isOnline),
-            currentRideStatus: driverState.currentRide ? driverState.currentRide.status : ''
+            currentRideStatus: driverState.currentRide ? driverState.currentRide.status : '',
+            phase: 'phase7_live_location_tracking',
+            clientVersion: DRIVER_LIVE_LOCATION_PHASE7_VERSION,
+            watchMode: 'watchPosition',
+            geolocationOptions: DRIVER_LIVE_LOCATION_OPTIONS
         }
     };
 
@@ -691,7 +700,7 @@ async function publishDriverLiveLocation(position, status = 'tracking', options 
             writeDriverLiveLocationCache(point, `backend_${response.status}`);
             return { ok: false, reason: `backend_${response.status}` };
         }
-        writeDriverLiveLocationCache(point, data.realtime && data.realtime.ok ? 'backend_rtdb_synced' : 'backend_synced');
+        writeDriverLiveLocationCache({ ...point, safety: data.safety || null }, data.realtime && data.realtime.ok ? 'backend_rtdb_synced' : 'backend_synced');
         return data;
     } catch (error) {
         writeDriverLiveLocationCache(point, 'backend_unreachable');
@@ -706,7 +715,11 @@ async function stopDriverLiveLocationSession() {
         bookingId: getCurrentDriverBookingId(),
         sessionId: getDriverLiveTrackingSessionId(),
         source: 'driver_portal_geolocation',
-        metadata: { reason: 'driver_portal_stop' }
+        metadata: {
+            reason: 'driver_portal_stop',
+            phase: 'phase7_live_location_tracking',
+            clientVersion: DRIVER_LIVE_LOCATION_PHASE7_VERSION
+        }
     };
     if (driverState.location) {
         payload.lat = driverState.location.lat;

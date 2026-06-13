@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, follow">
     <meta name="googlebot" content="noindex, follow">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-app.css?v=20260516-customer-live-test2">
+    <link rel="stylesheet" href="./css/admin-app.css?v=20260613-location-phase7">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -119,7 +119,7 @@
             if (!("serviceWorker" in navigator)) return;
             window.addEventListener("load", function () {
                 navigator.serviceWorker
-                    .register("../sw.js?v=20260516-real-live-workflows")
+                    .register("../sw.js?v=20260613-location-phase7")
                     .then(function (registration) {
                         return registration.update().catch(function () {});
                     })
@@ -584,6 +584,7 @@
     <script src="./js/admin-live-control-center.js?v=20260613-fraud-phase1"></script>
     <script src="./js/admin-operations-center.js?v=20260613-admin-ops-phase5"></script>
     <script src="./js/realtime-matching-engine.js?v=20260613-matching-phase6"></script>
+    <script src="./js/live-location-operations.js?v=20260613-location-phase7"></script>
     <script src="./js/admin-feature-control-center.js?v=20260528-admin-hangfix1"></script>
 <script src="../optimization.js?v=20260531-opt1" async></script>
 </body>

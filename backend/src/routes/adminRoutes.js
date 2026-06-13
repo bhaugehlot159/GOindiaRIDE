@@ -8,6 +8,7 @@ const {
   getRealtimeMatchingSnapshot,
   runRealtimeMatchingBatch
 } = require('../services/realtimeMatchingEngineService');
+const { getLiveLocationOperationsSnapshot } = require('../services/liveLocationTrackingService');
 
 const router = express.Router();
 
@@ -30,6 +31,15 @@ router.get('/matching/engine', async (req, res) => {
   const snapshot = await getRealtimeMatchingSnapshot({
     actor: req.user,
     bookingId: req.query.bookingId,
+    limit: req.query.limit
+  });
+  return res.status(200).json(snapshot);
+});
+
+router.get('/live-location/operations', async (req, res) => {
+  await AdminActionLog.create({ adminId: req.user.id, action: 'view_live_location_operations', ip: getClientIp(req) }).catch(() => null);
+  const snapshot = await getLiveLocationOperationsSnapshot({
+    actor: req.user,
     limit: req.query.limit
   });
   return res.status(200).json(snapshot);

@@ -3,6 +3,12 @@ const LiveLocation = require('../models/LiveLocation');
 const { authenticate } = require('../middleware/authMiddleware');
 const { getClientIp } = require('../utils/device');
 const { mirrorLiveLocationRealtimeUpdate } = require('../services/firebaseRealtimeDatabaseService');
+const {
+  LIVE_LOCATION_TRACKING_POLICY_VERSION,
+  PHASE7_LIVE_LOCATION_TRACKING_VERSION,
+  buildLocationSafetyEnvelope,
+  getLiveLocationOperationsSnapshot
+} = require('../services/liveLocationTrackingService');
 
 const router = express.Router();
 const SUBJECT_TYPES = new Set(['customer', 'driver', 'admin']);
@@ -161,10 +167,14 @@ router.post('/location', authenticate, async (req, res) => {
     setDefaultsOnInsert: true
   }).lean();
   const realtime = await mirrorLocation(location, 'live_location_updated', req);
+  const safety = buildLocationSafetyEnvelope(location);
 
   return res.status(200).json({
     ok: true,
+    version: PHASE7_LIVE_LOCATION_TRACKING_VERSION,
+    policyVersion: LIVE_LOCATION_TRACKING_POLICY_VERSION,
     location: serializeLocation(location),
+    safety,
     realtime: {
       ok: Boolean(realtime && realtime.ok),
       skipped: Boolean(realtime && realtime.skipped),
@@ -226,22 +236,40 @@ router.post('/location/stop', authenticate, async (req, res) => {
   if (!location) {
     return res.status(200).json({
       ok: true,
+      version: PHASE7_LIVE_LOCATION_TRACKING_VERSION,
+      policyVersion: LIVE_LOCATION_TRACKING_POLICY_VERSION,
       stopped: false,
       message: 'No active live tracking session found'
     });
   }
 
   const realtime = await mirrorLocation(location, 'live_location_stopped', req);
+  const safety = buildLocationSafetyEnvelope(location);
   return res.status(200).json({
     ok: true,
+    version: PHASE7_LIVE_LOCATION_TRACKING_VERSION,
+    policyVersion: LIVE_LOCATION_TRACKING_POLICY_VERSION,
     stopped: true,
     location: serializeLocation(location),
+    safety,
     realtime: {
       ok: Boolean(realtime && realtime.ok),
       skipped: Boolean(realtime && realtime.skipped),
       reason: realtime && realtime.reason
     }
   });
+});
+
+router.get('/operations', authenticate, async (req, res) => {
+  if (!isAdminUser(req.user)) {
+    return res.status(403).json({ ok: false, message: 'Admin access required for live location operations' });
+  }
+
+  const snapshot = await getLiveLocationOperationsSnapshot({
+    actor: req.user,
+    limit: req.query.limit
+  });
+  return res.status(200).json(snapshot);
 });
 
 router.get('/locations', authenticate, async (req, res) => {
@@ -270,8 +298,13 @@ router.get('/locations', authenticate, async (req, res) => {
   const items = await query.lean();
   return res.status(200).json({
     ok: true,
+    version: PHASE7_LIVE_LOCATION_TRACKING_VERSION,
+    policyVersion: LIVE_LOCATION_TRACKING_POLICY_VERSION,
     count: items.length,
-    items: items.map(serializeLocation)
+    items: items.map((item) => ({
+      ...serializeLocation(item),
+      safety: buildLocationSafetyEnvelope(item)
+    }))
   });
 });
 

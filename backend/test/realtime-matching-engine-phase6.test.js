@@ -223,7 +223,7 @@ test('phase 6 backend route and UI wiring preserves previous phases', () => {
   assert.match(css, /\.matching-grid/);
   assert.match(css, /\.matching-signal/);
   assert.match(css, /\.matching-row/);
-  assert.match(serviceWorker, /goindiaride-pwa-v62-20260613-matching-phase6/);
+  assert.match(serviceWorker, /goindiaride-pwa-v63-20260613-location-phase7/);
   assert.match(serviceWorker, /admin\/js\/realtime-matching-engine\.js/);
   assert.match(serviceWorker, /admin\/js\/admin-operations-center\.js/);
   assert.match(serviceWorker, /addEventListener\(['"]push['"]/);
