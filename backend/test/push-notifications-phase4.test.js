@@ -155,7 +155,7 @@ test('phase 4 push wiring is present without removing previous phase controls', 
   assert.match(subscriptionModel, /endpointHash/);
   assert.match(subscriptionModel, /select:\s*false/);
   assert.match(runtimeConfigModel, /database_auto_provision/);
-  assert.match(serviceWorker, /goindiaride-pwa-v61-20260613-admin-ops-phase5/);
+  assert.match(serviceWorker, /goindiaride-pwa-v62-20260613-matching-phase6/);
   assert.match(serviceWorker, /addEventListener\(['"]push['"]/);
   assert.match(serviceWorker, /showNotification/);
   assert.match(serviceWorker, /addEventListener\(['"]notificationclick['"]/);

@@ -4,6 +4,10 @@ const { getClientIp } = require('../utils/device');
 const AdminActionLog = require('../models/AdminActionLog');
 const { getSecurityDashboardStats } = require('../services/securityLogService');
 const { getAdminOperationsCenterSnapshot } = require('../services/adminOperationsCenterService');
+const {
+  getRealtimeMatchingSnapshot,
+  runRealtimeMatchingBatch
+} = require('../services/realtimeMatchingEngineService');
 
 const router = express.Router();
 
@@ -19,6 +23,27 @@ router.get('/operations/center', async (req, res) => {
   await AdminActionLog.create({ adminId: req.user.id, action: 'view_operations_center', ip: getClientIp(req) }).catch(() => null);
   const snapshot = await getAdminOperationsCenterSnapshot({ actor: req.user });
   return res.status(200).json(snapshot);
+});
+
+router.get('/matching/engine', async (req, res) => {
+  await AdminActionLog.create({ adminId: req.user.id, action: 'view_realtime_matching_engine', ip: getClientIp(req) }).catch(() => null);
+  const snapshot = await getRealtimeMatchingSnapshot({
+    actor: req.user,
+    bookingId: req.query.bookingId,
+    limit: req.query.limit
+  });
+  return res.status(200).json(snapshot);
+});
+
+router.post('/matching/run', async (req, res) => {
+  await AdminActionLog.create({ adminId: req.user.id, action: 'run_realtime_matching_engine', ip: getClientIp(req) }).catch(() => null);
+  const result = await runRealtimeMatchingBatch({
+    actor: req.user,
+    apply: Boolean(req.body && req.body.apply),
+    bookingId: req.body && req.body.bookingId,
+    limit: req.body && req.body.limit
+  });
+  return res.status(200).json(result);
 });
 
 // === FUTURE_ROUTES_BUSINESS_ADMINROUTES_START ===
