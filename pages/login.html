@@ -503,7 +503,7 @@
 <link rel="stylesheet" href="../fit-screen.css?v=20260314-auth2">
     <script defer src="../js/non-home-fit.js?v=20260314-auth2"></script>
     <link rel="stylesheet" href="../css/professional-purple-theme.css">
-    <link rel="stylesheet" href="../css/auth-professional.css?v=20260613-adminfix1">
+    <link rel="stylesheet" href="../css/auth-professional.css?v=20260613-ola-nav1">
     <script src="../js/data-preservation-guard.js?v=20260528-hangfix1"></script>
 </head>
 <body class="auth-entry-page auth-login-page">
@@ -569,10 +569,6 @@
             <button class="admin-portal-link" data-auth-action="toggle-admin">
                 <i class="fas fa-lock"></i> Admin
             </button>
-            <div class="auth-utility-nav">
-                <button type="button" class="utility-btn" data-auth-action="back">Back</button>
-                <button type="button" class="utility-btn utility-primary" data-auth-action="home">Home</button>
-            </div>
             <div class="auth-panel">
             <div class="auth-eyebrow">Secure Account Access</div>
 
@@ -904,6 +900,20 @@
                     </div>
                 </div>
             </form>
+            <div class="auth-signup-prompt">
+                <span>New to GO India RIDE?</span>
+                <a href="./signup.html">Sign up</a>
+            </div>
+            <div class="auth-utility-nav auth-panel-nav" aria-label="Login navigation">
+                <button type="button" class="utility-btn" data-auth-action="back">
+                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                    <span>Back</span>
+                </button>
+                <button type="button" class="utility-btn utility-primary" data-auth-action="home">
+                    <i class="fas fa-home" aria-hidden="true"></i>
+                    <span>Home</span>
+                </button>
+            </div>
             </div>
         </div>
     </div>
@@ -921,7 +931,7 @@
     <script src="../shared/chunks/auth/login/scripts/admin-security-firebase.js?v=20260530-admin-entry1"></script>
     <script src="../shared/chunks/auth/login/scripts/customer-login.js?v=20260531-login-fast1"></script>
     <script src="../shared/chunks/auth/login/scripts/driver-login.js?v=20260531-login-fast1"></script>
-    <script src="../shared/chunks/auth/login/scripts/admin-2fa.js?v=20260613-adminfix1"></script>
+    <script src="../shared/chunks/auth/login/scripts/admin-2fa.js?v=20260614-firebase-admin1"></script>
     <script src="../shared/chunks/auth/login/scripts/recovery-ui-init.js?v=20260530-admin-entry1"></script>
     <script>
         (function guardPhoneAutofillLeak() {

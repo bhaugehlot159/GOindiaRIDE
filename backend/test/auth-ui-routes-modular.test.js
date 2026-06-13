@@ -14,11 +14,14 @@ test('login auth page binds UI through the modular auth route script', () => {
   const routes = read('shared/chunks/auth/login/scripts/auth-routes.js');
 
   assert.match(login, /auth-routes\.js\?v=20260612-auth-routes1/);
-  assert.match(login, /auth-professional\.css\?v=20260613-adminfix1/);
-  assert.match(login, /admin-2fa\.js\?v=20260613-adminfix1/);
+  assert.match(login, /admin-2fa\.js\?v=20260614-firebase-admin1/);
+  assert.match(login, /auth-professional\.css\?v=20260613-ola-nav1/);
   assert.match(login, /document\.documentElement\.classList\.add\('admin-auth-mode'\)/);
   assert.doesNotMatch(login, /\son(?:click|change)=/i);
   assert.doesNotMatch(login, /GOINDIARIDE_API_BASE\s*=\s*['"]https:\/\/goindiaride\.onrender\.com['"]/);
+  assert.match(login, /class="auth-signup-prompt"/);
+  assert.match(login, /href="\.\/signup\.html">Sign up<\/a>/);
+  assert.match(login, /class="auth-utility-nav auth-panel-nav"/);
 
   [
     'toggle-admin',
@@ -77,12 +80,15 @@ test('auth chunks resolve endpoints and redirects from the shared auth route mod
   assert.match(admin2fa, /resolveAuthEndpoint\('otpRequest'\)/);
   assert.match(admin2fa, /resolveAuthEndpoint\('otpVerify'\)/);
   assert.match(admin2fa, /setAdminAuthMode\(true\)/);
-  assert.match(admin2fa, /backendDeliveryError/);
-  assert.match(admin2fa, /OTP requested through Firebase/);
+  assert.match(admin2fa, /if\(channel==='sms'\)\{/);
+  assert.match(admin2fa, /adminMobileConfirmation=await sendOtpByFirebase\(phone\)/);
+  assert.match(admin2fa, /OTP sent through Firebase/);
   assert.doesNotMatch(admin2fa, /Agar OTP mobile par aa gaya hai/);
-  assert.doesNotMatch(admin2fa, /if\(channel==='sms'\)\{\s*try\{\s*adminMobileConfirmation=await sendOtpByFirebase/);
+  assert.doesNotMatch(admin2fa, /backendDeliveryError/);
   assert.match(coreStorage, /AUTH_REQUEST_TIMEOUT_MS=45000/);
-  assert.match(authCss, /html body\.auth-login-page \.auth-utility-nav\s*\{[\s\S]*position: fixed !important;[\s\S]*top: 34px !important;/);
+  assert.match(authCss, /v13: keep login navigation inside the auth card/);
+  assert.match(authCss, /html body\.auth-login-page \.auth-utility-nav\.auth-panel-nav\s*\{[\s\S]*position: static !important;[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important;/);
+  assert.match(authCss, /html body\.auth-login-page \.auth-signup-prompt\s*\{/);
   assert.match(authCss, /admin-auth-mode[\s\S]*#roleSelector/);
   assert.match(authCss, /admin-auth-mode[\s\S]*#loginMethodSelector/);
 

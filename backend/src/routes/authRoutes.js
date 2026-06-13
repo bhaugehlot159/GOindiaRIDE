@@ -47,16 +47,14 @@ function isProductionRuntime() {
 
 function allowOtpDevResponse() {
   // SECURITY: OTP verification is ALWAYS required
-  // Dev mode OTP bypass is DISABLED in production
-  // Even in development, OTP should use real Firebase or backend SMS provider
+  // Dev OTP echo is allowed only for explicit local/test automation.
   if (isProductionRuntime()) {
     if (process.env.OTP_DEV_RESPONSE_ENABLED === 'true') {
       console.error('SECURITY ALERT: OTP dev bypass attempted in production!');
     }
     return false;
   }
-  // In development, still prefer real OTP validation
-  return false;
+  return String(process.env.OTP_DEV_RESPONSE_ENABLED || '').toLowerCase().trim() === 'true';
 }
 
 function findTrustedDevice(user, deviceFingerprint) {
@@ -117,6 +115,59 @@ function buildPendingTrustedDevice({
     rejectedAt: null,
     rejectionReason: null,
   };
+}
+
+function approveTrustedDeviceForOtpLogin(user, {
+  deviceFingerprint,
+  userAgent = null,
+  ip = null,
+  approvalMethod = "admin"
+}) {
+  if (!user || !deviceFingerprint) return null;
+  if (!Array.isArray(user.trustedDevices)) user.trustedDevices = [];
+
+  const now = new Date();
+  let device = user.trustedDevices.find((item) => item && item.fingerprint === deviceFingerprint);
+
+  if (!device) {
+    device = {
+      fingerprint: deviceFingerprint,
+      trustScore: 90,
+      firstSeenAt: now,
+      lastSeenAt: now,
+      approvedAt: now,
+      label: null,
+      ip,
+      userAgent,
+      isBlocked: false,
+      blockedAt: null,
+      approvalStatus: "approved",
+      approvalRequired: false,
+      approvalRequestedAt: null,
+      approvedBySessionId: null,
+      approvalMethod,
+      rejectedAt: null,
+      rejectionReason: null,
+    };
+    user.trustedDevices.push(device);
+    return device;
+  }
+
+  device.lastSeenAt = now;
+  device.ip = ip || device.ip || null;
+  device.userAgent = userAgent || device.userAgent || null;
+  device.approvedAt = device.approvedAt || now;
+  device.approvalStatus = "approved";
+  device.approvalRequired = false;
+  device.approvalRequestedAt = null;
+  device.approvalMethod = approvalMethod;
+  device.rejectedAt = null;
+  device.rejectionReason = null;
+  device.trustScore = typeof device.trustScore === "number"
+    ? Math.max(device.trustScore, 90)
+    : 90;
+
+  return device;
 }
 
 function getDeviceApprovalResult(user, deviceFingerprint) {
@@ -1523,10 +1574,6 @@ router.post("/refresh-token-v2", async (req, res) => {
       });
     }
 
-    // ✅ mark used
-    otpDoc.verifiedAt = new Date();
-    await otpDoc.save();
-
     // ✅ find user
     let user = null;
     if (channel === "email") user = await User.findOne({ email: cleanEmail });
@@ -1543,6 +1590,9 @@ router.post("/refresh-token-v2", async (req, res) => {
         if (!legacyAdminAllowed) {
           return res.status(403).json({ message: "Admin not found. Contact support." });
         }
+
+        otpDoc.verifiedAt = new Date();
+        await otpDoc.save();
 
         return res.status(200).json({
           message: "OTP verified successfully",
@@ -1611,6 +1661,7 @@ const clientUserAgent = req.headers["user-agent"] || null;
 const approvalCheck = getDeviceApprovalResult(user, finalDeviceFingerprint);
 const hasAnyTrustedDevices =
   Array.isArray(user.trustedDevices) && user.trustedDevices.length > 0;
+const shouldApproveAdminOtpDevice = accountType === "admin" && isRegisteredAdminAccount(user);
 
 // 1) Blocked device
 if (approvalCheck.blocked) {
@@ -1620,16 +1671,7 @@ if (approvalCheck.blocked) {
   });
 }
 
-// 2) Pending device
-if (approvalCheck.pending) {
-  return res.status(403).json({
-    message: "Device approval required",
-    code: "DEVICE_APPROVAL_REQUIRED",
-    approvalStatus: "pending"
-  });
-}
-
-// 3) Rejected device
+// 2) Rejected device
 if (approvalCheck.rejected) {
   return res.status(403).json({
     message: "Device rejected",
@@ -1638,60 +1680,78 @@ if (approvalCheck.rejected) {
   });
 }
 
-// 4) First-ever device -> auto approve (taaki user lock na ho)
-if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && !hasAnyTrustedDevices) {
-  const now = new Date();
-
-  if (!Array.isArray(user.trustedDevices)) {
-    user.trustedDevices = [];
-  }
-
-  user.trustedDevices.push({
-    fingerprint: finalDeviceFingerprint,
-    trustScore: 80,
-    firstSeenAt: now,
-    lastSeenAt: now,
-    approvedAt: now,
-    label: null,
-    ip: clientIp,
+if (shouldApproveAdminOtpDevice) {
+  approveTrustedDeviceForOtpLogin(user, {
+    deviceFingerprint: finalDeviceFingerprint,
     userAgent: clientUserAgent,
-    isBlocked: false,
-    blockedAt: null,
-
-    approvalStatus: "approved",
-    approvalRequired: false,
-    approvalRequestedAt: null,
-    approvedBySessionId: null,
-    approvalMethod: "legacy_auto",
-    rejectedAt: null,
-    rejectionReason: null
+    ip: clientIp,
+    approvalMethod: "admin"
   });
-
-  await user.save();
-}
-
-// 5) New unknown device -> pending save + deny full login
-if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
-  if (!Array.isArray(user.trustedDevices)) {
-    user.trustedDevices = [];
+} else {
+  // 3) Pending device
+  if (approvalCheck.pending) {
+    return res.status(403).json({
+      message: "Device approval required",
+      code: "DEVICE_APPROVAL_REQUIRED",
+      approvalStatus: "pending"
+    });
   }
 
-  user.trustedDevices.push(
-    buildPendingTrustedDevice({
-      deviceFingerprint: finalDeviceFingerprint,
-      userAgent: clientUserAgent,
+  // 4) First-ever device -> auto approve (taaki user lock na ho)
+  if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && !hasAnyTrustedDevices) {
+    const now = new Date();
+
+    if (!Array.isArray(user.trustedDevices)) {
+      user.trustedDevices = [];
+    }
+
+    user.trustedDevices.push({
+      fingerprint: finalDeviceFingerprint,
+      trustScore: 80,
+      firstSeenAt: now,
+      lastSeenAt: now,
+      approvedAt: now,
+      label: null,
       ip: clientIp,
-      label: null
-    })
-  );
+      userAgent: clientUserAgent,
+      isBlocked: false,
+      blockedAt: null,
 
-  await user.save();
+      approvalStatus: "approved",
+      approvalRequired: false,
+      approvalRequestedAt: null,
+      approvedBySessionId: null,
+      approvalMethod: "legacy_auto",
+      rejectedAt: null,
+      rejectionReason: null
+    });
 
-  return res.status(403).json({
-    message: "New device approval required",
-    code: "NEW_DEVICE_APPROVAL_REQUIRED",
-    approvalStatus: "pending"
-  });
+    await user.save();
+  }
+
+  // 5) New unknown device -> pending save + deny full login
+  if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
+    if (!Array.isArray(user.trustedDevices)) {
+      user.trustedDevices = [];
+    }
+
+    user.trustedDevices.push(
+      buildPendingTrustedDevice({
+        deviceFingerprint: finalDeviceFingerprint,
+        userAgent: clientUserAgent,
+        ip: clientIp,
+        label: null
+      })
+    );
+
+    await user.save();
+
+    return res.status(403).json({
+      message: "New device approval required",
+      code: "NEW_DEVICE_APPROVAL_REQUIRED",
+      approvalStatus: "pending"
+    });
+  }
 }
     // ✅ tokens
     const accessToken = signAccessToken(user);
@@ -1740,6 +1800,8 @@ if (DEVICE_APPROVAL_ENABLED && !approvalCheck.exists && hasAnyTrustedDevices) {
     });
 
     await user.save();
+    otpDoc.verifiedAt = new Date();
+    await otpDoc.save();
   }
     return res.status(200).json({
       message: "OTP verified successfully",

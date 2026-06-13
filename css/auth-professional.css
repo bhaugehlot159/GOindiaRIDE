@@ -3704,3 +3704,108 @@ body.auth-login-page.admin-auth-mode .login-header {
     font-size: 0.82rem !important;
   }
 }
+
+/* v13: keep login navigation inside the auth card, below sign-up prompt */
+html body.auth-login-page .auth-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+html body.auth-login-page .auth-signup-prompt {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.42rem !important;
+  margin: clamp(0.85rem, 1.4vw, 1.15rem) 0 0 !important;
+  padding-top: clamp(0.78rem, 1.2vw, 1rem) !important;
+  border-top: 1px solid rgba(17, 17, 17, 0.12) !important;
+  color: #4f5965 !important;
+  font-size: 0.94rem !important;
+  line-height: 1.35 !important;
+  text-align: center !important;
+}
+
+html body.auth-login-page .auth-signup-prompt a {
+  color: #111111 !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+  border-bottom: 2px solid #111111 !important;
+  padding-bottom: 0.08rem !important;
+}
+
+html body.auth-login-page .auth-signup-prompt a:hover,
+html body.auth-login-page .auth-signup-prompt a:focus-visible {
+  color: #0f6b70 !important;
+  border-bottom-color: #0f6b70 !important;
+}
+
+html body.auth-login-page .auth-utility-nav.auth-panel-nav {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: auto !important;
+  order: 20 !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  gap: 0.72rem !important;
+  margin: 0.78rem 0 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+html body.auth-login-page .auth-utility-nav.auth-panel-nav .utility-btn {
+  min-height: 48px !important;
+  width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  padding: 0.72rem 0.95rem !important;
+  border-radius: 6px !important;
+  border: 1.5px solid #111111 !important;
+  background: #ffffff !important;
+  color: #111111 !important;
+  box-shadow: none !important;
+  font-size: 0.98rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+html body.auth-login-page .auth-utility-nav.auth-panel-nav .utility-btn.utility-primary {
+  border-color: #111111 !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+}
+
+html body.auth-login-page .auth-utility-nav.auth-panel-nav .utility-btn:hover,
+html body.auth-login-page .auth-utility-nav.auth-panel-nav .utility-btn:focus-visible {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 10px 20px rgba(17, 17, 17, 0.12) !important;
+}
+
+@media (max-width: 620px) {
+  html body.auth-login-page .auth-signup-prompt {
+    margin-top: 0.72rem !important;
+    padding-top: 0.72rem !important;
+    font-size: 0.88rem !important;
+  }
+
+  html body.auth-login-page .auth-utility-nav.auth-panel-nav {
+    gap: 0.52rem !important;
+    margin-top: 0.62rem !important;
+  }
+
+  html body.auth-login-page .auth-utility-nav.auth-panel-nav .utility-btn {
+    min-height: 42px !important;
+    padding: 0.6rem 0.72rem !important;
+    font-size: 0.9rem !important;
+  }
+}
