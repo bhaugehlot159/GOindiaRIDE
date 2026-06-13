@@ -21,6 +21,7 @@ const gdprRoutes = require('./routes/gdprRoutes');
 const futureRuntimeRoutes = require('./routes/futureRuntimeRoutes');
 const futureBusinessRoutes = require('./routes/futureBusinessRoutes');
 const { getFraudDetectionStatus } = require('./services/fraudDetectionService');
+const { getAdminOperationsCenterStatus } = require('./services/adminOperationsCenterService');
 const { getGdprComplianceStatus } = require('./services/gdprComplianceService');
 const { getPushNotificationStatus } = require('./services/pushNotificationService');
 const { getSecurityHardeningStatus } = require('./services/securityHardeningService');
@@ -320,6 +321,10 @@ app.get('/health/security-hardening', (req, res) => {
 
 app.get('/health/push-notifications', (req, res) => {
   return res.status(200).json(getPushNotificationStatus());
+});
+
+app.get('/health/admin-operations-center', (req, res) => {
+  return res.status(200).json(getAdminOperationsCenterStatus());
 });
 
 app.get('/api/auth', (req, res) => {

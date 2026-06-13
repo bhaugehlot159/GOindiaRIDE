@@ -579,6 +579,237 @@ button {
     font-size: 1.08rem;
 }
 
+.operations-center-panel {
+    margin-bottom: 14px;
+    border-color: rgba(37, 99, 166, 0.28);
+}
+
+.operations-center-panel .panel-title-row {
+    align-items: flex-start;
+}
+
+.ops-center-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ops-command-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.85fr) repeat(3, minmax(170px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+
+.ops-signal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ops-signal-card,
+.ops-lane,
+.ops-lane-row,
+.ops-runbook-row {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.ops-signal-card {
+    min-height: 96px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    gap: 2px 10px;
+    padding: 12px;
+}
+
+.ops-signal-card i {
+    grid-row: 1 / span 3;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    color: #ffffff;
+    background: var(--green);
+}
+
+.ops-signal-card span,
+.ops-signal-card small,
+.ops-signal-card strong,
+.ops-lane span,
+.ops-lane strong,
+.ops-lane small {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.ops-signal-card span {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.ops-signal-card strong {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.ops-signal-card small {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.ops-signal-card.is-warning {
+    border-color: rgba(184, 121, 24, 0.42);
+    background: #fff9ee;
+}
+
+.ops-signal-card.is-warning i {
+    background: var(--amber);
+}
+
+.ops-signal-card.is-critical {
+    border-color: rgba(194, 65, 75, 0.44);
+    background: #fff1f3;
+}
+
+.ops-signal-card.is-critical i {
+    background: var(--red);
+}
+
+[data-theme="dark"] .ops-signal-card.is-warning,
+[data-theme="dark"] .ops-signal-card.is-critical {
+    background: var(--surface);
+}
+
+.ops-lane {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 8px;
+    padding: 12px;
+    background: var(--surface-soft);
+}
+
+.ops-lane header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ops-lane header span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.ops-lane header strong {
+    color: var(--blue);
+}
+
+.ops-lane-row,
+.ops-runbook-row {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+}
+
+.ops-lane-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.ops-lane-row div,
+.ops-runbook-row div {
+    min-width: 0;
+}
+
+.ops-lane-row span,
+.ops-runbook-row span {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.ops-lane-row small {
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 900;
+    text-align: right;
+}
+
+.ops-runbook-row {
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+}
+
+.ops-runbook-row i {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--green);
+    background: #e5f8ef;
+}
+
+.ops-runbook-row.is-active i {
+    color: #ffffff;
+    background: var(--blue);
+}
+
+[data-theme="dark"] .ops-runbook-row i {
+    background: var(--surface-soft);
+}
+
+.ops-health-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.ops-health-pill {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 10px;
+    color: var(--text);
+    background: var(--surface);
+    font-size: 0.78rem;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.ops-health-pill.good {
+    border-color: rgba(22, 131, 95, 0.26);
+    color: #0f684c;
+    background: #dff8ef;
+}
+
+.ops-health-pill.warn {
+    border-color: rgba(184, 121, 24, 0.34);
+    color: #8a5d00;
+    background: #fff4d6;
+}
+
 .segmented-control {
     padding: 4px;
     border: 1px solid var(--line);
@@ -2056,12 +2287,17 @@ button {
     }
 
     .ops-strip,
+    .ops-command-grid,
     .driver-grid,
     .fare-audit-grid,
     .finance-grid,
     .safety-grid,
     .driver-control-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ops-signal-grid {
+        grid-template-columns: 1fr;
     }
 
     .overview-grid,
@@ -2142,6 +2378,8 @@ button {
     }
 
     .ops-strip,
+    .ops-command-grid,
+    .ops-signal-grid,
     .control-panel-modules,
     .driver-grid,
     .fare-audit-grid,
@@ -2154,6 +2392,22 @@ button {
     .portal-folder-grid,
     .settings-grid {
         grid-template-columns: 1fr;
+    }
+
+    .ops-center-actions {
+        justify-content: flex-start;
+    }
+
+    .ops-center-actions .secondary-action {
+        width: 100%;
+    }
+
+    .ops-lane-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ops-lane-row small {
+        text-align: left;
     }
 
     .portal-folder-control-strip {
