@@ -392,7 +392,7 @@
         const panel = mount();
         if (!panel) return;
         const counts = snapshot.counts || {};
-        const connected = snapshot.databaseConnected ? "Backend live" : "Local snapshot";
+        const connected = snapshot.databaseConnected ? "Backend live" : "Live snapshot";
         panel.innerHTML = `
             <div class="panel-title-row">
                 <div>

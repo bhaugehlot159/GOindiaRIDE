@@ -408,7 +408,7 @@
         if (!panel) return;
         const plan = snapshot.plan || buildLocalPlan();
         const counts = plan.counts || {};
-        const statusText = snapshot.databaseConnected ? "Backend live" : "Local preview";
+        const statusText = snapshot.databaseConnected ? "Backend live" : "Live preview";
         const canApply = Boolean(getAccessToken() && counts.matchedBookings);
         panel.innerHTML = `
             <div class="panel-title-row">

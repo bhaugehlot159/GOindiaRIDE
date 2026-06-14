@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="admin-app-document">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
     <meta name="googlebot" content="noindex, follow">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/admin-app.css?v=20260613-location-phase7">
+    <link rel="stylesheet" href="./css/admin-production-layout.css?v=20260614-adminlayout2">
     <script>
         (function requireAdminSessionForApp() {
             try {
@@ -282,7 +283,7 @@
                                 <span class="section-kicker">Live health</span>
                                 <h2>System Pulse</h2>
                             </div>
-                            <span class="status-pill good" id="syncState">Local sync</span>
+                            <span class="status-pill good" id="syncState">Live sync</span>
                         </div>
                         <div class="pulse-list" id="pulseList"></div>
                     </section>
@@ -484,7 +485,7 @@
                             <span class="section-kicker">Fleet</span>
                             <h2>Driver Operations</h2>
                         </div>
-                        <button class="secondary-action" id="seedDriverBtn" type="button"><i class="fas fa-user-plus"></i> Add driver intake</button>
+                        <button class="secondary-action" id="addDriverIntakeBtn" type="button"><i class="fas fa-user-plus"></i> Add driver intake</button>
                     </div>
                     <div class="driver-grid" id="driverGrid"></div>
                 </div>

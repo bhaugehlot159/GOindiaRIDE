@@ -203,7 +203,7 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
 
   assert.match(login, /<meta name="googlebot" content="noindex, follow">/);
   assert.match(signup, /<meta name="googlebot" content="noindex, follow">/);
-  assert.match(login, /css\/auth-professional\.css\?v=20260608-auth11/);
+  assert.match(login, /css\/auth-professional\.css\?v=20260613-ola-nav1/);
   assert.match(signup, /css\/auth-professional\.css\?v=20260608-auth11/);
   assert.match(login, /<body class="auth-entry-page auth-login-page">/);
   assert.match(signup, /<body class="auth-entry-page auth-signup-page">/);
@@ -216,6 +216,9 @@ test('auth entry pages keep noindex, live form ids, and professional layout hook
   assert.match(login, /data-auth-action="customer-send-otp"/);
   assert.match(login, /data-auth-action="driver-send-otp"/);
   assert.match(login, /data-auth-action="admin-step1-login"/);
+  assert.match(login, /admin-2fa\.js\?v=20260614-firebase-admin1/);
+  assert.match(login, /class="auth-signup-prompt"/);
+  assert.match(login, /class="auth-utility-nav auth-panel-nav"/);
   assert.match(login, /guardPhoneAutofillLeak/);
   assert.match(login, /class="auth-ride-preview"/);
 

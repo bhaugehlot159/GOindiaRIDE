@@ -504,6 +504,11 @@ function setAdminBookingAlarmEnabled(enabled) {
     }
 }
 
+function getAdminBookingAlarmHost() {
+    return document.querySelector('[data-admin-control-panel="legacy-portal"] .topbar-actions')
+        || document.querySelector('.topbar-actions');
+}
+
 function renderAdminBookingAlarmButton() {
     const existing = document.getElementById(ADMIN_BOOKING_ALARM_BTN_ID);
 
@@ -512,33 +517,25 @@ function renderAdminBookingAlarmButton() {
         return;
     }
 
-    if (existing) return;
+    const host = getAdminBookingAlarmHost();
+    if (existing) {
+        if (host && existing.parentElement !== host) host.appendChild(existing);
+        return;
+    }
 
     const btn = document.createElement('button');
     btn.id = ADMIN_BOOKING_ALARM_BTN_ID;
     btn.type = 'button';
-    btn.textContent = 'Enable Booking Alarm';
-    btn.style.cssText = [
-        'position:fixed',
-        'right:18px',
-        'bottom:18px',
-        'z-index:12000',
-        'padding:10px 14px',
-        'border:none',
-        'border-radius:999px',
-        'font-weight:700',
-        'cursor:pointer',
-        'background:#0B1F3A',
-        'color:#fff',
-        'box-shadow:0 8px 22px rgba(11,31,58,0.28)'
-    ].join(';');
+    btn.className = 'btn-booking-alarm';
+    btn.title = 'Enable booking sound alerts';
+    btn.innerHTML = '<i class="fas fa-volume-high" aria-hidden="true"></i><span>Booking Alarm</span>';
 
     btn.addEventListener('click', () => {
         armAdminBookingAlarm({ force: true, testTone: true });
         showToast('Booking alarm enabled', 'success');
     });
 
-    document.body.appendChild(btn);
+    (host || document.body).appendChild(btn);
 }
 
 function ensureBackendAlarmContext() {
@@ -970,7 +967,8 @@ function initializeSectionFeatures(sectionId) {
     }
     if (typeof initializeSafetyFeatures === 'function' && 
         ['health-monitor', 'live-tracking', 'sos-alerts', 'document-verification', 
-         'demand-heatmap', 'virtual-escort', 'background-check', 'incident-reports', 'compliance-center'].includes(sectionId)) {
+         'demand-heatmap', 'virtual-escort', 'background-check', 'incident-reports', 'compliance-center',
+         'service-alerts', 'support-dashboard', 'promo-offers', 'system-config', 'audit-logs'].includes(sectionId)) {
         initializeSafetyFeatures(sectionId);
     }
 }

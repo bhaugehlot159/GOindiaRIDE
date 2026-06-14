@@ -1,0 +1,674 @@
+/* Production admin layout guard.
+   This file is intentionally scoped to admin entry points only. It keeps the
+   legacy portal and standalone admin app isolated from public-site layout
+   decorators while preserving all existing admin features. */
+
+:root {
+    --legacy-admin-sidebar-width: 280px;
+}
+
+html.admin-legacy-document,
+html.admin-app-document {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+}
+
+html.admin-legacy-document *,
+html.admin-app-document * {
+    box-sizing: border-box;
+}
+
+html.admin-legacy-document body,
+html.admin-app-document body,
+body[data-admin-control-panel="legacy-portal"],
+body.admin-app-shell {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    letter-spacing: 0 !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] {
+    background: var(--bg-secondary) !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] #goi-global-nav-dock,
+body[data-admin-control-panel="legacy-portal"] .goi-global-nav-dock,
+body[data-admin-control-panel="legacy-portal"] .goi-global-floating-action {
+    display: none !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .goi-section-shell,
+body[data-admin-control-panel="legacy-portal"] .goi-card-shell {
+    inset: auto !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .theme-toggle {
+    top: 16px !important;
+    right: 16px !important;
+    z-index: 1310 !important;
+    width: 44px !important;
+    height: 44px !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: var(--legacy-admin-sidebar-width) !important;
+    max-width: var(--legacy-admin-sidebar-width) !important;
+    height: 100vh !important;
+    z-index: 1200 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: var(--bg-card) !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .sidebar-header,
+body[data-admin-control-panel="legacy-portal"] .topbar {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .sidebar-header *,
+body[data-admin-control-panel="legacy-portal"] .topbar * {
+    color: inherit;
+}
+
+body[data-admin-control-panel="legacy-portal"] .main-content {
+    position: relative !important;
+    z-index: 1 !important;
+    width: calc(100vw - var(--legacy-admin-sidebar-width)) !important;
+    max-width: calc(100vw - var(--legacy-admin-sidebar-width)) !important;
+    min-width: 0 !important;
+    min-height: 100vh !important;
+    margin-left: var(--legacy-admin-sidebar-width) !important;
+    overflow-x: hidden !important;
+    background: var(--bg-secondary) !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: var(--topbar-height) !important;
+    height: auto !important;
+    gap: 12px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .page-title {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .topbar-actions {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .btn-admin-app-link,
+body[data-admin-control-panel="legacy-portal"] .btn-booking-alarm,
+body[data-admin-control-panel="legacy-portal"] .btn-logout,
+body[data-admin-control-panel="legacy-portal"] .icon-btn {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .btn-booking-alarm {
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 14px !important;
+    border: 1px solid rgba(102, 126, 234, 0.28) !important;
+    border-radius: 999px !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    box-shadow: 0 8px 18px rgba(102, 126, 234, 0.2) !important;
+    font-weight: 800 !important;
+    cursor: pointer !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] > .btn-booking-alarm {
+    position: fixed !important;
+    right: 18px !important;
+    bottom: 18px !important;
+    z-index: 1300 !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .content-area {
+    position: relative !important;
+    isolation: isolate !important;
+    width: 100% !important;
+    max-width: 1440px !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    padding: clamp(18px, 2.2vw, 30px) !important;
+    overflow-x: hidden !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .content-section {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    overflow: visible !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .content-section:not(.active) {
+    display: none !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .content-section.active {
+    display: block !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .section-header,
+body[data-admin-control-panel="legacy-portal"] .admin-control-dashboard-structure,
+body[data-admin-control-panel="legacy-portal"] .stats-grid,
+body[data-admin-control-panel="legacy-portal"] .charts-grid,
+body[data-admin-control-panel="legacy-portal"] .card,
+body[data-admin-control-panel="legacy-portal"] .chart-card,
+body[data-admin-control-panel="legacy-portal"] .action-grid,
+body[data-admin-control-panel="legacy-portal"] .form-grid,
+body[data-admin-control-panel="legacy-portal"] .data-table,
+body[data-admin-control-panel="legacy-portal"] .table-container {
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .section-header,
+body[data-admin-control-panel="legacy-portal"] .admin-control-dashboard-structure,
+body[data-admin-control-panel="legacy-portal"] .card,
+body[data-admin-control-panel="legacy-portal"] .chart-card {
+    overflow: hidden !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .stats-grid,
+body[data-admin-control-panel="legacy-portal"] .charts-grid,
+body[data-admin-control-panel="legacy-portal"] .action-grid,
+body[data-admin-control-panel="legacy-portal"] .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)) !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .admin-control-dashboard-structure {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] .table-container {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] table {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+body[data-admin-control-panel="legacy-portal"] th,
+body[data-admin-control-panel="legacy-portal"] td,
+body[data-admin-control-panel="legacy-portal"] p,
+body[data-admin-control-panel="legacy-portal"] span,
+body[data-admin-control-panel="legacy-portal"] strong,
+body[data-admin-control-panel="legacy-portal"] small {
+    overflow-wrap: anywhere;
+}
+
+body[data-admin-control-panel="legacy-portal"] .toast {
+    right: 24px !important;
+    bottom: 24px !important;
+    max-width: min(360px, calc(100vw - var(--legacy-admin-sidebar-width) - 48px)) !important;
+}
+
+html.admin-app-document {
+    background: var(--bg);
+}
+
+body.admin-app-shell .app-layout {
+    width: 100%;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(236px, var(--sidebar)) minmax(0, 1fr) !important;
+    overflow: hidden !important;
+}
+
+body.admin-app-shell .app-sidebar {
+    width: 100% !important;
+    max-width: var(--sidebar) !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+}
+
+body.admin-app-shell .app-main {
+    width: 100% !important;
+    max-width: calc(100vw - var(--sidebar)) !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+}
+
+body.admin-app-shell .app-main *,
+body.admin-app-shell .workspace-panel *,
+body.admin-app-shell .control-panel-dashboard * {
+    min-width: 0;
+}
+
+body.admin-app-shell .app-topbar {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+}
+
+body.admin-app-shell .page-heading,
+body.admin-app-shell .topbar-actions,
+body.admin-app-shell .operator-pill,
+body.admin-app-shell .toolbar,
+body.admin-app-shell .panel-title-row,
+body.admin-app-shell .control-actions,
+body.admin-app-shell .ops-center-actions,
+body.admin-app-shell .matching-actions,
+body.admin-app-shell .live-location-actions {
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+body.admin-app-shell .topbar-actions,
+body.admin-app-shell .toolbar,
+body.admin-app-shell .control-actions,
+body.admin-app-shell .ops-center-actions,
+body.admin-app-shell .matching-actions,
+body.admin-app-shell .live-location-actions,
+body.admin-app-shell .queue-actions,
+body.admin-app-shell .enterprise-module-actions {
+    flex-wrap: wrap !important;
+}
+
+body.admin-app-shell .operator-pill {
+    flex: 0 1 auto !important;
+}
+
+body.admin-app-shell .logout-action,
+body.admin-app-shell .primary-action,
+body.admin-app-shell .secondary-action,
+body.admin-app-shell .danger-action,
+body.admin-app-shell .row-action,
+body.admin-app-shell .text-button,
+body.admin-app-shell .segment {
+    max-width: 100% !important;
+    white-space: normal !important;
+}
+
+body.admin-app-shell .app-layout,
+body.admin-app-shell .app-main,
+body.admin-app-shell .app-topbar,
+body.admin-app-shell .view-panel,
+body.admin-app-shell .control-panel-dashboard,
+body.admin-app-shell .workspace-panel,
+body.admin-app-shell .overview-grid,
+body.admin-app-shell .overview-grid.bottom,
+body.admin-app-shell .ops-strip,
+body.admin-app-shell .ops-command-grid,
+body.admin-app-shell .matching-grid,
+body.admin-app-shell .location-ops-grid,
+body.admin-app-shell .benchmark-grid,
+body.admin-app-shell .enterprise-grid,
+body.admin-app-shell .enterprise-grid.bottom,
+body.admin-app-shell .portal-control-grid,
+body.admin-app-shell .booking-list,
+body.admin-app-shell .booking-card,
+body.admin-app-shell .portal-folder-grid,
+body.admin-app-shell .settings-grid,
+body.admin-app-shell .driver-grid,
+body.admin-app-shell .fare-audit-grid,
+body.admin-app-shell .finance-grid,
+body.admin-app-shell .safety-grid {
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+body.admin-app-shell .view-panel.active {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+body.admin-app-shell .control-panel-dashboard {
+    grid-template-columns: minmax(250px, 0.62fr) minmax(0, 1.38fr) !important;
+    overflow: hidden !important;
+}
+
+body.admin-app-shell .control-panel-modules {
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
+    min-width: 0 !important;
+}
+
+body.admin-app-shell .control-module {
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+body.admin-app-shell .control-module span,
+body.admin-app-shell .control-module strong,
+body.admin-app-shell .metric-tile small,
+body.admin-app-shell .metric-tile strong,
+body.admin-app-shell .nav-item span,
+body.admin-app-shell .panel-title-row h2,
+body.admin-app-shell .page-heading h1 {
+    overflow-wrap: anywhere !important;
+}
+
+body.admin-app-shell .ops-strip,
+body.admin-app-shell .driver-grid,
+body.admin-app-shell .fare-audit-grid,
+body.admin-app-shell .finance-grid,
+body.admin-app-shell .safety-grid,
+body.admin-app-shell .benchmark-summary-grid,
+body.admin-app-shell .enterprise-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+}
+
+body.admin-app-shell .ops-command-grid {
+    grid-template-columns: minmax(min(340px, 100%), 0.95fr) repeat(3, minmax(min(220px, 100%), 1fr)) !important;
+}
+
+body.admin-app-shell .matching-grid,
+body.admin-app-shell .location-ops-grid {
+    grid-template-columns: minmax(min(340px, 100%), 0.85fr) repeat(2, minmax(min(260px, 100%), 1fr)) !important;
+}
+
+body.admin-app-shell .ops-signal-grid,
+body.admin-app-shell .matching-signal-grid,
+body.admin-app-shell .location-signal-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)) !important;
+}
+
+body.admin-app-shell .overview-grid,
+body.admin-app-shell .overview-grid.bottom,
+body.admin-app-shell .benchmark-grid,
+body.admin-app-shell .enterprise-grid,
+body.admin-app-shell .enterprise-grid.bottom,
+body.admin-app-shell .portal-control-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)) !important;
+}
+
+body.admin-app-shell .workspace-panel,
+body.admin-app-shell .ops-panel,
+body.admin-app-shell .matching-panel,
+body.admin-app-shell .location-panel,
+body.admin-app-shell .portal-folder,
+body.admin-app-shell .enterprise-module-row,
+body.admin-app-shell .booking-card,
+body.admin-app-shell .ops-lane,
+body.admin-app-shell .matching-lane,
+body.admin-app-shell .location-lane {
+    overflow: hidden !important;
+}
+
+body.admin-app-shell .ops-signal-card,
+body.admin-app-shell .matching-signal,
+body.admin-app-shell .location-signal {
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    overflow: hidden !important;
+}
+
+body.admin-app-shell .ops-signal-card span,
+body.admin-app-shell .matching-signal span,
+body.admin-app-shell .location-signal span {
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    hyphens: none !important;
+}
+
+body.admin-app-shell .ops-lane-row,
+body.admin-app-shell .matching-row,
+body.admin-app-shell .location-row,
+body.admin-app-shell .enterprise-mini-row,
+body.admin-app-shell .enterprise-live-test-row {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+body.admin-app-shell .enterprise-module-row {
+    grid-template-columns: 42px minmax(0, 1fr) minmax(118px, auto) !important;
+}
+
+body.admin-app-shell .booking-card,
+body.admin-app-shell .queue-item {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 16px !important;
+}
+
+body.admin-app-shell .booking-card > *,
+body.admin-app-shell .queue-item > *,
+body.admin-app-shell .booking-card strong,
+body.admin-app-shell .booking-card span,
+body.admin-app-shell .booking-card p,
+body.admin-app-shell .booking-card small,
+body.admin-app-shell .queue-item strong,
+body.admin-app-shell .queue-item span,
+body.admin-app-shell .queue-item small,
+body.admin-app-shell .queue-item div,
+body.admin-app-shell .activity-item,
+body.admin-app-shell .pulse-item,
+body.admin-app-shell .fare-audit-item {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+}
+
+body.admin-app-shell .queue-actions {
+    align-items: center !important;
+    justify-content: flex-end !important;
+    max-width: 100% !important;
+}
+
+body.admin-app-shell .booking-mini-grid,
+body.admin-app-shell .booking-split-summary,
+body.admin-app-shell .settings-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+}
+
+body.admin-app-shell .portal-feature-table-wrap,
+body.admin-app-shell .table-wrap,
+body.admin-app-shell .booking-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+}
+
+body.admin-app-shell .portal-feature-table,
+body.admin-app-shell .data-table {
+    width: 100% !important;
+}
+
+body.admin-app-shell .portal-feature-row,
+body.admin-app-shell .feature-control-row {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+}
+
+body.admin-app-shell .feature-control-row .feature-control-copy {
+    flex: 1 1 220px !important;
+}
+
+body.admin-app-shell .feature-control-row .control-actions {
+    flex: 0 1 auto !important;
+    justify-content: flex-end !important;
+}
+
+body.admin-app-shell .toast-region {
+    right: 18px !important;
+    bottom: 18px !important;
+}
+
+@media (max-width: 1320px) {
+    body.admin-app-shell .ops-command-grid,
+    body.admin-app-shell .matching-grid,
+    body.admin-app-shell .location-ops-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)) !important;
+    }
+}
+
+@media (max-width: 1180px) {
+    body.admin-app-shell .control-panel-dashboard {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-app-shell .overview-grid,
+    body.admin-app-shell .overview-grid.bottom,
+    body.admin-app-shell .benchmark-grid,
+    body.admin-app-shell .enterprise-grid,
+    body.admin-app-shell .enterprise-grid.bottom,
+    body.admin-app-shell .portal-control-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-app-shell .booking-card,
+    body.admin-app-shell .queue-item,
+    body.admin-app-shell .enterprise-module-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-app-shell .queue-actions {
+        justify-content: flex-start !important;
+    }
+}
+
+@media (max-width: 820px) {
+    :root {
+        --legacy-admin-sidebar-width: 0px;
+    }
+
+    html.admin-app-document {
+        overflow-x: hidden;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .sidebar {
+        width: min(320px, 88vw) !important;
+        max-width: min(320px, 88vw) !important;
+        transform: translateX(-104%) !important;
+        transition: transform 0.2s ease !important;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .sidebar.mobile-open {
+        transform: translateX(0) !important;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .main-content {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin-left: 0 !important;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .topbar {
+        min-height: var(--topbar-height) !important;
+        height: auto !important;
+        flex-wrap: wrap !important;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .topbar-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .admin-control-dashboard-structure {
+        grid-template-columns: 1fr !important;
+    }
+
+    body[data-admin-control-panel="legacy-portal"] .toast {
+        max-width: calc(100vw - 32px) !important;
+        right: 16px !important;
+        bottom: 16px !important;
+    }
+
+    body.admin-app-shell .app-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-app-shell .app-main {
+        max-width: 100vw !important;
+        padding: 12px !important;
+    }
+
+    body.admin-app-shell .app-sidebar {
+        max-width: min(310px, 88vw) !important;
+    }
+
+    body.admin-app-shell .topbar-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    body.admin-app-shell .ops-strip,
+    body.admin-app-shell .ops-command-grid,
+    body.admin-app-shell .matching-grid,
+    body.admin-app-shell .location-ops-grid,
+    body.admin-app-shell .ops-signal-grid,
+    body.admin-app-shell .matching-signal-grid,
+    body.admin-app-shell .location-signal-grid,
+    body.admin-app-shell .control-panel-modules,
+    body.admin-app-shell .driver-grid,
+    body.admin-app-shell .fare-audit-grid,
+    body.admin-app-shell .finance-grid,
+    body.admin-app-shell .safety-grid,
+    body.admin-app-shell .benchmark-summary-grid,
+    body.admin-app-shell .enterprise-summary-grid,
+    body.admin-app-shell .driver-control-list,
+    body.admin-app-shell .portal-folder-grid,
+    body.admin-app-shell .settings-grid,
+    body.admin-app-shell .booking-mini-grid,
+    body.admin-app-shell .booking-split-summary {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-app-shell .ops-lane-row,
+    body.admin-app-shell .matching-row,
+    body.admin-app-shell .location-row,
+    body.admin-app-shell .booking-card,
+    body.admin-app-shell .queue-item,
+    body.admin-app-shell .enterprise-module-row,
+    body.admin-app-shell .portal-feature-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.admin-app-shell .queue-actions,
+    body.admin-app-shell .feature-control-row .control-actions,
+    body.admin-app-shell .enterprise-module-actions {
+        justify-content: stretch !important;
+    }
+
+    body.admin-app-shell .queue-actions button,
+    body.admin-app-shell .feature-control-row .row-action,
+    body.admin-app-shell .feature-control-row .danger-action {
+        flex: 1 1 100% !important;
+    }
+}

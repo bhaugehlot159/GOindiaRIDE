@@ -12,6 +12,9 @@ const SAFETY_LIVE_TRACKING_KEYS = [
     'goindiaride_driver_locations',
     'driver_live_locations'
 ];
+const ADMIN_SERVICE_ALERTS_KEY = 'goindiaride_admin_service_alerts_v1';
+const ADMIN_PROMO_OFFERS_KEY = 'goindiaride_admin_promotional_offers_v1';
+const ADMIN_SYSTEM_CONFIG_KEY = 'goindiaride_admin_system_config_v1';
 
 function createHealthMonitorContent() {
     return `<div class="section-header"><h2>Driver Health Monitor</h2><p>Track driver working hours, fatigue alerts, and health check reminders</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #ff6b6b;"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-content"><div class="stat-label">Fatigue Alerts</div><div class="stat-value">5</div></div></div></div><div class="card mt-20"><h3>Driver Working Hours</h3><table class="data-table"><thead><tr><th>Driver</th><th>Hours</th><th>Status</th></tr></thead><tbody><tr><td>Ravi Kumar</td><td>9.5 hrs</td><td><span class="status-badge status-blocked">Fatigue Alert</span></td></tr></tbody></table></div>`;
@@ -110,6 +113,265 @@ function notifyAllPortals(payload) {
         ...(payload || {}),
         targetPortals: ['customer', 'driver', 'admin']
     });
+}
+
+function readAdminRows(key) {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (_error) {
+        return [];
+    }
+}
+
+function writeAdminRows(key, rows) {
+    localStorage.setItem(key, JSON.stringify(Array.isArray(rows) ? rows : []));
+}
+
+function readAdminObject(key, fallback) {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '');
+        return parsed && typeof parsed === 'object' ? parsed : fallback;
+    } catch (_error) {
+        return fallback;
+    }
+}
+
+function writeAdminObject(key, value) {
+    localStorage.setItem(key, JSON.stringify(value && typeof value === 'object' ? value : {}));
+}
+
+function getCurrentAdminName() {
+    try {
+        const currentAdmin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+        return currentAdmin.name || currentAdmin.email || 'Admin User';
+    } catch (_error) {
+        return 'Admin User';
+    }
+}
+
+function normalizeAlertTargets(recipient) {
+    const value = String(recipient || 'all').toLowerCase();
+    if (value === 'drivers') return ['driver'];
+    if (value === 'customers') return ['customer'];
+    return ['customer', 'driver', 'admin'];
+}
+
+function getServiceAlerts() {
+    return readAdminRows(ADMIN_SERVICE_ALERTS_KEY)
+        .sort((left, right) => new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime());
+}
+
+function saveServiceAlertFromForm() {
+    const recipient = String(document.getElementById('serviceAlertRecipient')?.value || 'all').trim();
+    const priority = String(document.getElementById('serviceAlertPriority')?.value || 'normal').trim();
+    const message = String(document.getElementById('serviceAlertMessage')?.value || '').trim();
+
+    if (!message) {
+        if (typeof showToast === 'function') showToast('Alert message is required', 'error');
+        return;
+    }
+
+    const alert = {
+        id: 'alert_' + Date.now(),
+        recipient,
+        priority,
+        message,
+        createdAt: new Date().toISOString(),
+        createdBy: getCurrentAdminName(),
+        status: 'sent'
+    };
+    const rows = getServiceAlerts();
+    rows.unshift(alert);
+    writeAdminRows(ADMIN_SERVICE_ALERTS_KEY, rows.slice(0, 200));
+
+    notifyAllPortals({
+        type: 'service_alert',
+        title: 'Service Alert',
+        message,
+        priority,
+        sourcePortal: 'admin',
+        targetPortals: normalizeAlertTargets(recipient),
+        metadata: { alertId: alert.id, recipient }
+    });
+
+    if (typeof logAdminAction === 'function') {
+        logAdminAction('SERVICE_ALERT_SENT', `${recipient} - ${message}`);
+    }
+    if (typeof showToast === 'function') showToast('Service alert sent and saved', 'success');
+    refreshServiceAlertsSection();
+}
+
+function renderServiceAlertRows(rows) {
+    if (!rows.length) return '<tr><td colspan="5">No service alerts sent yet.</td></tr>';
+    return rows.slice(0, 30).map((alert) => `
+        <tr>
+            <td>${escapeSafetyHtml(new Date(alert.createdAt || Date.now()).toLocaleString())}</td>
+            <td>${escapeSafetyHtml(alert.recipient || 'all')}</td>
+            <td><span class="status-badge status-active">${escapeSafetyHtml(alert.priority || 'normal')}</span></td>
+            <td>${escapeSafetyHtml(alert.message || '')}</td>
+            <td>${escapeSafetyHtml(alert.status || 'sent')}</td>
+        </tr>
+    `).join('');
+}
+
+function refreshServiceAlertsSection() {
+    const section = document.getElementById('section-service-alerts');
+    if (!section || !section.classList.contains('active')) return;
+    section.innerHTML = createServiceAlertsContent();
+    initializeServiceAlertsSection();
+}
+
+function initializeServiceAlertsSection() {
+    document.getElementById('sendServiceAlertBtn')?.addEventListener('click', saveServiceAlertFromForm);
+}
+
+function getPromoOffers() {
+    return readAdminRows(ADMIN_PROMO_OFFERS_KEY)
+        .sort((left, right) => new Date(right.updatedAt || right.createdAt || 0).getTime() - new Date(left.updatedAt || left.createdAt || 0).getTime());
+}
+
+function isPromoActive(offer) {
+    const status = String(offer.status || 'active').toLowerCase();
+    const expiry = offer.expiresAt ? new Date(offer.expiresAt).getTime() : 0;
+    return status === 'active' && (!expiry || expiry >= Date.now());
+}
+
+function savePromoOfferFromForm() {
+    const code = String(document.getElementById('promoOfferCode')?.value || '').trim().toUpperCase();
+    const discount = String(document.getElementById('promoOfferDiscount')?.value || '').trim();
+    const audience = String(document.getElementById('promoOfferAudience')?.value || 'customers').trim();
+    const expiresAt = String(document.getElementById('promoOfferExpiry')?.value || '').trim();
+
+    if (!code || !discount) {
+        if (typeof showToast === 'function') showToast('Offer code and discount are required', 'error');
+        return;
+    }
+
+    const rows = getPromoOffers();
+    const existingIndex = rows.findIndex((offer) => String(offer.code || '').toUpperCase() === code);
+    const offer = {
+        ...(existingIndex >= 0 ? rows[existingIndex] : {}),
+        id: existingIndex >= 0 ? rows[existingIndex].id : 'offer_' + Date.now(),
+        code,
+        discount,
+        audience,
+        expiresAt,
+        status: 'active',
+        updatedAt: new Date().toISOString(),
+        createdAt: existingIndex >= 0 ? rows[existingIndex].createdAt : new Date().toISOString(),
+        updatedBy: getCurrentAdminName()
+    };
+    if (existingIndex >= 0) rows[existingIndex] = offer;
+    else rows.unshift(offer);
+    writeAdminRows(ADMIN_PROMO_OFFERS_KEY, rows.slice(0, 200));
+
+    notifyAllPortals({
+        type: 'promo_offer_updated',
+        title: 'Promotional Offer Updated',
+        message: `${code} offer is active`,
+        sourcePortal: 'admin',
+        targetPortals: audience === 'drivers' ? ['driver'] : ['customer'],
+        metadata: { offerId: offer.id, code, discount, audience, expiresAt }
+    });
+
+    if (typeof logAdminAction === 'function') {
+        logAdminAction('PROMO_OFFER_SAVED', `${code} - ${discount}`);
+    }
+    if (typeof showToast === 'function') showToast('Promotional offer saved and connected', 'success');
+    refreshPromoOffersSection();
+}
+
+function pausePromoOffer(offerId) {
+    const rows = getPromoOffers();
+    const idx = rows.findIndex((offer) => String(offer.id) === String(offerId));
+    if (idx === -1) return;
+    rows[idx] = { ...rows[idx], status: 'paused', updatedAt: new Date().toISOString(), updatedBy: getCurrentAdminName() };
+    writeAdminRows(ADMIN_PROMO_OFFERS_KEY, rows);
+    if (typeof logAdminAction === 'function') logAdminAction('PROMO_OFFER_PAUSED', rows[idx].code || offerId);
+    refreshPromoOffersSection();
+}
+
+function renderPromoOfferRows(rows) {
+    if (!rows.length) return '<tr><td colspan="6">No live promotional offers created yet.</td></tr>';
+    return rows.slice(0, 40).map((offer) => `
+        <tr>
+            <td>${escapeSafetyHtml(offer.code || '-')}</td>
+            <td>${escapeSafetyHtml(offer.discount || '-')}</td>
+            <td>${escapeSafetyHtml(offer.audience || 'customers')}</td>
+            <td>${escapeSafetyHtml(offer.expiresAt || 'No expiry')}</td>
+            <td><span class="status-badge ${isPromoActive(offer) ? 'status-active' : 'status-pending'}">${escapeSafetyHtml(offer.status || 'active')}</span></td>
+            <td><button class="btn btn-secondary" type="button" onclick="pausePromoOffer('${escapeSafetyHtml(offer.id)}')">Pause</button></td>
+        </tr>
+    `).join('');
+}
+
+function refreshPromoOffersSection() {
+    const section = document.getElementById('section-promo-offers');
+    if (!section || !section.classList.contains('active')) return;
+    section.innerHTML = createPromoOffersContent();
+    initializePromoOffersSection();
+}
+
+function initializePromoOffersSection() {
+    document.getElementById('savePromoOfferBtn')?.addEventListener('click', savePromoOfferFromForm);
+}
+
+function getSystemConfig() {
+    return readAdminObject(ADMIN_SYSTEM_CONFIG_KEY, {
+        bookingIntake: true,
+        surgePricing: false,
+        customerPortalControl: true,
+        bookingAlarm: false,
+        updatedAt: ''
+    });
+}
+
+function saveSystemConfigFromForm() {
+    const config = {
+        bookingIntake: Boolean(document.getElementById('configBookingIntake')?.checked),
+        surgePricing: Boolean(document.getElementById('configSurgePricing')?.checked),
+        customerPortalControl: Boolean(document.getElementById('configCustomerPortalControl')?.checked),
+        bookingAlarm: Boolean(document.getElementById('configBookingAlarm')?.checked),
+        updatedAt: new Date().toISOString(),
+        updatedBy: getCurrentAdminName()
+    };
+    writeAdminObject(ADMIN_SYSTEM_CONFIG_KEY, config);
+
+    try {
+        localStorage.setItem('goindiaride_admin_booking_alarm_enabled', config.bookingAlarm ? '1' : '0');
+    } catch (_error) {}
+
+    notifyAllPortals({
+        type: 'admin_system_config_updated',
+        title: 'Admin Configuration Updated',
+        message: 'System configuration was updated by admin',
+        sourcePortal: 'admin',
+        targetPortals: ['customer', 'driver', 'admin'],
+        metadata: config
+    });
+
+    if (typeof logAdminAction === 'function') {
+        logAdminAction('SYSTEM_CONFIG_SAVED', JSON.stringify({
+            bookingIntake: config.bookingIntake,
+            surgePricing: config.surgePricing,
+            customerPortalControl: config.customerPortalControl,
+            bookingAlarm: config.bookingAlarm
+        }));
+    }
+    if (typeof showToast === 'function') showToast('System configuration saved', 'success');
+    refreshSystemConfigSection();
+}
+
+function refreshSystemConfigSection() {
+    const section = document.getElementById('section-system-config');
+    if (!section || !section.classList.contains('active')) return;
+    section.innerHTML = createSystemConfigContent();
+    initializeSystemConfigSection();
+}
+
+function initializeSystemConfigSection() {
+    document.getElementById('saveSystemConfigBtn')?.addEventListener('click', saveSystemConfigFromForm);
 }
 function getDriverKycStorageKey(driverId) {
     return 'kyc_data_' + String(driverId || 'default');
@@ -391,7 +653,59 @@ function createVendorManagementContent() {
 }
 
 function createServiceAlertsContent() {
-    return `<div class="section-header"><h2>Service Alerts System</h2><p>Send notifications to users</p></div><div class="card"><h3>Send Alert</h3><div class="form-group"><label class="form-label">Recipient</label><select class="form-select"><option>All Drivers</option><option>All Customers</option></select></div><div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" placeholder="Enter message..."></textarea></div><button class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send</button></div>`;
+    const alerts = getServiceAlerts();
+    const activeAlerts = alerts.filter((alert) => String(alert.status || 'sent').toLowerCase() === 'sent');
+    return `
+        <div class="section-header">
+            <h2>Service Alerts System</h2>
+            <p>Send live service notices to customer and driver portals</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#667eea;"><i class="fas fa-bullhorn"></i></div>
+                <div class="stat-content"><div class="stat-label">Sent Alerts</div><div class="stat-value">${activeAlerts.length}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#43e97b;"><i class="fas fa-link"></i></div>
+                <div class="stat-content"><div class="stat-label">Portal Bridge</div><div class="stat-value">${window.PortalConnector ? 'Live' : 'Ready'}</div></div>
+            </div>
+        </div>
+        <div class="card mt-20">
+            <h3>Create Live Alert</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="serviceAlertRecipient">Recipient</label>
+                    <select class="form-select" id="serviceAlertRecipient">
+                        <option value="all">Customers + Drivers</option>
+                        <option value="customers">Customers only</option>
+                        <option value="drivers">Drivers only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="serviceAlertPriority">Priority</label>
+                    <select class="form-select" id="serviceAlertPriority">
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="serviceAlertMessage">Message</label>
+                <textarea class="form-textarea" id="serviceAlertMessage" rows="4" placeholder="Type the live service message"></textarea>
+            </div>
+            <button class="btn btn-primary" id="sendServiceAlertBtn" type="button"><i class="fas fa-paper-plane"></i> Send live alert</button>
+        </div>
+        <div class="card mt-20">
+            <h3>Recent Live Alerts</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead><tr><th>Time</th><th>Recipient</th><th>Priority</th><th>Message</th><th>Status</th></tr></thead>
+                    <tbody>${renderServiceAlertRows(alerts)}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
 }
 
 function createSupportDashboardContent() {
@@ -791,15 +1105,104 @@ function refreshDriverApprovalSection() {
 }
 
 function createPromoOffersContent() {
-    return `<div class="section-header"><h2>Promotional Offers</h2><p>Manage discount codes and campaigns</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #667eea;"><i class="fas fa-tags"></i></div><div class="stat-content"><div class="stat-label">Active Offers</div><div class="stat-value">8</div></div></div></div><div class="card mt-20"><button class="btn btn-primary"><i class="fas fa-plus"></i> Create Offer</button></div>`;
+    const offers = getPromoOffers();
+    const activeCount = offers.filter(isPromoActive).length;
+    return `
+        <div class="section-header">
+            <h2>Promotional Offers</h2>
+            <p>Create and control live offer records for connected portals</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#667eea;"><i class="fas fa-tags"></i></div>
+                <div class="stat-content"><div class="stat-label">Active Offers</div><div class="stat-value">${activeCount}</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#4facfe;"><i class="fas fa-database"></i></div>
+                <div class="stat-content"><div class="stat-label">Stored Offers</div><div class="stat-value">${offers.length}</div></div>
+            </div>
+        </div>
+        <div class="card mt-20">
+            <h3>Create / Update Offer</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="promoOfferCode">Code</label>
+                    <input id="promoOfferCode" class="form-input" type="text" placeholder="LIVE10">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="promoOfferDiscount">Discount</label>
+                    <input id="promoOfferDiscount" class="form-input" type="text" placeholder="10% or INR 100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="promoOfferAudience">Audience</label>
+                    <select id="promoOfferAudience" class="form-select">
+                        <option value="customers">Customers</option>
+                        <option value="drivers">Drivers</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="promoOfferExpiry">Expiry</label>
+                    <input id="promoOfferExpiry" class="form-input" type="date">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="savePromoOfferBtn" type="button"><i class="fas fa-link"></i> Save live offer</button>
+        </div>
+        <div class="card mt-20">
+            <h3>Live Offer Records</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead><tr><th>Code</th><th>Discount</th><th>Audience</th><th>Expiry</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>${renderPromoOfferRows(offers)}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
 }
 
 function createSystemConfigContent() {
-    return `<div class="section-header"><h2>System Configuration</h2><p>Manage app settings</p></div><div class="card"><h3>Feature Toggles</h3><div class="form-group"><label class="flex"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label><span>Enable New Bookings</span></label></div><div class="form-group"><label class="flex"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label><span>Enable Surge Pricing</span></label></div><button class="btn btn-primary">Save Configuration</button></div>`;
+    const config = getSystemConfig();
+    const updatedAt = config.updatedAt ? new Date(config.updatedAt).toLocaleString() : 'Not saved yet';
+    return `
+        <div class="section-header">
+            <h2>System Configuration</h2>
+            <p>Connected runtime settings for booking intake, pricing and portal control</p>
+        </div>
+        <div class="card">
+            <div class="flex-between mb-20">
+                <h3>Live Feature Toggles</h3>
+                <span class="status-badge status-active">Updated: ${escapeSafetyHtml(updatedAt)}</span>
+            </div>
+            <div class="form-group">
+                <label class="flex">
+                    <label class="switch"><input id="configBookingIntake" type="checkbox" ${config.bookingIntake ? 'checked' : ''}><span class="slider"></span></label>
+                    <span>Enable customer booking intake</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="flex">
+                    <label class="switch"><input id="configSurgePricing" type="checkbox" ${config.surgePricing ? 'checked' : ''}><span class="slider"></span></label>
+                    <span>Enable surge pricing control</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="flex">
+                    <label class="switch"><input id="configCustomerPortalControl" type="checkbox" ${config.customerPortalControl ? 'checked' : ''}><span class="slider"></span></label>
+                    <span>Keep customer portal features under admin control</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="flex">
+                    <label class="switch"><input id="configBookingAlarm" type="checkbox" ${config.bookingAlarm ? 'checked' : ''}><span class="slider"></span></label>
+                    <span>Enable booking alarm after admin interaction</span>
+                </label>
+            </div>
+            <button class="btn btn-primary" id="saveSystemConfigBtn" type="button"><i class="fas fa-save"></i> Save live configuration</button>
+        </div>
+    `;
 }
 
 function createAuditLogsContent() {
-    return `<div class="section-header"><h2>Audit Logs</h2><p>Track all admin actions</p></div><div class="card"><h3>Activity Logs</h3><table class="data-table"><thead><tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Details</th></tr></thead><tbody id="auditLogsList"><tr><td>Loading...</td><td>-</td><td>-</td><td>-</td></tr></tbody></table></div>`;
+    return `<div class="section-header"><h2>Audit Logs</h2><p>Track real admin actions and live portal updates</p></div><div class="card"><h3>Activity Logs</h3><div class="table-container"><table class="data-table"><thead><tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Details</th></tr></thead><tbody id="auditLogsList"><tr><td colspan="4">No admin audit logs yet.</td></tr></tbody></table></div></div>`;
 }
 
 
@@ -982,6 +1385,15 @@ function refreshComplianceCenterSection() {
 }
 // Initialize Safety & Management Features
 function initializeSafetyFeatures(sectionId) {
+    if (sectionId === 'service-alerts') {
+        setTimeout(initializeServiceAlertsSection, 50);
+    }
+    if (sectionId === 'promo-offers') {
+        setTimeout(initializePromoOffersSection, 50);
+    }
+    if (sectionId === 'system-config') {
+        setTimeout(initializeSystemConfigSection, 50);
+    }
     if (sectionId === 'audit-logs') {
         setTimeout(loadAuditLogs, 100);
     }
@@ -996,14 +1408,17 @@ function initializeSafetyFeatures(sectionId) {
 function loadAuditLogs() {
     const logs = JSON.parse(localStorage.getItem('adminAuditLogs') || '[]');
     const tbody = document.getElementById('auditLogsList');
-    if (tbody && logs.length > 0) {
-        tbody.innerHTML = logs.slice(0, 50).map(log => `
-            <tr>
-                <td>${new Date(log.timestamp).toLocaleString()}</td>
-                <td>${log.admin}</td>
-                <td><span class="status-badge status-active">${log.action}</span></td>
-                <td>${log.details}</td>
-            </tr>
-        `).join('');
+    if (!tbody) return;
+    if (!logs.length) {
+        tbody.innerHTML = '<tr><td colspan="4">No admin audit logs yet.</td></tr>';
+        return;
     }
+    tbody.innerHTML = logs.slice(0, 50).map(log => `
+        <tr>
+            <td>${escapeSafetyHtml(new Date(log.timestamp || Date.now()).toLocaleString())}</td>
+            <td>${escapeSafetyHtml(log.admin || 'Admin User')}</td>
+            <td><span class="status-badge status-active">${escapeSafetyHtml(log.action || 'ACTION')}</span></td>
+            <td>${escapeSafetyHtml(log.details || '')}</td>
+        </tr>
+    `).join('');
 }

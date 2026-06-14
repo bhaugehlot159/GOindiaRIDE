@@ -4575,12 +4575,12 @@
         const unreadAdmin = window.PortalConnector && typeof window.PortalConnector.getUnreadCount === "function"
             ? window.PortalConnector.getUnreadCount("admin")
             : 0;
-        const apiBase = state.settings.apiBase || "Local only";
+        const apiBase = state.settings.apiBase || DEFAULT_API_BASE;
         const connection = state.connection && state.connection.connected
             ? `${PORTAL_FEATURES.length} feature groups connected`
             : "Waiting for admin sync";
         const rows = [
-            ["fa-database", "Booking sources", `${localStores} active local stores`],
+            ["fa-database", "Booking sources", `${localStores} active booking stores`],
             ["fa-bell", "Admin notifications", `${unreadAdmin} unread portal alerts`],
             ["fa-cloud", "API base", apiBase],
             ["fa-link", "Portal bridge", connection],
@@ -5787,7 +5787,7 @@
         showToast(backendReview.ok || fallbackDecision.ok || syncResult.touched ? message : "Decision recorded locally; backend review sync is still pending.");
     }
 
-    function seedDriver() {
+    function addDriverIntake() {
         const key = "drivers";
         const rows = readArray(key);
         const id = `DRV${Date.now()}`;
@@ -6087,7 +6087,7 @@
 
         $("#exportBookingsBtn")?.addEventListener("click", exportBookings);
         $("#addBookingForCustomerBtn")?.addEventListener("click", openAdminCreateBookingModal);
-        $("#seedDriverBtn")?.addEventListener("click", seedDriver);
+        $("#addDriverIntakeBtn")?.addEventListener("click", addDriverIntake);
         $("#clearLogViewBtn")?.addEventListener("click", () => {
             state.hideOldActivity = !state.hideOldActivity;
             $("#clearLogViewBtn").textContent = state.hideOldActivity ? "Show more" : "Hide old";

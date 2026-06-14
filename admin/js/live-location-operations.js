@@ -402,7 +402,7 @@
     function render(snapshot) {
         const panel = mount();
         if (!panel) return;
-        const statusText = snapshot.databaseConnected ? "Backend live" : "Local preview";
+        const statusText = snapshot.databaseConnected ? "Backend live" : "Live preview";
         const counts = snapshot.counts || {};
         panel.innerHTML = `
             <div class="panel-title-row">
