@@ -246,9 +246,11 @@ test('admin app exposes competitor benchmark and live readiness controls', () =>
   assert.match(appHtml, /id="benchmarkMatrixList"/);
   assert.match(appHtml, /id="benchmarkConnectionList"/);
   assert.match(appHtml, /data-benchmark-action="apply"/);
+  assert.match(appHtml, /Connect live baseline/);
   assert.match(adminApp, /BENCHMARK_REVIEW_KEY/);
   assert.match(adminApp, /BENCHMARK_SOURCE_NOTES/);
   assert.match(adminApp, /function applyBenchmarkBaseline\(/);
+  assert.match(adminApp, /function getBenchmarkLiveEvidence\(/);
   assert.match(adminApp, /function renderBenchmark\(/);
   assert.match(adminApp, /privateCompetitorAdminAccess:\s*false/);
   assert.match(adminApp, /connectAllPortalFeatures\(\{ audit: true \}\)/);
@@ -267,6 +269,9 @@ test('admin app exposes enterprise and fleet parity controls', () => {
   assert.match(appHtml, /id="enterpriseReadinessList"/);
   assert.match(appHtml, /data-enterprise-action="connect-all"/);
   assert.match(appHtml, /data-enterprise-action="run-live-test"/);
+  assert.match(appHtml, /Connect ready modules/);
+  assert.match(appHtml, /Verify live/);
+  assert.doesNotMatch(appHtml, /Run live test|Connect missing/);
   ADMIN_ENTERPRISE_CHUNKS.forEach((chunkPath) => {
     const htmlPath = `./${chunkPath.replace(/^admin\//, '')}`;
     assert.match(appHtml, new RegExp(htmlPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
@@ -277,6 +282,8 @@ test('admin app exposes enterprise and fleet parity controls', () => {
   assert.match(adminApp, /getAdminEnterpriseRegistry/);
   assert.match(adminApp, /mergeEnterpriseRowsById/);
   assert.match(adminApp, /function connectEnterpriseModules\(/);
+  assert.match(adminApp, /function getEnterpriseConnectableModuleIds\(/);
+  assert.match(adminApp, /needs live source data before it can be connected/);
   assert.match(adminApp, /function runEnterpriseLiveTest\(/);
   assert.match(adminApp, /function renderEnterprise\(/);
   assert.match(enterpriseChunks, /corporate_wallet_billing/);
@@ -305,7 +312,7 @@ test('enterprise parity catalog is split into small chunks', () => {
   assert.match(enterpriseChunks, /registerBenchmark/);
 });
 
-test('admin enterprise connect-all stores live controlled modules', () => {
+test('admin enterprise connect-ready stores only live-source controlled modules', () => {
   const result = runAdminAppWithBookingRows([
     {
       bookingId: 'BKT-ENT-1',
@@ -339,24 +346,29 @@ test('admin enterprise connect-all stores live controlled modules', () => {
 
   const enterprise = JSON.parse(result.localStorage.getItem('goindiaride_admin_enterprise_fleet_controls_v1') || '{}');
   const modules = enterprise.modules || {};
-  assert.ok(Object.keys(modules).length >= 40);
+  assert.ok(Object.keys(modules).length >= 30);
   assert.equal(modules.corporate_wallet_billing.status, 'live');
   assert.equal(modules.guest_rides_central_booking.status, 'live');
   assert.equal(modules.employee_bulk_api_lifecycle.runtimeMode, 'live_controlled');
   assert.equal(modules.monthly_billing_statements.backendSyncStatus, 'protected_backend_ready');
   assert.equal(modules.fraud_abuse_detection.status, 'live');
   assert.equal(modules.live_map_dispatch.runtimeMode, 'live_controlled');
+  assert.equal(modules.fleet_vehicle_docs, undefined);
+  assert.equal(modules.driver_quality_payouts, undefined);
   Object.values(modules)
     .filter((module) => module.backendSyncStatus === 'protected_backend_ready')
     .forEach((module) => assert.ok(Array.isArray(module.backendEndpoints) && module.backendEndpoints.length > 0));
-  assert.equal(enterprise.lastLiveTest.summary.gap, 0);
-  assert.equal(enterprise.lastLiveTest.rows.every((row) => row.status === 'live'), true);
+  assert.ok(enterprise.lastLiveTest.summary.gap > 0);
+  assert.equal(enterprise.lastLiveTest.rows.every((row) => row.status === 'live'), false);
+  assert.equal(enterprise.lastLiveTest.rows.find((row) => row.id === 'fleet_vehicle_docs').status, 'gap');
   assert.ok(Array.isArray(enterprise.moduleCatalog));
   assert.ok(enterprise.moduleCatalog.length >= 40);
   assert.equal(enterprise.wallet.corporateWalletEnabled, true);
   assert.equal(enterprise.fleet.liveMapEnabled, true);
+  assert.equal(enterprise.fleet.vehicleDocsEnabled, false);
   assert.equal(Array.isArray(enterprise.reports), true);
-  assert.doesNotMatch(JSON.stringify(enterprise), /demo/i);
+  assert.equal(enterprise.policies.defaultPolicy.monthlyBudget, 0);
+  assert.doesNotMatch(JSON.stringify(enterprise), /demo|GOindiaRIDE Corporate|Default Corporate Travel Policy|VEH-|DRV-/i);
 });
 
 test('enterprise live modules map to existing protected backend routes', () => {

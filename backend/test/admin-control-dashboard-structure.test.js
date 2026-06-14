@@ -23,7 +23,7 @@ test('admin app exposes a complete admin control panel dashboard shell', () => {
   assert.match(app, /id="adminControlPanelStructure"[^>]+data-admin-control-structure="dashboard"/);
   assert.match(app, /id="adminControlPanelTitle">Admin Control Panel Dashboard<\/h2>/);
 
-  ['overview', 'bookings', 'portals', 'drivers', 'finance', 'safety', 'settings'].forEach((view) => {
+  ['overview', 'bookings', 'benchmark', 'enterprise', 'portals', 'drivers', 'finance', 'safety', 'settings'].forEach((view) => {
     assert.match(app, new RegExp(`data-control-panel-view="${view}"`), `${view} shortcut should exist`);
   });
 
@@ -35,9 +35,13 @@ test('admin app exposes a complete admin control panel dashboard shell', () => {
   assert.match(layoutCss, /body\.admin-app-shell \.booking-card[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
   assert.match(layoutCss, /body\.admin-app-shell \.ops-signal-grid[\s\S]*repeat\(auto-fit, minmax\(min\(170px, 100%\), 1fr\)\)/);
   assert.match(layoutCss, /body\.admin-app-shell \.feature-control-row[\s\S]*flex-wrap: wrap !important/);
+  assert.match(layoutCss, /body\.admin-app-shell \.access-control-row[\s\S]*grid-template-columns: 1fr !important/);
+  assert.match(layoutCss, /body\.admin-app-shell \.data-table thead[\s\S]*display: none !important/);
   assert.match(js, /\$all\("\[data-control-panel-view\]"\)/);
   assert.match(js, /switchView\(button\.dataset\.controlPanelView \|\| "overview"\)/);
   assert.match(js, /setText\("#controlBookingsCount", pending\)/);
+  assert.match(js, /setText\("#controlBenchmarkCount", benchmarkSummary\.gap\)/);
+  assert.match(js, /setText\("#controlEnterpriseCount", enterpriseSummary\.gap\)/);
   assert.match(js, /setText\("#controlFinanceCount", formatMoney\(farePipeline\)\)/);
 });
 

@@ -197,7 +197,7 @@
             title: "Reports and spend insights",
             competitors: "Uber Insights, Ola Analytics",
             current: "Reports and invoice module now exposes date, status, payment, employee/group and invoice-pack export readiness.",
-            next: "Run refresh/live test after backend login to confirm all report endpoints return protected production data.",
+            next: "Run live verification after backend login to confirm all report endpoints return protected production data.",
             statusType: "partial"
         },
         {
@@ -205,7 +205,7 @@
             title: "Fleet, driver and vehicle documents",
             competitors: "Uber Fleet, Rapido Captain",
             current: "Fleet module now builds vehicle records, KYC/document status, expiry alerts, renewal readiness and assignment controls from driver data.",
-            next: "Add real uploaded vehicle documents as drivers onboard; no seeded document data is deleted.",
+            next: "Add real uploaded vehicle documents as drivers onboard; existing document data is preserved.",
             statusType: "partial"
         },
         {
@@ -213,7 +213,7 @@
             title: "Fleet live map and status",
             competitors: "Uber Fleet, Rapido customer app",
             current: "Live map/dispatch module checks driver availability, booking coordinates, driver location feeds and stale-location flags.",
-            next: "Drivers must keep sharing GPS so live-test rows remain green instead of falling back to partial status.",
+            next: "Drivers must keep sharing GPS so live verification rows remain green instead of falling back to partial status.",
             statusType: "gap"
         },
         {
@@ -1433,7 +1433,7 @@
             : "";
         const featureRows = renderPortalFeatureRows(portal, features, controls);
         const verifyButton = portal === "customer"
-            ? `<button class="row-action" data-control-action="verify-customer-features" data-portal="customer" type="button"><i class="fas fa-vial-circle-check"></i> Test live</button>`
+            ? `<button class="row-action" data-control-action="verify-customer-features" data-portal="customer" type="button"><i class="fas fa-vial-circle-check"></i> Verify live</button>`
             : "";
         return `
             <details class="portal-feature-folder portal-only-folder ${portal}-feature-folder">
@@ -3533,41 +3533,202 @@
         return booking.adminReviewStatus === "rejected" || ["rejected", "cancelled", "cancelled_by_admin", "blocked_by_admin", "deleted_by_admin"].includes(booking.status);
     }
 
-    function getBenchmarkStatus(item) {
-        const baseStatus = cleanText(item.statusType || "gap").toLowerCase();
-        const enterpriseMap = {
-            policy_budget_controls: "travel_policies_budget",
-            employee_groups_roles: "employees_groups_roles",
-            corporate_wallet_billing: "corporate_wallet_billing",
-            reports_insights: "reports_invoices",
-            fleet_driver_vehicle_docs: "fleet_vehicle_docs",
-            fleet_live_map: "live_map_dispatch",
-            safety_compliance: "safety_compliance_sos",
-            vouchers_programs: "vouchers_programs",
-            expense_carbon_integrations: "support_expense_integrations"
+    function getBenchmarkEnterpriseModuleIds(item = {}) {
+        const map = {
+            policy_budget_controls: ["travel_policies_budget", "approval_workflow_overrides", "roles_access_privileges"],
+            employee_groups_roles: ["corporate_accounts", "employees_groups_roles", "employee_bulk_api_lifecycle"],
+            corporate_wallet_billing: ["corporate_wallet_billing", "monthly_billing_statements"],
+            reports_insights: ["reports_invoices", "custom_csv_reports", "tax_gst_invoice_pack"],
+            fleet_driver_vehicle_docs: ["fleet_vehicle_docs", "vehicle_inventory_assignment", "driver_onboarding_kyc"],
+            fleet_live_map: ["live_map_dispatch", "trip_performance_utilization"],
+            safety_compliance: ["safety_compliance_sos", "night_ride_safety_check", "fraud_abuse_detection"],
+            vouchers_programs: ["vouchers_programs", "candidate_customer_vouchers", "scheduled_commute_programs"],
+            expense_carbon_integrations: ["support_expense_integrations", "expense_provider_export", "carbon_low_emission_reporting", "webhooks_partner_logs"]
         };
-        if (enterpriseMap[item.id] && enterpriseModuleIsConnected(enterpriseMap[item.id])) {
-            return "live";
+        return Array.from(new Set([
+            ...((map[item.id] || [])),
+            cleanText(item.enterpriseModuleId || "")
+        ].filter(Boolean)));
+    }
+
+    function summarizeEnterpriseModuleEvidence(moduleIds = []) {
+        const modules = moduleIds.map(getEnterpriseModuleDefinition).filter(Boolean);
+        const statuses = modules.map((module) => getEnterpriseModuleStatus(module));
+        const live = statuses.filter((status) => status === "live").length;
+        const partial = statuses.filter((status) => status === "partial").length;
+        const gap = statuses.filter((status) => status === "gap").length;
+        return { modules, statuses, live, partial, gap, total: modules.length };
+    }
+
+    function getBenchmarkLiveEvidence(item = {}) {
+        const moduleIds = getBenchmarkEnterpriseModuleIds(item);
+        const moduleEvidence = summarizeEnterpriseModuleEvidence(moduleIds);
+        const tokenReady = isBackendAccessTokenUsable(getBackendAccessToken());
+        const localBookingSources = BOOKING_KEYS.filter((key) => readArray(key).length > 0).length;
+        const customerRows = getCustomerRows();
+        const wallet = getEnterpriseWalletSnapshot();
+        const reportReadyCount = buildEnterpriseReportTemplates().filter((report) => report.ready).length;
+        const vehicles = buildEnterpriseVehicleRows();
+        const locationRows = readDriverLocationRows();
+        const coordinateBookings = state.bookings.filter(bookingHasCoordinates).length;
+        const liveDrivers = state.drivers.filter((driver) => /(online|available|active|approved)/i.test(driver.status)).length;
+        const expenseRows = state.bookings.filter((booking) => cleanText(booking.expenseCode || booking.expense_code || booking.memo)).length;
+
+        const fromModules = (hasLiveData, liveText, partialText, gapText) => {
+            if (moduleEvidence.live && hasLiveData) return { status: "live", current: liveText };
+            if (hasLiveData || moduleEvidence.live || moduleEvidence.partial) return { status: "partial", current: partialText };
+            return { status: "gap", current: gapText };
+        };
+
+        switch (item.id) {
+            case "admin_booked_rides": {
+                const hasCreateButton = Boolean($("#addBookingForCustomerBtn"));
+                const status = hasCreateButton && (state.bookings.length || localBookingSources || tokenReady)
+                    ? (tokenReady ? "live" : "partial")
+                    : "gap";
+                return {
+                    status,
+                    current: `${state.bookings.length} customer booking rows loaded from ${localBookingSources || 0} active local stores; admin create/edit controls ${hasCreateButton ? "present" : "missing"}.`,
+                    next: tokenReady ? "Protected backend token is ready for cloud queue sync." : "Admin login token is required before protected backend queue verification."
+                };
+            }
+            case "policy_budget_controls": {
+                const policy = (state.enterpriseControls || loadEnterpriseControls()).policies?.defaultPolicy || {};
+                const evidence = fromModules(
+                    moduleEvidence.live || cleanText(policy.name),
+                    `Policy controls connected; ${cleanText(policy.name || "no named budget policy saved yet")}.`,
+                    "Policy store is writable and ready; connect the ready module after budget values are saved.",
+                    "Policy and approval controls are not connected yet."
+                );
+                return {
+                    ...evidence,
+                    next: cleanText(policy.name) ? "Keep budget and approval thresholds current from enterprise controls." : "Save a corporate travel policy before rollout."
+                };
+            }
+            case "employee_groups_roles": {
+                const hasRoster = customerRows.length > 0;
+                const evidence = fromModules(
+                    hasRoster,
+                    `${customerRows.length} employee/customer records are connected to corporate groups.`,
+                    `${customerRows.length} employee/customer records found; connect group and role modules to promote them.`,
+                    "No live employee/customer roster rows found yet."
+                );
+                return {
+                    ...evidence,
+                    next: hasRoster ? "Review group and role assignments before adding bulk lifecycle actions." : "Create or import corporate users/customers first."
+                };
+            }
+            case "corporate_wallet_billing": {
+                const hasFareRows = wallet.bookingCount > 0;
+                const evidence = fromModules(
+                    hasFareRows,
+                    `${formatMoney(wallet.totalFare)} fare pipeline across ${wallet.bookingCount} live booking rows.`,
+                    `${formatMoney(wallet.totalFare)} fare pipeline available; protected wallet sync still needs verification.`,
+                    "No booking fare rows are available for billing yet."
+                );
+                return {
+                    ...evidence,
+                    next: tokenReady ? "Protected wallet endpoints can be verified from this session." : "Admin login token required for protected wallet/report endpoints."
+                };
+            }
+            case "reports_insights": {
+                const evidence = fromModules(
+                    state.bookings.length > 0 && reportReadyCount > 0,
+                    `${reportReadyCount}/${buildEnterpriseReportTemplates().length} reports are backed by live booking/fare rows.`,
+                    `${reportReadyCount}/${buildEnterpriseReportTemplates().length} report templates have source data or connected controls.`,
+                    "Reports need booking, fare, driver or connected enterprise data before they are useful."
+                );
+                return {
+                    ...evidence,
+                    next: state.bookings.length ? "Export and compare report totals with finance before rollout." : "Load real bookings before enabling invoice exports."
+                };
+            }
+            case "fleet_driver_vehicle_docs": {
+                const hasDriverRows = state.drivers.length > 0;
+                const evidence = fromModules(
+                    hasDriverRows,
+                    `${vehicles.length} driver/vehicle rows available for document lifecycle checks.`,
+                    `${state.drivers.length} driver rows found; connect fleet document module to track expiry and review status.`,
+                    "No live driver/vehicle records found for fleet documents."
+                );
+                return {
+                    ...evidence,
+                    next: hasDriverRows ? "Attach uploaded vehicle and KYC expiry data as drivers onboard." : "Approve or import drivers before fleet document controls are marked live."
+                };
+            }
+            case "fleet_live_map": {
+                const hasLocationData = locationRows.length + coordinateBookings + liveDrivers > 0;
+                const evidence = fromModules(
+                    hasLocationData,
+                    `${locationRows.length} GPS rows, ${coordinateBookings} coordinate-ready bookings and ${liveDrivers} active drivers found.`,
+                    `${locationRows.length} GPS rows and ${coordinateBookings} coordinate-ready bookings found; connect live map dispatch to promote it.`,
+                    "No live GPS rows or coordinate-ready bookings found."
+                );
+                return {
+                    ...evidence,
+                    next: hasLocationData ? "Keep driver GPS updates fresh to avoid stale dispatch status." : "Enable driver/customer location writes before live dispatch."
+                };
+            }
+            case "safety_compliance": {
+                const safetyRows = state.notifications.length + state.bookings.length;
+                const evidence = fromModules(
+                    safetyRows > 0,
+                    `${state.notifications.length} alerts and ${state.bookings.length} booking rows feed safety checks.`,
+                    `${safetyRows} safety-relevant rows found; protected incident endpoints still need verification.`,
+                    "No booking or alert rows available for safety checks."
+                );
+                return {
+                    ...evidence,
+                    next: tokenReady ? "Protected security endpoints can be checked now." : "Admin token required for cloud incident and SOS verification."
+                };
+            }
+            case "vouchers_programs": {
+                const connected = moduleEvidence.live > 0;
+                return {
+                    status: connected ? "partial" : "gap",
+                    current: connected ? "Program control modules are connected; no live voucher campaign rows are saved yet." : "No live voucher, commute or guest program rows found.",
+                    next: "Create real corporate program rules before marking voucher programs live."
+                };
+            }
+            case "expense_carbon_integrations": {
+                const integrationRows = expenseRows + state.notifications.length;
+                const evidence = fromModules(
+                    integrationRows > 0,
+                    `${expenseRows} expense-coded bookings and ${state.notifications.length} notification rows feed integrations.`,
+                    `${integrationRows} integration source rows found; provider/backend sync still needs verification.`,
+                    "No expense-coded bookings, support notifications or provider log rows found."
+                );
+                return {
+                    ...evidence,
+                    next: tokenReady ? "Protected integration endpoints can be verified from this admin session." : "Admin login token required for protected provider and webhook logs."
+                };
+            }
+            default: {
+                if (moduleEvidence.live) {
+                    return {
+                        status: moduleEvidence.gap ? "partial" : "live",
+                        current: `${moduleEvidence.live}/${moduleEvidence.total} linked enterprise modules live.`,
+                        next: moduleEvidence.gap ? "Complete remaining linked modules." : "Keep linked modules refreshed."
+                    };
+                }
+                if (moduleEvidence.partial) {
+                    return {
+                        status: "partial",
+                        current: `${moduleEvidence.partial}/${moduleEvidence.total} linked enterprise modules have live source data.`,
+                        next: "Connect ready modules and refresh verification."
+                    };
+                }
+                return {
+                    status: "gap",
+                    current: cleanText(item.current || "No live source data found for this benchmark item."),
+                    next: cleanText(item.next || "Add live source data before connecting this item.")
+                };
+            }
         }
-        if (item.enterpriseModuleId && enterpriseModuleIsConnected(item.enterpriseModuleId)) {
-            return "live";
-        }
-        if (item.id === "admin_booked_rides") {
-            const hasCreateButton = Boolean($("#addBookingForCustomerBtn"));
-            const hasFallbackSync = Boolean(state.connection && state.connection.bookingKeys && state.connection.bookingKeys.length);
-            return hasCreateButton && hasFallbackSync ? "live" : "partial";
-        }
-        if (item.id === "fleet_driver_vehicle_docs") {
-            return state.drivers.length ? "partial" : baseStatus;
-        }
-        if (item.id === "reports_insights") {
-            return state.bookings.length ? "partial" : baseStatus;
-        }
-        if (item.id === "fleet_live_map") {
-            const liveDrivers = state.drivers.filter((driver) => /(online|available|active|approved)/i.test(driver.status)).length;
-            return liveDrivers ? "partial" : "gap";
-        }
-        return ["live", "partial", "gap"].includes(baseStatus) ? baseStatus : "gap";
+    }
+
+    function getBenchmarkStatus(item) {
+        return getBenchmarkLiveEvidence(item).status;
     }
 
     function benchmarkStatusLabel(status) {
@@ -3583,10 +3744,14 @@
     }
 
     function getBenchmarkRows() {
-        return BENCHMARK_MATRIX.map((item) => ({
-            ...item,
-            status: getBenchmarkStatus(item)
-        }));
+        return BENCHMARK_MATRIX.map((item) => {
+            const evidence = getBenchmarkLiveEvidence(item);
+            return {
+                ...item,
+                ...evidence,
+                modules: getBenchmarkEnterpriseModuleIds(item)
+            };
+        });
     }
 
     function getBenchmarkSummary(rows = getBenchmarkRows()) {
@@ -3673,7 +3838,8 @@
 
     function applyBenchmarkBaseline() {
         connectAllPortalFeatures({ audit: true });
-        connectEnterpriseModules(ENTERPRISE_MODULES.map((item) => item.id), {
+        const readyModuleIds = getEnterpriseConnectableModuleIds(ENTERPRISE_MODULES.map((item) => item.id));
+        connectEnterpriseModules(readyModuleIds, {
             audit: false,
             reason: "benchmark_baseline"
         });
@@ -3691,7 +3857,7 @@
         state.controls = writeAdminControls(controls);
         const review = persistBenchmarkReview("baseline_connected");
         renderAll();
-        showToast(`Benchmark baseline connected. ${review.summary.gap} gaps still need dedicated modules.`);
+        showToast(`Live benchmark baseline connected for ${readyModuleIds.length} ready modules. ${review.summary.gap} gaps still need live data.`);
     }
 
     function enterpriseModuleEntry(moduleId) {
@@ -3736,44 +3902,65 @@
         return Boolean(pickup || dropoff || booking.pickupGoogleMapsUrl || booking.dropoffGoogleMapsUrl);
     }
 
-    function getEnterpriseModuleStatus(module) {
-        if (enterpriseModuleIsConnected(module.id)) {
-            if (enterpriseModuleNeedsBackend(module.id) && !isBackendAccessTokenUsable(getBackendAccessToken())) return "partial";
-            return "live";
-        }
-        if (module.id === "corporate_accounts" || module.id === "employees_groups_roles") {
-            return getCustomerRows().length ? "partial" : module.statusType;
-        }
-        if (module.id === "travel_desk_api_booking") {
-            return $("#addBookingForCustomerBtn") ? "partial" : module.statusType;
-        }
-        if (module.id === "corporate_wallet_billing" || module.id === "reports_invoices") {
-            return state.bookings.length ? "partial" : module.statusType;
-        }
-        if (module.id === "fleet_vehicle_docs" || module.id === "driver_quality_payouts") {
-            return state.drivers.length ? "partial" : module.statusType;
-        }
-        if (module.id === "live_map_dispatch") {
-            return state.drivers.length || state.bookings.some(bookingHasCoordinates) || readDriverLocationRows().length ? "partial" : module.statusType;
-        }
-        if (module.id === "safety_compliance_sos") {
-            return state.notifications.length || state.bookings.length ? "partial" : module.statusType;
-        }
-        if (module.id === "support_expense_integrations") {
-            const hasExpenseCode = state.bookings.some((booking) => cleanText(booking.expenseCode || booking.expense_code || booking.memo));
-            return hasExpenseCode || state.notifications.length ? "partial" : module.statusType;
-        }
+    function isEnterpriseControlStoreModule(module = {}) {
+        return ["controls", "policy"].includes(cleanText(module.sourceCheck || "").toLowerCase());
+    }
+
+    function getEnterpriseModuleConnectionEvidence(module = {}) {
         const source = getEnterpriseSourceReadiness(module.id);
-        if (source && source.ready) return "partial";
-        return ["live", "partial", "gap"].includes(module.statusType) ? module.statusType : "gap";
+        const controlStoreReady = isEnterpriseControlStoreModule(module);
+        const backendNeeded = enterpriseModuleNeedsBackend(module.id);
+        const backendReady = !backendNeeded || isBackendAccessTokenUsable(getBackendAccessToken());
+        const sourceReady = Boolean(source.ready || controlStoreReady);
+        const connectable = sourceReady;
+        const status = connectable ? (backendReady ? "live" : "partial") : "gap";
+        const backendDetail = backendNeeded
+            ? (backendReady
+                ? `Protected backend ready: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`
+                : `Admin login token required for protected endpoints: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`)
+            : "Local admin control store and portal bridge";
+        return {
+            source,
+            controlStoreReady,
+            backendNeeded,
+            backendReady,
+            sourceReady,
+            connectable,
+            status,
+            backendDetail
+        };
+    }
+
+    function getEnterpriseConnectableModuleIds(moduleIds = []) {
+        const ids = (moduleIds.length ? moduleIds : ENTERPRISE_MODULES.map((item) => item.id)).filter(Boolean);
+        return ids.filter((moduleId) => {
+            const module = getEnterpriseModuleDefinition(moduleId);
+            if (!module) return false;
+            return getEnterpriseModuleConnectionEvidence(module).connectable;
+        });
+    }
+
+    function getEnterpriseModuleStatus(module) {
+        const evidence = getEnterpriseModuleConnectionEvidence(module);
+        if (enterpriseModuleIsConnected(module.id)) {
+            return evidence.status;
+        }
+        if (evidence.connectable) return "partial";
+        return "gap";
     }
 
     function getEnterpriseRows() {
-        return ENTERPRISE_MODULES.map((module) => ({
-            ...module,
-            status: getEnterpriseModuleStatus(module),
-            connectedAt: enterpriseModuleEntry(module.id).connectedAt || ""
-        }));
+        return ENTERPRISE_MODULES.map((module) => {
+            const evidence = getEnterpriseModuleConnectionEvidence(module);
+            return {
+                ...module,
+                status: getEnterpriseModuleStatus(module),
+                connectedAt: enterpriseModuleEntry(module.id).connectedAt || "",
+                sourceReadiness: evidence.source,
+                backendDetail: evidence.backendDetail,
+                canConnect: evidence.connectable
+            };
+        });
     }
 
     function getEnterpriseSummary(rows = getEnterpriseRows()) {
@@ -3799,8 +3986,8 @@
 
     function buildEnterpriseVehicleRows() {
         return state.drivers.slice(0, 40).map((driver, index) => ({
-            vehicleId: cleanText(driver.vehicleNumber || driver.registrationNumber || `VEH-${index + 1}`),
-            driverId: cleanText(driver.id || driver.driverId || `DRV-${index + 1}`),
+            vehicleId: cleanText(driver.vehicleNumber || driver.registrationNumber || driver.vehicleId || "Vehicle not set"),
+            driverId: cleanText(driver.id || driver.driverId || driver.phone || driver.email || `driver-row-${index + 1}`),
             driverName: cleanText(driver.name || "Driver"),
             vehicleType: cleanText(driver.vehicle || driver.vehicleType || "Vehicle not set"),
             documentStatus: /approved|active|available/i.test(driver.status) ? "verified" : "pending_review",
@@ -3810,7 +3997,7 @@
 
     function buildEnterpriseReportTemplates() {
         return [
-            { id: "rides_by_date", label: "Ride report by date/status", ready: true },
+            { id: "rides_by_date", label: "Ride report by date/status", ready: state.bookings.length > 0 },
             { id: "employee_group_spend", label: "Employee/group spend report", ready: enterpriseModuleIsConnected("employees_groups_roles") },
             { id: "invoice_pack", label: "Invoice pack and fare breakup export", ready: state.bookings.length > 0 },
             { id: "driver_quality", label: "Driver quality and payout report", ready: state.drivers.length > 0 },
@@ -3827,7 +4014,7 @@
 
     function buildEnterpriseControlsSnapshot(baseControls = loadEnterpriseControls(), moduleIds = []) {
         const now = new Date().toISOString();
-        const ids = new Set((moduleIds.length ? moduleIds : ENTERPRISE_MODULES.map((item) => item.id)).filter(Boolean));
+        const ids = new Set(moduleIds.filter(Boolean));
         const customers = getCustomerRows();
         const wallet = getEnterpriseWalletSnapshot();
         const vehicles = buildEnterpriseVehicleRows();
@@ -3835,23 +4022,33 @@
         const modules = { ...(baseControls.modules || {}) };
         ENTERPRISE_MODULES.forEach((module) => {
             if (!ids.has(module.id)) return;
-            const needsBackend = enterpriseModuleNeedsBackend(module.id);
-            const backendReady = !needsBackend || isBackendAccessTokenUsable(getBackendAccessToken());
+            const evidence = getEnterpriseModuleConnectionEvidence(module);
             modules[module.id] = {
                 ...(modules[module.id] || {}),
-                connected: true,
-                status: backendReady ? "live" : "partial",
-                runtimeMode: "live_controlled",
-                backendSyncStatus: needsBackend
-                    ? (backendReady ? "protected_backend_ready" : "admin_auth_required")
+                connected: evidence.connectable,
+                status: evidence.status,
+                runtimeMode: evidence.connectable ? "live_controlled" : "waiting_for_live_data",
+                backendSyncStatus: evidence.backendNeeded
+                    ? (evidence.backendReady ? "protected_backend_ready" : "admin_auth_required")
                     : "local_control_ready",
                 backendEndpoints: ENTERPRISE_BACKEND_ENDPOINTS[module.id] || [],
                 connectedAt: now,
                 updatedAt: now,
                 source: "admin_enterprise_control_center",
+                sourceReady: evidence.source.ready,
+                sourceCount: evidence.source.count,
+                sourceDetail: evidence.source.detail,
                 competitors: module.competitors
             };
         });
+        const groupNames = new Set(customers.map((customer) => cleanText(
+            customer.group
+            || customer.userGroup
+            || customer.department
+            || customer.costCenter
+            || customer.company
+        )).filter(Boolean));
+        const existingPolicy = baseControls.policies?.defaultPolicy || {};
 
         return {
             ...baseControls,
@@ -3876,43 +4073,43 @@
             }, {}),
             corporate: {
                 ...(baseControls.corporate || {}),
-                companyName: cleanText(baseControls.corporate?.companyName || "GOindiaRIDE Corporate"),
-                defaultCostCenter: cleanText(baseControls.corporate?.defaultCostCenter || "Operations"),
+                companyName: cleanText(baseControls.corporate?.companyName || ""),
+                defaultCostCenter: cleanText(baseControls.corporate?.defaultCostCenter || ""),
                 employeeCount: customers.length,
-                groupCount: Math.max(1, new Set(customers.map((customer) => cleanText(customer.group || customer.userGroup || "Default Group"))).size),
+                groupCount: groupNames.size || (customers.length ? 1 : 0),
                 adminRoles: ["owner_admin", "travel_desk", "finance_admin", "fleet_admin"],
-                csvExportReady: true
+                csvExportReady: customers.length > 0
             },
             policies: {
                 ...(baseControls.policies || {}),
                 defaultPolicy: {
-                    name: "Default Corporate Travel Policy",
-                    monthlyBudget: toAmount(baseControls.policies?.defaultPolicy?.monthlyBudget || 25000),
-                    approvalThreshold: toAmount(baseControls.policies?.defaultPolicy?.approvalThreshold || 5000),
-                    allowedRideTypes: ["mini", "sedan", "suv", "auto", "bike"],
-                    nightTripApprovalRequired: true,
-                    outstationApprovalRequired: true,
-                    travelDeskOverride: true,
+                    name: cleanText(existingPolicy.name || ""),
+                    monthlyBudget: toAmount(existingPolicy.monthlyBudget || 0),
+                    approvalThreshold: toAmount(existingPolicy.approvalThreshold || 0),
+                    allowedRideTypes: Array.isArray(existingPolicy.allowedRideTypes) ? existingPolicy.allowedRideTypes : [],
+                    nightTripApprovalRequired: Boolean(existingPolicy.nightTripApprovalRequired),
+                    outstationApprovalRequired: Boolean(existingPolicy.outstationApprovalRequired),
+                    travelDeskOverride: Boolean(existingPolicy.travelDeskOverride),
                     updatedAt: now
                 }
             },
             wallet: {
                 ...(baseControls.wallet || {}),
-                corporateWalletEnabled: true,
-                monthlyBillingEnabled: true,
-                paymentModeControlEnabled: true,
+                corporateWalletEnabled: wallet.bookingCount > 0 || Boolean(baseControls.wallet?.corporateWalletEnabled),
+                monthlyBillingEnabled: wallet.bookingCount > 0 || Boolean(baseControls.wallet?.monthlyBillingEnabled),
+                paymentModeControlEnabled: wallet.paymentModes.length > 0 || Boolean(baseControls.wallet?.paymentModeControlEnabled),
                 balance: wallet.approvedFare,
                 pendingFare: wallet.pendingFare,
                 totalFare: wallet.totalFare,
                 paymentModes: wallet.paymentModes,
-                statementReady: true,
+                statementReady: wallet.bookingCount > 0,
                 updatedAt: now
             },
             fleet: {
                 ...(baseControls.fleet || {}),
-                vehicleDocsEnabled: true,
-                liveMapEnabled: true,
-                driverQualityEnabled: true,
+                vehicleDocsEnabled: vehicles.length > 0,
+                liveMapEnabled: locations.length > 0 || state.bookings.some(bookingHasCoordinates),
+                driverQualityEnabled: state.drivers.length > 0,
                 vehicles,
                 liveLocations: locations,
                 activeDriverCount: state.drivers.filter((driver) => /online|available|active|approved/i.test(driver.status)).length,
@@ -3926,6 +4123,9 @@
     function mirrorEnterpriseControlsIntoAdminBridge(enterpriseControls) {
         const controls = state.controls || loadAdminControls();
         const now = enterpriseControls.updatedAt || new Date().toISOString();
+        const connectedModules = ENTERPRISE_MODULES
+            .map((module) => module.id)
+            .filter((moduleId) => enterpriseControls.modules && enterpriseControls.modules[moduleId] && enterpriseControls.modules[moduleId].connected);
         const nextControls = {
             ...controls,
             enterpriseFleet: enterpriseControls,
@@ -3934,15 +4134,15 @@
                 enterprise: {
                     enabled: true,
                     sourceKey: ENTERPRISE_CONTROL_KEY,
-                    modules: ENTERPRISE_MODULES.map((module) => module.id),
+                    modules: connectedModules,
                     updatedAt: now
                 }
             },
             appConnections: {
                 ...(controls.appConnections || {}),
                 enterprise: {
-                    connected: true,
-                    modules: ENTERPRISE_MODULES.map((module) => module.id),
+                    connected: connectedModules.length > 0,
+                    modules: connectedModules,
                     updatedAt: now
                 }
             }
@@ -3983,11 +4183,15 @@
     }
 
     function connectEnterpriseModules(moduleIds = [], options = {}) {
-        const controls = buildEnterpriseControlsSnapshot(loadEnterpriseControls(), moduleIds);
+        const requestedIds = moduleIds.filter(Boolean);
+        const controls = buildEnterpriseControlsSnapshot(loadEnterpriseControls(), requestedIds);
         const saved = writeEnterpriseControls(controls);
-        const connectedCount = (moduleIds.length ? moduleIds : ENTERPRISE_MODULES.map((item) => item.id)).length;
+        const connectedCount = requestedIds.filter((moduleId) => {
+            const entry = (saved.modules || {})[moduleId] || {};
+            return entry.connected === true;
+        }).length;
         if (options.audit !== false) {
-            addAudit("ADMIN_ENTERPRISE_MODULES_CONNECTED", `${connectedCount} enterprise/fleet modules connected from admin control center.`);
+            addAudit("ADMIN_ENTERPRISE_MODULES_CONNECTED", `${connectedCount}/${requestedIds.length} enterprise/fleet modules connected from admin control center.`);
         }
         return saved;
     }
@@ -3998,9 +4202,15 @@
             showToast("Enterprise module not found.");
             return;
         }
+        const evidence = getEnterpriseModuleConnectionEvidence(module);
+        if (!evidence.connectable) {
+            showToast(`${module.title} needs live source data before it can be connected.`);
+            renderEnterprise();
+            return;
+        }
         connectEnterpriseModules([moduleId], { audit: true });
         renderAll();
-        showToast(`${module.title} connected.`);
+        showToast(`${module.title} connected from live source readiness.`);
     }
 
     function getGenericEnterpriseSourceReadiness(module) {
@@ -4012,12 +4222,12 @@
         const tokenReady = isBackendAccessTokenUsable(getBackendAccessToken());
         const checks = {
             customers: {
-                ready: true,
+                ready: customers.length > 0,
                 count: customers.length,
                 detail: `${customers.length} customer/employee rows scanned`
             },
             users: {
-                ready: true,
+                ready: state.users.length > 0,
                 count: state.users.length,
                 detail: `${state.users.length} user rows scanned`
             },
@@ -4032,27 +4242,27 @@
                 detail: "Policy, approval and budget control store is writable"
             },
             bookings: {
-                ready: true,
+                ready: state.bookings.length > 0,
                 count: state.bookings.length,
                 detail: `${state.bookings.length} booking rows scanned`
             },
             wallet: {
-                ready: true,
+                ready: getEnterpriseWalletSnapshot().bookingCount > 0,
                 count: getEnterpriseWalletSnapshot().bookingCount,
                 detail: "Wallet, billing and fare pipeline controls are wired"
             },
             reports: {
-                ready: true,
+                ready: reportReadyCount > 0,
                 count: reportReadyCount,
                 detail: `${reportReadyCount} report/export templates ready`
             },
             drivers: {
-                ready: true,
+                ready: state.drivers.length > 0,
                 count: state.drivers.length,
                 detail: `${state.drivers.length} driver/vehicle rows scanned`
             },
             fleet: {
-                ready: true,
+                ready: state.drivers.length + coordinateBookings > 0,
                 count: state.drivers.length + coordinateBookings,
                 detail: `${state.drivers.length} drivers and ${coordinateBookings} coordinate-ready bookings scanned`
             },
@@ -4062,12 +4272,12 @@
                 detail: `${locations.length} driver location rows and ${coordinateBookings} coordinate-ready bookings`
             },
             safety: {
-                ready: true,
+                ready: state.notifications.length + state.bookings.length > 0,
                 count: state.notifications.length + state.bookings.length,
                 detail: `${state.notifications.length} alerts and ${state.bookings.length} bookings scanned for safety checks`
             },
             notifications: {
-                ready: true,
+                ready: state.notifications.length > 0,
                 count: state.notifications.length,
                 detail: `${state.notifications.length} notification/support rows scanned`
             },
@@ -4080,9 +4290,9 @@
             }
         };
         return checks[sourceCheck] || {
-            ready: true,
-            count: 1,
-            detail: "Admin control module is registered and writable"
+            ready: false,
+            count: 0,
+            detail: "No live source rows found for this module yet"
         };
     }
 
@@ -4091,14 +4301,16 @@
         const locations = readDriverLocationRows();
         const coordinateBookings = state.bookings.filter(bookingHasCoordinates).length;
         const reportReadyCount = buildEnterpriseReportTemplates().filter((report) => report.ready).length;
+        const wallet = getEnterpriseWalletSnapshot();
+        const expenseRows = state.bookings.filter((booking) => cleanText(booking.expenseCode || booking.expense_code || booking.memo)).length;
         const sourceMap = {
             corporate_accounts: {
-                ready: true,
+                ready: customers.length > 0,
                 count: customers.length,
                 detail: `${customers.length} customer/employee rows scanned`
             },
             employees_groups_roles: {
-                ready: true,
+                ready: customers.length > 0,
                 count: customers.length,
                 detail: `${customers.length} roster rows available for group policy`
             },
@@ -4113,22 +4325,22 @@
                 detail: $("#addBookingForCustomerBtn") ? "Admin booking creator and fallback queue controls present" : "Admin booking creator missing"
             },
             corporate_wallet_billing: {
-                ready: true,
-                count: state.bookings.length,
-                detail: `${state.bookings.length} booking fare rows feeding wallet/billing snapshot`
+                ready: wallet.bookingCount > 0,
+                count: wallet.bookingCount,
+                detail: `${wallet.bookingCount} booking fare rows feeding wallet/billing snapshot`
             },
             reports_invoices: {
-                ready: reportReadyCount >= 3,
+                ready: reportReadyCount > 0,
                 count: reportReadyCount,
-                detail: `${reportReadyCount}/6 report templates currently ready`
+                detail: `${reportReadyCount}/${buildEnterpriseReportTemplates().length} report templates currently ready`
             },
             fleet_vehicle_docs: {
-                ready: true,
+                ready: state.drivers.length > 0,
                 count: state.drivers.length,
                 detail: `${state.drivers.length} driver/vehicle rows scanned`
             },
             driver_quality_payouts: {
-                ready: true,
+                ready: state.drivers.length > 0,
                 count: state.drivers.length,
                 detail: `${state.drivers.length} drivers available for quality/payout controls`
             },
@@ -4138,19 +4350,21 @@
                 detail: `${locations.length} driver location rows and ${coordinateBookings} coordinate-ready bookings`
             },
             safety_compliance_sos: {
-                ready: true,
+                ready: state.notifications.length + state.bookings.length > 0,
                 count: state.notifications.length + state.bookings.length,
                 detail: `${state.notifications.length} alerts and ${state.bookings.length} bookings scanned for safety rules`
             },
             vouchers_programs: {
-                ready: true,
-                count: 1,
-                detail: "Voucher/program builder store is writable and connected to enterprise controls"
+                ready: enterpriseModuleIsConnected("vouchers_programs"),
+                count: enterpriseModuleIsConnected("vouchers_programs") ? 1 : 0,
+                detail: enterpriseModuleIsConnected("vouchers_programs")
+                    ? "Voucher/program control store is connected"
+                    : "No live voucher or commute program rows saved yet"
             },
             support_expense_integrations: {
-                ready: true,
-                count: state.notifications.length,
-                detail: `${state.notifications.length} support/portal notifications available for SLA audit`
+                ready: state.notifications.length + expenseRows > 0,
+                count: state.notifications.length + expenseRows,
+                detail: `${state.notifications.length} support notifications and ${expenseRows} expense-coded bookings available for SLA audit`
             }
         };
         return sourceMap[moduleId] || getGenericEnterpriseSourceReadiness(getEnterpriseModuleDefinition(moduleId));
@@ -4161,12 +4375,14 @@
         return ENTERPRISE_MODULES.map((module) => {
             const entry = enterpriseModuleEntry(module.id);
             const connected = enterpriseModuleIsConnected(module.id);
-            const source = getEnterpriseSourceReadiness(module.id);
+            const evidence = getEnterpriseModuleConnectionEvidence(module);
+            const source = evidence.source;
             const backendNeeded = enterpriseModuleNeedsBackend(module.id);
             const backendReady = !backendNeeded || tokenReady;
-            const status = connected && source.ready && backendReady
+            const sourceReady = Boolean(evidence.sourceReady);
+            const status = connected && sourceReady && backendReady
                 ? "live"
-                : (connected && source.ready ? "partial" : "gap");
+                : (connected && sourceReady ? "partial" : "gap");
             const backendDetail = backendNeeded
                 ? (backendReady
                     ? `Protected backend ready: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`
@@ -4179,7 +4395,7 @@
                 status,
                 connected,
                 runtimeMode: cleanText(entry.runtimeMode || (connected ? "live_controlled" : "not_connected")),
-                sourceReady: source.ready,
+                sourceReady,
                 sourceCount: source.count,
                 backendReady,
                 backendNeeded,
@@ -4188,7 +4404,7 @@
         });
     }
 
-    function runEnterpriseLiveTest(action = "manual_live_test") {
+    function runEnterpriseLiveTest(action = "manual_live_verification") {
         const rows = getEnterpriseLiveTestRows();
         const summary = getEnterpriseSummary(rows);
         const payload = {
@@ -4201,7 +4417,7 @@
             }
         };
         const saved = writeEnterpriseControls(payload);
-        addAudit("ADMIN_ENTERPRISE_LIVE_TEST", `Enterprise live test: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`);
+        addAudit("ADMIN_ENTERPRISE_LIVE_TEST", `Enterprise live verification: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`);
         return saved.lastLiveTest;
     }
 
@@ -4209,6 +4425,7 @@
         const wallet = getEnterpriseWalletSnapshot();
         const controls = state.enterpriseControls || loadEnterpriseControls();
         const locationRows = readDriverLocationRows();
+        const policy = controls.policies?.defaultPolicy || {};
         return [
             {
                 title: "Corporate employees and groups",
@@ -4217,10 +4434,12 @@
             },
             {
                 title: "Travel policy budget controls",
-                status: enterpriseModuleIsConnected("travel_policies_budget") ? "live" : "gap",
-                detail: controls.policies?.defaultPolicy
-                    ? `Monthly budget ${formatMoney(controls.policies.defaultPolicy.monthlyBudget)}; approval above ${formatMoney(controls.policies.defaultPolicy.approvalThreshold)}`
-                    : "Policy module is ready to connect"
+                status: policy.name
+                    ? (enterpriseModuleIsConnected("travel_policies_budget") ? "live" : "partial")
+                    : (enterpriseModuleIsConnected("travel_policies_budget") ? "partial" : "gap"),
+                detail: policy.name
+                    ? `Monthly budget ${formatMoney(policy.monthlyBudget)}; approval above ${formatMoney(policy.approvalThreshold)}`
+                    : "No corporate policy saved yet"
             },
             {
                 title: "Corporate wallet and billing",
@@ -4246,7 +4465,7 @@
     }
 
     function renderEnterpriseMiniRows(rows = []) {
-        if (!rows.length) return `<div class="empty-state">No enterprise records yet. Use Connect missing to create the safe admin control snapshot.</div>`;
+        if (!rows.length) return `<div class="empty-state">No enterprise records yet. Connect ready modules after live source data appears.</div>`;
         return rows.map((row) => `
             <article class="enterprise-mini-row">
                 <div>
@@ -4266,11 +4485,11 @@
             {
                 title: "Default corporate group",
                 detail: `${controls.corporate?.employeeCount || getCustomerRows().length} employees/customers, ${controls.corporate?.groupCount || 0} groups`,
-                status: enterpriseModuleIsConnected("employees_groups_roles") ? "live" : "partial"
+                status: enterpriseModuleIsConnected("employees_groups_roles") && getCustomerRows().length ? "live" : (getCustomerRows().length ? "partial" : "gap")
             },
             {
                 title: "Budget approval policy",
-                detail: policy.name ? `Budget ${formatMoney(policy.monthlyBudget)}; approval above ${formatMoney(policy.approvalThreshold)}` : "Not connected yet",
+                detail: policy.name ? `Budget ${formatMoney(policy.monthlyBudget)}; approval above ${formatMoney(policy.approvalThreshold)}` : "No corporate budget policy saved yet",
                 status: policy.name ? "live" : "gap"
             },
             {
@@ -4281,7 +4500,7 @@
             {
                 title: "Invoice and spend exports",
                 detail: `${buildEnterpriseReportTemplates().filter((report) => report.ready).length}/${buildEnterpriseReportTemplates().length} report templates ready`,
-                status: enterpriseModuleIsConnected("reports_invoices") ? "live" : "partial"
+                status: enterpriseModuleIsConnected("reports_invoices") ? "live" : (buildEnterpriseReportTemplates().some((report) => report.ready) ? "partial" : "gap")
             }
         ];
     }
@@ -4300,17 +4519,17 @@
             {
                 title: "Driver quality and payouts",
                 detail: `${activeDrivers} active/approved drivers; payout settlement controls mirrored to admin bridge`,
-                status: enterpriseModuleIsConnected("driver_quality_payouts") ? "live" : (state.drivers.length ? "partial" : "gap")
+                status: enterpriseModuleIsConnected("driver_quality_payouts") && state.drivers.length ? "live" : (state.drivers.length ? "partial" : "gap")
             },
             {
                 title: "Live map dispatch",
                 detail: `${locationRows.length} live location rows; ${state.bookings.filter(bookingHasCoordinates).length} coordinate-ready bookings`,
-                status: enterpriseModuleIsConnected("live_map_dispatch") ? "live" : (locationRows.length ? "partial" : "gap")
+                status: enterpriseModuleIsConnected("live_map_dispatch") && (locationRows.length || state.bookings.some(bookingHasCoordinates)) ? "live" : (locationRows.length || state.bookings.some(bookingHasCoordinates) ? "partial" : "gap")
             },
             {
                 title: "Safety compliance",
                 detail: `${state.notifications.length} alerts; night, long-route and missing-contact checks active`,
-                status: enterpriseModuleIsConnected("safety_compliance_sos") ? "live" : (state.bookings.length ? "partial" : "gap")
+                status: enterpriseModuleIsConnected("safety_compliance_sos") && (state.notifications.length || state.bookings.length) ? "live" : (state.bookings.length || state.notifications.length ? "partial" : "gap")
             }
         ];
     }
@@ -4506,6 +4725,8 @@
             + Object.keys((state.controls && state.controls.drivers) || {}).length;
         setText("#navPortalCount", Math.max(2, controlCount));
         setText("#controlBookingsCount", pending);
+        setText("#controlBenchmarkCount", benchmarkSummary.gap);
+        setText("#controlEnterpriseCount", enterpriseSummary.gap);
         setText("#controlPortalsCount", Math.max(2, controlCount));
         setText("#controlDriversCount", state.drivers.length);
         setText("#controlFinanceCount", formatMoney(farePipeline));
@@ -4814,9 +5035,9 @@
 
         if (summaryHost) {
             summaryHost.innerHTML = [
-                ["Live", summary.live, "Matched and connected in admin"],
-                ["Partial", summary.partial, "Works but needs deeper module"],
-                ["Gaps", summary.gap, "Not fully built yet"],
+                ["Live", summary.live, "Connected with live source data"],
+                ["Partial", summary.partial, "Source data exists; more wiring needed"],
+                ["Gaps", summary.gap, "Waiting for live data or saved config"],
                 ["Sources", BENCHMARK_SOURCE_NOTES.length, "Public official references"]
             ].map((item) => `
                 <article class="benchmark-summary-card">
@@ -4832,7 +5053,7 @@
                 <article class="benchmark-row">
                     <div class="benchmark-copy">
                         <strong>${escapeHtml(item.title)}</strong>
-                        <small>${escapeHtml(item.competitors)}</small>
+                        <small>${escapeHtml((item.modules || []).length ? `Linked modules: ${(item.modules || []).join(", ")}` : "Admin app live evidence")}</small>
                         <p>${escapeHtml(item.current)}</p>
                         <em>${escapeHtml(item.next)}</em>
                     </div>
@@ -4866,7 +5087,7 @@
 
         if (lastSaved) {
             const savedAt = state.benchmarkReview && state.benchmarkReview.updatedAt;
-            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "Not saved";
+            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "No live audit saved";
             lastSaved.className = `status-pill ${savedAt ? "approved" : "pending"}`;
         }
     }
@@ -4888,10 +5109,10 @@
         if (summaryHost) {
             const controls = state.enterpriseControls || loadEnterpriseControls();
             summaryHost.innerHTML = [
-                ["Live", summary.live, "Connected admin modules"],
-                ["Partial", summary.partial, "Data exists, needs connect"],
-                ["Gaps", summary.gap, "Missing controls still open"],
-                ["Saved", controls.updatedAt ? formatDate(controls.updatedAt) : "Not saved", "Local enterprise snapshot"]
+                ["Live", summary.live, "Connected with live source data"],
+                ["Partial", summary.partial, "Ready source or config exists"],
+                ["Gaps", summary.gap, "Waiting for live data"],
+                ["Saved", controls.updatedAt ? formatDate(controls.updatedAt) : "No live audit", "Local enterprise snapshot"]
             ].map((item) => `
                 <article class="enterprise-summary-card">
                     <small>${escapeHtml(item[0])}</small>
@@ -4907,15 +5128,15 @@
                     <div class="enterprise-module-icon"><i class="fas ${module.status === "live" ? "fa-circle-check" : module.status === "partial" ? "fa-plug-circle-bolt" : "fa-plug-circle-xmark"}"></i></div>
                     <div class="enterprise-module-copy">
                         <strong>${escapeHtml(module.title)}</strong>
-                        <small>${escapeHtml(module.area)} | ${escapeHtml(module.competitors)}</small>
+                        <small>${escapeHtml(module.area)} | ${escapeHtml(module.sourceReadiness?.detail || module.source)}</small>
                         <p>${escapeHtml(module.detail)}</p>
-                        <em>${escapeHtml(module.source)}</em>
+                        <em>${escapeHtml(module.backendDetail || module.source)}</em>
                     </div>
                     <div class="enterprise-module-actions">
                         <span class="status-pill ${benchmarkStatusClass(module.status)}">${benchmarkStatusLabel(module.status)}</span>
-                        <button class="${module.status === "live" ? "row-action" : "primary-action"}" data-enterprise-module="${escapeHtml(module.id)}" type="button">
+                        <button class="${module.status === "live" ? "row-action" : "primary-action"}" data-enterprise-module="${escapeHtml(module.id)}" type="button" ${module.canConnect ? "" : "disabled"} title="${escapeHtml(module.canConnect ? "Connect or refresh this module" : "Live source data required before connection")}">
                             <i class="fas ${module.status === "live" ? "fa-rotate" : "fa-link"}"></i>
-                            <span>${module.status === "live" ? "Refresh" : "Connect"}</span>
+                            <span>${module.status === "live" ? "Refresh" : (module.canConnect ? "Connect" : "Needs data")}</span>
                         </button>
                     </div>
                 </article>
@@ -4933,8 +5154,8 @@
             const testedAt = state.enterpriseControls?.lastLiveTest?.updatedAt || "";
             liveTestHost.innerHTML = `
                 <div class="enterprise-live-test-heading">
-                    <strong>Feature-by-feature live test</strong>
-                    <small>${escapeHtml(testedAt ? `Last run ${formatDate(testedAt)}` : "Run live test to save this checklist")}</small>
+                    <strong>Feature-by-feature live verification</strong>
+                    <small>${escapeHtml(testedAt ? `Last verified ${formatDate(testedAt)}` : "Use Verify live to save this checklist")}</small>
                 </div>
                 ${testRows.map((row) => `
                     <article class="enterprise-live-test-row">
@@ -4959,7 +5180,7 @@
 
         if (lastSaved) {
             const savedAt = (state.enterpriseControls || {}).updatedAt;
-            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "Not saved";
+            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "No live audit saved";
             lastSaved.className = `status-pill ${savedAt ? "approved" : "pending"}`;
         }
     }
@@ -6015,20 +6236,22 @@
             if (enterpriseActionButton) {
                 const action = enterpriseActionButton.getAttribute("data-enterprise-action");
                 if (action === "connect-all") {
-                    connectEnterpriseModules(ENTERPRISE_MODULES.map((item) => item.id), { audit: true });
-                    runEnterpriseLiveTest("connect_all_live_test");
+                    const readyModuleIds = getEnterpriseConnectableModuleIds(ENTERPRISE_MODULES.map((item) => item.id));
+                    connectEnterpriseModules(readyModuleIds, { audit: true });
+                    runEnterpriseLiveTest("connect_ready_live_verification");
                     persistBenchmarkReview("enterprise_modules_connected");
                     renderAll();
-                    showToast("All enterprise and fleet modules connected.");
+                    const summary = getEnterpriseSummary();
+                    showToast(`${readyModuleIds.length} ready enterprise/fleet modules connected. ${summary.gap} modules still need live data.`);
                 } else if (action === "run-live-test") {
-                    const result = runEnterpriseLiveTest("manual_live_test");
+                    const result = runEnterpriseLiveTest("manual_live_verification");
                     renderAll();
-                    showToast(`Live test finished: ${result.summary.live} live, ${result.summary.partial} partial, ${result.summary.gap} gaps.`);
+                    showToast(`Live verification finished: ${result.summary.live} live, ${result.summary.partial} partial, ${result.summary.gap} gaps.`);
                 } else if (action === "export") {
                     exportEnterpriseAudit();
                 } else {
                     persistEnterpriseAudit("manual_refresh");
-                    runEnterpriseLiveTest("refresh_live_test");
+                    runEnterpriseLiveTest("refresh_live_verification");
                     renderAll();
                     showToast("Enterprise audit refreshed and saved.");
                 }

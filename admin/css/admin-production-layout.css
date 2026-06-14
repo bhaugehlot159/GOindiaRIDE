@@ -509,6 +509,13 @@ body.admin-app-shell .data-table {
     width: 100% !important;
 }
 
+body.admin-app-shell .portal-feature-folder:not([open]) > .portal-folder-control-strip,
+body.admin-app-shell .portal-feature-folder:not([open]) > .portal-folder-subtitle,
+body.admin-app-shell .portal-feature-folder:not([open]) > .portal-feature-list,
+body.admin-app-shell .portal-feature-folder:not([open]) > .portal-folder-access-list {
+    display: none !important;
+}
+
 body.admin-app-shell .portal-feature-row,
 body.admin-app-shell .feature-control-row {
     max-width: 100% !important;
@@ -660,15 +667,109 @@ body.admin-app-shell .toast-region {
         grid-template-columns: 1fr !important;
     }
 
+    body.admin-app-shell .feature-control-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        align-items: stretch !important;
+        justify-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    body.admin-app-shell .portal-folder-control-strip {
+        grid-template-columns: 1fr !important;
+        align-items: stretch !important;
+    }
+
     body.admin-app-shell .queue-actions,
     body.admin-app-shell .feature-control-row .control-actions,
-    body.admin-app-shell .enterprise-module-actions {
+    body.admin-app-shell .enterprise-module-actions,
+    body.admin-app-shell .access-control-row .control-actions {
         justify-content: stretch !important;
+    }
+
+    body.admin-app-shell .feature-control-row .control-actions,
+    body.admin-app-shell .portal-folder-control-strip .control-actions {
+        flex: 1 1 auto !important;
+        align-self: stretch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        flex-wrap: wrap !important;
     }
 
     body.admin-app-shell .queue-actions button,
     body.admin-app-shell .feature-control-row .row-action,
-    body.admin-app-shell .feature-control-row .danger-action {
+    body.admin-app-shell .feature-control-row .danger-action,
+    body.admin-app-shell .portal-folder-control-strip .row-action,
+    body.admin-app-shell .portal-folder-control-strip .danger-action,
+    body.admin-app-shell .access-control-row .row-action,
+    body.admin-app-shell .access-control-row .danger-action {
         flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    body.admin-app-shell .feature-control-row .status-pill,
+    body.admin-app-shell .portal-folder-control-strip .status-pill {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    body.admin-app-shell .access-control-row {
+        grid-template-columns: 1fr !important;
+        align-items: stretch !important;
+    }
+
+    body.admin-app-shell .access-control-row .control-actions {
+        width: 100% !important;
+    }
+
+    body.admin-app-shell .table-wrap {
+        overflow-x: visible !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    body.admin-app-shell .data-table {
+        min-width: 0 !important;
+        display: block !important;
+        background: transparent !important;
+    }
+
+    body.admin-app-shell .data-table thead {
+        display: none !important;
+    }
+
+    body.admin-app-shell .data-table tbody,
+    body.admin-app-shell .data-table tr,
+    body.admin-app-shell .data-table td {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    body.admin-app-shell .data-table tr {
+        margin-bottom: 10px !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 10px !important;
+        background: var(--surface) !important;
+        overflow: hidden !important;
+    }
+
+    body.admin-app-shell .data-table td {
+        border-bottom: 1px solid var(--line) !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    body.admin-app-shell .data-table td:last-child {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        border-bottom: 0 !important;
+    }
+
+    body.admin-app-shell .data-table td:last-child button {
+        flex: 1 1 calc(50% - 6px) !important;
+        min-width: 0 !important;
     }
 }
