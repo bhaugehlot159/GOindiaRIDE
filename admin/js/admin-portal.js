@@ -870,68 +870,11 @@ function loadSectionContent(sectionId, targetSection) {
         let content = '';
         
         switch(sectionId) {
-            case 'affiliate-tracking':
-                content = createAffiliateTrackingContent();
-                break;
-            case 'donation-reports':
-                content = createDonationReportsContent();
-                break;
-            case 'cancellation-earnings':
-                content = createCancellationEarningsContent();
-                break;
-            case 'tax-reports':
-                content = createTaxReportsContent();
-                break;
-            case 'insurance-fund':
-                content = createInsuranceFundContent();
-                break;
-            case 'revenue-analytics':
-                content = createRevenueAnalyticsContent();
-                break;
-            case 'driver-payout':
-                content = createDriverPayoutContent();
-                break;
-            case 'expense-tracking':
-                content = createExpenseTrackingContent();
-                break;
-            case 'health-monitor':
-                content = createHealthMonitorContent();
-                break;
-            case 'live-tracking':
-                content = createLiveTrackingContent();
-                break;
-            case 'sos-alerts':
-                content = createSOSAlertsContent();
-                break;
-            case 'document-verification':
-                content = createDocumentVerificationContent();
-                break;
-            case 'demand-heatmap':
-                content = createDemandHeatmapContent();
-                break;
-            case 'virtual-escort':
-                content = createVirtualEscortContent();
-                break;
-            case 'background-check':
-                content = createBackgroundCheckContent();
-                break;
-            case 'incident-reports':
-                content = createIncidentReportsContent();
-                break;
-            case 'leaderboard':
-                content = createLeaderboardContent();
-                break;
-            case 'vendor-management':
-                content = createVendorManagementContent();
-                break;
             case 'service-alerts':
                 content = createServiceAlertsContent();
                 break;
             case 'support-dashboard':
                 content = createSupportDashboardContent();
-                break;
-            case 'driver-approval':
-                content = createDriverApprovalContent();
                 break;
             case 'promo-offers':
                 content = createPromoOffersContent();
@@ -942,11 +885,8 @@ function loadSectionContent(sectionId, targetSection) {
             case 'audit-logs':
                 content = createAuditLogsContent();
                 break;
-            case 'compliance-center':
-                content = createComplianceCenterContent();
-                break;
             default:
-                content = '<div class="section-header"><h2>Section Not Found</h2></div>';
+                content = '<div class="section-header"><h2>Section Not Available</h2><p>This legacy portal only loads live customer operations sections.</p></div>';
         }
         
         targetSection.innerHTML = content;
@@ -959,16 +899,8 @@ function loadSectionContent(sectionId, targetSection) {
 
 // Initialize section-specific features
 function initializeSectionFeatures(sectionId) {
-    // This function will be extended by other JS files
-    if (typeof initializeFinancialFeatures === 'function' && 
-        ['affiliate-tracking', 'donation-reports', 'cancellation-earnings', 'tax-reports', 
-         'insurance-fund', 'revenue-analytics', 'driver-payout', 'expense-tracking'].includes(sectionId)) {
-        initializeFinancialFeatures(sectionId);
-    }
     if (typeof initializeSafetyFeatures === 'function' && 
-        ['health-monitor', 'live-tracking', 'sos-alerts', 'document-verification', 
-         'demand-heatmap', 'virtual-escort', 'background-check', 'incident-reports', 'compliance-center',
-         'service-alerts', 'support-dashboard', 'promo-offers', 'system-config', 'audit-logs'].includes(sectionId)) {
+        ['service-alerts', 'support-dashboard', 'promo-offers', 'system-config', 'audit-logs'].includes(sectionId)) {
         initializeSafetyFeatures(sectionId);
     }
 }

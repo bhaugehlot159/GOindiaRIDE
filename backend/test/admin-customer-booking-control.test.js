@@ -542,9 +542,9 @@ test('admin portal active paths use customer live data instead of admin demo sto
   const adminApp = readRepoFile('admin/js/admin-app.js');
   const adminPortal = readRepoFile('admin/js/admin-portal.js');
   const adminBridge = readRepoFile('js/admin-control-bridge.js');
-  const safetyMonitoring = readRepoFile('admin/js/safety-monitoring.js');
+  const liveManagement = readRepoFile('admin/js/admin-live-management-sections.js');
 
-  [adminApp, adminPortal, adminBridge, safetyMonitoring].forEach((source) => {
+  [adminApp, adminPortal, adminBridge, liveManagement].forEach((source) => {
     assert.equal(/adminDemo(Users|Drivers|Bookings)|getDemoData|initializeDemoData|demo_driver/.test(source), false);
   });
 
@@ -552,7 +552,7 @@ test('admin portal active paths use customer live data instead of admin demo sto
   assert.match(adminPortal, /function getLiveAdminData\(/);
   assert.match(adminPortal, /goindiaride_live_customer_booking_queue_v1/);
   assert.match(adminPortal, /ADMIN_CUSTOMER_LIVE_SECTION_IDS/);
-  assert.match(safetyMonitoring, /function getCustomerSupportTickets\(/);
+  assert.match(liveManagement, /function getCustomerSupportTickets\(/);
 });
 
 test('admin customer-live mode avoids heavy non-customer generated bundles', () => {
@@ -561,6 +561,8 @@ test('admin customer-live mode avoids heavy non-customer generated bundles', () 
 
   assert.equal(/data-goi-defer-src="\.\.\/js\/future-feature-runtime/.test(adminIndex), false);
   assert.equal(/features-admin\.js|features-security\.js|future-feature-universal-live-runner/.test(adminIndex), false);
+  assert.equal(/financial-reports\.js|safety-monitoring\.js|admin-live-control-center\.js/.test(adminIndex), false);
+  assert.match(adminIndex, /admin-live-management-sections\.js\?v=20260614-live-management1/);
   assert.match(adminIndex, /Customer live operations and connected admin controls/);
 
   assert.match(featureControl, /feature-index\/customer\.json/);

@@ -59,6 +59,21 @@ test('legacy admin entries keep semantic admin control dashboard regions', () =>
   assert.match(legacyPortal, /data-admin-control-structure="dashboard"/);
   assert.match(legacyPortal, /Admin Control Panel Dashboard/);
   assert.match(legacyPortal, /href="\.\/app\.html\?view=overview"/);
+  assert.match(legacyPortal, /admin-live-management-sections\.js\?v=20260614-live-management1/);
+  assert.doesNotMatch(legacyPortal, /financial-reports\.js/);
+  assert.doesNotMatch(legacyPortal, /safety-monitoring\.js/);
+  assert.doesNotMatch(legacyPortal, /admin-live-control-center\.js/);
+  [
+    'affiliate-tracking',
+    'health-monitor',
+    'leaderboard',
+    'vendor-management',
+    'driver-approval',
+    'compliance-center'
+  ].forEach((sectionId) => {
+    assert.doesNotMatch(legacyPortal, new RegExp(`data-section="${sectionId}"`));
+    assert.doesNotMatch(legacyPortal, new RegExp(`id="section-${sectionId}"`));
+  });
 
   assert.match(legacyDashboard, /data-admin-control-panel="legacy"/);
   assert.match(legacyDashboard, /<aside class="sidebar" id="adminControlSidebar"[^>]+data-admin-control-region="sidebar"/);
@@ -81,21 +96,24 @@ test('legacy admin entries keep semantic admin control dashboard regions', () =>
 
 test('legacy customer-live management sections avoid static demo fields', () => {
   const portal = read('admin/js/admin-portal.js');
-  const safety = read('admin/js/safety-monitoring.js');
+  const liveManagement = read('admin/js/admin-live-management-sections.js');
   const app = read('admin/js/admin-app.js');
 
   assert.match(portal, /'service-alerts'[\s\S]*'support-dashboard'[\s\S]*'promo-offers'[\s\S]*'system-config'[\s\S]*'audit-logs'/);
-  assert.match(safety, /const ADMIN_SERVICE_ALERTS_KEY = 'goindiaride_admin_service_alerts_v1'/);
-  assert.match(safety, /const ADMIN_PROMO_OFFERS_KEY = 'goindiaride_admin_promotional_offers_v1'/);
-  assert.match(safety, /const ADMIN_SYSTEM_CONFIG_KEY = 'goindiaride_admin_system_config_v1'/);
-  assert.match(safety, /function saveServiceAlertFromForm\(\)/);
-  assert.match(safety, /function savePromoOfferFromForm\(\)/);
-  assert.match(safety, /function saveSystemConfigFromForm\(\)/);
-  assert.match(safety, /notifyAllPortals\(\{[\s\S]*type: 'service_alert'/);
-  assert.match(safety, /notifyAllPortals\(\{[\s\S]*type: 'promo_offer_updated'/);
-  assert.match(safety, /notifyAllPortals\(\{[\s\S]*type: 'admin_system_config_updated'/);
-  assert.doesNotMatch(safety, /Active Offers[\s\S]*stat-value">8/);
-  assert.doesNotMatch(safety, /<option>All Drivers<\/option><option>All Customers<\/option>/);
-  assert.doesNotMatch(safety, /placeholder="Enter message\.\.\."/);
+  assert.doesNotMatch(portal, /createAffiliateTrackingContent|createHealthMonitorContent|createLeaderboardContent|createDriverApprovalContent|createComplianceCenterContent/);
+  assert.match(liveManagement, /const ADMIN_SERVICE_ALERTS_KEY = "goindiaride_admin_service_alerts_v1"/);
+  assert.match(liveManagement, /const ADMIN_PROMO_OFFERS_KEY = "goindiaride_admin_promotional_offers_v1"/);
+  assert.match(liveManagement, /const ADMIN_SYSTEM_CONFIG_KEY = "goindiaride_admin_system_config_v1"/);
+  assert.match(liveManagement, /function saveServiceAlertFromForm\(\)/);
+  assert.match(liveManagement, /function savePromoOfferFromForm\(\)/);
+  assert.match(liveManagement, /function saveSystemConfigFromForm\(\)/);
+  assert.match(liveManagement, /notifyAllPortals\(\{[\s\S]*type: "service_alert"/);
+  assert.match(liveManagement, /notifyAllPortals\(\{[\s\S]*type: "promo_offer_updated"/);
+  assert.match(liveManagement, /notifyAllPortals\(\{[\s\S]*type: "admin_system_config_updated"/);
+  assert.match(liveManagement, /function updateSupportTicketStatus\(/);
+  assert.doesNotMatch(liveManagement, /Active Offers[\s\S]*stat-value">8/);
+  assert.doesNotMatch(liveManagement, /<option>All Drivers<\/option><option>All Customers<\/option>/);
+  assert.doesNotMatch(liveManagement, /placeholder="Enter message\.\.\."/);
+  assert.doesNotMatch(liveManagement, /Ravi Kumar|Anil Kumar|Active Vendors|Fatigue Alerts|Active SOS/);
   assert.doesNotMatch(app, /seedDriverBtn|function seedDriver/);
 });

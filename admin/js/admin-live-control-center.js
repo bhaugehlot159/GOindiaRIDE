@@ -665,11 +665,7 @@
     }
 
     function render() {
-        const overview = document.getElementById("view-overview")
-            || document.getElementById("section-dashboard")
-            || document.getElementById("contentArea")
-            || document.querySelector(".main-content")
-            || document.body;
+        const overview = document.getElementById("view-overview");
         if (!overview) return;
         let host = document.getElementById("adminLiveControlCenter");
         if (!host) {
