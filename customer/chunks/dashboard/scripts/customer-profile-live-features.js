@@ -65,7 +65,7 @@
         node.textContent = message || '';
         node.dataset.state = type || '';
         if (type === 'error') node.style.color = '#b91c1c';
-        else if (type === 'success') node.style.color = '#047857';
+        else if (type === 'success') node.style.color = '#080c12';
         else if (type === 'warning') node.style.color = '#b45309';
         else node.style.color = '';
     }

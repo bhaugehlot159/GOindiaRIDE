@@ -6,12 +6,12 @@
 }
 
 :root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --success-color: #10b981;
+    --primary-color: #080c12;
+    --secondary-color: #2a2117;
+    --success-color: #080c12;
     --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --info-color: #3b82f6;
+    --warning-color: #f0b44f;
+    --info-color: #2a2117;
     --bg-color: #f5f7fa;
     --card-bg: #ffffff;
     --text-primary: #1f2937;
@@ -169,7 +169,7 @@ input:checked + .slider:before {
 }
 
 .earnings-card {
-    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--warning-color) 100%);
     color: white;
     padding: 2rem;
     border-radius: 12px;
@@ -783,8 +783,8 @@ input:checked + .slider:before {
 }
 
 .badge-info {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #fff8ec;
+    color: #080c12;
 }
 
 /* Loading Spinner */

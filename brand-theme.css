@@ -1,17 +1,43 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 :root {
-  --brand-bg-deep: #091a33;
-  --brand-bg-mid: #123c6d;
-  --brand-bg-soft: #f3f7fb;
-  --brand-ocean: #1ca3bd;
+  --brand-bg-deep: #080c12;
+  --brand-bg-mid: #2a2117;
+  --brand-bg-soft: #f7f4ee;
+  --brand-ocean: #f0b44f;
   --brand-gold: #f0b44f;
-  --brand-text: #102844;
-  --brand-subtext: #395573;
-  --brand-border: rgba(16, 40, 68, 0.14);
+  --brand-text: #111827;
+  --brand-subtext: #6b6258;
+  --brand-border: rgba(240, 180, 79, 0.22);
   --brand-glass: rgba(255, 255, 255, 0.9);
-  --brand-shadow: 0 20px 46px rgba(10, 31, 58, 0.15);
+  --brand-shadow: 0 20px 46px rgba(8, 12, 18, 0.14);
   --brand-radius: 16px;
+  --goi-logo-mark: url("./assets/brand/goindiaride-mark.png");
+}
+
+.logo,
+.navbar-logo,
+.sidebar-logo h2 {
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.logo i,
+.navbar-logo i,
+.sidebar-logo h2 i {
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 42px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #080c12 var(--goi-logo-mark) center / 82% auto no-repeat !important;
+  border: 1px solid rgba(240, 180, 79, 0.36);
+  box-shadow: 0 8px 18px rgba(8, 12, 18, 0.18);
+  color: transparent !important;
+  font-size: 0 !important;
+  overflow: hidden;
 }
 
 html.fit-screen-page,
@@ -22,9 +48,9 @@ body.fit-screen-page {
 
 body.fit-screen-page {
   background:
-    radial-gradient(1150px 450px at -10% -12%, rgba(28, 163, 189, 0.2), transparent 60%),
-    radial-gradient(950px 420px at 110% 2%, rgba(240, 180, 79, 0.18), transparent 58%),
-    linear-gradient(132deg, #f9fcff 0%, #edf4fb 50%, #e6eef9 100%);
+    radial-gradient(1150px 450px at -10% -12%, rgba(240, 180, 79, 0.12), transparent 60%),
+    radial-gradient(950px 420px at 110% 2%, rgba(8, 12, 18, 0.06), transparent 58%),
+    linear-gradient(132deg, #fffaf1 0%, #f7f4ee 52%, #fbf7ef 100%);
 }
 
 body.fit-screen-page::before,
@@ -38,8 +64,8 @@ body.fit-screen-page::after {
 body.fit-screen-page::before {
   inset: 0;
   background-image:
-    linear-gradient(rgba(16, 40, 68, 0.038) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(16, 40, 68, 0.038) 1px, transparent 1px);
+    linear-gradient(rgba(8, 12, 18, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 12, 18, 0.032) 1px, transparent 1px);
   background-size: 46px 46px;
   opacity: 0.3;
 }
@@ -50,7 +76,7 @@ body.fit-screen-page::after {
   right: -24vmax;
   top: -26vmax;
   border-radius: 999px;
-  background: radial-gradient(circle at 28% 30%, rgba(28, 163, 189, 0.2), rgba(18, 60, 109, 0));
+  background: radial-gradient(circle at 28% 30%, rgba(240, 180, 79, 0.12), rgba(8, 12, 18, 0));
 }
 
 body.fit-screen-page > * {
@@ -62,12 +88,10 @@ body.fit-screen-page > * {
   padding: clamp(10px, 1.3vh, 16px);
 }
 
-body.fit-screen-page nav,
-body.fit-screen-page header,
 body.fit-screen-page .navbar,
 body.fit-screen-page .top-nav,
 body.fit-screen-page .topbar {
-  background: linear-gradient(115deg, var(--brand-bg-deep) 0%, var(--brand-bg-mid) 56%, #1c5f94 100%) !important;
+  background: linear-gradient(115deg, var(--brand-bg-deep) 0%, #17120d 58%, var(--brand-bg-mid) 100%) !important;
   color: #f4faff !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   box-shadow: 0 13px 30px rgba(10, 31, 58, 0.23);
@@ -75,7 +99,7 @@ body.fit-screen-page .topbar {
 }
 
 body.fit-screen-page .sidebar {
-  background: linear-gradient(180deg, rgba(9, 26, 51, 0.97) 0%, rgba(18, 60, 109, 0.96) 100%) !important;
+  background: linear-gradient(180deg, rgba(8, 12, 18, 0.97) 0%, rgba(42, 33, 23, 0.96) 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.09);
 }
 
@@ -111,7 +135,7 @@ body.fit-screen-page h1,
 body.fit-screen-page h2,
 body.fit-screen-page h3,
 body.fit-screen-page h4 {
-  color: #0f2a49 !important;
+  color: #080c12 !important;
   letter-spacing: -0.012em;
 }
 
@@ -128,19 +152,19 @@ body.fit-screen-page i {
 }
 
 body.fit-screen-page a {
-  color: #0f4b78;
+  color: #080c12;
 }
 
 body.fit-screen-page button,
 body.fit-screen-page .btn,
 body.fit-screen-page input[type="submit"] {
   border-radius: 11px !important;
-  border: 1px solid rgba(18, 60, 109, 0.2);
-  background: linear-gradient(112deg, #0f2d52 0%, #1d6397 100%);
+  border: 1px solid rgba(240, 180, 79, 0.32);
+  background: linear-gradient(112deg, #080c12 0%, #2a2117 100%);
   color: #f7fbff !important;
   font-weight: 700;
   letter-spacing: 0.01em;
-  box-shadow: 0 10px 20px rgba(15, 45, 82, 0.22);
+  box-shadow: 0 10px 20px rgba(8, 12, 18, 0.22);
 }
 
 body.fit-screen-page button *,
@@ -158,9 +182,9 @@ body.fit-screen-page input,
 body.fit-screen-page select,
 body.fit-screen-page textarea {
   border-radius: 10px !important;
-  border: 1px solid rgba(16, 40, 68, 0.22) !important;
+  border: 1px solid rgba(240, 180, 79, 0.28) !important;
   background: rgba(255, 255, 255, 0.97) !important;
-  color: #0f2744 !important;
+  color: #111827 !important;
 }
 
 body.fit-screen-page .menu-item,
@@ -178,8 +202,8 @@ body.fit-screen-page .menu-item.active,
 body.fit-screen-page .nav-link.active,
 body.fit-screen-page .tab.active,
 body.fit-screen-page .sidebar-item.active {
-  background: linear-gradient(108deg, rgba(28, 163, 189, 0.2) 0%, rgba(240, 180, 79, 0.22) 100%) !important;
-  color: #0c2c4b !important;
+  background: linear-gradient(108deg, rgba(8, 12, 18, 0.08) 0%, rgba(240, 180, 79, 0.22) 100%) !important;
+  color: #080c12 !important;
 }
 
 body.fit-screen-page table {
@@ -188,7 +212,7 @@ body.fit-screen-page table {
 }
 
 body.fit-screen-page th {
-  background: linear-gradient(110deg, rgba(18, 60, 109, 0.94), rgba(30, 94, 145, 0.92));
+  background: linear-gradient(110deg, rgba(8, 12, 18, 0.94), rgba(42, 33, 23, 0.92));
   color: #f6fbff !important;
 }
 
@@ -197,9 +221,9 @@ body.fit-screen-page .chip,
 body.fit-screen-page .status,
 body.fit-screen-page .tag {
   border-radius: 999px;
-  border: 1px solid rgba(18, 60, 109, 0.2);
+  border: 1px solid rgba(240, 180, 79, 0.28);
   background: rgba(255, 255, 255, 0.9);
-  color: #123b67 !important;
+  color: #080c12 !important;
 }
 
 /* Auth pages readability + premium finish */
@@ -210,7 +234,7 @@ body.fit-screen-page .signup-container {
 
 body.fit-screen-page .login-left,
 body.fit-screen-page .signup-left {
-  background: linear-gradient(154deg, #0f2f53 0%, #184f84 56%, #1d7398 100%) !important;
+  background: linear-gradient(154deg, #080c12 0%, #17120d 56%, #2a2117 100%) !important;
   color: #f3f9ff !important;
 }
 
@@ -226,24 +250,24 @@ body.fit-screen-page .signup-left p {
 
 body.fit-screen-page .login-left .features-list i,
 body.fit-screen-page .signup-left .features-list i {
-  color: #80e5ff !important;
+  color: #f0b44f !important;
 }
 
 body.fit-screen-page .login-right,
 body.fit-screen-page .signup-right {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 249, 255, 0.95) 100%) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 241, 0.95) 100%) !important;
 }
 
 body.fit-screen-page .login-header p,
 body.fit-screen-page .signup-header p,
 body.fit-screen-page .demo-info,
 body.fit-screen-page .security-note {
-  color: #274d73 !important;
+  color: #6b6258 !important;
 }
 
 body.fit-screen-page .role-label,
 body.fit-screen-page .method-label {
-  border-color: rgba(18, 60, 109, 0.25) !important;
+  border-color: rgba(240, 180, 79, 0.28) !important;
   background: rgba(255, 255, 255, 0.97) !important;
 }
 

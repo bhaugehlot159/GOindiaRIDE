@@ -5,12 +5,12 @@
             --booking-border: rgba(45, 69, 103, 0.14);
             --booking-surface: #ffffff;
             --booking-soft: #f5f8fc;
-            --booking-blue: #215d8f;
-            --booking-teal: #147f8f;
-            --booking-gold: #d99a33;
+            --booking-blue: #080c12;
+            --booking-teal: #2a2117;
+            --booking-gold: #f0b44f;
             background:
-                linear-gradient(135deg, rgba(33, 93, 143, 0.09) 0%, transparent 36%),
-                linear-gradient(220deg, rgba(217, 154, 51, 0.12) 0%, transparent 34%),
+                linear-gradient(135deg, rgba(8, 12, 18, 0.08) 0%, transparent 36%),
+                linear-gradient(220deg, rgba(240, 180, 79, 0.12) 0%, transparent 34%),
                 #f7f9fc !important;
             color: var(--booking-ink);
             padding: clamp(10px, 1.25vw, 18px) !important;
@@ -385,7 +385,7 @@
         body.booking-page.professional-booking .request-checkbox {
             min-height: 42px;
             padding: 0.55rem 0.62rem;
-            background: #f8fbff;
+            background: #fbf7ef;
             border-color: #d5deea;
             color: #2f4053;
             font-size: 0.84rem;
@@ -416,7 +416,7 @@
         body.booking-page.professional-booking .toggle-row {
             padding: 0.55rem 0.7rem;
             border-radius: 9px;
-            background: #f8fbff;
+            background: #fbf7ef;
         }
 
         body.booking-page.professional-booking .booking-btn {

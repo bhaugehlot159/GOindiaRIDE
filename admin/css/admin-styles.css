@@ -1,13 +1,13 @@
 /* ===== CSS Variables for Theme Management ===== */
 :root {
-    --primary-color: #667eea;
-    --primary-dark: #764ba2;
-    --secondary-color: #f093fb;
-    --secondary-dark: #f5576c;
-    --success-color: #43e97b;
-    --warning-color: #feca57;
+    --primary-color: #080c12;
+    --primary-dark: #2a2117;
+    --secondary-color: #f0b44f;
+    --secondary-dark: #b87918;
+    --success-color: #080c12;
+    --warning-color: #f0b44f;
     --danger-color: #ff6b6b;
-    --info-color: #4facfe;
+    --info-color: #2a2117;
     
     --bg-primary: #ffffff;
     --bg-secondary: #f5f7fa;
@@ -112,7 +112,16 @@ body {
 }
 
 .logo i {
-    font-size: 1.8rem;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 9px;
+    background: #080c12 url("../../assets/brand/goindiaride-mark.png") center / 82% auto no-repeat;
+    border: 1px solid rgba(240, 180, 79, 0.38);
+    box-shadow: 0 8px 18px rgba(8, 12, 18, 0.14);
+    color: transparent;
+    font-size: 0;
+    overflow: hidden;
 }
 
 .sidebar-close {
@@ -262,10 +271,10 @@ body {
     align-items: center;
     gap: 8px;
     padding: 0 14px;
-    border: 1px solid rgba(102, 126, 234, 0.28);
+    border: 1px solid rgba(240, 180, 79, 0.28);
     border-radius: 8px;
     color: var(--primary-color);
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(240, 180, 79, 0.12);
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 700;
@@ -638,7 +647,7 @@ body {
 .form-textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(240, 180, 79, 0.12);
 }
 
 .form-textarea {

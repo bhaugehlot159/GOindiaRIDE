@@ -38,6 +38,25 @@ body.legal-content-page .topbar a {
     font-weight: 800;
 }
 
+body.footer-content-page .brand-link,
+body.legal-content-page .topbar > a:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+body.footer-content-page .brand-link::before,
+body.legal-content-page .topbar > a:first-child::before {
+    content: "";
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 8px;
+    background: #080c12 url("../assets/brand/goindiaride-mark.png") center / 82% auto no-repeat;
+    border: 1px solid rgba(240, 180, 79, 0.42);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
 body.footer-content-page .content-actions,
 body.legal-content-page .content-actions {
     display: flex;
@@ -69,9 +88,9 @@ body.legal-content-page .utility-btn {
 
 body.footer-content-page .utility-btn.utility-primary,
 body.legal-content-page .utility-btn.utility-primary {
-    background: #0f7a82 !important;
-    border-color: #0f7a82 !important;
-    color: #fff !important;
+    background: #f0b44f !important;
+    border-color: #f0b44f !important;
+    color: #080c12 !important;
 }
 
 .topbar-links {
@@ -83,8 +102,8 @@ body.legal-content-page .utility-btn.utility-primary {
 
 body.footer-content-page .hero-panel {
     padding: clamp(3rem, 7vw, 5.5rem) clamp(1rem, 5vw, 4rem);
-    background: #edf7f3 !important;
-    border-bottom: 1px solid #d7e5df !important;
+    background: #fbf7ef !important;
+    border-bottom: 1px solid #ead8b8 !important;
     box-shadow: none !important;
     color: #14233a !important;
 }
@@ -97,7 +116,7 @@ body.footer-content-page .hero-panel {
 
 body.footer-content-page .eyebrow {
     margin: 0 0 0.65rem;
-    color: #0b6b55 !important;
+    color: #9a681f !important;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -153,8 +172,8 @@ body.footer-content-page .button-link {
 
 body.footer-content-page .quick-nav a:first-child,
 body.footer-content-page .button-link.primary {
-    background: #0b6b55 !important;
-    border-color: #0b6b55 !important;
+    background: #080c12 !important;
+    border-color: #f0b44f !important;
     color: #fff !important;
 }
 
@@ -231,8 +250,8 @@ body.footer-content-page .detail-list {
 body.footer-content-page .note-panel {
     margin-top: 1.25rem;
     padding: 1.15rem;
-    border-left: 4px solid #0b6b55;
-    background: #ecfdf6 !important;
+    border-left: 4px solid #f0b44f;
+    background: #fff8ec !important;
     border-radius: 8px;
     color: #294153 !important;
 }
@@ -367,9 +386,9 @@ html body.goi-global-theme.legal-content-page .utility-btn {
 }
 
 html body.goi-global-theme.legal-content-page .utility-btn.utility-primary {
-    background: #0f7a82 !important;
-    color: #fff !important;
-    border-color: #0f7a82 !important;
+    background: #f0b44f !important;
+    color: #080c12 !important;
+    border-color: #f0b44f !important;
 }
 
 html body.goi-global-theme.legal-content-page .goi-native-nav-wrap {

@@ -379,7 +379,7 @@ safetyStyles.textContent = `
     }
     
     .driving-tips {
-        background: #dbeafe;
+        background: #fff8ec;
         padding: 1.5rem;
         border-radius: 8px;
     }
@@ -389,7 +389,7 @@ safetyStyles.textContent = `
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
-        color: #1e40af;
+        color: #080c12;
     }
     
     .driving-tips ul {
@@ -407,7 +407,7 @@ safetyStyles.textContent = `
         content: "✓";
         position: absolute;
         left: 0;
-        color: #1e40af;
+        color: #080c12;
         font-weight: bold;
     }
     
@@ -500,7 +500,7 @@ safetyStyles.textContent = `
     }
     
     .deposit-benefits {
-        background: #dbeafe;
+        background: #fff8ec;
         padding: 1.5rem;
         border-radius: 8px;
         margin-bottom: 2rem;
@@ -521,7 +521,7 @@ safetyStyles.textContent = `
         content: "✓";
         position: absolute;
         left: 0;
-        color: #1e40af;
+        color: #080c12;
         font-weight: bold;
     }
     

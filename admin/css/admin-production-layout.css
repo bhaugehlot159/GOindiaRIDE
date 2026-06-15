@@ -137,11 +137,11 @@ body[data-admin-control-panel="legacy-portal"] .btn-booking-alarm {
     justify-content: center !important;
     gap: 8px !important;
     padding: 0 14px !important;
-    border: 1px solid rgba(102, 126, 234, 0.28) !important;
+    border: 1px solid rgba(240, 180, 79, 0.28) !important;
     border-radius: 999px !important;
     color: #ffffff !important;
     background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
-    box-shadow: 0 8px 18px rgba(102, 126, 234, 0.2) !important;
+    box-shadow: 0 8px 18px rgba(8, 12, 18, 0.18) !important;
     font-weight: 800 !important;
     cursor: pointer !important;
 }

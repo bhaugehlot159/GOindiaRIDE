@@ -503,7 +503,7 @@
             suggestionsBox.style.maxHeight = `${maxHeight}px`;
             suggestionsBox.style.top = `${Math.min(viewportHeight - margin - 40, inputRect.bottom - 1)}px`;
             suggestionsBox.style.borderTop = 'none';
-            suggestionsBox.style.borderBottom = '2px solid #667eea';
+            suggestionsBox.style.borderBottom = '2px solid #080c12';
             suggestionsBox.style.borderRadius = '0 0 8px 8px';
         }
 

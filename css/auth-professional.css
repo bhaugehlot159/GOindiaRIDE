@@ -9,10 +9,10 @@
   --auth-border: #d6e1ea;
   --auth-panel: #ffffff;
   --auth-soft: #f6fafc;
-  --auth-teal: #126a73;
-  --auth-teal-deep: #0f3f54;
-  --auth-amber: #d89b2b;
-  --auth-focus: rgba(18, 106, 115, 0.16);
+  --auth-teal: #080c12;
+  --auth-teal-deep: #2a2117;
+  --auth-amber: #f0b44f;
+  --auth-focus: rgba(240, 180, 79, 0.2);
   --auth-shadow: 0 22px 48px rgba(19, 35, 58, 0.15);
 }
 
@@ -26,7 +26,7 @@ body.auth-entry-page {
   overflow-x: hidden !important;
   overflow-y: auto !important;
   color: var(--auth-ink) !important;
-  background: linear-gradient(135deg, #f8fafc 0%, #edf6f6 54%, #fff7e8 100%) !important;
+  background: linear-gradient(135deg, #f8fafc 0%, #fbf7ef 54%, #fff7e8 100%) !important;
 }
 
 body.auth-entry-page::before,
@@ -66,13 +66,13 @@ body.auth-entry-page .signup-left {
   padding: clamp(1.2rem, 2vw, 2rem) !important;
   text-align: left !important;
   overflow: hidden !important;
-  background: linear-gradient(150deg, #10233d 0%, #126a73 62%, #d89b2b 165%) !important;
-  color: #f8fbff !important;
+  background: linear-gradient(150deg, #080c12 0%, #080c12 62%, #f0b44f 165%) !important;
+  color: #fbf7ef !important;
 }
 
 body.auth-entry-page .login-left *,
 body.auth-entry-page .signup-left * {
-  color: #f8fbff !important;
+  color: #fbf7ef !important;
 }
 
 body.auth-entry-page .showcase-chip {
@@ -696,8 +696,8 @@ body.auth-entry-page .goi-native-nav-btn {
 
 body.auth-entry-page .utility-btn.utility-primary,
 body.auth-entry-page .goi-dock-btn-primary {
-  background: #0f7a82 !important;
-  border-color: #0f7a82 !important;
+  background: #080c12 !important;
+  border-color: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -729,7 +729,7 @@ body.auth-entry-page .auth-panel {
 
 body.auth-entry-page .auth-eyebrow {
   margin-bottom: 0.32rem !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   text-align: left !important;
 }
 
@@ -1233,7 +1233,7 @@ body.auth-entry-page .signup-left h1 {
 
 body.auth-entry-page .login-left h1 i,
 body.auth-entry-page .signup-left h1 i {
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   font-size: 1.32em !important;
 }
 
@@ -1301,8 +1301,8 @@ body.auth-entry-page .goi-native-nav-btn {
 
 body.auth-entry-page .utility-btn.utility-primary,
 body.auth-entry-page .goi-dock-btn-primary {
-  border-color: #0f7a82 !important;
-  background: #0f7a82 !important;
+  border-color: #080c12 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -1319,7 +1319,7 @@ body.auth-entry-page .auth-panel {
 
 body.auth-entry-page .auth-eyebrow {
   margin: 0 0 0.18rem !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   font-size: 0.72rem !important;
   font-weight: 850 !important;
   letter-spacing: 0.14em !important;
@@ -1374,15 +1374,15 @@ body.auth-entry-page .method-label {
 
 body.auth-entry-page .role-option:checked + .role-label,
 body.auth-entry-page .method-option:checked + .method-label {
-  border-color: #0f7a82 !important;
-  background: #edfafa !important;
-  color: #0a5960 !important;
-  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+  border-color: #080c12 !important;
+  background: #fff8ec !important;
+  color: #080c12 !important;
+  box-shadow: inset 0 0 0 1px #080c12 !important;
 }
 
 body.auth-entry-page .role-label i,
 body.auth-entry-page .method-label i {
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   font-size: 1rem !important;
 }
 
@@ -1428,7 +1428,7 @@ body.auth-entry-page .input-with-icon {
 
 body.auth-entry-page .input-with-icon i {
   left: 0.9rem !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   font-size: 0.96rem !important;
 }
 
@@ -1453,13 +1453,13 @@ body.auth-entry-page .form-group input::placeholder {
 body.auth-entry-page .form-group input:focus,
 body.auth-entry-page .form-group select:focus,
 body.auth-entry-page #forgotRole:focus {
-  border-color: #0f7a82 !important;
-  box-shadow: 0 0 0 3px rgba(15, 122, 130, 0.13) !important;
+  border-color: #080c12 !important;
+  box-shadow: 0 0 0 3px rgba(240, 180, 79, 0.18) !important;
 }
 
 body.auth-entry-page .password-toggle {
   right: 0.7rem !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
 }
 
 body.auth-entry-page .input-with-icon input[type="password"] {
@@ -1474,8 +1474,8 @@ body.auth-entry-page .btn-verify {
   min-height: 44px !important;
   padding: 0.68rem 1rem !important;
   border-radius: 8px !important;
-  border: 1px solid #0f7a82 !important;
-  background: #0f7a82 !important;
+  border: 1px solid #080c12 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
   font-size: 0.94rem !important;
   font-weight: 850 !important;
@@ -1485,11 +1485,11 @@ body.auth-entry-page .btn-verify {
 body.auth-entry-page .btn-signup,
 body.auth-entry-page .btn-login[onclick*="goToLogin"] {
   background: #ffffff !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
 }
 
 body.auth-entry-page .btn-signup[type="submit"] {
-  background: #0f7a82 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -1845,7 +1845,7 @@ body.auth-signup-page .auth-panel {
 }
 
 body.auth-entry-page .auth-eyebrow {
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   font-size: 0.72rem !important;
   letter-spacing: 0.14em !important;
   text-align: left !important;
@@ -1883,9 +1883,9 @@ body.auth-entry-page .method-label {
 
 body.auth-entry-page .role-option:checked + .role-label,
 body.auth-entry-page .method-option:checked + .method-label {
-  background: #ecfbfb !important;
-  border-color: #0f7a82 !important;
-  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+  background: #fff8ec !important;
+  border-color: #080c12 !important;
+  box-shadow: inset 0 0 0 1px #080c12 !important;
 }
 
 body.auth-entry-page .form-group input,
@@ -2113,7 +2113,7 @@ body.auth-entry-page .preview-metrics span {
 }
 
 body.auth-entry-page .preview-metrics strong {
-  color: #0f7a82 !important;
+  color: #080c12 !important;
 }
 
 body.auth-entry-page .login-right,
@@ -2134,8 +2134,8 @@ body.auth-entry-page .goi-native-nav-btn {
 
 body.auth-entry-page .utility-btn.utility-primary,
 body.auth-entry-page .goi-dock-btn-primary {
-  background: #0f7a82 !important;
-  border-color: #0f7a82 !important;
+  background: #080c12 !important;
+  border-color: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -2149,7 +2149,7 @@ body.auth-signup-page .auth-panel {
 
 body.auth-entry-page .auth-eyebrow {
   margin-bottom: 0.32rem !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   letter-spacing: 0.16em !important;
 }
 
@@ -2186,18 +2186,18 @@ body.auth-entry-page .btn-signup,
 body.auth-entry-page .btn-send-otp,
 body.auth-entry-page .btn-verify {
   min-height: 50px !important;
-  background: #0f7a82 !important;
-  border-color: #0f7a82 !important;
+  background: #080c12 !important;
+  border-color: #080c12 !important;
 }
 
 body.auth-entry-page .btn-signup,
 body.auth-entry-page .btn-login[onclick*="goToLogin"] {
   background: #ffffff !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
 }
 
 body.auth-entry-page .btn-signup[type="submit"] {
-  background: #0f7a82 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -2455,8 +2455,8 @@ body.auth-entry-page .goi-native-nav-btn {
 
 body.auth-entry-page .utility-btn.utility-primary,
 body.auth-entry-page .goi-dock-btn-primary {
-  background: #0f7a82 !important;
-  border-color: #0f7a82 !important;
+  background: #080c12 !important;
+  border-color: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -2520,10 +2520,10 @@ body.auth-entry-page .method-label {
 
 body.auth-entry-page .role-option:checked + .role-label,
 body.auth-entry-page .method-option:checked + .method-label {
-  border-color: #0f7a82 !important;
-  background: #eaf8f8 !important;
-  color: #0b5960 !important;
-  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+  border-color: #080c12 !important;
+  background: #fff8ec !important;
+  color: #080c12 !important;
+  box-shadow: inset 0 0 0 1px #080c12 !important;
 }
 
 body.auth-entry-page .form-group label {
@@ -2550,22 +2550,22 @@ body.auth-entry-page .btn-verify {
   min-height: 52px !important;
   border-radius: 6px !important;
   border: 0 !important;
-  background: #0f7a82 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
 }
 
 body.auth-entry-page .btn-signup,
 body.auth-entry-page .btn-login[onclick*="goToLogin"] {
-  border: 1px solid #0f7a82 !important;
+  border: 1px solid #080c12 !important;
   background: #ffffff !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   box-shadow: none !important;
 }
 
 body.auth-entry-page .btn-signup[type="submit"] {
   border: 0 !important;
-  background: #0f7a82 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
 }
@@ -2876,8 +2876,8 @@ html body.auth-entry-page .goi-native-nav-btn {
 
 html body.auth-entry-page .utility-btn.utility-primary,
 html body.auth-entry-page .goi-dock-btn-primary {
-  background: #0f7a82 !important;
-  border-color: #0f7a82 !important;
+  background: #080c12 !important;
+  border-color: #080c12 !important;
   color: #ffffff !important;
 }
 
@@ -2946,10 +2946,10 @@ html body.auth-entry-page .method-label {
 
 html body.auth-entry-page .role-option:checked + .role-label,
 html body.auth-entry-page .method-option:checked + .method-label {
-  border-color: #0f7a82 !important;
-  background: #eaf8f8 !important;
-  color: #0b5960 !important;
-  box-shadow: inset 0 0 0 1px #0f7a82 !important;
+  border-color: #080c12 !important;
+  background: #fff8ec !important;
+  color: #080c12 !important;
+  box-shadow: inset 0 0 0 1px #080c12 !important;
 }
 
 html body.auth-entry-page .form-group label {
@@ -2976,22 +2976,22 @@ html body.auth-entry-page .btn-verify {
   min-height: 52px !important;
   border-radius: 6px !important;
   border: 0 !important;
-  background: #0f7a82 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
 }
 
 html body.auth-entry-page .btn-signup,
 html body.auth-entry-page .btn-login[onclick*="goToLogin"] {
-  border: 1px solid #0f7a82 !important;
+  border: 1px solid #080c12 !important;
   background: #ffffff !important;
-  color: #0f7a82 !important;
+  color: #080c12 !important;
   box-shadow: none !important;
 }
 
 html body.auth-entry-page .btn-signup[type="submit"] {
   border: 0 !important;
-  background: #0f7a82 !important;
+  background: #080c12 !important;
   color: #ffffff !important;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14) !important;
 }

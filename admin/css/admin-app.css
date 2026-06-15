@@ -6,10 +6,10 @@
     --line-strong: #c7d3e1;
     --text: #172333;
     --muted: #64748b;
-    --blue: #2563a6;
-    --teal: #0f8b8d;
-    --green: #16835f;
-    --amber: #b87918;
+    --blue: #080c12;
+    --teal: #2a2117;
+    --green: #f0b44f;
+    --amber: #f0b44f;
     --red: #c2414b;
     --shadow: 0 16px 36px rgba(30, 41, 59, 0.11);
     --sidebar: 276px;
@@ -40,8 +40,8 @@ body.admin-app-shell {
     min-height: 100vh;
     color: var(--text);
     background:
-        linear-gradient(120deg, rgba(37, 99, 166, 0.08), transparent 34%),
-        linear-gradient(300deg, rgba(15, 139, 141, 0.08), transparent 36%),
+        linear-gradient(120deg, rgba(240, 180, 79, 0.1), transparent 34%),
+        linear-gradient(300deg, rgba(8, 12, 18, 0.06), transparent 36%),
         var(--bg);
     font-family: Inter, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.45;
@@ -99,9 +99,17 @@ button {
     display: grid;
     place-items: center;
     border-radius: 10px;
-    color: #ffffff;
-    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: transparent;
+    background: #080c12 url("../../assets/brand/goindiaride-mark.png") center / 82% auto no-repeat;
+    border: 1px solid rgba(240, 180, 79, 0.38);
     box-shadow: 0 10px 22px rgba(37, 99, 166, 0.24);
+    font-size: 0;
+    overflow: hidden;
+}
+
+.brand-mark i {
+    color: transparent;
+    font-size: 0;
 }
 
 .brand-lockup strong,
@@ -209,7 +217,7 @@ button {
 
 .nav-item.active {
     color: #ffffff;
-    background: linear-gradient(135deg, #245b91, #0f8080);
+    background: linear-gradient(135deg, #080c12, #2a2117);
 }
 
 .nav-item strong {
@@ -457,7 +465,7 @@ button {
 
 .control-module.active {
     border-color: rgba(15, 128, 128, 0.5);
-    background: linear-gradient(135deg, rgba(36, 91, 145, 0.12), rgba(15, 128, 128, 0.14));
+    background: linear-gradient(135deg, rgba(240, 180, 79, 0.12), rgba(8, 12, 18, 0.06));
 }
 
 .control-module i {
@@ -1615,7 +1623,7 @@ button {
 .autocomplete-suggestions {
     position: fixed;
     background: var(--surface);
-    border: 2px solid #667eea;
+    border: 2px solid #080c12;
     border-top: none;
     border-radius: 0 0 8px 8px;
     max-height: 350px;
@@ -1627,7 +1635,7 @@ button {
 }
 
 .autocomplete-category {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
     color: #ffffff;
     padding: 0.45rem 0.8rem;
     font-size: 0.72rem;
@@ -1651,7 +1659,7 @@ button {
 
 .autocomplete-item:hover,
 .autocomplete-item.autocomplete-active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+    background: linear-gradient(135deg, rgba(240, 180, 79, 0.12) 0%, rgba(8, 12, 18, 0.06) 100%);
     color: var(--blue);
     font-weight: 700;
 }
@@ -1759,7 +1767,7 @@ button {
 }
 
 .source-pill {
-    color: #245b91;
+    color: #080c12;
     background: #e5f1ff;
 }
 

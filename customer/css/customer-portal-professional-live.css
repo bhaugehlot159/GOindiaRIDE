@@ -9,9 +9,9 @@ body {
     --portal-live-border: #e5e7eb;
     --portal-live-panel: #ffffff;
     --portal-live-soft: #f8fafc;
-    --portal-live-brand: #4f46e5;
-    --portal-live-purple: #6d28d9;
-    --portal-live-green: #047857;
+    --portal-live-brand: #080c12;
+    --portal-live-purple: #2a2117;
+    --portal-live-green: #080c12;
     --portal-live-shadow: 0 16px 38px rgba(17, 24, 39, 0.08);
 }
 
@@ -119,7 +119,7 @@ body {
 
 .customer-portal-live-action:hover {
     background: #ffffff !important;
-    border-color: rgba(79, 70, 229, 0.35) !important;
+    border-color: rgba(240, 180, 79, 0.36) !important;
 }
 
 @media (max-width: 1180px) {

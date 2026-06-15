@@ -602,7 +602,7 @@
                             <strong>${ride.pickup} → ${ride.dropoff}</strong><br>
                             <small style="color: #999;">${new Date(ride.createdAt).toLocaleDateString()}</small>
                         </div>
-                        <strong style="color: #4caf50;">+₹${Math.round((ride.totalFare || 0) * 0.7)}</strong>
+                        <strong style="color: #080c12;">+₹${Math.round((ride.totalFare || 0) * 0.7)}</strong>
                     </div>
                 `).join('');
             }

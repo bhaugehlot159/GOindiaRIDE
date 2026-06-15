@@ -1,13 +1,13 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #333; }
-        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; overflow-y: auto; z-index: 1000; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); color: white; padding: 20px 0; overflow-y: auto; z-index: 1000; }
         .sidebar-logo { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 20px; }
         .sidebar-logo h2 { font-size: 1.4rem; }
         .menu-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.8); }
         .menu-item:hover { background: rgba(255, 255, 255, 0.1); }
         .topbar { position: fixed; top: 0; left: 260px; right: 0; height: 70px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); z-index: 999; }
         .topbar-right { display: flex; align-items: center; gap: 20px; }
-        .admin-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .admin-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .logout-btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }
         .logout-btn:hover { transform: translateY(-2px); }
         .dashboard-utility-nav { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
@@ -39,7 +39,7 @@
         }
         .control-kicker {
             display: block;
-            color: #667eea;
+            color: #080c12;
             font-size: 0.78rem;
             font-weight: 800;
             letter-spacing: 0.08em;
@@ -60,7 +60,7 @@
             white-space: nowrap;
         }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-top: 4px solid #667eea; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-top: 4px solid #080c12; }
         .stat-value { font-size: 2rem; font-weight: bold; color: #333; margin-top: 10px; }
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); align-items: center; justify-content: center; }
         .modal.active { display: flex; }
@@ -82,17 +82,17 @@
             text-shadow: 0 1px 6px rgba(0,0,0,0.15);
         }
 
-        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-saffron { color: #f0b44f; }
         .india-tricolor-text .tri-white { color: #EAF1FF; }
-        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-green { color: #f0b44f; }
         .india-tricolor-text .tri-ashoka {
-            color: #000080;
+            color: #080c12;
             font-size: 0.95em;
-            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+            text-shadow: 0 0 8px rgba(8,12,18,0.32);
         }
 
         .india-tricolor-dashboard {
-            background: linear-gradient(90deg, #FF9933 0%, #FFBE66 30%, #0B1F3A 52%, #138808 82%);
+            background: linear-gradient(90deg, #f0b44f 0%, #f0c56b 30%, #080c12 52%, #f0b44f 82%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -102,7 +102,7 @@
         }
 
         .india-attract-glow {
-            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            box-shadow: 0 0 0 1px rgba(240,180,79,0.2), 0 14px 30px rgba(8,12,18,0.16);
             border: 1px solid rgba(255,255,255,0.25);
         }
 

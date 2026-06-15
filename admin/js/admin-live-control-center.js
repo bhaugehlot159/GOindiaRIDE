@@ -787,9 +787,9 @@
             .admin-live-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
             .admin-live-title span { color: #667085; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0; }
             .admin-live-title h2 { margin: 0.15rem 0 0; font-size: 1.25rem; }
-            .admin-live-title button, .admin-live-actions button, .admin-live-kyc button { border: 0; border-radius: 7px; padding: 0.55rem 0.7rem; background: #0f766e; color: #fff; font-weight: 800; cursor: pointer; }
+            .admin-live-title button, .admin-live-actions button, .admin-live-kyc button { border: 0; border-radius: 7px; padding: 0.55rem 0.7rem; background: #080c12; color: #fff; font-weight: 800; cursor: pointer; }
             .admin-live-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.65rem; margin-bottom: 1rem; }
-            .admin-live-card, .admin-live-row, .admin-live-kyc { border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fbff; padding: 0.75rem; }
+            .admin-live-card, .admin-live-row, .admin-live-kyc { border: 1px solid #e2e8f0; border-radius: 8px; background: #fbf7ef; padding: 0.75rem; }
             .admin-live-card small, .admin-live-card span, .admin-live-row small, .admin-live-row span, .admin-live-kyc span { display: block; color: #667085; }
             .admin-live-card strong { display: block; margin: 0.2rem 0; font-size: 1.1rem; }
             .admin-live-columns { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 1rem; }

@@ -142,7 +142,7 @@
                 <div id="activeRidesList" class="ride-list">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
-                        <p>No active rides. <a href="booking.html" style="color: #667eea; cursor: pointer;">Book a ride!</a></p>
+                        <p>No active rides. <a href="booking.html" style="color: #080c12; cursor: pointer;">Book a ride!</a></p>
                     </div>
                 </div>
                 <div id="customerRuntimeActiveMount" style="display:none;"></div>
@@ -162,7 +162,7 @@
             <!-- Messages Tab -->
             <div class="tab-content" id="messagesTab">
                 <!-- Help Banner -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                <div style="background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
                     <h3 style="margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-info-circle"></i>
                         💬 Purani Chat Kaise Dekhen? (How to View Old Chats?)
@@ -286,7 +286,7 @@
                 <div id="donationsList" class="ride-list">
                     <div class="empty-state">
                         <i class="fas fa-heart"></i>
-                        <p>No donations yet. <a href="javascript:openDonations()" style="color: #667eea; cursor: pointer;">Start donating!</a></p>
+                        <p>No donations yet. <a href="javascript:openDonations()" style="color: #080c12; cursor: pointer;">Start donating!</a></p>
                     </div>
                 </div>
             </div>
@@ -440,7 +440,7 @@
                 </div>
             </div>
 
-            <div style="background: #fff3e0; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #ff5722;">
+            <div style="background: #fff8ec; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #f0b44f;">
                 <p style="color: #e65100; font-size: 0.9rem;">
                     <strong>💡 Did you know?</strong> 10% of our platform's revenue goes to help drivers and their families.
                 </p>
@@ -471,7 +471,7 @@
     <!-- Payment Modal (Shows after ride completion) -->
     <div class="modal" id="paymentModal" style="display: none;">
         <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem;">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem;">
                 💳
             </div>
             <div class="modal-title" style="font-size: 1.8rem; color: #333; margin-bottom: 0.5rem;">Payment Required</div>
@@ -495,30 +495,30 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-top: 2px solid #ddd; margin-top: 0.5rem; font-size: 1.2rem;">
                     <strong style="color: #333;">Total Fare:</strong>
-                    <strong id="paymentFare" style="color: #667eea; font-size: 1.5rem;">₹0</strong>
+                    <strong id="paymentFare" style="color: #080c12; font-size: 1.5rem;">₹0</strong>
                 </div>
             </div>
 
             <h4 style="color: #333; margin-bottom: 1rem;">Select Payment Method</h4>
             <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
-                <button class="payment-method-btn" onclick="selectPaymentMethod('upi')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">UPI</div>
+                <button class="payment-method-btn" onclick="selectPaymentMethod('upi')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#080c12'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">UPI</div>
                     <div style="text-align: left;">
                         <div style="font-weight: bold; color: #333;">UPI Payment</div>
                         <div style="font-size: 0.85rem; color: #666;">Google Pay, PhonePe, Paytm</div>
                     </div>
                 </button>
 
-                <button class="payment-method-btn" onclick="selectPaymentMethod('card')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💳</div>
+                <button class="payment-method-btn" onclick="selectPaymentMethod('card')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#080c12'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💳</div>
                     <div style="text-align: left;">
                         <div style="font-weight: bold; color: #333;">Credit/Debit Card</div>
                         <div style="font-size: 0.85rem; color: #666;">Visa, Mastercard, Rupay</div>
                     </div>
                 </button>
 
-                <button class="payment-method-btn" onclick="selectPaymentMethod('cash')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💵</div>
+                <button class="payment-method-btn" onclick="selectPaymentMethod('cash')" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#080c12'; this.style.background='#f8f9ff'" onmouseout="this.style.borderColor='#ddd'; this.style.background='white'">
+                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">💵</div>
                     <div style="text-align: left;">
                         <div style="font-weight: bold; color: #333;">Cash Payment</div>
                         <div style="font-size: 0.85rem; color: #666;">Pay driver directly</div>
@@ -584,7 +584,7 @@
                 </div>
             </div>
 
-            <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #4caf50;">
+            <div style="background: #fff8ec; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #080c12;">
                 <p style="color: #2e7d32; font-size: 0.9rem;">
                     <strong>✅ Impact:</strong> Your donation will help <span id="receiptImpact">one person</span> get better opportunities!
                 </p>
@@ -601,7 +601,7 @@
                 </button>
             </div>
 
-            <button class="modal-btn" onclick="closeReceiptModal()" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.9rem;">
+            <button class="modal-btn" onclick="closeReceiptModal()" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, #080c12 0%, #2a2117 100%); color: white; border: none; padding: 0.9rem;">
                 Continue
             </button>
         </div>

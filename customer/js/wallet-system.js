@@ -221,7 +221,7 @@ function loadTransactions() {
                     <small style="color: var(--text-light);">${txn.date}</small>
                 </div>
             </div>
-            <div style="font-weight: bold; ${txn.amount > 0 ? 'color: #06A77D' : 'color: #E63946'}">
+            <div style="font-weight: bold; ${txn.amount > 0 ? 'color: #080c12' : 'color: #E63946'}">
                 ${txn.amount > 0 ? '+' : ''}₹${Math.abs(txn.amount)}
             </div>
         </div>
@@ -343,7 +343,7 @@ function showDonationSuccess(amount, destination) {
         <div class="modal-content">
             <span class="close">&times;</span>
             <div style="text-align: center;">
-                <i class="fas fa-check-circle" style="font-size: 4rem; color: #06A77D; margin-bottom: 1rem;"></i>
+                <i class="fas fa-check-circle" style="font-size: 4rem; color: #080c12; margin-bottom: 1rem;"></i>
                 <h2>Donation Successful!</h2>
                 <p style="font-size: 1.5rem; font-weight: bold; margin: 1rem 0;">₹${amount}</p>
                 <p>donated to ${destination}</p>
@@ -799,7 +799,7 @@ function renderWithdrawalRequestHistory() {
 
     container.innerHTML = rows.slice(0, 12).map((row) => {
         const status = String(row.status || 'pending_admin_approval');
-        const statusColor = status === 'approved' ? '#06A77D' : status === 'rejected' ? '#E63946' : '#F77F00';
+        const statusColor = status === 'approved' ? '#080c12' : status === 'rejected' ? '#E63946' : '#f0b44f';
         const methodLabel = row.methodLabel || row.method || '-';
 
         return `

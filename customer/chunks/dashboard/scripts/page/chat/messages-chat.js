@@ -34,7 +34,7 @@
                         <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <h3 style="color: #333; margin-bottom: 0.5rem;">Abhi koi purani chat nahi hai</h3>
                         <p style="color: #666; margin-bottom: 1rem;">No previous chats yet. Book a ride to start messaging with drivers!</p>
-                        <a href="booking.html" style="color: #667eea; text-decoration: none; font-weight: bold;">
+                        <a href="booking.html" style="color: #080c12; text-decoration: none; font-weight: bold;">
                             📱 Book Your First Ride
                         </a>
                     </div>

@@ -10,7 +10,7 @@
         }
 
         .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             padding: 1rem 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -78,7 +78,7 @@
             cursor: pointer;
             border: none;
             background: rgba(76, 175, 80, 0.2);
-            color: #4caf50;
+            color: #080c12;
         }
 
         .status-badge.offline {
@@ -106,19 +106,19 @@
             border-radius: 999px;
             border: 1px solid rgba(12, 42, 74, 0.12) !important;
             background: rgba(255, 255, 255, 0.92) !important;
-            color: #14385e !important;
+            color: #080c12 !important;
             font-weight: 700;
             box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
         }
 
         body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn:hover {
             background: #ffffff !important;
-            color: #102c50 !important;
+            color: #080c12 !important;
             box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14);
         }
 
         body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn.home-btn {
-            background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%) !important;
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%) !important;
             color: #ffffff !important;
             border-color: transparent !important;
         }
@@ -162,7 +162,7 @@
         .header-btn {
             padding: 0.8rem 1.5rem;
             border: none;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border-radius: 8px;
             cursor: pointer;
@@ -172,13 +172,13 @@
 
         .header-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(8, 12, 18, 0.24);
         }
 
         .header-btn.secondary {
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #080c12;
+            border: 2px solid #080c12;
         }
 
         .header-btn.secondary:hover {
@@ -197,7 +197,7 @@
             padding: 1.5rem;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #080c12;
         }
 
         .stat-card h3 {
@@ -248,13 +248,13 @@
         }
 
         .tab-button:hover {
-            color: #667eea;
+            color: #080c12;
             background: #f9f9f9;
         }
 
         .tab-button.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: #080c12;
+            border-bottom-color: #080c12;
         }
 
         .tab-content {
@@ -275,14 +275,14 @@
             background: white;
             padding: 1.5rem;
             border-radius: 12px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #080c12;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .ride-card.completed {
-            border-left-color: #4caf50;
+            border-left-color: #080c12;
         }
 
         .ride-card.pending {
@@ -322,9 +322,9 @@
 
         .ride-btn {
             padding: 0.6rem 1rem;
-            border: 1px solid #667eea;
+            border: 1px solid #080c12;
             background: none;
-            color: #667eea;
+            color: #080c12;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
@@ -332,17 +332,17 @@
         }
 
         .ride-btn:hover {
-            background: #667eea;
+            background: #080c12;
             color: white;
         }
 
         .ride-btn.primary {
-            background: #667eea;
+            background: #080c12;
             color: white;
         }
 
         .ride-btn.primary:hover {
-            background: #764ba2;
+            background: #2a2117;
         }
 
         .profile-section {
@@ -362,7 +362,7 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -405,7 +405,7 @@
         .edit-profile-btn {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -416,11 +416,11 @@
 
         .edit-profile-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(8, 12, 18, 0.24);
         }
 
         .earnings-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             padding: 2rem;
             border-radius: 12px;
@@ -477,7 +477,7 @@
 
         .vehicle-icon {
             font-size: 3rem;
-            color: #667eea;
+            color: #080c12;
         }
 
         .vehicle-details h3 {
@@ -513,7 +513,7 @@
 
         .document-icon {
             font-size: 1.5rem;
-            color: #667eea;
+            color: #080c12;
         }
 
         .document-info h4 {
@@ -534,7 +534,7 @@
 
         .status-verified {
             background: rgba(76, 175, 80, 0.2);
-            color: #4caf50;
+            color: #080c12;
         }
 
         .status-pending {
@@ -677,13 +677,13 @@
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #080c12;
         }
 
         .form-btn {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -693,7 +693,7 @@
 
         .form-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(8, 12, 18, 0.24);
         }
 
         .message {
@@ -708,9 +708,9 @@
         }
 
         .message.success {
-            background: #e8f5e9;
+            background: #fff8ec;
             color: #2e7d32;
-            border-left: 4px solid #4caf50;
+            border-left: 4px solid #080c12;
         }
 
         .message.error {
@@ -766,7 +766,7 @@
         }
 
         .wallet-mode-banner {
-            background: #f8fbff;
+            background: #fbf7ef;
             border: 1px solid #d9e7ff;
             border-radius: 10px;
             padding: 0.85rem 1rem;
@@ -858,7 +858,7 @@
 
         .wallet-inline-btn {
             padding: 0.75rem 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             border: none;
             color: #fff;
             border-radius: 8px;
@@ -952,17 +952,17 @@
             text-shadow: 0 1px 6px rgba(0,0,0,0.15);
         }
 
-        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-saffron { color: #f0b44f; }
         .india-tricolor-text .tri-white { color: #EAF1FF; }
-        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-green { color: #f0b44f; }
         .india-tricolor-text .tri-ashoka {
-            color: #000080;
+            color: #080c12;
             font-size: 0.95em;
-            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+            text-shadow: 0 0 8px rgba(8,12,18,0.32);
         }
 
         .india-tricolor-dashboard {
-            background: linear-gradient(90deg, #FF9933 0%, #FFBE66 30%, #0B1F3A 52%, #138808 82%);
+            background: linear-gradient(90deg, #f0b44f 0%, #f0c56b 30%, #080c12 52%, #f0b44f 82%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -972,7 +972,7 @@
         }
 
         .india-attract-glow {
-            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            box-shadow: 0 0 0 1px rgba(240,180,79,0.2), 0 14px 30px rgba(8,12,18,0.16);
             border: 1px solid rgba(255,255,255,0.25);
         }
 
@@ -993,7 +993,7 @@
         .portal-alert-item {
             padding: 8px 10px;
             border-radius: 8px;
-            background: #f8fbff;
+            background: #fbf7ef;
             border: 1px solid #e4ebf8;
             margin-bottom: 7px;
         }

@@ -10,7 +10,7 @@ function createAffiliateTrackingContent() {
         
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-users"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-users"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Active Affiliates</div>
                     <div class="stat-value">45</div>
@@ -112,7 +112,7 @@ function createDonationReportsContent() {
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="fas fa-hand-holding-heart"></i></div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #080c12, #2a2117);"><i class="fas fa-hand-holding-heart"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">This Month</div>
                     <div class="stat-value">₹45,000</div>
@@ -298,7 +298,7 @@ function createTaxReportsContent() {
         
         <div class="stats-grid mt-20">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-rupee-sign"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-rupee-sign"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Total Revenue (This Month)</div>
                     <div class="stat-value">₹8,45,000</div>
@@ -388,7 +388,7 @@ function createInsuranceFundContent() {
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-hand-holding-usd"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-hand-holding-usd"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Monthly Contributions</div>
                     <div class="stat-value">₹42,000</div>
@@ -482,7 +482,7 @@ function createRevenueAnalyticsContent() {
         
         <div class="stats-grid mt-20">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-rupee-sign"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-rupee-sign"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Today's Revenue</div>
                     <div class="stat-value">₹28,450</div>
@@ -538,7 +538,7 @@ function createDriverPayoutContent() {
         
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-money-check-alt"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-money-check-alt"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Pending Payouts</div>
                     <div class="stat-value">₹3,45,000</div>
@@ -729,8 +729,8 @@ function initializeFinancialFeatures(sectionId) {
                         datasets: [{
                             label: 'Commissions (₹)',
                             data: [8500, 12000, 15000, 18500, 21000, 22500],
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderColor: '#080c12',
+                            backgroundColor: 'rgba(240, 180, 79, 0.12)',
                             tension: 0.4,
                             fill: true
                         }]
@@ -746,7 +746,7 @@ function initializeFinancialFeatures(sectionId) {
                         labels: ['Driver Welfare', 'Education', 'Healthcare', 'Other'],
                         datasets: [{
                             data: [45, 25, 20, 10],
-                            backgroundColor: ['#667eea', '#43e97b', '#4facfe', '#feca57']
+                            backgroundColor: ['#080c12', '#43e97b', '#4facfe', '#feca57']
                         }]
                     }
                 });
@@ -808,8 +808,8 @@ function initializeFinancialFeatures(sectionId) {
                         datasets: [{
                             label: 'Revenue (₹)',
                             data: [185000, 220000, 195000, 245000],
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderColor: '#080c12',
+                            backgroundColor: 'rgba(240, 180, 79, 0.12)',
                             tension: 0.4,
                             fill: true
                         }]
@@ -824,7 +824,7 @@ function initializeFinancialFeatures(sectionId) {
                         labels: ['Standard Rides', 'Premium Rides', 'Outstation', 'Rental'],
                         datasets: [{
                             data: [55, 20, 15, 10],
-                            backgroundColor: ['#667eea', '#f093fb', '#43e97b', '#4facfe']
+                            backgroundColor: ['#080c12', '#f093fb', '#43e97b', '#4facfe']
                         }]
                     }
                 });
@@ -838,7 +838,7 @@ function initializeFinancialFeatures(sectionId) {
                         datasets: [{
                             label: 'Revenue (₹)',
                             data: [320000, 185000, 145000, 98000, 97000],
-                            backgroundColor: '#667eea'
+                            backgroundColor: '#080c12'
                         }]
                     }
                 });
@@ -852,7 +852,7 @@ function initializeFinancialFeatures(sectionId) {
                         labels: ['Salaries', 'Marketing', 'Operations', 'Maintenance', 'Other'],
                         datasets: [{
                             data: [68, 12, 10, 7, 3],
-                            backgroundColor: ['#ff6b6b', '#667eea', '#4facfe', '#feca57', '#43e97b']
+                            backgroundColor: ['#ff6b6b', '#080c12', '#4facfe', '#feca57', '#43e97b']
                         }]
                     }
                 });
@@ -866,7 +866,7 @@ function initializeFinancialFeatures(sectionId) {
                         datasets: [{
                             label: 'Budget',
                             data: [90000, 20000, 15000, 12000],
-                            backgroundColor: 'rgba(102, 126, 234, 0.5)'
+                            backgroundColor: 'rgba(8, 12, 18, 0.24)'
                         }, {
                             label: 'Actual',
                             data: [85000, 15000, 8500, 10000],

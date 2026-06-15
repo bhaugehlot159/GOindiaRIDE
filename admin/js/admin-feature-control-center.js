@@ -541,7 +541,7 @@
             .az-toolbar input,.az-toolbar select{border:1px solid #d8e1ef;border-radius:7px;padding:.65rem .75rem;min-height:38px;background:#fff;color:#0f172a}
             .az-toolbar input{flex:1 1 260px}
             .az-summary-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:.65rem;margin:.85rem 0}
-            .az-summary-tile{border:1px solid #e2e8f0;border-radius:8px;background:#f8fbff;padding:.7rem}
+            .az-summary-tile{border:1px solid #e2e8f0;border-radius:8px;background:#fbf7ef;padding:.7rem}
             .az-summary-tile small,.az-summary-tile span{display:block;color:#667085}
             .az-summary-tile strong{display:block;font-size:1.1rem;margin:.2rem 0;color:#0f172a}
             .az-feature-list{display:grid;gap:.55rem}

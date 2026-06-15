@@ -793,8 +793,8 @@ walletStyles.textContent = `
     }
     
     .info-text {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #fff8ec;
+        color: #080c12;
         padding: 0.75rem;
         border-radius: 8px;
         font-size: 0.85rem;

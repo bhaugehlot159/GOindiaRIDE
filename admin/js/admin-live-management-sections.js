@@ -457,7 +457,7 @@
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:#667eea;"><i class="fas fa-bullhorn"></i></div>
+                    <div class="stat-icon" style="background:#080c12;"><i class="fas fa-bullhorn"></i></div>
                     <div class="stat-content"><div class="stat-label">Sent Alerts</div><div class="stat-value">${activeAlerts.length}</div></div>
                 </div>
                 <div class="stat-card">
@@ -543,7 +543,7 @@
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background:#667eea;"><i class="fas fa-tags"></i></div>
+                    <div class="stat-icon" style="background:#080c12;"><i class="fas fa-tags"></i></div>
                     <div class="stat-content"><div class="stat-label">Active Offers</div><div class="stat-value">${activeCount}</div></div>
                 </div>
                 <div class="stat-card">

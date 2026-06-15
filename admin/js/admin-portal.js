@@ -974,8 +974,8 @@ function initializeDashboardCharts() {
                 datasets: [{
                     label: 'Revenue (₹)',
                     data: revenueSeries.values,
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderColor: '#080c12',
+                    backgroundColor: 'rgba(240, 180, 79, 0.12)',
                     tension: 0.4,
                     fill: true
                 }]

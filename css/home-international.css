@@ -5,10 +5,10 @@ html body.goi-global-theme.home-international {
     --home-soft: #f5f8f6;
     --home-paper: #ffffff;
     --home-line: #d8e2df;
-    --home-teal: #0f766e;
-    --home-teal-dark: #0a4f4b;
-    --home-gold: #f3b33d;
-    --home-black: #050505;
+    --home-teal: #f0b44f;
+    --home-teal-dark: #080c12;
+    --home-gold: #f0b44f;
+    --home-black: #080c12;
     --home-shadow: 0 18px 46px rgba(10, 33, 47, 0.12);
     background: #f5f8f6 !important;
     color: var(--home-ink) !important;
@@ -63,10 +63,10 @@ html body.goi-global-theme.home-international nav.navbar.navbar {
     position: sticky !important;
     top: 0 !important;
     z-index: 1000 !important;
-    background: rgba(255, 255, 255, 0.96) !important;
-    color: var(--home-ink) !important;
-    border-bottom: 1px solid rgba(13, 27, 42, 0.09) !important;
-    box-shadow: 0 10px 30px rgba(13, 27, 42, 0.07) !important;
+    background: rgba(8, 12, 18, 0.96) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(240, 180, 79, 0.28) !important;
+    box-shadow: 0 10px 30px rgba(8, 12, 18, 0.22) !important;
     backdrop-filter: blur(14px);
     padding: 0 !important;
 }
@@ -84,7 +84,7 @@ html body.goi-global-theme.home-international nav.navbar.navbar .container {
 
 body.home-international .navbar .logo,
 html body.goi-global-theme.home-international nav.navbar.navbar .logo {
-    color: var(--home-ink) !important;
+    color: #ffffff !important;
     font-size: 1.35rem !important;
     font-weight: 800 !important;
     line-height: 1.1;
@@ -115,7 +115,7 @@ body.home-international .navbar-links {
 
 body.home-international .navbar-links > a,
 html body.goi-global-theme.home-international nav.navbar.navbar .navbar-links > a {
-    color: var(--home-ink) !important;
+    color: #ffffff !important;
     font-size: 0.95rem !important;
     font-weight: 700 !important;
     text-decoration: none !important;
@@ -124,7 +124,7 @@ html body.goi-global-theme.home-international nav.navbar.navbar .navbar-links > 
 }
 
 body.home-international .navbar-links > a:hover {
-    color: var(--home-teal) !important;
+    color: var(--home-gold) !important;
 }
 
 body.home-international .auth-buttons {
@@ -151,38 +151,39 @@ html body.goi-global-theme.home-international nav.navbar.navbar .btn-admin {
 }
 
 body.home-international .btn-login {
-    background: #ffffff !important;
-    color: var(--home-ink) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border-color: rgba(240, 180, 79, 0.34) !important;
 }
 
 body.home-international .btn-signup {
-    background: var(--home-black) !important;
-    color: #ffffff !important;
-    border-color: var(--home-black) !important;
+    background: var(--home-gold) !important;
+    color: var(--home-black) !important;
+    border-color: var(--home-gold) !important;
 }
 
 body.home-international .btn-admin {
-    background: #fff7e6 !important;
-    color: #5e3b00 !important;
-    border-color: #f2d084 !important;
+    background: rgba(240, 180, 79, 0.12) !important;
+    color: #ffffff !important;
+    border-color: rgba(240, 180, 79, 0.42) !important;
 }
 
 html body.goi-global-theme.home-international nav.navbar.navbar .btn-login {
-    background: #ffffff !important;
-    color: var(--home-ink) !important;
-    border-color: var(--home-line) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border-color: rgba(240, 180, 79, 0.34) !important;
 }
 
 html body.goi-global-theme.home-international nav.navbar.navbar .btn-signup {
-    background: var(--home-black) !important;
-    color: #ffffff !important;
-    border-color: var(--home-black) !important;
+    background: var(--home-gold) !important;
+    color: var(--home-black) !important;
+    border-color: var(--home-gold) !important;
 }
 
 html body.goi-global-theme.home-international nav.navbar.navbar .btn-admin {
-    background: #fff7e6 !important;
-    color: #5e3b00 !important;
-    border-color: #f2d084 !important;
+    background: rgba(240, 180, 79, 0.12) !important;
+    color: #ffffff !important;
+    border-color: rgba(240, 180, 79, 0.42) !important;
 }
 
 body.home-international .auth-buttons .btn-login,
@@ -196,9 +197,9 @@ html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .b
     justify-content: center !important;
     min-width: 0 !important;
     gap: 0.4rem !important;
-    background: #ffffff !important;
-    color: var(--home-ink) !important;
-    border-color: var(--home-line) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border-color: rgba(240, 180, 79, 0.34) !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -206,7 +207,7 @@ html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .b
 
 body.home-international .auth-buttons .btn-admin i {
     flex: 0 0 auto;
-    color: #d88a16 !important;
+    color: var(--home-gold) !important;
 }
 
 body.home-international .auth-buttons .btn-login:hover,
@@ -234,9 +235,9 @@ html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .b
 html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login.is-active,
 html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup.is-active,
 html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin.is-active {
-    background: var(--home-black) !important;
-    color: #ffffff !important;
-    border-color: var(--home-black) !important;
+    background: var(--home-gold) !important;
+    color: var(--home-black) !important;
+    border-color: var(--home-gold) !important;
 }
 
 body.home-international .auth-buttons .btn-admin:hover i,
@@ -244,7 +245,7 @@ body.home-international .auth-buttons .btn-admin:focus-visible i,
 body.home-international .auth-buttons .btn-admin:active i,
 body.home-international .auth-buttons .btn-admin.is-active i,
 body.home-international .auth-buttons [aria-current="page"].btn-admin i {
-    color: #ffffff !important;
+    color: var(--home-black) !important;
 }
 
 html body.goi-global-theme.home-international nav.navbar.navbar .lang-btn,

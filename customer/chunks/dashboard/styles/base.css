@@ -11,7 +11,7 @@
 
         /* Navbar */
         .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             padding: 1rem 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -93,19 +93,19 @@
             border-radius: 999px;
             border: 1px solid rgba(12, 42, 74, 0.12) !important;
             background: rgba(255, 255, 255, 0.92) !important;
-            color: #14385e !important;
+            color: #080c12 !important;
             font-weight: 700;
             box-shadow: 0 10px 24px rgba(10, 36, 67, 0.08);
         }
 
         body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn:hover {
             background: #ffffff !important;
-            color: #102c50 !important;
+            color: #080c12 !important;
             box-shadow: 0 14px 28px rgba(10, 36, 67, 0.14);
         }
 
         body.fit-screen-page .navbar .dashboard-utility-nav .logout-btn.home-btn {
-            background: linear-gradient(135deg, #0d2f54 0%, #1f5f95 100%) !important;
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%) !important;
             color: #ffffff !important;
             border-color: transparent !important;
         }
@@ -155,7 +155,7 @@
         }
 
         .quick-action-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             padding: 1rem;
@@ -170,7 +170,7 @@
 
         .quick-action-btn:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 20px rgba(8, 12, 18, 0.24);
         }
 
         .quick-action-btn i {
@@ -209,9 +209,9 @@
             font-weight: 700;
         }
 
-        .emergency-btn.police { background: #0d47a1; }
+        .emergency-btn.police { background: #080c12; }
         .emergency-btn.ambulance { background: #c62828; }
-        .emergency-btn.sos { background: #6a1b9a; }
+        .emergency-btn.sos { background: #2a2117; }
 
         /* Stats Cards */
         .stats-grid {
@@ -226,11 +226,11 @@
             padding: 1.5rem;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #080c12;
         }
 
         .stat-card.donation {
-            border-left-color: #ff5722;
+            border-left-color: #f0b44f;
         }
 
         .stat-label {
@@ -409,13 +409,13 @@
         }
 
         .tab-button:hover {
-            color: #667eea;
+            color: #080c12;
             background: #f9f9f9;
         }
 
         .tab-button.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: #080c12;
+            border-bottom-color: #080c12;
         }
 
         .tab-content {
@@ -434,8 +434,8 @@
         }
 
         .ride-policy-overview {
-            background: linear-gradient(135deg, #f8fbff 0%, #f1f7ff 100%);
-            border: 1px solid #d7e7ff;
+            background: linear-gradient(135deg, #fbf7ef 0%, #fff8ec 100%);
+            border: 1px solid #ead8b8;
             border-radius: 12px;
             padding: 1rem 1.1rem;
             color: #334155;
@@ -455,7 +455,7 @@
         }
 
         .ride-policy-overview-title i {
-            color: #2563eb;
+            color: #080c12;
         }
 
         .ride-policy-overview-copy {
@@ -467,14 +467,14 @@
             background: white;
             padding: 1.5rem;
             border-radius: 12px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #080c12;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .ride-card.completed {
-            border-left-color: #4caf50;
+            border-left-color: #080c12;
         }
 
         .ride-info {
@@ -502,31 +502,31 @@
 
         .ride-btn {
             padding: 0.6rem 1rem;
-            border: 1px solid #667eea;
+            border: 1px solid #080c12;
             background: none;
-            color: #667eea;
+            color: #080c12;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
         }
 
         .ride-btn:hover {
-            background: #667eea;
+            background: #080c12;
             color: white;
         }
 
         .ride-btn.primary {
-            background: #667eea;
+            background: #080c12;
             color: white;
         }
 
         .ride-btn.edit {
-            border-color: #0f766e;
-            color: #0f766e;
+            border-color: #080c12;
+            color: #080c12;
         }
 
         .ride-btn.edit:hover {
-            background: #0f766e;
+            background: #080c12;
             color: #fff;
         }
 
@@ -574,7 +574,7 @@
 
         .ride-policy-badge.standard {
             background: #e8f1ff;
-            color: #1d4ed8;
+            color: #080c12;
         }
 
         .ride-policy-badge.limited {
@@ -608,8 +608,8 @@
             border-radius: 28px;
             overflow: hidden;
             background:
-                radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 28%),
-                linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+                radial-gradient(circle at top right, rgba(240, 180, 79, 0.18), transparent 28%),
+                linear-gradient(180deg, #ffffff 0%, #fbf7ef 100%);
             border: 1px solid rgba(148, 163, 184, 0.28);
             box-shadow: 0 36px 80px rgba(15, 23, 42, 0.24);
         }
@@ -646,7 +646,7 @@
         .ride-edit-hero {
             position: relative;
             padding: 1.7rem 1.8rem 1.2rem;
-            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 58%, #fff4ea 100%);
+            background: linear-gradient(135deg, #fff8ec 0%, #ffffff 58%, #fbf7ef 100%);
             border-bottom: 1px solid rgba(191, 219, 254, 0.85);
         }
 
@@ -656,8 +656,8 @@
             gap: 0.45rem;
             padding: 0.42rem 0.72rem;
             border-radius: 999px;
-            background: rgba(37, 99, 235, 0.1);
-            color: #1d4ed8;
+            background: rgba(240, 180, 79, 0.14);
+            color: #080c12;
             font-size: 0.77rem;
             font-weight: 800;
             letter-spacing: 0.04em;
@@ -697,7 +697,7 @@
         .ride-edit-stat {
             padding: 0.78rem 0.88rem;
             border-radius: 14px;
-            background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+            background: linear-gradient(180deg, #fbf7ef 0%, #fbf7ef 100%);
             border: 1px solid rgba(191, 219, 254, 0.85);
         }
 
@@ -791,8 +791,8 @@
         .ride-edit-field select:focus,
         .ride-edit-field textarea:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            border-color: #f0b44f;
+            box-shadow: 0 0 0 4px rgba(240, 180, 79, 0.18);
         }
 
         .ride-edit-field textarea {
@@ -830,7 +830,7 @@
             padding: 0.88rem 1rem;
             border-radius: 16px;
             border: 1px solid rgba(203, 213, 225, 0.95);
-            background: linear-gradient(180deg, #fcfdff 0%, #f8fbff 100%);
+            background: linear-gradient(180deg, #fcfdff 0%, #fbf7ef 100%);
             margin-bottom: 0.95rem;
         }
 
@@ -884,7 +884,7 @@
         }
 
         .ride-edit-switch input:checked + .ride-edit-slider {
-            background: linear-gradient(135deg, #2563eb 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
         }
 
         .ride-edit-switch input:checked + .ride-edit-slider::before {
@@ -904,20 +904,20 @@
             padding: 0.88rem 0.95rem;
             border-radius: 16px;
             border: 1px solid rgba(203, 213, 225, 0.95);
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            background: linear-gradient(180deg, #ffffff 0%, #fbf7ef 100%);
             min-height: 74px;
             transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
         .ride-edit-checkbox-card:hover {
             transform: translateY(-1px);
-            border-color: rgba(59, 130, 246, 0.4);
+            border-color: rgba(240, 180, 79, 0.42);
             box-shadow: 0 10px 18px rgba(148, 163, 184, 0.12);
         }
 
         .ride-edit-checkbox-card input {
             margin-top: 0.15rem;
-            accent-color: #2563eb;
+            accent-color: #080c12;
             transform: scale(1.1);
         }
 
@@ -962,7 +962,7 @@
         }
 
         .ride-edit-actions .modal-btn.donate {
-            background: linear-gradient(135deg, #1d4ed8 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             box-shadow: 0 16px 28px rgba(37, 99, 235, 0.22);
         }
 
@@ -1048,7 +1048,7 @@
 
         .modal-icon {
             font-size: 3rem;
-            color: #ff5722;
+            color: #f0b44f;
             margin-bottom: 1rem;
         }
 
@@ -1082,13 +1082,13 @@
         }
 
         .donation-btn-option:hover {
-            border-color: #ff5722;
-            background: #fff3e0;
+            border-color: #f0b44f;
+            background: #fff8ec;
         }
 
         .donation-btn-option.selected {
-            border-color: #ff5722;
-            background: #ff5722;
+            border-color: #f0b44f;
+            background: #f0b44f;
             color: white;
         }
 
@@ -1108,7 +1108,7 @@
         }
 
         .modal-btn.donate {
-            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+            background: linear-gradient(135deg, #f0b44f 0%, #ff7043 100%);
             color: white;
         }
 
@@ -1181,7 +1181,7 @@
         }
 
         .receipt-total-amount {
-            color: #4caf50;
+            color: #080c12;
         }
 
         .receipt-actions {
@@ -1200,7 +1200,7 @@
         }
 
         .receipt-btn.download {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
         }
 
@@ -1222,9 +1222,9 @@
         }
 
         .message.success {
-            background: #e8f5e9;
+            background: #fff8ec;
             color: #2e7d32;
-            border-left: 4px solid #4caf50;
+            border-left: 4px solid #080c12;
         }
 
         .empty-state {
@@ -1320,7 +1320,7 @@
         }
 
         .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             padding: 1rem;
             display: flex;
@@ -1390,7 +1390,7 @@
         }
 
         .message.sent .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
         }
 
@@ -1417,11 +1417,11 @@
         }
 
         #messageInput:focus {
-            border-color: #667eea;
+            border-color: #080c12;
         }
 
         .send-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             width: 48px;
@@ -1480,17 +1480,17 @@
             text-shadow: 0 1px 6px rgba(0,0,0,0.15);
         }
 
-        .india-tricolor-text .tri-saffron { color: #FF9933; }
+        .india-tricolor-text .tri-saffron { color: #f0b44f; }
         .india-tricolor-text .tri-white { color: #EAF1FF; }
-        .india-tricolor-text .tri-green { color: #138808; }
+        .india-tricolor-text .tri-green { color: #f0b44f; }
         .india-tricolor-text .tri-ashoka {
-            color: #000080;
+            color: #080c12;
             font-size: 0.95em;
-            text-shadow: 0 0 8px rgba(0,0,128,0.35);
+            text-shadow: 0 0 8px rgba(8,12,18,0.32);
         }
 
         .india-tricolor-dashboard {
-            background: linear-gradient(90deg, #FF9933 0%, #FFBE66 30%, #0B1F3A 52%, #138808 82%);
+            background: linear-gradient(90deg, #f0b44f 0%, #f0c56b 30%, #080c12 52%, #f0b44f 82%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -1500,7 +1500,7 @@
         }
 
         .india-attract-glow {
-            box-shadow: 0 0 0 1px rgba(255,153,51,0.18), 0 14px 30px rgba(19,136,8,0.16);
+            box-shadow: 0 0 0 1px rgba(240,180,79,0.2), 0 14px 30px rgba(8,12,18,0.16);
             border: 1px solid rgba(255,255,255,0.25);
         }
 
@@ -1521,7 +1521,7 @@
         .portal-alert-item {
             padding: 8px 10px;
             border-radius: 8px;
-            background: #f8fbff;
+            background: #fbf7ef;
             border: 1px solid #e4ebf8;
             margin-bottom: 7px;
         }

@@ -854,7 +854,7 @@
                 activeList.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
-                        <p>No active rides. <a href="./booking.html" style="color: #667eea; cursor: pointer;">Book a ride!</a></p>
+                        <p>No active rides. <a href="./booking.html" style="color: #080c12; cursor: pointer;">Book a ride!</a></p>
                     </div>
                 `;
             } else {

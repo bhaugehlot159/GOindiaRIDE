@@ -427,13 +427,13 @@
             .driver-live-title span { color: #667085; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0; }
             .driver-live-title h2 { margin: 0.15rem 0 0; font-size: 1.2rem; }
             .driver-live-title strong { border-radius: 999px; padding: 0.45rem 0.75rem; font-size: 0.82rem; white-space: nowrap; }
-            .driver-live-good { background: #dff7ea; color: #047857; }
+            .driver-live-good { background: #dff7ea; color: #080c12; }
             .driver-live-warn { background: #fff3d0; color: #92400e; }
             .driver-live-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
-            .driver-live-grid article, .driver-live-booking { border: 1px solid #e4e9f2; border-radius: 8px; padding: 0.85rem; background: #f8fbff; }
+            .driver-live-grid article, .driver-live-booking { border: 1px solid #e4e9f2; border-radius: 8px; padding: 0.85rem; background: #fbf7ef; }
             .driver-live-grid h3, .driver-live-inbox h3 { margin: 0 0 0.45rem; font-size: 1rem; }
             .driver-live-grid p, .driver-live-grid small { margin: 0 0 0.55rem; display: block; }
-            .driver-live-grid button, .driver-live-actions button { border: 0; border-radius: 7px; padding: 0.55rem 0.7rem; background: #0f766e; color: #fff; font-weight: 800; cursor: pointer; }
+            .driver-live-grid button, .driver-live-actions button { border: 0; border-radius: 7px; padding: 0.55rem 0.7rem; background: #080c12; color: #fff; font-weight: 800; cursor: pointer; }
             .driver-live-grid button:disabled, .driver-live-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
             .driver-live-inline { display: grid; grid-template-columns: 0.7fr 0.9fr 1fr; gap: 0.4rem; margin-bottom: 0.55rem; }
             .driver-live-inline input, .driver-live-inline select { min-width: 0; border: 1px solid #cfd8e8; border-radius: 7px; padding: 0.5rem; }

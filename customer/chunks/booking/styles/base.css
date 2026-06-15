@@ -6,7 +6,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             min-height: 100vh;
             padding: 2rem;
         }
@@ -111,8 +111,8 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+            border-color: #080c12;
+            box-shadow: 0 0 10px rgba(8, 12, 18, 0.18);
             background: #f9f9ff;
         }
 
@@ -128,7 +128,7 @@
 
         .swap-btn {
             padding: 0.9rem 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -179,7 +179,7 @@
             gap: 0.35rem;
             padding: 0.38rem 0.72rem;
             border-radius: 999px;
-            background: rgba(102, 126, 234, 0.12);
+            background: rgba(240, 180, 79, 0.12);
             color: #3f4db4;
             font-weight: 700;
             font-size: 0.78rem;
@@ -205,7 +205,7 @@
             border: none;
             border-radius: 10px;
             padding: 0.85rem 1rem;
-            background: linear-gradient(135deg, #0f2f53 0%, #1d6397 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: #fff;
             font-weight: 700;
             cursor: pointer;
@@ -257,7 +257,7 @@
         .booking-btn {
             width: 100%;
             padding: 1.2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             border-radius: 10px;
@@ -269,7 +269,7 @@
 
         .booking-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(8, 12, 18, 0.24);
         }
 
         /* Right Side - Summary & Map */
@@ -321,12 +321,12 @@
         }
 
         .fare-item.total .amount {
-            color: #667eea;
+            color: #080c12;
         }
 
         /* Driver Matching Card */
         .matching-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             padding: 2rem;
             border-radius: 12px;
@@ -411,7 +411,7 @@
             flex: 1;
             padding: 0.8rem;
             background: white;
-            color: #667eea;
+            color: #080c12;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -425,7 +425,7 @@
 
         /* Map Placeholder */
         .map-container {
-            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            background: linear-gradient(135deg, #fff8ec 0%, #fbf7ef 100%);
             padding: 1rem;
             border-radius: 12px;
             min-height: 300px;
@@ -436,11 +436,11 @@
 
         .map-container i {
             font-size: 3rem;
-            color: #667eea;
+            color: #080c12;
         }
 
         .map-container p {
-            color: #667eea;
+            color: #080c12;
             font-weight: bold;
         }
 
@@ -474,7 +474,7 @@
 
         .modal-icon {
             font-size: 3rem;
-            color: #4caf50;
+            color: #080c12;
             margin-bottom: 1rem;
         }
 
@@ -492,7 +492,7 @@
 
         .modal-btn {
             padding: 1rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -503,7 +503,7 @@
 
         .modal-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(8, 12, 18, 0.24);
         }
 
         /* Messages */
@@ -522,7 +522,7 @@
         }
 
         .success-message {
-            background: #e8f5e9;
+            background: #fff8ec;
             color: #2e7d32;
             padding: 1rem;
             border-radius: 8px;
@@ -594,8 +594,8 @@
 
         .donation-btn-option:hover,
         .donation-btn-option.selected {
-            border-color: #ff5722;
-            background: #fff3e0;
+            border-color: #f0b44f;
+            background: #fff8ec;
         }
 
         .donation-modal-header {
@@ -605,7 +605,7 @@
 
         .donation-modal-icon {
             font-size: 3rem;
-            color: #ff5722;
+            color: #f0b44f;
             margin-bottom: 1rem;
         }
 
@@ -636,7 +636,7 @@
         }
 
         .donation-action-btn.donate {
-            background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+            background: linear-gradient(135deg, #f0b44f 0%, #ff7043 100%);
             color: white;
         }
 
@@ -699,7 +699,7 @@
         }
 
         .receipt-total-amount {
-            color: #4caf50;
+            color: #080c12;
         }
 
         .receipt-actions {
@@ -718,7 +718,7 @@
         }
 
         .receipt-btn.download {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
         }
 
@@ -811,8 +811,8 @@
 
         /* Professional compact booking layer (additive, no feature removal) */
         body.booking-page.professional-booking {
-            --pro-navy: #0b2748;
-            --pro-teal: #157f9f;
+            --pro-navy: #080c12;
+            --pro-teal: #080c12;
             --pro-gold: #f3b24b;
             --pro-soft: #f5f9ff;
             overflow-x: hidden !important;
@@ -836,7 +836,7 @@
         }
 
         body.booking-page.professional-booking .header {
-            background: linear-gradient(120deg, #fff3dc 0%, #ffffff 52%, #e3f5fb 100%);
+            background: linear-gradient(120deg, #fff3dc 0%, #ffffff 52%, #fff8ec 100%);
             border: 1px solid rgba(11, 39, 72, 0.12);
             border-radius: 18px;
         }
@@ -959,7 +959,7 @@
             border: 1px solid #cfdcf0;
             border-radius: 999px;
             background: #f7faff;
-            color: #214266;
+            color: #080c12;
             padding: 0.45rem 0.75rem;
             font-size: 0.78rem;
             font-weight: 700;
@@ -991,7 +991,7 @@
             border: 1px solid #cfdcf0;
             border-radius: 999px;
             background: #f7faff;
-            color: #214266;
+            color: #080c12;
             padding: 0.5rem 0.6rem;
             font-size: 0.8rem;
             font-weight: 700;
@@ -1047,7 +1047,7 @@
             border: 1px solid #d5e0f0;
             border-radius: 999px;
             padding: 0.45rem 0.55rem;
-            background: #f8fbff;
+            background: #fbf7ef;
         }
 
         .preference-chip input {
@@ -1141,7 +1141,7 @@
         .autocomplete-suggestions {
             position: absolute;
             background: white;
-            border: 2px solid #667eea;
+            border: 2px solid #080c12;
             border-top: none;
             border-radius: 0 0 8px 8px;
             max-height: 350px;
@@ -1149,13 +1149,13 @@
             overscroll-behavior: contain;
             z-index: 1000;
             width: calc(100% - 4px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(8, 12, 18, 0.22);
             display: none;
             margin-top: -2px;
         }
 
         .autocomplete-category {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             color: white;
             padding: 0.5rem 1rem;
             font-size: 0.75rem;
@@ -1178,13 +1178,13 @@
 
         .autocomplete-item:hover,
         .autocomplete-item.autocomplete-active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            color: #667eea;
+            background: linear-gradient(135deg, rgba(240, 180, 79, 0.12) 0%, rgba(8, 12, 18, 0.06) 100%);
+            color: #080c12;
             font-weight: 600;
         }
 
         .autocomplete-item strong {
-            color: #764ba2;
+            color: #2a2117;
             font-weight: 700;
         }
 
@@ -1211,7 +1211,7 @@
         }
 
         .autocomplete-suggestions::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
             border-radius: 4px;
         }
 

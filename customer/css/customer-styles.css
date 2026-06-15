@@ -5,12 +5,12 @@
 
 :root {
     /* Rajasthani Color Palette */
-    --primary-color: #FF6B35; /* Rajasthani Orange */
-    --secondary-color: #004E89; /* Royal Blue */
-    --accent-color: #F7B801; /* Golden Yellow */
-    --success-color: #06A77D;
+    --primary-color: #080c12;
+    --secondary-color: #2a2117;
+    --accent-color: #f0b44f;
+    --success-color: #080c12;
     --danger-color: #E63946;
-    --warning-color: #F77F00;
+    --warning-color: #f0b44f;
     
     /* Neutral Colors */
     --text-dark: #2B2D42;
@@ -439,7 +439,7 @@ body {
 }
 
 .donation-wallet .wallet-icon {
-    background: linear-gradient(135deg, var(--success-color), #06D6A0);
+    background: linear-gradient(135deg, var(--success-color), var(--accent-color));
 }
 
 .wallet-info {
@@ -1050,11 +1050,11 @@ body {
 }
 
 .sos-btn.police {
-    border-color: #3498db;
+    border-color: #080c12;
 }
 
 .sos-btn.police:hover {
-    background: #3498db;
+    background: #080c12;
     color: white;
 }
 

@@ -176,7 +176,7 @@ function createDemandPredictionContent() {
         
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #080c12, #2a2117);"><i class="fas fa-chart-line"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Prediction Accuracy</div>
                     <div class="stat-value">87%</div>
@@ -336,7 +336,7 @@ function createAutoOfferContent() {
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-bell"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-bell"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Offers Sent Today</div>
                     <div class="stat-value">145</div>
@@ -464,7 +464,7 @@ function createDriverMatchingContent() {
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: #667eea;"><i class="fas fa-sync"></i></div>
+                <div class="stat-icon" style="background: #080c12;"><i class="fas fa-sync"></i></div>
                 <div class="stat-content">
                     <div class="stat-label">Matches Today</div>
                     <div class="stat-value">342</div>
@@ -639,7 +639,7 @@ function initializeAIFeatures(sectionId) {
                         datasets: [{
                             label: 'Average Fare',
                             data: [12, 18, 15, 14, 22, 25],
-                            borderColor: '#667eea',
+                            borderColor: '#080c12',
                             tension: 0.4
                         }]
                     }
@@ -655,7 +655,7 @@ function initializeAIFeatures(sectionId) {
                         datasets: [{
                             label: 'Predicted',
                             data: [20, 45, 35, 30, 50, 40],
-                            backgroundColor: 'rgba(102, 126, 234, 0.5)'
+                            backgroundColor: 'rgba(8, 12, 18, 0.24)'
                         }, {
                             label: 'Actual',
                             data: [18, 48, 32, 28, 52, 38],
@@ -674,7 +674,7 @@ function initializeAIFeatures(sectionId) {
                         datasets: [{
                             label: 'Number of Drivers',
                             data: [5, 25, 85, 35, 8, 2],
-                            backgroundColor: '#667eea'
+                            backgroundColor: '#080c12'
                         }]
                     }
                 });

@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(138deg, #f8fbff 0%, #edf4fd 52%, #e4eefb 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; color: #0f2a49; overflow: hidden; }
+        body { font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(138deg, #fbf7ef 0%, #fbf7ef 52%, #fbf7ef 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; color: #080c12; overflow: hidden; }
         .login-container { background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 26px 60px rgba(11, 36, 67, 0.2); overflow: hidden; max-width: 1120px; width: min(1120px, 96vw); display: grid; grid-template-columns: minmax(330px, 42%) minmax(440px, 58%); min-height: 620px; height: min(700px, calc(100vh - 44px)); border: 1px solid rgba(11, 36, 67, 0.14); }
         .login-left { background: linear-gradient(155deg, #0f2f53 0%, #184f84 56%, #1d7398 100%); color: #f3f9ff; padding: 2.2rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .login-left h1 { font-size: 2.5rem; margin-bottom: 1rem; color: #f3f9ff !important; }
@@ -37,18 +37,18 @@
         .role-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; margin-bottom: 1rem; }
         .role-option { display: none; }
         .role-label { display: flex; flex-direction: column; align-items: center; gap: 0.55rem; padding: 0.9rem 0.8rem; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; text-align: center; background: white; }
-        .role-option:checked + .role-label { border-color: #1a5f97; background: #eef5ff; color: #1a5f97; }
+        .role-option:checked + .role-label { border-color: #1a5f97; background: #fbf7ef; color: #1a5f97; }
         .role-label i { font-size: 2.15rem; color: #1a5f97; }
         .role-label span { font-weight: 600; font-size: 1rem; }
         .login-method-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; margin-bottom: 1rem; }
         .method-option { display: none; }
         .method-label { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 0.72rem; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.9rem; }
-        .method-option:checked + .method-label { border-color: #1a5f97; background: #eef5ff; color: #1a5f97; }
+        .method-option:checked + .method-label { border-color: #1a5f97; background: #fbf7ef; color: #1a5f97; }
         .method-label i { font-size: 1.25rem; }
         .form-group { margin-bottom: 0.95rem; }
         .form-group label { display: block; color: #333; font-weight: 600; margin-bottom: 0.7rem; }
         .form-group input { width: 100%; padding: 0.76rem 1rem; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; color: #1f2937; background: #ffffff; -webkit-text-fill-color: #1f2937; }
-        .form-group input:focus { outline: none; border-color: #667eea; background: #f9f9ff; }
+        .form-group input:focus { outline: none; border-color: #080c12; background: #f9f9ff; }
         .form-group input:-webkit-autofill, .form-group input:-webkit-autofill:hover, .form-group input:-webkit-autofill:focus { -webkit-text-fill-color: #1f2937; transition: background-color 9999s ease-in-out 0s; box-shadow: 0 0 0px 1000px #ffffff inset; }
         .input-with-icon { position: relative; }
         .input-with-icon i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #1a5f97; }
@@ -63,7 +63,7 @@
         .otp-input-section.show { display: block; }
         .otp-input-group { display: flex; gap: 0.8rem; margin-bottom: 1rem; justify-content: center; }
         .otp-digit { width: 50px; height: 50px; font-size: 24px; font-weight: bold; text-align: center; border: 2px solid #ddd; border-radius: 8px; padding: 0; }
-        .otp-digit:focus { outline: none; border-color: #667eea; box-shadow: 0 0 10px rgba(102, 126, 234, 0.4); }
+        .otp-digit:focus { outline: none; border-color: #080c12; box-shadow: 0 0 10px rgba(8, 12, 18, 0.24); }
         .form-buttons { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
         .btn-login, .btn-signup, .btn-send-otp, .btn-verify { flex: 1; padding: 0.72rem; border: 2px solid #1a5f97; border-radius: 10px; font-size: 0.92rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         .btn-login, .btn-send-otp, .btn-verify { background: linear-gradient(135deg, #0f2f53 0%, #1d6397 100%); color: white; }
@@ -71,7 +71,7 @@
         .btn-signup { background: white; color: #1a5f97; }
                 .btn-signup:hover { background: #f0f4ff; }
         .action-links { display: flex; justify-content: flex-end; margin: -0.4rem 0 1rem; }
-        .link-btn { border: none; background: none; color: #4f46e5; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        .link-btn { border: none; background: none; color: #080c12; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
         .link-btn:hover { text-decoration: underline; }
         .security-note { background: #fff4e5; border-left: 4px solid #ff9800; padding: 0.8rem 0.9rem; border-radius: 8px; font-size: 0.85rem; color: #7a4f01; margin-bottom: 1rem; }
         .forgot-password-section { display: none; background: #f9f9ff; border: 2px solid #e0e7ff; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
@@ -91,7 +91,7 @@
             background:
                 radial-gradient(980px 430px at 0% -10%, rgba(20, 148, 168, 0.2), transparent 58%),
                 radial-gradient(860px 390px at 100% -5%, rgba(240, 180, 79, 0.2), transparent 56%),
-                linear-gradient(136deg, #f9fcff 0%, #edf4fd 52%, #e4eefb 100%);
+                linear-gradient(136deg, #f9fcff 0%, #fbf7ef 52%, #fbf7ef 100%);
         }
 
         .login-container {
@@ -170,7 +170,7 @@
         }
 
         .login-header h2 {
-            color: #0f2a49;
+            color: #080c12;
             font-size: clamp(1.9rem, 2.35vw, 2.75rem);
             line-height: 1.1;
             letter-spacing: -0.02em;
@@ -196,7 +196,7 @@
         .role-option:checked + .role-label,
         .method-option:checked + .method-label {
             box-shadow: 0 0 0 3px rgba(26, 95, 151, 0.14);
-            background: linear-gradient(140deg, #eef5ff 0%, #e3f2ff 100%);
+            background: linear-gradient(140deg, #fbf7ef 0%, #e3f2ff 100%);
         }
 
         .form-group input {
@@ -852,7 +852,7 @@
                 <!-- Admin Step 2: 2FA Method Selection -->
                 <div id="adminStep2" style="display: none;">
                     <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <i class="fas fa-shield-alt" style="font-size: 2rem; color: #667eea;"></i>
+                        <i class="fas fa-shield-alt" style="font-size: 2rem; color: #080c12;"></i>
                         <h3>Two-Factor Authentication</h3>
                     </div>
 
@@ -880,7 +880,7 @@
                 <!-- Admin Step 3: 2FA Verification -->
                 <div id="adminStep3" style="display: none;">
                     <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <i class="fas fa-lock" style="font-size: 2rem; color: #667eea;"></i>
+                        <i class="fas fa-lock" style="font-size: 2rem; color: #080c12;"></i>
                         <h3>Enter 2FA Code</h3>
                         <small style="color: #999;">Enter code sent to your selected 2FA channel</small>
                     </div>

@@ -49,7 +49,7 @@ function calculateFarePreview() {
                 <span>₹${breakdown.gst.toFixed(0)}</span>
             </div>
             ${breakdown.promoDiscount ? `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #06A77D;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #080c12;">
                     <span>First Ride Discount (5%):</span>
                     <span>-₹${breakdown.promoDiscount.toFixed(0)}</span>
                 </div>

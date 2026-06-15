@@ -627,7 +627,7 @@ function refreshDocumentVerificationSection() {
 }
 
 function createDemandHeatmapContent() {
-    return `<div class="section-header"><h2>Demand Heat Map</h2><p>Visual demand representation</p></div><div class="card"><h3>Heat Map</h3><div style="height: 400px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;"><i class="fas fa-fire fa-3x"></i></div></div>`;
+    return `<div class="section-header"><h2>Demand Heat Map</h2><p>Visual demand representation</p></div><div class="card"><h3>Heat Map</h3><div style="height: 400px; background: linear-gradient(135deg, #080c12, #2a2117); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;"><i class="fas fa-fire fa-3x"></i></div></div>`;
 }
 
 function createVirtualEscortContent() {
@@ -649,7 +649,7 @@ function createLeaderboardContent() {
 }
 
 function createVendorManagementContent() {
-    return `<div class="section-header"><h2>Vendor Management</h2><p>Manage vehicle vendors</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #667eea;"><i class="fas fa-handshake"></i></div><div class="stat-content"><div class="stat-label">Active Vendors</div><div class="stat-value">12</div></div></div></div><div class="card mt-20"><button class="btn btn-primary"><i class="fas fa-plus"></i> Add Vendor</button></div>`;
+    return `<div class="section-header"><h2>Vendor Management</h2><p>Manage vehicle vendors</p></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background: #080c12;"><i class="fas fa-handshake"></i></div><div class="stat-content"><div class="stat-label">Active Vendors</div><div class="stat-value">12</div></div></div></div><div class="card mt-20"><button class="btn btn-primary"><i class="fas fa-plus"></i> Add Vendor</button></div>`;
 }
 
 function createServiceAlertsContent() {
@@ -662,7 +662,7 @@ function createServiceAlertsContent() {
         </div>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background:#667eea;"><i class="fas fa-bullhorn"></i></div>
+                <div class="stat-icon" style="background:#080c12;"><i class="fas fa-bullhorn"></i></div>
                 <div class="stat-content"><div class="stat-label">Sent Alerts</div><div class="stat-value">${activeAlerts.length}</div></div>
             </div>
             <div class="stat-card">
@@ -1114,7 +1114,7 @@ function createPromoOffersContent() {
         </div>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background:#667eea;"><i class="fas fa-tags"></i></div>
+                <div class="stat-icon" style="background:#080c12;"><i class="fas fa-tags"></i></div>
                 <div class="stat-content"><div class="stat-label">Active Offers</div><div class="stat-value">${activeCount}</div></div>
             </div>
             <div class="stat-card">
