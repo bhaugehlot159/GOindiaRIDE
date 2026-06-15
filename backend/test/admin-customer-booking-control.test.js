@@ -244,7 +244,8 @@ test('admin app exposes competitor benchmark and live readiness controls', () =>
 
   assert.match(appHtml, /data-view="benchmark"/);
   assert.match(appHtml, /id="benchmarkMatrixList"/);
-  assert.match(appHtml, /id="benchmarkConnectionList"/);
+  assert.doesNotMatch(appHtml, /id="benchmarkConnectionList"/);
+  assert.doesNotMatch(appHtml, /Public Reference Map|Source notes/);
   assert.match(appHtml, /data-benchmark-action="apply"/);
   assert.match(appHtml, /Connect live baseline/);
   assert.match(adminApp, /BENCHMARK_REVIEW_KEY/);
@@ -254,6 +255,7 @@ test('admin app exposes competitor benchmark and live readiness controls', () =>
   assert.match(adminApp, /function renderBenchmark\(/);
   assert.match(adminApp, /privateCompetitorAdminAccess:\s*false/);
   assert.match(adminApp, /connectAllPortalFeatures\(\{ audit: true \}\)/);
+  assert.match(adminApp, /function getVisibleBenchmarkRows\(/);
   assert.match(adminCss, /\.benchmark-grid/);
   assert.match(adminCss, /\.benchmark-check-row/);
 });
@@ -266,7 +268,8 @@ test('admin app exposes enterprise and fleet parity controls', () => {
 
   assert.match(appHtml, /data-view="enterprise"/);
   assert.match(appHtml, /id="enterpriseModuleList"/);
-  assert.match(appHtml, /id="enterpriseReadinessList"/);
+  assert.doesNotMatch(appHtml, /id="enterpriseReadinessList"/);
+  assert.doesNotMatch(appHtml, /enterpriseLiveTestList|enterprisePolicyList|enterpriseFleetList/);
   assert.match(appHtml, /data-enterprise-action="connect-all"/);
   assert.match(appHtml, /data-enterprise-action="run-live-test"/);
   assert.match(appHtml, /Connect ready modules/);
@@ -283,6 +286,8 @@ test('admin app exposes enterprise and fleet parity controls', () => {
   assert.match(adminApp, /mergeEnterpriseRowsById/);
   assert.match(adminApp, /function connectEnterpriseModules\(/);
   assert.match(adminApp, /function getEnterpriseConnectableModuleIds\(/);
+  assert.match(adminApp, /function autoConnectReadyEnterpriseModules\(/);
+  assert.match(adminApp, /function getVisibleEnterpriseRows\(/);
   assert.match(adminApp, /needs live source data before it can be connected/);
   assert.match(adminApp, /function runEnterpriseLiveTest\(/);
   assert.match(adminApp, /function renderEnterprise\(/);
@@ -310,6 +315,7 @@ test('enterprise parity catalog is split into small chunks', () => {
   assert.match(enterpriseChunks, /registerModules/);
   assert.match(enterpriseChunks, /registerBackend/);
   assert.match(enterpriseChunks, /registerBenchmark/);
+  assert.doesNotMatch(enterpriseChunks, /statusType:\s*"(gap|partial|live)"/);
 });
 
 test('admin enterprise connect-ready stores only live-source controlled modules', () => {
@@ -346,13 +352,17 @@ test('admin enterprise connect-ready stores only live-source controlled modules'
 
   const enterprise = JSON.parse(result.localStorage.getItem('goindiaride_admin_enterprise_fleet_controls_v1') || '{}');
   const modules = enterprise.modules || {};
-  assert.ok(Object.keys(modules).length >= 30);
+  assert.ok(Object.keys(modules).length >= 15);
   assert.equal(modules.corporate_wallet_billing.status, 'live');
   assert.equal(modules.guest_rides_central_booking.status, 'live');
   assert.equal(modules.employee_bulk_api_lifecycle.runtimeMode, 'live_controlled');
   assert.equal(modules.monthly_billing_statements.backendSyncStatus, 'protected_backend_ready');
   assert.equal(modules.fraud_abuse_detection.status, 'live');
   assert.equal(modules.live_map_dispatch.runtimeMode, 'live_controlled');
+  assert.equal(modules.travel_policies_budget, undefined);
+  assert.equal(modules.roles_access_privileges, undefined);
+  assert.equal(modules.vouchers_programs, undefined);
+  assert.equal(modules.api_access_tokens, undefined);
   assert.equal(modules.fleet_vehicle_docs, undefined);
   assert.equal(modules.driver_quality_payouts, undefined);
   Object.values(modules)

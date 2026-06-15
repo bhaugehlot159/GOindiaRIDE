@@ -365,6 +365,15 @@ body.admin-app-shell .control-panel-dashboard {
     overflow: hidden !important;
 }
 
+body.admin-app-shell:not([data-admin-view="overview"]) .control-panel-dashboard {
+    display: none !important;
+}
+
+body.admin-app-shell .benchmark-overview-panel,
+body.admin-app-shell .enterprise-control-panel {
+    grid-column: 1 / -1 !important;
+}
+
 body.admin-app-shell .control-panel-modules {
     grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
     min-width: 0 !important;

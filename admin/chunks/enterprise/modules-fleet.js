@@ -13,7 +13,6 @@
             detail: "Vehicle records, RC, insurance, permit, pollution and expiry review queue.",
             source: "driver records",
             sourceCheck: "drivers",
-            statusType: "gap"
         },
         {
             id: "vehicle_inventory_assignment",
@@ -23,7 +22,6 @@
             detail: "Vehicle inventory, driver assignment, utilization state and offline/online readiness.",
             source: "driver and vehicle records",
             sourceCheck: "drivers",
-            statusType: "gap"
         },
         {
             id: "driver_onboarding_kyc",
@@ -33,7 +31,6 @@
             detail: "Driver intake, KYC, training, approval, rejection and recheck workflow.",
             source: "driver records",
             sourceCheck: "drivers",
-            statusType: "partial"
         },
         {
             id: "driver_quality_payouts",
@@ -44,7 +41,6 @@
             source: "driver records and booking status",
             sourceCheck: "drivers",
             backendRequired: true,
-            statusType: "partial"
         },
         {
             id: "live_map_dispatch",
@@ -54,7 +50,6 @@
             detail: "Live vehicle pins, stale location, active route, dispatch queue and status health.",
             source: "driver status and booking coordinates",
             sourceCheck: "locations",
-            statusType: "gap"
         },
         {
             id: "trip_performance_utilization",
@@ -64,7 +59,6 @@
             detail: "Vehicle utilization, active trips, completed trips, idle time and demand heat signals.",
             source: "bookings and driver records",
             sourceCheck: "bookings",
-            statusType: "gap"
         },
         {
             id: "earnings_bank_settlement",
@@ -75,7 +69,6 @@
             source: "wallet admin payout endpoints",
             sourceCheck: "wallet",
             backendRequired: true,
-            statusType: "gap"
         }
     ]);
 })(window);

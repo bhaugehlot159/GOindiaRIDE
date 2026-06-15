@@ -13,7 +13,6 @@
             detail: "Company profile, branch, department, billing owner and cost center controls.",
             source: "customer records and booking customers",
             sourceCheck: "customers",
-            statusType: "gap"
         },
         {
             id: "company_profile_billing_contacts",
@@ -23,7 +22,6 @@
             detail: "Legal entity, GST details, billing email, finance owner and escalation contacts.",
             source: "enterprise control store",
             sourceCheck: "controls",
-            statusType: "gap"
         },
         {
             id: "cost_centers_entities_gst",
@@ -33,7 +31,6 @@
             detail: "Department budgets, entity-level GST, branch tags and invoice grouping.",
             source: "booking metadata and policy store",
             sourceCheck: "policy",
-            statusType: "gap"
         },
         {
             id: "employees_groups_roles",
@@ -43,7 +40,6 @@
             detail: "Employee roster, default group, travel desk permissions and export-ready rows.",
             source: "stored users and booking customers",
             sourceCheck: "customers",
-            statusType: "gap"
         },
         {
             id: "employee_bulk_api_lifecycle",
@@ -53,7 +49,6 @@
             detail: "CSV/API-ready add, update, deactivate and reassign lifecycle controls.",
             source: "user records and control store",
             sourceCheck: "customers",
-            statusType: "gap"
         },
         {
             id: "roles_access_privileges",
@@ -63,7 +58,6 @@
             detail: "Owner admin, finance admin, travel desk, approver and read-only auditor permissions.",
             source: "admin bridge controls",
             sourceCheck: "controls",
-            statusType: "gap"
         },
         {
             id: "travel_policies_budget",
@@ -73,7 +67,6 @@
             detail: "Monthly budget, ride type, city, time-window, spend cap and night-trip rules.",
             source: "admin policy store",
             sourceCheck: "policy",
-            statusType: "gap"
         },
         {
             id: "approval_workflow_overrides",
@@ -83,7 +76,6 @@
             detail: "Auto-approve, manager approval, finance override and exception audit trail.",
             source: "booking review and policy store",
             sourceCheck: "bookings",
-            statusType: "gap"
         }
     ]);
 })(window);

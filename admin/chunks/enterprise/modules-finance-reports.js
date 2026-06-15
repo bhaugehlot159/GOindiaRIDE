@@ -14,7 +14,6 @@
             source: "wallet admin endpoints",
             sourceCheck: "wallet",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "monthly_billing_statements",
@@ -25,7 +24,6 @@
             source: "wallet and booking fare pipeline",
             sourceCheck: "wallet",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "reports_invoices",
@@ -36,7 +34,6 @@
             source: "booking export and fare audit",
             sourceCheck: "reports",
             backendRequired: true,
-            statusType: "partial"
         },
         {
             id: "custom_csv_reports",
@@ -47,7 +44,6 @@
             source: "booking report templates",
             sourceCheck: "reports",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "expense_codes_cost_allocation",
@@ -57,7 +53,6 @@
             detail: "Expense code, memo, department, project and cost-center export controls.",
             source: "booking metadata",
             sourceCheck: "bookings",
-            statusType: "gap"
         },
         {
             id: "tax_gst_invoice_pack",
@@ -68,7 +63,6 @@
             source: "fare audit and invoice templates",
             sourceCheck: "reports",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "carbon_low_emission_reporting",
@@ -78,7 +72,6 @@
             detail: "EV/low-emission tags, estimated carbon summary and sustainability export.",
             source: "fleet and booking metadata",
             sourceCheck: "fleet",
-            statusType: "gap"
         }
     ]);
 })(window);

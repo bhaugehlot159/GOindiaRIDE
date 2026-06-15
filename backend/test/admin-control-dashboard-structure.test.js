@@ -17,7 +17,7 @@ test('admin app exposes a complete admin control panel dashboard shell', () => {
 
   assert.match(app, /<body class="admin-app-shell" data-admin-control-panel="app">/);
   assert.match(app, /<html lang="en" class="admin-app-document">/);
-  assert.match(app, /admin-production-layout\.css\?v=20260614-adminlayout2/);
+  assert.match(app, /admin-production-layout\.css\?v=20260615-admincleanup1/);
   assert.match(app, /<aside class="app-sidebar"[^>]+aria-label="Admin control panel sidebar"[^>]+data-admin-control-region="sidebar"/);
   assert.match(app, /<main class="app-main" id="adminControlPanelDashboard"[^>]+data-admin-control-dashboard="app"[^>]+data-admin-control-region="main"/);
   assert.match(app, /id="adminControlPanelStructure"[^>]+data-admin-control-structure="dashboard"/);
@@ -30,6 +30,8 @@ test('admin app exposes a complete admin control panel dashboard shell', () => {
   assert.match(css, /\.control-panel-dashboard/);
   assert.match(css, /\.control-panel-modules/);
   assert.match(css, /\.control-module\.active/);
+  assert.match(layoutCss, /body\.admin-app-shell:not\(\[data-admin-view="overview"\]\) \.control-panel-dashboard[\s\S]*display: none !important/);
+  assert.match(layoutCss, /body\.admin-app-shell \.benchmark-overview-panel[\s\S]*grid-column: 1 \/ -1 !important/);
   assert.match(layoutCss, /body\.admin-app-shell \.control-panel-modules[\s\S]*repeat\(auto-fit, minmax\(118px, 1fr\)\)/);
   assert.match(layoutCss, /body\.admin-app-shell \.app-main[\s\S]*overflow-x: hidden !important/);
   assert.match(layoutCss, /body\.admin-app-shell \.booking-card[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto !important/);
@@ -39,9 +41,10 @@ test('admin app exposes a complete admin control panel dashboard shell', () => {
   assert.match(layoutCss, /body\.admin-app-shell \.data-table thead[\s\S]*display: none !important/);
   assert.match(js, /\$all\("\[data-control-panel-view\]"\)/);
   assert.match(js, /switchView\(button\.dataset\.controlPanelView \|\| "overview"\)/);
+  assert.match(js, /document\.body\.dataset\.adminView = view/);
   assert.match(js, /setText\("#controlBookingsCount", pending\)/);
-  assert.match(js, /setText\("#controlBenchmarkCount", benchmarkSummary\.gap\)/);
-  assert.match(js, /setText\("#controlEnterpriseCount", enterpriseSummary\.gap\)/);
+  assert.match(js, /setText\("#controlBenchmarkCount", benchmarkSummary\.live \+ benchmarkSummary\.partial\)/);
+  assert.match(js, /setText\("#controlEnterpriseCount", enterpriseSummary\.live \+ enterpriseSummary\.partial\)/);
   assert.match(js, /setText\("#controlFinanceCount", formatMoney\(farePipeline\)\)/);
 });
 

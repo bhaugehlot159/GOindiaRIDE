@@ -285,7 +285,7 @@ test('admin app has unified live control center and fresh service worker coverag
   const center = read('admin/js/admin-live-control-center.js');
   const sw = read('sw.js');
 
-  assert.match(admin, /admin-app\.js\?v=20260610-sms-reference1/);
+  assert.match(admin, /admin-app\.js\?v=20260615-admincleanup1/);
   assert.match(admin, /admin-live-control-center\.js\?v=20260613-fraud-phase1/);
   assert.doesNotMatch(legacyAdmin, /admin-live-control-center\.js/);
   assert.match(legacyAdmin, /admin-live-management-sections\.js\?v=20260614-live-management1/);

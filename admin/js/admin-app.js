@@ -165,80 +165,70 @@
             title: "Admin-booked rides",
             competitors: "Uber Central, Rapido Corporate",
             current: "Customer booking creation, edit, approve/reject/block/delete and fallback backend queue are wired in admin app.",
-            next: "Keep backend auth token valid so cloud sync can promote local/fallback rows.",
-            statusType: "live"
+            next: "Keep backend auth token valid so cloud sync can promote local/fallback rows."
         },
         {
             id: "policy_budget_controls",
             title: "Policy, approval and budget controls",
             competitors: "Uber Business, Ola Corporate",
             current: "Enterprise tab now includes group budget, approval threshold, ride-type, night-trip and admin policy control snapshots.",
-            next: "Keep admin login/token active so protected backend sync can verify policy controls before rollout.",
-            statusType: "partial"
+            next: "Keep admin login/token active so protected backend sync can verify policy controls before rollout."
         },
         {
             id: "employee_groups_roles",
             title: "Employee groups and admin roles",
             competitors: "Ola Corporate, Uber Business",
             current: "Employees, groups and travel desk roles are now represented as a dedicated enterprise module with export-ready roster controls.",
-            next: "Use live company data to replace any empty local roster rows after real corporate onboarding starts.",
-            statusType: "gap"
+            next: "Use live company data to replace any empty local roster rows after real corporate onboarding starts."
         },
         {
             id: "corporate_wallet_billing",
             title: "Corporate wallet and billing",
             competitors: "Rapido Corporate, Uber Business",
             current: "Corporate wallet, billing cycle, payment modes, monthly statement totals and invoice-pack readiness are wired into the enterprise audit.",
-            next: "Protected wallet/report endpoints require a valid admin token for cloud-backed verification.",
-            statusType: "partial"
+            next: "Protected wallet/report endpoints require a valid admin token for cloud-backed verification."
         },
         {
             id: "reports_insights",
             title: "Reports and spend insights",
             competitors: "Uber Insights, Ola Analytics",
             current: "Reports and invoice module now exposes date, status, payment, employee/group and invoice-pack export readiness.",
-            next: "Run live verification after backend login to confirm all report endpoints return protected production data.",
-            statusType: "partial"
+            next: "Run live verification after backend login to confirm all report endpoints return protected production data."
         },
         {
             id: "fleet_driver_vehicle_docs",
             title: "Fleet, driver and vehicle documents",
             competitors: "Uber Fleet, Rapido Captain",
             current: "Fleet module now builds vehicle records, KYC/document status, expiry alerts, renewal readiness and assignment controls from driver data.",
-            next: "Add real uploaded vehicle documents as drivers onboard; existing document data is preserved.",
-            statusType: "partial"
+            next: "Add real uploaded vehicle documents as drivers onboard; existing document data is preserved."
         },
         {
             id: "fleet_live_map",
             title: "Fleet live map and status",
             competitors: "Uber Fleet, Rapido customer app",
             current: "Live map/dispatch module checks driver availability, booking coordinates, driver location feeds and stale-location flags.",
-            next: "Drivers must keep sharing GPS so live verification rows remain green instead of falling back to partial status.",
-            statusType: "gap"
+            next: "Drivers must keep sharing GPS so live verification rows remain green."
         },
         {
             id: "safety_compliance",
             title: "Safety, SOS and compliance",
             competitors: "Rapido Safety, Uber Fleet",
             current: "Safety/compliance module now tracks SOS readiness, night-trip monitoring, duty-hour caps, background checks and medical expiry controls.",
-            next: "Connect protected security endpoints with an admin token to verify cloud incident data.",
-            statusType: "partial"
+            next: "Connect protected security endpoints with an admin token to verify cloud incident data."
         },
         {
             id: "vouchers_programs",
             title: "Vouchers, commute and travel programs",
             competitors: "Uber Business, Rapido Corporate",
             current: "Voucher/program module now covers commute, field-visit, guest-ride, voucher and eligibility rule controls in the enterprise audit.",
-            next: "Load live corporate campaigns when actual voucher programs are created.",
-            statusType: "gap"
+            next: "Load live corporate campaigns when actual voucher programs are created."
         },
         {
             id: "expense_carbon_integrations",
             title: "Expense and sustainability integrations",
             competitors: "Uber Business",
             current: "Support, expense-code export, provider-webhook log and carbon/low-emission report controls are included in the integration module.",
-            next: "Provider webhook logs and carbon reports need protected backend auth for production verification.",
-            statusType: "gap"
+            next: "Provider webhook logs and carbon reports need protected backend auth for production verification."
         }
     ];
     const BENCHMARK_MATRIX = mergeEnterpriseRowsById(
@@ -252,8 +242,7 @@
             competitors: "Ola Corporate, Uber Business",
             area: "Corporate",
             detail: "Company profile, cost center, billing cycle and admin ownership records.",
-            source: "customer records and booking customers",
-            statusType: "gap"
+            source: "customer records and booking customers"
         },
         {
             id: "employees_groups_roles",
@@ -261,8 +250,7 @@
             competitors: "Ola Corporate",
             area: "Corporate",
             detail: "Employee roster, default group, travel desk permissions and CSV-ready employee export.",
-            source: "stored users and booking customers",
-            statusType: "gap"
+            source: "stored users and booking customers"
         },
         {
             id: "travel_policies_budget",
@@ -270,8 +258,7 @@
             competitors: "Ola Corporate, Uber Business",
             area: "Policy",
             detail: "Per-group monthly budget, approval threshold, ride type and night-trip rule controls.",
-            source: "admin policy store",
-            statusType: "gap"
+            source: "admin policy store"
         },
         {
             id: "travel_desk_api_booking",
@@ -279,8 +266,7 @@
             competitors: "Ola ONE TravelDesk, Uber Central, Rapido API",
             area: "Booking",
             detail: "Admin-created rides, fallback queue sync and employee/customer booking handoff.",
-            source: "admin booking creator and fallback API",
-            statusType: "partial"
+            source: "admin booking creator and fallback API"
         },
         {
             id: "corporate_wallet_billing",
@@ -288,8 +274,7 @@
             competitors: "Rapido Corporate, Uber Business",
             area: "Finance",
             detail: "Corporate wallet ledger, monthly statement totals and payment-mode control snapshot.",
-            source: "booking fare pipeline and wallet admin endpoints",
-            statusType: "gap"
+            source: "booking fare pipeline and wallet admin endpoints"
         },
         {
             id: "reports_invoices",
@@ -297,8 +282,7 @@
             competitors: "Ola Corporate, Uber Business",
             area: "Reports",
             detail: "Date, status, payment, employee/group and invoice-pack report readiness.",
-            source: "booking export and fare audit",
-            statusType: "partial"
+            source: "booking export and fare audit"
         },
         {
             id: "fleet_vehicle_docs",
@@ -306,8 +290,7 @@
             competitors: "Uber Fleet, Rapido Captain",
             area: "Fleet",
             detail: "Vehicle records, driver document status, expiry tracking and renewal queue.",
-            source: "driver records",
-            statusType: "gap"
+            source: "driver records"
         },
         {
             id: "driver_quality_payouts",
@@ -315,8 +298,7 @@
             competitors: "Uber Fleet",
             area: "Fleet",
             detail: "Driver rating, acceptance/cancellation controls, payout summary and settlement readiness.",
-            source: "driver records and booking status",
-            statusType: "partial"
+            source: "driver records and booking status"
         },
         {
             id: "live_map_dispatch",
@@ -324,8 +306,7 @@
             competitors: "Uber Fleet, Rapido Corporate",
             area: "Live Ops",
             detail: "Driver availability, active route pins, stale-location flags and dispatch queue readiness.",
-            source: "driver status and booking coordinates",
-            statusType: "gap"
+            source: "driver status and booking coordinates"
         },
         {
             id: "safety_compliance_sos",
@@ -333,8 +314,7 @@
             competitors: "Rapido Safety, Ola Safety, Uber Fleet",
             area: "Safety",
             detail: "SOS inbox, night-trip monitoring, duty-hour caps, background check and medical expiry controls.",
-            source: "safety inbox and notifications",
-            statusType: "partial"
+            source: "safety inbox and notifications"
         },
         {
             id: "vouchers_programs",
@@ -342,8 +322,7 @@
             competitors: "Uber Business, Rapido Corporate",
             area: "Programs",
             detail: "Voucher/program builder for commute, field visit, guest ride and eligibility rules.",
-            source: "admin program store",
-            statusType: "gap"
+            source: "admin program store"
         },
         {
             id: "support_expense_integrations",
@@ -351,8 +330,7 @@
             competitors: "Uber Business, Ola Corporate",
             area: "Integrations",
             detail: "Support SLA snapshot, expense-code export and carbon/low-emission report controls.",
-            source: "support notifications and booking metadata",
-            statusType: "gap"
+            source: "support notifications and booking metadata"
         }
     ];
     const ENTERPRISE_MODULES = mergeEnterpriseRowsById(
@@ -3733,8 +3711,8 @@
 
     function benchmarkStatusLabel(status) {
         if (status === "live") return "Live";
-        if (status === "partial") return "Partial";
-        return "Gap";
+        if (status === "partial") return "Ready";
+        return "Needs data";
     }
 
     function benchmarkStatusClass(status) {
@@ -3760,6 +3738,10 @@
             acc[item.status] += 1;
             return acc;
         }, { total: 0, live: 0, partial: 0, gap: 0 });
+    }
+
+    function getVisibleBenchmarkRows(rows = getBenchmarkRows()) {
+        return rows.filter((item) => item.status === "live");
     }
 
     function getBenchmarkChecklist() {
@@ -3829,7 +3811,7 @@
         };
         localStorage.setItem(BENCHMARK_REVIEW_KEY, JSON.stringify(payload));
         state.benchmarkReview = payload;
-        addAudit("ADMIN_BENCHMARK_REVIEW_RECORDED", `Benchmark saved: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`, {
+        addAudit("ADMIN_BENCHMARK_REVIEW_RECORDED", `Benchmark saved: ${summary.live} live, ${summary.partial} ready, ${summary.gap} need data.`, {
             action,
             summary
         });
@@ -3857,7 +3839,7 @@
         state.controls = writeAdminControls(controls);
         const review = persistBenchmarkReview("baseline_connected");
         renderAll();
-        showToast(`Live benchmark baseline connected for ${readyModuleIds.length} ready modules. ${review.summary.gap} gaps still need live data.`);
+        showToast(`Live benchmark baseline connected for ${readyModuleIds.length} ready modules. ${review.summary.gap} modules need live data.`);
     }
 
     function enterpriseModuleEntry(moduleId) {
@@ -3902,6 +3884,16 @@
         return Boolean(pickup || dropoff || booking.pickupGoogleMapsUrl || booking.dropoffGoogleMapsUrl);
     }
 
+    function enterprisePolicyHasValues(policy = {}) {
+        return Boolean(
+            cleanText(policy.name)
+            || toAmount(policy.monthlyBudget) > 0
+            || toAmount(policy.approvalThreshold) > 0
+            || cleanText(policy.rideTypes)
+            || cleanText(policy.nightTripRule)
+        );
+    }
+
     function isEnterpriseControlStoreModule(module = {}) {
         return ["controls", "policy"].includes(cleanText(module.sourceCheck || "").toLowerCase());
     }
@@ -3911,14 +3903,14 @@
         const controlStoreReady = isEnterpriseControlStoreModule(module);
         const backendNeeded = enterpriseModuleNeedsBackend(module.id);
         const backendReady = !backendNeeded || isBackendAccessTokenUsable(getBackendAccessToken());
-        const sourceReady = Boolean(source.ready || controlStoreReady);
+        const sourceReady = Boolean(source.ready);
         const connectable = sourceReady;
         const status = connectable ? (backendReady ? "live" : "partial") : "gap";
         const backendDetail = backendNeeded
             ? (backendReady
-                ? `Protected backend ready: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`
-                : `Admin login token required for protected endpoints: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`)
-            : "Local admin control store and portal bridge";
+                ? "Protected backend connected"
+                : "Admin login required for protected backend connection")
+            : (controlStoreReady ? "Saved admin control data required" : "Connected from live local source");
         return {
             source,
             controlStoreReady,
@@ -3969,6 +3961,10 @@
             acc[row.status] += 1;
             return acc;
         }, { total: 0, live: 0, partial: 0, gap: 0 });
+    }
+
+    function getVisibleEnterpriseRows(rows = getEnterpriseRows()) {
+        return rows.filter((row) => row.status === "live");
     }
 
     function getEnterpriseWalletSnapshot() {
@@ -4178,7 +4174,7 @@
             }
         };
         const saved = writeEnterpriseControls(payload);
-        addAudit("ADMIN_ENTERPRISE_AUDIT_RECORDED", `Enterprise audit saved: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`);
+        addAudit("ADMIN_ENTERPRISE_AUDIT_RECORDED", `Enterprise audit saved: ${summary.live} live, ${summary.partial} ready, ${summary.gap} need data.`);
         return saved;
     }
 
@@ -4213,13 +4209,25 @@
         showToast(`${module.title} connected from live source readiness.`);
     }
 
+    function autoConnectReadyEnterpriseModules() {
+        const readyModuleIds = getEnterpriseConnectableModuleIds(ENTERPRISE_MODULES.map((item) => item.id))
+            .filter((moduleId) => !enterpriseModuleIsConnected(moduleId));
+        if (!readyModuleIds.length) return false;
+        connectEnterpriseModules(readyModuleIds, {
+            audit: false,
+            reason: "auto_live_source"
+        });
+        return true;
+    }
+
     function getGenericEnterpriseSourceReadiness(module) {
         const sourceCheck = cleanText(module?.sourceCheck || "controls").toLowerCase();
         const customers = getCustomerRows();
         const locations = readDriverLocationRows();
         const coordinateBookings = state.bookings.filter(bookingHasCoordinates).length;
         const reportReadyCount = buildEnterpriseReportTemplates().filter((report) => report.ready).length;
-        const tokenReady = isBackendAccessTokenUsable(getBackendAccessToken());
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        const policyReady = enterprisePolicyHasValues(controls.policies?.defaultPolicy || {});
         const checks = {
             customers: {
                 ready: customers.length > 0,
@@ -4232,14 +4240,14 @@
                 detail: `${state.users.length} user rows scanned`
             },
             controls: {
-                ready: true,
-                count: 1,
-                detail: "Admin enterprise control store is writable"
+                ready: false,
+                count: 0,
+                detail: "No saved enterprise control rows"
             },
             policy: {
-                ready: true,
-                count: 1,
-                detail: "Policy, approval and budget control store is writable"
+                ready: policyReady,
+                count: policyReady ? 1 : 0,
+                detail: policyReady ? "Saved policy, approval or budget controls found" : "No saved policy or budget values"
             },
             bookings: {
                 ready: state.bookings.length > 0,
@@ -4282,11 +4290,9 @@
                 detail: `${state.notifications.length} notification/support rows scanned`
             },
             backend: {
-                ready: tokenReady || !enterpriseModuleNeedsBackend(module?.id),
+                ready: false,
                 count: (ENTERPRISE_BACKEND_ENDPOINTS[module?.id] || []).length,
-                detail: tokenReady
-                    ? "Admin token is ready for protected backend verification"
-                    : "Admin login token required for protected backend verification"
+                detail: "No live backend data rows loaded for this module"
             }
         };
         return checks[sourceCheck] || {
@@ -4303,6 +4309,8 @@
         const reportReadyCount = buildEnterpriseReportTemplates().filter((report) => report.ready).length;
         const wallet = getEnterpriseWalletSnapshot();
         const expenseRows = state.bookings.filter((booking) => cleanText(booking.expenseCode || booking.expense_code || booking.memo)).length;
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        const policyReady = enterprisePolicyHasValues(controls.policies?.defaultPolicy || {});
         const sourceMap = {
             corporate_accounts: {
                 ready: customers.length > 0,
@@ -4315,9 +4323,9 @@
                 detail: `${customers.length} roster rows available for group policy`
             },
             travel_policies_budget: {
-                ready: true,
-                count: 1,
-                detail: "Policy store, approval threshold and budget controls writable"
+                ready: policyReady,
+                count: policyReady ? 1 : 0,
+                detail: policyReady ? "Saved policy, approval or budget values found" : "No saved policy or budget values"
             },
             travel_desk_api_booking: {
                 ready: Boolean($("#addBookingForCustomerBtn")),
@@ -4385,16 +4393,16 @@
                 : (connected && sourceReady ? "partial" : "gap");
             const backendDetail = backendNeeded
                 ? (backendReady
-                    ? `Protected backend ready: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`
+                    ? "Protected backend connected"
                     : `Admin login token required for protected endpoints: ${(ENTERPRISE_BACKEND_ENDPOINTS[module.id] || []).join(", ")}`)
-                : "Local admin control store and portal bridge only";
+                : "Saved admin control data required";
             return {
                 id: module.id,
                 title: module.title,
                 area: module.area,
                 status,
                 connected,
-                runtimeMode: cleanText(entry.runtimeMode || (connected ? "live_controlled" : "not_connected")),
+                runtimeMode: cleanText(entry.runtimeMode || (connected ? "live_controlled" : "waiting_for_live_data")),
                 sourceReady,
                 sourceCount: source.count,
                 backendReady,
@@ -4417,7 +4425,7 @@
             }
         };
         const saved = writeEnterpriseControls(payload);
-        addAudit("ADMIN_ENTERPRISE_LIVE_TEST", `Enterprise live verification: ${summary.live} live, ${summary.partial} partial, ${summary.gap} gaps.`);
+        addAudit("ADMIN_ENTERPRISE_LIVE_TEST", `Enterprise live verification: ${summary.live} live, ${summary.partial} ready, ${summary.gap} need data.`);
         return saved.lastLiveTest;
     }
 
@@ -4590,6 +4598,7 @@
         state.connection = loadConnectionState();
         state.benchmarkReview = loadBenchmarkReview();
         state.enterpriseControls = loadEnterpriseControls();
+        autoConnectReadyEnterpriseModules();
         renderAll();
         if (!options.skipBackendSync) {
             syncBackendBookings().then((changed) => {
@@ -4713,8 +4722,8 @@
         const approved = state.bookings.filter(isApproved).length;
         const actionNeeded = state.bookings.filter((booking) => isPending(booking) && String(booking.adminEmailDispatch?.state || "").toLowerCase() !== "sent").length;
         const farePipeline = state.bookings.reduce((sum, booking) => sum + booking.fare, 0);
-        const benchmarkSummary = getBenchmarkSummary();
-        const enterpriseSummary = getEnterpriseSummary();
+        const benchmarkSummary = getBenchmarkSummary(getVisibleBenchmarkRows());
+        const enterpriseSummary = getEnterpriseSummary(getVisibleEnterpriseRows());
 
         setText("#metricPending", pending);
         setText("#metricApproved", approved);
@@ -4725,14 +4734,14 @@
             + Object.keys((state.controls && state.controls.drivers) || {}).length;
         setText("#navPortalCount", Math.max(2, controlCount));
         setText("#controlBookingsCount", pending);
-        setText("#controlBenchmarkCount", benchmarkSummary.gap);
-        setText("#controlEnterpriseCount", enterpriseSummary.gap);
+        setText("#controlBenchmarkCount", benchmarkSummary.live + benchmarkSummary.partial);
+        setText("#controlEnterpriseCount", enterpriseSummary.live + enterpriseSummary.partial);
         setText("#controlPortalsCount", Math.max(2, controlCount));
         setText("#controlDriversCount", state.drivers.length);
         setText("#controlFinanceCount", formatMoney(farePipeline));
         setText("#controlSafetyCount", actionNeeded);
-        setText("#navBenchmarkGapCount", benchmarkSummary.gap);
-        setText("#navEnterpriseGapCount", enterpriseSummary.gap);
+        setText("#navBenchmarkReadyCount", benchmarkSummary.live + benchmarkSummary.partial);
+        setText("#navEnterpriseReadyCount", enterpriseSummary.live + enterpriseSummary.partial);
     }
 
     function setText(selector, value) {
@@ -5024,21 +5033,22 @@
     function renderBenchmark() {
         const summaryHost = $("#benchmarkSummaryGrid");
         const matrixHost = $("#benchmarkMatrixList");
-        const checklistHost = $("#benchmarkConnectionList");
-        const sourceHost = $("#benchmarkSourcesList");
-        const lastSaved = $("#benchmarkLastSaved");
-        if (!summaryHost && !matrixHost && !checklistHost && !sourceHost) return;
+        if (!summaryHost && !matrixHost) return;
 
         const rows = getBenchmarkRows();
-        const summary = getBenchmarkSummary(rows);
-        setText("#navBenchmarkGapCount", summary.gap);
+        const visibleRows = getVisibleBenchmarkRows(rows);
+        const summary = getBenchmarkSummary(visibleRows);
+        const checklist = getBenchmarkChecklist();
+        const connectedChecks = checklist.filter((item) => item.status === "live").length;
+        setText("#navBenchmarkReadyCount", summary.live + summary.partial);
 
         if (summaryHost) {
+            const connectedModuleCount = Object.keys(((state.enterpriseControls || {}).modules) || {}).length;
             summaryHost.innerHTML = [
                 ["Live", summary.live, "Connected with live source data"],
-                ["Partial", summary.partial, "Source data exists; more wiring needed"],
-                ["Gaps", summary.gap, "Waiting for live data or saved config"],
-                ["Sources", BENCHMARK_SOURCE_NOTES.length, "Public official references"]
+                ["Portal checks", `${connectedChecks}/${checklist.length}`, "Admin/customer/driver wiring"],
+                ["Source rows", state.bookings.length + state.drivers.length + getCustomerRows().length, "Current local admin data"],
+                ["Connections", connectedModuleCount, "Live enterprise modules"]
             ].map((item) => `
                 <article class="benchmark-summary-card">
                     <small>${escapeHtml(item[0])}</small>
@@ -5049,70 +5059,38 @@
         }
 
         if (matrixHost) {
-            matrixHost.innerHTML = rows.map((item) => `
+            matrixHost.innerHTML = visibleRows.length ? visibleRows.map((item) => `
                 <article class="benchmark-row">
                     <div class="benchmark-copy">
                         <strong>${escapeHtml(item.title)}</strong>
-                        <small>${escapeHtml((item.modules || []).length ? `Linked modules: ${(item.modules || []).join(", ")}` : "Admin app live evidence")}</small>
                         <p>${escapeHtml(item.current)}</p>
                         <em>${escapeHtml(item.next)}</em>
                     </div>
                     <span class="status-pill ${benchmarkStatusClass(item.status)}">${benchmarkStatusLabel(item.status)}</span>
                 </article>
-            `).join("");
+            `).join("") : `<div class="empty-state">No live benchmark source rows are available yet.</div>`;
         }
 
-        if (checklistHost) {
-            checklistHost.innerHTML = getBenchmarkChecklist().map((item) => `
-                <article class="benchmark-check-row">
-                    <i class="fas ${item.status === "live" ? "fa-circle-check" : "fa-triangle-exclamation"}"></i>
-                    <div>
-                        <strong>${escapeHtml(item.title)}</strong>
-                        <small>${escapeHtml(item.detail)}</small>
-                    </div>
-                    <span class="status-pill ${benchmarkStatusClass(item.status)}">${benchmarkStatusLabel(item.status)}</span>
-                </article>
-            `).join("");
-        }
-
-        if (sourceHost) {
-            sourceHost.innerHTML = BENCHMARK_SOURCE_NOTES.map((source) => `
-                <article class="benchmark-source-row">
-                    <strong>${escapeHtml(source.brand)}</strong>
-                    <span>${escapeHtml(source.finding)}</span>
-                    <a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.url.replace(/^https?:\/\//, ""))}</a>
-                </article>
-            `).join("");
-        }
-
-        if (lastSaved) {
-            const savedAt = state.benchmarkReview && state.benchmarkReview.updatedAt;
-            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "No live audit saved";
-            lastSaved.className = `status-pill ${savedAt ? "approved" : "pending"}`;
-        }
     }
 
     function renderEnterprise() {
         const summaryHost = $("#enterpriseSummaryGrid");
         const moduleHost = $("#enterpriseModuleList");
-        const readinessHost = $("#enterpriseReadinessList");
-        const liveTestHost = $("#enterpriseLiveTestList");
-        const policyHost = $("#enterprisePolicyList");
-        const fleetHost = $("#enterpriseFleetList");
-        const lastSaved = $("#enterpriseLastSaved");
-        if (!summaryHost && !moduleHost && !readinessHost && !liveTestHost && !policyHost && !fleetHost) return;
+        if (!summaryHost && !moduleHost) return;
 
         const rows = getEnterpriseRows();
-        const summary = getEnterpriseSummary(rows);
-        setText("#navEnterpriseGapCount", summary.gap);
+        const visibleRows = getVisibleEnterpriseRows(rows);
+        const summary = getEnterpriseSummary(visibleRows);
+        const controls = state.enterpriseControls || loadEnterpriseControls();
+        const sourceRowCount = state.bookings.length + state.drivers.length + getCustomerRows().length + readDriverLocationRows().length + state.notifications.length;
+        setText("#navEnterpriseReadyCount", summary.live + summary.partial);
 
         if (summaryHost) {
-            const controls = state.enterpriseControls || loadEnterpriseControls();
             summaryHost.innerHTML = [
                 ["Live", summary.live, "Connected with live source data"],
-                ["Partial", summary.partial, "Ready source or config exists"],
-                ["Gaps", summary.gap, "Waiting for live data"],
-                ["Saved", controls.updatedAt ? formatDate(controls.updatedAt) : "No live audit", "Local enterprise snapshot"]
+                ["Source rows", sourceRowCount, "Bookings, customers, drivers and alerts"],
+                ["Saved", controls.updatedAt ? formatDate(controls.updatedAt) : "Not saved", "Enterprise control state"],
+                ["Connected", Object.keys((controls.modules || {})).length, "Live modules stored"]
             ].map((item) => `
                 <article class="enterprise-summary-card">
                     <small>${escapeHtml(item[0])}</small>
@@ -5123,14 +5101,18 @@
         }
 
         if (moduleHost) {
-            moduleHost.innerHTML = rows.map((module) => `
+            moduleHost.innerHTML = visibleRows.length ? visibleRows.map((module) => {
+                const actionText = module.status === "live"
+                    ? "Connected to live admin controls."
+                    : (module.canConnect ? "Live source available for connection." : "Live source data required.");
+                return `
                 <article class="enterprise-module-row">
                     <div class="enterprise-module-icon"><i class="fas ${module.status === "live" ? "fa-circle-check" : module.status === "partial" ? "fa-plug-circle-bolt" : "fa-plug-circle-xmark"}"></i></div>
                     <div class="enterprise-module-copy">
                         <strong>${escapeHtml(module.title)}</strong>
                         <small>${escapeHtml(module.area)} | ${escapeHtml(module.sourceReadiness?.detail || module.source)}</small>
                         <p>${escapeHtml(module.detail)}</p>
-                        <em>${escapeHtml(module.backendDetail || module.source)}</em>
+                        <em>${escapeHtml(actionText)}</em>
                     </div>
                     <div class="enterprise-module-actions">
                         <span class="status-pill ${benchmarkStatusClass(module.status)}">${benchmarkStatusLabel(module.status)}</span>
@@ -5140,49 +5122,10 @@
                         </button>
                     </div>
                 </article>
-            `).join("");
-        }
-
-        if (readinessHost) {
-            readinessHost.innerHTML = renderEnterpriseMiniRows(getEnterpriseReadinessRows());
-        }
-
-        if (liveTestHost) {
-            const testRows = state.enterpriseControls && state.enterpriseControls.lastLiveTest && Array.isArray(state.enterpriseControls.lastLiveTest.rows)
-                ? state.enterpriseControls.lastLiveTest.rows
-                : getEnterpriseLiveTestRows();
-            const testedAt = state.enterpriseControls?.lastLiveTest?.updatedAt || "";
-            liveTestHost.innerHTML = `
-                <div class="enterprise-live-test-heading">
-                    <strong>Feature-by-feature live verification</strong>
-                    <small>${escapeHtml(testedAt ? `Last verified ${formatDate(testedAt)}` : "Use Verify live to save this checklist")}</small>
-                </div>
-                ${testRows.map((row) => `
-                    <article class="enterprise-live-test-row">
-                        <div>
-                            <strong>${escapeHtml(row.title)}</strong>
-                            <small>${escapeHtml(row.detail)}</small>
-                            <em>${escapeHtml(row.runtimeMode)} | source ${row.sourceReady ? "ready" : "missing"} | backend ${row.backendReady ? "ready" : (row.backendNeeded ? "auth required" : "not required")}</em>
-                        </div>
-                        <span class="status-pill ${benchmarkStatusClass(row.status)}">${benchmarkStatusLabel(row.status)}</span>
-                    </article>
-                `).join("")}
             `;
+            }).join("") : `<div class="empty-state">No enterprise live source rows are available yet.</div>`;
         }
 
-        if (policyHost) {
-            policyHost.innerHTML = renderEnterpriseMiniRows(getEnterprisePolicyMiniRows());
-        }
-
-        if (fleetHost) {
-            fleetHost.innerHTML = renderEnterpriseMiniRows(getEnterpriseFleetMiniRows());
-        }
-
-        if (lastSaved) {
-            const savedAt = (state.enterpriseControls || {}).updatedAt;
-            lastSaved.textContent = savedAt ? `Saved ${formatDate(savedAt)}` : "No live audit saved";
-            lastSaved.className = `status-pill ${savedAt ? "approved" : "pending"}`;
-        }
     }
 
     function renderPortalControls() {
@@ -6108,6 +6051,7 @@
 
     function switchView(view) {
         state.view = view;
+        document.body.dataset.adminView = view;
         $all(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === view));
         $all("[data-control-panel-view]").forEach((item) => item.classList.toggle("active", item.dataset.controlPanelView === view));
         $all(".view-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `view-${view}`));
@@ -6242,11 +6186,11 @@
                     persistBenchmarkReview("enterprise_modules_connected");
                     renderAll();
                     const summary = getEnterpriseSummary();
-                    showToast(`${readyModuleIds.length} ready enterprise/fleet modules connected. ${summary.gap} modules still need live data.`);
+                    showToast(`${readyModuleIds.length} ready enterprise/fleet modules connected. ${summary.gap} modules need live data.`);
                 } else if (action === "run-live-test") {
                     const result = runEnterpriseLiveTest("manual_live_verification");
                     renderAll();
-                    showToast(`Live verification finished: ${result.summary.live} live, ${result.summary.partial} partial, ${result.summary.gap} gaps.`);
+                    showToast(`Live verification finished: ${result.summary.live} live, ${result.summary.partial} ready, ${result.summary.gap} need data.`);
                 } else if (action === "export") {
                     exportEnterpriseAudit();
                 } else {

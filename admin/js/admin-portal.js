@@ -1085,7 +1085,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     limitLegacyPortalToCustomerLiveSections();
     
-    // Connect live customer/admin stores without seeding sample rows.
+    // Connect live customer/admin stores without creating placeholder rows.
     initializeLiveAdminData();
     
     // Update dashboard stats

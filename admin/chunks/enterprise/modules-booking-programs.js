@@ -14,7 +14,6 @@
             source: "admin booking creator and fallback API",
             sourceCheck: "bookings",
             backendRequired: true,
-            statusType: "partial"
         },
         {
             id: "guest_rides_central_booking",
@@ -25,7 +24,6 @@
             source: "admin booking creator",
             sourceCheck: "bookings",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "scheduled_commute_programs",
@@ -35,7 +33,6 @@
             detail: "Office commute, recurring trip, shift ride and employee eligibility controls.",
             source: "scheduled ride stores",
             sourceCheck: "bookings",
-            statusType: "gap"
         },
         {
             id: "vouchers_programs",
@@ -45,7 +42,6 @@
             detail: "Voucher campaign, commute pass, field visit and guest ride program builder.",
             source: "admin program store",
             sourceCheck: "controls",
-            statusType: "gap"
         },
         {
             id: "candidate_customer_vouchers",
@@ -55,7 +51,6 @@
             detail: "Hiring drive, event, customer support and limited-use campaign credits.",
             source: "voucher control store",
             sourceCheck: "controls",
-            statusType: "gap"
         },
         {
             id: "field_visit_project_tracking",
@@ -65,7 +60,6 @@
             detail: "Project code, site visit, purpose, memo and cost-center ride tracking.",
             source: "booking metadata",
             sourceCheck: "bookings",
-            statusType: "gap"
         },
         {
             id: "ride_edit_cancel_refund_controls",
@@ -76,7 +70,6 @@
             source: "booking admin endpoints",
             sourceCheck: "bookings",
             backendRequired: true,
-            statusType: "partial"
         }
     ]);
 })(window);

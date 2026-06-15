@@ -107,7 +107,7 @@ test('phase 5 admin UI is wired as a modular operations center', () => {
   const css = read('admin/css/admin-app.css');
   const serviceWorker = read('sw.js');
 
-  assert.match(adminApp, /admin-app\.js\?v=20260610-sms-reference1/);
+  assert.match(adminApp, /admin-app\.js\?v=20260615-admincleanup1/);
   assert.match(adminApp, /admin-live-control-center\.js\?v=20260613-fraud-phase1/);
   assert.match(adminApp, /admin-operations-center\.js\?v=20260613-admin-ops-phase5/);
   assert.match(client, /goindiaride_admin_operations_center_phase5_v1/);

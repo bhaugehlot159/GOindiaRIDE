@@ -14,7 +14,6 @@
             source: "support notifications and booking metadata",
             sourceCheck: "notifications",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "api_access_tokens",
@@ -25,7 +24,6 @@
             source: "admin backend token",
             sourceCheck: "backend",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "webhooks_partner_logs",
@@ -36,7 +34,6 @@
             source: "future business webhook endpoints",
             sourceCheck: "backend",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "expense_provider_export",
@@ -47,7 +44,6 @@
             source: "booking report templates",
             sourceCheck: "reports",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "audit_logs_privacy_exports",
@@ -58,7 +54,6 @@
             source: "admin audit store",
             sourceCheck: "controls",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "notification_sla_center",
@@ -69,7 +64,6 @@
             source: "notification endpoints",
             sourceCheck: "notifications",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "backend_health_service_status",
@@ -80,7 +74,6 @@
             source: "protected and public backend endpoints",
             sourceCheck: "backend",
             backendRequired: true,
-            statusType: "gap"
         }
     ]);
 })(window);

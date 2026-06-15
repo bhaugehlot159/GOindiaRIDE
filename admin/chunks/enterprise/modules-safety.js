@@ -14,7 +14,6 @@
             source: "safety inbox and notifications",
             sourceCheck: "safety",
             backendRequired: true,
-            statusType: "partial"
         },
         {
             id: "background_police_verification",
@@ -24,7 +23,6 @@
             detail: "Police verification, background check, document proof and approval expiry controls.",
             source: "driver compliance records",
             sourceCheck: "drivers",
-            statusType: "gap"
         },
         {
             id: "duty_hours_break_medical",
@@ -34,7 +32,6 @@
             detail: "Duty-hour caps, mandatory break, medical expiry and fatigue risk controls.",
             source: "driver status and safety policy",
             sourceCheck: "drivers",
-            statusType: "gap"
         },
         {
             id: "night_ride_safety_check",
@@ -45,7 +42,6 @@
             source: "booking safety fields",
             sourceCheck: "bookings",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "trip_sharing_masking_privacy",
@@ -55,7 +51,6 @@
             detail: "Live trip share, phone masking readiness, location privacy and audit-safe exports.",
             source: "booking and profile controls",
             sourceCheck: "bookings",
-            statusType: "gap"
         },
         {
             id: "incident_dispute_escalation",
@@ -66,7 +61,6 @@
             source: "support and security endpoints",
             sourceCheck: "notifications",
             backendRequired: true,
-            statusType: "gap"
         },
         {
             id: "fraud_abuse_detection",
@@ -77,7 +71,6 @@
             source: "security and wallet audit endpoints",
             sourceCheck: "safety",
             backendRequired: true,
-            statusType: "gap"
         }
     ]);
 })(window);

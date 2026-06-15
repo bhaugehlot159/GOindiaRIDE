@@ -12,7 +12,6 @@
             current: "Dedicated enterprise module covers admin-created guest rides and fallback queue sync.",
             next: "Use protected booking endpoints with an active admin token for cloud verification.",
             enterpriseModuleId: "guest_rides_central_booking",
-            statusType: "gap"
         },
         {
             id: "bulk_employee_lifecycle",
@@ -21,7 +20,6 @@
             current: "Employee add/update/deactivate controls are split into a corporate module.",
             next: "Attach real corporate CSV/API upload when company onboarding starts.",
             enterpriseModuleId: "employee_bulk_api_lifecycle",
-            statusType: "gap"
         },
         {
             id: "monthly_billing_statements",
@@ -30,7 +28,6 @@
             current: "Monthly statement and payment profile controls are now separated from wallet setup.",
             next: "Confirm wallet admin endpoints after login before exporting production statements.",
             enterpriseModuleId: "monthly_billing_statements",
-            statusType: "gap"
         },
         {
             id: "driver_kyc_training",
@@ -39,7 +36,6 @@
             current: "Fleet modules now split vehicle documents, driver KYC and training readiness.",
             next: "Load real uploaded document expiry values from driver onboarding records.",
             enterpriseModuleId: "driver_onboarding_kyc",
-            statusType: "partial"
         },
         {
             id: "fraud_risk_safety",
@@ -48,7 +44,6 @@
             current: "Safety modules now include incident, dispute, fraud and abuse checks.",
             next: "Keep security endpoints connected with admin auth for live incident review.",
             enterpriseModuleId: "fraud_abuse_detection",
-            statusType: "gap"
         },
         {
             id: "integration_webhooks_audit",
@@ -57,7 +52,6 @@
             current: "Integration modules now cover partner webhooks, audit logs, expense exports and SLA notifications.",
             next: "Verify provider webhook logs with protected backend calls after partner setup.",
             enterpriseModuleId: "webhooks_partner_logs",
-            statusType: "gap"
         }
     ]);
 })(window);
