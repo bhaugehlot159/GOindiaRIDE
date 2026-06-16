@@ -153,3 +153,42 @@ body {
         padding-inline: 0.45rem;
     }
 }
+
+/* Final dashboard palette alignment for the customer portal. */
+html.fit-screen-page,
+html body.fit-screen-page {
+    background: #fbf7ef !important;
+    background-image: none !important;
+}
+
+html body.fit-screen-page .fit-scroll-host,
+html body.fit-screen-page .fit-scale-layer,
+html body.fit-screen-page .main-container,
+html body.fit-screen-page .main-content,
+html body.fit-screen-page .container {
+    background: #fbf7ef !important;
+    background-image: none !important;
+}
+
+html body.fit-screen-page .customer-portal-live-command,
+html body.fit-screen-page .customer-portal-live-pill,
+html body.fit-screen-page .customer-portal-live-card,
+html body.fit-screen-page .quick-booking-card,
+html body.fit-screen-page .portal-page-header {
+    border-color: rgba(240, 180, 79, 0.28) !important;
+    box-shadow: 0 16px 34px rgba(8, 12, 18, 0.1) !important;
+}
+
+html body.fit-screen-page .customer-portal-live-command,
+html body.fit-screen-page .customer-portal-live-pill,
+html body.fit-screen-page .customer-portal-live-card,
+html body.fit-screen-page .quick-booking-card {
+    background: rgba(255, 255, 255, 0.96) !important;
+    background-image: none !important;
+}
+
+html body.fit-screen-page .customer-portal-live-action {
+    border-color: rgba(240, 180, 79, 0.28) !important;
+    background: #fbf7ef !important;
+    background-image: none !important;
+}

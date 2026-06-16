@@ -368,7 +368,7 @@ footer {
 
 .logout-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 15px rgba(8, 12, 18, 0.22);
 }
 
 .logout-btn:active {

@@ -485,15 +485,31 @@ body .action-card {
 body [style*="#f0b44f"],
 body [style*="#080c12"],
 body [style*="#2a2117"],
-body [style*="#b87918"] {
+body [style*="#b87918"],
+body [style*="#667eea"],
+body [style*="#764ba2"],
+body [style*="#173b67"],
+body [style*="#14385e"],
+body [style*="#1d3f6f"],
+body [style*="#1e3a5f"] {
   border-color: var(--gir-purple-border) !important;
   color: var(--gir-purple-deep) !important;
 }
 
 body i[style*="#080c12"],
 body i[style*="#f0b44f"],
-body i[style*="#2a2117"] {
+body i[style*="#2a2117"],
+body i[style*="#667eea"] {
   color: var(--gir-purple-blue) !important;
+}
+
+body [style*="background: #667eea"],
+body [style*="background:#667eea"],
+body [style*="background: linear-gradient"][style*="#667eea"],
+body [style*="background:linear-gradient"][style*="#667eea"] {
+  background: var(--gir-purple-gradient) !important;
+  color: #ffffff !important;
+  border-color: rgba(240, 180, 79, 0.3) !important;
 }
 
 body [style*="background: #fff8ec"],
@@ -503,7 +519,17 @@ body [style*="background:#e3f2fd"],
 body [style*="background: #fff8ec"],
 body [style*="background:#fff8ec"],
 body [style*="background: #fff7ed"],
-body [style*="background:#fff7ed"] {
+body [style*="background:#fff7ed"],
+body [style*="background: #f8fbff"],
+body [style*="background:#f8fbff"],
+body [style*="background: #dbeafe"],
+body [style*="background:#dbeafe"],
+body [style*="background: #eff6ff"],
+body [style*="background:#eff6ff"],
+body [style*="background: #eef5ff"],
+body [style*="background:#eef5ff"],
+body [style*="background: #eef4ff"],
+body [style*="background:#eef4ff"] {
   background: var(--gir-purple-gradient-soft) !important;
   color: var(--gir-purple-deep) !important;
 }
@@ -511,7 +537,11 @@ body [style*="background:#fff7ed"] {
 body [style*="border-bottom: 4px solid #0B1F3A"],
 body [style*="border-bottom:4px solid #0B1F3A"],
 body [style*="border: 2px solid #0B1F3A"],
-body [style*="border:2px solid #0B1F3A"] {
+body [style*="border:2px solid #0B1F3A"],
+body [style*="border:1px solid #dbe7ff"],
+body [style*="border: 1px solid #dbe7ff"],
+body [style*="border:1px solid #dbeafe"],
+body [style*="border: 1px solid #dbeafe"] {
   border-color: var(--gir-purple-border) !important;
 }
 
@@ -673,4 +703,92 @@ body .app-loading-shell {
   body.customer-dashboard-page .tab-buttons .tab-button.active span {
     color: inherit !important;
   }
+}
+
+/* Final portal palette lock: keep portal pages in the main dashboard color family. */
+html.fit-screen-page,
+html body.fit-screen-page {
+  background: #fbf7ef !important;
+  background-image: none !important;
+}
+
+html body.fit-screen-page::before,
+html body.fit-screen-page::after {
+  opacity: 0 !important;
+  background: none !important;
+  background-image: none !important;
+}
+
+html body.fit-screen-page .fit-scroll-host,
+html body.fit-screen-page .fit-scale-layer,
+html body.fit-screen-page .main-container,
+html body.fit-screen-page .main-content,
+html body.fit-screen-page .container,
+html body.fit-screen-page .dashboard-container,
+html body.fit-screen-page .portal-container {
+  background: #fbf7ef !important;
+  background-image: none !important;
+}
+
+html body.fit-screen-page .top-nav,
+html body.fit-screen-page .navbar,
+html body.fit-screen-page .topbar,
+html body.fit-screen-page .header,
+html body.fit-screen-page .app-header,
+html body.fit-screen-page .portal-header,
+html body.fit-screen-page .bottom-nav {
+  background: linear-gradient(90deg, #080c12 0%, #17120d 58%, #2a2117 100%) !important;
+  border-color: rgba(240, 180, 79, 0.26) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(8, 12, 18, 0.2) !important;
+}
+
+html body.fit-screen-page .portal-page-header,
+html body.fit-screen-page .customer-portal-live-command,
+html body.fit-screen-page .customer-portal-live-pill,
+html body.fit-screen-page .customer-portal-live-card,
+html body.fit-screen-page .quick-booking-card,
+html body.fit-screen-page .feature-card,
+html body.fit-screen-page .stat-card,
+html body.fit-screen-page .online-status-card,
+html body.fit-screen-page .earnings-card,
+html body.fit-screen-page .wallet-card,
+html body.fit-screen-page .support-card,
+html body.fit-screen-page .service-card,
+html body.fit-screen-page .dashboard-card {
+  border-color: rgba(240, 180, 79, 0.26) !important;
+  box-shadow: 0 16px 34px rgba(8, 12, 18, 0.1) !important;
+}
+
+html body.fit-screen-page .portal-page-header,
+html body.fit-screen-page .customer-portal-live-command,
+html body.fit-screen-page .quick-booking-card,
+html body.fit-screen-page .feature-card,
+html body.fit-screen-page .stat-card,
+html body.fit-screen-page .online-status-card,
+html body.fit-screen-page .wallet-card,
+html body.fit-screen-page .support-card,
+html body.fit-screen-page .service-card,
+html body.fit-screen-page .dashboard-card {
+  background: rgba(255, 255, 255, 0.96) !important;
+  background-image: none !important;
+}
+
+html body.fit-screen-page .customer-portal-live-icon,
+html body.fit-screen-page .feature-card i,
+html body.fit-screen-page .nav-item.active,
+html body.fit-screen-page .bottom-nav .nav-btn.active,
+html body.fit-screen-page .tab-button.active {
+  background: linear-gradient(135deg, #080c12 0%, #2a2117 100%) !important;
+  color: #ffffff !important;
+  border-color: rgba(240, 180, 79, 0.34) !important;
+}
+
+html body.fit-screen-page .tab-button.active i,
+html body.fit-screen-page .tab-button.active span,
+html body.fit-screen-page .nav-item.active i,
+html body.fit-screen-page .nav-item.active span,
+html body.fit-screen-page .bottom-nav .nav-btn.active i,
+html body.fit-screen-page .bottom-nav .nav-btn.active span {
+  color: inherit !important;
 }

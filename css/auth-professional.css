@@ -3809,3 +3809,26 @@ html body.auth-login-page .auth-utility-nav.auth-panel-nav .utility-btn:focus-vi
     font-size: 0.9rem !important;
   }
 }
+
+/* Final auth logo lockup override. */
+html body.auth-entry-page .login-left h1 i,
+html body.auth-entry-page .signup-left h1 i,
+html body.auth-login-page .login-left h1 i,
+html body.auth-login-page .signup-left h1 i {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  border-radius: 10px !important;
+  background: #080c12 url("../assets/brand/goindiaride-mark.png") center / 82% auto no-repeat !important;
+  border: 1px solid rgba(240, 180, 79, 0.36) !important;
+  box-shadow: 0 10px 22px rgba(8, 12, 18, 0.22) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  margin-right: 0.45rem !important;
+  overflow: hidden !important;
+}

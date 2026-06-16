@@ -89,14 +89,14 @@
         style.id = STYLE_ID;
         style.textContent = `
             :root {
-                --goi-navy: #241a47;
-                --goi-navy-soft: #35245f;
-                --goi-teal: #667eea;
-                --goi-gold: #764ba2;
-                --goi-cream: #f7f5ff;
+                --goi-navy: #080c12;
+                --goi-navy-soft: #2a2117;
+                --goi-teal: #080c12;
+                --goi-gold: #f0b44f;
+                --goi-cream: #fbf7ef;
                 --goi-card: rgba(255, 255, 255, 0.95);
-                --goi-border: rgba(102, 126, 234, 0.18);
-                --goi-shadow: 0 16px 34px rgba(72, 56, 140, 0.12);
+                --goi-border: rgba(240, 180, 79, 0.24);
+                --goi-shadow: 0 16px 34px rgba(8, 12, 18, 0.1);
             }
 
             html,
@@ -106,42 +106,36 @@
             }
 
             body.goi-global-theme {
-                --primary-color: #667eea;
-                --primary-dark: #764ba2;
-                --secondary-color: #764ba2;
-                --secondary-dark: #5f3f91;
-                --accent-color: #667eea;
-                --bg-color: #f7f5ff;
+                --primary-color: #080c12;
+                --primary-dark: #17120d;
+                --secondary-color: #2a2117;
+                --secondary-dark: #17120d;
+                --accent-color: #f0b44f;
+                --bg-color: #fbf7ef;
                 --bg-primary: #ffffff;
-                --bg-secondary: #f7f5ff;
+                --bg-secondary: #fbf7ef;
                 --bg-card: #ffffff;
-                --bg-light: #f7f5ff;
+                --bg-light: #fbf7ef;
                 --bg-white: #ffffff;
                 --card-bg: #ffffff;
-                --text-primary: #241a47;
-                --text-dark: #241a47;
-                --text-secondary: #625b7e;
-                --text-light: #746d90;
-                --border-color: rgba(102, 126, 234, 0.18);
-                --shadow-sm: 0 6px 16px rgba(72, 56, 140, 0.09);
-                --shadow-md: 0 12px 28px rgba(72, 56, 140, 0.12);
-                --shadow-lg: 0 18px 38px rgba(72, 56, 140, 0.15);
+                --text-primary: #111827;
+                --text-dark: #111827;
+                --text-secondary: #5f5a52;
+                --text-light: #756c60;
+                --border-color: rgba(240, 180, 79, 0.24);
+                --shadow-sm: 0 6px 16px rgba(8, 12, 18, 0.08);
+                --shadow-md: 0 12px 28px rgba(8, 12, 18, 0.1);
+                --shadow-lg: 0 18px 38px rgba(8, 12, 18, 0.14);
 
                 position: relative;
-                background:
-                    radial-gradient(circle at 8% 10%, rgba(102, 126, 234, 0.16), transparent 36%),
-                    radial-gradient(circle at 92% 8%, rgba(118, 75, 162, 0.17), transparent 36%),
-                    linear-gradient(136deg, #fbfaff 0%, #f7f5ff 52%, #efebff 100%) !important;
+                background: #fbf7ef !important;
                 color: var(--goi-navy);
                 min-height: 100vh;
             }
 
             body.goi-global-theme.goi-page-login,
             body.goi-global-theme.goi-page-signup {
-                background:
-                    radial-gradient(circle at 0% 0%, rgba(102, 126, 234, 0.18), transparent 42%),
-                    radial-gradient(circle at 100% 10%, rgba(118, 75, 162, 0.2), transparent 36%),
-                    linear-gradient(138deg, #fbfaff 0%, #f7f5ff 48%, #efebff 100%) !important;
+                background: linear-gradient(135deg, #fbf7ef 0%, #fffaf1 100%) !important;
             }
 
             body.goi-global-theme *,
@@ -172,10 +166,10 @@
             body.goi-global-theme .sidebar-header,
             body.goi-global-theme .dashboard-header,
             body.goi-global-theme .topbar {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                background: linear-gradient(135deg, #080c12 0%, #17120d 58%, #2a2117 100%) !important;
                 color: #ffffff !important;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-                box-shadow: 0 12px 28px rgba(72, 56, 140, 0.22);
+                box-shadow: 0 12px 28px rgba(8, 12, 18, 0.22);
                 backdrop-filter: blur(4px);
             }
 
@@ -216,31 +210,31 @@
                 max-height: calc(100dvh - 28px);
                 border-radius: 28px;
                 overflow: hidden;
-                border: 1px solid rgba(11, 36, 67, 0.16) !important;
-                box-shadow: 0 26px 60px rgba(11, 36, 67, 0.18) !important;
+                border: 1px solid rgba(240, 180, 79, 0.22) !important;
+                box-shadow: 0 26px 60px rgba(8, 12, 18, 0.18) !important;
                 background: rgba(255, 255, 255, 0.95) !important;
             }
 
             body.goi-global-theme.goi-page-login .login-left,
             body.goi-global-theme.goi-page-signup .signup-left {
-                background: linear-gradient(155deg, #667eea 0%, #764ba2 100%) !important;
-                color: #f3f9ff !important;
+                background: linear-gradient(155deg, #080c12 0%, #17120d 58%, #2a2117 100%) !important;
+                color: #fffaf1 !important;
                 border-right: 1px solid rgba(255, 255, 255, 0.18);
             }
 
             body.goi-global-theme.goi-page-login .login-left *,
             body.goi-global-theme.goi-page-signup .signup-left * {
-                color: #f3f9ff !important;
+                color: #fffaf1 !important;
             }
 
             body.goi-global-theme.goi-page-login .features-list i,
             body.goi-global-theme.goi-page-signup .features-list i {
-                color: #efeaff !important;
+                color: #f0b44f !important;
             }
 
             body.goi-global-theme.goi-page-login .login-right,
             body.goi-global-theme.goi-page-signup .signup-right {
-                background: linear-gradient(180deg, #ffffff 0%, #f7f5ff 100%) !important;
+                background: linear-gradient(180deg, #ffffff 0%, #fbf7ef 100%) !important;
                 justify-content: flex-start !important;
                 overflow-y: auto !important;
             }
@@ -290,7 +284,7 @@
                 top: 0;
                 height: 3px;
                 border-radius: 999px;
-                background: linear-gradient(90deg, #667eea, #ffffff, #764ba2);
+                background: linear-gradient(90deg, #f0b44f, #ffffff, #2a2117);
                 opacity: 0.75;
             }
 
@@ -306,10 +300,10 @@
             body.goi-global-theme .btn-signup,
             body.goi-global-theme .btn-submit,
             body.goi-global-theme button.primary {
-                background: linear-gradient(135deg, #35245f 0%, #241a47 100%) !important;
+                background: linear-gradient(135deg, #080c12 0%, #2a2117 100%) !important;
                 color: #fff !important;
                 border-color: rgba(255, 255, 255, 0.2) !important;
-                box-shadow: 0 7px 16px rgba(72, 56, 140, 0.24);
+                box-shadow: 0 7px 16px rgba(8, 12, 18, 0.2);
             }
 
             body.goi-global-theme button *,
@@ -338,8 +332,8 @@
             body.goi-global-theme select:focus,
             body.goi-global-theme textarea:focus {
                 outline: none;
-                border-color: rgba(102, 126, 234, 0.56);
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.16);
+                border-color: rgba(240, 180, 79, 0.56);
+                box-shadow: 0 0 0 3px rgba(240, 180, 79, 0.18);
             }
 
             .goi-rise-in {
@@ -362,7 +356,7 @@
                 z-index: 9998;
                 display: inline-flex;
                 gap: 0.4rem;
-                background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 250, 255, 0.9) 100%);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(251, 247, 239, 0.9) 100%);
                 border-radius: 999px;
                 padding: 0.42rem;
                 box-shadow: 0 18px 42px rgba(10, 36, 67, 0.14);
@@ -378,7 +372,7 @@
                 border: 1px solid rgba(12, 42, 74, 0.12);
                 border-radius: 999px;
                 background: rgba(255, 255, 255, 0.92);
-                color: #14385e !important;
+                color: #080c12 !important;
                 font-weight: 700;
                 font-size: 0.88rem;
                 line-height: 1;
@@ -397,7 +391,7 @@
                 gap: 0.4rem;
                 padding: 0.42rem;
                 border-radius: 999px;
-                background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 250, 255, 0.9) 100%);
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(251, 247, 239, 0.9) 100%);
                 border: 1px solid rgba(12, 42, 74, 0.08);
                 box-shadow: 0 18px 42px rgba(10, 36, 67, 0.14);
                 backdrop-filter: blur(16px);
@@ -412,10 +406,10 @@
 
             #${NAV_DOCK_ID} .goi-dock-btn.goi-dock-btn-primary,
             body.goi-global-theme .goi-native-nav-btn.goi-dock-btn-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #080c12 0%, #2a2117 100%);
                 color: #ffffff !important;
                 border-color: transparent;
-                box-shadow: 0 14px 28px rgba(72, 56, 140, 0.24);
+                box-shadow: 0 14px 28px rgba(8, 12, 18, 0.22);
             }
 
             #${NAV_DOCK_ID} .goi-dock-icon {
