@@ -1,24 +1,44 @@
-const CACHE_NAME = 'goindiaride-pwa-v64-20260613-driver-gps';
+const CACHE_NAME = 'goindiaride-pwa-v65-20260622-app-readiness';
+const OFFLINE_URL = './offline.html';
 const ASSETS = [
   './',
   './index.html',
+  './offline.html',
   './style.css',
   './book-cab.html',
   './taxi-service.html',
+  './customer/index.html',
+  './driver/index.html',
+  './admin/app.html',
+  './pages/booking.html',
+  './pages/customer-dashboard.html',
+  './pages/driver-dashboard.html',
+  './pages/contact.html',
+  './pages/legal/privacy-policy.html',
+  './pages/legal/terms-and-conditions.html',
+  './pages/legal/refund-policy.html',
+  './pages/legal/data-safety.html',
   './css/quick-booking.css',
   './css/search-service.css',
   './css/professional-purple-theme.css',
+  './js/pwa-app-shell.js',
   './js/global-ui.js',
   './js/data-preservation-guard.js',
   './js/push-notifications.js',
+  './firebase-messaging-sw.js',
   './admin/js/admin-operations-center.js',
   './admin/js/realtime-matching-engine.js',
   './admin/js/live-location-operations.js',
   './js/wallet-core.js',
   './js/quick-booking.js',
   './assets/images/quick-booking-hero.png',
+  './assets/brand/goindiaride-brand-preview-full-hd.png',
+  './assets/brand/goindiaride-app-icon-1024.png',
   './optimization.js',
   './manifest.webmanifest',
+  './customer/manifest.webmanifest',
+  './driver/manifest.webmanifest',
+  './admin/manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-192.svg',
@@ -127,6 +147,24 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+function offlineFallbackResponse() {
+  return caches.match(OFFLINE_URL).then((offline) => offline || caches.match('./index.html'));
+}
+
+function apiOfflineResponse() {
+  return new Response(JSON.stringify({
+    ok: false,
+    offline: true,
+    message: 'Network is required for live GO India RIDE API data.'
+  }), {
+    status: 503,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store'
+    }
+  });
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
     return;
@@ -136,6 +174,12 @@ self.addEventListener('fetch', (event) => {
   const isSameOrigin = requestUrl.origin === self.location.origin;
   const path = String(requestUrl.pathname || '').toLowerCase();
   const destination = String(event.request.destination || '').toLowerCase();
+  const isApiRequest = isSameOrigin && (
+    path.startsWith('/api/') ||
+    path.startsWith('/backend/api/') ||
+    path === '/health' ||
+    path.startsWith('/health/')
+  );
   const isCriticalLiveControlAsset = isSameOrigin && (
     path.startsWith('/admin/') ||
     path.startsWith('/customer/') ||
@@ -157,6 +201,11 @@ self.addEventListener('fetch', (event) => {
     )
   );
 
+  if (isApiRequest) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }).catch(apiOfflineResponse));
+    return;
+  }
+
   if (isCriticalLiveControlAsset) {
     event.respondWith(
       fetch(new Request(event.request, { cache: 'reload' }))
@@ -167,7 +216,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+        .catch(() => caches.match(event.request).then((cached) => cached || offlineFallbackResponse()))
     );
     return;
   }
@@ -184,7 +233,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+        .catch(() => caches.match(event.request).then((cached) => cached || offlineFallbackResponse()))
     );
     return;
   }
@@ -209,7 +258,12 @@ self.addEventListener('fetch', (event) => {
 
           return response;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => {
+          if (event.request.mode === 'navigate') {
+            return offlineFallbackResponse();
+          }
+          return caches.match('./index.html');
+        });
     })
   );
 });

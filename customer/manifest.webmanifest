@@ -1,0 +1,52 @@
+{
+  "id": "/customer/?app=goindiaride-customer",
+  "name": "GO India RIDE Customer App",
+  "short_name": "GO RIDE",
+  "description": "Customer app for cab booking, OTP login, live driver tracking, ride alerts and wallet payments.",
+  "start_url": "/customer/index.html?source=pwa_customer",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "background_color": "#07131f",
+  "theme_color": "#0b2f2a",
+  "lang": "en-IN",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "navigation", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Book ride",
+      "short_name": "Book",
+      "description": "Open customer cab booking.",
+      "url": "/pages/booking.html?source=pwa_customer_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Customer dashboard",
+      "short_name": "Dashboard",
+      "description": "Open rides, wallet and live tracking.",
+      "url": "/pages/customer-dashboard.html?source=pwa_customer_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Support",
+      "short_name": "Support",
+      "description": "Open customer support.",
+      "url": "/pages/contact.html?source=pwa_customer_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/images/quick-booking-hero.png",
+      "sizes": "1200x900",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Customer cab booking"
+    }
+  ],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/brand/goindiaride-app-icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

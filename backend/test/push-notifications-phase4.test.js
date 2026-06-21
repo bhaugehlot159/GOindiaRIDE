@@ -155,7 +155,7 @@ test('phase 4 push wiring is present without removing previous phase controls', 
   assert.match(subscriptionModel, /endpointHash/);
   assert.match(subscriptionModel, /select:\s*false/);
   assert.match(runtimeConfigModel, /database_auto_provision/);
-  assert.match(serviceWorker, /goindiaride-pwa-v64-20260613-driver-gps/);
+  assert.match(serviceWorker, /goindiaride-pwa-v65-20260622-app-readiness/);
   assert.match(serviceWorker, /addEventListener\(['"]push['"]/);
   assert.match(serviceWorker, /showNotification/);
   assert.match(serviceWorker, /addEventListener\(['"]notificationclick['"]/);
@@ -166,4 +166,6 @@ test('phase 4 push wiring is present without removing previous phase controls', 
   assert.match(driverDashboard, /push-notifications\.js\?v=20260613-push-phase4/);
   assert.match(adminApp, /push-notifications\.js\?v=20260613-push-phase4/);
   assert.match(customerPortal, /push-notifications\.js\?v=20260613-push-phase4/);
+  assert.match(serviceWorker, /offline\.html/);
+  assert.match(pushClient, /\/sw\.js\?v=20260613-push-phase4/);
 });

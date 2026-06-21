@@ -1,0 +1,45 @@
+{
+  "id": "/driver/?app=goindiaride-driver",
+  "name": "GO India RIDE Driver App",
+  "short_name": "GO Driver",
+  "description": "Driver app for login, dashboard, booking requests, live GPS sharing, ride workflow and wallet settlement.",
+  "start_url": "/driver/index.html?source=pwa_driver",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "background_color": "#07131f",
+  "theme_color": "#123c69",
+  "lang": "en-IN",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "navigation", "business"],
+  "shortcuts": [
+    {
+      "name": "Driver dashboard",
+      "short_name": "Dashboard",
+      "description": "Open driver rides, GPS and earnings.",
+      "url": "/driver/index.html?source=pwa_driver_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Legacy driver dashboard",
+      "short_name": "Trips",
+      "description": "Open driver trip dashboard.",
+      "url": "/pages/driver-dashboard.html?source=pwa_driver_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/brand/goindiaride-brand-preview-full-hd.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Driver operations dashboard"
+    }
+  ],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/brand/goindiaride-app-icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

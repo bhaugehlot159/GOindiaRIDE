@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Safety Details | GO India RIDE</title>
+  <meta name="description" content="GO India RIDE app data safety details for booking, driver GPS, OTP login, ride alerts, payments and support.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://goindiaride.in/pages/legal/data-safety.html">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="../../icons/icon-192.png">
+  <link rel="apple-touch-icon" href="../../icons/icon-192.png">
+  <meta name="theme-color" content="#0b2f2a">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #dbeafe;
+      --surface: #f8fafc;
+      --accent: #0f766e;
+      --panel: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    header, main, footer {
+      width: min(1080px, 92vw);
+      margin: 0 auto;
+    }
+    header { padding: 40px 0 24px; }
+    nav {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 5vw, 48px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+    section {
+      margin: 0 0 16px;
+      padding: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 15px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: #1e293b;
+      background: #f1f5f9;
+    }
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+    footer {
+      padding: 24px 0 40px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav aria-label="Legal navigation">
+      <a href="../../index.html">Home</a>
+      <a href="../contact.html">Contact support</a>
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms-and-conditions.html">Terms</a>
+      <a href="./refund-policy.html">Refund Policy</a>
+    </nav>
+    <h1>Data Safety Details</h1>
+    <p>These details support Play Store and App Store disclosures for the GO India RIDE web/PWA app surfaces: public booking, customer app, driver app and private admin app.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Data We Collect</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Data type</th>
+            <th>Examples</th>
+            <th>Purpose</th>
+            <th>Required</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Personal info</td>
+            <td>Name, phone number, email, customer or driver account identifiers</td>
+            <td>Account management, OTP login, booking confirmation, support and safety</td>
+            <td>Required for app account flows; public booking requires mobile number</td>
+          </tr>
+          <tr>
+            <td>Location</td>
+            <td>Pickup, drop, route pins, current customer location, driver GPS while tracking</td>
+            <td>Booking, fare estimate, route planning, driver assignment and customer-visible live tracking</td>
+            <td>Required for ride and tracking features; precise GPS is permission based</td>
+          </tr>
+          <tr>
+            <td>Financial info</td>
+            <td>Payment method choice, transaction reference, wallet activity, refund or settlement records</td>
+            <td>Ride payment, wallet top-up, driver settlement, refund support and fraud prevention</td>
+            <td>Required when using online payment or wallet features</td>
+          </tr>
+          <tr>
+            <td>App activity</td>
+            <td>Booking actions, ride status updates, notification consent, safety actions, admin review logs</td>
+            <td>App functionality, security, compliance, support and abuse prevention</td>
+            <td>Required for live operations</td>
+          </tr>
+          <tr>
+            <td>Device or other IDs</td>
+            <td>Firebase installation ID, push endpoint hash, device fingerprint, session metadata</td>
+            <td>Push notifications, OTP abuse protection, session security and fraud prevention</td>
+            <td>Required for protected login, push and security features</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Sharing And Service Providers</h2>
+      <p>GO India RIDE uses service providers for infrastructure and app functionality. Data may be processed through Firebase, web push services, payment gateways, email/SMS/WhatsApp providers, hosting, analytics/security tools and maps/geocoding providers as needed for the selected feature.</p>
+      <ul>
+        <li>Driver GPS is used for assigned ride tracking and admin safety monitoring.</li>
+        <li>Payment data is routed through enabled gateways such as Razorpay, PayPal or UPI-compatible payment flows.</li>
+        <li>Push notifications are sent only after browser/app permission and are limited to ride, account, safety and service updates.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Security Practices</h2>
+      <ul>
+        <li>Production API traffic is expected over HTTPS with secure backend validation.</li>
+        <li>Push subscriptions store endpoint hashes and encrypted push keys; private VAPID keys are not exposed to the browser.</li>
+        <li>Razorpay payment verification uses server-side signature validation; PayPal payment completion uses backend order capture.</li>
+        <li>Admin operations are separated from public/customer/driver flows and require authenticated access.</li>
+        <li>Users can contact support for account, ride, payment, privacy or deletion requests.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Deletion And Support</h2>
+      <p>For data access, correction, deletion, refund or support requests, use the contact page or email support@goindiaride.in. Some transaction, safety, tax, security and legal records may be retained where required by law or legitimate operational obligations.</p>
+    </section>
+  </main>
+
+  <footer>
+    Last updated: June 22, 2026. This page complements the Privacy Policy, Terms, Refund Policy and Driver Agreement.
+  </footer>
+  <script src="../../js/pwa-app-shell.js?v=20260622-app-readiness1"></script>
+</body>
+</html>

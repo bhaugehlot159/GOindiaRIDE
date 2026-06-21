@@ -1,0 +1,36 @@
+{
+  "id": "/admin/?app=goindiaride-admin",
+  "name": "GO India RIDE Admin App",
+  "short_name": "GO Admin",
+  "description": "Private admin app for bookings, driver operations, live location monitoring, payments and support control.",
+  "start_url": "/admin/app.html?source=pwa_admin",
+  "scope": "/admin/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "background_color": "#07131f",
+  "theme_color": "#111827",
+  "lang": "en-IN",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Admin workspace",
+      "short_name": "Workspace",
+      "description": "Open private admin operations.",
+      "url": "/admin/app.html?source=pwa_admin_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Admin login",
+      "short_name": "Login",
+      "description": "Open secure admin login.",
+      "url": "/admin/login.html?next=%2Fadmin%2Fapp.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/assets/brand/goindiaride-app-icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
