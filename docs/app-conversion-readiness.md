@@ -10,6 +10,7 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - Customer app: `/customer/manifest.webmanifest`, `/customer/index.html`, `/pages/booking.html`, `/pages/customer-dashboard.html`
 - Driver app: `/driver/manifest.webmanifest`, `/driver/index.html`, `/pages/driver-dashboard.html`
 - Admin app: `/admin/manifest.webmanifest`, `/admin/app.html`
+- Install prompt UI: `/js/pwa-app-shell.js` binds the browser `beforeinstallprompt` event, the home CTA, and injected customer/driver/admin install controls.
 
 ## Runtime Checks
 
@@ -37,14 +38,19 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - Refund Policy: `/pages/legal/refund-policy.html`
 - Contact support: `/pages/contact.html`
 - Data Safety Details: `/pages/legal/data-safety.html`
+- Account Deletion: `/pages/legal/account-deletion.html`
+- In-app deletion path: Customer Dashboard > Profile > Account deletion
 
 ## External References Used
 
 - MDN Web App Manifest: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest
+- MDN beforeinstallprompt: https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeinstallprompt_event
 - web.dev Offline Fallback: https://web.dev/articles/offline-fallback-page
+- web.dev Installation Prompt: https://web.dev/learn/pwa/installation-prompt
 - Firebase Cloud Messaging Web: https://firebase.google.com/docs/cloud-messaging/web/get-started
 - Firebase Phone Auth Web: https://firebase.google.com/docs/auth/web/phone-auth
 - Razorpay Checkout: https://razorpay.com/docs/payments/payment-gateway/web-integration/standard/integration-steps/
 - PayPal Standard Checkout: https://developer.paypal.com/docs/checkout/standard/integrate/
 - Google Play Data Safety: https://support.google.com/googleplay/android-developer/answer/10787469
+- Google Play Account Deletion: https://support.google.com/googleplay/android-developer/answer/13327111
 - Apple App Privacy Details: https://developer.apple.com/app-store/app-privacy-details/

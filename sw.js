@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v65-20260622-app-readiness';
+const CACHE_NAME = 'goindiaride-pwa-v66-20260622-app-readiness2';
 const OFFLINE_URL = './offline.html';
 const ASSETS = [
   './',
@@ -18,6 +18,7 @@ const ASSETS = [
   './pages/legal/terms-and-conditions.html',
   './pages/legal/refund-policy.html',
   './pages/legal/data-safety.html',
+  './pages/legal/account-deletion.html',
   './css/quick-booking.css',
   './css/search-service.css',
   './css/professional-purple-theme.css',

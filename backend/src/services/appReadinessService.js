@@ -5,7 +5,7 @@ const { getRealtimeConfig } = require('./firebaseRealtimeDatabaseService');
 const { getLiveLocationTrackingStatus } = require('./liveLocationTrackingService');
 const { getPushNotificationStatus } = require('./pushNotificationService');
 
-const APP_READINESS_VERSION = '2026-06-22-app-readiness-v1';
+const APP_READINESS_VERSION = '2026-06-22-app-readiness-v2';
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
 
 function readFile(relativePath) {
@@ -46,8 +46,8 @@ function buildSurfaceStatus() {
     public: {
       manifestLinked: /rel="manifest"\s+href="\.\/manifest\.webmanifest"/.test(publicHome),
       bookingManifestLinked: /rel="manifest"\s+href="\.\/manifest\.webmanifest"/.test(publicBooking),
-      pwaBootstrap: /pwa-app-shell\.js\?v=20260622-app-readiness1/.test(publicHome)
-        && /pwa-app-shell\.js\?v=20260622-app-readiness1/.test(publicBooking)
+      pwaBootstrap: /pwa-app-shell\.js\?v=20260622-app-readiness2/.test(publicHome)
+        && /pwa-app-shell\.js\?v=20260622-app-readiness2/.test(publicBooking)
     },
     customer: {
       dedicatedManifest: fileExists('customer/manifest.webmanifest'),
@@ -93,7 +93,7 @@ function buildPwaStatus() {
     driverManifest: fileExists('driver/manifest.webmanifest'),
     adminManifest: fileExists('admin/manifest.webmanifest'),
     serviceWorker: hasAll(serviceWorker, [
-      /goindiaride-pwa-v65-20260622-app-readiness/,
+      /goindiaride-pwa-v66-20260622-app-readiness2/,
       /OFFLINE_URL/,
       /addEventListener\('push'/,
       /notificationclick/,
@@ -101,13 +101,17 @@ function buildPwaStatus() {
       /apiOfflineResponse/
     ]),
     offlineFallback: fileExists('offline.html') && /You are offline/.test(readFile('offline.html')),
-    firebaseMessagingWorker: /importScripts\('\/sw\.js\?v=20260622-app-readiness1'\)/.test(firebaseMessaging),
+    firebaseMessagingWorker: /importScripts\('\/sw\.js\?v=20260622-app-readiness2'\)/.test(firebaseMessaging),
     pwaBootstrap: hasAll(pwaShell, [
       /beforeinstallprompt/,
+      /data-goi-pwa-install/,
+      /bindInstallControls/,
+      /ensureInstallUi/,
       /navigator\.serviceWorker\.register/,
       /GoIndiaRidePWA/,
       /getSurface/
     ]),
+    accountDeletionOfflineCached: /pages\/legal\/account-deletion\.html/.test(serviceWorker),
     splashReady: /apple-touch-startup-image/.test(readFile('index.html'))
       && /apple-touch-startup-image/.test(readFile('customer/index.html'))
       && /apple-touch-startup-image/.test(readFile('driver/index.html'))
@@ -198,6 +202,11 @@ function buildOtpStatus() {
 
 function buildLegalStatus() {
   const home = readFile('index.html');
+  const contact = readFile('pages/contact.html');
+  const privacy = readFile('pages/legal/privacy-policy.html');
+  const dataSafety = readFile('pages/legal/data-safety.html');
+  const accountDeletion = readFile('pages/legal/account-deletion.html');
+  const customerDashboard = readFile('pages/customer-dashboard.html');
   return {
     privacyPolicy: fileExists('pages/legal/privacy-policy.html'),
     terms: fileExists('pages/legal/terms-and-conditions.html'),
@@ -205,8 +214,19 @@ function buildLegalStatus() {
     contactSupport: fileExists('pages/contact.html') && /support@goindiaride\.in/.test(home),
     driverAgreement: fileExists('pages/legal/driver-agreement.html'),
     dataSafety: fileExists('pages/legal/data-safety.html')
-      && /Data Safety Details/.test(readFile('pages/legal/data-safety.html'))
-      && /pages\/legal\/data-safety\.html/.test(home)
+      && /Data Safety Details/.test(dataSafety)
+      && /pages\/legal\/data-safety\.html/.test(home),
+    accountDeletionPage: fileExists('pages/legal/account-deletion.html')
+      && /Account Deletion/.test(accountDeletion)
+      && /mailto:privacy@goindiaride\.in/.test(accountDeletion)
+      && /GO%20India%20RIDE%20account%20deletion%20request/.test(accountDeletion),
+    customerAccountDeletionPath: /data-account-deletion-link/.test(customerDashboard)
+      && /\.\/legal\/account-deletion\.html/.test(customerDashboard)
+      && !/data-profile-feature="account/.test(customerDashboard),
+    storeDeletionDisclosure: /pages\/legal\/account-deletion\.html/.test(home)
+      && /account-deletion\.html/.test(contact)
+      && /account-deletion\.html/.test(privacy)
+      && /account-deletion\.html/.test(dataSafety)
   };
 }
 
@@ -281,9 +301,11 @@ function getAppReadinessStatus() {
     payment,
     legal,
     appStores: {
-      privacyDetailsReady: legal.privacyPolicy && legal.dataSafety,
+      privacyDetailsReady: legal.privacyPolicy && legal.dataSafety && legal.accountDeletionPage,
       googlePlayDataSafetyPage: '/pages/legal/data-safety.html',
       applePrivacyDetailsSource: '/pages/legal/data-safety.html',
+      accountDeletionUrl: '/pages/legal/account-deletion.html',
+      accountDeletionReady: legal.accountDeletionPage && legal.customerAccountDeletionPath,
       supportUrl: '/pages/contact.html',
       refundPolicyUrl: '/pages/legal/refund-policy.html'
     },

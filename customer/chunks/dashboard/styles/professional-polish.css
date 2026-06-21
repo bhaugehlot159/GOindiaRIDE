@@ -890,6 +890,7 @@ body.customer-dashboard-page .profile-feature-item {
     color: #374151 !important;
     font-weight: 750;
     text-align: left;
+    text-decoration: none;
     box-shadow: none !important;
     cursor: pointer;
 }
