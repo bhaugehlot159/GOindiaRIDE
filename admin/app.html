@@ -331,6 +331,51 @@
                         <div class="activity-feed" id="activityFeed"></div>
                     </section>
                 </div>
+
+                <div class="overview-grid bottom">
+                    <section class="workspace-panel ai-security-admin-panel" id="adminAiSecurityPanel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Security ops</span>
+                                <h2>AI Auto-Detective Security Shield</h2>
+                            </div>
+                            <span class="status-pill good">Admin only</span>
+                        </div>
+                        <div id="ai-security-widget">
+                            <div class="ai-security-live-score"><strong>Risk Score:</strong> Initializing...</div>
+                            <div class="ai-security-live-level"><strong>Threat Level:</strong> Initializing...</div>
+                            <div class="ai-security-live-fingerprint"><strong>Device Fingerprint:</strong> Detecting...</div>
+                            <ul class="ai-security-live-feed">
+                                <li>AI auto-detective booting...</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="workspace-panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <span class="section-kicker">Security events</span>
+                                <h2>Incident Feed</h2>
+                            </div>
+                        </div>
+                        <div class="table-wrap compact-rows">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Incident</th>
+                                        <th>Time</th>
+                                        <th>Level</th>
+                                        <th>Type</th>
+                                        <th>Message</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="aiSecurityEventsBody">
+                                    <tr><td colspan="5">No incidents detected.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
             </section>
 
             <section class="view-panel" id="view-benchmark">
@@ -538,6 +583,7 @@
     <script src="../js/push-notifications.js?v=20260613-push-phase4"></script>
     <script src="../js/pwa-app-shell.js?v=20260622-app-readiness3"></script>
     <script src="../js/admin-control-bridge.js?v=20260516-customer-live-test2"></script>
+    <script src="../js/ai-auto-detective.js?v=20260622-admin-panel1"></script>
     <script src="./chunks/enterprise/registry.js?v=20260528-enterprise-full1"></script>
     <script src="./chunks/enterprise/sources-official.js?v=20260528-enterprise-full1"></script>
     <script src="./chunks/enterprise/modules-corporate.js?v=20260528-enterprise-full1"></script>

@@ -330,6 +330,22 @@ test('admin app homepage entry opens admin login instead of customer login', () 
   assert.match(recovery, /else\{\s*updateLoginMethod\(\);\s*\}/);
 });
 
+test('AI security dashboard is admin-only and absent from homepage UI', () => {
+  const home = read('index.html');
+  const adminApp = read('admin/app.html');
+
+  assert.doesNotMatch(home, /AI Auto-Detective Security Shield/);
+  assert.doesNotMatch(home, /Risk Score:\s*<\/strong>\s*Initializing/);
+  assert.doesNotMatch(home, /Threat Level:\s*<\/strong>\s*Initializing/);
+  assert.doesNotMatch(home, /id="ai-security-widget"/);
+  assert.doesNotMatch(home, /ai-auto-detective\.js/);
+  assert.match(adminApp, /id="adminAiSecurityPanel"/);
+  assert.match(adminApp, /AI Auto-Detective Security Shield/);
+  assert.match(adminApp, /id="ai-security-widget"/);
+  assert.match(adminApp, /id="aiSecurityEventsBody"/);
+  assert.match(adminApp, /\.\.\/js\/ai-auto-detective\.js\?v=20260622-admin-panel1/);
+});
+
 test('customer live trip shell avoids demo driver and OTP placeholders', () => {
   const customer = read('customer/index.html');
 

@@ -587,6 +587,39 @@ button {
     font-size: 1.08rem;
 }
 
+.ai-security-admin-panel #ai-security-widget {
+    display: grid;
+    gap: 10px;
+}
+
+.ai-security-admin-panel .ai-security-live-score,
+.ai-security-admin-panel .ai-security-live-level,
+.ai-security-admin-panel .ai-security-live-fingerprint {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-soft);
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.ai-security-admin-panel .ai-security-live-feed {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ai-security-admin-panel .ai-security-live-feed li {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--muted);
+    background: var(--surface);
+}
+
 .operations-center-panel {
     margin-bottom: 14px;
     border-color: rgba(37, 99, 166, 0.28);
