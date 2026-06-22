@@ -57,6 +57,20 @@ test('booking page starts in live route state instead of demo fare or driver dat
   assert.doesNotMatch(html, /RJ 01 AB 1234/);
 });
 
+test('booking production entry hides readiness meter and exposes verified support and PWA links', () => {
+  const bookingHtml = readRepoFile('pages/booking.html');
+  const bookingSource = readBookingPageSource();
+
+  assert.doesNotMatch(bookingHtml, /Booking Readiness/);
+  assert.doesNotMatch(bookingSource, /RID12345/);
+  assert.match(bookingHtml, /data-goi-pwa-manifest="customer"/);
+  assert.match(bookingHtml, /href="\.\.\/manifest\.webmanifest" data-goi-pwa-manifest="public"/);
+  assert.match(bookingHtml, /href="\.\.\/service-worker\.js" data-goi-pwa-service-worker="public-alias"/);
+  assert.match(bookingHtml, /Customer helpline \+91 84268 91471/);
+  assert.match(bookingHtml, /booking-customer-helpline/);
+  assert.match(bookingSource, /body\.booking-page\.professional-booking:not\(\.booking-advanced-ready\) \.cab-page-content[\s\S]*display: none !important/);
+});
+
 test('booking current-location flow keeps exact GPS coordinates for maps and admin review', () => {
   const html = readBookingPageSource();
 

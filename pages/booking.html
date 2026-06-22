@@ -8,7 +8,9 @@
     <meta name="googlebot" content="noindex, follow">
     <meta name="theme-color" content="#0b2f2a">
     <link rel="canonical" href="https://goindiaride.in/book-cab.html">
-    <link rel="manifest" href="../customer/manifest.webmanifest">
+    <link rel="manifest" href="../customer/manifest.webmanifest" data-goi-pwa-manifest="customer" crossorigin="anonymous">
+    <link rel="alternate" type="application/manifest+json" href="../manifest.webmanifest" data-goi-pwa-manifest="public">
+    <link rel="alternate" type="application/javascript" href="../service-worker.js" data-goi-pwa-service-worker="public-alias" data-goi-pwa-scope="/">
     <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="../icons/icon-512.png">
     <link rel="apple-touch-icon" href="../icons/icon-192.png">
@@ -67,16 +69,6 @@
             <span id="successText"></span>
         </div>
 
-        <div class="booking-progress-card" id="bookingProgressCard">
-            <div class="booking-progress-head">
-                <span><i class="fas fa-list-check"></i> Booking Readiness</span>
-                <span id="bookingProgressText">8% complete</span>
-            </div>
-            <div class="booking-progress-track">
-                <span class="booking-progress-fill" id="bookingProgressFill"></span>
-            </div>
-        </div>
-
         <section class="cab-booking-console" id="cabBookingConsole" aria-label="Customer cab booking shortcut">
             <div class="cab-console-head">
                 <button type="button" class="cab-icon-action cab-dashboard-action" onclick="goCustomerDashboard()" aria-label="Back to customer dashboard" title="Customer Dashboard">
@@ -86,6 +78,10 @@
                 <div class="cab-console-title">
                     <span>Cab Booking</span>
                     <small>GO India RIDE customer desk</small>
+                    <a class="booking-helpline-inline" href="tel:+918426891471" aria-label="Call GO India RIDE customer helpline +91 84268 91471">
+                        <i class="fas fa-headset" aria-hidden="true"></i>
+                        Helpline +91 84268 91471
+                    </a>
                 </div>
                 <button type="button" class="cab-icon-action" onclick="goHome()" aria-label="Go home">
                     <i class="fas fa-house"></i>
@@ -292,6 +288,17 @@
                             <i class="fas fa-magnifying-glass"></i>
                             NEXT
                         </button>
+                    </div>
+
+                    <div class="booking-customer-helpline" aria-label="Customer support helpline">
+                        <a href="tel:+918426891471">
+                            <i class="fas fa-phone" aria-hidden="true"></i>
+                            Customer helpline +91 84268 91471
+                        </a>
+                        <a href="https://wa.me/918426891471?text=I%20need%20help%20with%20my%20GO%20India%20RIDE%20booking">
+                            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                            WhatsApp support
+                        </a>
                     </div>
                 </div>
 
@@ -1143,7 +1150,7 @@
             <div class="modal-text">
                 Your ride request has been saved successfully.
                 <br><br>
-                <strong id="bookingReference">Reference: #RID12345</strong>
+                <strong id="bookingReference" data-empty-booking-reference="true">Reference will appear after booking submission</strong>
                 <br><br>
                 Booking is sent to admin for live review. Driver assignment will start only after admin approval.
             </div>

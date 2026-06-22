@@ -154,7 +154,7 @@
         }
 
         body.booking-page.professional-booking:not(.booking-advanced-ready) .cab-page-content {
-            display: block !important;
+            display: none !important;
         }
 
         body.booking-page.professional-booking.booking-advanced-ready .cab-page-content {

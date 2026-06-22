@@ -70,6 +70,70 @@
             font-size: 0.7rem !important;
         }
 
+        body.booking-page.professional-booking .booking-helpline-inline {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.34rem !important;
+            width: fit-content !important;
+            max-width: 100% !important;
+            margin: 0.24rem auto 0 !important;
+            padding: 0.22rem 0.46rem !important;
+            border-radius: 999px !important;
+            background: #fff7ed !important;
+            color: #9a4f0b !important;
+            border: 1px solid #fed7aa !important;
+            font-size: 0.68rem !important;
+            font-weight: 900 !important;
+            line-height: 1.15 !important;
+            text-align: center !important;
+            text-decoration: none !important;
+            white-space: normal !important;
+        }
+
+        body.booking-page.professional-booking .booking-helpline-inline i {
+            color: #d97706 !important;
+            font-size: 0.72rem !important;
+            flex: 0 0 auto !important;
+        }
+
+        body.booking-page.professional-booking .booking-customer-helpline {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 0.42rem !important;
+            margin-top: 0.48rem !important;
+        }
+
+        body.booking-page.professional-booking .booking-customer-helpline a {
+            min-width: 0 !important;
+            min-height: 40px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.4rem !important;
+            padding: 0.5rem 0.62rem !important;
+            border-radius: 9px !important;
+            border: 1px solid #cfdbe8 !important;
+            background: #ffffff !important;
+            color: #173350 !important;
+            font-size: 0.78rem !important;
+            font-weight: 900 !important;
+            line-height: 1.15 !important;
+            text-align: center !important;
+            text-decoration: none !important;
+            white-space: normal !important;
+        }
+
+        body.booking-page.professional-booking .booking-customer-helpline a:first-child {
+            border-color: #fdba74 !important;
+            background: #fff7ed !important;
+            color: #9a4f0b !important;
+        }
+
+        body.booking-page.professional-booking .booking-customer-helpline i {
+            flex: 0 0 auto !important;
+        }
+
         body.booking-page.professional-booking .cab-mini-field.has-current {
             position: relative;
         }
@@ -466,6 +530,10 @@
         }
 
         @media (max-width: 760px) {
+            body.booking-page.professional-booking .booking-customer-helpline {
+                grid-template-columns: 1fr !important;
+            }
+
             body.booking-page.professional-booking .cab-airport-service-row {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
