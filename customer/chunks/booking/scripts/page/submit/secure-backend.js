@@ -105,10 +105,6 @@
             }
 
             const refreshToken = getBackendRefreshToken();
-            if (!refreshToken) {
-                return { ok: false, reason: 'missing_refresh_token' };
-            }
-
             const apiBases = getBackendApiBaseCandidates();
             const deviceFingerprint = getBookingDeviceFingerprint();
             const paths = ['/api/auth/refresh-secure', '/api/auth/refresh-token', '/api/auth/refresh-token-v2'];
@@ -120,23 +116,27 @@
                 }
                 for (const path of paths) {
                     try {
+                        const headers = {
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-Device-Fingerprint': deviceFingerprint,
+                            'x-request-id': createClientRequestId('gir-booking-token-refresh'),
+                            'x-timestamp': String(Date.now())
+                        };
+                        const body = {
+                            deviceFingerprint,
+                            reason: sanitizeInput(reason || 'booking_submit', 120)
+                        };
+                        if (refreshToken) {
+                            headers['X-Refresh-Token'] = refreshToken;
+                            body.refreshToken = refreshToken;
+                        }
                         const response = await fetchWithTimeout(`${apiBase}${path}`, {
                             method: 'POST',
                             credentials: 'include',
                             cache: 'no-store',
-                            headers: {
-                                Accept: 'application/json',
-                                'Content-Type': 'application/json',
-                                'X-Refresh-Token': refreshToken,
-                                'X-Device-Fingerprint': deviceFingerprint,
-                                'x-request-id': createClientRequestId('gir-booking-token-refresh'),
-                                'x-timestamp': String(Date.now())
-                            },
-                            body: JSON.stringify({
-                                refreshToken,
-                                deviceFingerprint,
-                                reason: sanitizeInput(reason || 'booking_submit', 120)
-                            })
+                            headers,
+                            body: JSON.stringify(body)
                         }, 9000);
                         const data = await parseJsonSafe(response);
                         if (response.status === 404 || response.status === 405) {

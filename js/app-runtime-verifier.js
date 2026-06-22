@@ -261,7 +261,7 @@
     var writeResult = { ok: false, status: 'not_requested' };
     var headers = authHeaders();
 
-    if (settings.writeSample && position.ok) {
+    if (settings.writeLiveProbe && position.ok) {
       if (!headers) {
         writeResult = { ok: false, status: 'login_required' };
       } else {
@@ -335,7 +335,7 @@
       button.textContent = 'Checking...';
       runAll({
         push: { requestPermission: true, syncSubscription: true },
-        liveGps: { writeSample: true, gpsTimeoutMs: 18000 }
+        liveGps: { writeLiveProbe: true, gpsTimeoutMs: 18000 }
       }).then(renderResult).catch(function (error) {
         renderResult({
           ok: false,

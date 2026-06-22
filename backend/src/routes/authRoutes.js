@@ -57,6 +57,21 @@ function allowOtpDevResponse() {
   return String(process.env.OTP_DEV_RESPONSE_ENABLED || '').toLowerCase().trim() === 'true';
 }
 
+function getRefreshCookieOptions() {
+  const production = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: production,
+    sameSite: production ? 'strict' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  };
+}
+
+function attachRefreshCookie(res, refreshToken) {
+  if (!res || !refreshToken) return;
+  res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
+}
+
 function findTrustedDevice(user, deviceFingerprint) {
   if (!user || !Array.isArray(user.trustedDevices) || !deviceFingerprint) return null;
 
@@ -962,16 +977,10 @@ if (isRegisteredAdminAccount(user)) {
     });
   });
 
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000
-  });
+  attachRefreshCookie(res, refreshToken);
 
   return res.status(200).json({
     accessToken,
-    refreshToken,
     id: String(user._id),
     name: user.name || '',
     email: user.email || '',
@@ -1315,7 +1324,6 @@ const _userAgentCF = _oldEntryCF?.userAgent || req.headers["user-agent"] || "";
     // ✅ Response
     return res.status(200).json({
       accessToken: newAccessToken,
-      // refreshToken: newRefreshToken, // ✅ सिर्फ testing के लिए; prod में मत भेजना
     });
   } catch (error) {
     return res.status(401).json({ message: 'Invalid refresh token' });
@@ -1440,7 +1448,6 @@ router.post("/refresh-token-v2", async (req, res) => {
 
     return res.status(200).json({
       accessToken: newAccessToken,
-      // refreshToken: newRefreshToken, // testing only
     });
   } catch (error) {
     return res.status(401).json({ message: "Invalid refresh token" });
@@ -1802,11 +1809,11 @@ if (shouldApproveAdminOtpDevice) {
     await user.save();
     otpDoc.verifiedAt = new Date();
     await otpDoc.save();
+    attachRefreshCookie(res, refreshToken);
   }
     return res.status(200).json({
       message: "OTP verified successfully",
       accessToken,
-      refreshToken, // testing के लिए; production में cookie में रख सकते हो
       id: String(user._id),
       name: user.name,
       email: user.email,
@@ -1927,11 +1934,10 @@ user.refreshTokens.push({
 });
 
 await user.save();
+attachRefreshCookie(res, newRefreshToken);
 
-// ✅ अब response में दोनों दो (testing)
 return res.status(200).json({
   accessToken: newAccessToken,
-  refreshToken: newRefreshToken,
 });
   } catch (error) {
     console.error("REFRESH TOKEN ERROR:", error);
@@ -2340,14 +2346,15 @@ router.post("/request-otp", async (req, res) => {
       purpose: "login",
     });
 
-    // 4) Rate control (429) - test mode friendly
-    const isTest = String(process.env.TEST_MODE || "").toLowerCase().trim() === "true";
+    // 4) Rate control (429). Local automation override is disabled in production.
+    const isLocalAutomation = !isProductionRuntime()
+      && String(process.env.TEST_MODE || "").toLowerCase().trim() === "true";
 
-    const OTP_COOLDOWN_MS = isTest
+    const OTP_COOLDOWN_MS = isLocalAutomation
       ? 1000
       : Number(process.env.OTP_COOLDOWN_MS || 30000); // default 30s
 
-    const OTP_MAX_SEND = isTest
+    const OTP_MAX_SEND = isLocalAutomation
       ? 1000
       : Number(process.env.OTP_MAX_SEND || 10); // default 10
 

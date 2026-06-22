@@ -7,7 +7,7 @@ function updateLocalPasswordRecordAfterReset(role,identifier,newPassword){
   return hashPassword(newPassword).then((hashedPassword)=>{
     if(role==='admin'){
       const profile=safeReadObject(ADMIN_PROFILE_KEY,null);
-      if(profile&&sanitizeEmail(profile.email||'')===identifier.value&&!isDemoAdminProfile(profile)){
+      if(profile&&sanitizeEmail(profile.email||'')===identifier.value&&!isLegacySeedAdminProfile(profile)){
         localStorage.setItem(ADMIN_PROFILE_KEY,JSON.stringify({...profile,passwordHash:hashedPassword,passwordUpdatedAt:new Date().toISOString()}));
       }
       return;

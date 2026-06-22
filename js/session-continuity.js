@@ -366,21 +366,26 @@
 
   async function refreshAtBase(apiBase, refreshToken, deviceFingerprint) {
     var paths = ['/api/auth/refresh-secure', '/api/auth/refresh-token'];
+    var normalizedRefreshToken = normalizeText(refreshToken);
     for (var i = 0; i < paths.length; i += 1) {
       try {
+        var headers = {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Device-Fingerprint': deviceFingerprint
+        };
+        var body = {
+          deviceFingerprint: deviceFingerprint
+        };
+        if (normalizedRefreshToken) {
+          headers['X-Refresh-Token'] = normalizedRefreshToken;
+          body.refreshToken = normalizedRefreshToken;
+        }
         var response = await fetchWithTimeout(apiBase + paths[i], {
           method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-Refresh-Token': refreshToken,
-            'X-Device-Fingerprint': deviceFingerprint
-          },
+          headers: headers,
           credentials: 'include',
-          body: JSON.stringify({
-            refreshToken: refreshToken,
-            deviceFingerprint: deviceFingerprint
-          })
+          body: JSON.stringify(body)
         }, REQUEST_TIMEOUT_MS);
 
         if (response.status === 404 || response.status === 405) {
@@ -639,7 +644,7 @@
       }
     }
 
-    if (refreshToken) {
+    if (refreshToken || settings.allowCookieRefresh !== false) {
       var deviceFingerprint = buildClientDeviceFingerprint();
       for (var j = 0; j < apiBases.length; j += 1) {
         var refreshResult = await refreshAtBase(apiBases[j], refreshToken, deviceFingerprint);
@@ -661,7 +666,7 @@
               apiBase: apiBases[j],
               user: refreshedUser
             });
-            return { ok: true, role: role, user: refreshedUser, source: 'refresh_token' };
+            return { ok: true, role: role, user: refreshedUser, source: refreshToken ? 'refresh_token' : 'refresh_cookie' };
           }
         } catch (_error2) {
           // Ignore and keep trying.

@@ -323,8 +323,22 @@ test('admin app homepage entry opens admin login instead of customer login', () 
   assert.match(home, /pages\/login\.html\?admin=1&next=%2Fadmin%2Fapp\.html/);
   assert.match(admin2fa, /function shouldOpenAdminLoginFromQuery\(\)/);
   assert.match(admin2fa, /next\.startsWith\('\/admin\/'\)/);
-  assert.match(admin2fa, /if\(adminText\)adminText\.style\.display='inline'/);
-  assert.match(adminSecurity, /if\(demoCustomer\)demoCustomer\.style\.display/);
+  assert.doesNotMatch(admin2fa, /adminDemoText|adminText/);
+  assert.doesNotMatch(adminSecurity, /demoCustomer|demoDriver/);
+  assert.match(adminSecurity, /isLegacySeedAdminProfile/);
   assert.match(recovery, /shouldOpenAdminLoginFromQuery\(\)/);
   assert.match(recovery, /else\{\s*updateLoginMethod\(\);\s*\}/);
+});
+
+test('customer live trip shell avoids demo driver and OTP placeholders', () => {
+  const customer = read('customer/index.html');
+
+  assert.match(customer, /Driver assignment pending/);
+  assert.match(customer, /Vehicle details appear after admin approval/);
+  assert.match(customer, /Live route map connects after driver assignment/);
+  assert.match(customer, /OTP appears only after admin approval and driver assignment/);
+  assert.doesNotMatch(customer, />Driver Name</);
+  assert.doesNotMatch(customer, />Vehicle Details</);
+  assert.doesNotMatch(customer, />0000</);
+  assert.doesNotMatch(customer, /Map will load here/);
 });

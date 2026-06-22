@@ -227,11 +227,10 @@ function toggleAdminLogin(){
   const methodSelector=document.getElementById('loginMethodSelector');
   const customerForm=document.getElementById('customerForm');
   const driverForm=document.getElementById('driverForm');
-  const adminText=document.getElementById('adminDemoText');
   closeForgotPassword();
   if(adminForm.style.display==='none'){
     setAdminAuthMode(true);
-    adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';if(adminText)adminText.style.display='inline';
+    adminForm.style.display='block';roleSelector.style.display='none';methodSelector.style.display='none';customerForm.style.display='none';driverForm.style.display='none';
     document.getElementById('adminStep1').style.display='block';document.getElementById('adminStep2').style.display='none';document.getElementById('adminStep3').style.display='none';
     getAdminCredentialFields().forEach((field)=>{delete field.dataset.userEdited;});
     clearAdminCredentialAutofill(true);
@@ -241,6 +240,6 @@ function toggleAdminLogin(){
     localStorage.removeItem(ADMIN_OTP_CONTEXT_KEY);
   }else{
     setAdminAuthMode(false);
-    adminStep1Context=null;adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';if(adminText)adminText.style.display='none';updateLoginMethod();
+    adminStep1Context=null;adminForm.style.display='none';roleSelector.style.display='grid';methodSelector.style.display='grid';updateLoginMethod();
   }
 }

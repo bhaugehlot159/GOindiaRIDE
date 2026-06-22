@@ -552,7 +552,7 @@ function loadUserData() {
         userData.name = 'Guest User';
         userData.email = 'guest@goindiaride.com';
         userData.phone = '+91 XXXXXXXXXX';
-        userData.avatar = 'https://via.placeholder.com/100';
+        userData.avatar = '../assets/brand/goindiaride-app-icon-1024.png';
         localStorage.setItem('goindiaride_user', JSON.stringify(userData));
     }
     

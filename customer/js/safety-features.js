@@ -437,7 +437,7 @@ function showDriverVerification(driver) {
             <h2>Driver Verification</h2>
             
             <div style="text-align: center; margin: 1.5rem 0;">
-                <img src="https://via.placeholder.com/120" alt="Driver" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--success-color);">
+                <img src="../assets/brand/goindiaride-app-icon-1024.png" alt="Driver" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--success-color);">
                 <div style="margin-top: 1rem;">
                     <span style="background: var(--success-color); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">
                         <i class="fas fa-check-circle"></i> Verified

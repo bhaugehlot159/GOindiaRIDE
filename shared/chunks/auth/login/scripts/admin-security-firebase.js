@@ -11,7 +11,7 @@ function notifyAdminSecurityEvent(title,message,metadata={}){
     PortalConnector.createNotification({type:'warning',title,message,sourcePortal:'login',targetPortals:['admin'],metadata});
   }
 }
-function isDemoAdminProfile(profile){
+function isLegacySeedAdminProfile(profile){
   if(!profile||typeof profile!=='object')return false;
   const email=sanitizeEmail(profile.email||'');
   const phone=normalizePhoneForLookup(profile.phone||profile.mobile||'');
@@ -20,7 +20,7 @@ function isDemoAdminProfile(profile){
 }
 async function ensureAdminProfile(){
   const existing=safeReadObject(ADMIN_PROFILE_KEY,null);
-  if(existing&&existing.email&&existing.passwordHash&&!isDemoAdminProfile(existing))return existing;
+  if(existing&&existing.email&&existing.passwordHash&&!isLegacySeedAdminProfile(existing))return existing;
   return null;
 }
 async function verifyStoredAdminProfile(email,password){
@@ -201,13 +201,9 @@ function updateLoginMethod(){
   const methodSelector=document.getElementById('loginMethodSelector');
   const customerForm=document.getElementById('customerForm');
   const driverForm=document.getElementById('driverForm');
-  const demoCustomer=document.getElementById('demoCustomer');
-  const demoDriver=document.getElementById('demoDriver');
   methodSelector.style.display='grid';
   customerForm.style.display=role==='customer'?'block':'none';
   driverForm.style.display=role==='driver'?'block':'none';
-  if(demoCustomer)demoCustomer.style.display=role==='customer'?'inline':'none';
-  if(demoDriver)demoDriver.style.display=role==='driver'?'inline':'none';
   closeForgotPassword();
   updateSelectedLoginMethod();
 }
