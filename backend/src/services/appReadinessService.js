@@ -4,8 +4,9 @@ const path = require('path');
 const { getRealtimeConfig } = require('./firebaseRealtimeDatabaseService');
 const { getLiveLocationTrackingStatus } = require('./liveLocationTrackingService');
 const { getPushNotificationStatus } = require('./pushNotificationService');
+const { getAndroidAppConversionStatus } = require('./androidAppConversionService');
 
-const APP_READINESS_VERSION = '2026-06-22-app-readiness-v3';
+const APP_READINESS_VERSION = '2026-06-22-app-readiness-v4';
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
 
 function readFile(relativePath) {
@@ -139,6 +140,10 @@ function buildRuntimeVerificationStatus() {
     verificationPage: fileExists('pages/app-runtime-check.html')
       && /data-app-runtime-run/.test(verifierPage)
       && /app-runtime-verifier\.js\?v=20260622-appverify1/.test(verifierPage),
+    permissionDisclosure: /Device permissions used by this check/.test(verifierPage)
+      && /Location permission/.test(verifierPage)
+      && /Notification permission/.test(verifierPage)
+      && /Phone OTP/.test(verifierPage),
     pwaDirectProbe: /checkPwaFiles/.test(verifierScript)
       && /\/manifest\.json/.test(verifierScript)
       && /\/service-worker\.js/.test(verifierScript)
@@ -291,6 +296,7 @@ function getAppReadinessStatus() {
   const otp = buildOtpStatus();
   const legal = buildLegalStatus();
   const runtimeVerification = buildRuntimeVerificationStatus();
+  const androidAppConversion = getAndroidAppConversionStatus();
   const realtimeConfig = getRealtimeConfig();
   const liveTracking = getLiveLocationTrackingStatus();
   const push = getPushNotificationStatus();
@@ -300,7 +306,11 @@ function getAppReadinessStatus() {
     ...flattenBooleans('payment.routes', payment.routes),
     ...flattenBooleans('otp', otp),
     ...flattenBooleans('legal', legal),
-    ...flattenBooleans('runtimeVerification', runtimeVerification)
+    ...flattenBooleans('runtimeVerification', runtimeVerification),
+    ...flattenBooleans('androidAppConversion.twa', androidAppConversion.twa),
+    ...flattenBooleans('androidAppConversion.playStore', androidAppConversion.playStore),
+    ...flattenBooleans('androidAppConversion.policy', androidAppConversion.policy),
+    ...flattenBooleans('androidAppConversion.websiteChecks', androidAppConversion.websiteChecks)
   ];
   const failed = checks.filter((row) => !row.ok);
 
@@ -343,10 +353,16 @@ function getAppReadinessStatus() {
     payment,
     legal,
     runtimeVerification,
+    androidAppConversion,
     appStores: {
       privacyDetailsReady: legal.privacyPolicy && legal.dataSafety && legal.accountDeletionPage,
       googlePlayDataSafetyPage: '/pages/legal/data-safety.html',
       applePrivacyDetailsSource: '/pages/legal/data-safety.html',
+      androidAssetLinksUrl: '/.well-known/assetlinks.json',
+      androidConversionHealthUrl: '/health/android-app-conversion',
+      androidTwaConfigUrl: '/app/android/goindiaride-twa-config.json',
+      playStoreListingSource: '/app/play-store-listing.json',
+      playDataSafetySource: '/app/play-data-safety.json',
       accountDeletionUrl: '/pages/legal/account-deletion.html',
       accountDeletionReady: legal.accountDeletionPage && legal.customerAccountDeletionPath,
       runtimeVerificationUrl: '/pages/app-runtime-check.html',

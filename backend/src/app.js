@@ -29,6 +29,10 @@ const { getRealtimeMatchingEngineStatus } = require('./services/realtimeMatching
 const { getLiveLocationTrackingStatus } = require('./services/liveLocationTrackingService');
 const { getSecurityHardeningStatus } = require('./services/securityHardeningService');
 const { getAppReadinessStatus } = require('./services/appReadinessService');
+const {
+  getAndroidAppConversionStatus,
+  getDigitalAssetLinks
+} = require('./services/androidAppConversionService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { globalLockdownShieldMiddleware } = require('./middleware/globalLockdownShieldMiddleware');
@@ -56,6 +60,7 @@ const PUBLIC_APP_FILE_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.webmanifest': 'application/manifest+json; charset=utf-8'
@@ -66,6 +71,9 @@ const PUBLIC_APP_FILES = new Set([
   '/admin/js/live-location-operations.js',
   '/admin/js/realtime-matching-engine.js',
   '/admin/manifest.webmanifest',
+  '/app/android/goindiaride-twa-config.json',
+  '/app/play-data-safety.json',
+  '/app/play-store-listing.json',
   '/assets/brand/goindiaride-app-icon-1024.png',
   '/assets/brand/goindiaride-brand-preview-full-hd.png',
   '/assets/images/quick-booking-hero.png',
@@ -77,6 +85,7 @@ const PUBLIC_APP_FILES = new Set([
   '/customer/manifest.webmanifest',
   '/driver/index.html',
   '/driver/manifest.webmanifest',
+  '/docs/android-app-conversion.md',
   '/firebase-messaging-sw.js',
   '/icons/icon-192.png',
   '/icons/icon-192.svg',
@@ -430,6 +439,16 @@ app.get('/health/live-location-tracking', (req, res) => {
 
 app.get('/health/app-readiness', (req, res) => {
   return res.status(200).json(getAppReadinessStatus());
+});
+
+app.get('/health/android-app-conversion', (req, res) => {
+  return res.status(200).json(getAndroidAppConversionStatus());
+});
+
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.type('application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(200).json(getDigitalAssetLinks());
 });
 
 app.get('/api/auth', (req, res) => {

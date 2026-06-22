@@ -3,6 +3,9 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-min-32-chars
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-min-32-chars-required-for-testing-only';
 process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/goindiaride-app-readiness-test';
 process.env.FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'test-firebase-api-key';
+process.env.ANDROID_APP_PACKAGE_NAME = process.env.ANDROID_APP_PACKAGE_NAME || 'in.goindiaride.app';
+process.env.ANDROID_APP_SHA256_CERT_FINGERPRINTS = process.env.ANDROID_APP_SHA256_CERT_FINGERPRINTS
+  || '11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00';
 process.env.GLOBAL_LOCKDOWN_SHIELD_ENABLED = 'false';
 process.env.ROUTE_GUARD_POLICY_SHIELD_ENABLED = 'false';
 
@@ -15,6 +18,7 @@ const request = require('supertest');
 
 const app = require('../src/app');
 const { APP_READINESS_VERSION, getAppReadinessStatus } = require('../src/services/appReadinessService');
+const { getAndroidAppConversionStatus } = require('../src/services/androidAppConversionService');
 
 const root = path.join(__dirname, '..', '..');
 
@@ -232,6 +236,10 @@ test('runtime verifier exposes the four compulsory app conversion checks', () =>
   assert.match(verifierPage, /data-app-runtime-run/);
   assert.match(verifierPage, /app-runtime-verifier\.js\?v=20260622-appverify1/);
   assert.match(verifierPage, /manifest\.json \+ service worker/);
+  assert.match(verifierPage, /Device permissions used by this check/);
+  assert.match(verifierPage, /Location permission/);
+  assert.match(verifierPage, /Notification permission/);
+  assert.match(verifierPage, /Phone OTP/);
 
   assert.match(verifierScript, /checkPwaFiles/);
   assert.match(verifierScript, /\/manifest\.json/);
@@ -281,6 +289,37 @@ test('Render backend serves direct public app conversion artifacts without expos
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(runtimeVerifier.text, /checkLiveGpsTracking/);
+
+  const assetLinks = await request(app)
+    .get('/.well-known/assetlinks.json')
+    .expect('Content-Type', /application\/json/)
+    .expect(200);
+  assert.equal(assetLinks.body[0].target.package_name, 'in.goindiaride.app');
+  assert.equal(assetLinks.body[0].target.sha256_cert_fingerprints.length, 1);
+
+  const twaConfig = await request(app)
+    .get('/app/android/goindiaride-twa-config.json')
+    .expect('Content-Type', /application\/json/)
+    .expect(200);
+  assert.equal(twaConfig.body.packageName, 'in.goindiaride.app');
+
+  const playListing = await request(app)
+    .get('/app/play-store-listing.json')
+    .expect('Content-Type', /application\/json/)
+    .expect(200);
+  assert.equal(playListing.body.title, 'GO India RIDE');
+
+  const playDataSafety = await request(app)
+    .get('/app/play-data-safety.json')
+    .expect('Content-Type', /application\/json/)
+    .expect(200);
+  assert.ok(playDataSafety.body.categories.some((category) => category.category === 'Location'));
+
+  const runbook = await request(app)
+    .get('/docs/android-app-conversion.md')
+    .expect('Content-Type', /text\/markdown/)
+    .expect(200);
+  assert.match(runbook.text, /Digital Asset Links/);
 
   await request(app)
     .get('/backend/src/app.js')
@@ -397,6 +436,52 @@ test('legal and app-store data safety disclosure pages are linked and indexed', 
   assert.match(sitemap, /pages\/legal\/account-deletion\.html/);
 });
 
+test('TWA and Play Store app conversion metadata is present and policy-aligned', async () => {
+  const twaConfig = readJson('app/android/goindiaride-twa-config.json');
+  const playListing = readJson('app/play-store-listing.json');
+  const playDataSafety = readJson('app/play-data-safety.json');
+  const runbook = read('docs/android-app-conversion.md');
+  const renderBlueprint = read('render.yaml');
+  const androidStatus = getAndroidAppConversionStatus();
+
+  assert.equal(twaConfig.packageName, 'in.goindiaride.app');
+  assert.equal(twaConfig.host, 'goindiaride.in');
+  assert.equal(twaConfig.manifestUrl, 'https://goindiaride.in/manifest.json');
+  assert.equal(twaConfig.startUrl, 'https://goindiaride.in/index.html?source=twa');
+  assert.equal(twaConfig.assetLinksUrl, 'https://goindiaride.in/.well-known/assetlinks.json');
+
+  assert.equal(playListing.title, 'GO India RIDE');
+  assert.equal(playListing.privacyPolicyUrl, 'https://goindiaride.in/pages/legal/privacy-policy.html');
+  assert.equal(playListing.accountDeletionUrl, 'https://goindiaride.in/pages/legal/account-deletion.html');
+  assert.match(JSON.stringify(playListing), /support@goindiaride\.in/);
+
+  assert.ok(playDataSafety.encryptedInTransit);
+  assert.ok(playDataSafety.categories.some((category) => category.category === 'Location'));
+  assert.ok(playDataSafety.categories.some((category) => category.category === 'Financial info'));
+  assert.ok(playDataSafety.categories.some((category) => category.category === 'Device or other IDs'));
+  assert.match(JSON.stringify(playDataSafety.runtimePermissionDisclosure), /notifications/i);
+
+  assert.match(runbook, /bubblewrap init --manifest=https:\/\/goindiaride\.in\/manifest\.json/);
+  assert.match(runbook, /ANDROID_APP_SHA256_CERT_FINGERPRINTS/);
+  assert.match(runbook, /target SDK/);
+  assert.match(renderBlueprint, /ANDROID_APP_PACKAGE_NAME/);
+  assert.match(renderBlueprint, /ANDROID_APP_SHA256_CERT_FINGERPRINTS/);
+
+  assert.equal(androidStatus.websiteReady, true);
+  assert.equal(androidStatus.digitalAssetLinksReady, true);
+  assert.equal(androidStatus.ok, true);
+
+  const response = await request(app)
+    .get('/health/android-app-conversion')
+    .expect(200);
+
+  assert.equal(response.body.websiteReady, true);
+  assert.equal(response.body.digitalAssetLinks.configured, true);
+  assert.equal(response.body.twa.configFile, true);
+  assert.equal(response.body.playStore.dataSafetyCoversLocation, true);
+  assert.equal(response.body.policy.runtimePermissionDisclosure, true);
+});
+
 test('app readiness health contract reports all app-conversion wiring', async () => {
   const directStatus = getAppReadinessStatus();
   assert.equal(directStatus.version, APP_READINESS_VERSION);
@@ -418,10 +503,16 @@ test('app readiness health contract reports all app-conversion wiring', async ()
   assert.equal(directStatus.legal.customerAccountDeletionPath, true);
   assert.equal(directStatus.legal.storeDeletionDisclosure, true);
   assert.equal(directStatus.runtimeVerification.verificationPage, true);
+  assert.equal(directStatus.runtimeVerification.permissionDisclosure, true);
   assert.equal(directStatus.runtimeVerification.pwaDirectProbe, true);
   assert.equal(directStatus.runtimeVerification.otpWebViewProbe, true);
   assert.equal(directStatus.runtimeVerification.pushTokenProbe, true);
   assert.equal(directStatus.runtimeVerification.liveGpsProbe, true);
+  assert.equal(directStatus.androidAppConversion.websiteReady, true);
+  assert.equal(directStatus.androidAppConversion.digitalAssetLinksReady, true);
+  assert.equal(directStatus.androidAppConversion.twa.configFile, true);
+  assert.equal(directStatus.androidAppConversion.playStore.listingSource, true);
+  assert.equal(directStatus.androidAppConversion.policy.runtimePermissionDisclosure, true);
 
   const response = await request(app)
     .get('/health/app-readiness')
@@ -430,6 +521,11 @@ test('app readiness health contract reports all app-conversion wiring', async ()
   assert.equal(response.body.version, APP_READINESS_VERSION);
   assert.equal(response.body.ok, true);
   assert.equal(response.body.appStores.googlePlayDataSafetyPage, '/pages/legal/data-safety.html');
+  assert.equal(response.body.appStores.androidAssetLinksUrl, '/.well-known/assetlinks.json');
+  assert.equal(response.body.appStores.androidConversionHealthUrl, '/health/android-app-conversion');
+  assert.equal(response.body.appStores.androidTwaConfigUrl, '/app/android/goindiaride-twa-config.json');
+  assert.equal(response.body.appStores.playStoreListingSource, '/app/play-store-listing.json');
+  assert.equal(response.body.appStores.playDataSafetySource, '/app/play-data-safety.json');
   assert.equal(response.body.appStores.accountDeletionUrl, '/pages/legal/account-deletion.html');
   assert.equal(response.body.appStores.accountDeletionReady, true);
   assert.equal(response.body.appStores.runtimeVerificationUrl, '/pages/app-runtime-check.html');

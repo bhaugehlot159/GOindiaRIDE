@@ -1,0 +1,18 @@
+{
+  "appName": "GO India RIDE",
+  "packageName": "in.goindiaride.app",
+  "host": "goindiaride.in",
+  "manifestUrl": "https://goindiaride.in/manifest.json",
+  "startUrl": "https://goindiaride.in/index.html?source=twa",
+  "fallbackApiBase": "https://goindiaride.onrender.com",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "themeColor": "#0b2f2a",
+  "backgroundColor": "#f7fafc",
+  "icon": "/assets/brand/goindiaride-app-icon-1024.png",
+  "assetLinksUrl": "https://goindiaride.in/.well-known/assetlinks.json",
+  "runtimeVerificationUrl": "https://goindiaride.in/pages/app-runtime-check.html",
+  "customerStartUrl": "https://goindiaride.in/customer/index.html?source=twa",
+  "driverStartUrl": "https://goindiaride.in/driver/index.html?source=twa",
+  "adminStartUrl": "https://goindiaride.in/admin/app.html?source=twa"
+}

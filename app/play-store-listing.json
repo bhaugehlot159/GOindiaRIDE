@@ -1,0 +1,24 @@
+{
+  "title": "GO India RIDE",
+  "shortDescription": "Book rides, track drivers live, manage wallet payments and receive ride alerts.",
+  "fullDescription": [
+    "GO India RIDE helps customers book cab rides, verify phone ownership with OTP, track assigned drivers during active trips and receive important ride updates.",
+    "Drivers can use the app surfaces for dashboard access, live location sharing during duty and trip status updates.",
+    "The app uses secure backend APIs for booking, wallet payments, OTP verification, push notifications and live trip tracking."
+  ],
+  "category": "Travel & Local",
+  "tags": [
+    "cab booking",
+    "ride booking",
+    "driver tracking",
+    "local travel"
+  ],
+  "supportEmail": "support@goindiaride.in",
+  "supportUrl": "https://goindiaride.in/pages/contact.html",
+  "privacyPolicyUrl": "https://goindiaride.in/pages/legal/privacy-policy.html",
+  "termsUrl": "https://goindiaride.in/pages/legal/terms-and-conditions.html",
+  "refundPolicyUrl": "https://goindiaride.in/pages/legal/refund-policy.html",
+  "accountDeletionUrl": "https://goindiaride.in/pages/legal/account-deletion.html",
+  "dataSafetyUrl": "https://goindiaride.in/pages/legal/data-safety.html",
+  "runtimeVerificationUrl": "https://goindiaride.in/pages/app-runtime-check.html"
+}

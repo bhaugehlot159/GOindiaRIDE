@@ -1,0 +1,92 @@
+{
+  "app": "GO India RIDE",
+  "lastReviewed": "2026-06-22",
+  "encryptedInTransit": true,
+  "dataDeletionUrl": "https://goindiaride.in/pages/legal/account-deletion.html",
+  "privacyPolicyUrl": "https://goindiaride.in/pages/legal/privacy-policy.html",
+  "categories": [
+    {
+      "category": "Personal info",
+      "dataTypes": [
+        "name",
+        "phone number",
+        "email address",
+        "profile details"
+      ],
+      "purpose": [
+        "account management",
+        "booking support",
+        "customer support",
+        "fraud prevention"
+      ],
+      "sharedWithThirdParties": false
+    },
+    {
+      "category": "Location",
+      "dataTypes": [
+        "approximate location",
+        "precise location during active ride or driver duty"
+      ],
+      "purpose": [
+        "pickup and drop planning",
+        "driver live GPS",
+        "customer driver-location view",
+        "ride safety"
+      ],
+      "sharedWithThirdParties": false
+    },
+    {
+      "category": "Financial info",
+      "dataTypes": [
+        "payment method metadata",
+        "wallet transaction records",
+        "payment success or failure callback references"
+      ],
+      "purpose": [
+        "ride payments",
+        "wallet top-up",
+        "refund and dispute handling"
+      ],
+      "processors": [
+        "Razorpay",
+        "PayPal",
+        "UPI app/payment provider selected by the user"
+      ],
+      "sharedWithThirdParties": true
+    },
+    {
+      "category": "App activity",
+      "dataTypes": [
+        "booking events",
+        "ride status changes",
+        "notification subscription status"
+      ],
+      "purpose": [
+        "booking confirmation",
+        "driver assignment",
+        "ride started/completed alerts",
+        "service reliability"
+      ],
+      "sharedWithThirdParties": false
+    },
+    {
+      "category": "Device or other IDs",
+      "dataTypes": [
+        "push subscription endpoint",
+        "device/browser metadata",
+        "security fingerprint"
+      ],
+      "purpose": [
+        "push notifications",
+        "account security",
+        "abuse prevention"
+      ],
+      "sharedWithThirdParties": false
+    }
+  ],
+  "runtimePermissionDisclosure": {
+    "location": "Requested only when live GPS pickup, ride tracking or driver duty location sharing needs device location.",
+    "notifications": "Requested only after the user starts notification setup, for booking and ride-status alerts.",
+    "otp": "Phone OTP verifies login and booking ownership before account or ride actions continue."
+  }
+}

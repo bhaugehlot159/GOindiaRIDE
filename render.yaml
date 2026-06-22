@@ -47,3 +47,7 @@ services:
         value: GO India RIDE
       - key: INTERNATIONAL_PAYMENT_QR_URL
         sync: false
+      - key: ANDROID_APP_PACKAGE_NAME
+        value: in.goindiaride.app
+      - key: ANDROID_APP_SHA256_CERT_FINGERPRINTS
+        sync: false

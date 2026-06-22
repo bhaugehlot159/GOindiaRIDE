@@ -19,6 +19,11 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - Push health endpoint: `/health/push-notifications`
 - Live GPS health endpoint: `/health/live-location-tracking`
 - Device/WebView runtime check page: `/pages/app-runtime-check.html`
+- Android app conversion health endpoint: `/health/android-app-conversion`
+- Android Digital Asset Links endpoint: `/.well-known/assetlinks.json`
+- TWA config source: `/app/android/goindiaride-twa-config.json`
+- Play listing source: `/app/play-store-listing.json`
+- Play data safety source: `/app/play-data-safety.json`
 - Payment creation and callback routes:
   - `POST /api/wallet/topup/order`
   - `POST /api/wallet/topup/razorpay/verify`
@@ -32,6 +37,8 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - Push: set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`.
 - Razorpay/UPI: set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `UPI_MERCHANT_VPA` for India payment flows.
 - PayPal: set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_ENV=live`, settlement currency, and INR conversion rate when wallet currency differs.
+- Android TWA package: set `ANDROID_APP_PACKAGE_NAME=in.goindiaride.app`.
+- Android Digital Asset Links: set `ANDROID_APP_SHA256_CERT_FINGERPRINTS` from Google Play App Signing or the actual upload certificate SHA-256 fingerprint.
 
 ## Store Disclosure Pages
 
@@ -42,6 +49,7 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - Data Safety Details: `/pages/legal/data-safety.html`
 - Account Deletion: `/pages/legal/account-deletion.html`
 - In-app deletion path: Customer Dashboard > Profile > Account deletion
+- Android app conversion runbook: `/docs/android-app-conversion.md`
 
 ## Compulsory App Runtime Checks
 
@@ -49,6 +57,7 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - APK/WebView OTP: run `/pages/app-runtime-check.html` inside the wrapper and confirm Firebase client config plus `RecaptchaVerifier` readiness before sending a real OTP.
 - Push notification/FCM path: run the same page after login; it checks notification permission, service worker, public VAPID key and subscription endpoint.
 - Real live GPS tracking: run the same page on a phone with location permission; it checks browser GPS and the live tracking endpoint, and writes a sample only when a signed-in session exists.
+- Trusted Web Activity verification: open `/.well-known/assetlinks.json` after the real Android signing SHA-256 fingerprint is configured, then confirm `/health/android-app-conversion`.
 
 ## External References Used
 
@@ -58,6 +67,7 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - web.dev Installation Prompt: https://web.dev/learn/pwa/installation-prompt
 - Firebase Cloud Messaging Web: https://firebase.google.com/docs/cloud-messaging/web/get-started
 - Firebase Phone Auth Web: https://firebase.google.com/docs/auth/web/phone-auth
+- Chrome Trusted Web Activity Quick Start: https://developer.chrome.com/docs/android/trusted-web-activity/quick-start/
 - Razorpay Checkout: https://razorpay.com/docs/payments/payment-gateway/web-integration/standard/integration-steps/
 - PayPal Standard Checkout: https://developer.paypal.com/docs/checkout/standard/integrate/
 - Google Play Data Safety: https://support.google.com/googleplay/android-developer/answer/10787469
