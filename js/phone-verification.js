@@ -53,6 +53,37 @@
     };
   }
 
+  function isWebViewRuntime() {
+    const userAgent = String(window.navigator && window.navigator.userAgent || '').toLowerCase();
+    return /\bwv\b/.test(userAgent)
+      || userAgent.includes('; wv')
+      || (userAgent.includes('version/') && userAgent.includes('mobile safari') && !userAgent.includes('safari/'));
+  }
+
+  function getReadinessStatus() {
+    const cfg = activeFirebaseConfig || window.GOINDIARIDE_FIREBASE_CONFIG || {};
+    const hasFirebaseAuth = Boolean(window.firebase && typeof window.firebase.auth === 'function');
+    const authNamespace = hasFirebaseAuth ? window.firebase.auth : null;
+    return {
+      ok: Boolean(
+        hasFirebaseAuth
+          && authNamespace
+          && typeof authNamespace.RecaptchaVerifier === 'function'
+          && cfg.apiKey
+          && cfg.authDomain
+          && cfg.projectId
+          && cfg.appId
+      ),
+      webViewRuntime: isWebViewRuntime(),
+      firebaseAuthLoaded: hasFirebaseAuth,
+      recaptchaVerifierAvailable: Boolean(authNamespace && typeof authNamespace.RecaptchaVerifier === 'function'),
+      config: getActiveFirebaseConfigSummary(),
+      dynamicConfigResolver: typeof window.resolveGoIndiaFirebaseConfig === 'function',
+      sendOtpAvailable: typeof sendOtp === 'function',
+      verifyOtpAvailable: typeof verifyOtp === 'function'
+    };
+  }
+
   function toFriendlyFirebaseError(error) {
     if (isUnauthorizedDomainError(error) || isCaptchaCheckFailedError(error)) {
       return new Error('Phone OTP security setup needs admin update for this domain. Please retry after the domain is enabled.');
@@ -259,6 +290,8 @@
     normalizePhone,
     sendOtp,
     verifyOtp,
-    clearSession
+    clearSession,
+    getActiveFirebaseConfigSummary,
+    getReadinessStatus
   };
 })();

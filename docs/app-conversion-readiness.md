@@ -7,6 +7,7 @@ This checklist keeps the public website, customer app, driver app and admin app 
 ## Production Surfaces
 
 - Public booking app: `/manifest.webmanifest`, `/index.html`, `/book-cab.html`
+- Direct public PWA probes: `/manifest.json`, `/manifest.webmanifest`, `/sw.js`, `/service-worker.js`
 - Customer app: `/customer/manifest.webmanifest`, `/customer/index.html`, `/pages/booking.html`, `/pages/customer-dashboard.html`
 - Driver app: `/driver/manifest.webmanifest`, `/driver/index.html`, `/pages/driver-dashboard.html`
 - Admin app: `/admin/manifest.webmanifest`, `/admin/app.html`
@@ -17,6 +18,7 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - App-readiness health endpoint: `/health/app-readiness`
 - Push health endpoint: `/health/push-notifications`
 - Live GPS health endpoint: `/health/live-location-tracking`
+- Device/WebView runtime check page: `/pages/app-runtime-check.html`
 - Payment creation and callback routes:
   - `POST /api/wallet/topup/order`
   - `POST /api/wallet/topup/razorpay/verify`
@@ -40,6 +42,13 @@ This checklist keeps the public website, customer app, driver app and admin app 
 - Data Safety Details: `/pages/legal/data-safety.html`
 - Account Deletion: `/pages/legal/account-deletion.html`
 - In-app deletion path: Customer Dashboard > Profile > Account deletion
+
+## Compulsory App Runtime Checks
+
+- PWA files: open `/manifest.json`, `/manifest.webmanifest`, `/sw.js`, and `/service-worker.js`; then run `/pages/app-runtime-check.html`.
+- APK/WebView OTP: run `/pages/app-runtime-check.html` inside the wrapper and confirm Firebase client config plus `RecaptchaVerifier` readiness before sending a real OTP.
+- Push notification/FCM path: run the same page after login; it checks notification permission, service worker, public VAPID key and subscription endpoint.
+- Real live GPS tracking: run the same page on a phone with location permission; it checks browser GPS and the live tracking endpoint, and writes a sample only when a signed-in session exists.
 
 ## External References Used
 

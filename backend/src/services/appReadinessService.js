@@ -5,7 +5,7 @@ const { getRealtimeConfig } = require('./firebaseRealtimeDatabaseService');
 const { getLiveLocationTrackingStatus } = require('./liveLocationTrackingService');
 const { getPushNotificationStatus } = require('./pushNotificationService');
 
-const APP_READINESS_VERSION = '2026-06-22-app-readiness-v2';
+const APP_READINESS_VERSION = '2026-06-22-app-readiness-v3';
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
 
 function readFile(relativePath) {
@@ -46,8 +46,8 @@ function buildSurfaceStatus() {
     public: {
       manifestLinked: /rel="manifest"\s+href="\.\/manifest\.webmanifest"/.test(publicHome),
       bookingManifestLinked: /rel="manifest"\s+href="\.\/manifest\.webmanifest"/.test(publicBooking),
-      pwaBootstrap: /pwa-app-shell\.js\?v=20260622-app-readiness2/.test(publicHome)
-        && /pwa-app-shell\.js\?v=20260622-app-readiness2/.test(publicBooking)
+      pwaBootstrap: /pwa-app-shell\.js\?v=20260622-app-readiness3/.test(publicHome)
+        && /pwa-app-shell\.js\?v=20260622-app-readiness3/.test(publicBooking)
     },
     customer: {
       dedicatedManifest: fileExists('customer/manifest.webmanifest'),
@@ -76,7 +76,9 @@ function buildSurfaceStatus() {
 
 function buildPwaStatus() {
   const rootManifest = readFile('manifest.webmanifest');
+  const manifestJson = readFile('manifest.json');
   const serviceWorker = readFile('sw.js');
+  const serviceWorkerAlias = readFile('service-worker.js');
   const pwaShell = readFile('js/pwa-app-shell.js');
   const firebaseMessaging = readFile('firebase-messaging-sw.js');
 
@@ -89,19 +91,26 @@ function buildPwaStatus() {
       /"shortcuts"\s*:/,
       /"screenshots"\s*:/
     ]),
+    rootManifestJsonAlias: hasAll(manifestJson, [
+      /"id":\s*"\/\?app=goindiaride-public"/,
+      /"start_url":\s*"\/index\.html\?source=pwa_public"/,
+      /"display":\s*"standalone"/,
+      /"icons"\s*:/
+    ]),
     customerManifest: fileExists('customer/manifest.webmanifest'),
     driverManifest: fileExists('driver/manifest.webmanifest'),
     adminManifest: fileExists('admin/manifest.webmanifest'),
     serviceWorker: hasAll(serviceWorker, [
-      /goindiaride-pwa-v66-20260622-app-readiness2/,
+      /goindiaride-pwa-v67-20260622-app-readiness3/,
       /OFFLINE_URL/,
       /addEventListener\('push'/,
       /notificationclick/,
       /isApiRequest/,
       /apiOfflineResponse/
     ]),
+    serviceWorkerPublicAlias: /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/.test(serviceWorkerAlias),
     offlineFallback: fileExists('offline.html') && /You are offline/.test(readFile('offline.html')),
-    firebaseMessagingWorker: /importScripts\('\/sw\.js\?v=20260622-app-readiness2'\)/.test(firebaseMessaging),
+    firebaseMessagingWorker: /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/.test(firebaseMessaging),
     pwaBootstrap: hasAll(pwaShell, [
       /beforeinstallprompt/,
       /data-goi-pwa-install/,
@@ -116,6 +125,37 @@ function buildPwaStatus() {
       && /apple-touch-startup-image/.test(readFile('customer/index.html'))
       && /apple-touch-startup-image/.test(readFile('driver/index.html'))
       && /apple-touch-startup-image/.test(readFile('admin/app.html'))
+  };
+}
+
+function buildRuntimeVerificationStatus() {
+  const verifierPage = readFile('pages/app-runtime-check.html');
+  const verifierScript = readFile('js/app-runtime-verifier.js');
+  const phoneVerification = readFile('js/phone-verification.js');
+  const pushNotifications = readFile('js/push-notifications.js');
+  const serviceWorker = readFile('sw.js');
+
+  return {
+    verificationPage: fileExists('pages/app-runtime-check.html')
+      && /data-app-runtime-run/.test(verifierPage)
+      && /app-runtime-verifier\.js\?v=20260622-appverify1/.test(verifierPage),
+    pwaDirectProbe: /checkPwaFiles/.test(verifierScript)
+      && /\/manifest\.json/.test(verifierScript)
+      && /\/service-worker\.js/.test(verifierScript)
+      && /goindiaride-pwa-v67-20260622-app-readiness3/.test(serviceWorker),
+    otpWebViewProbe: /checkOtpWebView/.test(verifierScript)
+      && /getReadinessStatus/.test(phoneVerification)
+      && /RecaptchaVerifier/.test(phoneVerification)
+      && /\/api\/auth\/firebase\/client-config/.test(verifierScript),
+    pushTokenProbe: /checkPushTokenFlow/.test(verifierScript)
+      && /getReadinessStatus/.test(pushNotifications)
+      && /Notification\.requestPermission/.test(verifierScript)
+      && /\/api\/notifications\/push\/public-key/.test(verifierScript)
+      && /\/api\/notifications\/push\/subscribe/.test(pushNotifications),
+    liveGpsProbe: /checkLiveGpsTracking/.test(verifierScript)
+      && /navigator\.geolocation\.getCurrentPosition/.test(verifierScript)
+      && /\/health\/live-location-tracking/.test(verifierScript)
+      && /\/api\/live-tracking\/location/.test(verifierScript)
   };
 }
 
@@ -250,6 +290,7 @@ function getAppReadinessStatus() {
   const payment = buildPaymentStatus();
   const otp = buildOtpStatus();
   const legal = buildLegalStatus();
+  const runtimeVerification = buildRuntimeVerificationStatus();
   const realtimeConfig = getRealtimeConfig();
   const liveTracking = getLiveLocationTrackingStatus();
   const push = getPushNotificationStatus();
@@ -258,7 +299,8 @@ function getAppReadinessStatus() {
     ...flattenBooleans('surfaces', surfaces),
     ...flattenBooleans('payment.routes', payment.routes),
     ...flattenBooleans('otp', otp),
-    ...flattenBooleans('legal', legal)
+    ...flattenBooleans('legal', legal),
+    ...flattenBooleans('runtimeVerification', runtimeVerification)
   ];
   const failed = checks.filter((row) => !row.ok);
 
@@ -300,12 +342,14 @@ function getAppReadinessStatus() {
     otp,
     payment,
     legal,
+    runtimeVerification,
     appStores: {
       privacyDetailsReady: legal.privacyPolicy && legal.dataSafety && legal.accountDeletionPage,
       googlePlayDataSafetyPage: '/pages/legal/data-safety.html',
       applePrivacyDetailsSource: '/pages/legal/data-safety.html',
       accountDeletionUrl: '/pages/legal/account-deletion.html',
       accountDeletionReady: legal.accountDeletionPage && legal.customerAccountDeletionPath,
+      runtimeVerificationUrl: '/pages/app-runtime-check.html',
       supportUrl: '/pages/contact.html',
       refundPolicyUrl: '/pages/legal/refund-policy.html'
     },

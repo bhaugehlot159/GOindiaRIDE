@@ -1,0 +1,95 @@
+{
+  "id": "/?app=goindiaride-public",
+  "name": "GO India RIDE - Cab Booking",
+  "short_name": "GO India RIDE",
+  "description": "Installable cab booking app for airport, city, rental and outstation rides across India.",
+  "start_url": "/index.html?source=pwa_public",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "background_color": "#07131f",
+  "theme_color": "#0b2f2a",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "navigation", "business", "utilities"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Book a cab",
+      "short_name": "Book",
+      "description": "Open the live public booking form.",
+      "url": "/book-cab.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Customer app",
+      "short_name": "Customer",
+      "description": "Open the customer booking and ride dashboard.",
+      "url": "/customer/index.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Driver app",
+      "short_name": "Driver",
+      "description": "Open the driver dashboard and GPS workflow.",
+      "url": "/driver/index.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Support",
+      "short_name": "Support",
+      "description": "Open contact and support options.",
+      "url": "/pages/contact.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/brand/goindiaride-brand-preview-full-hd.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "GO India RIDE booking experience"
+    },
+    {
+      "src": "/assets/images/quick-booking-hero.png",
+      "sizes": "1200x900",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Quick cab booking form"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/brand/goindiaride-app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

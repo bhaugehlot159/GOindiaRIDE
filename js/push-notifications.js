@@ -91,6 +91,30 @@
     );
   }
 
+  function getReadinessStatus() {
+    var supported = isSupported();
+    var permission = 'unsupported';
+    try {
+      permission = supported ? Notification.permission : 'unsupported';
+    } catch (_error) {
+      permission = 'unavailable';
+    }
+    return {
+      ok: supported,
+      supported: supported,
+      secureContext: Boolean(global.isSecureContext),
+      serviceWorker: 'serviceWorker' in navigator,
+      pushManager: 'PushManager' in global,
+      notificationApi: 'Notification' in global,
+      permission: permission,
+      apiBase: getApiBase(),
+      hasAccessToken: Boolean(getAccessToken()),
+      publicKeyEndpoint: '/api/notifications/push/public-key',
+      subscribeEndpoint: '/api/notifications/push/subscribe',
+      testEndpoint: '/api/notifications/push/test'
+    };
+  }
+
   function urlBase64ToUint8Array(base64String) {
     var padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -419,7 +443,8 @@
     sendTest: sendTest,
     syncExistingSubscription: syncExistingSubscription,
     getPublicKey: getPublicKey,
-    isSupported: isSupported
+    isSupported: isSupported,
+    getReadinessStatus: getReadinessStatus
   };
 
   if (document.readyState === 'loading') {

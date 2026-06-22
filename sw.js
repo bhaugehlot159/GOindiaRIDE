@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v66-20260622-app-readiness2';
+const CACHE_NAME = 'goindiaride-pwa-v67-20260622-app-readiness3';
 const OFFLINE_URL = './offline.html';
 const ASSETS = [
   './',
@@ -37,6 +37,8 @@ const ASSETS = [
   './assets/brand/goindiaride-app-icon-1024.png',
   './optimization.js',
   './manifest.webmanifest',
+  './manifest.json',
+  './service-worker.js',
   './customer/manifest.webmanifest',
   './driver/manifest.webmanifest',
   './admin/manifest.webmanifest',

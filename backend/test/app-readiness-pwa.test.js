@@ -166,11 +166,13 @@ function runPwaShellInFakeDom({ pathname = '/', includeHomeInstallButton = true 
 
 test('PWA manifests are valid JSON and expose separate public customer driver admin apps', () => {
   const publicManifest = readJson('manifest.webmanifest');
+  const publicManifestJson = readJson('manifest.json');
   const customerManifest = readJson('customer/manifest.webmanifest');
   const driverManifest = readJson('driver/manifest.webmanifest');
   const adminManifest = readJson('admin/manifest.webmanifest');
 
   assert.equal(publicManifest.id, '/?app=goindiaride-public');
+  assert.deepEqual(publicManifestJson, publicManifest);
   assert.equal(customerManifest.id, '/customer/?app=goindiaride-customer');
   assert.equal(driverManifest.id, '/driver/?app=goindiaride-driver');
   assert.equal(adminManifest.id, '/admin/?app=goindiaride-admin');
@@ -192,11 +194,12 @@ test('PWA manifests are valid JSON and expose separate public customer driver ad
 
 test('service worker and app shell provide offline, push, install and Firebase messaging readiness', () => {
   const serviceWorker = read('sw.js');
+  const serviceWorkerAlias = read('service-worker.js');
   const pwaShell = read('js/pwa-app-shell.js');
   const firebaseMessagingWorker = read('firebase-messaging-sw.js');
   const offlinePage = read('offline.html');
 
-  assert.match(serviceWorker, /goindiaride-pwa-v66-20260622-app-readiness2/);
+  assert.match(serviceWorker, /goindiaride-pwa-v67-20260622-app-readiness3/);
   assert.match(serviceWorker, /const OFFLINE_URL = '\.\/offline\.html'/);
   assert.match(serviceWorker, /apiOfflineResponse/);
   assert.match(serviceWorker, /isApiRequest/);
@@ -206,6 +209,8 @@ test('service worker and app shell provide offline, push, install and Firebase m
   assert.match(serviceWorker, /driver\/manifest\.webmanifest/);
   assert.match(serviceWorker, /admin\/manifest\.webmanifest/);
   assert.match(serviceWorker, /pages\/legal\/account-deletion\.html/);
+  assert.match(serviceWorker, /manifest\.json/);
+  assert.match(serviceWorkerAlias, /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/);
 
   assert.match(pwaShell, /beforeinstallprompt/);
   assert.match(pwaShell, /data-goi-pwa-install/);
@@ -214,8 +219,36 @@ test('service worker and app shell provide offline, push, install and Firebase m
   assert.match(pwaShell, /navigator\.serviceWorker\.register/);
   assert.match(pwaShell, /GoIndiaRidePWA/);
   assert.match(pwaShell, /getSurface/);
-  assert.match(firebaseMessagingWorker, /importScripts\('\/sw\.js\?v=20260622-app-readiness2'\)/);
+  assert.match(firebaseMessagingWorker, /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/);
   assert.match(offlinePage, /You are offline/);
+});
+
+test('runtime verifier exposes the four compulsory app conversion checks', () => {
+  const verifierPage = read('pages/app-runtime-check.html');
+  const verifierScript = read('js/app-runtime-verifier.js');
+  const phoneVerification = read('js/phone-verification.js');
+  const pushNotifications = read('js/push-notifications.js');
+
+  assert.match(verifierPage, /data-app-runtime-run/);
+  assert.match(verifierPage, /app-runtime-verifier\.js\?v=20260622-appverify1/);
+  assert.match(verifierPage, /manifest\.json \+ service worker/);
+
+  assert.match(verifierScript, /checkPwaFiles/);
+  assert.match(verifierScript, /\/manifest\.json/);
+  assert.match(verifierScript, /\/service-worker\.js/);
+  assert.match(verifierScript, /checkOtpWebView/);
+  assert.match(verifierScript, /\/api\/auth\/firebase\/client-config/);
+  assert.match(verifierScript, /checkPushTokenFlow/);
+  assert.match(verifierScript, /Notification\.requestPermission/);
+  assert.match(verifierScript, /\/api\/notifications\/push\/public-key/);
+  assert.match(verifierScript, /checkLiveGpsTracking/);
+  assert.match(verifierScript, /navigator\.geolocation\.getCurrentPosition/);
+  assert.match(verifierScript, /\/api\/live-tracking\/location/);
+
+  assert.match(phoneVerification, /getReadinessStatus/);
+  assert.match(phoneVerification, /recaptchaVerifierAvailable/);
+  assert.match(pushNotifications, /getReadinessStatus/);
+  assert.match(pushNotifications, /publicKeyEndpoint/);
 });
 
 test('PWA app shell reveals install controls only after a real install prompt is available', async () => {
@@ -288,7 +321,7 @@ test('main app pages link the correct manifests, splash asset, push client and P
 
   for (const [name, source] of Object.entries(files)) {
     assert.match(source, /apple-touch-startup-image/, `${name} missing startup image`);
-    assert.match(source, /pwa-app-shell\.js\?v=20260622-app-readiness2/, `${name} missing PWA shell`);
+    assert.match(source, /pwa-app-shell\.js\?v=20260622-app-readiness3/, `${name} missing PWA shell`);
   }
 
   assert.match(files.customer, /push-notifications\.js\?v=20260613-push-phase4/);
@@ -334,6 +367,8 @@ test('app readiness health contract reports all app-conversion wiring', async ()
   assert.equal(directStatus.ok, true);
   assert.equal(directStatus.warningCount, 0);
   assert.equal(directStatus.pwa.rootManifest, true);
+  assert.equal(directStatus.pwa.rootManifestJsonAlias, true);
+  assert.equal(directStatus.pwa.serviceWorkerPublicAlias, true);
   assert.equal(directStatus.pwa.offlineFallback, true);
   assert.equal(directStatus.pwa.firebaseMessagingWorker, true);
   assert.equal(directStatus.pwa.accountDeletionOfflineCached, true);
@@ -346,6 +381,11 @@ test('app readiness health contract reports all app-conversion wiring', async ()
   assert.equal(directStatus.legal.accountDeletionPage, true);
   assert.equal(directStatus.legal.customerAccountDeletionPath, true);
   assert.equal(directStatus.legal.storeDeletionDisclosure, true);
+  assert.equal(directStatus.runtimeVerification.verificationPage, true);
+  assert.equal(directStatus.runtimeVerification.pwaDirectProbe, true);
+  assert.equal(directStatus.runtimeVerification.otpWebViewProbe, true);
+  assert.equal(directStatus.runtimeVerification.pushTokenProbe, true);
+  assert.equal(directStatus.runtimeVerification.liveGpsProbe, true);
 
   const response = await request(app)
     .get('/health/app-readiness')
@@ -356,4 +396,5 @@ test('app readiness health contract reports all app-conversion wiring', async ()
   assert.equal(response.body.appStores.googlePlayDataSafetyPage, '/pages/legal/data-safety.html');
   assert.equal(response.body.appStores.accountDeletionUrl, '/pages/legal/account-deletion.html');
   assert.equal(response.body.appStores.accountDeletionReady, true);
+  assert.equal(response.body.appStores.runtimeVerificationUrl, '/pages/app-runtime-check.html');
 });

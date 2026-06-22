@@ -1,7 +1,7 @@
 (function initGoIndiaRidePwaAppShell(global) {
   'use strict';
 
-  var VERSION = '20260622-app-readiness2';
+  var VERSION = '20260622-app-readiness3';
   var STATUS_KEY = 'goindiaride_pwa_app_shell_status_v1';
   var INSTALL_PROMPT_KEY = 'goindiaride_pwa_install_prompt_seen_v1';
   var INSTALL_UI_ID = 'goiPwaInstallDock';
