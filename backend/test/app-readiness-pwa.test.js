@@ -251,6 +251,42 @@ test('runtime verifier exposes the four compulsory app conversion checks', () =>
   assert.match(pushNotifications, /publicKeyEndpoint/);
 });
 
+test('Render backend serves direct public app conversion artifacts without exposing source files', async () => {
+  const manifest = await request(app)
+    .get('/manifest.json')
+    .expect('Content-Type', /application\/json/)
+    .expect(200);
+  assert.equal(manifest.body.id, '/?app=goindiaride-public');
+
+  const serviceWorkerAlias = await request(app)
+    .get('/service-worker.js')
+    .expect('Service-Worker-Allowed', '/')
+    .expect(200);
+  assert.match(serviceWorkerAlias.text, /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/);
+
+  const serviceWorker = await request(app)
+    .get('/sw.js?v=20260622-app-readiness3')
+    .expect('Service-Worker-Allowed', '/')
+    .expect(200);
+  assert.match(serviceWorker.text, /goindiaride-pwa-v67-20260622-app-readiness3/);
+
+  const runtimePage = await request(app)
+    .get('/pages/app-runtime-check.html')
+    .expect('Content-Type', /text\/html/)
+    .expect(200);
+  assert.match(runtimePage.text, /data-app-runtime-run/);
+
+  const runtimeVerifier = await request(app)
+    .get('/js/app-runtime-verifier.js?v=20260622-appverify1')
+    .expect('Content-Type', /application\/javascript/)
+    .expect(200);
+  assert.match(runtimeVerifier.text, /checkLiveGpsTracking/);
+
+  await request(app)
+    .get('/backend/src/app.js')
+    .expect(404);
+});
+
 test('PWA app shell reveals install controls only after a real install prompt is available', async () => {
   const home = runPwaShellInFakeDom({ pathname: '/', includeHomeInstallButton: true });
   assert.equal(home.homeInstallButton.hidden, true);

@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const mongoSanitize = require('express-mongo-sanitize');
+const path = require('path');
 
 const env = require('./config/env');
 const authRoutes = require('./routes/authRoutes');
@@ -49,6 +50,95 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware'
 const logger = require('./utils/logger');
 
 const app = express();
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const PUBLIC_APP_FILE_TYPES = {
+  '.css': 'text/css; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.webmanifest': 'application/manifest+json; charset=utf-8'
+};
+const PUBLIC_APP_FILES = new Set([
+  '/admin/app.html',
+  '/admin/js/admin-operations-center.js',
+  '/admin/js/live-location-operations.js',
+  '/admin/js/realtime-matching-engine.js',
+  '/admin/manifest.webmanifest',
+  '/assets/brand/goindiaride-app-icon-1024.png',
+  '/assets/brand/goindiaride-brand-preview-full-hd.png',
+  '/assets/images/quick-booking-hero.png',
+  '/book-cab.html',
+  '/css/professional-purple-theme.css',
+  '/css/quick-booking.css',
+  '/css/search-service.css',
+  '/customer/index.html',
+  '/customer/manifest.webmanifest',
+  '/driver/index.html',
+  '/driver/manifest.webmanifest',
+  '/firebase-messaging-sw.js',
+  '/icons/icon-192.png',
+  '/icons/icon-192.svg',
+  '/icons/icon-512.png',
+  '/icons/icon-512.svg',
+  '/index.html',
+  '/js/app-runtime-verifier.js',
+  '/js/data-preservation-guard.js',
+  '/js/firebase-config.js',
+  '/js/global-ui.js',
+  '/js/phone-verification.js',
+  '/js/push-notifications.js',
+  '/js/pwa-app-shell.js',
+  '/js/quick-booking.js',
+  '/js/wallet-core.js',
+  '/manifest.json',
+  '/manifest.webmanifest',
+  '/offline.html',
+  '/optimization.js',
+  '/pages/app-runtime-check.html',
+  '/pages/booking.html',
+  '/pages/contact.html',
+  '/pages/customer-dashboard.html',
+  '/pages/driver-dashboard.html',
+  '/pages/legal/account-deletion.html',
+  '/pages/legal/data-safety.html',
+  '/pages/legal/privacy-policy.html',
+  '/pages/legal/refund-policy.html',
+  '/pages/legal/terms-and-conditions.html',
+  '/service-worker.js',
+  '/style.css',
+  '/sw.js',
+  '/taxi-service.html'
+]);
+
+function normalizePublicAppPath(requestPath) {
+  const raw = String(requestPath || '').split('?')[0] || '';
+  const normalized = path.posix.normalize(raw.startsWith('/') ? raw : `/${raw}`);
+  return normalized.includes('..') ? '' : normalized;
+}
+
+function servePublicAppFile(req, res, next) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  const publicPath = normalizePublicAppPath(req.path);
+  if (!PUBLIC_APP_FILES.has(publicPath)) return next();
+
+  const absolutePath = path.resolve(REPO_ROOT, `.${publicPath}`);
+  if (!absolutePath.startsWith(REPO_ROOT + path.sep)) return next();
+
+  const extension = path.extname(publicPath).toLowerCase();
+  const contentType = PUBLIC_APP_FILE_TYPES[extension];
+  if (contentType) res.type(contentType);
+  if (publicPath === '/sw.js' || publicPath === '/service-worker.js' || publicPath === '/firebase-messaging-sw.js') {
+    res.setHeader('Service-Worker-Allowed', '/');
+  }
+  res.setHeader('Cache-Control', 'no-store');
+  return res.sendFile(absolutePath, (error) => {
+    if (!error) return undefined;
+    if (error.code === 'ENOENT') return next();
+    return next(error);
+  });
+}
 
 // ============================================================================
 // STARTUP VALIDATION: Ensure all critical configuration is present
@@ -530,6 +620,7 @@ app.use('/api/live-tracking', liveTrackingRoutes);
 app.use('/api/gdpr', gdprRoutes);
 app.use('/api/future-runtime', futureRuntimeRoutes);
 app.use('/api/future-runtime-business', futureBusinessRoutes);
+app.use(servePublicAppFile);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
