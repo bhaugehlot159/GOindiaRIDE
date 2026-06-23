@@ -94,8 +94,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(home, /href="tel:\+918426891471"[^>]*data-home-safety-action="emergency-contact"[\s\S]*Emergency Contact/);
   assert.match(home, /href="\.\/pages\/contact\.html#safety-privacy"[^>]*data-home-safety-action="safety-center"[\s\S]*Safety Center/);
   assert.match(home, /id="homeFareCalculatorForm"[\s\S]*id="homeFarePickupInput"[^>]*value="Udaipur"[\s\S]*id="homeFareDropInput"[^>]*value="Udaipur Airport"[\s\S]*id="homeFareVehicleInput"/);
+  assert.match(home, /id="homeFareEstimateAmount">[^<]*736<\/strong>/);
   assert.match(home, /id="homeFareEstimateAmount"[\s\S]*data-home-fare-book/);
-  assert.match(home, /source=home_fare_calculator&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;pickup=Udaipur&amp;drop=Udaipur%20Airport/);
+  assert.match(home, /source=home_fare_calculator&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;pickup=Udaipur&amp;drop=Udaipur%20Airport&amp;vehicleType=sedan&amp;fareEstimate=736&amp;distanceKm=22/);
   assert.doesNotMatch(home, /onclick="goToBooking\(\)"/);
   assert.doesNotMatch(homeFooter, /href="#(?:about|careers|press|blog|faq|support|safety|driver-signup|driver-faq|driver-support|documents)"/);
   assert.match(home, /href="\.\/pages\/legal\/gdpr-notice\.html"[^>]*rel="nofollow"/);
