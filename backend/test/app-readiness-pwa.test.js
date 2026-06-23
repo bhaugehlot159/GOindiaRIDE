@@ -30,6 +30,32 @@ function readJson(relativePath) {
   return JSON.parse(read(relativePath));
 }
 
+function readBinary(relativePath) {
+  return fs.readFileSync(path.join(root, relativePath));
+}
+
+function readPngDimensions(relativePath) {
+  const buffer = readBinary(relativePath);
+  assert.deepEqual([...buffer.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+    bytes: buffer.length
+  };
+}
+
+function readIcoFirstImage(relativePath) {
+  const buffer = readBinary(relativePath);
+  assert.equal(buffer.readUInt16LE(0), 0);
+  assert.equal(buffer.readUInt16LE(2), 1);
+  assert.equal(buffer.readUInt16LE(4), 1);
+  return {
+    width: buffer[6] || 256,
+    height: buffer[7] || 256,
+    bytes: buffer.readUInt32LE(14)
+  };
+}
+
 function createFakeNode(tagName) {
   const node = {
     tagName: String(tagName || 'div').toUpperCase(),
@@ -199,6 +225,51 @@ test('PWA manifests are valid JSON and expose separate public customer driver ad
   assert.ok(customerManifest.shortcuts.some((shortcut) => shortcut.url.includes('/pages/booking.html')));
   assert.ok(driverManifest.shortcuts.some((shortcut) => shortcut.url.includes('/driver/index.html')));
   assert.ok(adminManifest.shortcuts.some((shortcut) => shortcut.url.includes('/admin/app.html')));
+});
+
+test('app icon assets stay production sized, polished, and linked by all PWA manifests', () => {
+  const icon192 = readPngDimensions('icons/icon-192.png');
+  const icon512 = readPngDimensions('icons/icon-512.png');
+  const icon1024 = readPngDimensions('assets/brand/goindiaride-app-icon-1024.png');
+  const favicon = readIcoFirstImage('favicon.ico');
+  const icon192Svg = read('icons/icon-192.svg');
+  const icon512Svg = read('icons/icon-512.svg');
+  const manifests = [
+    readJson('manifest.json'),
+    readJson('manifest.webmanifest'),
+    readJson('customer/manifest.webmanifest'),
+    readJson('driver/manifest.webmanifest'),
+    readJson('admin/manifest.webmanifest')
+  ];
+
+  assert.deepEqual(
+    { width: icon192.width, height: icon192.height },
+    { width: 192, height: 192 }
+  );
+  assert.deepEqual(
+    { width: icon512.width, height: icon512.height },
+    { width: 512, height: 512 }
+  );
+  assert.deepEqual(
+    { width: icon1024.width, height: icon1024.height },
+    { width: 1024, height: 1024 }
+  );
+  assert.ok(icon192.bytes > 20000, '192px launcher icon should not regress to a tiny placeholder');
+  assert.ok(icon512.bytes > 90000, '512px launcher icon should retain polished raster detail');
+  assert.ok(icon1024.bytes > 250000, '1024px app-store icon should retain high-resolution brand detail');
+  assert.deepEqual(favicon, { width: 192, height: 192, bytes: icon192.bytes });
+  assert.match(icon192Svg, /GO India RIDE international app icon/);
+  assert.match(icon512Svg, /GO India RIDE international app icon/);
+
+  for (const manifest of manifests) {
+    const iconSources = (manifest.icons || []).map((icon) => icon.src);
+    assert.ok(iconSources.includes('/icons/icon-192.png'));
+    assert.ok(iconSources.includes('/icons/icon-512.png'));
+    assert.ok(iconSources.includes('/assets/brand/goindiaride-app-icon-1024.png'));
+    assert.ok((manifest.icons || []).some((icon) => (
+      icon.src === '/icons/icon-512.png' && /maskable/.test(icon.purpose || '')
+    )));
+  }
 });
 
 test('service worker and app shell provide offline, push, install and Firebase messaging readiness', () => {
