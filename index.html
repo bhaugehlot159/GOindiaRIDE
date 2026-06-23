@@ -266,28 +266,13 @@
     </section>
 
     <!-- Testimonials -->
-    <section class="home-testimonials-band" aria-labelledby="homeStoriesTitle">
+    <section class="home-testimonials-band" id="homeCustomerReviews" aria-labelledby="homeStoriesTitle" data-home-review-section hidden>
         <div class="container">
             <div class="home-section-heading">
                 <p class="section-eyebrow">Traveler confidence</p>
-                <h2 id="homeStoriesTitle">Designed to feel easy before the ride starts</h2>
+                <h2 id="homeStoriesTitle">Real customer reviews</h2>
             </div>
-            <div class="home-story-grid">
-                <article class="home-story-card">
-                    <div class="home-story-rating">5.0</div>
-                    <p>"The first step was clear. I could send my pickup and drop details without creating an account."</p>
-                    <strong>International guest</strong>
-                </article>
-                <article class="home-story-card">
-                    <div class="home-story-rating">4.9</div>
-                    <p>"Airport and hotel transfer details were easy to enter, and the booking reached operations properly."</p>
-                    <strong>Business traveler</strong>
-                </article>
-                <article class="home-story-card">
-                    <div class="home-story-rating">4.8</div>
-                    <p>"Good for family travel because the page explains the ride types and takes you directly to booking."</p>
-                    <strong>Domestic customer</strong>
-                </article>
+            <div class="home-story-grid" data-home-review-grid aria-live="polite">
             </div>
         </div>
     </section>
@@ -534,7 +519,7 @@
 
     <script src="./js/app.js"></script>
     <script src="./js/locations.js?v=20260610-home-suggest1"></script>
-    <script src="./shared/chunks/home/scripts/index.js?v=20260610-handoff-nav1"></script>
+    <script src="./shared/chunks/home/scripts/index.js?v=20260623-real-reviews1"></script>
     
     <!-- JSON-LD Schema for SEO -->
     <script type="application/ld+json">

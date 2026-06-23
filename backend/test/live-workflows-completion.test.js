@@ -71,7 +71,7 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(home, /home-international\.css\?v=20260610-handoff-nav1/);
   assert.match(home, /Airport, city and intercity cab booking/);
   assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
-  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260610-handoff-nav1/);
+  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260623-real-reviews1/);
   assert.doesNotMatch(home, /20260610-location-ui1/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
@@ -344,6 +344,40 @@ test('AI security dashboard is admin-only and absent from homepage UI', () => {
   assert.match(adminApp, /id="ai-security-widget"/);
   assert.match(adminApp, /id="aiSecurityEventsBody"/);
   assert.match(adminApp, /\.\.\/js\/ai-auto-detective\.js\?v=20260622-admin-panel1/);
+});
+
+test('homepage customer reviews require live customer name city and rating', () => {
+  const home = read('index.html');
+  const homeScript = read('shared/chunks/home/scripts/index.js');
+  const customerLiveOps = read('customer/chunks/dashboard/scripts/customer-live-ops.js');
+  const futureBusinessRoutes = read('backend/src/routes/futureBusinessRoutes.js');
+
+  assert.match(home, /id="homeCustomerReviews"[^>]*data-home-review-section[^>]*hidden/);
+  assert.match(home, /<h2 id="homeStoriesTitle">Real customer reviews<\/h2>/);
+  assert.match(home, /data-home-review-grid/);
+  assert.match(home, /index\.js\?v=20260623-real-reviews1/);
+  assert.doesNotMatch(home, /International guest|Business traveler|Domestic customer/);
+
+  assert.match(homeScript, /HOME_PUBLIC_REVIEW_PATH = '\/api\/future-runtime-business\/reviews\?public=1&targetType=ride&limit=3'/);
+  assert.match(homeScript, /HOME_PRODUCTION_API_BASE = 'https:\/\/goindiaride\.onrender\.com'/);
+  assert.match(homeScript, /function normalizeHomeReviewItem\(item\)/);
+  assert.match(homeScript, /customerName/);
+  assert.match(homeScript, /city/);
+  assert.match(homeScript, /formatHomeReviewRating\(item\.rating\)/);
+  assert.match(homeScript, /function isGenericHomeReviewName\(value\)/);
+  assert.match(homeScript, /renderHomeCustomerReviews\(reviews\)/);
+  assert.match(homeScript, /loadHomeCustomerReviews\(\)/);
+
+  assert.match(customerLiveOps, /var customerName = safeText\(user\.fullname \|\| user\.name \|\| user\.customerName \|\| ride\.customerName/);
+  assert.match(customerLiveOps, /var city = safeText\(ride\.dropCity \|\| ride\.pickupCity/);
+  assert.match(customerLiveOps, /customerName: customerName/);
+  assert.match(customerLiveOps, /city: city/);
+
+  assert.match(futureBusinessRoutes, /const customerName = normalizeString\(req\.body\?\.customerName/);
+  assert.match(futureBusinessRoutes, /const city = normalizeString\(req\.body\?\.city/);
+  assert.match(futureBusinessRoutes, /const publicOnly = \['1', 'true', 'homepage'\]/);
+  assert.match(futureBusinessRoutes, /customerName: item\.customerName/);
+  assert.match(futureBusinessRoutes, /city: item\.city/);
 });
 
 test('customer live trip shell avoids demo driver and OTP placeholders', () => {

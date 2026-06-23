@@ -476,10 +476,16 @@
 
     function saveRating(rideId, rating, note) {
         var rows = parseJsonArray(localStorage.getItem('goindiaride_customer_ride_reviews_v1'));
+        var user = getCurrentUserSafe();
+        var ride = findRide(rideId) || {};
+        var customerName = safeText(user.fullname || user.name || user.customerName || ride.customerName, '');
+        var city = safeText(ride.dropCity || ride.pickupCity || ride.city || ride.dropoff || ride.dropLocation || ride.drop || ride.pickup || ride.pickupLocation || user.city || user.address, '');
         rows.unshift({
             rideId: safeText(rideId, 'ride'),
             rating: rating,
             comment: note,
+            customerName: customerName,
+            city: city,
             createdAt: new Date().toISOString(),
             syncStatus: navigator.onLine ? 'queued_for_backend' : 'offline_queue'
         });
@@ -492,6 +498,8 @@
                 targetId: safeText(rideId, 'ride'),
                 rating: rating,
                 comment: note,
+                customerName: customerName,
+                city: city,
                 locale: 'en-IN'
             }).catch(function () {});
         }

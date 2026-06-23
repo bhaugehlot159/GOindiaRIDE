@@ -1601,6 +1601,8 @@ router.post('/reviews', (req, res) => {
   const targetId = normalizeString(req.body?.targetId, 100) || 'unknown';
   const rating = Math.max(1, Math.min(5, Math.round(normalizeAmount(req.body?.rating || 0))));
   const comment = normalizeString(req.body?.comment, 500);
+  const customerName = normalizeString(req.body?.customerName || req.body?.reviewerName || req.body?.name, 120);
+  const city = normalizeString(req.body?.city || req.body?.customerCity || req.body?.location || req.body?.pickupCity, 80);
   if (!userKey || !targetId || !rating) {
     return res.status(400).json({ ok: false, message: 'userKey, targetId and rating are required' });
   }
@@ -1612,6 +1614,8 @@ router.post('/reviews', (req, res) => {
     targetId,
     rating,
     comment,
+    customerName,
+    city,
     locale: normalizeString(req.body?.locale, 30) || 'en-IN',
     createdAt: new Date().toISOString()
   };
@@ -1627,13 +1631,31 @@ router.get('/reviews', (req, res) => {
   const store = getStore();
   const targetType = normalizeString(req.query.targetType, 40);
   const targetId = normalizeString(req.query.targetId, 100);
+  const publicOnly = ['1', 'true', 'homepage'].includes(normalizeString(req.query.public, 20).toLowerCase());
+  const limit = Math.max(1, Math.min(500, Math.round(normalizeAmount(req.query.limit || 500))));
   let items = store.reviews;
   if (targetType) items = items.filter((item) => normalizeString(item.targetType, 40) === targetType);
   if (targetId) items = items.filter((item) => normalizeString(item.targetId, 100) === targetId);
   const avg = items.length
     ? normalizeAmount(items.reduce((sum, item) => sum + Number(item.rating || 0), 0) / items.length)
     : 0;
-  return res.status(200).json({ ok: true, count: items.length, averageRating: avg, items: items.slice(-500) });
+  if (publicOnly) {
+    const publicItems = items
+      .filter((item) => normalizeString(item.customerName, 120) && normalizeString(item.city, 80) && Number(item.rating || 0) > 0)
+      .map((item) => ({
+        id: item.id,
+        targetType: item.targetType,
+        targetId: item.targetId,
+        rating: item.rating,
+        comment: item.comment,
+        customerName: item.customerName,
+        city: item.city,
+        locale: item.locale,
+        createdAt: item.createdAt
+      }));
+    return res.status(200).json({ ok: true, count: publicItems.length, averageRating: avg, items: publicItems.slice(-limit) });
+  }
+  return res.status(200).json({ ok: true, count: items.length, averageRating: avg, items: items.slice(-limit) });
 });
 
 router.post('/partner/webhook/log', (req, res) => {

@@ -1012,7 +1012,7 @@ body.home-international .home-story-card {
 }
 
 body.home-international .home-story-rating {
-    width: 56px;
+    width: 68px;
     height: 42px;
     border-radius: 6px;
     background: #fff5dc;
@@ -1032,6 +1032,13 @@ body.home-international .home-story-card p {
 body.home-international .home-story-card strong {
     margin-top: auto;
     color: var(--home-muted);
+}
+
+body.home-international .home-story-meta {
+    display: block;
+    color: var(--home-muted);
+    font-size: 0.9rem;
+    font-weight: 800;
 }
 
 body.home-international .features,

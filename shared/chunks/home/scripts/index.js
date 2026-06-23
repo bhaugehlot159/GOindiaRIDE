@@ -174,6 +174,144 @@
             return `./book-cab.html${suffix}#quickBookingForm`;
         }
 
+        const HOME_PUBLIC_REVIEW_PATH = '/api/future-runtime-business/reviews?public=1&targetType=ride&limit=3';
+        const HOME_PRODUCTION_API_BASE = 'https://goindiaride.onrender.com';
+
+        function normalizeHomeApiBase(value) {
+            const clean = cleanBookingValue(value).replace(/\/+$/, '');
+            return /^https?:\/\//i.test(clean) ? clean : '';
+        }
+
+        function pushHomeReviewApiBase(list, value) {
+            const clean = normalizeHomeApiBase(value);
+            if (clean && !list.includes(clean)) list.push(clean);
+        }
+
+        function getHomeReviewApiBases() {
+            const bases = [];
+            pushHomeReviewApiBase(bases, window.GOINDIARIDE_API_BASE);
+            pushHomeReviewApiBase(bases, window.__GOINDIARIDE_API_ORIGIN__);
+            pushHomeReviewApiBase(bases, window.__GOINDIARIDE_RUNTIME_API_ORIGIN__);
+
+            const location = window.location || {};
+            const host = cleanBookingValue(location.hostname).toLowerCase();
+            const sameOrigin = location.origin && location.origin !== 'null' ? location.origin : '';
+            if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+                pushHomeReviewApiBase(bases, 'http://127.0.0.1:5000');
+            }
+            if (host === 'goindiaride.in' || host === 'www.goindiaride.in' || host.endsWith('.github.io')) {
+                pushHomeReviewApiBase(bases, HOME_PRODUCTION_API_BASE);
+            }
+            pushHomeReviewApiBase(bases, sameOrigin);
+            pushHomeReviewApiBase(bases, HOME_PRODUCTION_API_BASE);
+            return bases;
+        }
+
+        function isGenericHomeReviewName(value) {
+            const compact = simplifyHomeLocation(value);
+            return !compact
+                || compact === 'customer'
+                || compact === 'guest'
+                || compact === 'rider'
+                || compact === 'user'
+                || compact === 'test'
+                || compact === 'demo'
+                || compact === 'internationalguest'
+                || compact === 'businesstraveler'
+                || compact === 'domesticcustomer';
+        }
+
+        function formatHomeReviewRating(value) {
+            const rating = Number(value);
+            if (!Number.isFinite(rating) || rating < 1 || rating > 5) return '';
+            return rating.toFixed(1);
+        }
+
+        function normalizeHomeReviewItem(item) {
+            if (!item || typeof item !== 'object') return null;
+            const customerName = cleanBookingValue(item.customerName || item.reviewerName || item.name);
+            const city = cleanBookingValue(item.city || item.customerCity || item.location || item.pickupCity);
+            const rating = formatHomeReviewRating(item.rating);
+            const comment = cleanBookingValue(item.comment || item.review || item.message);
+            if (isGenericHomeReviewName(customerName) || !city || !rating) return null;
+            return {
+                customerName,
+                city,
+                rating,
+                comment
+            };
+        }
+
+        function renderHomeCustomerReviews(reviews) {
+            const section = document.querySelector('[data-home-review-section]');
+            const grid = document.querySelector('[data-home-review-grid]');
+            if (!section || !grid) return;
+
+            const rows = Array.isArray(reviews) ? reviews.map(normalizeHomeReviewItem).filter(Boolean).slice(0, 3) : [];
+            if (!rows.length) {
+                grid.replaceChildren();
+                section.hidden = true;
+                return;
+            }
+
+            const cards = rows.map((review) => {
+                const article = document.createElement('article');
+                article.className = 'home-story-card';
+
+                const rating = document.createElement('div');
+                rating.className = 'home-story-rating';
+                rating.textContent = `${review.rating}/5`;
+
+                const quote = document.createElement('p');
+                quote.textContent = review.comment || `Rated ${review.rating}/5 after a GO India RIDE trip.`;
+
+                const name = document.createElement('strong');
+                name.textContent = review.customerName;
+
+                const meta = document.createElement('span');
+                meta.className = 'home-story-meta';
+                meta.textContent = `${review.city} - ${review.rating}/5`;
+
+                article.append(rating, quote, name, meta);
+                return article;
+            });
+
+            grid.replaceChildren(...cards);
+            section.hidden = false;
+        }
+
+        async function fetchHomeReviewsFromBase(apiBase) {
+            const controller = window.AbortController ? new AbortController() : null;
+            const timeoutId = controller ? window.setTimeout(() => controller.abort(), 6000) : null;
+            try {
+                const response = await fetch(`${apiBase}${HOME_PUBLIC_REVIEW_PATH}`, {
+                    headers: { Accept: 'application/json' },
+                    signal: controller ? controller.signal : undefined
+                });
+                if (!response.ok) throw new Error(`review_api_${response.status}`);
+                return response.json();
+            } finally {
+                if (timeoutId) window.clearTimeout(timeoutId);
+            }
+        }
+
+        async function loadHomeCustomerReviews() {
+            if (typeof window.fetch !== 'function') return;
+            const bases = getHomeReviewApiBases();
+            for (const apiBase of bases) {
+                try {
+                    const payload = await fetchHomeReviewsFromBase(apiBase);
+                    const items = Array.isArray(payload && payload.items) ? payload.items : [];
+                    const reviews = items.map(normalizeHomeReviewItem).filter(Boolean).slice(-3).reverse();
+                    renderHomeCustomerReviews(reviews);
+                    if (reviews.length) return;
+                } catch (_error) {
+                    // Try the next live API base without showing unverified fallback reviews.
+                }
+            }
+            renderHomeCustomerReviews([]);
+        }
+
         function goToBooking(params = {}) {
             window.location.href = buildBookingUrl({
                 source: 'home_button',
@@ -474,6 +612,7 @@
 
         wireHomeQuickBookingForm();
         wireLiveBookingLinks();
+        loadHomeCustomerReviews();
 
         // Smooth scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
