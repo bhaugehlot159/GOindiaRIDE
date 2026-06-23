@@ -180,6 +180,11 @@ test('PWA manifests are valid JSON and expose separate public customer driver ad
   assert.equal(customerManifest.id, '/customer/?app=goindiaride-customer');
   assert.equal(driverManifest.id, '/driver/?app=goindiaride-driver');
   assert.equal(adminManifest.id, '/admin/?app=goindiaride-admin');
+  assert.equal(customerManifest.name, 'GO India RIDE Customer App');
+  assert.equal(driverManifest.name, 'GO India RIDE Driver Partner App');
+  assert.equal(driverManifest.short_name, 'Driver Partner');
+  assert.ok(publicManifest.shortcuts.some((shortcut) => shortcut.name === 'Customer App'));
+  assert.ok(publicManifest.shortcuts.some((shortcut) => shortcut.name === 'Driver Partner App'));
 
   for (const manifest of [publicManifest, customerManifest, driverManifest, adminManifest]) {
     assert.equal(manifest.display, 'standalone');
@@ -366,7 +371,26 @@ test('PWA app shell reveals install controls only after a real install prompt is
 
   assert.equal(dock.hidden, false);
   assert.equal(customerInstallButton.hidden, false);
-  assert.equal(customerInstallButton.textContent, 'Install customer app');
+  assert.equal(customerInstallButton.textContent, 'Install Customer App');
+
+  const driver = runPwaShellInFakeDom({
+    pathname: '/driver/index.html',
+    includeHomeInstallButton: false
+  });
+  const driverDock = driver.document.getElementById('goiPwaInstallDock');
+  const driverInstallButton = driver.document
+    .querySelectorAll('[data-goi-pwa-install]')
+    .find((node) => node !== driverDock);
+  driver.windowListeners.beforeinstallprompt[0]({
+    preventDefault() {},
+    prompt() {},
+    userChoice: Promise.resolve({ outcome: 'dismissed' })
+  });
+
+  assert.ok(driverDock);
+  assert.equal(driverDock.hidden, false);
+  assert.equal(driverInstallButton.hidden, false);
+  assert.equal(driverInstallButton.textContent, 'Install Driver Partner App');
 });
 
 test('main app pages link the correct manifests, splash asset, push client and PWA bootstrap', () => {
@@ -383,6 +407,10 @@ test('main app pages link the correct manifests, splash asset, push client and P
   };
 
   assert.match(files.home, /href="\.\/manifest\.webmanifest"/);
+  assert.match(files.home, /href="\.\/customer\/manifest\.webmanifest" data-goi-pwa-manifest="customer-app"/);
+  assert.match(files.home, /href="\.\/driver\/manifest\.webmanifest" data-goi-pwa-manifest="driver-partner-app"/);
+  assert.match(files.home, /data-goi-app-entry="customer"[\s\S]*Customer App/);
+  assert.match(files.home, /data-goi-app-entry="driver-partner"[\s\S]*Driver Partner App/);
   assert.match(files.publicBooking, /href="\.\/manifest\.webmanifest"/);
   assert.match(files.customer, /href="\.\/manifest\.webmanifest"/);
   assert.match(files.driver, /href="\.\/manifest\.webmanifest"/);
@@ -393,10 +421,12 @@ test('main app pages link the correct manifests, splash asset, push client and P
   assert.match(files.login, /href="\.\.\/manifest\.webmanifest"/);
   assert.match(files.home, /id="installAppBtn"/);
   assert.match(files.home, /data-goi-pwa-install/);
+  assert.match(files.driver, /Driver Partner App/);
+  assert.match(files.driverDashboard, /Driver Partner App/);
 
   for (const [name, source] of Object.entries(files)) {
     assert.match(source, /apple-touch-startup-image/, `${name} missing startup image`);
-    assert.match(source, /pwa-app-shell\.js\?v=20260622-app-readiness3/, `${name} missing PWA shell`);
+    assert.match(source, /pwa-app-shell\.js\?v=20260623-app-entry1/, `${name} missing PWA shell`);
   }
 
   assert.match(files.customer, /push-notifications\.js\?v=20260613-push-phase4/);

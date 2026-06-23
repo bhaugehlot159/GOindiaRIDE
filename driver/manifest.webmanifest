@@ -1,8 +1,8 @@
 {
   "id": "/driver/?app=goindiaride-driver",
-  "name": "GO India RIDE Driver App",
-  "short_name": "GO Driver",
-  "description": "Driver app for login, dashboard, booking requests, live GPS sharing, ride workflow and wallet settlement.",
+  "name": "GO India RIDE Driver Partner App",
+  "short_name": "Driver Partner",
+  "description": "Driver partner app for login, dashboard, booking requests, live GPS sharing, ride workflow and wallet settlement.",
   "start_url": "/driver/index.html?source=pwa_driver",
   "scope": "/",
   "display": "standalone",
@@ -14,8 +14,8 @@
   "categories": ["travel", "navigation", "business"],
   "shortcuts": [
     {
-      "name": "Driver dashboard",
-      "short_name": "Dashboard",
+      "name": "Driver Partner dashboard",
+      "short_name": "Partner",
       "description": "Open driver rides, GPS and earnings.",
       "url": "/driver/index.html?source=pwa_driver_shortcut",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]

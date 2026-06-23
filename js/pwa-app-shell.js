@@ -1,7 +1,7 @@
 (function initGoIndiaRidePwaAppShell(global) {
   'use strict';
 
-  var VERSION = '20260622-app-readiness3';
+  var VERSION = '20260623-app-entry1';
   var STATUS_KEY = 'goindiaride_pwa_app_shell_status_v1';
   var INSTALL_PROMPT_KEY = 'goindiaride_pwa_install_prompt_seen_v1';
   var INSTALL_UI_ID = 'goiPwaInstallDock';
@@ -62,8 +62,8 @@
 
   function getSurfaceInstallLabel(surface) {
     if (surface === 'admin') return 'Install admin app';
-    if (surface === 'driver') return 'Install driver app';
-    if (surface === 'customer') return 'Install customer app';
+    if (surface === 'driver') return 'Install Driver Partner App';
+    if (surface === 'customer') return 'Install Customer App';
     if (surface === 'booking') return 'Install booking app';
     return 'Install app';
   }

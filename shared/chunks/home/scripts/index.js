@@ -176,6 +176,17 @@
 
         const HOME_PUBLIC_REVIEW_PATH = '/api/future-runtime-business/reviews?public=1&targetType=ride&limit=3';
         const HOME_PRODUCTION_API_BASE = 'https://goindiaride.onrender.com';
+        const HOME_FARE_ROUTE_DISTANCES = [
+            ['udaipur', 'udaipurairport', 22],
+            ['udaipurcity', 'udaipurairport', 22],
+            ['jaipurairport', 'jaipurcity', 13],
+            ['delhiairport', 'jaipur', 280],
+            ['jaipur', 'agratajmahal', 240],
+            ['jaipur', 'agra', 240],
+            ['jaipur', 'udaipur', 395],
+            ['jaipur', 'jodhpur', 335],
+            ['delhi', 'agra', 230]
+        ];
 
         function normalizeHomeApiBase(value) {
             const clean = cleanBookingValue(value).replace(/\/+$/, '');
@@ -310,6 +321,139 @@
                 }
             }
             renderHomeCustomerReviews([]);
+        }
+
+        function formatHomeFareMoney(value) {
+            const amount = Math.max(0, Math.round(Number(value) || 0));
+            return `₹${amount.toLocaleString('en-IN')}`;
+        }
+
+        function getHomeFareRouteKey(value) {
+            return simplifyHomeLocation(value);
+        }
+
+        function getHomeFareDistance(pickup, drop, tripPlan) {
+            const left = getHomeFareRouteKey(pickup);
+            const right = getHomeFareRouteKey(drop);
+            const match = HOME_FARE_ROUTE_DISTANCES.find(([from, to]) => (
+                (from === left && to === right) || (from === right && to === left)
+            ));
+            if (match) return match[2];
+            if (tripPlan === 'airport') return 22;
+            if (tripPlan === 'outstation') return 160;
+            return 12;
+        }
+
+        function getHomeFareTripPlan(pickup, drop, distanceKm) {
+            const routeText = `${pickup} ${drop}`.toLowerCase();
+            if (routeText.includes('airport')) return 'airport';
+            if (Number(distanceKm) >= 90) return 'outstation';
+            return 'city';
+        }
+
+        function getHomeFareServiceType(tripPlan) {
+            if (tripPlan === 'airport') return 'airport_transfer';
+            if (tripPlan === 'outstation') return 'outstation_one_way';
+            return 'local_city';
+        }
+
+        function calculateHomeFareEstimate({ pickup, drop, vehicleType }) {
+            const firstDistance = getHomeFareDistance(pickup, drop, '');
+            const tripPlan = getHomeFareTripPlan(pickup, drop, firstDistance);
+            const distanceKm = getHomeFareDistance(pickup, drop, tripPlan);
+            const input = {
+                pickup,
+                drop,
+                tripPlan,
+                tripServiceType: getHomeFareServiceType(tripPlan),
+                vehicleType: vehicleType || 'sedan',
+                passengers: 1,
+                luggage: 'none',
+                paymentMethod: 'cash',
+                distanceKm,
+                distanceSource: 'home_known_route'
+            };
+
+            if (
+                window.GoIndiaRideFareCalculator &&
+                typeof window.GoIndiaRideFareCalculator.estimateBookingFare === 'function'
+            ) {
+                try {
+                    return window.GoIndiaRideFareCalculator.estimateBookingFare(input);
+                } catch (_error) {
+                    // Keep the homepage responsive if the shared fare engine fails to initialize.
+                }
+            }
+
+            const perKm = input.vehicleType === 'suv' ? 18 : input.vehicleType === 'sedan' ? 12 : 10;
+            const base = tripPlan === 'airport' ? 190 : tripPlan === 'outstation' ? 260 : 99;
+            const totalFare = Math.max(99, Math.round(base + distanceKm * perKm));
+            return {
+                ...input,
+                distanceKm,
+                totalFare,
+                amount: totalFare,
+                finalFare: totalFare,
+                tollCharge: 0,
+                parkingCharge: tripPlan === 'airport' ? 90 : 0,
+                taxesFare: Math.round(totalFare * 0.05),
+                calculatedAt: new Date().toISOString()
+            };
+        }
+
+        function wireHomeFareCalculator() {
+            const form = document.getElementById('homeFareCalculatorForm');
+            const pickupInput = document.getElementById('homeFarePickupInput');
+            const dropInput = document.getElementById('homeFareDropInput');
+            const vehicleInput = document.getElementById('homeFareVehicleInput');
+            const routeText = document.getElementById('homeFareRouteText');
+            const amountText = document.getElementById('homeFareEstimateAmount');
+            const metaText = document.getElementById('homeFareMetaText');
+            const bookLink = document.getElementById('homeFareBookLink');
+            if (!form || !pickupInput || !dropInput || !vehicleInput || !routeText || !amountText || !metaText || !bookLink) return;
+
+            function refreshHomeFareEstimate() {
+                const pickup = cleanBookingValue(pickupInput.value) || 'Udaipur';
+                const drop = cleanBookingValue(dropInput.value) || 'Udaipur Airport';
+                const vehicleType = cleanBookingValue(vehicleInput.value) || 'sedan';
+                const fare = calculateHomeFareEstimate({ pickup, drop, vehicleType });
+                const total = fare.totalFare || fare.finalFare || fare.amount || 0;
+                const distanceKm = Number(fare.distanceKm || 0).toFixed(0);
+                const toll = fare.tollCharge || 0;
+                const parking = fare.parkingCharge || 0;
+
+                routeText.textContent = `${pickup} -> ${drop} =`;
+                amountText.textContent = formatHomeFareMoney(total);
+                metaText.textContent = `${distanceKm} km estimate | Toll ${formatHomeFareMoney(toll)} | Parking ${formatHomeFareMoney(parking)}`;
+                bookLink.href = buildBookingUrl({
+                    source: 'home_fare_calculator',
+                    tripPlan: fare.tripPlan || getHomeFareTripPlan(pickup, drop, fare.distanceKm),
+                    serviceMode: fare.tripPlan === 'airport' ? 'airport_pickup' : fare.tripPlan === 'outstation' ? 'outstation_one_way' : 'local_point',
+                    pickup,
+                    drop,
+                    vehicleType,
+                    fareEstimate: String(Math.round(Number(total) || 0)),
+                    distanceKm: String(fare.distanceKm || '')
+                });
+                return fare;
+            }
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (!form.reportValidity()) return;
+                refreshHomeFareEstimate();
+            });
+
+            [pickupInput, dropInput, vehicleInput].forEach((input) => {
+                input.addEventListener('change', refreshHomeFareEstimate);
+                input.addEventListener('input', refreshHomeFareEstimate);
+            });
+
+            bookLink.addEventListener('click', () => {
+                refreshHomeFareEstimate();
+            });
+
+            refreshHomeFareEstimate();
         }
 
         function goToBooking(params = {}) {
@@ -612,6 +756,7 @@
 
         wireHomeQuickBookingForm();
         wireLiveBookingLinks();
+        wireHomeFareCalculator();
         loadHomeCustomerReviews();
 
         // Smooth scrolling

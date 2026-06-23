@@ -42,6 +42,8 @@
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="./fit-screen.css?v=20260508-mobile1">
     <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="alternate" type="application/manifest+json" href="./customer/manifest.webmanifest" data-goi-pwa-manifest="customer-app">
+    <link rel="alternate" type="application/manifest+json" href="./driver/manifest.webmanifest" data-goi-pwa-manifest="driver-partner-app">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
@@ -54,7 +56,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="./shared/chunks/home/styles/index.css?v=20260528-inline-split1">
     <link rel="stylesheet" href="./css/professional-purple-theme.css">
-    <link rel="stylesheet" href="./css/home-international.css?v=20260610-handoff-nav1">
+    <link rel="stylesheet" href="./css/home-international.css?v=20260623-home-safety-fare1">
     <script src="./js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
 <body class="home-international" data-goi-nav-static="1">
@@ -99,6 +101,45 @@
                         <i class="fas fa-download"></i>
                         <span data-goi-pwa-install-label>Install app</span>
                     </button>
+                </div>
+                <div class="home-app-entry-row" aria-label="GO India RIDE app entries">
+                    <a class="home-app-entry home-app-entry-customer" href="./customer/index.html?source=home_customer_app" data-goi-app-entry="customer">
+                        <span class="home-app-entry-icon"><i class="fas fa-user"></i></span>
+                        <span>
+                            <strong>Customer App</strong>
+                            <small>Ride booking</small>
+                        </span>
+                    </a>
+                    <a class="home-app-entry home-app-entry-driver" href="./driver/index.html?source=home_driver_partner_app" data-goi-app-entry="driver-partner">
+                        <span class="home-app-entry-icon"><i class="fas fa-id-card"></i></span>
+                        <span>
+                            <strong>Driver Partner App</strong>
+                            <small>Partner dashboard</small>
+                        </span>
+                    </a>
+                </div>
+                <div class="home-safety-actions" aria-label="Emergency and safety actions">
+                    <a class="home-safety-action home-safety-sos" href="tel:112" data-home-safety-action="sos">
+                        <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                        <span>
+                            <strong>SOS</strong>
+                            <small>Call 112</small>
+                        </span>
+                    </a>
+                    <a class="home-safety-action" href="tel:+918426891471" data-home-safety-action="emergency-contact">
+                        <i class="fas fa-phone-volume" aria-hidden="true"></i>
+                        <span>
+                            <strong>Emergency Contact</strong>
+                            <small>+91 84268 91471</small>
+                        </span>
+                    </a>
+                    <a class="home-safety-action" href="./pages/contact.html#safety-privacy" data-home-safety-action="safety-center">
+                        <i class="fas fa-shield-heart" aria-hidden="true"></i>
+                        <span>
+                            <strong>Safety Center</strong>
+                            <small>Ride help</small>
+                        </span>
+                    </a>
                 </div>
                 <div class="home-trust-row" aria-label="Ride confidence">
                     <span><i class="fas fa-shield-halved"></i> Verified drivers</span>
@@ -185,6 +226,44 @@
                     <i class="fas fa-circle-check"></i>
                     <span>Full details routed to the admin portal</span>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Homepage Fare Calculator -->
+    <section class="home-fare-band" aria-labelledby="homeFareTitle">
+        <div class="container home-fare-shell">
+            <div class="home-section-heading">
+                <p class="section-eyebrow">Fare calculator</p>
+                <h2 id="homeFareTitle">Check ride fare before booking</h2>
+            </div>
+            <form class="home-fare-calculator" id="homeFareCalculatorForm" aria-label="Homepage fare calculator">
+                <label class="home-fare-field" for="homeFarePickupInput">
+                    <span>Pickup</span>
+                    <input id="homeFarePickupInput" name="pickup" type="text" value="Udaipur" autocomplete="off" required>
+                </label>
+                <label class="home-fare-field" for="homeFareDropInput">
+                    <span>Drop</span>
+                    <input id="homeFareDropInput" name="drop" type="text" value="Udaipur Airport" autocomplete="off" required>
+                </label>
+                <label class="home-fare-field" for="homeFareVehicleInput">
+                    <span>Vehicle</span>
+                    <select id="homeFareVehicleInput" name="vehicleType">
+                        <option value="economy">Economy</option>
+                        <option value="sedan" selected>Sedan</option>
+                        <option value="suv">SUV</option>
+                    </select>
+                </label>
+                <button class="home-fare-submit" type="submit">
+                    <i class="fas fa-calculator" aria-hidden="true"></i>
+                    <span>Check fare</span>
+                </button>
+            </form>
+            <div class="home-fare-result" id="homeFareResult" aria-live="polite">
+                <span id="homeFareRouteText">Udaipur -&gt; Udaipur Airport =</span>
+                <strong id="homeFareEstimateAmount">₹736</strong>
+                <small id="homeFareMetaText">22 km estimate | Toll ₹0 | Parking ₹90</small>
+                <a id="homeFareBookLink" href="./book-cab.html?source=home_fare_calculator&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;pickup=Udaipur&amp;drop=Udaipur%20Airport&amp;vehicleType=sedan#quickBookingForm" data-home-fare-book data-source="home_fare_calculator">Book this route</a>
             </div>
         </div>
     </section>
@@ -519,7 +598,9 @@
 
     <script src="./js/app.js"></script>
     <script src="./js/locations.js?v=20260610-home-suggest1"></script>
-    <script src="./shared/chunks/home/scripts/index.js?v=20260623-real-reviews1"></script>
+    <script src="./js/route-suggestions.js?v=20260623-home-fare1"></script>
+    <script src="./js/booking-fare-calculator.js?v=20260623-home-fare1"></script>
+    <script src="./shared/chunks/home/scripts/index.js?v=20260623-home-safety-fare1"></script>
     
     <!-- JSON-LD Schema for SEO -->
     <script type="application/ld+json">
@@ -657,7 +738,7 @@
     <script src="./js/toast.js"></script>
 
     <script src="./js/global-ui.js?v=20260314-nav5"></script>
-<script src="./js/pwa-app-shell.js?v=20260622-app-readiness3"></script>
+<script src="./js/pwa-app-shell.js?v=20260623-app-entry1"></script>
 <script src="./optimization.js?v=20260531-opt2" async></script>
 </body>
 </html>

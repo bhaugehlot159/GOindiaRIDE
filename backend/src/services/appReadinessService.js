@@ -47,8 +47,8 @@ function buildSurfaceStatus() {
     public: {
       manifestLinked: /rel="manifest"\s+href="\.\/manifest\.webmanifest"/.test(publicHome),
       bookingManifestLinked: /rel="manifest"\s+href="\.\/manifest\.webmanifest"/.test(publicBooking),
-      pwaBootstrap: /pwa-app-shell\.js\?v=20260622-app-readiness3/.test(publicHome)
-        && /pwa-app-shell\.js\?v=20260622-app-readiness3/.test(publicBooking)
+      pwaBootstrap: /pwa-app-shell\.js\?v=20260623-app-entry1/.test(publicHome)
+        && /pwa-app-shell\.js\?v=20260623-app-entry1/.test(publicBooking)
     },
     customer: {
       dedicatedManifest: fileExists('customer/manifest.webmanifest'),

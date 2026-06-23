@@ -23,16 +23,16 @@
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Customer app",
-      "short_name": "Customer",
+      "name": "Customer App",
+      "short_name": "Customer App",
       "description": "Open the customer booking and ride dashboard.",
       "url": "/customer/index.html?source=pwa_shortcut",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Driver app",
-      "short_name": "Driver",
-      "description": "Open the driver dashboard and GPS workflow.",
+      "name": "Driver Partner App",
+      "short_name": "Driver Partner",
+      "description": "Open the driver partner dashboard and GPS workflow.",
       "url": "/driver/index.html?source=pwa_shortcut",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
