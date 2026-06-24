@@ -78,6 +78,7 @@ const PUBLIC_APP_FILES = new Set([
   '/assets/brand/goindiaride-brand-preview-full-hd.png',
   '/assets/images/quick-booking-hero.png',
   '/book-cab.html',
+  '/css/home-international.css',
   '/css/professional-purple-theme.css',
   '/css/quick-booking.css',
   '/css/search-service.css',
@@ -116,6 +117,8 @@ const PUBLIC_APP_FILES = new Set([
   '/pages/legal/refund-policy.html',
   '/pages/legal/terms-and-conditions.html',
   '/service-worker.js',
+  '/fit-screen.css',
+  '/shared/chunks/home/styles/index.css',
   '/style.css',
   '/sw.js',
   '/taxi-service.html'

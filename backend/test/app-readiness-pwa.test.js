@@ -370,6 +370,25 @@ test('Render backend serves direct public app conversion artifacts without expos
     .expect(200);
   assert.match(runtimeVerifier.text, /checkLiveGpsTracking/);
 
+  const homeInternationalStyles = await request(app)
+    .get('/css/home-international.css?v=20260623-home-safety-fare1')
+    .expect('Content-Type', /text\/css/)
+    .expect(200);
+  assert.match(homeInternationalStyles.text, /home-safety-action/);
+  assert.match(homeInternationalStyles.text, /goi-global-theme\.home-international/);
+
+  const fitScreenStyles = await request(app)
+    .get('/fit-screen.css?v=20260508-mobile1')
+    .expect('Content-Type', /text\/css/)
+    .expect(200);
+  assert.match(fitScreenStyles.text, /fit-screen/);
+
+  const sharedHomeStyles = await request(app)
+    .get('/shared/chunks/home/styles/index.css?v=20260528-inline-split1')
+    .expect('Content-Type', /text\/css/)
+    .expect(200);
+  assert.match(sharedHomeStyles.text, /\.hero/);
+
   const firebaseClientConfig = await request(app)
     .get('/api/auth/firebase/client-config')
     .expect('Content-Type', /application\/json/)
