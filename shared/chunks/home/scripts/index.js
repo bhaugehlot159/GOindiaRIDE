@@ -4,6 +4,8 @@
             { label: 'Jaipur', detail: 'City and outstation' },
             { label: 'Udaipur', detail: 'City, hotel and airport' },
             { label: 'Udaipur Airport', detail: 'Airport transfer' },
+            { label: 'Jaisalmer', detail: 'Outstation route' },
+            { label: 'Jaisalmer Railway Station', detail: 'Station pickup' },
             { label: 'Jaipur Railway Station', detail: 'Station pickup' },
             { label: 'Udaipur Railway Station', detail: 'Station pickup' },
             { label: 'Mount Abu', detail: 'Outstation route' },
@@ -179,7 +181,15 @@
         const HOME_FARE_ROUTE_DISTANCES = [
             ['udaipur', 'udaipurairport', 22],
             ['udaipurcity', 'udaipurairport', 22],
+            ['udaipur', 'maharanapratapairport', 22],
+            ['udaipur', 'udaipurrailwaystation', 6],
+            ['jaisalmer', 'jaisalmerrailwaystation', 4],
+            ['udaipur', 'jaisalmer', 489],
+            ['udaipur', 'jaisalmerrailwaystation', 489],
+            ['udaipurcity', 'jaisalmerrailwaystation', 489],
+            ['udaipurrailwaystation', 'jaisalmerrailwaystation', 489],
             ['jaipurairport', 'jaipurcity', 13],
+            ['jaipurairport', 'jaipur', 13],
             ['delhiairport', 'jaipur', 280],
             ['jaipur', 'agratajmahal', 240],
             ['jaipur', 'agra', 240],
@@ -187,6 +197,37 @@
             ['jaipur', 'jodhpur', 335],
             ['delhi', 'agra', 230]
         ];
+        const HOME_FARE_ENDPOINT_DISTANCES = [
+            ['udaipur', 'jaisalmer', 489],
+            ['jaisalmer', 'udaipur', 490],
+            ['udaipur', 'jodhpur', 250],
+            ['jodhpur', 'udaipur', 250],
+            ['jodhpur', 'jaisalmer', 285],
+            ['jaisalmer', 'jodhpur', 285],
+            ['udaipur', 'jaipur', 395],
+            ['jaipur', 'udaipur', 395],
+            ['jaipur', 'jodhpur', 335],
+            ['jodhpur', 'jaipur', 335],
+            ['jaipur', 'agra', 240],
+            ['agra', 'jaipur', 240],
+            ['jaipur', 'delhi', 280],
+            ['delhi', 'jaipur', 280],
+            ['udaipur', 'mountabu', 165],
+            ['mountabu', 'udaipur', 165],
+            ['udaipur', 'ajmer', 265],
+            ['ajmer', 'udaipur', 265]
+        ];
+        const HOME_FARE_ENDPOINT_ALIASES = [
+            ['udaipur', ['udaipur', 'udaipurcity', 'citypalaceudaipur', 'udaipurrailwaystation', 'maharanapratapairport', 'udaipurairport']],
+            ['jaisalmer', ['jaisalmer', 'jaisalmerrailwaystation', 'jaisalmerairport', 'samdunes', 'samsanddunes']],
+            ['jodhpur', ['jodhpur', 'jodhpurjunction', 'jodhpurairport']],
+            ['jaipur', ['jaipur', 'jaipurcity', 'jaipurjunction', 'jaipurinternationalairport', 'jaipurairport']],
+            ['agra', ['agra', 'agratajmahal', 'tajmahal']],
+            ['delhi', ['delhi', 'newdelhi', 'delhiairport', 'indira gandhi airport']],
+            ['mountabu', ['mountabu', 'nakki lake']],
+            ['ajmer', ['ajmer', 'ajmerjunction', 'ajmersharifdargah', 'pushkar']]
+        ];
+        const HOME_FARE_SUGGESTION_LIMIT = 5;
 
         function normalizeHomeApiBase(value) {
             const clean = cleanBookingValue(value).replace(/\/+$/, '');
@@ -332,6 +373,17 @@
             return simplifyHomeLocation(value);
         }
 
+        function getHomeFareEndpointKey(value) {
+            const compact = getHomeFareRouteKey(value);
+            if (!compact) return '';
+            for (const [endpoint, aliases] of HOME_FARE_ENDPOINT_ALIASES) {
+                if (aliases.some((alias) => compact.includes(simplifyHomeLocation(alias)))) {
+                    return endpoint;
+                }
+            }
+            return compact;
+        }
+
         function getHomeFareDistance(pickup, drop, tripPlan) {
             const left = getHomeFareRouteKey(pickup);
             const right = getHomeFareRouteKey(drop);
@@ -339,6 +391,14 @@
                 (from === left && to === right) || (from === right && to === left)
             ));
             if (match) return match[2];
+
+            const endpointLeft = getHomeFareEndpointKey(pickup);
+            const endpointRight = getHomeFareEndpointKey(drop);
+            const endpointMatch = HOME_FARE_ENDPOINT_DISTANCES.find(([from, to]) => (
+                from === endpointLeft && to === endpointRight
+            ));
+            if (endpointMatch) return endpointMatch[2];
+
             if (tripPlan === 'airport') return 22;
             if (tripPlan === 'outstation') return 160;
             return 12;
@@ -397,8 +457,44 @@
                 tollCharge: 0,
                 parkingCharge: tripPlan === 'airport' ? 90 : 0,
                 taxesFare: Math.round(totalFare * 0.05),
+                nightCharge: 0,
+                driverNightBatta: 0,
+                stateTax: 0,
                 calculatedAt: new Date().toISOString()
             };
+        }
+
+        function getHomeFareRunningCharge(fare) {
+            return Math.round(
+                Number(fare.distanceFare || 0)
+                + Number(fare.extraDistanceFare || 0)
+                + Number(fare.timeFare || 0)
+                + Number(fare.extraTimeFare || 0)
+            );
+        }
+
+        function renderHomeFareBreakdown(container, fare) {
+            if (!container) return;
+            const distanceKm = Number(fare.distanceKm || 0).toFixed(0);
+            const items = [
+                ['Distance', `${distanceKm} km`],
+                ['Base', formatHomeFareMoney(fare.baseFare || 0)],
+                ['Running', formatHomeFareMoney(getHomeFareRunningCharge(fare))],
+                ['Toll', formatHomeFareMoney(fare.tollCharge || 0)],
+                ['Parking', formatHomeFareMoney(fare.parkingCharge || 0)],
+                ['Night bhatta', formatHomeFareMoney(fare.driverNightBatta || fare.nightCharge || 0)],
+                ['Tax/GST', formatHomeFareMoney((fare.stateTax || 0) + (fare.taxesFare || 0))]
+            ];
+
+            container.replaceChildren(...items.map(([label, value]) => {
+                const row = document.createElement('div');
+                const term = document.createElement('dt');
+                const detail = document.createElement('dd');
+                term.textContent = label;
+                detail.textContent = value;
+                row.append(term, detail);
+                return row;
+            }));
         }
 
         function wireHomeFareCalculator() {
@@ -409,6 +505,7 @@
             const routeText = document.getElementById('homeFareRouteText');
             const amountText = document.getElementById('homeFareEstimateAmount');
             const metaText = document.getElementById('homeFareMetaText');
+            const breakdown = document.getElementById('homeFareBreakdown');
             const bookLink = document.getElementById('homeFareBookLink');
             const suggestionPanel = document.getElementById('homeFareLocationSuggestPanel');
             if (!form || !pickupInput || !dropInput || !vehicleInput || !routeText || !amountText || !metaText || !bookLink) return;
@@ -432,7 +529,7 @@
 
             function renderHomeFareSuggestions(input) {
                 if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
-                const matches = getHomeLocationSuggestions(input.value).slice(0, 8);
+                const matches = getHomeLocationSuggestions(input.value).slice(0, HOME_FARE_SUGGESTION_LIMIT);
                 if (!matches.length) {
                     hideHomeFareSuggestions();
                     return;
@@ -445,11 +542,13 @@
                     button.type = 'button';
                     button.dataset.homeFareSuggestTarget = target;
                     button.dataset.homeFareSuggestValue = item.label;
-                    button.textContent = item.label;
+
+                    const label = document.createElement('strong');
+                    label.textContent = item.label;
 
                     const detail = document.createElement('small');
                     detail.textContent = item.detail;
-                    button.appendChild(detail);
+                    button.append(label, detail);
                     return button;
                 });
 
@@ -472,10 +571,13 @@
                 const distanceKm = Number(fare.distanceKm || 0).toFixed(0);
                 const toll = fare.tollCharge || 0;
                 const parking = fare.parkingCharge || 0;
+                const night = fare.driverNightBatta || fare.nightCharge || 0;
+                const tollNote = fare.tollRequiresAdminReview ? ' (admin review)' : '';
 
                 routeText.textContent = `${pickup} -> ${drop} =`;
                 amountText.textContent = formatHomeFareMoney(total);
-                metaText.textContent = `${distanceKm} km estimate | Toll ${formatHomeFareMoney(toll)} | Parking ${formatHomeFareMoney(parking)}`;
+                metaText.textContent = `${distanceKm} km | Toll ${formatHomeFareMoney(toll)}${tollNote} | Parking ${formatHomeFareMoney(parking)} | Night ${formatHomeFareMoney(night)}`;
+                renderHomeFareBreakdown(breakdown, fare);
                 bookLink.href = buildBookingUrl({
                     source: 'home_fare_calculator',
                     tripPlan: fare.tripPlan || getHomeFareTripPlan(pickup, drop, fare.distanceKm),
@@ -484,7 +586,10 @@
                     drop,
                     vehicleType,
                     fareEstimate: String(Math.round(Number(total) || 0)),
-                    distanceKm: String(fare.distanceKm || '')
+                    distanceKm: String(fare.distanceKm || ''),
+                    tollCharge: String(fare.tollCharge || 0),
+                    parkingCharge: String(fare.parkingCharge || 0),
+                    nightCharge: String(fare.driverNightBatta || fare.nightCharge || 0)
                 });
                 return fare;
             }

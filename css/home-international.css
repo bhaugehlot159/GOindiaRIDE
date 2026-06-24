@@ -816,7 +816,7 @@ html body.goi-global-theme.home-international .home-location-suggest-panel {
     background-image: none !important;
     padding: 0.42rem;
     box-shadow: 0 12px 30px rgba(13, 27, 42, 0.1);
-    max-height: 260px;
+    max-height: 220px;
     overflow-y: auto;
     scrollbar-width: thin;
 }
@@ -843,6 +843,16 @@ html body.goi-global-theme.home-international .home-location-suggest-panel butto
     box-shadow: none !important;
     transform: none !important;
     text-transform: none !important;
+}
+
+body.home-international .home-location-suggest-panel strong,
+html body.goi-global-theme.home-international .home-location-suggest-panel strong {
+    min-width: 0;
+    color: var(--home-ink) !important;
+    font-size: 0.84rem !important;
+    line-height: 1.15 !important;
+    font-weight: 900 !important;
+    overflow-wrap: anywhere;
 }
 
 body.home-international .home-location-suggest-panel button:hover,
@@ -874,6 +884,19 @@ html body.goi-global-theme.home-international .home-location-suggest-panel:empty
 body.home-international .home-fare-suggest-panel,
 html body.goi-global-theme.home-international .home-fare-suggest-panel {
     z-index: 55;
+    max-height: 188px;
+}
+
+body.home-international .home-fare-suggest-panel button,
+html body.goi-global-theme.home-international .home-fare-suggest-panel button {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.08rem !important;
+    align-items: start !important;
+}
+
+body.home-international .home-fare-suggest-panel small,
+html body.goi-global-theme.home-international .home-fare-suggest-panel small {
+    white-space: normal;
 }
 
 body.home-international .home-suggestion-row {
@@ -1152,6 +1175,43 @@ body.home-international .home-fare-result {
     border-radius: 8px;
     background: #ffffff;
     box-shadow: 0 14px 32px rgba(10, 33, 47, 0.08);
+}
+
+body.home-international .home-fare-breakdown {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.42rem;
+    margin: 0.2rem 0 0;
+}
+
+body.home-international .home-fare-breakdown div {
+    min-width: 0;
+    border: 1px solid rgba(13, 27, 42, 0.1);
+    border-radius: 6px;
+    background: #f8fbfa;
+    padding: 0.38rem 0.45rem;
+}
+
+body.home-international .home-fare-breakdown dt,
+body.home-international .home-fare-breakdown dd {
+    margin: 0;
+    min-width: 0;
+}
+
+body.home-international .home-fare-breakdown dt {
+    color: var(--home-muted);
+    font-size: 0.64rem;
+    line-height: 1.15;
+    font-weight: 900;
+}
+
+body.home-international .home-fare-breakdown dd {
+    color: var(--home-ink);
+    font-size: 0.78rem;
+    line-height: 1.2;
+    font-weight: 950;
+    overflow-wrap: anywhere;
 }
 
 body.home-international .home-fare-result span,
@@ -1969,6 +2029,10 @@ body.home-international .pricing {
     body.home-international .home-fare-calculator,
     body.home-international .home-fare-result {
         grid-template-columns: 1fr;
+    }
+
+    body.home-international .home-fare-breakdown {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     body.home-international .home-fare-result strong {

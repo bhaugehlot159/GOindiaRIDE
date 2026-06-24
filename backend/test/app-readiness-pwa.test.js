@@ -402,7 +402,7 @@ test('Render backend serves direct public app conversion artifacts without expos
   assert.match(homeRouteSuggestions.text, /routeSuggestions/);
 
   const homeFareEngine = await request(app)
-    .get('/js/booking-fare-calculator.js?v=20260623-home-fare1')
+    .get('/js/booking-fare-calculator.js?v=20260624-competitive-fare1')
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(homeFareEngine.text, /estimateBookingFare/);

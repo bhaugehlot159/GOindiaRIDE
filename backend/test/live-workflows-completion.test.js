@@ -71,7 +71,7 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(home, /home-international\.css\?v=20260624-fare-autosuggest1/);
   assert.match(home, /Airport, city and intercity cab booking/);
   assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
-  assert.match(home, /js\/booking-fare-calculator\.js\?v=20260623-home-fare1/);
+  assert.match(home, /js\/booking-fare-calculator\.js\?v=20260624-competitive-fare1/);
   assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260624-fare-autosuggest1/);
   assert.doesNotMatch(home, /20260610-location-ui1/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
@@ -99,8 +99,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(home, /id="homeFareCalculatorForm"[\s\S]*id="homeFarePickupInput"[^>]*value="Udaipur"[^>]*aria-controls="homeFareLocationSuggestPanel"[\s\S]*id="homeFareDropInput"[^>]*value="Udaipur Airport"[^>]*aria-controls="homeFareLocationSuggestPanel"[\s\S]*id="homeFareVehicleInput"/);
   assert.match(home, /id="homeFareLocationSuggestPanel"[^>]*role="listbox"/);
   assert.match(home, /id="homeFareEstimateAmount">[^<]*736<\/strong>/);
+  assert.match(home, /id="homeFareBreakdown"[\s\S]*<dt>Distance<\/dt><dd>22 km<\/dd>[\s\S]*<dt>Night bhatta<\/dt><dd>₹0<\/dd>/);
   assert.match(home, /id="homeFareEstimateAmount"[\s\S]*data-home-fare-book/);
-  assert.match(home, /source=home_fare_calculator&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;pickup=Udaipur&amp;drop=Udaipur%20Airport&amp;vehicleType=sedan&amp;fareEstimate=736&amp;distanceKm=22/);
+  assert.match(home, /source=home_fare_calculator&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;pickup=Udaipur&amp;drop=Udaipur%20Airport&amp;vehicleType=sedan&amp;fareEstimate=736&amp;distanceKm=22&amp;tollCharge=0&amp;parkingCharge=90&amp;nightCharge=0/);
   assert.doesNotMatch(home, /onclick="goToBooking\(\)"/);
   assert.doesNotMatch(homeFooter, /href="#(?:about|careers|press|blog|faq|support|safety|driver-signup|driver-faq|driver-support|documents)"/);
   assert.match(home, /href="\.\/pages\/legal\/gdpr-notice\.html"[^>]*rel="nofollow"/);
@@ -176,9 +177,15 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('shared/chunks/home/scripts/index.js'), /fillHomeLocation\(pickupInput, addressLabel, `\$\{addressLabel\} \(\$\{lat\}, \$\{lng\}\)`\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /GPS selected:/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_FARE_ROUTE_DISTANCES/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_FARE_ENDPOINT_DISTANCES/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /jaisalmerrailwaystation/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /function wireHomeFareCalculator\(/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /function renderHomeFareBreakdown\(container, fare\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /function renderHomeFareSuggestions\(input\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /data-home-fare-suggest-value/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /driverNightBatta/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /tollCharge/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /parkingCharge/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /GoIndiaRideFareCalculator\.estimateBookingFare\(input\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /`\$\{pickup\} -> \$\{drop\} =`/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /source: 'home_fare_calculator'/);

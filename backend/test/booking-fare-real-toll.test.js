@@ -48,6 +48,62 @@ test('fare calculator keeps route-direction toll data when reversed', () => {
   );
 });
 
+test('fare calculator handles homepage station outstation route with competitive day components', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Jaisalmer Railway Station',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'suv',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 489,
+    distanceSource: 'home_known_route',
+    paymentMethod: 'cash'
+  });
+
+  assert.equal(estimate.distanceKm, 489);
+  assert.equal(estimate.tollSource, 'mapped_route_toll_table');
+  assert.equal(estimate.tollCharge, 135);
+  assert.equal(estimate.parkingCharge, 55);
+  assert.equal(estimate.extraDistanceFare, 0);
+  assert.equal(estimate.driverNightBatta, 0);
+  assert.ok(estimate.totalFare >= 10500 && estimate.totalFare <= 10950);
+});
+
+test('fare calculator adds night bhatta only when a night ride time is supplied', () => {
+  const dayEstimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Jaisalmer Railway Station',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'suv',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 489,
+    distanceSource: 'home_known_route',
+    rideTime: '14:00',
+    paymentMethod: 'cash'
+  });
+  const nightEstimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Jaisalmer Railway Station',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'suv',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 489,
+    distanceSource: 'home_known_route',
+    rideTime: '23:15',
+    paymentMethod: 'cash'
+  });
+
+  assert.equal(dayEstimate.driverNightBatta, 0);
+  assert.ok(nightEstimate.driverNightBatta >= 80);
+  assert.ok(nightEstimate.totalFare > dayEstimate.totalFare);
+});
+
 test('fare calculator does not invent toll when a route has no mapped toll corridor', () => {
   const estimate = estimateBookingFare({
     pickup: 'Kota, Rajasthan',

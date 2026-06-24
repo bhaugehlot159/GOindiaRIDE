@@ -663,11 +663,23 @@
     return TRIP_PLAN_FARES[normalizeTripPlan(tripPlan)] || 0;
   }
 
-  function getIncludedDistanceKm(tripPlan, serviceType, vehicleProfile) {
+  function isCompetitiveOutstationOneWay(tripPlan, serviceType, distanceKm) {
+    const plan = normalizeTripPlan(tripPlan);
+    const service = normalizeServiceType(serviceType);
+    return plan === 'outstation'
+      && toNumber(distanceKm, 0) >= 90
+      && !service.includes('round')
+      && !service.includes('multi');
+  }
+
+  function getIncludedDistanceKm(tripPlan, serviceType, vehicleProfile, distanceKm = 0) {
     const plan = normalizeTripPlan(tripPlan);
     const service = normalizeServiceType(serviceType);
     const profileDistance = Math.max(0, roundMoney(vehicleProfile.includedDistanceKm || 0));
 
+    if (isCompetitiveOutstationOneWay(plan, service, distanceKm)) {
+      return Math.max(profileDistance, roundMoney(distanceKm));
+    }
     if (plan === 'outstation') return Math.max(profileDistance, 120);
     if (plan === 'airport' || service === 'airport_transfer') return Math.max(profileDistance, 15);
     if (service === 'railway_station_transfer') return Math.max(profileDistance, 12);
@@ -726,7 +738,7 @@
     serviceType,
     vehicleProfile
   }) {
-    const includedDistanceKm = getIncludedDistanceKm(tripPlan, serviceType, vehicleProfile);
+    const includedDistanceKm = getIncludedDistanceKm(tripPlan, serviceType, vehicleProfile, distanceKm);
     const extraDistanceKm = Math.max(0, toNumber(distanceKm, 0) - includedDistanceKm);
     const distanceMultiplier = Math.max(1, toNumber(vehicleProfile.extraKmMultiplier || 1.25, 1.25));
     return {
