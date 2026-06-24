@@ -2,7 +2,11 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-min-32-chars-required-for-testing-only';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-min-32-chars-required-for-testing-only';
 process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/goindiaride-app-readiness-test';
-process.env.FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'test-firebase-api-key';
+if (!/^AIza[0-9A-Za-z_-]{20,}$/.test(process.env.FIREBASE_API_KEY || '')) {
+  process.env.FIREBASE_API_KEY = 'AIzaSyA123456789012345678901234567890123';
+}
+process.env.FIREBASE_KEY = process.env.FIREBASE_API_KEY;
+process.env.FIREBASE_WEB_API_KEY = process.env.FIREBASE_API_KEY;
 process.env.ANDROID_APP_PACKAGE_NAME = process.env.ANDROID_APP_PACKAGE_NAME || 'in.goindiaride.app';
 process.env.ANDROID_APP_SHA256_CERT_FINGERPRINTS = process.env.ANDROID_APP_SHA256_CERT_FINGERPRINTS
   || '11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00';
@@ -365,6 +369,13 @@ test('Render backend serves direct public app conversion artifacts without expos
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(runtimeVerifier.text, /checkLiveGpsTracking/);
+
+  const firebaseClientConfig = await request(app)
+    .get('/api/auth/firebase/client-config')
+    .expect('Content-Type', /application\/json/)
+    .expect(200);
+  assert.equal(firebaseClientConfig.body.ok, true);
+  assert.match(firebaseClientConfig.body.config.apiKey, /^AIza/);
 
   const assetLinks = await request(app)
     .get('/.well-known/assetlinks.json')

@@ -328,6 +328,9 @@ const publicPushNotificationReadBypassPaths = withApiMountVariants([
   '/api/notifications/push/status',
   '/api/notifications/push/public-key'
 ]);
+const publicFirebaseConfigReadBypassPaths = withApiMountVariants([
+  '/api/auth/firebase/client-config'
+]);
 
 function removeAuthPrefix(prefixes = []) {
   const list = Array.isArray(prefixes) ? prefixes : [];
@@ -484,7 +487,10 @@ app.use('/api', globalLimiter);
 app.use('/api', requestThreatShieldMiddleware({
   autoBlockScore: env.requestAutoBlockScore,
   incidentScore: env.requestIncidentScore,
-  bypassPrefixes: publicPushNotificationReadBypassPaths
+  bypassPrefixes: [
+    ...publicPushNotificationReadBypassPaths,
+    ...publicFirebaseConfigReadBypassPaths
+  ]
 }));
 app.use('/api', globalLockdownShieldMiddleware({
   enabled: env.globalLockdownShieldEnabled,
