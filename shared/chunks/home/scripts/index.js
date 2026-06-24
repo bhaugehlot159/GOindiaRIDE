@@ -483,8 +483,12 @@
                 ['Toll', formatHomeFareMoney(fare.tollCharge || 0)],
                 ['Parking', formatHomeFareMoney(fare.parkingCharge || 0)],
                 ['Night bhatta', formatHomeFareMoney(fare.driverNightBatta || fare.nightCharge || 0)],
-                ['Tax/GST', formatHomeFareMoney((fare.stateTax || 0) + (fare.taxesFare || 0))]
+                ['State tax', formatHomeFareMoney(fare.stateTax || 0)],
+                ['GST', formatHomeFareMoney(fare.taxesFare || 0)]
             ];
+            if (Number(fare.competitiveDiscount || 0) > 0) {
+                items.push(['Fare discount', `-${formatHomeFareMoney(fare.competitiveDiscount)}`]);
+            }
 
             container.replaceChildren(...items.map(([label, value]) => {
                 const row = document.createElement('div');
@@ -557,6 +561,9 @@
                     suggestionPanel.style.left = `${field.offsetLeft}px`;
                     suggestionPanel.style.top = `${field.offsetTop + field.offsetHeight + 4}px`;
                     suggestionPanel.style.width = `${field.offsetWidth}px`;
+                    const fieldRect = field.getBoundingClientRect();
+                    const availableBelow = Math.max(150, window.innerHeight - fieldRect.bottom - 18);
+                    suggestionPanel.style.maxHeight = `${Math.min(228, availableBelow)}px`;
                 }
                 suggestionPanel.hidden = false;
                 input.setAttribute('aria-expanded', 'true');
@@ -573,10 +580,12 @@
                 const parking = fare.parkingCharge || 0;
                 const night = fare.driverNightBatta || fare.nightCharge || 0;
                 const tollNote = fare.tollRequiresAdminReview ? ' (admin review)' : '';
+                const stateTax = fare.stateTax || 0;
+                const stateTaxNote = fare.stateTaxRequiresAdminReview ? ' (official check)' : '';
 
                 routeText.textContent = `${pickup} -> ${drop} =`;
                 amountText.textContent = formatHomeFareMoney(total);
-                metaText.textContent = `${distanceKm} km | Toll ${formatHomeFareMoney(toll)}${tollNote} | Parking ${formatHomeFareMoney(parking)} | Night ${formatHomeFareMoney(night)}`;
+                metaText.textContent = `${distanceKm} km | Toll ${formatHomeFareMoney(toll)}${tollNote} | State tax ${formatHomeFareMoney(stateTax)}${stateTaxNote} | Night ${formatHomeFareMoney(night)}`;
                 renderHomeFareBreakdown(breakdown, fare);
                 bookLink.href = buildBookingUrl({
                     source: 'home_fare_calculator',
@@ -589,7 +598,9 @@
                     distanceKm: String(fare.distanceKm || ''),
                     tollCharge: String(fare.tollCharge || 0),
                     parkingCharge: String(fare.parkingCharge || 0),
-                    nightCharge: String(fare.driverNightBatta || fare.nightCharge || 0)
+                    nightCharge: String(fare.driverNightBatta || fare.nightCharge || 0),
+                    stateTax: String(fare.stateTax || 0),
+                    marketDiscount: String(fare.competitiveDiscount || 0)
                 });
                 return fare;
             }

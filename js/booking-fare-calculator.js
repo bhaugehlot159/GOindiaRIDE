@@ -62,22 +62,82 @@
   };
 
   const STATE_KEYWORD_MAP = [
-    ['Rajasthan', ['jaipur', 'jodhpur', 'udaipur', 'ajmer', 'kota', 'bikaner', 'jaisalmer', 'alwar', 'bharatpur', 'bhilwara', 'chittorgarh', 'churu', 'dausa', 'dholpur', 'dungarpur', 'hanumangarh', 'jalore', 'jhalawar', 'jhunjhunu', 'karauli', 'pali', 'rajsamand', 'sawai madhopur', 'tonk', 'sikar', 'sirohi', 'barmer', 'nagaur', 'pratapgarh', 'ganganagar', 'sriganganagar', 'sri ganganagar']],
-    ['Delhi', ['delhi', 'new delhi', 'connaught place', 'karol bagh', 'dwarka', 'rohini']],
-    ['Haryana', ['gurugram', 'gurgaon', 'faridabad', 'panipat', 'ambala', 'karnal', 'rohtak', 'sonipat']],
-    ['Uttar Pradesh', ['agra', 'lucknow', 'kanpur', 'varanasi', 'prayagraj', 'noida', 'ghaziabad', 'mathura', 'meerut']],
-    ['Madhya Pradesh', ['bhopal', 'indore', 'gwalior', 'jabalpur', 'ujjain']],
-    ['Gujarat', ['ahmedabad', 'surat', 'vadodara', 'rajkot', 'bhavnagar', 'gandhinagar']],
-    ['Punjab', ['chandigarh', 'ludhiana', 'amritsar', 'jalandhar', 'patiala', 'bathinda']],
-    ['Himachal Pradesh', ['shimla', 'manali', 'dharamshala', 'kullu', 'solan']],
-    ['Uttarakhand', ['dehradun', 'haridwar', 'rishikesh', 'nainital', 'mussoorie']],
-    ['Maharashtra', ['mumbai', 'pune', 'nagpur', 'nashik', 'aurangabad', 'thane']],
-    ['Karnataka', ['bangalore', 'bengaluru', 'mysore', 'mangalore', 'hubli', 'belgaum']],
-    ['Tamil Nadu', ['chennai', 'coimbatore', 'madurai', 'salem', 'tiruchirappalli']],
-    ['West Bengal', ['kolkata', 'howrah', 'durgapur', 'siliguri', 'asansol']],
-    ['Kerala', ['thiruvananthapuram', 'kochi', 'kozhikode', 'thrissur', 'kollam']],
-    ['Goa', ['panaji', 'margao', 'vasco da gama', 'mapusa', 'ponda']]
+    ['Andaman & Nicobar Island', ['andaman', 'nicobar', 'port blair']],
+    ['Andhra Pradesh', ['andhra pradesh', 'visakhapatnam', 'vijayawada', 'tirupati', 'guntur', 'nellore', 'kurnool']],
+    ['Arunachal Pradesh', ['arunachal pradesh', 'itanagar', 'tawang', 'ziro', 'pasighat']],
+    ['Assam', ['assam', 'guwahati', 'dispur', 'silchar', 'dibrugarh', 'jorhat']],
+    ['Bihar', ['bihar', 'patna', 'gaya', 'bhagalpur', 'muzaffarpur', 'darbhanga']],
+    ['Chandigarh', ['chandigarh']],
+    ['Chhattisgarh', ['chhattisgarh', 'raipur', 'bilaspur', 'bhilai', 'durg', 'korba']],
+    ['Delhi', ['delhi', 'new delhi', 'connaught place', 'karol bagh', 'dwarka', 'rohini', 'saket']],
+    ['Goa', ['goa', 'panaji', 'panjim', 'margao', 'vasco da gama', 'mapusa', 'ponda']],
+    ['Gujarat', ['gujarat', 'ahmedabad', 'surat', 'vadodara', 'rajkot', 'bhavnagar', 'gandhinagar']],
+    ['Haryana', ['haryana', 'gurugram', 'gurgaon', 'faridabad', 'panipat', 'ambala', 'karnal', 'rohtak', 'sonipat']],
+    ['Himachal Pradesh', ['himachal pradesh', 'shimla', 'manali', 'dharamshala', 'kullu', 'solan']],
+    ['Jammu & Kashmir', ['jammu and kashmir', 'jammu', 'srinagar', 'gulmarg', 'pahalgam']],
+    ['Jharkhand', ['jharkhand', 'ranchi', 'jamshedpur', 'dhanbad', 'bokaro', 'deoghar']],
+    ['Karnataka', ['karnataka', 'bangalore', 'bengaluru', 'mysore', 'mysuru', 'mangalore', 'mangaluru', 'hubli', 'belgaum']],
+    ['Kerala', ['kerala', 'thiruvananthapuram', 'trivandrum', 'kochi', 'cochin', 'kozhikode', 'thrissur', 'kollam']],
+    ['Ladakh', ['ladakh', 'leh', 'kargil']],
+    ['Lakshadweep', ['lakshadweep', 'kavaratti', 'agatti']],
+    ['Madhya Pradesh', ['madhya pradesh', 'bhopal', 'indore', 'gwalior', 'jabalpur', 'ujjain']],
+    ['Maharashtra', ['maharashtra', 'mumbai', 'pune', 'nagpur', 'nashik', 'aurangabad', 'chhatrapati sambhajinagar', 'thane']],
+    ['Manipur', ['manipur', 'imphal', 'thoubal', 'bishnupur']],
+    ['Meghalaya', ['meghalaya', 'shillong', 'cherrapunji', 'tura']],
+    ['Mizoram', ['mizoram', 'aizawl', 'lunglei']],
+    ['Nagaland', ['nagaland', 'kohima', 'dimapur']],
+    ['Odisha', ['odisha', 'orissa', 'bhubaneswar', 'cuttack', 'puri', 'rourkela', 'sambalpur']],
+    ['Puducherry', ['puducherry', 'pondicherry', 'karaikal', 'mahe', 'yanam']],
+    ['Punjab', ['punjab', 'ludhiana', 'amritsar', 'jalandhar', 'patiala', 'bathinda']],
+    ['Rajasthan', ['rajasthan', 'jaipur', 'jodhpur', 'udaipur', 'ajmer', 'kota', 'bikaner', 'jaisalmer', 'alwar', 'bharatpur', 'bhilwara', 'chittorgarh', 'churu', 'dausa', 'dholpur', 'dungarpur', 'hanumangarh', 'jalore', 'jhalawar', 'jhunjhunu', 'karauli', 'pali', 'rajsamand', 'sawai madhopur', 'tonk', 'sikar', 'sirohi', 'barmer', 'nagaur', 'pratapgarh', 'ganganagar', 'sriganganagar', 'sri ganganagar']],
+    ['Sikkim', ['sikkim', 'gangtok', 'namchi', 'pelling']],
+    ['Tamil Nadu', ['tamil nadu', 'chennai', 'coimbatore', 'madurai', 'salem', 'tiruchirappalli', 'trichy']],
+    ['Telangana', ['telangana', 'hyderabad', 'secunderabad', 'warangal', 'nizamabad', 'karimnagar']],
+    ['Tripura', ['tripura', 'agartala']],
+    ['UT of DNH and DD', ['dadra', 'nagar haveli', 'daman', 'diu', 'silvassa']],
+    ['Uttarakhand', ['uttarakhand', 'dehradun', 'haridwar', 'rishikesh', 'nainital', 'mussoorie']],
+    ['Uttar Pradesh', ['uttar pradesh', 'agra', 'lucknow', 'kanpur', 'varanasi', 'prayagraj', 'allahabad', 'noida', 'ghaziabad', 'mathura', 'meerut']],
+    ['West Bengal', ['west bengal', 'kolkata', 'howrah', 'durgapur', 'siliguri', 'asansol']]
   ];
+
+  const OFFICIAL_AITP_STATE_CODES = {
+    'Andaman & Nicobar Island': 'AN',
+    'Andhra Pradesh': 'AP',
+    'Arunachal Pradesh': 'AR',
+    Assam: 'AS',
+    Bihar: 'BR',
+    Chandigarh: 'CH',
+    Chhattisgarh: 'CG',
+    Delhi: 'DL',
+    Goa: 'GA',
+    Gujarat: 'GJ',
+    Haryana: 'HR',
+    'Himachal Pradesh': 'HP',
+    'Jammu & Kashmir': 'JK',
+    Jharkhand: 'JH',
+    Karnataka: 'KA',
+    Kerala: 'KL',
+    Ladakh: 'LA',
+    Lakshadweep: 'LD',
+    'Madhya Pradesh': 'MP',
+    Maharashtra: 'MH',
+    Manipur: 'MN',
+    Meghalaya: 'ML',
+    Mizoram: 'MZ',
+    Nagaland: 'NL',
+    Odisha: 'OR',
+    Puducherry: 'PY',
+    Punjab: 'PB',
+    Rajasthan: 'RJ',
+    Sikkim: 'SK',
+    'Tamil Nadu': 'TN',
+    Telangana: 'TS',
+    Tripura: 'TR',
+    'UT of DNH and DD': 'DD',
+    Uttarakhand: 'UK',
+    'Uttar Pradesh': 'UP',
+    'West Bengal': 'WB'
+  };
 
   const ROUTE_TOURISM_KEYWORDS = [
     'airport',
@@ -97,6 +157,84 @@
   ];
 
   const TOLL_RATE_DATA_VERSION = 'Mapped NHAI/NHTIS toll-plaza table, reviewed 2026-06-11';
+  const OFFICIAL_STATE_TAX_DATA_VERSION = 'Govt transport / Parivahan checkpost state-tax table, reviewed 2026-06-24';
+  const COMPETITIVE_RATE_DATA_VERSION = 'Savaari route fare and Chiku Cab billing rules, checked 2026-06-24';
+  const COMPETITIVE_RATE_DISCOUNT_PERCENT = 8;
+  const OFFICIAL_PARIVAHAN_CHECKPOST_URL = 'https://parivahan.gov.in/en/node/579';
+  const OFFICIAL_VAHAN_AITP_URL = 'https://vahan.parivahan.gov.in/aitp/';
+
+  const OFFICIAL_OTHER_STATE_TAX_RULES = {
+    Rajasthan: {
+      type: 'seat_slab_daily',
+      source: 'Rajasthan Transport Department - Tax on Passenger Vehicles',
+      sourceUrl: 'https://transport.rajasthan.gov.in/content/transportportal/en/transport/farefeesandtax/vehicleTax/taxOnPrivateServiceVehicles.html',
+      note: 'Tourist vehicles of other states under section 88(9) / outside-state temporary permit',
+      slabs: [
+        { upToSeats: 6, perDay: 160 },
+        { upToSeats: 13, perDay: 210 },
+        { upToSeats: 22, perDay: 875, minDays: 5 },
+        { upToSeats: 32, perDay: 1000, minDays: 5 },
+        { upToSeats: Infinity, perDay: 1600, minDays: 5 }
+      ]
+    },
+    Haryana: {
+      type: 'seat_slab_daily',
+      source: 'Haryana Transport Department - Vehicles of other states',
+      sourceUrl: 'https://haryanatransport.gov.in/en/content/vehicles-other-states',
+      note: 'Contract carriage including All India Tourist Vehicle',
+      slabs: [
+        { upToSeats: 3, perDay: 25 },
+        { upToSeats: 6, perDay: 100 },
+        { upToSeats: 12, perDay: 500 },
+        { upToSeats: 32, perDay: 750 },
+        { upToSeats: Infinity, perDay: 1000 }
+      ]
+    }
+  };
+
+  const COMMON_ROUTE_STATE_CORRIDORS = {
+    'jaipur-delhi': ['Rajasthan', 'Haryana', 'Delhi'],
+    'delhi-jaipur': ['Delhi', 'Haryana', 'Rajasthan'],
+    'jaipur-agra': ['Rajasthan', 'Uttar Pradesh'],
+    'agra-jaipur': ['Uttar Pradesh', 'Rajasthan'],
+    'udaipur-ahmedabad': ['Rajasthan', 'Gujarat'],
+    'ahmedabad-udaipur': ['Gujarat', 'Rajasthan'],
+    'udaipur-indore': ['Rajasthan', 'Madhya Pradesh'],
+    'indore-udaipur': ['Madhya Pradesh', 'Rajasthan'],
+    'udaipur-mumbai': ['Rajasthan', 'Gujarat', 'Maharashtra'],
+    'mumbai-udaipur': ['Maharashtra', 'Gujarat', 'Rajasthan'],
+    'delhi-agra': ['Delhi', 'Haryana', 'Uttar Pradesh'],
+    'agra-delhi': ['Uttar Pradesh', 'Haryana', 'Delhi'],
+    'delhi-chandigarh': ['Delhi', 'Haryana', 'Chandigarh'],
+    'chandigarh-delhi': ['Chandigarh', 'Haryana', 'Delhi']
+  };
+
+  const COMPETITIVE_ROUTE_FARE_BENCHMARKS = {
+    'udaipur-jaisalmer': {
+      source: 'Savaari Udaipur to Jaisalmer one-way cab fare table',
+      sourceUrl: 'https://www.savaari.com/udaipur/udaipur-to-jaisalmer-cabs',
+      includes: 'Published one-way fare says toll and taxes included',
+      fares: {
+        economy: 5820,
+        sedan: 6111,
+        premium: 6111,
+        suv: 7760,
+        xl: 12610
+      }
+    },
+    'jaisalmer-udaipur': {
+      source: 'Savaari Udaipur to Jaisalmer one-way cab fare table',
+      sourceUrl: 'https://www.savaari.com/udaipur/udaipur-to-jaisalmer-cabs',
+      includes: 'Published one-way fare says toll and taxes included',
+      fares: {
+        economy: 5820,
+        sedan: 6111,
+        premium: 6111,
+        suv: 7760,
+        xl: 12610
+      }
+    }
+  };
 
   const TOLL_PLAZA_RATES = {
     mandawadaGomati: {
@@ -623,7 +761,7 @@
     if (!match) return false;
 
     const hour = Math.max(0, Math.min(23, Number.parseInt(match[1], 10) || 0));
-    return hour >= 22 || hour < 5;
+    return hour >= 22 || hour < 6;
   }
 
   function resolveVehicleProfile(vehicleType) {
@@ -979,39 +1117,242 @@
     return roundMoney(parking);
   }
 
-  function estimateOtherStateTax({
+  function pushUniqueState(list, stateName) {
+    const cleanState = sanitizeText(stateName, 80);
+    if (!cleanState || list.includes(cleanState)) return;
+    list.push(cleanState);
+  }
+
+  function resolveRouteStates({ pickup, dropoff, routeData, pickupState, dropState }) {
+    const routeKey = buildTollRouteKey(pickup, dropoff);
+    const corridorStates = routeKey && COMMON_ROUTE_STATE_CORRIDORS[routeKey]
+      ? COMMON_ROUTE_STATE_CORRIDORS[routeKey]
+      : [];
+    const states = [];
+
+    pushUniqueState(states, pickupState);
+    corridorStates.forEach((stateName) => pushUniqueState(states, stateName));
+    if (routeData && Array.isArray(routeData.states)) {
+      routeData.states.forEach((stateName) => pushUniqueState(states, stateName));
+    }
+    pushUniqueState(states, dropState);
+
+    return {
+      routeKey,
+      states
+    };
+  }
+
+  function resolveVehicleSeatCount(vehicleType, vehicleModel, passengers) {
+    const normalizedVehicle = normalizeVehicleType(vehicleType, vehicleModel);
+    const passengerCount = Math.max(1, Math.min(40, Math.round(toNumber(passengers, 1) || 1)));
+    if (normalizedVehicle === 'xl') return Math.max(passengerCount, 13);
+    if (normalizedVehicle === 'suv') return Math.max(passengerCount, 6);
+    return Math.max(passengerCount, 4);
+  }
+
+  function estimateTripTaxDays(rideDate, returnDate, isReturnTrip) {
+    if (!isReturnTrip || !returnDate || !rideDate) return 1;
+    const start = Date.parse(`${rideDate}T00:00:00`);
+    const end = Date.parse(`${returnDate}T23:59:59`);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 1;
+    return Math.max(1, Math.ceil((end - start) / (24 * 60 * 60 * 1000)));
+  }
+
+  function calculateSeatSlabStateTax(rule, seatCount, days) {
+    const slab = (rule.slabs || []).find((item) => seatCount <= item.upToSeats);
+    if (!slab) return null;
+    const billableDays = Math.max(1, days, Math.round(slab.minDays || 0));
+    return {
+      perDay: roundMoney(slab.perDay),
+      days: billableDays,
+      amount: roundMoney(slab.perDay * billableDays)
+    };
+  }
+
+  function buildOfficialCheckpostReview(stateName) {
+    return {
+      state: stateName,
+      stateCode: OFFICIAL_AITP_STATE_CODES[stateName] || '',
+      amount: 0,
+      perDay: 0,
+      days: 0,
+      source: 'Parivahan Checkpost Tax / VAHAN AITP official state quote',
+      sourceUrl: OFFICIAL_PARIVAHAN_CHECKPOST_URL,
+      quoteUrl: OFFICIAL_VAHAN_AITP_URL,
+      requiresAdminReview: true,
+      note: 'Exact amount is state-portal / vehicle-permit specific; no fabricated tax added.'
+    };
+  }
+
+  function estimateOtherStateTaxDetails({
+    pickup,
+    dropoff,
+    routeData,
     pickupState,
     dropState,
-    subtotal,
-    tollCharge,
-    parkingCharge,
-    routeCategory,
-    interState
+    vehicleType,
+    vehicleModel,
+    passengers,
+    rideDate,
+    returnDate,
+    isReturnTrip
   }) {
-    if (!pickupState || !dropState || pickupState === dropState) {
-      return 0;
+    const routeStates = resolveRouteStates({ pickup, dropoff, routeData, pickupState, dropState });
+    const originState = pickupState || routeStates.states[0] || '';
+    const taxableStates = routeStates.states.filter((stateName, index) => {
+      if (!stateName) return false;
+      if (stateName === originState) return false;
+      return routeStates.states.indexOf(stateName) === index;
+    });
+
+    if (!taxableStates.length) {
+      return {
+        amount: 0,
+        source: 'same_state_or_no_other_state_tax',
+        dataVersion: OFFICIAL_STATE_TAX_DATA_VERSION,
+        routeKey: routeStates.routeKey,
+        routeStates: routeStates.states,
+        taxableStates: [],
+        breakdown: [],
+        missingStates: [],
+        requiresAdminReview: false
+      };
     }
 
-    const taxableBase = subtotal + tollCharge + parkingCharge;
-    const interstateRate = interState || routeCategory === 'interstate' ? 0.075 : 0.06;
-    return Math.max(150, roundMoney(taxableBase * interstateRate));
+    const seatCount = resolveVehicleSeatCount(vehicleType, vehicleModel, passengers);
+    const taxDays = estimateTripTaxDays(rideDate, returnDate, isReturnTrip);
+    const breakdown = taxableStates.map((stateName) => {
+      const rule = OFFICIAL_OTHER_STATE_TAX_RULES[stateName];
+      if (!rule) return buildOfficialCheckpostReview(stateName);
+      const computed = rule.type === 'seat_slab_daily'
+        ? calculateSeatSlabStateTax(rule, seatCount, taxDays)
+        : null;
+      if (!computed) return buildOfficialCheckpostReview(stateName);
+      return {
+        state: stateName,
+        stateCode: OFFICIAL_AITP_STATE_CODES[stateName] || '',
+        amount: computed.amount,
+        perDay: computed.perDay,
+        days: computed.days,
+        seatCount,
+        source: rule.source,
+        sourceUrl: rule.sourceUrl,
+        quoteUrl: OFFICIAL_VAHAN_AITP_URL,
+        requiresAdminReview: false,
+        note: rule.note
+      };
+    });
+    const amount = roundMoney(breakdown.reduce((sum, item) => sum + (item.amount || 0), 0));
+    const missingStates = breakdown
+      .filter((item) => item.requiresAdminReview)
+      .map((item) => item.state);
+
+    return {
+      amount,
+      source: missingStates.length ? 'official_partial_with_checkpost_review' : 'official_state_tax_table',
+      dataVersion: OFFICIAL_STATE_TAX_DATA_VERSION,
+      routeKey: routeStates.routeKey,
+      routeStates: routeStates.states,
+      taxableStates,
+      seatCount,
+      days: taxDays,
+      breakdown,
+      missingStates,
+      requiresAdminReview: missingStates.length > 0
+    };
   }
 
   function estimateDriverNightBatta({
     rideTime,
     returnTime,
-    subtotal,
-    tollCharge,
-    parkingCharge,
-    stateTax,
     routeCategory,
-    interState
+    interState,
+    tripPlan,
+    vehicleType
   }) {
     const nightTrip = Boolean(isNightTime(rideTime) || isNightTime(returnTime));
     if (!nightTrip) return 0;
-    const baseAmount = subtotal + tollCharge + parkingCharge + stateTax;
-    const rate = interState || routeCategory === 'outstation' ? 0.1 : 0.08;
-    return Math.max(80, roundMoney(baseAmount * rate));
+    const normalizedVehicle = normalizeVehicleType(vehicleType);
+    if (normalizedVehicle === 'xl') return 300;
+    if (interState || routeCategory === 'long_route' || normalizeTripPlan(tripPlan) === 'outstation') return 250;
+    return 80;
+  }
+
+  function resolveCompetitiveFareBenchmark(pickup, dropoff, vehicleType) {
+    const routeKey = buildTollRouteKey(pickup, dropoff);
+    const benchmark = routeKey ? COMPETITIVE_ROUTE_FARE_BENCHMARKS[routeKey] : null;
+    if (!benchmark) {
+      return {
+        routeKey,
+        benchmark: null,
+        fare: 0
+      };
+    }
+    const normalizedVehicle = normalizeVehicleType(vehicleType);
+    const fare = benchmark.fares[normalizedVehicle] || benchmark.fares.sedan || 0;
+    return {
+      routeKey,
+      benchmark,
+      vehicleType: normalizedVehicle,
+      fare: roundMoney(fare)
+    };
+  }
+
+  function estimateCompetitiveMarketAdjustment({
+    pickup,
+    dropoff,
+    vehicleType,
+    tripPlan,
+    serviceType,
+    distanceKm,
+    fareSubtotal,
+    grossTotal,
+    nightCharge
+  }) {
+    if (!isCompetitiveOutstationOneWay(tripPlan, serviceType, distanceKm)) {
+      return {
+        discount: 0,
+        targetFare: 0,
+        benchmarkFare: 0,
+        source: '',
+        sourceUrl: '',
+        includes: '',
+        dataVersion: COMPETITIVE_RATE_DATA_VERSION,
+        discountPercent: 0
+      };
+    }
+
+    const resolved = resolveCompetitiveFareBenchmark(pickup, dropoff, vehicleType);
+    if (!resolved.benchmark || !resolved.fare) {
+      return {
+        discount: 0,
+        targetFare: 0,
+        benchmarkFare: 0,
+        source: '',
+        sourceUrl: '',
+        includes: '',
+        dataVersion: COMPETITIVE_RATE_DATA_VERSION,
+        discountPercent: 0
+      };
+    }
+
+    const targetFare = roundMoney((resolved.fare * (100 - COMPETITIVE_RATE_DISCOUNT_PERCENT) / 100) + (nightCharge || 0));
+    const discount = Math.min(
+      roundMoney(fareSubtotal),
+      Math.max(0, roundMoney((grossTotal || 0) - targetFare))
+    );
+    return {
+      discount,
+      targetFare,
+      benchmarkFare: resolved.fare,
+      routeKey: resolved.routeKey,
+      source: resolved.benchmark.source,
+      sourceUrl: resolved.benchmark.sourceUrl,
+      includes: resolved.benchmark.includes,
+      dataVersion: COMPETITIVE_RATE_DATA_VERSION,
+      discountPercent: COMPETITIVE_RATE_DISCOUNT_PERCENT
+    };
   }
 
   function estimateBookingFare(rawInput = {}) {
@@ -1139,25 +1480,28 @@
       serviceType: tripServiceType
     });
 
-    const stateTax = estimateOtherStateTax({
+    const stateTaxDetails = estimateOtherStateTaxDetails({
+      pickup,
+      dropoff,
+      routeData,
       pickupState,
       dropState,
-      subtotal,
-      tollCharge,
-      parkingCharge,
-      routeCategory,
-      interState
+      vehicleType,
+      vehicleModel: rawInput.vehicleModel,
+      passengers,
+      rideDate,
+      returnDate,
+      isReturnTrip
     });
+    const stateTax = roundMoney(stateTaxDetails.amount || 0);
 
     const nightCharge = estimateDriverNightBatta({
       rideTime,
       returnTime,
-      subtotal,
-      tollCharge,
-      parkingCharge,
-      stateTax,
       routeCategory,
-      interState
+      interState,
+      tripPlan,
+      vehicleType
     });
 
     const paymentMethod = normalizeKey(rawInput.paymentMethod || 'cash');
@@ -1165,10 +1509,26 @@
     const paymentFee = roundMoney((subtotal + tollCharge + parkingCharge + stateTax + nightCharge) * paymentFeeRate);
     const gstTotal = roundMoney((subtotal + tollCharge + parkingCharge + stateTax + nightCharge + paymentFee) * 0.05);
     const grossTotal = roundMoney(subtotal + tollCharge + parkingCharge + stateTax + nightCharge + paymentFee + gstTotal);
-    const promoDiscount = estimatePromoDiscount(grossTotal, promoCode, tripPlan, paymentMethod);
+    const competitiveAdjustment = estimateCompetitiveMarketAdjustment({
+      pickup,
+      dropoff,
+      vehicleType,
+      tripPlan,
+      serviceType: tripServiceType,
+      distanceKm,
+      fareSubtotal: subtotal,
+      grossTotal,
+      nightCharge
+    });
+    const billedSubtotal = roundMoney(subtotal - competitiveAdjustment.discount);
+    const marketAdjustedTotal = roundMoney(grossTotal - competitiveAdjustment.discount);
+    const promoDiscount = Math.min(
+      billedSubtotal,
+      estimatePromoDiscount(billedSubtotal, promoCode, tripPlan, paymentMethod)
+    );
     const totalFare = Math.max(
       vehicleProfile.minimumFare,
-      roundMoney(grossTotal - promoDiscount)
+      roundMoney(marketAdjustedTotal - promoDiscount)
     );
     const budgetGap = budgetAmount > 0 ? Math.round(budgetAmount - totalFare) : 0;
     const routeHighLevel = routeData && Array.isArray(routeData.highlights)
@@ -1210,11 +1570,29 @@
       tollRequiresAdminReview: Boolean(tollDetails.requiresAdminReview),
       parkingCharge,
       stateTax,
+      stateTaxSource: stateTaxDetails.source,
+      stateTaxDataVersion: stateTaxDetails.dataVersion,
+      stateTaxRouteKey: stateTaxDetails.routeKey,
+      stateTaxRouteStates: stateTaxDetails.routeStates,
+      stateTaxTaxableStates: stateTaxDetails.taxableStates,
+      stateTaxBreakdown: stateTaxDetails.breakdown,
+      stateTaxMissingStates: stateTaxDetails.missingStates,
+      stateTaxRequiresAdminReview: Boolean(stateTaxDetails.requiresAdminReview),
       nightCharge,
       paymentFee,
       taxesFare: gstTotal,
+      competitiveDiscount: competitiveAdjustment.discount,
+      competitiveBenchmarkFare: competitiveAdjustment.benchmarkFare,
+      competitiveTargetFare: competitiveAdjustment.targetFare,
+      competitiveSource: competitiveAdjustment.source,
+      competitiveSourceUrl: competitiveAdjustment.sourceUrl,
+      competitiveIncludes: competitiveAdjustment.includes,
+      competitiveDataVersion: competitiveAdjustment.dataVersion,
+      competitiveDiscountPercent: competitiveAdjustment.discountPercent,
       promoDiscount,
+      billedSubtotal,
       grossTotal,
+      marketAdjustedTotal,
       totalFare,
       finalFare: totalFare,
       amount: totalFare,
@@ -1233,6 +1611,7 @@
       roundTripCharge: returnTripFare,
       driverNightBatta: nightCharge,
       otherStateTax: stateTax,
+      otherStateTaxBreakdown: stateTaxDetails.breakdown,
       promoCode,
       passengerCount: passengers,
       luggage,
@@ -1252,6 +1631,12 @@
 
   return {
     estimateBookingFare,
+    getOfficialStateTaxCoverage: () => Object.entries(OFFICIAL_AITP_STATE_CODES).map(([state, stateCode]) => ({
+      state,
+      stateCode,
+      hasAutoSlab: Boolean(OFFICIAL_OTHER_STATE_TAX_RULES[state]),
+      sourceUrl: OFFICIAL_OTHER_STATE_TAX_RULES[state]?.sourceUrl || OFFICIAL_VAHAN_AITP_URL
+    })),
     parseDistanceValue,
     parseDurationMinutes,
     normalizeVehicleType,

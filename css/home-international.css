@@ -883,19 +883,24 @@ html body.goi-global-theme.home-international .home-location-suggest-panel:empty
 
 body.home-international .home-fare-suggest-panel,
 html body.goi-global-theme.home-international .home-fare-suggest-panel {
-    z-index: 55;
-    max-height: 188px;
+    z-index: 90;
+    max-height: 228px;
+    overscroll-behavior: contain;
 }
 
 body.home-international .home-fare-suggest-panel button,
 html body.goi-global-theme.home-international .home-fare-suggest-panel button {
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 0.08rem !important;
+    gap: 0.16rem !important;
     align-items: start !important;
+    min-height: 46px;
+    padding-block: 0.46rem !important;
 }
 
 body.home-international .home-fare-suggest-panel small,
 html body.goi-global-theme.home-international .home-fare-suggest-panel small {
+    display: block;
+    line-height: 1.2;
     white-space: normal;
 }
 

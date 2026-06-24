@@ -1,7 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { estimateBookingFare } = require('../../js/booking-fare-calculator');
+const {
+  estimateBookingFare,
+  getOfficialStateTaxCoverage
+} = require('../../js/booking-fare-calculator');
 
 test('fare calculator uses mapped toll plazas for Udaipur to Jaisalmer', () => {
   const estimate = estimateBookingFare({
@@ -68,7 +71,13 @@ test('fare calculator handles homepage station outstation route with competitive
   assert.equal(estimate.parkingCharge, 55);
   assert.equal(estimate.extraDistanceFare, 0);
   assert.equal(estimate.driverNightBatta, 0);
-  assert.ok(estimate.totalFare >= 10500 && estimate.totalFare <= 10950);
+  assert.equal(estimate.stateTax, 0);
+  assert.equal(estimate.competitiveBenchmarkFare, 7760);
+  assert.equal(estimate.competitiveTargetFare, 7139);
+  assert.equal(estimate.competitiveDiscountPercent, 8);
+  assert.equal(estimate.competitiveDiscount, 3576);
+  assert.equal(estimate.totalFare, 7139);
+  assert.equal(estimate.billedSubtotal, 6439);
 });
 
 test('fare calculator adds night bhatta only when a night ride time is supplied', () => {
@@ -100,8 +109,92 @@ test('fare calculator adds night bhatta only when a night ride time is supplied'
   });
 
   assert.equal(dayEstimate.driverNightBatta, 0);
-  assert.ok(nightEstimate.driverNightBatta >= 80);
+  assert.equal(nightEstimate.driverNightBatta, 250);
+  assert.equal(nightEstimate.totalFare, dayEstimate.totalFare + 250);
   assert.ok(nightEstimate.totalFare > dayEstimate.totalFare);
+});
+
+test('fare calculator covers every VAHAN AITP state and does not miss state codes', () => {
+  const coverage = getOfficialStateTaxCoverage();
+  const states = coverage.map((item) => item.state);
+  assert.equal(coverage.length, 36);
+  assert.ok(states.includes('Rajasthan'));
+  assert.ok(states.includes('Haryana'));
+  assert.ok(states.includes('Gujarat'));
+  assert.ok(states.includes('Uttar Pradesh'));
+  assert.ok(coverage.every((item) => item.stateCode && item.sourceUrl));
+  assert.equal(coverage.find((item) => item.state === 'Rajasthan').hasAutoSlab, true);
+  assert.equal(coverage.find((item) => item.state === 'Haryana').hasAutoSlab, true);
+});
+
+test('fare calculator adds different official state taxes for a multi-state route', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Delhi Airport',
+    drop: 'Jaipur',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'suv',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 280,
+    distanceSource: 'home_known_route',
+    paymentMethod: 'cash'
+  });
+
+  assert.deepEqual(estimate.stateTaxRouteStates, ['Delhi', 'Haryana', 'Rajasthan']);
+  assert.equal(estimate.stateTax, 260);
+  assert.deepEqual(
+    estimate.stateTaxBreakdown.map((item) => [item.state, item.amount, item.perDay]),
+    [
+      ['Haryana', 100, 100],
+      ['Rajasthan', 160, 160]
+    ]
+  );
+  assert.equal(estimate.stateTaxRequiresAdminReview, false);
+});
+
+test('fare calculator applies Rajasthan other-state tourist tax only on Rajasthan entry', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Agra',
+    drop: 'Jaipur',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'sedan',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 240,
+    distanceSource: 'home_known_route',
+    paymentMethod: 'cash'
+  });
+
+  assert.deepEqual(estimate.stateTaxRouteStates, ['Uttar Pradesh', 'Rajasthan']);
+  assert.equal(estimate.stateTax, 160);
+  assert.deepEqual(
+    estimate.stateTaxBreakdown.map((item) => [item.state, item.amount]),
+    [['Rajasthan', 160]]
+  );
+  assert.equal(estimate.stateTaxRequiresAdminReview, false);
+});
+
+test('fare calculator routes states without verified public slabs to official checkpost review instead of fake tax', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Ahmedabad',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'sedan',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 260,
+    distanceSource: 'home_known_route',
+    paymentMethod: 'cash'
+  });
+
+  assert.deepEqual(estimate.stateTaxRouteStates, ['Rajasthan', 'Gujarat']);
+  assert.equal(estimate.stateTax, 0);
+  assert.deepEqual(estimate.stateTaxMissingStates, ['Gujarat']);
+  assert.equal(estimate.stateTaxRequiresAdminReview, true);
+  assert.match(estimate.stateTaxBreakdown[0].quoteUrl, /vahan\.parivahan\.gov\.in\/aitp/);
 });
 
 test('fare calculator does not invent toll when a route has no mapped toll corridor', () => {
