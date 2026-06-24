@@ -481,13 +481,13 @@ body.home-international .home-safety-actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.62rem;
-    margin-top: 0.9rem;
+    margin-top: 1rem;
     max-width: 690px;
 }
 
 body.home-international .home-safety-action {
     min-width: 0;
-    min-height: 66px;
+    min-height: 74px;
     display: grid;
     grid-template-columns: 36px minmax(0, 1fr);
     align-items: center;
@@ -499,6 +499,16 @@ body.home-international .home-safety-action {
     color: var(--home-ink);
     text-decoration: none;
     box-shadow: 0 12px 28px rgba(10, 33, 47, 0.1);
+}
+
+body.home-international .home-safety-action span,
+body.home-international .home-safety-action strong,
+body.home-international .home-safety-action small,
+html body.goi-global-theme.home-international .home-safety-action,
+html body.goi-global-theme.home-international .home-safety-action span,
+html body.goi-global-theme.home-international .home-safety-action strong,
+html body.goi-global-theme.home-international .home-safety-action small {
+    color: var(--home-ink) !important;
 }
 
 body.home-international .home-safety-action:hover,
@@ -519,15 +529,36 @@ body.home-international .home-safety-action i {
     color: #9f1239;
 }
 
+body.home-international .home-safety-action i,
+html body.goi-global-theme.home-international .home-safety-action i {
+    color: #9f1239 !important;
+}
+
 body.home-international .home-safety-sos {
     background: #9f1239;
     color: #ffffff;
     border-color: #9f1239;
 }
 
+body.home-international .home-safety-sos,
+body.home-international .home-safety-sos span,
+body.home-international .home-safety-sos strong,
+body.home-international .home-safety-sos small,
+html body.goi-global-theme.home-international .home-safety-sos,
+html body.goi-global-theme.home-international .home-safety-sos span,
+html body.goi-global-theme.home-international .home-safety-sos strong,
+html body.goi-global-theme.home-international .home-safety-sos small {
+    color: #ffffff !important;
+}
+
 body.home-international .home-safety-sos i {
     background: rgba(255, 255, 255, 0.16);
     color: #ffffff;
+}
+
+body.home-international .home-safety-sos i,
+html body.goi-global-theme.home-international .home-safety-sos i {
+    color: #ffffff !important;
 }
 
 body.home-international .home-safety-action strong,

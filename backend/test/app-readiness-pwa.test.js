@@ -491,8 +491,10 @@ test('main app pages link the correct manifests, splash asset, push client and P
   assert.match(files.home, /href="\.\/manifest\.webmanifest"/);
   assert.match(files.home, /href="\.\/customer\/manifest\.webmanifest" data-goi-pwa-manifest="customer-app"/);
   assert.match(files.home, /href="\.\/driver\/manifest\.webmanifest" data-goi-pwa-manifest="driver-partner-app"/);
-  assert.match(files.home, /data-goi-app-entry="customer"[\s\S]*Customer App/);
-  assert.match(files.home, /data-goi-app-entry="driver-partner"[\s\S]*Driver Partner App/);
+  assert.doesNotMatch(files.home, /data-goi-app-entry="customer"/);
+  assert.doesNotMatch(files.home, /data-goi-app-entry="driver-partner"/);
+  assert.doesNotMatch(files.home, /home_customer_app/);
+  assert.doesNotMatch(files.home, /home_driver_partner_app/);
   assert.match(files.publicBooking, /href="\.\/manifest\.webmanifest"/);
   assert.match(files.customer, /href="\.\/manifest\.webmanifest"/);
   assert.match(files.driver, /href="\.\/manifest\.webmanifest"/);
