@@ -410,7 +410,58 @@
             const amountText = document.getElementById('homeFareEstimateAmount');
             const metaText = document.getElementById('homeFareMetaText');
             const bookLink = document.getElementById('homeFareBookLink');
+            const suggestionPanel = document.getElementById('homeFareLocationSuggestPanel');
             if (!form || !pickupInput || !dropInput || !vehicleInput || !routeText || !amountText || !metaText || !bookLink) return;
+
+            function hideHomeFareSuggestions() {
+                if (!suggestionPanel) return;
+                suggestionPanel.hidden = true;
+                suggestionPanel.replaceChildren();
+                suggestionPanel.removeAttribute('style');
+                [pickupInput, dropInput].forEach((input) => {
+                    input.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            function fillHomeFareLocation(input, value) {
+                if (!input) return;
+                input.value = cleanBookingValue(value);
+                hideHomeFareSuggestions();
+                refreshHomeFareEstimate();
+            }
+
+            function renderHomeFareSuggestions(input) {
+                if (!suggestionPanel || !input || (input !== pickupInput && input !== dropInput)) return;
+                const matches = getHomeLocationSuggestions(input.value).slice(0, 8);
+                if (!matches.length) {
+                    hideHomeFareSuggestions();
+                    return;
+                }
+
+                const target = input === pickupInput ? 'pickup' : 'drop';
+                const field = input.closest('.home-fare-field');
+                const rows = matches.map((item) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.dataset.homeFareSuggestTarget = target;
+                    button.dataset.homeFareSuggestValue = item.label;
+                    button.textContent = item.label;
+
+                    const detail = document.createElement('small');
+                    detail.textContent = item.detail;
+                    button.appendChild(detail);
+                    return button;
+                });
+
+                suggestionPanel.replaceChildren(...rows);
+                if (field) {
+                    suggestionPanel.style.left = `${field.offsetLeft}px`;
+                    suggestionPanel.style.top = `${field.offsetTop + field.offsetHeight + 4}px`;
+                    suggestionPanel.style.width = `${field.offsetWidth}px`;
+                }
+                suggestionPanel.hidden = false;
+                input.setAttribute('aria-expanded', 'true');
+            }
 
             function refreshHomeFareEstimate() {
                 const pickup = cleanBookingValue(pickupInput.value) || 'Udaipur';
@@ -447,6 +498,28 @@
             [pickupInput, dropInput, vehicleInput].forEach((input) => {
                 input.addEventListener('change', refreshHomeFareEstimate);
                 input.addEventListener('input', refreshHomeFareEstimate);
+            });
+
+            [pickupInput, dropInput].forEach((input) => {
+                input.addEventListener('focus', () => renderHomeFareSuggestions(input));
+                input.addEventListener('input', () => renderHomeFareSuggestions(input));
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') hideHomeFareSuggestions();
+                });
+            });
+
+            if (suggestionPanel) {
+                suggestionPanel.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-home-fare-suggest-value]');
+                    if (!button) return;
+                    const targetInput = button.dataset.homeFareSuggestTarget === 'pickup' ? pickupInput : dropInput;
+                    fillHomeFareLocation(targetInput, button.dataset.homeFareSuggestValue);
+                });
+            }
+
+            document.addEventListener('click', (event) => {
+                if (!suggestionPanel || suggestionPanel.hidden || form.contains(event.target)) return;
+                hideHomeFareSuggestions();
             });
 
             bookLink.addEventListener('click', () => {

@@ -56,7 +56,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="./shared/chunks/home/styles/index.css?v=20260528-inline-split1">
     <link rel="stylesheet" href="./css/professional-purple-theme.css">
-    <link rel="stylesheet" href="./css/home-international.css?v=20260623-home-safety-fare1">
+    <link rel="stylesheet" href="./css/home-international.css?v=20260624-fare-autosuggest1">
     <script src="./js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
 <body class="home-international" data-goi-nav-static="1">
@@ -215,7 +215,7 @@
     </section>
 
     <!-- Homepage Fare Calculator -->
-    <section class="home-fare-band" aria-labelledby="homeFareTitle">
+    <section class="home-fare-band" id="pricing" aria-labelledby="homeFareTitle">
         <div class="container home-fare-shell">
             <div class="home-section-heading">
                 <p class="section-eyebrow">Fare calculator</p>
@@ -224,11 +224,11 @@
             <form class="home-fare-calculator" id="homeFareCalculatorForm" aria-label="Homepage fare calculator">
                 <label class="home-fare-field" for="homeFarePickupInput">
                     <span>Pickup</span>
-                    <input id="homeFarePickupInput" name="pickup" type="text" value="Udaipur" autocomplete="off" required>
+                    <input id="homeFarePickupInput" name="pickup" type="text" value="Udaipur" autocomplete="off" aria-autocomplete="list" aria-controls="homeFareLocationSuggestPanel" aria-expanded="false" required>
                 </label>
                 <label class="home-fare-field" for="homeFareDropInput">
                     <span>Drop</span>
-                    <input id="homeFareDropInput" name="drop" type="text" value="Udaipur Airport" autocomplete="off" required>
+                    <input id="homeFareDropInput" name="drop" type="text" value="Udaipur Airport" autocomplete="off" aria-autocomplete="list" aria-controls="homeFareLocationSuggestPanel" aria-expanded="false" required>
                 </label>
                 <label class="home-fare-field" for="homeFareVehicleInput">
                     <span>Vehicle</span>
@@ -242,6 +242,7 @@
                     <i class="fas fa-calculator" aria-hidden="true"></i>
                     <span>Check fare</span>
                 </button>
+                <div class="home-location-suggest-panel home-fare-suggest-panel" id="homeFareLocationSuggestPanel" role="listbox" aria-label="Fare location suggestions" hidden></div>
             </form>
             <div class="home-fare-result" id="homeFareResult" aria-live="polite">
                 <span id="homeFareRouteText">Udaipur -&gt; Udaipur Airport =</span>
@@ -437,57 +438,6 @@
         </div>
     </section>
 
-    <!-- Pricing Section -->
-    <section class="pricing" id="pricing">
-        <div class="container">
-            <h2>Ride Types & Pricing</h2>
-            <div class="pricing-cards">
-                <div class="pricing-card">
-                    <i class="fas fa-car" style="font-size: 3rem; color: #0B1F3A; margin-bottom: 1rem;"></i>
-                    <h3>Economy</h3>
-                    <p style="color: #666; margin-bottom: 1rem;">Budget-friendly rides</p>
-                    <div class="price">₹50<span style="font-size: 1rem; color: #666;">/km</span></div>
-                    <ul>
-                        <li>Budget-friendly option</li>
-                        <li>Verified drivers</li>
-                        <li>Air-conditioned cars</li>
-                        <li>Real-time tracking</li>
-                        <li>Safe rides</li>
-                    </ul>
-                    <a class="pricing-live-link" href="./book-cab.html?source=home_pricing&amp;tripPlan=city&amp;serviceMode=local_point&amp;vehicleType=economy&amp;vehicleModel=hatchback#quickBookingForm" data-home-booking-link data-source="home_pricing_economy" data-trip-plan="city" data-service-mode="local_point" data-vehicle-type="economy" data-vehicle-model="hatchback">Book Now</a>
-                </div>
-                <div class="pricing-card">
-                    <i class="fas fa-crown" style="font-size: 3rem; color: #f39c12; margin-bottom: 1rem;"></i>
-                    <h3>Premium</h3>
-                    <p style="color: #666; margin-bottom: 1rem;">Luxury rides</p>
-                    <div class="price">₹75<span style="font-size: 1rem; color: #666;">/km</span></div>
-                    <ul>
-                        <li>Premium vehicles</li>
-                        <li>Expert drivers</li>
-                        <li>Extra comfort</li>
-                        <li>WiFi available</li>
-                        <li>Water & snacks</li>
-                    </ul>
-                    <a class="pricing-live-link" href="./book-cab.html?source=home_pricing&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;vehicleType=sedan&amp;vehicleModel=business_sedan#quickBookingForm" data-home-booking-link data-source="home_pricing_premium" data-trip-plan="airport" data-service-mode="airport_pickup" data-vehicle-type="sedan" data-vehicle-model="business_sedan">Book Now</a>
-                </div>
-                <div class="pricing-card">
-                    <i class="fas fa-users" style="font-size: 3rem; color: #2ecc71; margin-bottom: 1rem;"></i>
-                    <h3>Share Ride</h3>
-                    <p style="color: #666; margin-bottom: 1rem;">Save more, share rides</p>
-                    <div class="price">₹35<span style="font-size: 1rem; color: #666;">/km</span></div>
-                    <ul>
-                        <li>Share with others</li>
-                        <li>Save up to 30%</li>
-                        <li>Eco-friendly</li>
-                        <li>Safe routes</li>
-                        <li>Quick pickup</li>
-                    </ul>
-                    <a class="pricing-live-link" href="./book-cab.html?source=home_pricing&amp;tripPlan=city&amp;serviceMode=local_point&amp;vehicleType=economy&amp;notes=Share%20ride%20preference#quickBookingForm" data-home-booking-link data-source="home_pricing_share" data-trip-plan="city" data-service-mode="local_point" data-vehicle-type="economy" data-notes="Share ride preference">Book Now</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- CTA Section -->
     <section class="cta">
         <div class="container">
@@ -584,7 +534,7 @@
     <script src="./js/locations.js?v=20260610-home-suggest1"></script>
     <script src="./js/route-suggestions.js?v=20260623-home-fare1"></script>
     <script src="./js/booking-fare-calculator.js?v=20260623-home-fare1"></script>
-    <script src="./shared/chunks/home/scripts/index.js?v=20260623-home-safety-fare1"></script>
+    <script src="./shared/chunks/home/scripts/index.js?v=20260624-fare-autosuggest1"></script>
     
     <!-- JSON-LD Schema for SEO -->
     <script type="application/ld+json">

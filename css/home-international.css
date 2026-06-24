@@ -871,6 +871,11 @@ html body.goi-global-theme.home-international .home-location-suggest-panel:empty
     display: none !important;
 }
 
+body.home-international .home-fare-suggest-panel,
+html body.goi-global-theme.home-international .home-fare-suggest-panel {
+    z-index: 55;
+}
+
 body.home-international .home-suggestion-row {
     display: flex;
     flex-wrap: wrap;
@@ -1070,6 +1075,7 @@ body.home-international .home-fare-shell .home-section-heading {
 }
 
 body.home-international .home-fare-calculator {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
     gap: 0.6rem;

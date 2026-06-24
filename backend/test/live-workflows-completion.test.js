@@ -68,11 +68,11 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   const homeFooter = home.match(/<footer class="footer">[\s\S]*?<\/footer>/)?.[0] || '';
 
   assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
-  assert.match(home, /home-international\.css\?v=20260623-home-safety-fare1/);
+  assert.match(home, /home-international\.css\?v=20260624-fare-autosuggest1/);
   assert.match(home, /Airport, city and intercity cab booking/);
   assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
   assert.match(home, /js\/booking-fare-calculator\.js\?v=20260623-home-fare1/);
-  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260623-home-safety-fare1/);
+  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260624-fare-autosuggest1/);
   assert.doesNotMatch(home, /20260610-location-ui1/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
@@ -89,11 +89,15 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(home, /data-home-trip-plan="rental"[\s\S]*data-home-journey="round_trip"/);
   assert.match(home, /data-home-booking-link/);
   assert.match(home, /source=home_route&amp;tripPlan=outstation/);
-  assert.match(home, /vehicleType=sedan&amp;vehicleModel=business_sedan/);
+  assert.match(home, /<section class="home-fare-band" id="pricing"[\s\S]*id="homeFareCalculatorForm"/);
+  assert.doesNotMatch(home, /Ride Types & Pricing/);
+  assert.doesNotMatch(home, /₹(?:50|75|35)<span[^>]*>\/km/);
+  assert.doesNotMatch(home, /source=home_pricing/);
   assert.match(home, /href="tel:112"[^>]*data-home-safety-action="sos"[\s\S]*<strong>SOS<\/strong>/);
   assert.match(home, /href="tel:\+918426891471"[^>]*data-home-safety-action="emergency-contact"[\s\S]*Emergency Contact/);
   assert.match(home, /href="\.\/pages\/contact\.html#safety-privacy"[^>]*data-home-safety-action="safety-center"[\s\S]*Safety Center/);
-  assert.match(home, /id="homeFareCalculatorForm"[\s\S]*id="homeFarePickupInput"[^>]*value="Udaipur"[\s\S]*id="homeFareDropInput"[^>]*value="Udaipur Airport"[\s\S]*id="homeFareVehicleInput"/);
+  assert.match(home, /id="homeFareCalculatorForm"[\s\S]*id="homeFarePickupInput"[^>]*value="Udaipur"[^>]*aria-controls="homeFareLocationSuggestPanel"[\s\S]*id="homeFareDropInput"[^>]*value="Udaipur Airport"[^>]*aria-controls="homeFareLocationSuggestPanel"[\s\S]*id="homeFareVehicleInput"/);
+  assert.match(home, /id="homeFareLocationSuggestPanel"[^>]*role="listbox"/);
   assert.match(home, /id="homeFareEstimateAmount">[^<]*736<\/strong>/);
   assert.match(home, /id="homeFareEstimateAmount"[\s\S]*data-home-fare-book/);
   assert.match(home, /source=home_fare_calculator&amp;tripPlan=airport&amp;serviceMode=airport_pickup&amp;pickup=Udaipur&amp;drop=Udaipur%20Airport&amp;vehicleType=sedan&amp;fareEstimate=736&amp;distanceKm=22/);
@@ -173,6 +177,8 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('shared/chunks/home/scripts/index.js'), /GPS selected:/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /HOME_FARE_ROUTE_DISTANCES/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /function wireHomeFareCalculator\(/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /function renderHomeFareSuggestions\(input\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /data-home-fare-suggest-value/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /GoIndiaRideFareCalculator\.estimateBookingFare\(input\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /`\$\{pickup\} -> \$\{drop\} =`/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /source: 'home_fare_calculator'/);
@@ -368,7 +374,7 @@ test('homepage customer reviews require live customer name city and rating', () 
   assert.match(home, /id="homeCustomerReviews"[^>]*data-home-review-section[^>]*hidden/);
   assert.match(home, /<h2 id="homeStoriesTitle">Real customer reviews<\/h2>/);
   assert.match(home, /data-home-review-grid/);
-  assert.match(home, /index\.js\?v=20260623-home-safety-fare1/);
+  assert.match(home, /index\.js\?v=20260624-fare-autosuggest1/);
   assert.doesNotMatch(home, /International guest|Business traveler|Domestic customer/);
 
   assert.match(homeScript, /HOME_PUBLIC_REVIEW_PATH = '\/api\/future-runtime-business\/reviews\?public=1&targetType=ride&limit=3'/);

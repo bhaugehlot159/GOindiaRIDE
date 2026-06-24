@@ -371,7 +371,7 @@ test('Render backend serves direct public app conversion artifacts without expos
   assert.match(runtimeVerifier.text, /checkLiveGpsTracking/);
 
   const homeInternationalStyles = await request(app)
-    .get('/css/home-international.css?v=20260623-home-safety-fare1')
+    .get('/css/home-international.css?v=20260624-fare-autosuggest1')
     .expect('Content-Type', /text\/css/)
     .expect(200);
   assert.match(homeInternationalStyles.text, /home-safety-action/);
@@ -388,6 +388,30 @@ test('Render backend serves direct public app conversion artifacts without expos
     .expect('Content-Type', /text\/css/)
     .expect(200);
   assert.match(sharedHomeStyles.text, /\.hero/);
+
+  const homeLocations = await request(app)
+    .get('/js/locations.js?v=20260610-home-suggest1')
+    .expect('Content-Type', /application\/javascript/)
+    .expect(200);
+  assert.match(homeLocations.text, /locationsData/);
+
+  const homeRouteSuggestions = await request(app)
+    .get('/js/route-suggestions.js?v=20260623-home-fare1')
+    .expect('Content-Type', /application\/javascript/)
+    .expect(200);
+  assert.match(homeRouteSuggestions.text, /routeSuggestions/);
+
+  const homeFareEngine = await request(app)
+    .get('/js/booking-fare-calculator.js?v=20260623-home-fare1')
+    .expect('Content-Type', /application\/javascript/)
+    .expect(200);
+  assert.match(homeFareEngine.text, /estimateBookingFare/);
+
+  const homeScript = await request(app)
+    .get('/shared/chunks/home/scripts/index.js?v=20260624-fare-autosuggest1')
+    .expect('Content-Type', /application\/javascript/)
+    .expect(200);
+  assert.match(homeScript.text, /renderHomeFareSuggestions/);
 
   const firebaseClientConfig = await request(app)
     .get('/api/auth/firebase/client-config')
