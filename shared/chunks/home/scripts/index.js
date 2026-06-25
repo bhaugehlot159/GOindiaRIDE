@@ -183,6 +183,8 @@
             ['udaipurcity', 'udaipurairport', 22],
             ['udaipur', 'maharanapratapairport', 22],
             ['udaipur', 'udaipurrailwaystation', 6],
+            ['udaipur', 'sirohi', 126],
+            ['udaipur', 'sirohibusstand', 126],
             ['jaisalmer', 'jaisalmerrailwaystation', 4],
             ['udaipur', 'jaisalmer', 489],
             ['udaipur', 'jaisalmerrailwaystation', 489],
@@ -214,6 +216,8 @@
             ['delhi', 'jaipur', 280],
             ['udaipur', 'mountabu', 165],
             ['mountabu', 'udaipur', 165],
+            ['udaipur', 'sirohi', 126],
+            ['sirohi', 'udaipur', 126],
             ['udaipur', 'ajmer', 265],
             ['ajmer', 'udaipur', 265]
         ];
@@ -225,6 +229,7 @@
             ['agra', ['agra', 'agratajmahal', 'tajmahal']],
             ['delhi', ['delhi', 'newdelhi', 'delhiairport', 'indira gandhi airport']],
             ['mountabu', ['mountabu', 'nakki lake']],
+            ['sirohi', ['sirohi', 'sirohibusstand']],
             ['ajmer', ['ajmer', 'ajmerjunction', 'ajmersharifdargah', 'pushkar']]
         ];
         const HOME_FARE_SUGGESTION_LIMIT = 5;

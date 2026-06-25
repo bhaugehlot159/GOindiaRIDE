@@ -5,6 +5,7 @@ const {
   estimateBookingFare,
   getOfficialStateTaxCoverage
 } = require('../../js/booking-fare-calculator');
+const { getRouteSuggestions } = require('../../js/route-suggestions');
 
 test('fare calculator uses mapped toll plazas for Udaipur to Jaisalmer', () => {
   const estimate = estimateBookingFare({
@@ -112,6 +113,28 @@ test('fare calculator adds night bhatta only when a night ride time is supplied'
   assert.equal(nightEstimate.driverNightBatta, 250);
   assert.equal(nightEstimate.totalFare, dayEstimate.totalFare + 250);
   assert.ok(nightEstimate.totalFare > dayEstimate.totalFare);
+});
+
+test('fare calculator keeps Udaipur to Sirohi Bus Stand as a real outstation route', () => {
+  const routeData = getRouteSuggestions('Udaipur', 'Sirohi Bus Stand');
+  const estimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Sirohi Bus Stand',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'sedan',
+    passengers: 1,
+    luggage: 'none',
+    paymentMethod: 'cash'
+  });
+
+  assert.equal(routeData.distance, '126 km');
+  assert.equal(estimate.distanceSource, 'route_table');
+  assert.equal(estimate.distanceKm, 126);
+  assert.equal(estimate.tripPlan, 'outstation');
+  assert.ok(estimate.totalFare > 2000);
+  assert.equal(estimate.stateTax, 0);
+  assert.notEqual(estimate.distanceKm, 12);
 });
 
 test('fare calculator covers every VAHAN AITP state and does not miss state codes', () => {

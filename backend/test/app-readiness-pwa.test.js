@@ -396,10 +396,11 @@ test('Render backend serves direct public app conversion artifacts without expos
   assert.match(homeLocations.text, /locationsData/);
 
   const homeRouteSuggestions = await request(app)
-    .get('/js/route-suggestions.js?v=20260623-home-fare1')
+    .get('/js/route-suggestions.js?v=20260625-sirohi1')
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(homeRouteSuggestions.text, /routeSuggestions/);
+  assert.match(homeRouteSuggestions.text, /Udaipur-Sirohi/);
 
   const homeFareEngine = await request(app)
     .get('/js/booking-fare-calculator.js?v=20260624-state-tax1')
@@ -408,10 +409,11 @@ test('Render backend serves direct public app conversion artifacts without expos
   assert.match(homeFareEngine.text, /estimateBookingFare/);
 
   const homeScript = await request(app)
-    .get('/shared/chunks/home/scripts/index.js?v=20260624-taxfare1')
+    .get('/shared/chunks/home/scripts/index.js?v=20260625-sirohi1')
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(homeScript.text, /renderHomeFareSuggestions/);
+  assert.match(homeScript.text, /sirohibusstand/);
 
   const firebaseClientConfig = await request(app)
     .get('/api/auth/firebase/client-config')

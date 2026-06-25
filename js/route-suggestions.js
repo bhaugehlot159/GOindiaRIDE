@@ -125,6 +125,23 @@ const routeSuggestions = {
             { name: "BPCL", km: 240 }
         ]
     },
+
+    "Udaipur-Sirohi": {
+        distance: "126 km",
+        duration: "1.75 hours",
+        highlights: [
+            { name: "Gogunda", km: 38, type: "city", icon: "🏙️", description: "Highway town on the Sirohi route" },
+            { name: "Pindwara", km: 106, type: "city", icon: "🏙️", description: "Main approach town before Sirohi" }
+        ],
+        restaurants: [
+            { name: "Gogunda Highway Stop", km: 38, type: "dhaba", rating: 4.1 },
+            { name: "Pindwara Highway Restaurant", km: 106, type: "restaurant", rating: 4.2 }
+        ],
+        petrolPumps: [
+            { name: "Indian Oil", km: 35 },
+            { name: "HP Petrol", km: 95 }
+        ]
+    },
     
     "Udaipur-Mount Abu": {
         distance: "165 km",
