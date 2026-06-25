@@ -389,21 +389,41 @@
             return compact;
         }
 
-        function getHomeFareDistance(pickup, drop, tripPlan) {
+        function getHomeFareDistance(pickup, drop) {
             const left = getHomeFareRouteKey(pickup);
             const right = getHomeFareRouteKey(drop);
             const match = HOME_FARE_ROUTE_DISTANCES.find(([from, to]) => (
                 (from === left && to === right) || (from === right && to === left)
             ));
-            if (match) return match[2];
+            if (match) {
+                return {
+                    distanceKm: match[2],
+                    distanceSource: 'home_known_route',
+                    enforceTrustedDistance: false
+                };
+            }
 
             const endpointLeft = getHomeFareEndpointKey(pickup);
             const endpointRight = getHomeFareEndpointKey(drop);
             const endpointMatch = HOME_FARE_ENDPOINT_DISTANCES.find(([from, to]) => (
                 from === endpointLeft && to === endpointRight
             ));
-            if (endpointMatch) return endpointMatch[2];
+            if (endpointMatch) {
+                return {
+                    distanceKm: endpointMatch[2],
+                    distanceSource: 'home_known_route',
+                    enforceTrustedDistance: false
+                };
+            }
 
+            return {
+                distanceKm: 0,
+                distanceSource: 'home_coordinate_lookup',
+                enforceTrustedDistance: true
+            };
+        }
+
+        function getHomeFareFallbackDistance(tripPlan) {
             if (tripPlan === 'airport') return 22;
             if (tripPlan === 'outstation') return 160;
             return 12;
@@ -422,11 +442,11 @@
             return 'local_city';
         }
 
-        function calculateHomeFareEstimate({ pickup, drop, vehicleType }) {
-            const firstDistance = getHomeFareDistance(pickup, drop, '');
-            const tripPlan = getHomeFareTripPlan(pickup, drop, firstDistance);
-            const distanceKm = getHomeFareDistance(pickup, drop, tripPlan);
-            const input = {
+        function buildHomeFareInput({ pickup, drop, vehicleType, tripPlan, distanceDetails, useFallbackDistance = false }) {
+            const distanceKm = useFallbackDistance
+                ? getHomeFareFallbackDistance(tripPlan)
+                : Number(distanceDetails.distanceKm || 0);
+            return {
                 pickup,
                 drop,
                 tripPlan,
@@ -436,26 +456,86 @@
                 luggage: 'none',
                 paymentMethod: 'cash',
                 distanceKm,
-                distanceSource: 'home_known_route'
+                distanceSource: useFallbackDistance ? 'fallback' : distanceDetails.distanceSource,
+                enforceTrustedDistance: useFallbackDistance ? false : distanceDetails.enforceTrustedDistance
             };
+        }
 
+        function estimateHomeFareWithEngine(input) {
             if (
                 window.GoIndiaRideFareCalculator &&
                 typeof window.GoIndiaRideFareCalculator.estimateBookingFare === 'function'
             ) {
+                return window.GoIndiaRideFareCalculator.estimateBookingFare(input);
+            }
+            return null;
+        }
+
+        function hasUsableHomeFareDistance(fare, distanceDetails) {
+            const distanceKm = Number(fare && fare.distanceKm);
+            return Number.isFinite(distanceKm)
+                && distanceKm > 1
+                && (distanceDetails.distanceKm > 0 || fare.distanceTrusted === true || fare.distanceSource === 'route_table');
+        }
+
+        function isUsableLiveHomeDistance(estimate) {
+            const km = Number(estimate && estimate.km);
+            const source = cleanBookingValue(estimate && estimate.source).toLowerCase();
+            return Number.isFinite(km)
+                && km > 1
+                && source
+                && source !== 'none'
+                && source !== 'fallback'
+                && source !== 'district_geo_partial';
+        }
+
+        function getLiveHomeFareDistanceDetails(estimate) {
+            return {
+                distanceKm: Math.max(1, Math.round(Number(estimate && estimate.km) || 0)),
+                distanceSource: cleanBookingValue(estimate && estimate.source) || 'live_route',
+                enforceTrustedDistance: false
+            };
+        }
+
+        function estimateHomeFareForDistance({ pickup, drop, vehicleType, distanceDetails }) {
+            const probeTripPlan = getHomeFareTripPlan(pickup, drop, distanceDetails.distanceKm);
+            let input = buildHomeFareInput({
+                pickup,
+                drop,
+                vehicleType,
+                tripPlan: probeTripPlan,
+                distanceDetails
+            });
+
+            if (window.GoIndiaRideFareCalculator) {
                 try {
-                    return window.GoIndiaRideFareCalculator.estimateBookingFare(input);
+                    const probeFare = estimateHomeFareWithEngine(input);
+                    if (hasUsableHomeFareDistance(probeFare, distanceDetails)) {
+                        const tripPlan = getHomeFareTripPlan(pickup, drop, probeFare.distanceKm);
+                        if (tripPlan === probeTripPlan) return probeFare;
+                        input = buildHomeFareInput({ pickup, drop, vehicleType, tripPlan, distanceDetails });
+                        const fare = estimateHomeFareWithEngine(input);
+                        if (hasUsableHomeFareDistance(fare, distanceDetails)) return fare;
+                    }
                 } catch (_error) {
                     // Keep the homepage responsive if the shared fare engine fails to initialize.
                 }
             }
 
+            const tripPlan = getHomeFareTripPlan(pickup, drop, distanceDetails.distanceKm);
+            input = buildHomeFareInput({
+                pickup,
+                drop,
+                vehicleType,
+                tripPlan,
+                distanceDetails,
+                useFallbackDistance: true
+            });
             const perKm = input.vehicleType === 'suv' ? 18 : input.vehicleType === 'sedan' ? 12 : 10;
             const base = tripPlan === 'airport' ? 190 : tripPlan === 'outstation' ? 260 : 99;
-            const totalFare = Math.max(99, Math.round(base + distanceKm * perKm));
+            const totalFare = Math.max(99, Math.round(base + input.distanceKm * perKm));
             return {
                 ...input,
-                distanceKm,
                 totalFare,
                 amount: totalFare,
                 finalFare: totalFare,
@@ -467,6 +547,38 @@
                 stateTax: 0,
                 calculatedAt: new Date().toISOString()
             };
+        }
+
+        function calculateHomeFareEstimate({ pickup, drop, vehicleType }) {
+            return estimateHomeFareForDistance({
+                pickup,
+                drop,
+                vehicleType,
+                distanceDetails: getHomeFareDistance(pickup, drop)
+            });
+        }
+
+        async function calculateHomeFareEstimateAsync({ pickup, drop, vehicleType }) {
+            const estimator = window.LocationDistanceEstimator;
+            if (!estimator || typeof estimator.estimateDistanceKm !== 'function') {
+                return calculateHomeFareEstimate({ pickup, drop, vehicleType });
+            }
+
+            try {
+                const liveEstimate = await estimator.estimateDistanceKm(pickup, drop);
+                if (isUsableLiveHomeDistance(liveEstimate)) {
+                    return estimateHomeFareForDistance({
+                        pickup,
+                        drop,
+                        vehicleType,
+                        distanceDetails: getLiveHomeFareDistanceDetails(liveEstimate)
+                    });
+                }
+            } catch (_error) {
+                // Local fare estimate remains visible when live routing is temporarily unavailable.
+            }
+
+            return calculateHomeFareEstimate({ pickup, drop, vehicleType });
         }
 
         function getHomeFareRunningCharge(fare) {
@@ -518,6 +630,8 @@
             const bookLink = document.getElementById('homeFareBookLink');
             const suggestionPanel = document.getElementById('homeFareLocationSuggestPanel');
             if (!form || !pickupInput || !dropInput || !vehicleInput || !routeText || !amountText || !metaText || !bookLink) return;
+            let homeFareRefreshToken = 0;
+            let homeFareLiveTimer = 0;
 
             function hideHomeFareSuggestions() {
                 if (!suggestionPanel) return;
@@ -574,11 +688,7 @@
                 input.setAttribute('aria-expanded', 'true');
             }
 
-            function refreshHomeFareEstimate() {
-                const pickup = cleanBookingValue(pickupInput.value) || 'Udaipur';
-                const drop = cleanBookingValue(dropInput.value) || 'Udaipur Airport';
-                const vehicleType = cleanBookingValue(vehicleInput.value) || 'sedan';
-                const fare = calculateHomeFareEstimate({ pickup, drop, vehicleType });
+            function applyHomeFareEstimate({ pickup, drop, vehicleType, fare }) {
                 const total = fare.totalFare || fare.finalFare || fare.amount || 0;
                 const distanceKm = Number(fare.distanceKm || 0).toFixed(0);
                 const toll = fare.tollCharge || 0;
@@ -607,6 +717,30 @@
                     stateTax: String(fare.stateTax || 0),
                     marketDiscount: String(fare.competitiveDiscount || 0)
                 });
+            }
+
+            function refreshHomeFareEstimate() {
+                const pickup = cleanBookingValue(pickupInput.value) || 'Udaipur';
+                const drop = cleanBookingValue(dropInput.value) || 'Udaipur Airport';
+                const vehicleType = cleanBookingValue(vehicleInput.value) || 'sedan';
+                const token = ++homeFareRefreshToken;
+                const fare = calculateHomeFareEstimate({ pickup, drop, vehicleType });
+                applyHomeFareEstimate({ pickup, drop, vehicleType, fare });
+
+                if (homeFareLiveTimer) window.clearTimeout(homeFareLiveTimer);
+                if (window.LocationDistanceEstimator && typeof window.LocationDistanceEstimator.estimateDistanceKm === 'function') {
+                    metaText.textContent = `${metaText.textContent} | Live km checking...`;
+                    homeFareLiveTimer = window.setTimeout(async () => {
+                        try {
+                            const liveFare = await calculateHomeFareEstimateAsync({ pickup, drop, vehicleType });
+                            if (token !== homeFareRefreshToken) return;
+                            applyHomeFareEstimate({ pickup, drop, vehicleType, fare: liveFare });
+                        } catch (_error) {
+                            // Keep the latest local estimate visible.
+                        }
+                    }, 450);
+                }
+
                 return fare;
             }
 

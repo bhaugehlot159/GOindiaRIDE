@@ -408,12 +408,20 @@ test('Render backend serves direct public app conversion artifacts without expos
     .expect(200);
   assert.match(homeFareEngine.text, /estimateBookingFare/);
 
+  const homeDistanceEngine = await request(app)
+    .get('/js/location-distance.js?v=20260625-location-distance1')
+    .expect('Content-Type', /application\/javascript/)
+    .expect(200);
+  assert.match(homeDistanceEngine.text, /LocationDistanceEstimator/);
+  assert.match(homeDistanceEngine.text, /router\.project-osrm\.org/);
+
   const homeScript = await request(app)
-    .get('/shared/chunks/home/scripts/index.js?v=20260625-sirohi1')
+    .get('/shared/chunks/home/scripts/index.js?v=20260625-location-distance1')
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(homeScript.text, /renderHomeFareSuggestions/);
   assert.match(homeScript.text, /sirohibusstand/);
+  assert.match(homeScript.text, /calculateHomeFareEstimateAsync/);
 
   const firebaseClientConfig = await request(app)
     .get('/api/auth/firebase/client-config')

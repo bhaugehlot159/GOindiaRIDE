@@ -72,8 +72,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(home, /Airport, city and intercity cab booking/);
   assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
   assert.match(home, /js\/route-suggestions\.js\?v=20260625-sirohi1/);
+  assert.match(home, /js\/location-distance\.js\?v=20260625-location-distance1/);
   assert.match(home, /js\/booking-fare-calculator\.js\?v=20260624-state-tax1/);
-  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260625-sirohi1/);
+  assert.match(home, /shared\/chunks\/home\/scripts\/index\.js\?v=20260625-location-distance1/);
   assert.doesNotMatch(home, /20260610-location-ui1/);
   assert.doesNotMatch(homeNavbar, /book-cab\.html|taxi-service\.html|nav\.bookCab|nav\.taxiService/);
   assert.match(homeNavbar, /href="\.\/pages\/login\.html"[^>]*rel="nofollow"/);
@@ -189,6 +190,10 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('shared/chunks/home/scripts/index.js'), /tollCharge/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /parkingCharge/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /GoIndiaRideFareCalculator\.estimateBookingFare\(input\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /estimator\.estimateDistanceKm\(pickup, drop\)/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /calculateHomeFareEstimateAsync/);
+  assert.match(read('shared/chunks/home/scripts/index.js'), /home_coordinate_lookup/);
+  assert.doesNotMatch(read('shared/chunks/home/scripts/index.js'), /getHomeFareDistance\(pickup, drop, ''\)/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /`\$\{pickup\} -> \$\{drop\} =`/);
   assert.match(read('shared/chunks/home/scripts/index.js'), /source: 'home_fare_calculator'/);
   assert.doesNotMatch(read('shared/chunks/home/scripts/index.js'), /slice\(0, 6\)/);
@@ -383,7 +388,7 @@ test('homepage customer reviews require live customer name city and rating', () 
   assert.match(home, /id="homeCustomerReviews"[^>]*data-home-review-section[^>]*hidden/);
   assert.match(home, /<h2 id="homeStoriesTitle">Real customer reviews<\/h2>/);
   assert.match(home, /data-home-review-grid/);
-  assert.match(home, /index\.js\?v=20260625-sirohi1/);
+  assert.match(home, /index\.js\?v=20260625-location-distance1/);
   assert.doesNotMatch(home, /International guest|Business traveler|Domestic customer/);
 
   assert.match(homeScript, /HOME_PUBLIC_REVIEW_PATH = '\/api\/future-runtime-business\/reviews\?public=1&targetType=ride&limit=3'/);

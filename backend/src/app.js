@@ -100,6 +100,7 @@ const PUBLIC_APP_FILES = new Set([
   '/js/firebase-config.js',
   '/js/global-ui.js',
   '/js/locations.js',
+  '/js/location-distance.js',
   '/js/phone-verification.js',
   '/js/push-notifications.js',
   '/js/pwa-app-shell.js',

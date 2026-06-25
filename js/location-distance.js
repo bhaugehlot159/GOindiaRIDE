@@ -6,6 +6,8 @@
 
 (function initLocationDistanceEstimator(global) {
     const GEOCODE_CACHE_KEY = 'goindiaride_geocode_cache_v1';
+    const LIVE_ROUTE_ENDPOINT = 'https://router.project-osrm.org/route/v1/driving';
+    const LIVE_ROUTE_TIMEOUT_MS = 2800;
     const geocodeCache = loadCache();
 
     function loadCache() {
@@ -70,14 +72,45 @@
         return { lat, lon, source: 'browser_coordinate' };
     }
 
+    function hasFetchSupport() {
+        return typeof fetch === 'function';
+    }
+
+    async function fetchJsonWithTimeout(url, options = {}, timeoutMs = LIVE_ROUTE_TIMEOUT_MS) {
+        if (!hasFetchSupport()) return null;
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller ? controller.signal : options.signal
+            });
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (error) {
+            return null;
+        } finally {
+            if (timer) clearTimeout(timer);
+        }
+    }
+
     const STATIC_LOCATION_COORDINATES = {
         Jaipur: { lat: 26.9124, lon: 75.7873 },
         Jodhpur: { lat: 26.2389, lon: 73.0243 },
         Udaipur: { lat: 24.5854, lon: 73.7125 },
+        'Udaipur Airport': { lat: 24.6177, lon: 73.8961 },
+        'Maharana Pratap Airport': { lat: 24.6177, lon: 73.8961 },
+        'Udaipur Railway Station': { lat: 24.5681, lon: 73.7089 },
         Ajmer: { lat: 26.4499, lon: 74.6399 },
         Kota: { lat: 25.2138, lon: 75.8648 },
         Bikaner: { lat: 28.0229, lon: 73.3119 },
         Jaisalmer: { lat: 26.9157, lon: 70.9083 },
+        'Jaisalmer Railway Station': { lat: 26.9150, lon: 70.9147 },
+        'Jaipur Airport': { lat: 26.8242, lon: 75.8122 },
+        'Delhi Airport': { lat: 28.5562, lon: 77.1000 },
+        'Ahmedabad Airport': { lat: 23.0734, lon: 72.6266 },
+        'Mumbai Airport': { lat: 19.0896, lon: 72.8656 },
+        'Agra Taj Mahal': { lat: 27.1751, lon: 78.0421 },
         Alwar: { lat: 27.5530, lon: 76.6346 },
         Bharatpur: { lat: 27.2173, lon: 77.4900 },
         Bhilwara: { lat: 25.3471, lon: 74.6408 },
@@ -97,6 +130,9 @@
         Rajsamand: { lat: 25.0713, lon: 73.8798 },
         'Sawai Madhopur': { lat: 26.0173, lon: 76.3569 },
         Sikar: { lat: 27.6094, lon: 75.1399 },
+        Khatoo: { lat: 27.363954, lon: 75.402557 },
+        Khatu: { lat: 27.363954, lon: 75.402557 },
+        'Khatu Shyam Ji Temple': { lat: 27.363954, lon: 75.402557 },
         Sirohi: { lat: 24.8823, lon: 72.8577 },
         'Sri Ganganagar': { lat: 29.9038, lon: 73.8772 },
         Tonk: { lat: 26.1660, lon: 75.7880 },
@@ -243,6 +279,30 @@
         return null;
     }
 
+    function isSpecificLocationText(value, staticMatch) {
+        const normalized = normalizeLookupKey(value);
+        const staticName = normalizeLookupKey(staticMatch && staticMatch.name);
+        if (!normalized || !staticName) return false;
+        return normalized !== staticName && normalized.includes(staticName);
+    }
+
+    function getRequiredGeocodeKeys(query) {
+        const normalized = normalizeLookupKey(query);
+        if (!normalized) return [];
+        return Object.keys(STATIC_LOCATION_COORDINATES)
+            .map((name) => normalizeLookupKey(name))
+            .filter((key) => key.length >= 4 && normalized.includes(key))
+            .sort((a, b) => b.length - a.length)
+            .slice(0, 4);
+    }
+
+    function isCompatibleGeocodeCandidate(query, candidateText) {
+        const requiredKeys = getRequiredGeocodeKeys(query);
+        if (!requiredKeys.length) return true;
+        const candidate = normalizeLookupKey(candidateText);
+        return Boolean(candidate) && requiredKeys.every((key) => candidate.includes(key));
+    }
+
     function estimateRoadMultiplier(straightLineKm, fromText, toText) {
         const combined = `${normalizeQuery(fromText)} ${normalizeQuery(toText)}`.toLowerCase();
         if (!Number.isFinite(straightLineKm) || straightLineKm <= 0) {
@@ -267,9 +327,29 @@
         return 1.28;
     }
 
+    let routeSuggestionGetter = null;
+
+    function getRouteSuggestionGetter() {
+        if (typeof getRouteSuggestions === 'function') return getRouteSuggestions;
+        if (routeSuggestionGetter) return routeSuggestionGetter;
+        if (typeof module === 'object' && module.exports && typeof require === 'function') {
+            try {
+                const routeModule = require('./route-suggestions');
+                if (routeModule && typeof routeModule.getRouteSuggestions === 'function') {
+                    routeSuggestionGetter = routeModule.getRouteSuggestions;
+                    return routeSuggestionGetter;
+                }
+            } catch (_error) {
+                // Browser builds use the global route-suggestions script.
+            }
+        }
+        return null;
+    }
+
     function parseRouteDistanceKm(from, to) {
-        if (typeof getRouteSuggestions !== 'function') return null;
-        const routeData = getRouteSuggestions(from, to);
+        const routeGetter = getRouteSuggestionGetter();
+        if (!routeGetter) return null;
+        const routeData = routeGetter(from, to);
         if (!routeData || !routeData.distance) return null;
 
         const match = String(routeData.distance).match(/([\d.]+)/);
@@ -288,33 +368,98 @@
             return geocodeCache[cacheKey];
         }
 
-        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=in&q=${encodeURIComponent(query)}`;
-        const response = await fetch(url, {
+        const point = await geocodeLocationWithNominatim(query) || await geocodeLocationWithPhoton(query);
+        if (!point) return null;
+
+        geocodeCache[cacheKey] = point;
+        saveCache();
+        return point;
+    }
+
+    async function geocodeLocationWithNominatim(query) {
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=in&q=${encodeURIComponent(query)}`;
+        const data = await fetchJsonWithTimeout(url, {
             method: 'GET',
             headers: {
                 Accept: 'application/json'
             }
         });
-
-        if (!response.ok) {
-            throw new Error(`Geocode failed (${response.status})`);
-        }
-
-        const data = await response.json();
         if (!Array.isArray(data) || data.length === 0) {
             return null;
         }
 
-        const lat = Number(data[0].lat);
-        const lon = Number(data[0].lon);
+        const item = data.find((entry) => isCompatibleGeocodeCandidate(
+            query,
+            [entry.display_name, entry.name, entry.type, entry.category].filter(Boolean).join(', ')
+        ));
+        if (!item) return null;
+
+        const lat = Number(item.lat);
+        const lon = Number(item.lon);
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
             return null;
         }
 
-        const point = { lat, lon };
-        geocodeCache[cacheKey] = point;
-        saveCache();
-        return point;
+        return { lat, lon };
+    }
+
+    async function geocodeLocationWithPhoton(query) {
+        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=en`;
+        const data = await fetchJsonWithTimeout(url, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json'
+            }
+        });
+        const item = Array.isArray(data && data.features)
+            ? data.features.find((feature) => {
+                const properties = feature.properties || {};
+                const candidateText = [
+                    properties.name,
+                    properties.city,
+                    properties.county,
+                    properties.state,
+                    properties.country
+                ].filter(Boolean).join(', ');
+                return isCompatibleGeocodeCandidate(query, candidateText);
+            })
+            : null;
+        const coordinates = item && item.geometry
+            ? item.geometry.coordinates
+            : null;
+        if (!Array.isArray(coordinates) || coordinates.length < 2) return null;
+
+        const lon = Number(coordinates[0]);
+        const lat = Number(coordinates[1]);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+        return { lat, lon };
+    }
+
+    function getCoordinateLon(point) {
+        return Number(point && (point.lon ?? point.lng ?? point.longitude));
+    }
+
+    async function estimateLiveRouteDistanceKm(fromPoint, toPoint) {
+        const fromLat = Number(fromPoint && fromPoint.lat);
+        const fromLon = getCoordinateLon(fromPoint);
+        const toLat = Number(toPoint && toPoint.lat);
+        const toLon = getCoordinateLon(toPoint);
+        if (![fromLat, fromLon, toLat, toLon].every(Number.isFinite)) return null;
+
+        const coordinates = `${fromLon.toFixed(6)},${fromLat.toFixed(6)};${toLon.toFixed(6)},${toLat.toFixed(6)}`;
+        const url = `${LIVE_ROUTE_ENDPOINT}/${coordinates}?overview=false&alternatives=false&steps=false`;
+        const data = await fetchJsonWithTimeout(url, { headers: { Accept: 'application/json' } });
+        const meters = Number(data && data.routes && data.routes[0] && data.routes[0].distance);
+        if (!Number.isFinite(meters) || meters <= 0) return null;
+        return Math.max(1, meters / 1000);
+    }
+
+    function liveRouteSourceName({ usedDirectCoordinate, usedStatic, usedLive }) {
+        if (usedDirectCoordinate && usedLive) return 'live_route_hybrid_browser';
+        if (usedDirectCoordinate) return 'live_route_browser_coordinate';
+        if (usedStatic && usedLive) return 'live_route_hybrid_geo';
+        if (usedStatic) return 'live_route_district_geo';
+        return 'live_route_geo';
     }
 
     function toRad(value) {
@@ -358,25 +503,21 @@
         }
 
         const routeKm = parseRouteDistanceKm(fromText, toText);
-        if (routeKm) {
-            return {
-                km: routeKm,
-                source: 'route_table'
-            };
-        }
 
         const staticFrom = resolveCoordinate(fromText);
         const staticTo = resolveCoordinate(toText);
-        let fromPoint = directFromPoint || (staticFrom ? { lat: staticFrom.lat, lon: staticFrom.lon } : null);
-        let toPoint = directToPoint || (staticTo ? { lat: staticTo.lat, lon: staticTo.lon } : null);
-        let usedStatic = Boolean(staticFrom || staticTo);
+        const shouldLiveGeocodeFrom = !directFromPoint && (!staticFrom || isSpecificLocationText(fromText, staticFrom));
+        const shouldLiveGeocodeTo = !directToPoint && (!staticTo || isSpecificLocationText(toText, staticTo));
+        let fromPoint = directFromPoint || (!shouldLiveGeocodeFrom && staticFrom ? { lat: staticFrom.lat, lon: staticFrom.lon } : null);
+        let toPoint = directToPoint || (!shouldLiveGeocodeTo && staticTo ? { lat: staticTo.lat, lon: staticTo.lon } : null);
+        let usedStatic = Boolean((staticFrom && fromPoint) || (staticTo && toPoint));
         let usedDirectCoordinate = Boolean(directFromPoint || directToPoint);
         let usedLive = false;
 
         try {
             const [geoFrom, geoTo] = await Promise.all([
-                fromPoint ? Promise.resolve(null) : geocodeLocation(fromText),
-                toPoint ? Promise.resolve(null) : geocodeLocation(toText)
+                fromPoint || !shouldLiveGeocodeFrom ? Promise.resolve(null) : geocodeLocation(fromText),
+                toPoint || !shouldLiveGeocodeTo ? Promise.resolve(null) : geocodeLocation(toText)
             ]);
 
             if (!fromPoint && geoFrom) {
@@ -391,7 +532,31 @@
             // Network/geocode failure falls through to the coordinate-based or last-resort fallback below.
         }
 
+        if (!fromPoint && staticFrom) {
+            fromPoint = { lat: staticFrom.lat, lon: staticFrom.lon };
+            usedStatic = true;
+        }
+        if (!toPoint && staticTo) {
+            toPoint = { lat: staticTo.lat, lon: staticTo.lon };
+            usedStatic = true;
+        }
+
         if (fromPoint && toPoint) {
+            const liveRouteKm = await estimateLiveRouteDistanceKm(fromPoint, toPoint);
+            if (liveRouteKm) {
+                return {
+                    km: liveRouteKm,
+                    source: liveRouteSourceName({ usedDirectCoordinate, usedStatic, usedLive })
+                };
+            }
+
+            if (routeKm) {
+                return {
+                    km: routeKm,
+                    source: 'route_table'
+                };
+            }
+
             const straightLineKm = haversineKm(fromPoint, toPoint);
             const roadEstimateKm = Math.max(straightLineKm * estimateRoadMultiplier(straightLineKm, fromText, toText), 1);
             return {
@@ -403,6 +568,13 @@
                     : usedStatic
                         ? 'district_geo'
                         : 'live_geo'
+            };
+        }
+
+        if (routeKm) {
+            return {
+                km: routeKm,
+                source: 'route_table'
             };
         }
 
