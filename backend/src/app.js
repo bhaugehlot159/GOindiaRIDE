@@ -33,6 +33,7 @@ const {
   getAndroidAppConversionStatus,
   getDigitalAssetLinks
 } = require('./services/androidAppConversionService');
+const { getOfficialRouteQuote } = require('./services/officialRouteQuoteService');
 const { globalLimiter } = require('./middleware/rateLimiters');
 const { globalAbuseDefenseMiddleware } = require('./middleware/globalAbuseDefenseMiddleware');
 const { globalLockdownShieldMiddleware } = require('./middleware/globalLockdownShieldMiddleware');
@@ -326,7 +327,11 @@ function withApiMountVariants(paths = []) {
   return [...variants];
 }
 
+const publicFareQuoteBypassPaths = withApiMountVariants([
+  '/api/fares/route-quote'
+]);
 const sharedGatewayBypassPaths = withApiMountVariants([
+  ...publicFareQuoteBypassPaths,
   '/api/bookings/fallback/admin-alert-email',
   '/api/bookings/fallback/admin-review-queue',
   '/api/notifications/push/status',
@@ -351,11 +356,13 @@ const relaxedNetworkIntelProtectedPrefixes = removeAuthPrefix(env.networkIntelPo
 const relaxedDenylistProtectedPrefixes = removeAuthPrefix(env.denylistShieldProtectedPrefixes);
 const relaxedGlobalLockdownBypassPrefixes = Array.from(new Set([
   ...(Array.isArray(env.globalLockdownBypassPrefixes) ? env.globalLockdownBypassPrefixes : []),
+  ...publicFareQuoteBypassPaths,
   ...publicPushNotificationReadBypassPaths,
   ...authGatewayBypassPrefixes
 ]));
 const relaxedRouteGuardBypassPrefixes = Array.from(new Set([
   ...(Array.isArray(env.routeGuardPolicyBypassPrefixes) ? env.routeGuardPolicyBypassPrefixes : []),
+  ...publicFareQuoteBypassPaths,
   ...publicPushNotificationReadBypassPaths,
   ...authGatewayBypassPrefixes
 ]));
@@ -578,6 +585,32 @@ app.get('/api/security/csrf-token', (req, res) => {
     csrfToken,
     ttlMinutes: env.csrfTokenTtlMinutes
   });
+});
+
+app.post('/api/fares/route-quote', async (req, res, next) => {
+  try {
+    const quote = await getOfficialRouteQuote({
+      pickup: req.body && (req.body.pickup || req.body.from),
+      drop: req.body && (req.body.drop || req.body.to),
+      vehicleType: req.body && (req.body.officialVehicleType || req.body.vehicletype)
+    });
+
+    if (!quote.ok) {
+      return res.status(200).json({
+        ok: false,
+        error: quote.error || 'official_route_unavailable'
+      });
+    }
+
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    return res.status(200).json(quote);
+  } catch (error) {
+    logger.warn('official_route_quote_failed', {
+      message: error.message,
+      path: req.path
+    });
+    return next(error);
+  }
 });
 
 app.use('/api/admin', strictCsrfShield);

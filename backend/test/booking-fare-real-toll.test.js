@@ -148,6 +148,7 @@ test('fare calculator covers every VAHAN AITP state and does not miss state code
   assert.ok(coverage.every((item) => item.stateCode && item.sourceUrl));
   assert.equal(coverage.find((item) => item.state === 'Rajasthan').hasAutoSlab, true);
   assert.equal(coverage.find((item) => item.state === 'Haryana').hasAutoSlab, true);
+  assert.equal(coverage.find((item) => item.state === 'Gujarat').hasAutoSlab, true);
 });
 
 test('fare calculator adds different official state taxes for a multi-state route', () => {
@@ -199,7 +200,7 @@ test('fare calculator applies Rajasthan other-state tourist tax only on Rajastha
   assert.equal(estimate.stateTaxRequiresAdminReview, false);
 });
 
-test('fare calculator routes states without verified public slabs to official checkpost review instead of fake tax', () => {
+test('fare calculator adds Gujarat official other-state weekly taxi tax', () => {
   const estimate = estimateBookingFare({
     pickup: 'Udaipur',
     drop: 'Ahmedabad',
@@ -214,10 +215,78 @@ test('fare calculator routes states without verified public slabs to official ch
   });
 
   assert.deepEqual(estimate.stateTaxRouteStates, ['Rajasthan', 'Gujarat']);
-  assert.equal(estimate.stateTax, 0);
-  assert.deepEqual(estimate.stateTaxMissingStates, ['Gujarat']);
+  assert.equal(estimate.stateTax, 48);
+  assert.deepEqual(estimate.stateTaxMissingStates, []);
+  assert.equal(estimate.stateTaxRequiresAdminReview, false);
+  assert.deepEqual(
+    estimate.stateTaxBreakdown.map((item) => [item.state, item.amount, item.perDay]),
+    [['Gujarat', 48, 48]]
+  );
+  assert.match(estimate.stateTaxBreakdown[0].sourceUrl, /cot\.gujarat\.gov\.in\/tax-structure/);
+});
+
+test('fare calculator uses official Rajmarg Yatra route toll quote when supplied', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Ahmedabad',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'sedan',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 251,
+    distanceSource: 'official_route_planner',
+    paymentMethod: 'cash',
+    routeData: {
+      source: 'rajmarg_yatra_route_planner',
+      sourceUrl: 'https://rajmargyatra.nhai.gov.in/#/route-planner',
+      distance: '253.26 Km',
+      duration: '5h 29m 27s',
+      total_cost: 300,
+      total_tolls: 3,
+      tollDetails: [
+        { tp_name: 'Paduna', tp_rate: 75, tp_latitude: '24.271438', tp_longitude: '73.67379', isEligible: true },
+        { tp_name: 'Khandi Obari', tp_rate: 190, tp_latitude: '23.9941418', tp_longitude: '73.6271827', isEligible: true },
+        { tp_name: 'Vantada', tp_rate: 35, tp_latitude: '23.61615', tp_longitude: '73.254472', isEligible: true }
+      ]
+    }
+  });
+
+  assert.equal(estimate.distanceSource, 'official_route_planner');
+  assert.equal(estimate.distanceKm, 253);
+  assert.equal(estimate.tollSource, 'official_rajmarg_yatra_route_planner');
+  assert.equal(estimate.tollCharge, 300);
+  assert.equal(estimate.tollRequiresAdminReview, false);
+  assert.deepEqual(
+    estimate.tollPlazas.map((item) => [item.name, item.amount]),
+    [
+      ['Paduna', 75],
+      ['Khandi Obari', 190],
+      ['Vantada', 35]
+    ]
+  );
+  assert.equal(estimate.stateTax, 48);
+});
+
+test('fare calculator routes states without verified public slabs to official checkpost review instead of fake tax', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Udaipur',
+    drop: 'Mumbai',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'sedan',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 760,
+    distanceSource: 'home_known_route',
+    paymentMethod: 'cash'
+  });
+
+  assert.deepEqual(estimate.stateTaxRouteStates, ['Rajasthan', 'Gujarat', 'Maharashtra']);
+  assert.equal(estimate.stateTax, 48);
+  assert.deepEqual(estimate.stateTaxMissingStates, ['Maharashtra']);
   assert.equal(estimate.stateTaxRequiresAdminReview, true);
-  assert.match(estimate.stateTaxBreakdown[0].quoteUrl, /vahan\.parivahan\.gov\.in\/aitp/);
+  assert.match(estimate.stateTaxBreakdown[1].quoteUrl, /vahan\.parivahan\.gov\.in\/aitp/);
 });
 
 test('fare calculator does not invent toll when a route has no mapped toll corridor', () => {

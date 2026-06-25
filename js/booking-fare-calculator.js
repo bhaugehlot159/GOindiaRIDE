@@ -189,6 +189,20 @@
         { upToSeats: 32, perDay: 750 },
         { upToSeats: Infinity, perDay: 1000 }
       ]
+    },
+    Gujarat: {
+      type: 'annual_percent_weekly',
+      source: 'Commissionerate of Transport, Government of Gujarat - Tax Structure',
+      sourceUrl: 'https://cot.gujarat.gov.in/tax-structure.htm',
+      note: 'Other-state taxi temporary use: one week or part thereof at 4% of annual passenger vehicle tax',
+      percentPerWeek: 4,
+      slabs: [
+        { upToSeats: 4, annual: 1200 },
+        { upToSeats: 5, annual: 1350 },
+        { upToSeats: 6, annual: 1500 },
+        { upToSeats: 13, annual: 2400 },
+        { upToSeats: Infinity, annual: 2400 }
+      ]
     }
   };
 
@@ -613,6 +627,56 @@
     }
   }
 
+  function normalizeExternalTollDetails(items) {
+    if (!Array.isArray(items)) return [];
+    return items
+      .map((item, index) => {
+        const name = sanitizeText(item && (item.name || item.tp_name || item.tollName), 100);
+        const amount = roundMoney(item && (item.amount ?? item.tp_rate ?? item.rate ?? item.cost ?? 0));
+        if (!name && amount <= 0) return null;
+        return {
+          id: sanitizeText(item && (item.id || item.tp_id || item.tollplaza_id), 60) || `official_toll_${index + 1}`,
+          name,
+          state: sanitizeText(item && item.state, 80),
+          nh: sanitizeText(item && (item.nh || item.highway), 80),
+          amount,
+          source: sanitizeText(item && item.source, 120) || 'Rajmarg Yatra route planner',
+          latitude: Number(item && (item.latitude ?? item.tp_latitude)) || null,
+          longitude: Number(item && (item.longitude ?? item.tp_longitude)) || null,
+          isEligible: item && item.isEligible !== false
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function normalizeExternalRouteData(value) {
+    if (!value || typeof value !== 'object') return null;
+    const source = sanitizeText(value.source || value.provider || '', 120);
+    const sourceUrl = sanitizeText(value.sourceUrl || value.quoteUrl || '', 220);
+    const tollDetails = normalizeExternalTollDetails(value.tollDetails || value.tollPlazas || []);
+    const distance = sanitizeText(value.distance || value.distanceText || '', 80);
+    const duration = sanitizeText(value.duration || value.durationText || '', 80);
+    const totalCost = roundMoney(value.total_cost ?? value.tollCharge ?? value.totalToll ?? value.nh_cost ?? 0);
+    const hasOfficialRouteShape = source || sourceUrl || tollDetails.length || totalCost > 0 || distance;
+    if (!hasOfficialRouteShape) return null;
+
+    return {
+      ...value,
+      source,
+      sourceUrl,
+      distance,
+      duration,
+      total_cost: totalCost,
+      nh_cost: roundMoney(value.nh_cost ?? totalCost),
+      state_cost: roundMoney(value.state_cost ?? 0),
+      total_tolls: Number(value.total_tolls ?? value.tollPlazaCount ?? tollDetails.length) || tollDetails.length,
+      tollDetails,
+      states: Array.isArray(value.states)
+        ? value.states.map((item) => sanitizeText(item, 80)).filter(Boolean)
+        : []
+    };
+  }
+
   function resolveCoordinate(value) {
     const normalized = normalizeLookupKey(value);
     if (!normalized) return null;
@@ -1021,6 +1085,32 @@
     };
   }
 
+  function isOfficialRoutePlannerData(routeData) {
+    if (!routeData || typeof routeData !== 'object') return false;
+    const sourceText = normalizeKey(`${routeData.source || ''} ${routeData.sourceUrl || ''}`);
+    return sourceText.includes('rajmargyatra') ||
+      sourceText.includes('rajmargyatrarouteplanner') ||
+      sourceText.includes('rajmarg') ||
+      sourceText.includes('officialrouteplanner');
+  }
+
+  function buildOfficialRouteTollDetails(routeData, routeKey) {
+    if (!isOfficialRoutePlannerData(routeData)) return null;
+    const plazas = normalizeExternalTollDetails(routeData.tollDetails || routeData.tollPlazas || []);
+    const plazaAmount = roundMoney(plazas.reduce((sum, plaza) => sum + (plaza.amount || 0), 0));
+    const amount = roundMoney(routeData.total_cost ?? routeData.tollCharge ?? routeData.nh_cost ?? plazaAmount);
+    return {
+      amount,
+      source: 'official_rajmarg_yatra_route_planner',
+      dataVersion: 'Rajmarg Yatra / NHAI route-planner live toll quote',
+      routeKey,
+      plazaCount: Number(routeData.total_tolls || plazas.length) || plazas.length,
+      plazas,
+      usedReturnRate: false,
+      requiresAdminReview: false
+    };
+  }
+
   function isLocalNoTollRoute({
     distanceKm,
     pickupState,
@@ -1050,6 +1140,9 @@
     returnDate
   }) {
     const corridor = resolveCorridorPlazaIds(pickup, dropoff);
+    const officialTollDetails = buildOfficialRouteTollDetails(routeData, corridor.routeKey);
+    if (officialTollDetails) return officialTollDetails;
+
     if (corridor.matched && corridor.plazaIds.length) {
       return buildMappedTollDetails(
         corridor.plazaIds,
@@ -1174,6 +1267,18 @@
     };
   }
 
+  function calculateAnnualPercentWeeklyStateTax(rule, seatCount, days) {
+    const slab = (rule.slabs || []).find((item) => seatCount <= item.upToSeats);
+    if (!slab) return null;
+    const billableWeeks = Math.max(1, Math.ceil(Math.max(1, days) / 7));
+    const perWeek = roundMoney((Number(slab.annual || 0) * Number(rule.percentPerWeek || 0)) / 100);
+    return {
+      perDay: perWeek,
+      days: billableWeeks,
+      amount: roundMoney(perWeek * billableWeeks)
+    };
+  }
+
   function buildOfficialCheckpostReview(stateName) {
     return {
       state: stateName,
@@ -1229,9 +1334,12 @@
     const breakdown = taxableStates.map((stateName) => {
       const rule = OFFICIAL_OTHER_STATE_TAX_RULES[stateName];
       if (!rule) return buildOfficialCheckpostReview(stateName);
-      const computed = rule.type === 'seat_slab_daily'
-        ? calculateSeatSlabStateTax(rule, seatCount, taxDays)
-        : null;
+      let computed = null;
+      if (rule.type === 'seat_slab_daily') {
+        computed = calculateSeatSlabStateTax(rule, seatCount, taxDays);
+      } else if (rule.type === 'annual_percent_weekly') {
+        computed = calculateAnnualPercentWeeklyStateTax(rule, seatCount, taxDays);
+      }
       if (!computed) return buildOfficialCheckpostReview(stateName);
       return {
         state: stateName,
@@ -1362,11 +1470,15 @@
   function estimateBookingFare(rawInput = {}) {
     const pickup = sanitizeText(rawInput.pickup || rawInput.pickupLocation || rawInput.from || '', 180);
     const dropoff = sanitizeText(rawInput.drop || rawInput.dropoff || rawInput.dropLocation || rawInput.to || '', 180);
-    const routeData = resolveRouteData(pickup, dropoff);
+    const externalRouteData = normalizeExternalRouteData(
+      rawInput.routeData || rawInput.officialRouteData || rawInput.liveRouteData || rawInput.routeQuote
+    );
+    const routeData = externalRouteData || resolveRouteData(pickup, dropoff);
     const enforceTrustedDistance = rawInput.enforceTrustedDistance === true;
     const requestedDistanceSource = normalizeKey(rawInput.distanceSource || (routeData ? 'route_table' : 'manual')) || 'manual';
     const providedDistance = Math.max(0, toNumber(rawInput.distanceKm ?? rawInput.distance ?? 0));
     const routeDistanceKm = routeData ? parseDistanceValue(routeData.distance) : 0;
+    const officialRouteDistance = isOfficialRoutePlannerData(routeData);
     const coordinateDistance = routeDistanceKm > 0
       ? { km: 0, source: '' }
       : estimateTrustedCoordinateDistanceKm(
@@ -1378,11 +1490,11 @@
     const trustedDistanceKm = routeDistanceKm || coordinateDistance.km || 0;
     const distanceTrusted = trustedDistanceKm > 0;
     const distanceSource = routeDistanceKm > 0
-      ? 'route_table'
+      ? (officialRouteDistance ? 'official_route_planner' : 'route_table')
       : (coordinateDistance.source || (enforceTrustedDistance ? 'untrusted' : requestedDistanceSource));
     const distanceKm = enforceTrustedDistance
       ? (trustedDistanceKm || 0)
-      : (routeDistanceKm > 0 && (requestedDistanceSource === 'fallback' || requestedDistanceSource === 'route_table' || !providedDistance)
+      : (routeDistanceKm > 0 && (officialRouteDistance || requestedDistanceSource === 'fallback' || requestedDistanceSource === 'route_table' || !providedDistance)
         ? routeDistanceKm
         : providedDistance || trustedDistanceKm || 1);
     const vehicleType = normalizeVehicleType(rawInput.vehicleType || rawInput.rideType, rawInput.vehicleModel);

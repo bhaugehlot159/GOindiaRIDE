@@ -457,7 +457,8 @@
                 paymentMethod: 'cash',
                 distanceKm,
                 distanceSource: useFallbackDistance ? 'fallback' : distanceDetails.distanceSource,
-                enforceTrustedDistance: useFallbackDistance ? false : distanceDetails.enforceTrustedDistance
+                enforceTrustedDistance: useFallbackDistance ? false : distanceDetails.enforceTrustedDistance,
+                routeData: useFallbackDistance ? null : (distanceDetails.routeData || null)
             };
         }
 
@@ -495,6 +496,44 @@
                 distanceSource: cleanBookingValue(estimate && estimate.source) || 'live_route',
                 enforceTrustedDistance: false
             };
+        }
+
+        function isUsableOfficialHomeRouteQuote(quote) {
+            const km = Number(quote && quote.distanceKm);
+            return Boolean(quote && quote.ok)
+                && Number.isFinite(km)
+                && km > 1
+                && quote.routeData
+                && cleanBookingValue(quote.source);
+        }
+
+        function getOfficialHomeRouteDistanceDetails(quote) {
+            return {
+                distanceKm: Math.max(1, Math.round(Number(quote && quote.distanceKm) || 0)),
+                distanceSource: 'official_route_planner',
+                enforceTrustedDistance: false,
+                routeData: quote.routeData
+            };
+        }
+
+        async function fetchHomeOfficialRouteQuote({ pickup, drop }) {
+            if (!window.fetch) return null;
+            const controller = window.AbortController ? new AbortController() : null;
+            const timeoutId = controller ? window.setTimeout(() => controller.abort(), 9000) : null;
+            try {
+                const response = await window.fetch('/api/fares/route-quote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pickup, drop, vehicletype: '35' }),
+                    signal: controller ? controller.signal : undefined
+                });
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (_error) {
+                return null;
+            } finally {
+                if (timeoutId) window.clearTimeout(timeoutId);
+            }
         }
 
         function estimateHomeFareForDistance({ pickup, drop, vehicleType, distanceDetails }) {
@@ -559,6 +598,20 @@
         }
 
         async function calculateHomeFareEstimateAsync({ pickup, drop, vehicleType }) {
+            try {
+                const routeQuote = await fetchHomeOfficialRouteQuote({ pickup, drop });
+                if (isUsableOfficialHomeRouteQuote(routeQuote)) {
+                    return estimateHomeFareForDistance({
+                        pickup,
+                        drop,
+                        vehicleType,
+                        distanceDetails: getOfficialHomeRouteDistanceDetails(routeQuote)
+                    });
+                }
+            } catch (_error) {
+                // Local distance estimation remains available when the official route quote is temporarily unavailable.
+            }
+
             const estimator = window.LocationDistanceEstimator;
             if (!estimator || typeof estimator.estimateDistanceKm !== 'function') {
                 return calculateHomeFareEstimate({ pickup, drop, vehicleType });
@@ -728,7 +781,7 @@
                 applyHomeFareEstimate({ pickup, drop, vehicleType, fare });
 
                 if (homeFareLiveTimer) window.clearTimeout(homeFareLiveTimer);
-                if (window.LocationDistanceEstimator && typeof window.LocationDistanceEstimator.estimateDistanceKm === 'function') {
+                if (window.fetch || (window.LocationDistanceEstimator && typeof window.LocationDistanceEstimator.estimateDistanceKm === 'function')) {
                     metaText.textContent = `${metaText.textContent} | Live km checking...`;
                     homeFareLiveTimer = window.setTimeout(async () => {
                         try {
