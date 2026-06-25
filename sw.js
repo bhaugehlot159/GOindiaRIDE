@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goindiaride-pwa-v67-20260622-app-readiness3';
+const CACHE_NAME = 'goindiaride-pwa-v68-20260625-sirohi1';
 const OFFLINE_URL = './offline.html';
 const ASSETS = [
   './',

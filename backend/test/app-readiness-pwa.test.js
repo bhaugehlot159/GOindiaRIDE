@@ -283,7 +283,7 @@ test('service worker and app shell provide offline, push, install and Firebase m
   const firebaseMessagingWorker = read('firebase-messaging-sw.js');
   const offlinePage = read('offline.html');
 
-  assert.match(serviceWorker, /goindiaride-pwa-v67-20260622-app-readiness3/);
+  assert.match(serviceWorker, /goindiaride-pwa-v68-20260625-sirohi1/);
   assert.match(serviceWorker, /const OFFLINE_URL = '\.\/offline\.html'/);
   assert.match(serviceWorker, /apiOfflineResponse/);
   assert.match(serviceWorker, /isApiRequest/);
@@ -294,7 +294,7 @@ test('service worker and app shell provide offline, push, install and Firebase m
   assert.match(serviceWorker, /admin\/manifest\.webmanifest/);
   assert.match(serviceWorker, /pages\/legal\/account-deletion\.html/);
   assert.match(serviceWorker, /manifest\.json/);
-  assert.match(serviceWorkerAlias, /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/);
+  assert.match(serviceWorkerAlias, /importScripts\('\/sw\.js\?v=20260625-sirohi1'\)/);
 
   assert.match(pwaShell, /beforeinstallprompt/);
   assert.match(pwaShell, /data-goi-pwa-install/);
@@ -303,7 +303,7 @@ test('service worker and app shell provide offline, push, install and Firebase m
   assert.match(pwaShell, /navigator\.serviceWorker\.register/);
   assert.match(pwaShell, /GoIndiaRidePWA/);
   assert.match(pwaShell, /getSurface/);
-  assert.match(firebaseMessagingWorker, /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/);
+  assert.match(firebaseMessagingWorker, /importScripts\('\/sw\.js\?v=20260625-sirohi1'\)/);
   assert.match(offlinePage, /You are offline/);
 });
 
@@ -350,13 +350,13 @@ test('Render backend serves direct public app conversion artifacts without expos
     .get('/service-worker.js')
     .expect('Service-Worker-Allowed', '/')
     .expect(200);
-  assert.match(serviceWorkerAlias.text, /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/);
+  assert.match(serviceWorkerAlias.text, /importScripts\('\/sw\.js\?v=20260625-sirohi1'\)/);
 
   const serviceWorker = await request(app)
-    .get('/sw.js?v=20260622-app-readiness3')
+    .get('/sw.js?v=20260625-sirohi1')
     .expect('Service-Worker-Allowed', '/')
     .expect(200);
-  assert.match(serviceWorker.text, /goindiaride-pwa-v67-20260622-app-readiness3/);
+  assert.match(serviceWorker.text, /goindiaride-pwa-v68-20260625-sirohi1/);
 
   const runtimePage = await request(app)
     .get('/pages/app-runtime-check.html')

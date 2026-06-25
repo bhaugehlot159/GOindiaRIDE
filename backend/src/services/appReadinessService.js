@@ -102,16 +102,16 @@ function buildPwaStatus() {
     driverManifest: fileExists('driver/manifest.webmanifest'),
     adminManifest: fileExists('admin/manifest.webmanifest'),
     serviceWorker: hasAll(serviceWorker, [
-      /goindiaride-pwa-v67-20260622-app-readiness3/,
+      /goindiaride-pwa-v68-20260625-sirohi1/,
       /OFFLINE_URL/,
       /addEventListener\('push'/,
       /notificationclick/,
       /isApiRequest/,
       /apiOfflineResponse/
     ]),
-    serviceWorkerPublicAlias: /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/.test(serviceWorkerAlias),
+    serviceWorkerPublicAlias: /importScripts\('\/sw\.js\?v=20260625-sirohi1'\)/.test(serviceWorkerAlias),
     offlineFallback: fileExists('offline.html') && /You are offline/.test(readFile('offline.html')),
-    firebaseMessagingWorker: /importScripts\('\/sw\.js\?v=20260622-app-readiness3'\)/.test(firebaseMessaging),
+    firebaseMessagingWorker: /importScripts\('\/sw\.js\?v=20260625-sirohi1'\)/.test(firebaseMessaging),
     pwaBootstrap: hasAll(pwaShell, [
       /beforeinstallprompt/,
       /data-goi-pwa-install/,
@@ -147,7 +147,7 @@ function buildRuntimeVerificationStatus() {
     pwaDirectProbe: /checkPwaFiles/.test(verifierScript)
       && /\/manifest\.json/.test(verifierScript)
       && /\/service-worker\.js/.test(verifierScript)
-      && /goindiaride-pwa-v67-20260622-app-readiness3/.test(serviceWorker),
+      && /goindiaride-pwa-v68-20260625-sirohi1/.test(serviceWorker),
     otpWebViewProbe: /checkOtpWebView/.test(verifierScript)
       && /getReadinessStatus/.test(phoneVerification)
       && /RecaptchaVerifier/.test(phoneVerification)
