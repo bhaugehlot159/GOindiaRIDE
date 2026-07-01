@@ -423,12 +423,6 @@
             };
         }
 
-        function getHomeFareFallbackDistance(tripPlan) {
-            if (tripPlan === 'airport') return 22;
-            if (tripPlan === 'outstation') return 160;
-            return 12;
-        }
-
         function getHomeFareTripPlan(pickup, drop, distanceKm) {
             const routeText = `${pickup} ${drop}`.toLowerCase();
             if (routeText.includes('airport')) return 'airport';
@@ -442,13 +436,13 @@
             return 'local_city';
         }
 
-        function buildHomeFareInput({ pickup, drop, vehicleType, tripPlan, distanceDetails, useFallbackDistance = false }) {
-            const distanceKm = useFallbackDistance
-                ? getHomeFareFallbackDistance(tripPlan)
-                : Number(distanceDetails.distanceKm || 0);
+        function buildHomeFareInput({ pickup, drop, vehicleType, tripPlan, distanceDetails }) {
+            const distanceKm = Number(distanceDetails.distanceKm || 0);
             return {
                 pickup,
                 drop,
+                pickupState: distanceDetails.pickupState || '',
+                dropState: distanceDetails.dropState || '',
                 tripPlan,
                 tripServiceType: getHomeFareServiceType(tripPlan),
                 vehicleType: vehicleType || 'sedan',
@@ -456,9 +450,9 @@
                 luggage: 'none',
                 paymentMethod: 'cash',
                 distanceKm,
-                distanceSource: useFallbackDistance ? 'fallback' : distanceDetails.distanceSource,
-                enforceTrustedDistance: useFallbackDistance ? false : distanceDetails.enforceTrustedDistance,
-                routeData: useFallbackDistance ? null : (distanceDetails.routeData || null)
+                distanceSource: distanceDetails.distanceSource,
+                enforceTrustedDistance: distanceDetails.enforceTrustedDistance,
+                routeData: distanceDetails.routeData || null
             };
         }
 
@@ -491,10 +485,25 @@
         }
 
         function getLiveHomeFareDistanceDetails(estimate) {
+            const routeStates = Array.isArray(estimate && estimate.routeStates)
+                ? estimate.routeStates.filter(Boolean)
+                : [];
+            const routeData = routeStates.length || Number(estimate && estimate.durationMinutes) > 0
+                ? {
+                    source: cleanBookingValue(estimate && estimate.source) || 'live_route',
+                    sourceUrl: 'https://router.project-osrm.org/',
+                    distance: `${Math.max(1, Math.round(Number(estimate && estimate.km) || 0))} Km`,
+                    duration: Number(estimate && estimate.durationMinutes) > 0 ? `${Math.round(Number(estimate.durationMinutes))} min` : '',
+                    states: routeStates
+                }
+                : null;
             return {
                 distanceKm: Math.max(1, Math.round(Number(estimate && estimate.km) || 0)),
                 distanceSource: cleanBookingValue(estimate && estimate.source) || 'live_route',
-                enforceTrustedDistance: false
+                enforceTrustedDistance: false,
+                pickupState: cleanBookingValue(estimate && estimate.pickupState),
+                dropState: cleanBookingValue(estimate && estimate.dropState),
+                routeData
             };
         }
 
@@ -516,16 +525,19 @@
             };
         }
 
-        async function fetchHomeOfficialRouteQuote({ pickup, drop }) {
+        function buildHomeApiUrl(base, path) {
+            const cleanBase = normalizeHomeApiBase(base);
+            return cleanBase ? `${cleanBase}${path}` : path;
+        }
+
+        async function fetchHomeJsonWithTimeout(url, options = {}, timeoutMs = 4500) {
             if (!window.fetch) return null;
             const controller = window.AbortController ? new AbortController() : null;
-            const timeoutId = controller ? window.setTimeout(() => controller.abort(), 9000) : null;
+            const timeoutId = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
             try {
-                const response = await window.fetch('/api/fares/route-quote', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pickup, drop, vehicletype: '35' }),
-                    signal: controller ? controller.signal : undefined
+                const response = await window.fetch(url, {
+                    ...options,
+                    signal: controller ? controller.signal : options.signal
                 });
                 if (!response.ok) return null;
                 return await response.json();
@@ -534,6 +546,52 @@
             } finally {
                 if (timeoutId) window.clearTimeout(timeoutId);
             }
+        }
+
+        async function fetchHomeOfficialRouteQuote({ pickup, drop }) {
+            const payload = JSON.stringify({ pickup, drop, vehicletype: '35' });
+            const bases = getHomeReviewApiBases();
+            const orderedBases = bases.length ? bases : [''];
+            for (const base of orderedBases) {
+                const quote = await fetchHomeJsonWithTimeout(buildHomeApiUrl(base, '/api/fares/route-quote'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload
+                });
+                if (quote && quote.ok) return quote;
+            }
+            return null;
+        }
+
+        function buildUnavailableHomeFare({ pickup, drop, vehicleType, distanceDetails }) {
+            const distanceKm = Math.max(0, Math.round(Number(distanceDetails && distanceDetails.distanceKm) || 0));
+            const tripPlan = getHomeFareTripPlan(pickup, drop, distanceKm);
+            return {
+                pickup,
+                drop,
+                vehicleType: vehicleType || 'sedan',
+                tripPlan,
+                tripServiceType: getHomeFareServiceType(tripPlan),
+                distanceKm,
+                distanceSource: cleanBookingValue(distanceDetails && distanceDetails.distanceSource) || 'unverified',
+                distanceTrusted: false,
+                routeUnavailable: true,
+                totalFare: 0,
+                amount: 0,
+                finalFare: 0,
+                baseFare: 0,
+                distanceFare: 0,
+                extraDistanceFare: 0,
+                timeFare: 0,
+                extraTimeFare: 0,
+                tollCharge: 0,
+                parkingCharge: 0,
+                taxesFare: 0,
+                driverNightBatta: 0,
+                nightCharge: 0,
+                stateTax: 0,
+                calculatedAt: new Date().toISOString()
+            };
         }
 
         function estimateHomeFareForDistance({ pickup, drop, vehicleType, distanceDetails }) {
@@ -561,15 +619,12 @@
                 }
             }
 
+            if (!Number(distanceDetails && distanceDetails.distanceKm)) {
+                return buildUnavailableHomeFare({ pickup, drop, vehicleType, distanceDetails });
+            }
+
             const tripPlan = getHomeFareTripPlan(pickup, drop, distanceDetails.distanceKm);
-            input = buildHomeFareInput({
-                pickup,
-                drop,
-                vehicleType,
-                tripPlan,
-                distanceDetails,
-                useFallbackDistance: true
-            });
+            input = buildHomeFareInput({ pickup, drop, vehicleType, tripPlan, distanceDetails });
             const perKm = input.vehicleType === 'suv' ? 18 : input.vehicleType === 'sedan' ? 12 : 10;
             const base = tripPlan === 'airport' ? 190 : tripPlan === 'outstation' ? 260 : 99;
             const totalFare = Math.max(99, Math.round(base + input.distanceKm * perKm));
@@ -742,6 +797,23 @@
             }
 
             function applyHomeFareEstimate({ pickup, drop, vehicleType, fare }) {
+                if (fare && fare.routeUnavailable) {
+                    const isChecking = cleanBookingValue(fare.distanceSource).toLowerCase() === 'checking';
+                    routeText.textContent = `${pickup} -> ${drop} =`;
+                    amountText.textContent = isChecking ? 'Checking' : '--';
+                    metaText.textContent = isChecking
+                        ? 'Official/live km checking...'
+                        : 'Official/live km unavailable';
+                    renderHomeFareBreakdown(breakdown, fare);
+                    bookLink.href = buildBookingUrl({
+                        source: 'home_fare_calculator',
+                        pickup,
+                        drop,
+                        vehicleType
+                    });
+                    return;
+                }
+
                 const total = fare.totalFare || fare.finalFare || fare.amount || 0;
                 const distanceKm = Number(fare.distanceKm || 0).toFixed(0);
                 const toll = fare.tollCharge || 0;
@@ -777,12 +849,17 @@
                 const drop = cleanBookingValue(dropInput.value) || 'Udaipur Airport';
                 const vehicleType = cleanBookingValue(vehicleInput.value) || 'sedan';
                 const token = ++homeFareRefreshToken;
-                const fare = calculateHomeFareEstimate({ pickup, drop, vehicleType });
+                const canCheckLive = Boolean(
+                    window.fetch ||
+                    (window.LocationDistanceEstimator && typeof window.LocationDistanceEstimator.estimateDistanceKm === 'function')
+                );
+                const fare = canCheckLive
+                    ? buildUnavailableHomeFare({ pickup, drop, vehicleType, distanceDetails: { distanceSource: 'checking' } })
+                    : calculateHomeFareEstimate({ pickup, drop, vehicleType });
                 applyHomeFareEstimate({ pickup, drop, vehicleType, fare });
 
                 if (homeFareLiveTimer) window.clearTimeout(homeFareLiveTimer);
-                if (window.fetch || (window.LocationDistanceEstimator && typeof window.LocationDistanceEstimator.estimateDistanceKm === 'function')) {
-                    metaText.textContent = `${metaText.textContent} | Live km checking...`;
+                if (canCheckLive) {
                     homeFareLiveTimer = window.setTimeout(async () => {
                         try {
                             const liveFare = await calculateHomeFareEstimateAsync({ pickup, drop, vehicleType });

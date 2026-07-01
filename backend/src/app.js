@@ -609,7 +609,10 @@ app.post('/api/fares/route-quote', async (req, res, next) => {
       message: error.message,
       path: req.path
     });
-    return next(error);
+    return res.status(200).json({
+      ok: false,
+      error: 'official_route_unavailable'
+    });
   }
 });
 

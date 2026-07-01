@@ -30,7 +30,10 @@ test('browser distance estimator geocodes typed place names and uses live drivin
         json: async () => [{
           lat: '27.368900',
           lon: '75.391900',
-          display_name: 'Khatu Shyam Ji Temple, Khatoo, Sikar, Rajasthan, India'
+          display_name: 'Khatu Shyam Ji Temple, Khatoo, Sikar, Rajasthan, India',
+          address: {
+            state: 'Rajasthan'
+          }
         }]
       };
     }
@@ -48,6 +51,8 @@ test('browser distance estimator geocodes typed place names and uses live drivin
 
     assert.equal(estimate.source, 'live_route_hybrid_geo');
     assert.equal(Math.round(estimate.km), 424);
+    assert.equal(estimate.dropState, 'Rajasthan');
+    assert.deepEqual(estimate.routeStates, ['Rajasthan']);
     assert.ok(calls.some((url) => url.includes('nominatim.openstreetmap.org')));
     assert.ok(calls.some((url) => url.includes('router.project-osrm.org')));
   } finally {
@@ -102,9 +107,57 @@ test('browser distance estimator falls back to Photon geocoding when primary geo
 
     assert.equal(estimate.source, 'live_route_hybrid_geo');
     assert.equal(Math.round(estimate.km), 433);
+    assert.equal(estimate.dropState, 'Rajasthan');
     assert.ok(calls.some((url) => url.includes('nominatim.openstreetmap.org')));
     assert.ok(calls.some((url) => url.includes('photon.komoot.io')));
     assert.ok(calls.some((url) => url.includes('router.project-osrm.org')));
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test('browser distance estimator carries geocoded state data for arbitrary typed locations', async () => {
+  const estimator = globalThis.LocationDistanceEstimator;
+  const originalFetch = global.fetch;
+
+  global.fetch = async (url) => {
+    const requestUrl = String(url);
+    if (requestUrl.includes('nominatim.openstreetmap.org') && requestUrl.includes('Statue')) {
+      return {
+        ok: true,
+        json: async () => [{
+          lat: '21.838000',
+          lon: '73.719100',
+          display_name: 'Statue of Unity, Ekta Nagar, Gujarat, India',
+          address: {
+            state: 'Gujarat'
+          }
+        }]
+      };
+    }
+    if (requestUrl.includes('router.project-osrm.org')) {
+      return {
+        ok: true,
+        json: async () => ({
+          routes: [{
+            distance: 356400,
+            duration: 18600,
+            geometry: { coordinates: [[73.7125, 24.5854], [73.7191, 21.8380]] }
+          }]
+        })
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  try {
+    const estimate = await estimator.estimateDistanceKm('Udaipur', 'Statue of Unity, Ekta Nagar');
+
+    assert.equal(estimate.source, 'live_route_hybrid_geo');
+    assert.equal(Math.round(estimate.km), 356);
+    assert.equal(estimate.dropState, 'Gujarat');
+    assert.deepEqual(estimate.routeStates, ['Gujarat']);
+    assert.equal(estimate.durationMinutes, 310);
   } finally {
     global.fetch = originalFetch;
   }
@@ -165,6 +218,67 @@ test('browser distance estimator rejects wrong-state geocoder names before using
   }
 });
 
+test('browser distance estimator rejects same-name geocoder result when district context is missing', async () => {
+  const estimator = globalThis.LocationDistanceEstimator;
+  const originalFetch = global.fetch;
+  const calls = [];
+
+  global.fetch = async (url) => {
+    const requestUrl = String(url);
+    calls.push(requestUrl);
+    if (requestUrl.includes('nominatim.openstreetmap.org')) {
+      return {
+        ok: true,
+        json: async () => [{
+          lat: '27.1976534',
+          lon: '78.0255583',
+          display_name: 'Khatu Shyam Ji Temple, Agra, Uttar Pradesh, India',
+          address: {
+            state: 'Uttar Pradesh'
+          }
+        }]
+      };
+    }
+    if (requestUrl.includes('photon.komoot.io')) {
+      return {
+        ok: true,
+        json: async () => ({
+          features: [{
+            geometry: { coordinates: [75.3919, 27.3689] },
+            properties: {
+              name: 'Shree Khatu Shyam Ji Temple',
+              city: 'Khatoo',
+              county: 'Sikar',
+              state: 'Rajasthan',
+              country: 'India'
+            }
+          }]
+        })
+      };
+    }
+    if (requestUrl.includes('router.project-osrm.org')) {
+      assert.match(requestUrl, /75\.391900,27\.368900/);
+      return {
+        ok: true,
+        json: async () => ({ routes: [{ distance: 432900 }] })
+      };
+    }
+    return { ok: false, json: async () => ({}) };
+  };
+
+  try {
+    const estimate = await estimator.estimateDistanceKm('Udaipur', 'Khatu Shyamji Temple, Sikar');
+
+    assert.equal(estimate.source, 'live_route_hybrid_geo');
+    assert.equal(Math.round(estimate.km), 433);
+    assert.equal(estimate.dropState, 'Rajasthan');
+    assert.ok(calls.some((url) => url.includes('nominatim.openstreetmap.org')));
+    assert.ok(calls.some((url) => url.includes('photon.komoot.io')));
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 test('browser distance estimator uses specific airport coordinates instead of city-only fallback', async () => {
   const estimator = globalThis.LocationDistanceEstimator;
   const originalFetch = global.fetch;
@@ -212,6 +326,22 @@ test('browser distance estimator uses route table only as a fallback when live r
 
     assert.equal(estimate.source, 'route_table');
     assert.equal(Math.round(estimate.km), 126);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test('browser distance estimator does not invent a distance for unresolved typed locations', async () => {
+  const estimator = globalThis.LocationDistanceEstimator;
+  const originalFetch = global.fetch;
+
+  global.fetch = async () => ({ ok: false, json: async () => ({}) });
+
+  try {
+    const estimate = await estimator.estimateDistanceKm('Udaipur', 'Definitely Unknown Place Without Match');
+
+    assert.equal(estimate.source, 'unresolved');
+    assert.equal(estimate.km, 0);
   } finally {
     global.fetch = originalFetch;
   }

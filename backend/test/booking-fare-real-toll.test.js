@@ -225,6 +225,27 @@ test('fare calculator adds Gujarat official other-state weekly taxi tax', () => 
   assert.match(estimate.stateTaxBreakdown[0].sourceUrl, /cot\.gujarat\.gov\.in\/tax-structure/);
 });
 
+test('fare calculator trusts direct geocoded state input before text keyword fallback', () => {
+  const estimate = estimateBookingFare({
+    pickup: 'Exact pickup pin',
+    drop: 'Statue of Unity exact pin',
+    pickupState: 'Rajasthan',
+    dropState: 'Gujarat',
+    tripPlan: 'outstation',
+    tripServiceType: 'outstation_one_way',
+    vehicleType: 'sedan',
+    passengers: 1,
+    luggage: 'none',
+    distanceKm: 356,
+    distanceSource: 'live_route_hybrid_geo',
+    paymentMethod: 'cash'
+  });
+
+  assert.deepEqual(estimate.stateTaxRouteStates, ['Rajasthan', 'Gujarat']);
+  assert.equal(estimate.stateTax, 48);
+  assert.equal(estimate.stateTaxRequiresAdminReview, false);
+});
+
 test('fare calculator uses official Rajmarg Yatra route toll quote when supplied', () => {
   const estimate = estimateBookingFare({
     pickup: 'Udaipur',

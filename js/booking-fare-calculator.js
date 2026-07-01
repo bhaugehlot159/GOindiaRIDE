@@ -1515,8 +1515,8 @@
     const isReturnTrip = Boolean(rawInput.isReturnTrip || rawInput.returnTrip?.enabled || rawInput.returnDate || rawInput.returnTime);
     const promoCode = sanitizeText(rawInput.promoCode || rawInput.referralCode || '', 40).toUpperCase();
     const budgetAmount = Math.max(0, roundMoney(rawInput.budgetAmount ?? rawInput.customerBidAmount ?? rawInput.bidAmount ?? 0));
-    const pickupState = resolveStateName(pickup);
-    const dropState = resolveStateName(dropoff);
+    const pickupState = sanitizeText(rawInput.pickupState || rawInput.originState || '', 80) || resolveStateName(pickup);
+    const dropState = sanitizeText(rawInput.dropState || rawInput.destinationState || '', 80) || resolveStateName(dropoff);
     const interState = Boolean(pickupState && dropState && pickupState !== dropState);
 
     const estimatedDurationMin = estimateDurationMinutes(distanceKm, tripPlan, tripServiceType, routeData);

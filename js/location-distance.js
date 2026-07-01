@@ -5,10 +5,59 @@
    ====================================== */
 
 (function initLocationDistanceEstimator(global) {
-    const GEOCODE_CACHE_KEY = 'goindiaride_geocode_cache_v1';
+    const GEOCODE_CACHE_KEY = 'goindiaride_geocode_cache_v2';
     const LIVE_ROUTE_ENDPOINT = 'https://router.project-osrm.org/route/v1/driving';
-    const LIVE_ROUTE_TIMEOUT_MS = 2800;
+    const LIVE_ROUTE_TIMEOUT_MS = 6000;
     const geocodeCache = loadCache();
+    const INDIA_STATE_NAMES = [
+        'Andaman & Nicobar Island',
+        'Andhra Pradesh',
+        'Arunachal Pradesh',
+        'Assam',
+        'Bihar',
+        'Chandigarh',
+        'Chhattisgarh',
+        'Delhi',
+        'Goa',
+        'Gujarat',
+        'Haryana',
+        'Himachal Pradesh',
+        'Jammu & Kashmir',
+        'Jharkhand',
+        'Karnataka',
+        'Kerala',
+        'Ladakh',
+        'Lakshadweep',
+        'Madhya Pradesh',
+        'Maharashtra',
+        'Manipur',
+        'Meghalaya',
+        'Mizoram',
+        'Nagaland',
+        'Odisha',
+        'Puducherry',
+        'Punjab',
+        'Rajasthan',
+        'Sikkim',
+        'Tamil Nadu',
+        'Telangana',
+        'Tripura',
+        'UT of DNH and DD',
+        'Uttarakhand',
+        'Uttar Pradesh',
+        'West Bengal'
+    ];
+    const STATE_NORMALIZATION_ALIASES = {
+        andamanandnicobarislands: 'Andaman & Nicobar Island',
+        andamanandnicobarisland: 'Andaman & Nicobar Island',
+        dadraandnagarhavelianddamananddiu: 'UT of DNH and DD',
+        dadraandnagarhaveli: 'UT of DNH and DD',
+        damananddiu: 'UT of DNH and DD',
+        jammuandkashmir: 'Jammu & Kashmir',
+        nctdelhi: 'Delhi',
+        nationalcapitalterritoryofdelhi: 'Delhi',
+        orissa: 'Odisha'
+    };
 
     function loadCache() {
         try {
@@ -45,6 +94,39 @@
         return String(value || '')
             .toLowerCase()
             .replace(/[^a-z0-9]/g, '');
+    }
+
+    function normalizeIndiaStateName(value) {
+        const clean = normalizeQuery(value);
+        if (!clean) return '';
+        const key = normalizeLookupKey(clean);
+        if (!key) return '';
+        if (STATE_NORMALIZATION_ALIASES[key]) return STATE_NORMALIZATION_ALIASES[key];
+        return INDIA_STATE_NAMES.find((stateName) => normalizeLookupKey(stateName) === key) || clean;
+    }
+
+    function pickGeocodeState(address = {}) {
+        if (!address || typeof address !== 'object') return '';
+        return normalizeIndiaStateName(
+            address.state ||
+            address.region ||
+            address.state_district ||
+            address.county ||
+            address.territory ||
+            ''
+        );
+    }
+
+    function uniqueStates(...states) {
+        const seen = new Set();
+        return states
+            .map(normalizeIndiaStateName)
+            .filter((stateName) => {
+                const key = normalizeLookupKey(stateName);
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
     }
 
     function parseCoordinatePoint(value) {
@@ -296,11 +378,37 @@
             .slice(0, 4);
     }
 
+    function getRequiredStateHints(query) {
+        const normalized = normalizeLookupKey(query);
+        if (!normalized) return [];
+        return INDIA_STATE_NAMES
+            .map((stateName) => normalizeLookupKey(stateName))
+            .filter((key) => key.length >= 4 && normalized.includes(key));
+    }
+
     function isCompatibleGeocodeCandidate(query, candidateText) {
         const requiredKeys = getRequiredGeocodeKeys(query);
-        if (!requiredKeys.length) return true;
         const candidate = normalizeLookupKey(candidateText);
-        return Boolean(candidate) && requiredKeys.every((key) => candidate.includes(key));
+        if (!candidate) return false;
+
+        const stateHints = getRequiredStateHints(query);
+        if (stateHints.length && !stateHints.some((key) => candidate.includes(key))) {
+            return false;
+        }
+        if (!requiredKeys.length) return true;
+
+        const longestPlaceKey = requiredKeys[0];
+        const contextKeys = requiredKeys.filter((key) => (
+            key !== longestPlaceKey &&
+            !longestPlaceKey.includes(key) &&
+            !key.includes(longestPlaceKey)
+        ));
+        if (longestPlaceKey && candidate.includes(longestPlaceKey)) {
+            return !contextKeys.length || contextKeys.some((key) => candidate.includes(key));
+        }
+
+        const matchingKeys = requiredKeys.filter((key) => candidate.includes(key));
+        return matchingKeys.length >= Math.min(2, requiredKeys.length);
     }
 
     function estimateRoadMultiplier(straightLineKm, fromText, toText) {
@@ -368,7 +476,19 @@
             return geocodeCache[cacheKey];
         }
 
-        const point = await geocodeLocationWithNominatim(query) || await geocodeLocationWithPhoton(query);
+        let point = null;
+        try {
+            point = await geocodeLocationWithNominatim(query);
+        } catch (_error) {
+            point = null;
+        }
+        if (!point) {
+            try {
+                point = await geocodeLocationWithPhoton(query);
+            } catch (_error) {
+                point = null;
+            }
+        }
         if (!point) return null;
 
         geocodeCache[cacheKey] = point;
@@ -377,7 +497,7 @@
     }
 
     async function geocodeLocationWithNominatim(query) {
-        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=in&q=${encodeURIComponent(query)}`;
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=in&q=${encodeURIComponent(query)}`;
         const data = await fetchJsonWithTimeout(url, {
             method: 'GET',
             headers: {
@@ -400,7 +520,13 @@
             return null;
         }
 
-        return { lat, lon };
+        return {
+            lat,
+            lon,
+            state: pickGeocodeState(item.address),
+            displayName: normalizeQuery(item.display_name),
+            source: 'nominatim'
+        };
     }
 
     async function geocodeLocationWithPhoton(query) {
@@ -411,8 +537,8 @@
                 Accept: 'application/json'
             }
         });
-        const item = Array.isArray(data && data.features)
-            ? data.features.find((feature) => {
+        const features = Array.isArray(data && data.features) ? data.features : [];
+        const item = features.find((feature) => {
                 const properties = feature.properties || {};
                 const candidateText = [
                     properties.name,
@@ -423,16 +549,23 @@
                 ].filter(Boolean).join(', ');
                 return isCompatibleGeocodeCandidate(query, candidateText);
             })
-            : null;
+            || (!getRequiredStateHints(query).length && !getRequiredGeocodeKeys(query).length ? features[0] : null);
         const coordinates = item && item.geometry
             ? item.geometry.coordinates
             : null;
         if (!Array.isArray(coordinates) || coordinates.length < 2) return null;
 
+        const properties = item.properties || {};
         const lon = Number(coordinates[0]);
         const lat = Number(coordinates[1]);
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-        return { lat, lon };
+        return {
+            lat,
+            lon,
+            state: normalizeIndiaStateName(properties.state),
+            displayName: [properties.name, properties.city, properties.county, properties.state, properties.country].filter(Boolean).join(', '),
+            source: 'photon'
+        };
     }
 
     function getCoordinateLon(point) {
@@ -447,11 +580,18 @@
         if (![fromLat, fromLon, toLat, toLon].every(Number.isFinite)) return null;
 
         const coordinates = `${fromLon.toFixed(6)},${fromLat.toFixed(6)};${toLon.toFixed(6)},${toLat.toFixed(6)}`;
-        const url = `${LIVE_ROUTE_ENDPOINT}/${coordinates}?overview=false&alternatives=false&steps=false`;
+        const url = `${LIVE_ROUTE_ENDPOINT}/${coordinates}?overview=full&geometries=geojson&alternatives=false&steps=false`;
         const data = await fetchJsonWithTimeout(url, { headers: { Accept: 'application/json' } });
-        const meters = Number(data && data.routes && data.routes[0] && data.routes[0].distance);
+        const route = data && data.routes && data.routes[0];
+        const meters = Number(route && route.distance);
         if (!Number.isFinite(meters) || meters <= 0) return null;
-        return Math.max(1, meters / 1000);
+        return {
+            km: Math.max(1, meters / 1000),
+            durationMinutes: Math.max(0, Math.round((Number(route.duration) || 0) / 60)),
+            coordinates: route && route.geometry && Array.isArray(route.geometry.coordinates)
+                ? route.geometry.coordinates
+                : []
+        };
     }
 
     function liveRouteSourceName({ usedDirectCoordinate, usedStatic, usedLive }) {
@@ -498,7 +638,10 @@
             const straightLineKm = haversineKm(directFromPoint, directToPoint);
             return {
                 km: Math.max(straightLineKm * estimateRoadMultiplier(straightLineKm, fromText, toText), 1),
-                source: 'browser_coordinate'
+                source: 'browser_coordinate',
+                pickupState: '',
+                dropState: '',
+                routeStates: []
             };
         }
 
@@ -542,18 +685,28 @@
         }
 
         if (fromPoint && toPoint) {
-            const liveRouteKm = await estimateLiveRouteDistanceKm(fromPoint, toPoint);
-            if (liveRouteKm) {
+            const liveRoute = await estimateLiveRouteDistanceKm(fromPoint, toPoint);
+            const pickupState = normalizeIndiaStateName(fromPoint.state);
+            const dropState = normalizeIndiaStateName(toPoint.state);
+            const routeStates = uniqueStates(pickupState, dropState);
+            if (liveRoute && liveRoute.km) {
                 return {
-                    km: liveRouteKm,
-                    source: liveRouteSourceName({ usedDirectCoordinate, usedStatic, usedLive })
+                    km: liveRoute.km,
+                    durationMinutes: liveRoute.durationMinutes,
+                    source: liveRouteSourceName({ usedDirectCoordinate, usedStatic, usedLive }),
+                    pickupState,
+                    dropState,
+                    routeStates
                 };
             }
 
             if (routeKm) {
                 return {
                     km: routeKm,
-                    source: 'route_table'
+                    source: 'route_table',
+                    pickupState,
+                    dropState,
+                    routeStates
                 };
             }
 
@@ -567,29 +720,29 @@
                     ? 'hybrid_geo'
                     : usedStatic
                         ? 'district_geo'
-                        : 'live_geo'
+                        : 'live_geo',
+                pickupState,
+                dropState,
+                routeStates
             };
         }
 
         if (routeKm) {
             return {
                 km: routeKm,
-                source: 'route_table'
-            };
-        }
-
-        if (staticFrom || staticTo) {
-            const partialPoint = staticFrom || staticTo;
-            const partialKm = Math.max(12, Math.round((Number(partialPoint.lat) % 10 + Number(partialPoint.lon) % 10) * 6));
-            return {
-                km: partialKm,
-                source: 'district_geo_partial'
+                source: 'route_table',
+                pickupState: '',
+                dropState: '',
+                routeStates: []
             };
         }
 
         return {
-            km: 5,
-            source: 'fallback'
+            km: 0,
+            source: 'unresolved',
+            pickupState: '',
+            dropState: '',
+            routeStates: []
         };
     }
 

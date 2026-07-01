@@ -92,18 +92,30 @@ async function getOfficialRouteQuote({
     };
   }
 
-  const response = await fetchWithTimeout(ROUTE_PLANNER_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      startAddress,
-      endAddress,
-      vehicletype: cleanRouteText(vehicleType, 20) || DEFAULT_VEHICLE_TYPE,
-      source: 'web'
-    })
-  });
+  let response;
+  try {
+    response = await fetchWithTimeout(ROUTE_PLANNER_URL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Referer: 'https://rajmargyatra.nhai.gov.in/',
+        'User-Agent': 'GOIndiaRIDE-route-quote/1.0'
+      },
+      body: JSON.stringify({
+        startAddress,
+        endAddress,
+        vehicletype: cleanRouteText(vehicleType, 20) || DEFAULT_VEHICLE_TYPE,
+        source: 'web'
+      })
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      error: 'official_route_unavailable',
+      reason: cleanRouteText(error && error.message, 120) || 'official_route_fetch_failed'
+    };
+  }
 
   if (!response.ok) {
     return {
@@ -113,7 +125,16 @@ async function getOfficialRouteQuote({
     };
   }
 
-  const payload = await response.json();
+  let payload;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    return {
+      ok: false,
+      error: 'official_route_invalid_response',
+      reason: cleanRouteText(error && error.message, 120) || 'official_route_json_failed'
+    };
+  }
   const selectedRoute = pickOfficialRoute(payload && payload.payload && payload.payload.routes);
   if (!selectedRoute) {
     return {
