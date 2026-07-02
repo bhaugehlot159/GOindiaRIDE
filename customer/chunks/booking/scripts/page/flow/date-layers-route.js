@@ -490,6 +490,8 @@
             const returnTimeNode = document.getElementById('cabQuickReturnTimeInput');
             const packageNode = document.getElementById('cabQuickPackageSelect');
             const terminalNode = document.getElementById('cabQuickTerminalInput');
+            const phoneNode = document.getElementById('cabQuickPhoneInput');
+            const vehicleNode = document.getElementById('cabQuickVehicleSelect');
 
             const baseLayers = [
                 {
@@ -525,6 +527,22 @@
                     complete: () => Boolean(timeNode?.value),
                     valueText: () => formatMiniLayerTime(timeNode?.value || ''),
                     pendingText: 'Select pickup time'
+                },
+                {
+                    key: 'phone',
+                    label: 'Mobile',
+                    node: phoneNode ? phoneNode.closest('.cab-mini-field') : null,
+                    complete: () => Boolean(normalizeCompactBookingPhone(phoneNode?.value || '')),
+                    valueText: () => normalizeCompactBookingPhone(phoneNode?.value || '') || sanitizeInput(phoneNode?.value || '').trim(),
+                    pendingText: 'Enter mobile number'
+                },
+                {
+                    key: 'vehicle',
+                    label: 'Vehicle',
+                    node: vehicleNode ? vehicleNode.closest('.cab-mini-field') : null,
+                    complete: () => Boolean(vehicleNode?.value),
+                    valueText: () => vehicleNode?.options?.[vehicleNode.selectedIndex]?.text || '',
+                    pendingText: 'Choose vehicle'
                 }
             ];
 
@@ -680,6 +698,48 @@
             const advancedCurrentComplete = advancedCurrentSection
                 ? isBookingStepComplete(advancedCurrentSection.dataset.stepKey || '', activeFlow)
                 : false;
+
+            if (isCompactDirectBookingMode() && !advancedReady) {
+                layers.forEach((layer) => {
+                    const node = layer.node;
+                    const isComplete = layer.complete();
+                    node.classList.add('cab-layer');
+                    node.classList.toggle('is-layer-complete', isComplete);
+                    node.classList.remove('is-layer-current', 'is-layer-hidden', 'is-layer-collapsed');
+                    const valueNode = ensureCabLayerValueNode(node);
+                    if (valueNode) {
+                        valueNode.textContent = layer.valueText() || layer.pendingText;
+                    }
+                });
+
+                const missingField = getCompactQuickBookingMissingField(activeFlow);
+                if (searchButton) {
+                    const isReady = !missingField;
+                    searchButton.disabled = !isReady;
+                    searchButton.classList.toggle('is-layer-locked', !isReady);
+                    searchButton.setAttribute('aria-disabled', isReady ? 'false' : 'true');
+                    searchButton.innerHTML = '<i class="fas fa-check-circle"></i> Submit Booking';
+                }
+                if (helperNode) {
+                    helperNode.textContent = missingField
+                        ? `Fill ${missingField.label} to submit`
+                        : 'Ready to submit for admin approval';
+                }
+                const backButton = document.getElementById('cabStepBackBtn');
+                if (backButton) {
+                    const actionRow = backButton.closest('.cab-console-actions');
+                    backButton.style.display = 'none';
+                    backButton.disabled = true;
+                    if (actionRow) actionRow.classList.remove('has-step-back');
+                }
+                const routeAddons = document.getElementById('cabRouteAddons');
+                if (routeAddons && activeFlow !== 'outstation') {
+                    routeAddons.classList.remove('is-visible');
+                    routeAddons.hidden = true;
+                    routeAddons.setAttribute('aria-hidden', 'true');
+                }
+                return;
+            }
 
             if (searchButton) {
                 if (advancedReady && advancedSections.length) {
@@ -895,6 +955,10 @@
 
         function handleCabPrimarySearch() {
             const activeFlow = getActiveCabFlow();
+            if (isCompactDirectBookingMode() && !document.body?.classList.contains('booking-advanced-ready')) {
+                submitCompactQuickBooking();
+                return;
+            }
             resolveCabQuickLocationValues({
                 showSuggestions: false,
                 useVisibleSuggestion: true

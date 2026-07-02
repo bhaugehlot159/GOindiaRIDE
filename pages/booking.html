@@ -30,10 +30,10 @@
     <link rel="stylesheet" href="../customer/chunks/booking/styles/compact/responsive-polish.css?v=20260528-booking-split1">
     <link rel="stylesheet" href="../customer/chunks/booking/styles/compact/reference-shell.css?v=20260528-booking-split1">
     <script src="../js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
-    <link id="booking-reference-form-final" rel="stylesheet" href="../customer/chunks/booking/styles/reference/base-form.css?v=20260528-booking-split1">
+    <link id="booking-reference-form-final" rel="stylesheet" href="../customer/chunks/booking/styles/reference/base-form.css?v=20260702-compact-booking1">
     <link rel="stylesheet" href="../customer/chunks/booking/styles/reference/layer-flow.css?v=20260528-booking-split1">
     <link rel="stylesheet" href="../customer/chunks/booking/styles/reference/visual-tuning.css?v=20260528-booking-split1">
-    <link rel="stylesheet" href="../customer/chunks/booking/styles/reference/final-compact.css?v=20260528-booking-split1">
+    <link rel="stylesheet" href="../customer/chunks/booking/styles/reference/final-compact.css?v=20260702-compact-booking1">
 </head>
 <body class="booking-page fit-screen-off professional-booking" data-fit-screen="off">
     <div class="container">
@@ -102,11 +102,11 @@
             <div class="cab-console-grid">
                 <div class="cab-console-main">
                     <div class="cab-mode-tabs" id="cabModeTabs" role="tablist" aria-label="Cab service type">
-                        <button type="button" class="cab-mode-tab is-active" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="true">
+                        <button type="button" class="cab-mode-tab" data-flow-target="airport" data-trip-plan-target="airport" role="tab" aria-selected="false">
                             <i class="fas fa-plane-departure"></i>
                             <span>1. Airport<br>Cabs</span>
                         </button>
-                        <button type="button" class="cab-mode-tab" data-flow-target="local" data-trip-plan-target="city" role="tab" aria-selected="false">
+                        <button type="button" class="cab-mode-tab is-active" data-flow-target="local" data-trip-plan-target="city" role="tab" aria-selected="true">
                             <i class="fas fa-location-dot"></i>
                             <span>2. Local<br>Cabs</span>
                         </button>
@@ -218,6 +218,36 @@
                             <span>Pickup Time</span>
                             <input type="time" id="cabQuickTimeInput">
                         </label>
+                        <label class="cab-mini-field cab-phone-mini-field">
+                            <i class="fas fa-mobile-screen-button"></i>
+                            <span>Mobile Number</span>
+                            <input type="tel" id="cabQuickPhoneInput" placeholder="+91 mobile number" autocomplete="tel" inputmode="tel">
+                        </label>
+                        <label class="cab-mini-field cab-vehicle-mini-field">
+                            <i class="fas fa-car-side"></i>
+                            <span>Vehicle</span>
+                            <select id="cabQuickVehicleSelect">
+                                <option value="hatchback_car">Hatchback Car</option>
+                                <option value="ecco_car">Ecco Car</option>
+                                <option value="sedan_car">Sedan Car</option>
+                                <option value="suv_ertiga_car">SUV Ertiga Car</option>
+                                <option value="toyota_rumion">Toyota Rumion</option>
+                                <option value="kia_carens">Kia Carens</option>
+                                <option value="suv_innova_car">SUV Innova Car</option>
+                                <option value="suv_crysta_car">SUV Crysta Car</option>
+                                <option value="toyota_hycross">Toyota Hycross</option>
+                                <option value="tempo_traveller">Tempo Traveller</option>
+                                <option value="force_urbania">Force Urbania</option>
+                                <option value="force_trax_cruiser">Force Trax Cruiser</option>
+                                <option value="small_coach">Small Coach</option>
+                                <option value="luxury_coach">Luxury Coach</option>
+                                <option value="premium_car">Premium Car</option>
+                                <option value="parcel_only">Parcel</option>
+                                <option value="driver_only">Driver</option>
+                                <option value="ambulance">Ambulance</option>
+                                <option value="loading_auto_truck">Loading Auto & Truck</option>
+                            </select>
+                        </label>
                         <label class="cab-mini-field cab-return-mini-field">
                             <i class="fas fa-rotate-left"></i>
                             <span>Return Date</span>
@@ -285,8 +315,8 @@
                             Previous
                         </button>
                         <button type="button" class="cab-primary-search" id="cabPrimarySearch">
-                            <i class="fas fa-magnifying-glass"></i>
-                            NEXT
+                            <i class="fas fa-check-circle"></i>
+                            Submit Booking
                         </button>
                     </div>
 
@@ -332,8 +362,8 @@
         <!-- Main Grid -->
         <details class="advanced-booking-drawer" id="advancedBookingDrawer">
             <summary>
-                <span><i class="fas fa-sliders"></i> Complete booking details</span>
-                <small>Fare, vehicle, payment, contact, safety, stops and admin approval options</small>
+                <span><i class="fas fa-sliders"></i> More / Extra options</span>
+                <small>Trip type, fare, payment, safety, stops and admin approval options</small>
             </summary>
             <div class="booking-grid">
             <!-- Left: Booking Form -->
@@ -410,11 +440,12 @@
                         </div>
 
                         <div class="trip-flow-pills" id="tripFlowPills">
-                            <button type="button" class="trip-flow-pill is-active" data-flow="airport"><i class="fas fa-plane-departure"></i> Airport Cabs</button>
+                            <button type="button" class="trip-flow-pill is-active" data-flow="local"><i class="fas fa-location-dot"></i> Local Cabs</button>
+                            <button type="button" class="trip-flow-pill" data-flow="airport"><i class="fas fa-plane-departure"></i> Airport Cabs</button>
                             <button type="button" class="trip-flow-pill" data-flow="outstation"><i class="fas fa-car-side"></i> Outstation Cabs</button>
                             <button type="button" class="trip-flow-pill" data-flow="day_trips"><i class="fas fa-calendar-day"></i> Day Plan</button>
                         </div>
-                        <input type="hidden" id="tripFlow" value="airport">
+                        <input type="hidden" id="tripFlow" value="local">
 
                         <div class="journey-mode-row" id="journeyModeRow">
                             <label class="journey-mode-chip"><input type="radio" name="journeyMode" value="one_way" checked> One Way</label>
@@ -426,8 +457,8 @@
                             <div class="form-group booking-internal-field" hidden aria-hidden="true">
                                 <label for="tripPlan">Trip Category *</label>
                                 <select id="tripPlan" required onchange="updateFare()">
-                                    <option value="city">City Ride</option>
-                                    <option value="airport" selected>Airport Transfer</option>
+                                    <option value="city" selected>City Ride</option>
+                                    <option value="airport">Airport Transfer</option>
                                     <option value="outstation">Outstation Ride</option>
                                     <option value="rental">Day Plan</option>
                                 </select>
@@ -1288,9 +1319,9 @@
     <script src="../customer/chunks/booking/scripts/page/map/markers-fields.js?v=20260607-precise-location1"></script>
     <script src="../customer/chunks/booking/scripts/page/map/osm-geocode-sync.js?v=20260528-booking-split1"></script>
     <script src="../customer/chunks/booking/scripts/page/map/gps-current-location.js?v=20260611-exact-location1"></script>
-    <script src="../customer/chunks/booking/scripts/page/flow/quick-controls.js?v=20260527-chunk2"></script>
-    <script src="../customer/chunks/booking/scripts/page/flow/date-layers-route.js?v=20260606-location-layer1"></script>
-    <script src="../customer/chunks/booking/scripts/page/flow/init-promos-accordion.js?v=20260527-chunk2"></script>
+    <script src="../customer/chunks/booking/scripts/page/flow/quick-controls.js?v=20260702-compact-booking1"></script>
+    <script src="../customer/chunks/booking/scripts/page/flow/date-layers-route.js?v=20260702-compact-booking1"></script>
+    <script src="../customer/chunks/booking/scripts/page/flow/init-promos-accordion.js?v=20260702-compact-booking1"></script>
     <script src="../customer/chunks/booking/scripts/page/fare/estimate.js?v=20260527-chunk2"></script>
     <script src="../customer/chunks/booking/scripts/page/location/preview-swap.js?v=20260527-chunk2"></script>
     <script src="../customer/chunks/booking/scripts/page/submit/api-base-customer.js?v=20260528-booking-split1"></script>

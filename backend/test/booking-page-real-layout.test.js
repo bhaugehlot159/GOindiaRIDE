@@ -71,6 +71,35 @@ test('booking production entry hides readiness meter and exposes verified suppor
   assert.match(bookingSource, /body\.booking-page\.professional-booking:not\(\.booking-advanced-ready\) \.cab-page-content[\s\S]*display: none !important/);
 });
 
+test('booking page opens with compact direct-submit fields and keeps extras behind More', () => {
+  const bookingHtml = readRepoFile('pages/booking.html');
+  const bookingSource = readBookingPageSource();
+
+  assert.match(bookingHtml, /id="cabQuickPickupInput"/);
+  assert.match(bookingHtml, /id="cabQuickDropoffInput"/);
+  assert.match(bookingHtml, /id="cabQuickDateInput"/);
+  assert.match(bookingHtml, /id="cabQuickTimeInput"/);
+  assert.match(bookingHtml, /id="cabQuickPhoneInput"/);
+  assert.match(bookingHtml, /id="cabQuickVehicleSelect"/);
+  assert.match(bookingHtml, /Submit Booking/);
+  assert.match(bookingHtml, /More \/ Extra options/);
+  assert.match(bookingHtml, /id="tripFlow" value="local"/);
+  assert.match(bookingHtml, /<option value="city" selected>City Ride<\/option>/);
+  assert.match(bookingHtml, /base-form\.css\?v=20260702-compact-booking1/);
+  assert.match(bookingHtml, /final-compact\.css\?v=20260702-compact-booking1/);
+  assert.match(bookingHtml, /quick-controls\.js\?v=20260702-compact-booking1/);
+  assert.match(bookingHtml, /date-layers-route\.js\?v=20260702-compact-booking1/);
+  assert.match(bookingHtml, /init-promos-accordion\.js\?v=20260702-compact-booking1/);
+
+  assert.match(bookingSource, /function submitCompactQuickBooking\(/);
+  assert.match(bookingSource, /form\.requestSubmit\(\)/);
+  assert.match(bookingSource, /function bindCompactDirectBookingInputs\(/);
+  assert.match(bookingSource, /bindCompactDirectBookingInputs\(\)/);
+  assert.match(bookingSource, /function isCompactDirectBookingMode\(/);
+  assert.match(bookingSource, /body\.booking-page\.professional-booking \.cab-terminal-mini-field[\s\S]*display: none !important/);
+  assert.match(bookingSource, /advanced-booking-drawer\.is-inline-flow > summary[\s\S]*display: flex !important/);
+});
+
 test('booking current-location flow keeps exact GPS coordinates for maps and admin review', () => {
   const html = readBookingPageSource();
 

@@ -75,14 +75,12 @@
             display: block !important;
         }
 
-        body.booking-page.professional-booking .cab-mode-tabs {
-            display: grid !important;
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-            width: 100% !important;
-            border: 1px solid #d4dde8 !important;
-            border-radius: 18px !important;
-            overflow: hidden !important;
-            background: #ffffff !important;
+        body.booking-page.professional-booking .cab-mode-tabs,
+        body.booking-page.professional-booking .cab-airport-service-row,
+        body.booking-page.professional-booking .cab-airport-transfer-row,
+        body.booking-page.professional-booking .cab-journey-row,
+        body.booking-page.professional-booking .cab-mode-notice {
+            display: none !important;
         }
 
         body.booking-page.professional-booking .cab-mode-tab {
@@ -128,7 +126,6 @@
         }
 
         body.booking-page.professional-booking .cab-mode-notice {
-            display: flex !important;
             margin: 10px 0 0 !important;
             padding: 10px 12px !important;
             border-radius: 10px !important;
@@ -137,17 +134,6 @@
             font-size: 0.86rem !important;
             font-weight: 800 !important;
             line-height: 1.32 !important;
-        }
-
-        body.booking-page.professional-booking .cab-journey-row {
-            display: grid !important;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 8px !important;
-            margin-top: 12px !important;
-            padding: 8px !important;
-            border-radius: 12px !important;
-            background: #f8fafc !important;
-            border: 1px solid #dce5ef !important;
         }
 
         body.booking-page.professional-booking .cab-journey-chip[data-journey-target="multi_city"] {
@@ -238,17 +224,10 @@
             opacity: 1 !important;
         }
 
-        body.booking-page.professional-booking .cab-booking-console.is-hourly .cab-drop-mini-field,
-        body.booking-page.professional-booking .cab-booking-console:not(.is-hourly) .cab-package-field {
+        body.booking-page.professional-booking .cab-terminal-mini-field,
+        body.booking-page.professional-booking .cab-return-mini-field,
+        body.booking-page.professional-booking .cab-package-field {
             display: none !important;
-        }
-
-        body.booking-page.professional-booking .cab-booking-console:not(.is-airport) .cab-terminal-mini-field {
-            display: none !important;
-        }
-
-        body.booking-page.professional-booking #cabBookingConsole.is-airport-package .cab-package-field {
-            display: grid !important;
         }
 
         body.booking-page.professional-booking .cab-console-actions {
@@ -316,7 +295,7 @@
         }
 
         body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow > summary {
-            display: none !important;
+            display: flex !important;
         }
 
         body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow .booking-grid {
@@ -339,24 +318,9 @@
             display: none !important;
         }
 
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-journey-row,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-airport-service-row,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-mini-form,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-local-scope-note,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-airport-scope-note,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-route-addons,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-live-sidecar,
-        body.booking-page.professional-booking.booking-advanced-ready #cabBookingConsole .cab-trust-strip {
-            display: none !important;
-        }
-
-        body.booking-page.professional-booking.booking-advanced-ready .cab-page-content {
-            display: none !important;
-        }
-
         body.booking-page.professional-booking #tripFlowPills,
         body.booking-page.professional-booking #journeyModeRow {
-            display: none !important;
+            display: grid !important;
         }
 
         body.booking-page.professional-booking .advanced-booking-drawer > summary {

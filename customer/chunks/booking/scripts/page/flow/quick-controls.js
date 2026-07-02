@@ -409,6 +409,182 @@
             node.value = value || '';
         }
 
+        function isCompactDirectBookingMode() {
+            return Boolean(document.body?.classList.contains('professional-booking'));
+        }
+
+        function normalizeCompactBookingPhone(value) {
+            if (window.GoIndiaPhoneVerification && typeof window.GoIndiaPhoneVerification.normalizePhone === 'function') {
+                return window.GoIndiaPhoneVerification.normalizePhone(value || '');
+            }
+            const cleanValue = sanitizeInput(value || '', 40).replace(/[^\d+]/g, '');
+            if (!cleanValue) return '';
+            if (cleanValue.startsWith('+')) return cleanValue.length >= 8 ? cleanValue : '';
+            if (cleanValue.length === 10) return `+91${cleanValue}`;
+            if (cleanValue.length > 10 && cleanValue.length <= 15) return `+${cleanValue}`;
+            return '';
+        }
+
+        function syncCompactQuickBookingFields(source = '') {
+            const quickPhone = document.getElementById('cabQuickPhoneInput');
+            const fullPhone = document.getElementById('bookingCustomerPhone');
+            const quickVehicle = document.getElementById('cabQuickVehicleSelect');
+            const fullVehicle = document.getElementById('vehicleModel');
+
+            if (quickPhone && fullPhone) {
+                if (source === 'full-phone') {
+                    setQuickControlValue('cabQuickPhoneInput', fullPhone.value || '');
+                } else if (quickPhone.value !== fullPhone.value) {
+                    fullPhone.value = quickPhone.value || '';
+                    if (typeof handleBookingPhoneInputChange === 'function') {
+                        handleBookingPhoneInputChange();
+                    }
+                }
+            }
+
+            if (quickVehicle && fullVehicle) {
+                if (source === 'full-vehicle') {
+                    setQuickControlValue('cabQuickVehicleSelect', fullVehicle.value || '');
+                } else if (quickVehicle.value && quickVehicle.value !== fullVehicle.value) {
+                    fullVehicle.value = quickVehicle.value;
+                    fullVehicle.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        }
+
+        function getCompactQuickBookingMissingField(flow = getActiveCabFlow()) {
+            const required = [
+                ['cabQuickPickupInput', 'pickup location'],
+                ['cabQuickDropoffInput', 'drop location'],
+                ['cabQuickDateInput', 'pickup date'],
+                ['cabQuickTimeInput', 'pickup time'],
+                ['cabQuickPhoneInput', 'mobile number'],
+                ['cabQuickVehicleSelect', 'vehicle type']
+            ];
+
+            for (const [id, label] of required) {
+                const node = document.getElementById(id);
+                const value = String(node?.value || '').trim();
+                if (!value) return { id, label };
+                if (id === 'cabQuickPickupInput' && !isCabLocationLayerComplete(id, node)) return { id, label };
+                if (id === 'cabQuickDropoffInput' && !isCabLocationLayerComplete(id, node)) return { id, label };
+                if (id === 'cabQuickPhoneInput' && !normalizeCompactBookingPhone(value)) return { id, label: 'valid mobile number' };
+            }
+
+            if (
+                (flow === 'outstation' && getCabJourneyMode() === 'round_trip')
+                || (flow === 'airport' && Boolean(getAirportServiceConfig().requiresReturn))
+            ) {
+                const returnDate = document.getElementById('cabQuickReturnDateInput');
+                const returnTime = document.getElementById('cabQuickReturnTimeInput');
+                if (!String(returnDate?.value || '').trim()) return { id: 'cabQuickReturnDateInput', label: 'return date' };
+                if (!String(returnTime?.value || '').trim()) return { id: 'cabQuickReturnTimeInput', label: 'return time' };
+            }
+
+            return null;
+        }
+
+        function focusCompactQuickBookingField(fieldId) {
+            const node = document.getElementById(fieldId);
+            if (!node) return;
+            node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (typeof node.focus === 'function') {
+                window.setTimeout(() => node.focus({ preventScroll: true }), 40);
+            }
+        }
+
+        function submitCompactQuickBooking() {
+            const activeFlow = getActiveCabFlow();
+            resolveCabQuickLocationValues({
+                showSuggestions: false,
+                useVisibleSuggestion: true
+            });
+            syncCompactQuickBookingFields();
+
+            const missingField = getCompactQuickBookingMissingField(activeFlow);
+            if (missingField) {
+                showError(`Please enter ${missingField.label}.`);
+                focusCompactQuickBookingField(missingField.id);
+                return false;
+            }
+
+            const normalizedPhone = normalizeCompactBookingPhone(document.getElementById('cabQuickPhoneInput')?.value || '');
+            const fullPhone = document.getElementById('bookingCustomerPhone');
+            if (fullPhone && normalizedPhone) {
+                fullPhone.value = normalizedPhone;
+                if (typeof handleBookingPhoneInputChange === 'function') {
+                    handleBookingPhoneInputChange();
+                }
+            }
+
+            if (activeFlow === 'day_trips') {
+                const pickupValue = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
+                const dropoffNode = document.getElementById('dropoff');
+                if (pickupValue && dropoffNode && !String(dropoffNode.value || '').trim()) {
+                    dropoffNode.value = `Day plan within ${pickupValue}`;
+                }
+            }
+
+            updateDistanceEstimate();
+            updateFare();
+
+            const form = document.getElementById('bookingForm');
+            if (form && typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                handleBookingFormSubmit();
+            }
+            return true;
+        }
+
+        function bindCompactDirectBookingInputs() {
+            const quickPhone = document.getElementById('cabQuickPhoneInput');
+            const fullPhone = document.getElementById('bookingCustomerPhone');
+            const quickVehicle = document.getElementById('cabQuickVehicleSelect');
+            const fullVehicle = document.getElementById('vehicleModel');
+
+            if (quickPhone && quickPhone.dataset.compactBookingBound !== '1') {
+                quickPhone.addEventListener('input', () => {
+                    syncCompactQuickBookingFields('quick-phone');
+                    syncCabLayerFlow(getActiveCabFlow());
+                });
+                quickPhone.addEventListener('change', () => {
+                    const normalizedPhone = normalizeCompactBookingPhone(quickPhone.value || '');
+                    if (normalizedPhone) quickPhone.value = normalizedPhone;
+                    syncCompactQuickBookingFields('quick-phone');
+                    syncCabLayerFlow(getActiveCabFlow());
+                });
+                quickPhone.dataset.compactBookingBound = '1';
+            }
+
+            if (fullPhone && fullPhone.dataset.compactBookingBound !== '1') {
+                fullPhone.addEventListener('input', () => syncCompactQuickBookingFields('full-phone'));
+                fullPhone.addEventListener('change', () => syncCompactQuickBookingFields('full-phone'));
+                fullPhone.dataset.compactBookingBound = '1';
+            }
+
+            if (quickVehicle && quickVehicle.dataset.compactBookingBound !== '1') {
+                quickVehicle.addEventListener('change', () => {
+                    syncCompactQuickBookingFields('quick-vehicle');
+                    updateFare();
+                    updateBookingExperience();
+                    syncCabLayerFlow(getActiveCabFlow());
+                });
+                quickVehicle.dataset.compactBookingBound = '1';
+            }
+
+            if (fullVehicle && fullVehicle.dataset.compactBookingBound !== '1') {
+                fullVehicle.addEventListener('change', () => {
+                    syncCompactQuickBookingFields('full-vehicle');
+                    syncCabLayerFlow(getActiveCabFlow());
+                });
+                fullVehicle.dataset.compactBookingBound = '1';
+            }
+
+            syncCompactQuickBookingFields('full-phone');
+            syncCompactQuickBookingFields('full-vehicle');
+        }
+
         function resolveCabPackageValue(flow = getActiveCabFlow()) {
             const journeyMode = document.querySelector('input[name="journeyMode"]:checked')?.value || 'one_way';
             if (flow === 'day_trips') {

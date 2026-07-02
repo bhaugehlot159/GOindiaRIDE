@@ -568,3 +568,63 @@
                 padding-bottom: 12px !important;
             }
         }
+
+        /* Compact direct booking: first screen keeps only the essential booking fields. */
+        body.booking-page.professional-booking .cab-mode-tabs,
+        body.booking-page.professional-booking .cab-airport-service-row,
+        body.booking-page.professional-booking .cab-airport-transfer-row,
+        body.booking-page.professional-booking .cab-journey-row,
+        body.booking-page.professional-booking .cab-mode-notice,
+        body.booking-page.professional-booking .cab-terminal-mini-field,
+        body.booking-page.professional-booking .cab-return-mini-field,
+        body.booking-page.professional-booking .cab-package-field,
+        body.booking-page.professional-booking .cab-route-addons,
+        body.booking-page.professional-booking .cab-local-scope-note,
+        body.booking-page.professional-booking .cab-airport-scope-note {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-form {
+            grid-template-columns: 1fr !important;
+            gap: 0.62rem !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer,
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-current,
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-complete {
+            display: grid !important;
+            min-height: 58px !important;
+            border-style: solid !important;
+            cursor: default !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed input,
+        body.booking-page.professional-booking .cab-mini-field.cab-layer.is-layer-collapsed select {
+            display: block !important;
+        }
+
+        body.booking-page.professional-booking .cab-mini-field.cab-layer .cab-layer-value {
+            display: none !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow > summary {
+            display: flex !important;
+            min-height: 46px !important;
+            padding: 0.72rem 0.85rem !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow {
+            display: block !important;
+        }
+
+        body.booking-page.professional-booking .advanced-booking-drawer.is-inline-flow > summary span {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.48rem !important;
+            font-size: 0.9rem !important;
+        }
+
+        body.booking-page.professional-booking #tripFlowPills,
+        body.booking-page.professional-booking #journeyModeRow {
+            display: grid !important;
+        }

@@ -896,6 +896,9 @@
             mountAdvancedDrawerInline();
             initTripFlowControls();
             bindProfessionalInputs();
+            if (typeof bindCompactDirectBookingInputs === 'function') {
+                bindCompactDirectBookingInputs();
+            }
             initInternationalCabBookingUI();
             updateBookingExperience();
             initBookingBackGuard();
