@@ -6,7 +6,7 @@ const { getLiveLocationTrackingStatus } = require('./liveLocationTrackingService
 const { getPushNotificationStatus } = require('./pushNotificationService');
 const { getAndroidAppConversionStatus } = require('./androidAppConversionService');
 
-const APP_READINESS_VERSION = '2026-06-22-app-readiness-v4';
+const APP_READINESS_VERSION = '2026-07-02-app-readiness-v5';
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
 
 function readFile(relativePath) {
@@ -139,7 +139,7 @@ function buildRuntimeVerificationStatus() {
   return {
     verificationPage: fileExists('pages/app-runtime-check.html')
       && /data-app-runtime-run/.test(verifierPage)
-      && /app-runtime-verifier\.js\?v=20260622-appverify1/.test(verifierPage),
+      && /app-runtime-verifier\.js\?v=20260625-sirohi1/.test(verifierPage),
     permissionDisclosure: /Device permissions used by this check/.test(verifierPage)
       && /Location permission/.test(verifierPage)
       && /Notification permission/.test(verifierPage)

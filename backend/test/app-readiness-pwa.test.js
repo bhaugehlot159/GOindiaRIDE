@@ -314,7 +314,7 @@ test('runtime verifier exposes the four compulsory app conversion checks', () =>
   const pushNotifications = read('js/push-notifications.js');
 
   assert.match(verifierPage, /data-app-runtime-run/);
-  assert.match(verifierPage, /app-runtime-verifier\.js\?v=20260622-appverify1/);
+  assert.match(verifierPage, /app-runtime-verifier\.js\?v=20260625-sirohi1/);
   assert.match(verifierPage, /manifest\.json \+ service worker/);
   assert.match(verifierPage, /Device permissions used by this check/);
   assert.match(verifierPage, /Location permission/);
@@ -365,7 +365,7 @@ test('Render backend serves direct public app conversion artifacts without expos
   assert.match(runtimePage.text, /data-app-runtime-run/);
 
   const runtimeVerifier = await request(app)
-    .get('/js/app-runtime-verifier.js?v=20260622-appverify1')
+    .get('/js/app-runtime-verifier.js?v=20260625-sirohi1')
     .expect('Content-Type', /application\/javascript/)
     .expect(200);
   assert.match(runtimeVerifier.text, /checkLiveGpsTracking/);
