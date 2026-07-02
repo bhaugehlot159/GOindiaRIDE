@@ -90,13 +90,13 @@
   async function checkPwaFiles() {
     var manifestJson = await fetchJson('/manifest.json');
     var manifestWeb = await fetchJson('/manifest.webmanifest');
-    var serviceWorker = await fetchText('/sw.js?v=20260622-app-readiness3');
+    var serviceWorker = await fetchText('/sw.js?v=20260625-sirohi1');
     var serviceWorkerAlias = await fetchText('/service-worker.js');
     var registration = { ok: false, status: 'unsupported_or_insecure' };
 
     if (global.isSecureContext && 'serviceWorker' in navigator) {
       try {
-        var registered = await navigator.serviceWorker.register('/sw.js?v=20260622-app-readiness3', { scope: '/' });
+        var registered = await navigator.serviceWorker.register('/sw.js?v=20260625-sirohi1', { scope: '/' });
         registration = {
           ok: Boolean(registered && registered.scope),
           status: 'registered',
@@ -120,8 +120,8 @@
           && serviceWorkerAlias.ok
           && manifestBody.start_url
           && Array.isArray(manifestBody.icons)
-          && serviceWorker.text.indexOf('goindiaride-pwa-v67-20260622-app-readiness3') >= 0
-          && serviceWorkerAlias.text.indexOf('/sw.js?v=20260622-app-readiness3') >= 0
+          && serviceWorker.text.indexOf('goindiaride-pwa-v68-20260625-sirohi1') >= 0
+          && serviceWorkerAlias.text.indexOf('/sw.js?v=20260625-sirohi1') >= 0
       ),
       manifestJson: {
         status: manifestJson.status,
@@ -132,7 +132,7 @@
       manifestWebmanifest: { status: manifestWeb.status },
       serviceWorker: {
         status: serviceWorker.status,
-        cacheVersion: serviceWorker.text.indexOf('goindiaride-pwa-v67-20260622-app-readiness3') >= 0
+        cacheVersion: serviceWorker.text.indexOf('goindiaride-pwa-v68-20260625-sirohi1') >= 0
       },
       serviceWorkerAlias: { status: serviceWorkerAlias.status },
       registration: registration
