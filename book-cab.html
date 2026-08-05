@@ -422,98 +422,128 @@
                         </label>
                     </div>
 
-                    <details class="detail-drawer" open>
-                        <summary>Full trip details</summary>
-                        <div class="details-grid extra-grid">
-                            <label class="field-shell">
-                                <span>Terminal / gate</span>
-                                <input id="terminalInput" name="terminal" type="text" placeholder="Terminal, pillar, gate">
-                            </label>
-                            <label class="field-shell">
-                                <span>Flight / train</span>
-                                <input id="flightInput" name="flightNumber" type="text" placeholder="Flight or train number">
-                            </label>
-                            <label class="field-shell">
-                                <span>Airline / carrier</span>
-                                <input id="airlineInput" name="airlineName" type="text" placeholder="Air India, IndiGo, train name">
-                            </label>
-                            <label class="field-shell">
-                                <span>Meet & greet name</span>
-                                <input id="meetGreetInput" name="meetGreetName" type="text" placeholder="Placard name or guest name">
-                            </label>
-                            <label class="field-shell">
-                                <span>Waiting buffer</span>
-                                <select id="waitingBufferInput" name="waitingBuffer">
-                                    <option value="standard_15">Standard - 15 min</option>
-                                    <option value="airport_30">Airport / luggage - 30 min</option>
-                                    <option value="premium_45">Premium - 45 min</option>
-                                    <option value="extended_60">Extended - 60 min</option>
-                                </select>
-                            </label>
-                            <label class="field-shell">
-                                <span>Reschedule</span>
-                                <select id="rescheduleInput" name="reschedulePreference">
-                                    <option value="standard_policy">Standard policy</option>
-                                    <option value="same_day_flexible">Same-day flexible if driver available</option>
-                                    <option value="flight_delay_adjust">Adjust for flight delay</option>
-                                </select>
-                            </label>
-                            <label class="field-shell">
-                                <span>Cancellation</span>
-                                <select id="cancellationInput" name="cancellationPreference">
-                                    <option value="standard_policy">Standard cancellation policy</option>
-                                    <option value="flexible_preferred">Flexible cancellation preferred</option>
-                                    <option value="admin_confirm_before_charge">Admin confirm before charge</option>
-                                </select>
-                            </label>
-                            <label class="field-shell">
-                                <span>Driver call</span>
-                                <select id="driverCallInput" name="driverCallPreference">
-                                    <option value="call_30_min_before">Call 30 min before pickup</option>
-                                    <option value="call_after_assignment">Call after driver assignment</option>
-                                    <option value="message_only">Message first, call if needed</option>
-                                    <option value="no_call_unless_urgent">No call unless urgent</option>
-                                </select>
-                            </label>
-                            <label class="field-shell">
-                                <span>Fuel</span>
-                                <select id="fuelPreferenceInput" name="fuelPreference">
-                                    <option value="">Any fuel</option>
-                                    <option value="petrol_diesel">Petrol / Diesel</option>
-                                    <option value="cng">CNG</option>
-                                    <option value="ev">EV preferred</option>
-                                </select>
-                            </label>
-                            <label class="field-shell">
-                                <span>GST company</span>
-                                <input id="gstCompanyInput" name="gstCompany" type="text" placeholder="Company name">
-                            </label>
-                            <label class="field-shell">
-                                <span>GST number</span>
-                                <input id="gstNumberInput" name="gstNumber" type="text" placeholder="GSTIN">
-                            </label>
-                            <label class="field-shell">
-                                <span>Edit note</span>
-                                <input id="editReasonInput" name="editReason" type="text" placeholder="Reason for customer edit">
-                            </label>
-                        </div>
-                        <div class="option-grid" aria-label="Add-ons and safety preferences">
-                            <label><input type="checkbox" data-addon="meetAssist"> Meet and assist</label>
-                            <label><input type="checkbox" data-addon="waterBottle"> Water bottle</label>
-                            <label><input type="checkbox" data-addon="phoneCharger"> Phone charger</label>
-                            <label><input type="checkbox" data-addon="wifi"> WiFi request</label>
-                            <label><input type="checkbox" data-addon="flightTrackingConsent"> Flight delay notes</label>
-                            <label><input type="checkbox" data-addon="gstInvoiceRequired"> GST invoice required</label>
-                            <label><input type="checkbox" data-addon="driverCallBeforeArrival" checked> Driver call before arrival</label>
-                            <label><input type="checkbox" data-addon="extraWaitApproval"> Extra waiting approval</label>
-                            <label><input type="checkbox" data-addon="roofCarrier"> Roof carrier needed</label>
-                            <label><input type="checkbox" data-addon="newVehiclePreferred"> New vehicle preferred</label>
-                            <label><input type="checkbox" data-safety="womenDriverPref"> Women driver pref.</label>
-                            <label><input type="checkbox" data-safety="childseat"> Child seat</label>
-                            <label><input type="checkbox" data-safety="wheelchairassist"> Wheelchair assist</label>
-                            <label><input type="checkbox" data-safety="livetripshare" checked> Live trip share</label>
-                        </div>
-                    </details>
+                    <div class="feature-more-stack" aria-label="Extra booking features">
+                        <details class="detail-drawer" data-feature-more="airport">
+                            <summary>
+                                <span><i class="fas fa-plane-circle-check" aria-hidden="true"></i> Airport / terminal more</span>
+                                <small>Flight, terminal and meet details</small>
+                            </summary>
+                            <div class="details-grid extra-grid">
+                                <label class="field-shell">
+                                    <span>Terminal / gate</span>
+                                    <input id="terminalInput" name="terminal" type="text" placeholder="Terminal, pillar, gate">
+                                </label>
+                                <label class="field-shell">
+                                    <span>Flight / train</span>
+                                    <input id="flightInput" name="flightNumber" type="text" placeholder="Flight or train number">
+                                </label>
+                                <label class="field-shell">
+                                    <span>Airline / carrier</span>
+                                    <input id="airlineInput" name="airlineName" type="text" placeholder="Air India, IndiGo, train name">
+                                </label>
+                                <label class="field-shell">
+                                    <span>Meet & greet name</span>
+                                    <input id="meetGreetInput" name="meetGreetName" type="text" placeholder="Placard name or guest name">
+                                </label>
+                            </div>
+                        </details>
+
+                        <details class="detail-drawer" data-feature-more="policy">
+                            <summary>
+                                <span><i class="fas fa-clipboard-check" aria-hidden="true"></i> Trip policy more</span>
+                                <small>Waiting, reschedule and driver call</small>
+                            </summary>
+                            <div class="details-grid extra-grid">
+                                <label class="field-shell">
+                                    <span>Waiting buffer</span>
+                                    <select id="waitingBufferInput" name="waitingBuffer">
+                                        <option value="standard_15">Standard - 15 min</option>
+                                        <option value="airport_30">Airport / luggage - 30 min</option>
+                                        <option value="premium_45">Premium - 45 min</option>
+                                        <option value="extended_60">Extended - 60 min</option>
+                                    </select>
+                                </label>
+                                <label class="field-shell">
+                                    <span>Reschedule</span>
+                                    <select id="rescheduleInput" name="reschedulePreference">
+                                        <option value="standard_policy">Standard policy</option>
+                                        <option value="same_day_flexible">Same-day flexible if driver available</option>
+                                        <option value="flight_delay_adjust">Adjust for flight delay</option>
+                                    </select>
+                                </label>
+                                <label class="field-shell">
+                                    <span>Cancellation</span>
+                                    <select id="cancellationInput" name="cancellationPreference">
+                                        <option value="standard_policy">Standard cancellation policy</option>
+                                        <option value="flexible_preferred">Flexible cancellation preferred</option>
+                                        <option value="admin_confirm_before_charge">Admin confirm before charge</option>
+                                    </select>
+                                </label>
+                                <label class="field-shell">
+                                    <span>Driver call</span>
+                                    <select id="driverCallInput" name="driverCallPreference">
+                                        <option value="call_30_min_before">Call 30 min before pickup</option>
+                                        <option value="call_after_assignment">Call after driver assignment</option>
+                                        <option value="message_only">Message first, call if needed</option>
+                                        <option value="no_call_unless_urgent">No call unless urgent</option>
+                                    </select>
+                                </label>
+                                <label class="field-shell">
+                                    <span>Fuel</span>
+                                    <select id="fuelPreferenceInput" name="fuelPreference">
+                                        <option value="">Any fuel</option>
+                                        <option value="petrol_diesel">Petrol / Diesel</option>
+                                        <option value="cng">CNG</option>
+                                        <option value="ev">EV preferred</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </details>
+
+                        <details class="detail-drawer" data-feature-more="billing">
+                            <summary>
+                                <span><i class="fas fa-file-invoice" aria-hidden="true"></i> Billing / admin more</span>
+                                <small>GST and edit reference</small>
+                            </summary>
+                            <div class="details-grid extra-grid">
+                                <label class="field-shell">
+                                    <span>GST company</span>
+                                    <input id="gstCompanyInput" name="gstCompany" type="text" placeholder="Company name">
+                                </label>
+                                <label class="field-shell">
+                                    <span>GST number</span>
+                                    <input id="gstNumberInput" name="gstNumber" type="text" placeholder="GSTIN">
+                                </label>
+                                <label class="field-shell field-wide">
+                                    <span>Edit note</span>
+                                    <input id="editReasonInput" name="editReason" type="text" placeholder="Reason for customer edit">
+                                </label>
+                            </div>
+                        </details>
+
+                        <details class="detail-drawer" data-feature-more="comfort">
+                            <summary>
+                                <span><i class="fas fa-shield-heart" aria-hidden="true"></i> Add-ons / safety more</span>
+                                <small>Comfort and accessibility requests</small>
+                            </summary>
+                            <div class="option-grid" aria-label="Add-ons and safety preferences">
+                                <label><input type="checkbox" data-addon="meetAssist"> Meet and assist</label>
+                                <label><input type="checkbox" data-addon="waterBottle"> Water bottle</label>
+                                <label><input type="checkbox" data-addon="phoneCharger"> Phone charger</label>
+                                <label><input type="checkbox" data-addon="wifi"> WiFi request</label>
+                                <label><input type="checkbox" data-addon="flightTrackingConsent"> Flight delay notes</label>
+                                <label><input type="checkbox" data-addon="gstInvoiceRequired"> GST invoice required</label>
+                                <label><input type="checkbox" data-addon="driverCallBeforeArrival" checked> Driver call before arrival</label>
+                                <label><input type="checkbox" data-addon="extraWaitApproval"> Extra waiting approval</label>
+                                <label><input type="checkbox" data-addon="roofCarrier"> Roof carrier needed</label>
+                                <label><input type="checkbox" data-addon="newVehiclePreferred"> New vehicle preferred</label>
+                                <label><input type="checkbox" data-safety="womenDriverPref"> Women driver pref.</label>
+                                <label><input type="checkbox" data-safety="childseat"> Child seat</label>
+                                <label><input type="checkbox" data-safety="wheelchairassist"> Wheelchair assist</label>
+                                <label><input type="checkbox" data-safety="livetripshare" checked> Live trip share</label>
+                            </div>
+                        </details>
+                    </div>
 
                     <div class="fare-strip" aria-live="polite">
                         <div>

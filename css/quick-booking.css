@@ -233,8 +233,6 @@ a:focus-visible {
     font-weight: 800;
 }
 
-
-/* Public quick booking keeps the first screen focused on the required details. */
 .quick-booking-primary {
     display: grid;
     gap: 12px;
@@ -681,6 +679,12 @@ a:focus-visible {
     overflow-wrap: anywhere;
 }
 
+.feature-more-stack {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+}
+
 .detail-drawer {
     margin-top: 12px;
     padding: 10px;
@@ -689,10 +693,53 @@ a:focus-visible {
     border-radius: 8px;
 }
 
+.feature-more-stack .detail-drawer {
+    margin-top: 0;
+}
+
 .detail-drawer summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     cursor: pointer;
     color: var(--green-dark);
     font-weight: 900;
+    list-style: none;
+}
+
+.detail-drawer summary::-webkit-details-marker {
+    display: none;
+}
+
+.detail-drawer summary::after {
+    flex: 0 0 auto;
+    content: "\f078";
+    color: #657873;
+    font-family: "Font Awesome 6 Free";
+    font-size: 0.76rem;
+    font-weight: 900;
+    transition: transform 0.2s ease;
+}
+
+.detail-drawer[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.detail-drawer summary span {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 8px;
+    overflow-wrap: anywhere;
+}
+
+.detail-drawer summary small {
+    color: #657873;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-align: right;
+    overflow-wrap: anywhere;
 }
 
 .extra-grid {
@@ -865,6 +912,14 @@ a:focus-visible {
     .hero-inner {
         grid-template-columns: 1fr;
         min-height: auto;
+    }
+
+    .booking-panel {
+        order: 1;
+    }
+
+    .hero-copy {
+        order: 2;
     }
 
     .hero-copy h1 {

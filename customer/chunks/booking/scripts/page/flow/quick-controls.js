@@ -326,10 +326,20 @@
 
             drawer.classList.add('is-inline-flow');
             if (actions && actions.parentNode === main) {
-                actions.insertAdjacentElement('afterend', drawer);
+                actions.insertAdjacentElement('beforebegin', drawer);
             } else {
                 main.appendChild(drawer);
             }
+            drawer.addEventListener('toggle', () => {
+                if (!drawer.open || document.body?.classList.contains('booking-advanced-ready')) return;
+                if (document.body) {
+                    document.body.classList.add('booking-advanced-ready');
+                }
+                resetServiceFolderProgress(getActiveCabFlow());
+                syncServiceFolderVisibility(getActiveCabFlow());
+                syncCabLayerFlow(getActiveCabFlow());
+                syncCabStageLayout();
+            });
             drawer.dataset.inlineMounted = '1';
         }
 
@@ -339,18 +349,22 @@
             const actions = main?.querySelector(':scope > .cab-console-actions');
             const quickForm = main?.querySelector(':scope > .cab-mini-form');
             const routeAddons = main?.querySelector(':scope > .cab-route-addons');
+            const helpline = main?.querySelector(':scope > .booking-customer-helpline');
             if (!main || !drawer || !actions || !quickForm) return;
 
-            const advancedReady = Boolean(document.body?.classList.contains('booking-advanced-ready'));
-            if (advancedReady) {
-                if (actions.previousElementSibling !== drawer) {
-                    drawer.insertAdjacentElement('afterend', actions);
+            const quickFlowAnchor = routeAddons || quickForm;
+            let anchor = quickFlowAnchor;
+            if (helpline) {
+                if (helpline.previousElementSibling !== anchor) {
+                    anchor.insertAdjacentElement('afterend', helpline);
                 }
-            } else {
-                const quickFlowAnchor = routeAddons || quickForm;
-                if (actions.previousElementSibling !== quickFlowAnchor) {
-                    quickFlowAnchor.insertAdjacentElement('afterend', actions);
-                }
+                anchor = helpline;
+            }
+            if (drawer.previousElementSibling !== anchor) {
+                anchor.insertAdjacentElement('afterend', drawer);
+            }
+            if (actions.previousElementSibling !== drawer) {
+                drawer.insertAdjacentElement('afterend', actions);
             }
         }
 

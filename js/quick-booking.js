@@ -2053,6 +2053,18 @@
         });
     }
 
+    function wireFeatureMoreDrawers() {
+        const drawers = Array.from(document.querySelectorAll('.feature-more-stack .detail-drawer'));
+        drawers.forEach((drawer) => {
+            drawer.addEventListener('toggle', () => {
+                if (!drawer.open) return;
+                drawers.forEach((otherDrawer) => {
+                    if (otherDrawer !== drawer) otherDrawer.open = false;
+                });
+            });
+        });
+    }
+
     function wireLocationButton() {
         const button = document.getElementById('useLocationBtn');
         if (!button) return;
@@ -2164,6 +2176,7 @@
 
     wireTabs();
     wireManageButtons();
+    wireFeatureMoreDrawers();
     wireLocationButton();
     wireLocationAutocomplete();
     wireCompactFields();
