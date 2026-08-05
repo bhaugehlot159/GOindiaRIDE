@@ -51,6 +51,14 @@
         editReason: document.getElementById('editReasonInput'),
         manageBooking: document.getElementById('manageBookingInput')
     };
+    const quickFields = {
+        pickup: document.getElementById('quickPickupInput'),
+        drop: document.getElementById('quickDropInput'),
+        rideDate: document.getElementById('quickRideDateInput'),
+        rideTime: document.getElementById('quickRideTimeInput'),
+        phone: document.getElementById('quickPhoneInput'),
+        vehicleModel: document.getElementById('quickVehicleModelInput')
+    };
 
     const fareAmount = document.getElementById('fareAmount');
     const distanceAmount = document.getElementById('distanceAmount');
@@ -59,6 +67,7 @@
     const syncStatus = document.getElementById('syncStatus');
     const formMessage = document.getElementById('formMessage');
     const submitBtn = document.getElementById('submitBookingBtn');
+    const quickSubmitBtn = document.getElementById('quickSubmitBookingBtn');
     const whatsAppBookingLink = document.getElementById('whatsAppBookingLink');
     const loadBookingBtn = document.getElementById('loadBookingBtn');
     const newBookingBtn = document.getElementById('newBookingBtn');
@@ -74,6 +83,28 @@
         copy: document.getElementById('tripPlanCopy'),
         points: document.getElementById('tripPlanPoints')
     };
+
+    function syncCompactFieldsFromPrimary() {
+        Object.entries(quickFields).forEach(([key, quickInput]) => {
+            const primaryInput = fields[key];
+            if (quickInput && primaryInput && quickInput.value !== primaryInput.value) {
+                quickInput.value = primaryInput.value;
+            }
+        });
+    }
+
+    function wireCompactFields() {
+        Object.entries(quickFields).forEach(([key, quickInput]) => {
+            const primaryInput = fields[key];
+            if (!quickInput || !primaryInput) return;
+            const eventName = quickInput.tagName === 'SELECT' ? 'change' : 'input';
+            quickInput.addEventListener(eventName, () => {
+                if (primaryInput.value === quickInput.value) return;
+                primaryInput.value = quickInput.value;
+                primaryInput.dispatchEvent(new Event(eventName, { bubbles: true }));
+            });
+        });
+    }
 
     const state = {
         tripPlan: 'airport',
@@ -1033,6 +1064,7 @@
     }
 
     function estimateFare() {
+        syncCompactFieldsFromPrimary();
         const input = buildFareInput();
         let fare = null;
         if (
@@ -1497,9 +1529,16 @@
     }
 
     function setBusy(isBusy) {
-        submitBtn.disabled = Boolean(isBusy);
-        const idleLabel = activeBookingId() ? 'Update booking request' : 'Send booking request';
-        submitBtn.querySelector('span').textContent = isBusy ? (activeBookingId() ? 'Updating request' : 'Sending request') : idleLabel;
+        const buttons = [submitBtn, quickSubmitBtn].filter(Boolean);
+        const sendingLabel = activeBookingId() ? 'Updating request' : 'Sending request';
+        buttons.forEach((button) => {
+            button.disabled = Boolean(isBusy);
+            const idleLabel = activeBookingId()
+                ? 'Update booking request'
+                : (button === quickSubmitBtn ? 'Submit booking' : 'Send booking request');
+            const label = button.querySelector('span');
+            if (label) label.textContent = isBusy ? sendingLabel : idleLabel;
+        });
         syncStatus.textContent = isBusy ? 'Sending' : 'Ready';
     }
 
@@ -2127,6 +2166,7 @@
     wireManageButtons();
     wireLocationButton();
     wireLocationAutocomplete();
+    wireCompactFields();
     initDefaults();
     applyHomepagePrefillFromUrl();
     form.addEventListener('submit', submitBooking);
