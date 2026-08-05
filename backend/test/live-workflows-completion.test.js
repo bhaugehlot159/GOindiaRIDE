@@ -116,7 +116,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(read('pages/legal/gdpr-notice.html'), /<meta name="googlebot" content="noindex, follow">/);
   assert.match(publicBooking, /id="quickBookingForm"/);
   assert.match(publicBooking, /Direct cab booking, no login/);
-  assert.match(publicBooking, /css\/quick-booking\.css\?v=20260611-location-autofill1/);
+  assert.match(publicBooking, /css\/quick-booking\.css\?v=20260805-public-compact1/);
+  assert.match(publicBooking, /class="quick-booking-primary"[\s\S]*id="quickPickupInput"[\s\S]*id="quickDropInput"[\s\S]*id="quickRideDateInput"[\s\S]*id="quickRideTimeInput"[\s\S]*id="quickPhoneInput"[\s\S]*id="quickVehicleModelInput"[\s\S]*id="quickSubmitBookingBtn"/);
+  assert.match(publicBooking, /<details class="detail-drawer options-drawer">[\s\S]*class="service-tabs"[\s\S]*id="tripPlanDetail"[\s\S]*id="serviceModeInput"[\s\S]*id="returnDateInput"[\s\S]*id="manageBookingInput"/);
   assert.match(publicBooking, /id="pickupInput"[^>]*aria-controls="pickupLocationSuggestPanel"/);
   assert.match(publicBooking, /id="dropInput"[^>]*aria-controls="dropLocationSuggestPanel"/);
   assert.match(publicBooking, /id="pickupLocationSuggestPanel"[^>]*role="listbox"/);
@@ -137,7 +139,7 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(publicBooking, /id="editReasonInput"/);
   assert.match(publicBooking, /js\/locations\.js\?v=20260611-location-autofill1/);
   assert.match(publicBooking, /js\/route-suggestions\.js\?v=20260611-real-toll1/);
-  assert.match(publicBooking, /js\/quick-booking\.js\?v=20260611-exact-location1/);
+  assert.match(publicBooking, /js\/quick-booking\.js\?v=20260805-public-compact1/);
   assert.match(publicBooking, /id="tollAmount"/);
   assert.match(publicBooking, /id="tollNote"/);
 
@@ -160,6 +162,8 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   assert.match(shortcut, /function getBestCurrentLocation\(onBetterPoint\)/);
   assert.match(shortcut, /function resolveCurrentLocationAddress\(point\)/);
   assert.match(shortcut, /Exact current location nahi mila/);
+  assert.match(shortcut, /function wireCompactFields\(/);
+  assert.match(shortcut, /quickSubmitBookingBtn/);
   assert.match(shortcut, /Location \+ Precise location ON/);
   assert.match(shortcut, /function applyHomepagePrefillFromUrl\(/);
   assert.match(shortcut, /new URLSearchParams\(window\.location\.search \|\| ''\)/);
