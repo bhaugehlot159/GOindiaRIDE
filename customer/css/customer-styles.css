@@ -1504,6 +1504,28 @@ body {
     }
 }
 
+/* Keep all five bottom-nav destinations reachable on narrow phones. */
+@media (max-width: 360px) {
+    .bottom-nav {
+        justify-content: stretch;
+        padding: 0.55rem 0;
+    }
+
+    .nav-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.45rem 0.15rem;
+    }
+
+    .nav-btn span {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.68rem;
+    }
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 8px;

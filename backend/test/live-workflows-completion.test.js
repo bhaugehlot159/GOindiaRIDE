@@ -36,9 +36,11 @@ function readCustomerPortalBookingSource() {
 
 test('customer booking flow is backend-first and persists real admin review fallback data', () => {
   const html = read('customer/index.html');
+  const styles = read('customer/css/customer-styles.css');
   const booking = readCustomerPortalBookingSource();
   const portal = read('customer/js/customer-portal.js');
 
+  assert.match(styles, /@media \(max-width: 360px\) \{[\s\S]*?\.nav-btn \{[\s\S]*?flex: 1 1 0;/);
   assert.match(html, /id="ridePaymentMethod"/);
   assert.match(booking, /function buildFareBreakdown\(/);
   assert.match(booking, /tollCharge/);
@@ -55,6 +57,7 @@ test('customer booking flow is backend-first and persists real admin review fall
 
 test('public no-login booking shortcut keeps admin queue, email, edit, and search signals connected', () => {
   const home = read('index.html');
+  const homeCss = read('css/home-international.css');
   const publicBooking = read('book-cab.html');
   const customerBookingPage = read('pages/booking.html');
   const shortcut = read('js/quick-booking.js');
@@ -68,7 +71,9 @@ test('public no-login booking shortcut keeps admin queue, email, edit, and searc
   const homeFooter = home.match(/<footer class="footer">[\s\S]*?<\/footer>/)?.[0] || '';
 
   assert.match(home, /<title>GO India RIDE - Premium Taxi Service<\/title>/);
-  assert.match(home, /home-international\.css\?v=20260624-taxfare1/);
+  assert.match(home, /home-international\.css\?v=20260806-mobile-layout1/);
+  assert.match(homeCss, /@media \(max-width: 860px\) \{[\s\S]*?body\.home-international \.home-fare-shell \{[\s\S]*?grid-template-columns: 1fr !important;/);
+  assert.match(homeCss, /@media \(max-width: 640px\) \{[\s\S]*?body\.home-international \.home-service-grid,[\s\S]*?body\.home-international \.home-route-grid \{[\s\S]*?grid-template-columns: 1fr !important;/);
   assert.match(home, /Airport, city and intercity cab booking/);
   assert.match(home, /js\/locations\.js\?v=20260610-home-suggest1/);
   assert.match(home, /js\/route-suggestions\.js\?v=20260625-sirohi1/);
@@ -309,6 +314,7 @@ test('driver portal exposes real KYC, deposit, booking acceptance, penalty, and 
   const html = read('driver/index.html');
   const workflow = read('driver/js/driver-live-workflow.js');
 
+  assert.match(html, /<body[^>]*data-fit-screen="off"/);
   assert.match(html, /driver-live-workflow\.js\?v=20260516-real-live1/);
   assert.match(workflow, /const OFFER_MS = 5 \* 60 \* 1000/);
   assert.match(workflow, /KYC approval pending/);

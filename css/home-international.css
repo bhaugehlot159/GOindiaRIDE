@@ -1886,7 +1886,8 @@ body.home-international .pricing {
     body.home-international .home-hero-shell,
     body.home-international .home-confidence-grid,
     body.home-international .home-fare-shell {
-        grid-template-columns: 1fr;
+        /* Override the two-column tablet rule so the calculator is never split on phones. */
+        grid-template-columns: 1fr !important;
     }
 
     body.home-international .hero,
@@ -2046,7 +2047,8 @@ body.home-international .pricing {
 
     body.home-international .home-service-grid,
     body.home-international .home-route-grid {
-        grid-template-columns: 1fr;
+        /* These cards use the same tablet grid rule above; keep the phone layout single-column. */
+        grid-template-columns: 1fr !important;
     }
 
     body.home-international .home-section-heading-split {
