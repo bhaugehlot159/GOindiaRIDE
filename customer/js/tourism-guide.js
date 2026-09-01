@@ -3,6 +3,18 @@
  * Handles digital travel card, temple timings, cultural guide, events, packages, and more
  */
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function _esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 // Initialize tourism guide
 document.addEventListener('DOMContentLoaded', function() {
     initializeTourismGuide();
@@ -12,10 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /**
  * Initialize tourism guide
  */
-function initializeTourismGuide() {
-    console.log('Tourism guide initialized');
-    
-    // Load tourism data
+function initializeTourismGuide() {    // Load tourism data
     loadTourismData();
     
     // Generate QR code for travel card
@@ -262,9 +271,9 @@ function showTravelCardDetails() {
                     </div>
                 </div>
                 <div style="text-align: center;">
-                    <h3>${userData.name || 'Guest User'}</h3>
-                    <p>ID: ${travelId}</p>
-                    <p>Valid Until: ${validity}</p>
+                    <h3>${_esc(userData.name || 'Guest User')}</h3>
+                    <p>ID: ${_esc(travelId)}</p>
+                    <p>Valid Until: ${_esc(validity)}</p>
                 </div>
             </div>
             
@@ -350,27 +359,27 @@ function showTempleTimingsDetailed() {
             ${temples.map(temple => `
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
                     <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
-                        <i class="fas fa-om"></i> ${temple.name}
+                        <i class="fas fa-om"></i> ${_esc(temple.name)}
                     </h3>
                     <p style="color: var(--text-light); margin-bottom: 1rem;">
-                        <i class="fas fa-map-marker-alt"></i> ${temple.location}
+                        <i class="fas fa-map-marker-alt"></i> ${_esc(temple.location)}
                     </p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div>
                             <strong>Morning Aarti:</strong><br>
-                            <span style="color: var(--accent-color);">${temple.morningAarti}</span>
+                            <span style="color: var(--accent-color);">${_esc(temple.morningAarti)}</span>
                         </div>
                         <div>
                             <strong>Evening Aarti:</strong><br>
-                            <span style="color: var(--accent-color);">${temple.eveningAarti}</span>
+                            <span style="color: var(--accent-color);">${_esc(temple.eveningAarti)}</span>
                         </div>
                     </div>
-                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">${temple.description}</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">${_esc(temple.description)}</p>
                     <div style="font-size: 0.85rem; color: var(--text-light);">
-                        <strong>Dress Code:</strong> ${temple.dressCode}<br>
-                        <strong>Photography:</strong> ${temple.photography}
+                        <strong>Dress Code:</strong> ${_esc(temple.dressCode)}<br>
+                        <strong>Photography:</strong> ${_esc(temple.photography)}
                     </div>
-                    <button class="btn-secondary" onclick="bookTempleRide('${temple.name}', '${temple.location}')" style="width: 100%; margin-top: 1rem;">
+                    <button class="btn-secondary" onclick="bookTempleRide('${_esc(temple.name)}', '${_esc(temple.location)}')" style="width: 100%; margin-top: 1rem;">
                         <i class="fas fa-car"></i> Book Ride to Temple
                     </button>
                 </div>
@@ -422,9 +431,9 @@ function showCulturalGuideDetailed() {
             ${Object.entries(culturalInfo).map(([key, item]) => `
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
                     <h3 style="margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ${getIconForCulturalItem(key)} ${item.title}
+                        ${getIconForCulturalItem(key)} ${_esc(item.title)}
                     </h3>
-                    <p style="color: var(--text-dark);">${item.info}</p>
+                    <p style="color: var(--text-dark);">${_esc(item.info)}</p>
                 </div>
             `).join('')}
             
@@ -487,17 +496,17 @@ function showLocalEventsDetailed() {
             ${events.map(event => `
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
                     <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
-                        <i class="fas fa-calendar-check"></i> ${event.name}
+                        <i class="fas fa-calendar-check"></i> ${_esc(event.name)}
                     </h3>
                     <div style="color: var(--text-light); margin-bottom: 1rem;">
-                        📅 ${event.date} • 📍 ${event.location}
+                        📅 ${_esc(event.date)} • 📍 ${_esc(event.location)}
                     </div>
-                    <p style="margin-bottom: 1rem;">${event.description}</p>
+                    <p style="margin-bottom: 1rem;">${_esc(event.description)}</p>
                     <div style="background: var(--bg-white); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--success-color);">
                         <strong style="color: var(--success-color);">Special Offer:</strong><br>
-                        ${event.specialOffers}
+                        ${_esc(event.specialOffers)}
                     </div>
-                    <button class="btn-secondary" onclick="notifyMeForEvent('${event.name}')" style="width: 100%; margin-top: 1rem;">
+                    <button class="btn-secondary" onclick="notifyMeForEvent('${_esc(event.name)}')" style="width: 100%; margin-top: 1rem;">
                         <i class="fas fa-bell"></i> Notify Me
                     </button>
                 </div>
@@ -549,21 +558,21 @@ function showTourPackagesDetailed() {
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                         <h3 style="color: var(--primary-color);">
-                            <i class="fas fa-suitcase"></i> ${pkg.name}
+                            <i class="fas fa-suitcase"></i> ${_esc(pkg.name)}
                         </h3>
                         <span style="background: var(--accent-color); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
-                            ₹${pkg.price}
+                            ₹${_esc(pkg.price)}
                         </span>
                     </div>
                     <div style="color: var(--text-light); margin-bottom: 1rem;">
-                        ⏱️ ${pkg.duration}
+                        ⏱️ ${_esc(pkg.duration)}
                     </div>
                     <div style="margin-bottom: 1rem;">
                         <strong>Places Covered:</strong><br>
                         <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
                             ${pkg.places.map(place => `
                                 <span style="background: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">
-                                    📍 ${place}
+                                    📍 ${_esc(place)}
                                 </span>
                             `).join('')}
                         </div>
@@ -573,12 +582,12 @@ function showTourPackagesDetailed() {
                         <div style="margin-top: 0.5rem;">
                             ${pkg.included.map(item => `
                                 <div style="font-size: 0.9rem; color: var(--text-dark);">
-                                    ✓ ${item}
+                                    ✓ ${_esc(item)}
                                 </div>
                             `).join('')}
                         </div>
                     </div>
-                    <button class="btn-primary" onclick="bookTourPackageDetailed('${pkg.name}', ${pkg.price})" style="width: 100%;">
+                    <button class="btn-primary" onclick="bookTourPackageDetailed('${_esc(pkg.name)}', ${Number(pkg.price)})" style="width: 100%;">
                         <i class="fas fa-shopping-cart"></i> Book Package
                     </button>
                 </div>

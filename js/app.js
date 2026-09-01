@@ -1,9 +1,7 @@
 // GO India RIDE - Main Application File
-console.log('App.js loaded successfully!');
 
 // Initialize app on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Application initialized');
     loadUserData();
 });
 
@@ -12,14 +10,11 @@ function loadUserData() {
     const userRole = localStorage.getItem('userRole');
     
     if (userRole === 'customer') {
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        console.log('Customer logged in:', user);
+        JSON.parse(localStorage.getItem('currentUser'));
     } else if (userRole === 'driver') {
-        const driver = JSON.parse(localStorage.getItem('currentDriver'));
-        console.log('Driver logged in:', driver);
+        JSON.parse(localStorage.getItem('currentDriver'));
     } else if (userRole === 'admin') {
-        const admin = JSON.parse(localStorage.getItem('currentAdmin'));
-        console.log('Admin logged in:', admin);
+        JSON.parse(localStorage.getItem('currentAdmin'));
     }
 }
 
@@ -57,7 +52,6 @@ async function loadDistricts() {
         const data = await response.json();
         return Object.keys(data.districts);
     } catch (error) {
-        console.error('Error loading districts:', error);
         return [];
     }
 }
@@ -128,9 +122,6 @@ async function getDistrictInfo(districtName) {
         const data = await response.json();
         return data.districts[districtName] || null;
     } catch (error) {
-        console.error('Error loading district info:', error);
         return null;
     }
 }
-
-console.log('✅ Application ready!');

@@ -1,4 +1,4 @@
-﻿// AUTH ROUTES - Security-first authentication service
+// AUTH ROUTES - Security-first authentication service
 const QRCode = require("qrcode");
 const speakeasy = require("speakeasy");
 const express = require('express');
@@ -32,6 +32,7 @@ const { honeypotCheck, submissionTimingCheck, recaptchaPresenceCheck } = require
 const { proxyVpnRiskCheck } = require('../middleware/networkIntelMiddleware');
 const { trackBehaviorEvent, evaluateBehaviorRisk } = require('../services/behaviorService');
 const env = require('../config/env');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -49,9 +50,6 @@ function allowOtpDevResponse() {
   // SECURITY: OTP verification is ALWAYS required
   // Dev OTP echo is allowed only for explicit local/test automation.
   if (isProductionRuntime()) {
-    if (process.env.OTP_DEV_RESPONSE_ENABLED === 'true') {
-      console.error('SECURITY ALERT: OTP dev bypass attempted in production!');
-    }
     return false;
   }
   return String(process.env.OTP_DEV_RESPONSE_ENABLED || '').toLowerCase().trim() === 'true';
@@ -634,7 +632,7 @@ router.post('/profile-phone/request-otp', authenticate, async (req, res) => {
       ...(allowOtpDevResponse() ? { devOtp: otp } : {})
     });
   } catch (error) {
-    console.error('profile-phone request-otp error:', error);
+    logger.error('profile_phone_request_otp_error', { message: error.message });
     return res.status(500).json({ message: 'Server error in profile phone OTP request' });
   }
 });
@@ -723,7 +721,7 @@ router.post('/profile-phone/verify-otp', authenticate, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('profile-phone verify-otp error:', error);
+    logger.error('profile_phone_verify_otp_error', { message: error.message });
     return res.status(500).json({ message: 'Server error in profile phone OTP verify' });
   }
 });
@@ -1039,7 +1037,7 @@ router.post('/admin/password-check', loginLimiter, honeypotCheck, submissionTimi
       }
     });
   } catch (error) {
-    console.error('admin/password-check error:', error);
+    logger.error('admin_password_check_error', { message: error.message });
     return res.status(500).json({ message: 'Server error in admin password check' });
   }
 });
@@ -1823,7 +1821,7 @@ if (shouldApproveAdminOtpDevice) {
       accountType: user.accountType,
     });
   } catch (error) {
-    console.error("OTP VERIFY ERROR:", error);
+    logger.error('otp_verify_error', { message: error.message });
     return res.status(500).json({ message: error.message });
   }
 });
@@ -1862,14 +1860,14 @@ router.post("/refresh", async (req, res) => {
 });
 
 if (sameTokenUser) {
-  console.warn("Refresh denied: device mismatch", {
+  logger.warn("refresh_device_mismatch", {
     ip: req.ip,
     ua: req.headers["user-agent"],
     deviceFingerprint: df,
   });
   return res.status(403).json({ message: "Invalid refresh token" }); // same generic msg
 }
-  console.warn("Possible refresh token reuse detected:", {
+  logger.warn("refresh_token_reuse_detected", {
     ip: req.ip,
     ua: req.headers["user-agent"],
   });
@@ -1940,7 +1938,7 @@ return res.status(200).json({
   accessToken: newAccessToken,
 });
   } catch (error) {
-    console.error("REFRESH TOKEN ERROR:", error);
+    logger.error('refresh_token_error', { message: error.message });
     return res.status(500).json({ message: error.message });
   }
 });
@@ -2008,7 +2006,7 @@ router.post('/change-password', authenticate, async (req, res) => {
 
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
-    console.error('change-password error:', error);
+    logger.error('change_password_error', { message: error.message });
     return res.status(500).json({ message: 'Server error in change-password' });
   }
 });
@@ -2171,7 +2169,7 @@ router.post('/forgot-password/request', otpLimiter, honeypotCheck, submissionTim
       ...(canExposeDevOtp ? { devOtp: otp } : {}),
     });
   } catch (error) {
-    console.error('forgot-password/request error:', error);
+    logger.error('forgot_password_request_error', { message: error.message });
     return res.status(500).json({ message: 'Server error in forgot-password request' });
   }
 });
@@ -2288,7 +2286,7 @@ router.post('/forgot-password/confirm', honeypotCheck, submissionTimingCheck, re
 
     return res.status(200).json({ message: 'Password reset successful. Please login again.' });
   } catch (error) {
-    console.error('forgot-password/confirm error:', error);
+    logger.error('forgot_password_confirm_error', { message: error.message });
     return res.status(500).json({ message: 'Server error in forgot-password confirm' });
   }
 });
@@ -2479,7 +2477,7 @@ router.post("/request-otp", async (req, res) => {
       ...(canExposeDevOtp ? { devOtp: otp } : {}),
     });
   } catch (err) {
-    console.error("request-otp error:", err);
+    logger.error('request_otp_error', { message: err.message });
     return res.status(500).json({ message: "Server error in request-otp" });
   }
 });
@@ -2510,7 +2508,7 @@ router.post("/request-otp", async (req, res) => {
 
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error("LOGOUT ERROR:", error);
+    logger.error('logout_error', { message: error.message });
     return res.status(500).json({ message: error.message });
   }
 });
@@ -2833,9 +2831,6 @@ router.get("/trusted-devices", _requireAccessToken(env), async (req, res) => {
 router.post("/trusted-devices/pending", authenticate, async (req, res) => {
   try {
 
-    console.log("AUTH HEADER:", req.headers.authorization);
-    console.log("REQ.AUTH:", req.auth);
-
     const userId = req.user?.id || req.user?.sub;
 
     if (!userId) {
@@ -2885,7 +2880,7 @@ router.post("/trusted-devices/pending", authenticate, async (req, res) => {
       devices: pendingDevices,
     });
   } catch (e) {
-    console.error("pending trusted devices error:", e);
+    logger.error('pending_trusted_devices_error', { message: e.message });
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -2964,7 +2959,7 @@ router.post("/trusted-devices/reject", _requireAccessToken(env), async (req, res
       },
     });
   } catch (e) {
-    console.error("reject trusted device error:", e);
+    logger.error('reject_trusted_device_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3037,7 +3032,7 @@ router.post("/trusted-devices/status", _requireAccessToken(env), async (req, res
       },
     });
   } catch (e) {
-    console.error("trusted device status error:", e);
+    logger.error('trusted_device_status_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3115,7 +3110,7 @@ router.post("/trusted-devices/overview", _requireAccessToken(env), async (req, r
       devices,
     });
   } catch (e) {
-    console.error("trusted devices overview error:", e);
+    logger.error('trusted_devices_overview_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3177,7 +3172,7 @@ router.post("/trusted-devices/approved", _requireAccessToken(env), async (req, r
       devices: approvedDevices,
     });
   } catch (e) {
-    console.error("approved trusted devices error:", e);
+    logger.error('approved_trusted_devices_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3235,7 +3230,7 @@ router.post("/trusted-devices/blocked", _requireAccessToken(env), async (req, re
       devices: blockedDevices,
     });
   } catch (e) {
-    console.error("blocked trusted devices error:", e);
+    logger.error('blocked_trusted_devices_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3293,7 +3288,7 @@ router.post("/trusted-devices/rejected", _requireAccessToken(env), async (req, r
       devices: rejectedDevices,
     });
   } catch (e) {
-    console.error("rejected trusted devices error:", e);
+    logger.error('rejected_trusted_devices_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3362,7 +3357,7 @@ router.post("/trusted-devices/block", _requireAccessToken(env), async (req, res)
       device: updatedDevice || null,
     });
   } catch (e) {
-    console.error("BLOCK DEVICE ERROR:", e);
+    logger.error('block_device_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3451,7 +3446,7 @@ router.post("/trusted-devices/unblock", _requireAccessToken(env), async (req, re
       },
     });
   } catch (e) {
-    console.error("UNBLOCK DEVICE ERROR:", e);
+    logger.error('unblock_device_error', { message: e.message });
     return res.status(500).json({
       message: "Server error",
     });
@@ -3550,7 +3545,7 @@ router.post("/trusted-devices/approve", _requireAccessToken(env), async (req, re
       },
     });
   } catch (error) {
-    console.error("approve trusted device error:", error);
+    logger.error('approve_trusted_device_error', { message: error.message });
     return res.status(500).json({
       message: "Server error",
     });

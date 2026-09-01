@@ -1,6 +1,7 @@
-﻿const express = require('express');
+const express = require('express');
 const { authenticate } = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const { validateEmail, validateIndianPhone } = require('../utils/validation');
 
 const router = express.Router();
 
@@ -77,7 +78,7 @@ router.patch('/profile', authenticate, async (req, res) => {
       return res.status(400).json({ message: 'Valid name required' });
     }
 
-    if (!nextEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
+    if (!nextEmail || !validateEmail(nextEmail)) {
       return res.status(400).json({ message: 'Valid email required' });
     }
 
@@ -139,7 +140,6 @@ router.patch('/profile', authenticate, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('profile update error:', error);
     return res.status(500).json({ message: 'Server error in profile update' });
   }
 });
@@ -185,7 +185,6 @@ router.patch('/profile/phone', authenticate, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('profile phone update error:', error);
     return res.status(500).json({ message: 'Server error in profile phone update' });
   }
 });

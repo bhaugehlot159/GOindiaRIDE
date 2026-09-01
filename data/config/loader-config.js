@@ -93,7 +93,7 @@ class DataLoader {
       case "format-3-sqlite":
         return this.loadFormat3();
       default:
-        console.error("Unknown format");
+        // Unknown format - no action
     }
   }
 
@@ -104,10 +104,9 @@ class DataLoader {
       script.src = this.config.format1.path + this.config.format1.files[0];
       document.head.appendChild(script);
       this.data = window.RajasthanData;
-      console.log("Format 1 loaded successfully");
       return this.data;
     } catch (error) {
-      console.error("Error loading Format 1:", error);
+      // Format 1 load failed - return undefined
     }
   }
 
@@ -119,21 +118,19 @@ class DataLoader {
         const data = await response.json();
         this.data[state] = data;
       }
-      console.log("Format 2 loaded successfully");
       return this.data;
     } catch (error) {
-      console.error("Error loading Format 2:", error);
+      // Format 2 load failed - return undefined
     }
   }
 
   async loadFormat3() {
     try {
       // Load SQLite database
-      console.log("Loading Format 3 (SQLite)...");
       // Implementation depends on backend
       return this.data;
     } catch (error) {
-      console.error("Error loading Format 3:", error);
+      // Format 3 load failed - return undefined
     }
   }
 

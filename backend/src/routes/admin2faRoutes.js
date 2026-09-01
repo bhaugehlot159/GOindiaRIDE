@@ -1,4 +1,3 @@
-console.log("ADMIN 2FA ROUTES LOADED");
 const express = require("express");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
@@ -38,7 +37,6 @@ router.post("/setup-2fa", authenticate, async (req, res) => {
       secret: secret.base32
     });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Error enabling admin 2FA" });
   }
 });

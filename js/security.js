@@ -163,4 +163,3 @@ async function hashPassword(password) {
     return hashHex;
 }
 
-console.log('✅ Security utilities loaded');

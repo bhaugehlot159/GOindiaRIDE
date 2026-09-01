@@ -3,6 +3,18 @@
  * Handles live location sharing, SOS, emergency contacts, and ride OTP
  */
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function _esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 // Initialize safety features
 document.addEventListener('DOMContentLoaded', function() {
     initializeSafetyFeatures();
@@ -14,8 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize safety features
  */
 function initializeSafetyFeatures() {
-    console.log('Safety features initialized');
-    
     // Check for emergency contacts
     checkEmergencyContactsSetup();
     
@@ -75,9 +85,9 @@ function openEmergencyContactsModal() {
                 ${contacts.map((contact, index) => `
                     <div class="contact-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: var(--bg-light); border-radius: 8px; margin-bottom: 0.75rem;">
                         <div>
-                            <strong>${contact.name}</strong><br>
-                            <small style="color: var(--text-light);">${contact.phone}</small><br>
-                            <small style="color: var(--text-light);">${contact.relation}</small>
+                            <strong>${_esc(contact.name)}</strong><br>
+                            <small style="color: var(--text-light);">${_esc(contact.phone)}</small><br>
+                            <small style="color: var(--text-light);">${_esc(contact.relation)}</small>
                         </div>
                         <button class="btn-secondary" onclick="removeEmergencyContact(${index})" style="padding: 0.5rem 1rem;">
                             <i class="fas fa-trash"></i>
@@ -229,7 +239,7 @@ function monitorActiveTrips() {
     // 3. Setup periodic check-in calls
     // 4. Alert on route deviation
     
-    console.log('Virtual escort monitoring active');
+    // Virtual escort monitoring active
 }
 
 /**
@@ -346,8 +356,8 @@ function showLocationShareModal(trackingLink, lat, lon, contacts) {
             
             <div style="background: var(--bg-light); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
                 <strong>Tracking Link:</strong><br>
-                <small style="color: var(--text-light); word-break: break-all;">${trackingLink}</small>
-                <button class="btn-secondary" onclick="copyToClipboard('${trackingLink}')" style="margin-top: 0.5rem; width: 100%;">
+                <small style="color: var(--text-light); word-break: break-all;">${_esc(trackingLink)}</small>
+                <button class="btn-secondary" onclick="copyToClipboard('${_esc(trackingLink)}')" style="margin-top: 0.5rem; width: 100%;">
                     <i class="fas fa-copy"></i> Copy Link
                 </button>
             </div>
@@ -355,14 +365,14 @@ function showLocationShareModal(trackingLink, lat, lon, contacts) {
             <h3 style="margin: 1.5rem 0 1rem 0;">Share With:</h3>
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
                 ${contacts.length > 0 ? contacts.map(contact => `
-                    <button class="btn-secondary" onclick="shareLocationWith('${contact.name}', '${contact.phone}', '${trackingLink}')" style="justify-content: space-between;">
-                        <span><i class="fas fa-user"></i> ${contact.name}</span>
+                    <button class="btn-secondary" onclick="shareLocationWith('${_esc(contact.name)}', '${_esc(contact.phone)}', '${_esc(trackingLink)}')" style="justify-content: space-between;">
+                        <span><i class="fas fa-user"></i> ${_esc(contact.name)}</span>
                         <span><i class="fas fa-share"></i></span>
                     </button>
                 `).join('') : '<p style="text-align: center; color: var(--text-light);">No emergency contacts added</p>'}
             </div>
             
-            <button class="btn-primary" onclick="shareViaWhatsApp('${trackingLink}')" style="width: 100%;">
+            <button class="btn-primary" onclick="shareViaWhatsApp('${_esc(trackingLink)}')" style="width: 100%;">
                 <i class="fab fa-whatsapp"></i> Share via WhatsApp
             </button>
         </div>
@@ -446,9 +456,9 @@ function showDriverVerification(driver) {
             </div>
             
             <div style="background: var(--bg-light); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <strong>Name:</strong> ${driver.name}<br>
-                <strong>Vehicle:</strong> ${driver.vehicle}<br>
-                <strong>Rating:</strong> <span style="color: var(--accent-color);">★ ${driver.rating}</span><br>
+                <strong>Name:</strong> ${_esc(driver.name)}<br>
+                <strong>Vehicle:</strong> ${_esc(driver.vehicle)}<br>
+                <strong>Rating:</strong> <span style="color: var(--accent-color);">★ ${_esc(driver.rating)}</span><br>
                 <strong>Total Trips:</strong> 2,345<br>
                 <strong>Experience:</strong> 5 years
             </div>

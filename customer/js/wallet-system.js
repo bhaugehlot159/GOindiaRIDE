@@ -3,6 +3,18 @@
  * Handles dual wallet, payments, donations, cashback, and split fare
  */
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function _esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 const CUSTOMER_WALLET_KEY = 'goindiaride_wallet';
 const CUSTOMER_TX_KEY = 'goindiaride_transactions';
 const CUSTOMER_WITHDRAW_FALLBACK_KEY = 'goindiaride_customer_withdraw_requests';
@@ -47,7 +59,6 @@ async function refreshSecureCustomerWalletSnapshot(forceSync = false) {
         customerSecureWalletSyncedAt = Date.now();
         return customerSecureWalletSnapshot;
     } catch (error) {
-        console.warn('Secure customer wallet snapshot failed:', error);
         return customerSecureWalletSnapshot;
     }
 }
@@ -70,8 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize wallet system
  */
 function initializeWalletSystem() {
-    console.log('Wallet system initialized');
-
     const ownerId = getCustomerWalletOwnerId();
 
     if (isSecureCustomerWalletMode() && window.WalletCore) {
@@ -345,8 +354,8 @@ function showDonationSuccess(amount, destination) {
             <div style="text-align: center;">
                 <i class="fas fa-check-circle" style="font-size: 4rem; color: #080c12; margin-bottom: 1rem;"></i>
                 <h2>Donation Successful!</h2>
-                <p style="font-size: 1.5rem; font-weight: bold; margin: 1rem 0;">₹${amount}</p>
-                <p>donated to ${destination}</p>
+                <p style="font-size: 1.5rem; font-weight: bold; margin: 1rem 0;">₹${Number(amount).toFixed(2)}</p>
+                <p>donated to ${_esc(destination)}</p>
                 <div style="background: var(--bg-light); padding: 1rem; border-radius: 8px; margin: 1.5rem 0;">
                     <small><i class="fas fa-info-circle"></i> Tax deduction certificate will be sent to your registered email within 24 hours.</small>
                 </div>
@@ -566,12 +575,12 @@ function showRewardsModal() {
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0;">
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; text-align: center;">
                     <i class="fas fa-coins" style="font-size: 2rem; color: var(--accent-color);"></i>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 0.5rem 0;">${rewards.points}</p>
+                    <p style="font-size: 2rem; font-weight: bold; margin: 0.5rem 0;">${Number(rewards.points)}</p>
                     <small>Reward Points</small>
                 </div>
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; text-align: center;">
                     <i class="fas fa-rupee-sign" style="font-size: 2rem; color: var(--success-color);"></i>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 0.5rem 0;">₹${rewards.cashback}</p>
+                    <p style="font-size: 2rem; font-weight: bold; margin: 0.5rem 0;">₹${Number(rewards.cashback)}</p>
                     <small>Cashback Earned</small>
                 </div>
             </div>

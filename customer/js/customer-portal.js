@@ -3,6 +3,18 @@
  * Handles navigation, theme, user management, and core functionality
  */
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function _esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 // Initialize customer portal
 document.addEventListener('DOMContentLoaded', function() {
     initializePortal();
@@ -20,8 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize the portal with default settings
  */
 function initializePortal() {
-    console.log('GO India RIDE Customer Portal initialized');
-    
     // Check if first visit
     const isFirstVisit = !localStorage.getItem('goindiaride_visited');
     if (isFirstVisit) {
