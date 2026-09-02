@@ -1114,7 +1114,255 @@ a:focus-visible {
     line-height: 1.58;
 }
 
-/* ── How it works band (uses site-improvements.css for most styles) ── */
+/* ── Form step labels ─────────────────────────────────────── */
+
+.form-step-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 10px;
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+}
+
+.form-step-label:first-of-type {
+    margin-top: 4px;
+}
+
+.step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--brand-amber);
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+/* ── Trip config grid (service mode + cab model) ──────────── */
+
+.trip-config-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+/* ── Fare strip cells ─────────────────────────────────────── */
+
+.fare-cell {
+    min-width: 0;
+    min-height: 64px;
+    padding: 10px 12px;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.fare-cell.fare-main {
+    background: #fff8e6;
+    border-color: rgba(240, 165, 0, 0.35);
+}
+
+.fare-cell.fare-main strong {
+    color: var(--brand-amber2);
+}
+
+/* ── Trust band icon wrapper ──────────────────────────────── */
+
+.trust-icon-wrap {
+    display: flex;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    background: #e8f5ee;
+    border-radius: 50%;
+    margin-bottom: 14px;
+}
+
+.trust-icon-wrap i {
+    font-size: 1.4rem;
+    color: var(--brand-green);
+    /* override the circle display from .trust-inner i */
+    display: block;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    background: transparent;
+}
+
+.trust-inner h3 {
+    margin: 0 0 8px;
+    font-size: 1.08rem;
+    font-weight: 900;
+    color: var(--ink);
+}
+
+/* ── Rating trust strip amber variant ────────────────────── */
+
+.rating-trust-strip .rtb.amber i {
+    color: var(--brand-amber2);
+}
+
+/* ── How it works band ────────────────────────────────────── */
+
+
+.booking-how-band {
+    background: #f4f7f6;
+    border-top: 1px solid var(--border);
+    padding: 3.5rem 0;
+}
+
+.booking-how-inner {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 40px);
+    text-align: center;
+}
+
+.booking-how-inner h2 {
+    margin: 0 0 6px;
+    font-size: clamp(1.3rem, 3vw, 1.6rem);
+    font-weight: 900;
+    color: var(--ink);
+}
+
+.how-subtitle {
+    margin: 0 0 2rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.booking-how-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.booking-how-steps li {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.booking-how-steps li:hover {
+    box-shadow: 0 6px 22px rgba(10, 20, 18, 0.1);
+    transform: translateY(-2px);
+}
+
+.how-num {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--brand-amber);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.booking-how-steps li div strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+}
+
+.booking-how-steps li div p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ── Page footer ──────────────────────────────────────────── */
+
+.booking-footer {
+    background: var(--brand-dark);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 2rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.booking-footer-inner {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 40px);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    justify-content: space-between;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--brand-amber);
+    color: var(--brand-dark);
+    font-size: 0.78rem;
+    font-weight: 900;
+    border-radius: 7px;
+}
+
+.footer-brand-name {
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition: color 0.16s;
+}
+
+.footer-links a:hover {
+    color: var(--brand-amber);
+}
+
+.footer-copy {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.38);
+}
 
 /* ── Responsive ───────────────────────────────────────────── */
 
@@ -1207,6 +1455,7 @@ a:focus-visible {
 
     .route-grid,
     .details-grid,
+    .trip-config-grid,
     .fare-strip,
     .manage-panel {
         grid-template-columns: 1fr;
@@ -1231,6 +1480,28 @@ a:focus-visible {
     .trust-inner article {
         min-height: auto;
         padding: 22px 18px;
+    }
+
+    .booking-how-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .booking-footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 440px) {
+    .booking-how-steps {
+        grid-template-columns: 1fr;
+    }
+    .booking-how-inner {
+        text-align: left;
+    }
+    .footer-links {
+        gap: 0.4rem 1rem;
     }
 }
 
