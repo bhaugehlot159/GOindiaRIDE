@@ -516,6 +516,10 @@
     return Math.max(0, Math.round(toNumber(value, 0)));
   }
 
+  function roundDistance(value) {
+    return Math.max(0, Number(toNumber(value, 0).toFixed(2)));
+  }
+
   function normalizeKey(value) {
     return sanitizeText(value, 80).toLowerCase();
   }
@@ -1664,7 +1668,7 @@
       pickupState,
       dropState,
       interState,
-      distanceKm: roundMoney(distanceKm),
+      distanceKm: roundDistance(distanceKm),
       estimatedDurationMin,
       baseFare,
       distanceFare,

@@ -274,7 +274,7 @@ test('fare calculator uses official Rajmarg Yatra route toll quote when supplied
   });
 
   assert.equal(estimate.distanceSource, 'official_route_planner');
-  assert.equal(estimate.distanceKm, 253);
+  assert.equal(estimate.distanceKm, 253.26);
   assert.equal(estimate.tollSource, 'official_rajmarg_yatra_route_planner');
   assert.equal(estimate.tollCharge, 300);
   assert.equal(estimate.tollRequiresAdminReview, false);

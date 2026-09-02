@@ -634,17 +634,6 @@
 
         const directFromPoint = parseCoordinatePoint(from);
         const directToPoint = parseCoordinatePoint(to);
-        if (directFromPoint && directToPoint) {
-            const straightLineKm = haversineKm(directFromPoint, directToPoint);
-            return {
-                km: Math.max(straightLineKm * estimateRoadMultiplier(straightLineKm, fromText, toText), 1),
-                source: 'browser_coordinate',
-                pickupState: '',
-                dropState: '',
-                routeStates: []
-            };
-        }
-
         const routeKm = parseRouteDistanceKm(fromText, toText);
 
         const staticFrom = resolveCoordinate(fromText);

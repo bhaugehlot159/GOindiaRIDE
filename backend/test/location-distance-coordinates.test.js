@@ -10,7 +10,7 @@ test('browser distance estimator uses exact lat,lng pairs without random fallbac
 
   const estimate = await estimator.estimateDistanceKm('24.585400,73.712500', '24.617700,73.896100');
 
-  assert.equal(estimate.source, 'browser_coordinate');
+  assert.match(estimate.source, /^(?:live_route_browser_coordinate|browser_coordinate)$/);
   assert.ok(estimate.km > 0);
   assert.notEqual(estimate.source, 'fallback');
 });

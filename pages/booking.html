@@ -809,11 +809,27 @@
             <div class="summary-section">
                 <!-- Fare Estimate -->
                 <div class="fare-card">
-                    <div class="fare-title">
-                        <i class="fas fa-receipt"></i>
-                        Live Fare
+                    <div class="fare-card-header">
+                        <div class="fare-title">
+                            <i class="fas fa-receipt"></i>
+                            <span>Fare summary</span>
+                        </div>
+                        <span class="fare-live-badge"><i class="fas fa-circle"></i> Live quote</span>
                     </div>
                     <div class="booking-context-chips" id="bookingContextChips"></div>
+
+                    <div class="fare-hero">
+                        <div>
+                            <span class="fare-hero-label">Estimated total</span>
+                            <small>Inclusive of applicable taxes and route charges</small>
+                        </div>
+                        <strong id="totalFare">₹0</strong>
+                    </div>
+
+                    <div class="fare-breakdown-heading">
+                        <span>Trip breakdown</span>
+                        <small>Transparent pricing</small>
+                    </div>
 
                     <div class="fare-item">
                         <span class="label">Base Fare</span>
@@ -919,14 +935,9 @@
                         <span class="amount" id="promoDiscount">-₹0</span>
                     </div>
 
-                    <div class="fare-item total">
-                        <span class="label">Total Amount</span>
-                        <span class="amount" id="totalFare">₹0</span>
-                    </div>
-
-                    <p style="color: #68788a; font-size: 0.85rem; margin-top: 1rem;">
+                    <p class="fare-trust-note">
                         <i class="fas fa-info-circle"></i>
-                        Fare is calculated from the selected route and saved with the booking for admin review.
+                        Final fare is calculated from the selected route and saved with your booking for review.
                     </p>
                 </div>
 
@@ -1381,7 +1392,6 @@
 <script src="../optimization.js?v=20260531-opt2" async></script>
 </body>
 </html>
-
 
 
 

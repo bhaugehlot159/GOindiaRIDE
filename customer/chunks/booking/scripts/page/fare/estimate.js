@@ -73,6 +73,7 @@
                 budgetAmount: Number.parseFloat(document.getElementById('budgetAmount').value || 0) || 0,
                 distanceKm: Number.parseFloat(document.getElementById('distanceKm').textContent) || 0,
                 distanceSource: sanitizeInput(document.getElementById('distanceSource').textContent || 'fallback'),
+                routeData: typeof latestLiveRouteData !== 'undefined' ? latestLiveRouteData : null,
                 stops: routeStops,
                 travelAssurance,
                 flightDetails: travelAssurance.flightDetails,
@@ -123,7 +124,7 @@
             };
 
             if (Number.isFinite(Number(values.distanceKm))) {
-                setText('distanceKm', String(Math.max(0, Math.round(Number(values.distanceKm)))));
+                setText('distanceKm', String(Math.max(0, Number(Number(values.distanceKm).toFixed(2)))));
             }
             if (values.distanceSource) {
                 setText('distanceSource', String(values.distanceSource).replace(/_/g, ' '));
@@ -170,6 +171,30 @@
             setText('taxesFare', formatCurrency(values.taxesFare || 0));
             setText('promoDiscount', `-${formatCurrency(values.promoDiscount || 0)}`);
             setText('totalFare', formatCurrency(values.totalFare || values.amount || 0));
+
+            const optionalFareRows = [
+                ['extraDistanceFare', values.extraDistanceFare],
+                ['extraTimeFare', values.extraTimeFare],
+                ['passengerFare', values.passengerFare],
+                ['tripPlanFare', values.tripPlanFare],
+                ['luggageFare', values.luggageFare],
+                ['extrasFare', values.extrasFare],
+                ['safetyFare', values.safetyFare],
+                ['stopFare', values.stopFare],
+                ['returnTripFare', values.returnTripFare || values.roundTripCharge],
+                ['tollFare', values.tollCharge],
+                ['parkingFare', values.parkingCharge],
+                ['stateTaxFare', values.otherStateTax || values.stateTax],
+                ['nightFare', values.driverNightBatta || values.nightCharge],
+                ['customerBidFare', customerBidAmount],
+                ['paymentFee', values.paymentFee],
+                ['taxesFare', values.taxesFare],
+                ['promoDiscount', values.promoDiscount]
+            ];
+            optionalFareRows.forEach(([id, rawValue]) => {
+                const row = document.getElementById(id)?.closest('.fare-item');
+                if (row) row.classList.toggle('fare-item-empty', Number(rawValue || 0) <= 0);
+            });
 
             latestFareEstimate = values;
             syncCabMiniFare(values);

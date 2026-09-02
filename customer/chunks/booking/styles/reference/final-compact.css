@@ -628,3 +628,177 @@
         body.booking-page.professional-booking #journeyModeRow {
             display: grid !important;
         }
+
+        body.booking-page.professional-booking .fare-card {
+            border: 1px solid #d9e3ee !important;
+            border-radius: 18px !important;
+            box-shadow: 0 16px 34px rgba(21, 54, 82, 0.1) !important;
+            overflow: hidden;
+        }
+
+        body.booking-page.professional-booking .fare-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px solid #e7edf4;
+        }
+
+        body.booking-page.professional-booking .fare-card-header .fare-title {
+            margin: 0 !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 1rem !important;
+            letter-spacing: 0.01em;
+        }
+
+        body.booking-page.professional-booking .fare-card-header .fare-title i {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border-radius: 9px;
+            background: #eaf6ff;
+            color: #087ab6;
+            font-size: 0.82rem;
+        }
+
+        body.booking-page.professional-booking .fare-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.52rem;
+            border: 1px solid #bce8d3;
+            border-radius: 999px;
+            background: #f0fcf5;
+            color: #16784b;
+            font-size: 0.64rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        body.booking-page.professional-booking .fare-live-badge i {
+            font-size: 0.42rem;
+        }
+
+        body.booking-page.professional-booking .fare-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 0.8rem 0;
+            padding: 0.85rem 0.95rem;
+            border: 1px solid #cfe8f7;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #f4fbff 0%, #eef8f5 100%);
+        }
+
+        body.booking-page.professional-booking .fare-hero > div {
+            display: grid;
+            gap: 0.18rem;
+        }
+
+        body.booking-page.professional-booking .fare-hero-label {
+            color: #31516e;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .fare-hero small {
+            color: #6b7f91;
+            font-size: 0.67rem;
+        }
+
+        body.booking-page.professional-booking .fare-hero strong {
+            color: #0b668f;
+            font-size: 1.72rem;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            white-space: nowrap;
+        }
+
+        body.booking-page.professional-booking .fare-breakdown-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin: 0.15rem 0 0.2rem;
+            color: #243e58;
+            font-size: 0.74rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        body.booking-page.professional-booking .fare-breakdown-heading small {
+            color: #8191a0;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        body.booking-page.professional-booking .fare-trust-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+            margin: 0.8rem 0 0 !important;
+            padding-top: 0.7rem;
+            border-top: 1px solid #e7edf4;
+            color: #68788a !important;
+            font-size: 0.68rem !important;
+        }
+
+        body.booking-page.professional-booking .fare-trust-note i {
+            color: #1684ba;
+            margin-top: 0.1rem;
+        }
+
+        body.booking-page.professional-booking .fare-item-empty {
+            display: none !important;
+        }
+
+        @media (min-width: 761px) {
+            body.booking-page.professional-booking .container {
+                max-width: 1120px !important;
+            }
+
+            body.booking-page.professional-booking .cab-booking-console,
+            body.booking-page.professional-booking .advanced-booking-drawer,
+            body.booking-page.professional-booking .cab-content-section {
+                max-width: 1080px !important;
+            }
+
+            body.booking-page.professional-booking .advanced-booking-drawer[open] .booking-grid {
+                grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr) !important;
+                align-items: start;
+                gap: 1.15rem !important;
+            }
+
+            body.booking-page.professional-booking .advanced-booking-drawer[open] .summary-section {
+                position: sticky;
+                top: 1rem;
+            }
+
+            body.booking-page.professional-booking .fare-hero strong {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 520px) {
+            body.booking-page.professional-booking .fare-card-header {
+                align-items: flex-start;
+            }
+
+            body.booking-page.professional-booking .fare-hero strong {
+                font-size: 1.45rem;
+            }
+
+            body.booking-page.professional-booking .fare-hero small {
+                max-width: 170px;
+            }
+        }

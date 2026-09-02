@@ -145,7 +145,8 @@
                 ? latestFareEstimate
                 : (fareCalculator ? fareCalculator.estimateBookingFare(fareEstimateInputs) : buildFallbackFareEstimate(fareEstimateInputs));
             const totalFare = Number(currentFareEstimate.totalFare || currentFareEstimate.amount || parseCurrencyValue(document.getElementById('totalFare').textContent) || 0);
-            const distance = Math.max(0, Math.round(Number(currentFareEstimate.distanceKm || parseInt(document.getElementById('distanceKm').textContent, 10) || 0)));
+            const distanceValue = Number(currentFareEstimate.distanceKm || parseFloat(document.getElementById('distanceKm').textContent) || 0);
+            const distance = Number.isFinite(distanceValue) ? Math.max(0, Number(distanceValue.toFixed(2))) : 0;
             const distanceSource = sanitizeInput(currentFareEstimate.distanceSource || document.getElementById('distanceSource').textContent || '');
             if (BOOKING_STRICT_LIVE_MODE && (!distance || !isLiveDistanceResolved(distanceSource))) {
                 showError('Live route distance unavailable. Please choose valid pickup/drop from suggestions and try again.');

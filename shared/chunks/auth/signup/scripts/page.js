@@ -137,6 +137,21 @@
             return Array.from(map.values());
         }
 
+        function mergeRecordsFromRecords(records) {
+            const map = new Map();
+            records.forEach((row) => {
+                if (!row || typeof row !== 'object') return;
+                const idSeed = String(row.id || '').trim();
+                const emailSeed = sanitizeEmail(row.email || '');
+                const phoneSeed = normalizePhoneForStorage(row.phone || row.mobile || '');
+                const roleSeed = String(row.role || row.userType || '').toLowerCase();
+                const identity = idSeed || `${emailSeed}|${phoneSeed}|${roleSeed}`;
+                if (!identity) return;
+                map.set(identity, map.has(identity) ? { ...map.get(identity), ...row } : { ...row });
+            });
+            return Array.from(map.values());
+        }
+
         function writeRecords(keys, records) {
             const safe = Array.isArray(records) ? records : [];
             keys.forEach((key) => {
@@ -189,12 +204,13 @@
             const customers = Array.isArray(backup.customers) ? backup.customers.filter((row) => isCustomerRecord(row)) : [];
             const drivers = Array.isArray(backup.drivers) ? backup.drivers.filter((row) => isDriverRecord(row)) : [];
 
-            if (!mergeRecords(CUSTOMER_STORAGE_KEYS).length && customers.length) {
-                writeRecords(CUSTOMER_STORAGE_KEYS, customers);
-            }
-            if (!mergeRecords(DRIVER_STORAGE_KEYS).length && drivers.length) {
-                writeRecords(DRIVER_STORAGE_KEYS, drivers);
-            }
+            const existingCustomers = mergeRecords(CUSTOMER_STORAGE_KEYS);
+            const existingDrivers = mergeRecords(DRIVER_STORAGE_KEYS);
+            const mergedCustomers = mergeRecordsFromRecords([...existingCustomers, ...customers]);
+            const mergedDrivers = mergeRecordsFromRecords([...existingDrivers, ...drivers]);
+
+            if (mergedCustomers.length) writeRecords(CUSTOMER_STORAGE_KEYS, mergedCustomers);
+            if (mergedDrivers.length) writeRecords(DRIVER_STORAGE_KEYS, mergedDrivers);
         }
 
         restoreAccountBackupIfNeeded();

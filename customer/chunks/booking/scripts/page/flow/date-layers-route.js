@@ -209,7 +209,7 @@
             const ready = routeIsReady(values);
 
             setTextIfPresent('cabMiniTotalFare', formatCurrency(total));
-            setTextIfPresent('cabMiniDistance', `${Math.max(0, Math.round(distanceKm))} km`);
+            setTextIfPresent('cabMiniDistance', `${Math.max(0, Number(Number(distanceKm).toFixed(2)))} km`);
             setTextIfPresent('cabMiniVehicle', vehicleLabel);
             setTextIfPresent('cabMiniFareMode', flowLabel);
             setTextIfPresent(

@@ -13,6 +13,7 @@
         }
 
         let distanceEstimateToken = 0;
+        let latestLiveRouteData = null;
 
         function updateRoutePreview(statusText = '') {
             const pickup = sanitizeInput(document.getElementById('pickup')?.value || '').trim();
@@ -50,6 +51,7 @@
             const sourceNode = document.getElementById('distanceSource');
 
             if (!pickup || !dropoff) {
+                latestLiveRouteData = null;
                 document.getElementById('distanceKm').textContent = '0';
                 if (sourceNode) sourceNode.textContent = 'Awaiting route';
                 updateRoutePreview();
@@ -68,7 +70,16 @@
                     if (token !== distanceEstimateToken) return;
 
                     const km = Number(estimate && estimate.km);
-                    const finalKm = Number.isFinite(km) && km > 0 ? Math.max(1, Math.round(km)) : 0;
+                    const finalKm = Number.isFinite(km) && km > 0
+                        ? Math.max(1, Number(km.toFixed(2)))
+                        : 0;
+                    latestLiveRouteData = finalKm > 0
+                        ? {
+                            source: String((estimate && estimate.source) || 'browser_live_route'),
+                            distance: `${finalKm} km`,
+                            duration: `${Number(estimate && estimate.durationMinutes || 0)} min`
+                        }
+                        : null;
                     document.getElementById('distanceKm').textContent = String(finalKm);
 
                     if (sourceNode) {
@@ -78,6 +89,7 @@
                             : (BOOKING_STRICT_LIVE_MODE ? 'live route unavailable' : 'fallback');
                     }
                 } else {
+                    latestLiveRouteData = null;
                     document.getElementById('distanceKm').textContent = '0';
                     if (sourceNode) sourceNode.textContent = BOOKING_STRICT_LIVE_MODE ? 'live route unavailable' : 'fallback';
                     if (BOOKING_STRICT_LIVE_MODE) {
@@ -85,6 +97,7 @@
                     }
                 }
             } catch (error) {
+                latestLiveRouteData = null;
                 document.getElementById('distanceKm').textContent = '0';
                 if (sourceNode) sourceNode.textContent = BOOKING_STRICT_LIVE_MODE ? 'live route unavailable' : 'fallback';
                 if (BOOKING_STRICT_LIVE_MODE) {

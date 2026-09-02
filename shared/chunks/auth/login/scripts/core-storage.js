@@ -26,7 +26,7 @@ const ADMIN_OTP_METHOD_KEY='admin2FAMethod';
 const ADMIN_OTP_CONTEXT_KEY='goindiaride_admin_otp_context';
 const LOGIN_RISK_THRESHOLD=35;
 const LIVE_BACKEND_REQUIRED_FOR_LOGIN=true;
-const AUTH_REQUEST_TIMEOUT_MS=45000;
+const AUTH_REQUEST_TIMEOUT_MS=12000;
 const LOGIN_REDIRECT_DELAY_MS=0;
 const ADMIN_MAX_ATTEMPTS=5;
 const ADMIN_LOCK_MS=15*60*1000;
@@ -138,6 +138,16 @@ function mergeRecords(keys){
   });
   return Array.from(map.values());
 }
+function mergeRecordsFromRecords(records){
+  const map=new Map();
+  records.forEach((r)=>{
+    if(!r||typeof r!=='object')return;
+    const id=r.id||[sanitizeEmail(r.email||''),normalizePhoneForLookup(r.phone||r.mobile||''),String(r.role||r.userType||'user').toLowerCase()].join('|');
+    if(!id)return;
+    map.set(id,map.has(id)?{...map.get(id),...r}:{...r});
+  });
+  return Array.from(map.values());
+}
 function persistAccountBackup(){
   const customers=mergeRecords(CUSTOMER_READ_STORAGE_KEYS).filter((row)=>isCustomerRecord(row));
   const drivers=mergeRecords(DRIVER_READ_STORAGE_KEYS).filter((row)=>isDriverRecord(row));
@@ -169,11 +179,15 @@ function restoreAccountBackupIfNeeded(){
   const safeCustomers=[...baseCustomers,...accountCustomers].filter((row)=>isCustomerRecord(row));
   const safeDrivers=[...baseDrivers,...accountDrivers].filter((row)=>isDriverRecord(row));
 
-  if(!mergeRecords(CUSTOMER_READ_STORAGE_KEYS).length&&safeCustomers.length){
-    CUSTOMER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(safeCustomers)));
+  const existingCustomers=mergeRecords(CUSTOMER_READ_STORAGE_KEYS);
+  const existingDrivers=mergeRecords(DRIVER_READ_STORAGE_KEYS);
+  const mergedCustomers=mergeRecordsFromRecords([...existingCustomers,...safeCustomers]);
+  const mergedDrivers=mergeRecordsFromRecords([...existingDrivers,...safeDrivers]);
+  if(mergedCustomers.length){
+    CUSTOMER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(mergedCustomers)));
   }
-  if(!mergeRecords(DRIVER_READ_STORAGE_KEYS).length&&safeDrivers.length){
-    DRIVER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(safeDrivers)));
+  if(mergedDrivers.length){
+    DRIVER_STORAGE_KEYS.forEach((key)=>localStorage.setItem(key,JSON.stringify(mergedDrivers)));
   }
 }
 function upsertSessionCustomerArtifact(record){
