@@ -171,55 +171,7 @@
                         <span class="panel-badge">No login</span>
                     </div>
 
-                    <section class="quick-booking-primary" aria-label="Quick cab booking">
-                        <div class="primary-booking-grid">
-                            <label class="field-shell field-wide">
-                                <span>Pickup</span>
-                                <input id="quickPickupInput" type="text" autocomplete="street-address" placeholder="City, airport, hotel, station">
-                            </label>
-                            <label class="field-shell field-wide">
-                                <span>Drop</span>
-                                <input id="quickDropInput" type="text" autocomplete="street-address" placeholder="Destination city or exact place">
-                            </label>
-                            <label class="field-shell">
-                                <span>Date</span>
-                                <input id="quickRideDateInput" type="date">
-                            </label>
-                            <label class="field-shell">
-                                <span>Time</span>
-                                <input id="quickRideTimeInput" type="time">
-                            </label>
-                            <label class="field-shell">
-                                <span>Mobile</span>
-                                <input id="quickPhoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number">
-                            </label>
-                            <label class="field-shell">
-                                <span>Cab needed</span>
-                                <select id="quickVehicleModelInput">
-                                    <option value="">Any clean cab</option>
-                                    <option value="hatchback_car">Mini / Hatchback</option>
-                                    <option value="sedan_car">Sedan</option>
-                                    <option value="suv_ertiga_car">SUV Ertiga</option>
-                                    <option value="suv_innova_car">SUV Innova</option>
-                                    <option value="tempo_traveller">Tempo Traveller</option>
-                                    <option value="premium_car">Premium car</option>
-                                    <option value="ev_car">EV car</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="primary-submit-row">
-                            <button class="submit-btn" id="quickSubmitBookingBtn" type="submit">
-                                <i class="fas fa-paper-plane" aria-hidden="true"></i>
-                                <span>Submit booking</span>
-                            </button>
-                        </div>
-                        <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
-                    </section>
-
-                    <details class="detail-drawer options-drawer">
-                        <summary>More options</summary>
-                        <div class="more-options-body">
-
+                    <!-- STEP 1: Service type tabs -->
                     <div class="service-tabs" role="tablist" aria-label="Trip service type">
                         <button type="button" class="service-tab is-active" data-trip-plan="airport" role="tab" aria-selected="true">
                             <i class="fas fa-plane-arrival" aria-hidden="true"></i>
@@ -239,6 +191,7 @@
                         </button>
                     </div>
 
+                    <!-- Trip plan info strip -->
                     <section class="trip-plan-detail" id="tripPlanDetail" aria-live="polite" aria-label="Selected booking mode details">
                         <div class="trip-plan-heading">
                             <span id="tripPlanKicker">Airport booking mode</span>
@@ -248,13 +201,134 @@
                         <div class="trip-plan-points" id="tripPlanPoints" aria-label="Selected mode features"></div>
                     </section>
 
+                    <!-- STEP 2: Journey type -->
                     <div class="journey-toggle" aria-label="Journey type">
                         <button type="button" class="journey-btn is-active" data-journey="one_way">One way</button>
                         <button type="button" class="journey-btn" data-journey="round_trip">Round trip</button>
                         <button type="button" class="journey-btn" data-journey="multi_city">Multi stop</button>
                     </div>
 
-                    <div class="service-detail-row">
+                    <!-- STEP 3: Route + Date/Time -->
+                    <div class="route-grid">
+                        <label class="field-shell field-wide">
+                            <span>Pickup location</span>
+                            <input id="pickupInput" name="pickup" type="text" autocomplete="street-address" placeholder="City, airport, hotel, station" aria-controls="pickupLocationSuggestPanel" aria-expanded="false" required>
+                            <button class="field-icon-btn" type="button" id="useLocationBtn" aria-label="Use current location" title="Use current location">
+                                <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
+                            </button>
+                            <div class="location-suggest-panel" id="pickupLocationSuggestPanel" role="listbox" aria-label="Pickup location suggestions" hidden></div>
+                        </label>
+                        <label class="field-shell field-wide">
+                            <span>Drop location</span>
+                            <input id="dropInput" name="drop" type="text" autocomplete="street-address" placeholder="Destination city or exact place" aria-controls="dropLocationSuggestPanel" aria-expanded="false" required>
+                            <div class="location-suggest-panel" id="dropLocationSuggestPanel" role="listbox" aria-label="Drop location suggestions" hidden></div>
+                        </label>
+                        <label class="field-shell">
+                            <span>Date</span>
+                            <input id="rideDateInput" name="rideDate" type="date" required>
+                        </label>
+                        <label class="field-shell">
+                            <span>Time</span>
+                            <input id="rideTimeInput" name="rideTime" type="time" required>
+                        </label>
+                        <label class="field-shell return-field">
+                            <span>Return date</span>
+                            <input id="returnDateInput" name="returnDate" type="date">
+                        </label>
+                        <label class="field-shell return-field">
+                            <span>Return time</span>
+                            <input id="returnTimeInput" name="returnTime" type="time">
+                        </label>
+                        <label class="field-shell stop-field">
+                            <span>Stop 1</span>
+                            <input id="stopOneInput" name="stopOne" type="text" placeholder="Optional stop">
+                        </label>
+                        <label class="field-shell stop-field">
+                            <span>Stop 2</span>
+                            <input id="stopTwoInput" name="stopTwo" type="text" placeholder="Optional stop">
+                        </label>
+                    </div>
+
+                    <!-- Popular route pills -->
+                    <div class="route-suggestions" aria-label="Popular cab routes">
+                        <button type="button" data-pickup="Jaipur Airport" data-drop="Jaipur City">Jaipur Airport to City</button>
+                        <button type="button" data-pickup="Delhi Airport" data-drop="Jaipur">Delhi Airport to Jaipur</button>
+                        <button type="button" data-pickup="Jaipur" data-drop="Agra Taj Mahal">Jaipur to Agra</button>
+                        <button type="button" data-pickup="Jaipur" data-drop="Udaipur">Jaipur to Udaipur</button>
+                    </div>
+
+                    <!-- STEP 4: Vehicle selection -->
+                    <div class="vehicle-row" aria-label="Vehicle type">
+                        <button type="button" class="vehicle-card is-active" data-vehicle="economy">
+                            <i class="fas fa-car-side" aria-hidden="true"></i>
+                            <strong>Mini</strong>
+                            <span>2 seats</span>
+                            <span class="vc-fare">From ₹10/km</span>
+                        </button>
+                        <button type="button" class="vehicle-card" data-vehicle="sedan">
+                            <i class="fas fa-taxi" aria-hidden="true"></i>
+                            <strong>Sedan</strong>
+                            <span>4 seats</span>
+                            <span class="vc-fare">From ₹12/km</span>
+                        </button>
+                        <button type="button" class="vehicle-card" data-vehicle="suv">
+                            <i class="fas fa-van-shuttle" aria-hidden="true"></i>
+                            <strong>SUV</strong>
+                            <span>6 seats</span>
+                            <span class="vc-fare">From ₹16/km</span>
+                        </button>
+                    </div>
+
+                    <!-- STEP 5: Passenger + Trip details -->
+                    <div class="details-grid">
+                        <label class="field-shell">
+                            <span>Your name</span>
+                            <input id="nameInput" name="customerName" type="text" autocomplete="name" placeholder="Your name">
+                        </label>
+                        <label class="field-shell">
+                            <span>Mobile *</span>
+                            <input id="phoneInput" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number" required aria-required="true">
+                        </label>
+                        <label class="field-shell">
+                            <span>Email</span>
+                            <input id="emailInput" name="customerEmail" type="email" autocomplete="email" placeholder="Receipt email">
+                        </label>
+                        <label class="field-shell">
+                            <span>Passengers</span>
+                            <select id="passengerInput" name="passengers">
+                                <option value="1">1 passenger</option>
+                                <option value="2">2 passengers</option>
+                                <option value="3">3 passengers</option>
+                                <option value="4">4 passengers</option>
+                                <option value="5">5 passengers</option>
+                                <option value="6">6 passengers</option>
+                            </select>
+                        </label>
+                        <label class="field-shell">
+                            <span>Luggage</span>
+                            <select id="luggageInput" name="luggage">
+                                <option value="none">No luggage</option>
+                                <option value="small">Small bag</option>
+                                <option value="medium">2-3 bags</option>
+                                <option value="large">Large luggage</option>
+                            </select>
+                        </label>
+                        <label class="field-shell">
+                            <span>Payment</span>
+                            <select id="paymentInput" name="paymentMethod">
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI</option>
+                                <option value="card">Card</option>
+                            </select>
+                        </label>
+                        <label class="field-shell">
+                            <span>Budget (INR)</span>
+                            <input id="budgetInput" name="budgetAmount" type="number" min="0" step="50" inputmode="numeric" placeholder="Optional">
+                        </label>
+                        <label class="field-shell">
+                            <span>Promo code</span>
+                            <input id="promoInput" name="promoCode" type="text" placeholder="Promo code">
+                        </label>
                         <label class="field-shell">
                             <span>Service mode</span>
                             <select id="serviceModeInput" name="serviceMode">
@@ -298,127 +372,8 @@
                                 <option value="parcel_only">Parcel</option>
                                 <option value="driver_only">Driver</option>
                                 <option value="ambulance">Ambulance</option>
-                                <option value="loading_auto_truck">Loading Auto & Truck</option>
+                                <option value="loading_auto_truck">Loading Auto &amp; Truck</option>
                             </select>
-                        </label>
-                    </div>
-
-                    <div class="route-grid">
-                        <label class="field-shell field-wide">
-                            <span>Pickup</span>
-                            <input id="pickupInput" name="pickup" type="text" autocomplete="street-address" placeholder="City, airport, hotel, station" aria-controls="pickupLocationSuggestPanel" aria-expanded="false" required>
-                            <button class="field-icon-btn" type="button" id="useLocationBtn" aria-label="Use current location" title="Use current location">
-                                <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
-                            </button>
-                            <div class="location-suggest-panel" id="pickupLocationSuggestPanel" role="listbox" aria-label="Pickup location suggestions" hidden></div>
-                        </label>
-                        <label class="field-shell field-wide">
-                            <span>Drop</span>
-                            <input id="dropInput" name="drop" type="text" autocomplete="street-address" placeholder="Destination city or exact place" aria-controls="dropLocationSuggestPanel" aria-expanded="false" required>
-                            <div class="location-suggest-panel" id="dropLocationSuggestPanel" role="listbox" aria-label="Drop location suggestions" hidden></div>
-                        </label>
-                        <label class="field-shell">
-                            <span>Date</span>
-                            <input id="rideDateInput" name="rideDate" type="date" required>
-                        </label>
-                        <label class="field-shell">
-                            <span>Time</span>
-                            <input id="rideTimeInput" name="rideTime" type="time" required>
-                        </label>
-                        <label class="field-shell return-field">
-                            <span>Return date</span>
-                            <input id="returnDateInput" name="returnDate" type="date">
-                        </label>
-                        <label class="field-shell return-field">
-                            <span>Return time</span>
-                            <input id="returnTimeInput" name="returnTime" type="time">
-                        </label>
-                        <label class="field-shell stop-field">
-                            <span>Stop 1</span>
-                            <input id="stopOneInput" name="stopOne" type="text" placeholder="Optional stop">
-                        </label>
-                        <label class="field-shell stop-field">
-                            <span>Stop 2</span>
-                            <input id="stopTwoInput" name="stopTwo" type="text" placeholder="Optional stop">
-                        </label>
-                    </div>
-
-                    <div class="route-suggestions" aria-label="Popular cab routes">
-                        <button type="button" data-pickup="Jaipur Airport" data-drop="Jaipur City">Jaipur Airport to City</button>
-                        <button type="button" data-pickup="Delhi Airport" data-drop="Jaipur">Delhi Airport to Jaipur</button>
-                        <button type="button" data-pickup="Jaipur" data-drop="Agra Taj Mahal">Jaipur to Agra</button>
-                        <button type="button" data-pickup="Jaipur" data-drop="Udaipur">Jaipur to Udaipur</button>
-                    </div>
-
-                    <div class="vehicle-row" aria-label="Vehicle type">
-                        <button type="button" class="vehicle-card is-active" data-vehicle="economy">
-                            <i class="fas fa-car-side" aria-hidden="true"></i>
-                            <strong>Mini</strong>
-                            <span>2 seats</span>
-                            <span class="vc-fare">From ₹10/km</span>
-                        </button>
-                        <button type="button" class="vehicle-card" data-vehicle="sedan">
-                            <i class="fas fa-taxi" aria-hidden="true"></i>
-                            <strong>Sedan</strong>
-                            <span>4 seats</span>
-                            <span class="vc-fare">From ₹12/km</span>
-                        </button>
-                        <button type="button" class="vehicle-card" data-vehicle="suv">
-                            <i class="fas fa-van-shuttle" aria-hidden="true"></i>
-                            <strong>SUV</strong>
-                            <span>6 seats</span>
-                            <span class="vc-fare">From ₹16/km</span>
-                        </button>
-                    </div>
-
-                    <div class="details-grid">
-                        <label class="field-shell">
-                            <span>Name</span>
-                            <input id="nameInput" name="customerName" type="text" autocomplete="name" placeholder="Your name">
-                        </label>
-                        <label class="field-shell">
-                            <span>Mobile *</span>
-                            <input id="phoneInput" name="customerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91 mobile number" required aria-required="true">
-                        </label>
-                        <label class="field-shell">
-                            <span>Email</span>
-                            <input id="emailInput" name="customerEmail" type="email" autocomplete="email" placeholder="Receipt email">
-                        </label>
-                        <label class="field-shell">
-                            <span>Passengers</span>
-                            <select id="passengerInput" name="passengers">
-                                <option value="1">1 passenger</option>
-                                <option value="2">2 passengers</option>
-                                <option value="3">3 passengers</option>
-                                <option value="4">4 passengers</option>
-                                <option value="5">5 passengers</option>
-                                <option value="6">6 passengers</option>
-                            </select>
-                        </label>
-                        <label class="field-shell">
-                            <span>Luggage</span>
-                            <select id="luggageInput" name="luggage">
-                                <option value="none">No luggage</option>
-                                <option value="small">Small bag</option>
-                                <option value="medium">2-3 bags</option>
-                                <option value="large">Large luggage</option>
-                            </select>
-                        </label>
-                        <label class="field-shell">
-                            <span>Payment</span>
-                            <select id="paymentInput" name="paymentMethod">
-                                <option value="cash">Cash</option>
-                                <option value="upi">UPI</option>
-                                <option value="card">Card</option>
-                            </select>
-                        </label>
-                        <label class="field-shell">
-                            <span>Budget</span>
-                            <input id="budgetInput" name="budgetAmount" type="number" min="0" step="50" inputmode="numeric" placeholder="Optional INR">
-                        </label>
-                        <label class="field-shell">
-                            <span>Promo</span>
-                            <input id="promoInput" name="promoCode" type="text" placeholder="Promo code">
                         </label>
                         <label class="field-shell field-wide">
                             <span>Notes</span>
@@ -426,10 +381,37 @@
                         </label>
                     </div>
 
+                    <!-- Fare strip -->
+                    <div class="fare-strip" aria-live="polite">
+                        <div>
+                            <span>Est. fare</span>
+                            <strong id="fareAmount">INR 0</strong>
+                        </div>
+                        <div>
+                            <span>Distance</span>
+                            <strong id="distanceAmount">0 km</strong>
+                        </div>
+                        <div>
+                            <span>Toll</span>
+                            <strong id="tollAmount">INR 0</strong>
+                            <small id="tollNote">Mapped route check</small>
+                        </div>
+                        <div>
+                            <span>Status</span>
+                            <strong id="syncStatus">Ready</strong>
+                        </div>
+                    </div>
+
+                    <p class="fare-transparency-note">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        Estimated fare is calculated on distance + tolls. Final fare confirmed by driver before trip starts.
+                    </p>
+
+                    <!-- Advanced collapsible sections -->
                     <div class="feature-more-stack" aria-label="Extra booking features">
                         <details class="detail-drawer" data-feature-more="airport">
                             <summary>
-                                <span><i class="fas fa-plane-circle-check" aria-hidden="true"></i> Airport / terminal more</span>
+                                <span><i class="fas fa-plane-circle-check" aria-hidden="true"></i> Airport / terminal details</span>
                                 <small>Flight, terminal and meet details</small>
                             </summary>
                             <div class="details-grid extra-grid">
@@ -446,7 +428,7 @@
                                     <input id="airlineInput" name="airlineName" type="text" placeholder="Air India, IndiGo, train name">
                                 </label>
                                 <label class="field-shell">
-                                    <span>Meet & greet name</span>
+                                    <span>Meet &amp; greet name</span>
                                     <input id="meetGreetInput" name="meetGreetName" type="text" placeholder="Placard name or guest name">
                                 </label>
                             </div>
@@ -454,7 +436,7 @@
 
                         <details class="detail-drawer" data-feature-more="policy">
                             <summary>
-                                <span><i class="fas fa-clipboard-check" aria-hidden="true"></i> Trip policy more</span>
+                                <span><i class="fas fa-clipboard-check" aria-hidden="true"></i> Trip policy</span>
                                 <small>Waiting, reschedule and driver call</small>
                             </summary>
                             <div class="details-grid extra-grid">
@@ -506,7 +488,7 @@
 
                         <details class="detail-drawer" data-feature-more="billing">
                             <summary>
-                                <span><i class="fas fa-file-invoice" aria-hidden="true"></i> Billing / admin more</span>
+                                <span><i class="fas fa-file-invoice" aria-hidden="true"></i> Billing / admin</span>
                                 <small>GST and edit reference</small>
                             </summary>
                             <div class="details-grid extra-grid">
@@ -527,7 +509,7 @@
 
                         <details class="detail-drawer" data-feature-more="comfort">
                             <summary>
-                                <span><i class="fas fa-shield-heart" aria-hidden="true"></i> Add-ons / safety more</span>
+                                <span><i class="fas fa-shield-heart" aria-hidden="true"></i> Add-ons &amp; safety</span>
                                 <small>Comfort and accessibility requests</small>
                             </summary>
                             <div class="option-grid" aria-label="Add-ons and safety preferences">
@@ -549,31 +531,7 @@
                         </details>
                     </div>
 
-                    <div class="fare-strip" aria-live="polite">
-                        <div>
-                            <span>Estimated fare</span>
-                            <strong id="fareAmount">INR 0</strong>
-                        </div>
-                        <div>
-                            <span>Distance</span>
-                            <strong id="distanceAmount">0 km</strong>
-                        </div>
-                        <div>
-                            <span>Toll</span>
-                            <strong id="tollAmount">INR 0</strong>
-                            <small id="tollNote">Mapped route check</small>
-                        </div>
-                        <div>
-                            <span>Status</span>
-                            <strong id="syncStatus">Ready</strong>
-                        </div>
-                    </div>
-
-                    <p class="fare-transparency-note">
-                        <i class="fas fa-info-circle" aria-hidden="true"></i>
-                        Estimated fare is calculated on distance + tolls. Final fare confirmed by driver before trip starts.
-                    </p>
-
+                    <!-- Trust strip -->
                     <div class="rating-trust-strip">
                         <div class="rtb green">
                             <i class="fas fa-shield-halved" aria-hidden="true"></i>
@@ -589,6 +547,7 @@
                         </div>
                     </div>
 
+                    <!-- Submit row -->
                     <div class="submit-row">
                         <button class="submit-btn" id="submitBookingBtn" type="submit">
                             <i class="fas fa-paper-plane" aria-hidden="true"></i>
@@ -600,6 +559,9 @@
                         </a>
                     </div>
 
+                    <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
+
+                    <!-- Manage booking panel -->
                     <div class="manage-panel" aria-label="Manage existing booking">
                         <label class="field-shell">
                             <span>Booking reference</span>
@@ -614,8 +576,6 @@
                             <span>New</span>
                         </button>
                     </div>
-                        </div>
-                    </details>
                 </form>
             </div>
         </section>

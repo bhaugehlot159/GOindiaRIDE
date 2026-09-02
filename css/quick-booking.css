@@ -1,17 +1,32 @@
+/* ============================================================
+   GO India RIDE — Book Cab Page Stylesheet
+   Professional international-standard design
+   ============================================================ */
+
 :root {
     color-scheme: light;
-    --ink: #10201e;
-    --muted: #5d6a67;
-    --line: #dfe8e4;
-    --surface: #ffffff;
-    --soft: #f4f7f6;
-    --green: #080c12;
-    --green-dark: #080c12;
-    --amber: #f0b44f;
-    --blue: #2a2117;
-    --danger: #b42318;
-    --shadow: 0 18px 45px rgba(14, 31, 29, 0.22);
+    /* Brand palette */
+    --brand-dark:   #0b1623;
+    --brand-amber:  #f0a500;
+    --brand-amber2: #e09000;
+    --brand-green:  #1a6b4a;
+    --surface:      #ffffff;
+    --soft:         #f5f7f6;
+    --border:       #e2eae6;
+    --ink:          #0d1b2a;
+    --muted:        #566a63;
+    --danger:       #b42318;
+    --shadow-panel: 0 24px 60px rgba(10, 20, 18, 0.24);
+    /* Legacy aliases kept for any remaining references */
+    --green:        #0b1623;
+    --green-dark:   #0b1623;
+    --amber:        #f0a500;
+    --blue:         #1a6b4a;
+    --line:         #e2eae6;
+    --shadow:       0 24px 60px rgba(10, 20, 18, 0.24);
 }
+
+/* ── Reset / Base ─────────────────────────────────────────── */
 
 * {
     box-sizing: border-box;
@@ -28,12 +43,15 @@ body.quick-booking-page {
     color: var(--ink);
     background: #eef4f1;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
     letter-spacing: 0;
 }
 
 button,
 input,
-select {
+select,
+textarea {
     font: inherit;
     letter-spacing: 0;
 }
@@ -42,6 +60,18 @@ a {
     color: inherit;
     text-decoration: none;
 }
+
+/* ── Focus ring ───────────────────────────────────────────── */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+    outline: 3px solid rgba(240, 165, 0, 0.5);
+    outline-offset: 2px;
+}
+
+/* ── Topbar ───────────────────────────────────────────────── */
 
 .quick-topbar {
     position: fixed;
@@ -55,8 +85,8 @@ a {
     min-height: 64px;
     padding: 10px clamp(16px, 3vw, 40px);
     color: #ffffff;
-    background: rgba(8, 12, 18, 0.94);
-    border-bottom: 1px solid rgba(240, 180, 79, 0.28);
+    background: rgba(11, 22, 35, 0.96);
+    border-bottom: 1px solid rgba(240, 165, 0, 0.22);
     backdrop-filter: blur(14px);
 }
 
@@ -78,12 +108,12 @@ a {
     height: 38px;
     place-items: center;
     color: transparent;
-    background: #080c12 url("../assets/brand/goindiaride-mark.png") center / 82% auto no-repeat;
-    border: 1px solid rgba(216, 138, 22, 0.52);
+    background: #0b1623 url("../assets/brand/goindiaride-mark.png") center / 82% auto no-repeat;
+    border: 1px solid rgba(240, 165, 0, 0.45);
     border-radius: 8px;
     font-size: 0;
     font-weight: 900;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
     overflow: hidden;
 }
 
@@ -96,34 +126,34 @@ a {
     gap: 8px;
     padding: 0 14px;
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition: background 0.18s, border-color 0.18s, transform 0.18s;
 }
 
-.topbar-actions a:focus-visible,
-.brand-lockup:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-a:focus-visible {
-    outline: 3px solid rgba(216, 138, 22, 0.45);
-    outline-offset: 2px;
+.topbar-actions a:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
 }
+
+/* ── Hero section ─────────────────────────────────────────── */
 
 .booking-hero {
     position: relative;
     min-height: 88vh;
     padding: 98px clamp(16px, 4vw, 56px) 44px;
     background:
-        linear-gradient(90deg, rgba(8, 12, 18, 0.84) 0%, rgba(8, 12, 18, 0.62) 38%, rgba(42, 33, 23, 0.22) 100%),
+        linear-gradient(90deg, rgba(11, 22, 35, 0.88) 0%, rgba(11, 22, 35, 0.64) 40%, rgba(42, 33, 23, 0.18) 100%),
         url("../assets/images/quick-booking-hero.png") center / cover no-repeat;
 }
 
 .hero-shade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.25));
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.22));
     pointer-events: none;
 }
 
@@ -131,11 +161,10 @@ a:focus-visible {
     position: relative;
     z-index: 1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(386px, 520px);
+    grid-template-columns: minmax(0, 1fr) minmax(390px, 530px);
     gap: clamp(24px, 4vw, 52px);
-    align-items: center;
-    max-width: 1240px;
-    min-height: calc(88vh - 142px);
+    align-items: start;
+    max-width: 1260px;
     margin: 0 auto;
 }
 
@@ -148,31 +177,32 @@ a:focus-visible {
 .hero-copy {
     max-width: 660px;
     color: #ffffff;
+    padding-top: 16px;
 }
 
-.eyebrow,
-.panel-kicker {
-    margin: 0 0 8px;
-    color: #f6c15d;
-    font-size: 0.82rem;
+.eyebrow {
+    margin: 0 0 10px;
+    color: var(--brand-amber);
+    font-size: 0.78rem;
     font-weight: 800;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .hero-copy h1 {
-    max-width: 700px;
+    max-width: 680px;
     margin: 0;
-    font-size: 3.75rem;
+    font-size: clamp(2.4rem, 5vw, 3.75rem);
     line-height: 1.02;
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
     overflow-wrap: anywhere;
 }
 
 .hero-lede {
-    max-width: 560px;
-    margin: 18px 0 0;
-    color: rgba(255, 255, 255, 0.88);
-    font-size: 1.1rem;
+    max-width: 540px;
+    margin: 16px 0 0;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 1.08rem;
     line-height: 1.65;
 }
 
@@ -180,29 +210,33 @@ a:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 24px;
+    margin-top: 22px;
 }
 
 .hero-proof span {
     display: inline-flex;
     align-items: center;
-    min-height: 38px;
+    min-height: 36px;
     gap: 8px;
     padding: 0 12px;
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.13);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
 }
+
+/* ── Booking panel card ───────────────────────────────────── */
 
 .booking-panel {
     width: 100%;
     max-width: 100%;
-    padding: 18px;
-    background: rgba(255, 255, 255, 0.97);
-    border: 1px solid rgba(255, 255, 255, 0.66);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-panel);
 }
 
 .panel-head {
@@ -210,12 +244,25 @@ a:focus-visible {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-kicker {
+    margin: 0 0 4px;
+    color: var(--brand-amber);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .panel-head h2 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.28rem;
+    font-weight: 900;
+    color: var(--ink);
     line-height: 1.2;
 }
 
@@ -223,147 +270,84 @@ a:focus-visible {
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    min-height: 32px;
+    min-height: 30px;
     padding: 0 10px;
-    color: var(--green-dark);
-    background: #e5f5ef;
-    border: 1px solid #bfdfd4;
-    border-radius: 8px;
-    font-size: 0.82rem;
+    color: var(--brand-green);
+    background: #e8f5ef;
+    border: 1px solid #bfdfce;
+    border-radius: 20px;
+    font-size: 0.76rem;
     font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
-.quick-booking-primary {
-    display: grid;
-    gap: 12px;
-}
-
-.primary-booking-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.primary-submit-row {
-    display: grid;
-}
-
-.primary-submit-row .submit-btn {
-    width: 100%;
-}
-
-.options-drawer {
-    margin-top: 14px;
-    padding: 0;
-    overflow: hidden;
-    background: #f8fbfa;
-}
-
-.options-drawer summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 46px;
-    padding: 0 12px;
-    list-style: none;
-}
-
-.options-drawer summary::-webkit-details-marker {
-    display: none;
-}
-
-.options-drawer summary::after {
-    content: '+';
-    color: var(--green-dark);
-    font-size: 1.25rem;
-    line-height: 1;
-}
-
-.options-drawer[open] summary::after {
-    content: '-';
-}
-
-.more-options-body {
-    padding: 0 10px 10px;
-    border-top: 1px solid #dce8e4;
-}
+/* ── Service type tabs ────────────────────────────────────── */
 
 .service-tabs {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
-    margin-bottom: 10px;
-}
-
-.service-tab,
-.journey-btn,
-.vehicle-card,
-.route-suggestions button,
-.submit-btn,
-.ghost-btn,
-.field-icon-btn {
-    cursor: pointer;
-    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    margin-bottom: 14px;
 }
 
 .service-tab {
-    display: grid;
-    min-height: 68px;
-    place-items: center;
-    gap: 5px;
-    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 72px;
+    padding: 10px 6px;
     color: var(--muted);
     background: var(--soft);
-    border: 1px solid var(--line);
-    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
     font-size: 0.82rem;
     font-weight: 800;
+    cursor: pointer;
+    transition: border-color 0.16s, background 0.16s, color 0.16s, transform 0.16s;
+    text-align: center;
 }
 
 .service-tab i {
-    color: var(--blue);
+    font-size: 1.3rem;
+    color: var(--muted);
+    transition: color 0.16s;
+}
+
+.service-tab:hover:not(.is-active) {
+    border-color: var(--brand-amber);
+    background: #fffbf0;
+    color: var(--ink);
+    transform: translateY(-1px);
+}
+
+.service-tab:hover:not(.is-active) i {
+    color: var(--brand-amber);
 }
 
 .service-tab.is-active {
-    color: #ffffff;
-    background: var(--green);
-    border-color: var(--green);
+    color: var(--ink);
+    background: #fff8e6;
+    border-color: var(--brand-amber);
+    border-width: 2px;
 }
 
 .service-tab.is-active i {
-    color: #ffffff;
+    color: var(--brand-amber2);
 }
 
-.journey-toggle {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.journey-btn {
-    min-height: 40px;
-    color: var(--green-dark);
-    background: #eef7f3;
-    border: 1px solid #cce3da;
-    border-radius: 8px;
-    font-weight: 800;
-}
-
-.journey-btn.is-active {
-    color: #ffffff;
-    background: var(--green-dark);
-    border-color: var(--green-dark);
-}
+/* ── Trip plan detail strip ───────────────────────────────── */
 
 .trip-plan-detail {
     display: grid;
     gap: 8px;
-    margin: 0 0 12px;
-    padding: 12px;
+    margin: 0 0 14px;
+    padding: 12px 14px;
     background: #f2faf7;
-    border: 1px solid #cce3da;
-    border-radius: 8px;
+    border: 1px solid #c8e0d6;
+    border-radius: 10px;
 }
 
 .trip-plan-heading {
@@ -381,23 +365,25 @@ a:focus-visible {
 }
 
 .trip-plan-heading span {
-    color: var(--green);
-    font-size: 0.72rem;
+    color: var(--brand-green);
+    font-size: 0.7rem;
     font-weight: 900;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .trip-plan-heading strong {
     color: var(--ink);
-    font-size: 0.96rem;
+    font-size: 0.94rem;
+    font-weight: 900;
     line-height: 1.3;
     text-align: right;
 }
 
 .trip-plan-detail p {
     margin: 0;
-    color: #34423f;
-    font-size: 0.84rem;
+    color: #2d4039;
+    font-size: 0.83rem;
     line-height: 1.45;
 }
 
@@ -413,11 +399,11 @@ a:focus-visible {
     min-width: 0;
     gap: 7px;
     padding: 8px;
-    color: #233c38;
+    color: #1d3830;
     background: #ffffff;
-    border: 1px solid #d9e6e1;
+    border: 1px solid #d2e6de;
     border-radius: 8px;
-    font-size: 0.76rem;
+    font-size: 0.75rem;
     font-weight: 800;
     line-height: 1.38;
 }
@@ -425,21 +411,53 @@ a:focus-visible {
 .trip-plan-point i {
     flex: 0 0 auto;
     margin-top: 2px;
-    color: var(--green);
+    color: var(--brand-green);
     font-size: 0.72rem;
 }
 
-.service-detail-row,
-.route-grid,
-.details-grid {
+/* ── Journey type toggle ──────────────────────────────────── */
+
+.journey-toggle {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.journey-btn {
+    min-height: 40px;
+    padding: 0 8px;
+    color: var(--ink);
+    background: var(--soft);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: border-color 0.16s, background 0.16s, color 0.16s;
+}
+
+.journey-btn.is-active {
+    color: #ffffff;
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+}
+
+.journey-btn:hover:not(.is-active) {
+    border-color: var(--brand-dark);
+    background: #edf0ef;
+}
+
+/* ── Route + date/time grid ───────────────────────────────── */
+
+.route-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+    margin-bottom: 4px;
 }
 
-.service-detail-row {
-    margin-bottom: 12px;
-}
+/* ── Field shell ──────────────────────────────────────────── */
 
 .field-wide {
     grid-column: 1 / -1;
@@ -451,10 +469,13 @@ a:focus-visible {
     gap: 5px;
 }
 
-.field-shell span {
-    color: #34423f;
-    font-size: 0.78rem;
+.field-shell > span,
+.field-shell > label > span {
+    color: var(--muted);
+    font-size: 0.72rem;
     font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 .field-shell input,
@@ -464,12 +485,21 @@ a:focus-visible {
     padding: 0 12px;
     color: var(--ink);
     background: #ffffff;
-    border: 1px solid #cfdcd8;
+    border: 1.5px solid #d0dbd6;
     border-radius: 8px;
+    font-size: 0.92rem;
+    transition: border-color 0.16s, box-shadow 0.16s;
+}
+
+.field-shell input:focus,
+.field-shell select:focus {
+    border-color: var(--brand-amber);
+    box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.14);
+    outline: none;
 }
 
 .field-shell input::placeholder {
-    color: #7a8784;
+    color: #9aaba6;
 }
 
 .field-shell.has-error input,
@@ -478,6 +508,7 @@ a:focus-visible {
     box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.12);
 }
 
+/* location button inside pickup field */
 .field-icon-btn {
     position: absolute;
     right: 6px;
@@ -486,15 +517,23 @@ a:focus-visible {
     width: 34px;
     height: 34px;
     place-items: center;
-    color: var(--green);
-    background: #e7f5ef;
-    border: 1px solid #cce3da;
-    border-radius: 8px;
+    color: var(--brand-green);
+    background: #e6f4ee;
+    border: 1px solid #c2ddd2;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.field-icon-btn:hover {
+    background: #d4eee2;
 }
 
 #pickupInput {
     padding-right: 48px;
 }
+
+/* ── Location autocomplete panel ─────────────────────────── */
 
 .location-suggest-panel {
     position: absolute;
@@ -507,9 +546,9 @@ a:focus-visible {
     overflow-y: auto;
     padding: 6px;
     background: #ffffff;
-    border: 1px solid #bfd7cf;
-    border-radius: 8px;
-    box-shadow: 0 18px 42px rgba(3, 25, 22, 0.18);
+    border: 1.5px solid #b8d5c8;
+    border-radius: 10px;
+    box-shadow: 0 18px 42px rgba(3, 25, 22, 0.16);
 }
 
 .location-suggest-panel[hidden] {
@@ -524,7 +563,7 @@ a:focus-visible {
     width: 100%;
     min-height: 44px;
     padding: 8px 10px;
-    color: #082622;
+    color: #0a201c;
     background: transparent;
     border: 0;
     border-radius: 7px;
@@ -553,10 +592,12 @@ a:focus-visible {
 }
 
 .location-suggest-panel small {
-    color: #526763;
+    color: #4f6762;
     font-size: 0.72rem;
     font-weight: 800;
 }
+
+/* return / stop fields hidden until relevant journey selected */
 
 .return-field,
 .stop-field {
@@ -571,84 +612,142 @@ a:focus-visible {
     display: grid;
 }
 
+/* ── Route suggestion pills ───────────────────────────────── */
+
 .route-suggestions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 12px 0;
+    margin: 12px 0 14px;
 }
 
 .route-suggestions button {
     flex: 1 1 130px;
-    min-height: 36px;
-    padding: 0 11px;
-    color: #123633;
-    background: #f8fbfa;
-    border: 1px solid #d9e6e1;
-    border-radius: 8px;
+    min-height: 34px;
+    padding: 0 12px;
+    color: var(--ink);
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 800;
+    font-weight: 700;
     text-align: center;
     white-space: normal;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 
-.route-suggestions button:hover,
-.vehicle-card:hover,
-.topbar-actions a:hover {
+.route-suggestions button:hover {
+    background: #fff8e6;
+    border-color: var(--brand-amber);
     transform: translateY(-1px);
 }
+
+/* ── Vehicle cards ────────────────────────────────────────── */
 
 .vehicle-row {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .vehicle-card {
-    display: grid;
-    min-height: 76px;
-    gap: 3px;
-    place-items: center;
-    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 92px;
+    padding: 12px 8px;
     color: var(--muted);
     background: #ffffff;
-    border: 1px solid #d7e2de;
-    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.16s, background 0.16s, color 0.16s, transform 0.16s;
 }
 
 .vehicle-card i {
-    color: var(--amber);
+    font-size: 1.65rem;
+    color: var(--muted);
+    margin-bottom: 1px;
+    transition: color 0.16s;
 }
 
 .vehicle-card strong {
+    display: block;
     color: var(--ink);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    font-weight: 900;
 }
 
 .vehicle-card span {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.vehicle-card .vc-fare {
+    display: block;
     font-size: 0.76rem;
+    color: var(--brand-green);
+    font-weight: 900;
+    margin-top: 2px;
 }
 
 .vehicle-card.is-active {
-    background: #fff6e7;
-    border-color: var(--amber);
+    background: #fff8e6;
+    border-color: var(--brand-amber);
+    border-width: 2px;
+    color: var(--ink);
 }
+
+.vehicle-card.is-active i {
+    color: var(--brand-amber2);
+}
+
+.vehicle-card.is-active .vc-fare {
+    color: var(--brand-amber2);
+}
+
+.vehicle-card:hover:not(.is-active) {
+    border-color: var(--brand-amber);
+    background: #fffbf2;
+    transform: translateY(-1px);
+}
+
+.vehicle-card:hover:not(.is-active) i {
+    color: var(--brand-amber);
+}
+
+/* ── Passenger / trip details grid ───────────────────────── */
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+/* ── Fare strip ───────────────────────────────────────────── */
 
 .fare-strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
-    margin-top: 12px;
+    margin: 0 0 10px;
 }
 
 .fare-strip div {
     min-width: 0;
-    min-height: 62px;
-    padding: 10px;
-    background: #f7faf9;
-    border: 1px solid #dce8e4;
-    border-radius: 8px;
+    min-height: 64px;
+    padding: 10px 12px;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
 }
 
 .fare-strip span,
@@ -659,42 +758,75 @@ a:focus-visible {
 
 .fare-strip span {
     color: var(--muted);
-    font-size: 0.76rem;
+    font-size: 0.7rem;
     font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .fare-strip strong {
-    margin-top: 4px;
+    margin-top: 5px;
     color: var(--ink);
-    font-size: 0.96rem;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+/* highlight estimated fare cell */
+.fare-strip div:first-child {
+    background: #fff8e6;
+    border-color: rgba(240, 165, 0, 0.35);
+}
+
+.fare-strip div:first-child strong {
+    color: var(--brand-amber2);
 }
 
 .fare-strip small {
     display: block;
     margin-top: 3px;
     color: var(--muted);
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     font-weight: 800;
     line-height: 1.2;
     overflow-wrap: anywhere;
 }
 
+/* ── Fare transparency note ───────────────────────────────── */
+
+.fare-transparency-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0 0 14px;
+    padding: 9px 12px;
+    background: #edfaf3;
+    border: 1px solid #b0ddc4;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: #185a36;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.fare-transparency-note i {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--brand-green);
+}
+
+/* ── Advanced drawers stack ───────────────────────────────── */
+
 .feature-more-stack {
     display: grid;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 6px;
+    margin-bottom: 14px;
 }
 
 .detail-drawer {
-    margin-top: 12px;
-    padding: 10px;
-    background: #f8fbfa;
-    border: 1px solid #dce8e4;
-    border-radius: 8px;
-}
-
-.feature-more-stack .detail-drawer {
-    margin-top: 0;
+    padding: 10px 12px;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
 }
 
 .detail-drawer summary {
@@ -703,7 +835,8 @@ a:focus-visible {
     justify-content: space-between;
     gap: 10px;
     cursor: pointer;
-    color: var(--green-dark);
+    color: var(--ink);
+    font-size: 0.86rem;
     font-weight: 900;
     list-style: none;
 }
@@ -715,9 +848,9 @@ a:focus-visible {
 .detail-drawer summary::after {
     flex: 0 0 auto;
     content: "\f078";
-    color: #657873;
+    color: var(--muted);
     font-family: "Font Awesome 6 Free";
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 900;
     transition: transform 0.2s ease;
 }
@@ -734,10 +867,14 @@ a:focus-visible {
     overflow-wrap: anywhere;
 }
 
+.detail-drawer summary i {
+    color: var(--brand-amber2);
+}
+
 .detail-drawer summary small {
-    color: #657873;
+    color: var(--muted);
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 700;
     text-align: right;
     overflow-wrap: anywhere;
 }
@@ -749,7 +886,7 @@ a:focus-visible {
 .option-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 7px;
     margin-top: 10px;
 }
 
@@ -759,61 +896,59 @@ a:focus-visible {
     min-height: 38px;
     gap: 8px;
     padding: 8px 10px;
-    color: #243b37;
+    color: var(--ink);
     background: #ffffff;
-    border: 1px solid #d7e2de;
+    border: 1px solid var(--border);
     border-radius: 8px;
     font-size: 0.82rem;
-    font-weight: 800;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 .option-grid input {
     width: 16px;
     height: 16px;
-    accent-color: var(--green);
+    accent-color: var(--brand-amber);
+    flex-shrink: 0;
 }
+
+/* ── Rating trust strip ───────────────────────────────────── */
+
+.rating-trust-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    margin: 0 0 14px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.rating-trust-strip .rtb {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.rating-trust-strip .rtb i {
+    color: var(--brand-amber2);
+}
+
+.rating-trust-strip .rtb.green i {
+    color: var(--brand-green);
+}
+
+/* ── Submit row ───────────────────────────────────────────── */
 
 .submit-row {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 10px;
-    margin-top: 12px;
-}
-
-.manage-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    gap: 8px;
-    align-items: end;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #dce8e4;
-}
-
-.manage-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 46px;
-    gap: 8px;
-    padding: 0 12px;
-    color: #ffffff;
-    background: var(--blue);
-    border: 1px solid var(--blue);
-    border-radius: 8px;
-    font-weight: 900;
-    cursor: pointer;
-}
-
-.manage-btn.is-muted {
-    color: var(--green-dark);
-    background: #edf7f3;
-    border-color: #cce3da;
-}
-
-.booking-panel.is-editing {
-    border-color: rgba(216, 138, 22, 0.55);
-    box-shadow: 0 18px 45px rgba(48, 37, 16, 0.22);
+    margin-bottom: 4px;
 }
 
 .submit-btn,
@@ -821,44 +956,60 @@ a:focus-visible {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 48px;
+    min-height: 50px;
     gap: 9px;
     border-radius: 8px;
+    font-size: 0.96rem;
     font-weight: 900;
+    cursor: pointer;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.16s;
 }
 
 .submit-btn {
-    color: #ffffff;
-    background: var(--green);
-    border: 1px solid var(--green);
+    width: 100%;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--brand-amber) 0%, var(--brand-amber2) 100%);
+    border: none;
+    box-shadow: 0 4px 18px rgba(240, 165, 0, 0.32);
+    letter-spacing: 0.02em;
 }
 
 .submit-btn:hover {
-    background: var(--green-dark);
+    background: linear-gradient(135deg, #f5b020 0%, #d48600 100%);
+    box-shadow: 0 6px 24px rgba(240, 165, 0, 0.42);
+    transform: translateY(-1px);
 }
 
 .submit-btn:disabled {
     cursor: wait;
-    opacity: 0.78;
+    opacity: 0.72;
+    transform: none;
 }
 
 .ghost-btn {
-    padding: 0 14px;
-    color: var(--green-dark);
-    background: #eaf7f2;
-    border: 1px solid #cce3da;
+    padding: 0 16px;
+    color: #1a5f38;
+    background: #e8f7ef;
+    border: 1.5px solid #bddece;
 }
 
+.ghost-btn:hover {
+    background: #d4eedf;
+    transform: translateY(-1px);
+}
+
+/* ── Form message ─────────────────────────────────────────── */
+
 .form-message {
-    min-height: 24px;
-    margin: 10px 0 0;
+    min-height: 22px;
+    margin: 8px 0 0;
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     line-height: 1.4;
 }
 
 .form-message.is-success {
-    color: var(--green-dark);
+    color: var(--brand-green);
     font-weight: 800;
 }
 
@@ -867,51 +1018,116 @@ a:focus-visible {
     font-weight: 800;
 }
 
+/* ── Manage booking panel ─────────────────────────────────── */
+
+.manage-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: end;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.manage-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    gap: 8px;
+    padding: 0 14px;
+    color: #ffffff;
+    background: var(--brand-dark);
+    border: 1px solid var(--brand-dark);
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background 0.16s;
+}
+
+.manage-btn:hover {
+    background: #1a2e45;
+}
+
+.manage-btn.is-muted {
+    color: var(--ink);
+    background: var(--soft);
+    border-color: var(--border);
+}
+
+.manage-btn.is-muted:hover {
+    background: #e0eae5;
+}
+
+.booking-panel.is-editing {
+    border-color: rgba(240, 165, 0, 0.5);
+    box-shadow: 0 24px 60px rgba(48, 37, 16, 0.22);
+}
+
+/* ── Trust band ───────────────────────────────────────────── */
+
 .trust-band {
-    background: #ffffff;
-    border-top: 1px solid #dce7e2;
+    background: var(--surface);
+    border-top: 1px solid #d8e5de;
 }
 
 .trust-inner {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1px;
-    max-width: 1240px;
+    max-width: 1260px;
     margin: 0 auto;
-    background: #dfe8e4;
+    background: #d8e5de;
 }
 
 .trust-inner article {
-    min-height: 176px;
-    padding: 28px;
-    background: #ffffff;
+    min-height: 180px;
+    padding: 30px 28px;
+    background: var(--surface);
 }
 
 .trust-inner i {
-    color: var(--green);
-    font-size: 1.55rem;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-green);
+    background: #e8f5ee;
+    border-radius: 50%;
+    font-size: 1.35rem;
 }
 
 .trust-inner h2 {
     margin: 14px 0 8px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--ink);
 }
 
 .trust-inner p {
     margin: 0;
     color: var(--muted);
-    line-height: 1.55;
+    font-size: 0.9rem;
+    line-height: 1.58;
 }
+
+/* ── How it works band (uses site-improvements.css for most styles) ── */
+
+/* ── Responsive ───────────────────────────────────────────── */
 
 @media (max-width: 980px) {
     .booking-hero {
         min-height: auto;
-        padding-top: 92px;
+        padding-top: 88px;
+        padding-bottom: 32px;
     }
 
     .hero-inner {
         grid-template-columns: 1fr;
-        min-height: auto;
+        gap: 28px;
     }
 
     .booking-panel {
@@ -920,19 +1136,11 @@ a:focus-visible {
 
     .hero-copy {
         order: 2;
+        padding-top: 0;
     }
 
     .hero-copy h1 {
-        max-width: 720px;
-        font-size: 2.9rem;
-    }
-
-    .booking-panel {
-        order: 1;
-    }
-
-    .hero-copy {
-        order: 2;
+        font-size: clamp(2rem, 6vw, 2.8rem);
     }
 }
 
@@ -958,17 +1166,17 @@ a:focus-visible {
     }
 
     .booking-hero {
-        padding: 82px 12px 24px;
+        padding: 80px 12px 20px;
         background-position: 62% center;
     }
 
     .hero-copy h1 {
-        font-size: 2.12rem;
+        font-size: 2.1rem;
         line-height: 1.08;
     }
 
     .hero-lede {
-        font-size: 1rem;
+        font-size: 0.98rem;
     }
 
     .hero-proof span {
@@ -997,27 +1205,27 @@ a:focus-visible {
         grid-template-columns: 1fr;
     }
 
-    .service-detail-row,
-    .primary-booking-grid,
     .route-grid,
     .details-grid,
     .fare-strip,
-    .submit-row,
-    .manage-panel,
-    .trust-inner {
+    .manage-panel {
         grid-template-columns: 1fr;
+    }
+
+    .submit-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ghost-btn {
+        width: 100%;
     }
 
     .option-grid {
         grid-template-columns: 1fr;
     }
 
-    .vehicle-card {
-        min-height: 72px;
-    }
-
-    .ghost-btn {
-        width: 100%;
+    .trust-inner {
+        grid-template-columns: 1fr;
     }
 
     .trust-inner article {
@@ -1028,10 +1236,55 @@ a:focus-visible {
 
 @media (max-width: 380px) {
     .hero-copy h1 {
-        font-size: 1.84rem;
+        font-size: 1.82rem;
     }
 
-    .vehicle-row {
-        grid-template-columns: 1fr;
+    .vehicle-card {
+        min-height: 80px;
+    }
+}
+
+/* ── WhatsApp float button ────────────────────────────────── */
+
+.wa-float-btn {
+    position: fixed;
+    z-index: 50;
+    bottom: 22px;
+    right: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 52px;
+    padding: 0 18px;
+    color: #ffffff;
+    background: #25d366;
+    border-radius: 28px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    box-shadow: 0 6px 22px rgba(37, 211, 102, 0.4);
+    transition: background 0.16s, transform 0.16s, box-shadow 0.16s;
+}
+
+.wa-float-btn i {
+    font-size: 1.3rem;
+}
+
+.wa-float-btn:hover {
+    background: #1fba5a;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(37, 211, 102, 0.48);
+}
+
+@media (max-width: 480px) {
+    .wa-float-btn .wa-float-label {
+        display: none;
+    }
+
+    .wa-float-btn {
+        width: 52px;
+        min-height: 52px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
     }
 }
