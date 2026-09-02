@@ -1745,7 +1745,11 @@
 
     function setVehicle(vehicleType) {
         state.vehicleType = cleanText(vehicleType, 40) || 'economy';
-        document.querySelectorAll('.vehicle-card').forEach((card) => card.classList.toggle('is-active', card.dataset.vehicle === state.vehicleType));
+        document.querySelectorAll('.vehicle-card').forEach((card) => {
+            const active = card.dataset.vehicle === state.vehicleType;
+            card.classList.toggle('is-active', active);
+            card.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
     }
 
     function hasSelectOption(input, value) {

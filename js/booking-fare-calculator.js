@@ -1494,7 +1494,7 @@
       : (coordinateDistance.source || (enforceTrustedDistance ? 'untrusted' : requestedDistanceSource));
     const distanceKm = enforceTrustedDistance
       ? (trustedDistanceKm || 0)
-      : (routeDistanceKm > 0 && (officialRouteDistance || requestedDistanceSource === 'fallback' || requestedDistanceSource === 'route_table' || !providedDistance)
+      : (routeDistanceKm > 0
         ? routeDistanceKm
         : providedDistance || trustedDistanceKm || 1);
     const vehicleType = normalizeVehicleType(rawInput.vehicleType || rawInput.rideType, rawInput.vehicleModel);

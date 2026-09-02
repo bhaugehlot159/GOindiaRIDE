@@ -34,6 +34,7 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: 88px;
 }
 
 body.quick-booking-page {
@@ -615,16 +616,18 @@ a:focus-visible {
 /* ── Route suggestion pills ───────────────────────────────── */
 
 .route-suggestions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin: 12px 0 14px;
 }
 
 .route-suggestions button {
-    flex: 1 1 130px;
-    min-height: 34px;
-    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 10px;
     color: var(--ink);
     background: var(--soft);
     border: 1px solid var(--border);
@@ -1409,8 +1412,13 @@ a:focus-visible {
 
     .topbar-actions a {
         min-width: 40px;
+        width: 40px;
         padding: 0 10px;
         justify-content: center;
+    }
+
+    .topbar-actions a span {
+        display: none;
     }
 
     .booking-hero {
@@ -1459,6 +1467,10 @@ a:focus-visible {
     .fare-strip,
     .manage-panel {
         grid-template-columns: 1fr;
+    }
+
+    .route-suggestions {
+        grid-template-columns: 1fr 1fr;
     }
 
     .submit-row {
