@@ -277,11 +277,9 @@
 
         function canApplyBookingBackgroundRefinement(target, basePoint) {
             const currentPoint = getBookingMapCoordsForTarget(target);
-            // Only refine if location already exists AND is within accuracy threshold
-            // This ensures we select EXACT location without auto-filling empty fields
-            if (!currentPoint) return false;
+            if (!currentPoint) return true;
             if (pointsAreNearEnoughForRefinement(basePoint, currentPoint)) return true;
-            return false;
+            return isBetterBookingGeoPoint(basePoint, currentPoint);
         }
 
         function startBookingCurrentLocationRefinement(target, initialPoint, options = {}) {
