@@ -1186,7 +1186,7 @@
     };
   }
 
-  function estimateParkingCharge({
+  function calculateParkingChargeDetails({
     pickup,
     dropoff,
     routeData,
@@ -1205,17 +1205,58 @@
       })
     );
 
-    let parking = 0;
-    if (hasAnyKeyword(routeText, ['airport'])) parking += 60;
-    if (hasAnyKeyword(routeText, ['station', 'junction'])) parking += 35;
-    if (hasAnyKeyword(routeText, ['fort', 'palace', 'temple', 'museum', 'lake', 'market', 'mall', 'dargah'])) parking += 25;
-    if (normalizedTripPlan === 'airport' || normalizedServiceType === 'airport_transfer') parking += 30;
-    if (normalizedTripPlan === 'outstation') parking += 20;
-    if (normalizedServiceType === 'railway_station_transfer') parking += 15;
-    if (hasTourismRoute) parking += 20;
-    if (stopCount > 0) parking += stopCount * 15;
+    let parkingEstimate = 0;
+    const parkingReasons = [];
+    
+    if (hasAnyKeyword(routeText, ['airport'])) {
+      parkingEstimate += 60;
+      parkingReasons.push('airport');
+    }
+    if (hasAnyKeyword(routeText, ['station', 'junction'])) {
+      parkingEstimate += 35;
+      parkingReasons.push('station/junction');
+    }
+    if (hasAnyKeyword(routeText, ['fort', 'palace', 'temple', 'museum', 'lake', 'market', 'mall', 'dargah'])) {
+      parkingEstimate += 25;
+      parkingReasons.push('tourist location');
+    }
+    if (normalizedTripPlan === 'airport' || normalizedServiceType === 'airport_transfer') {
+      parkingEstimate += 30;
+      parkingReasons.push('airport transfer');
+    }
+    if (normalizedTripPlan === 'outstation') {
+      parkingEstimate += 20;
+      parkingReasons.push('outstation');
+    }
+    if (normalizedServiceType === 'railway_station_transfer') {
+      parkingEstimate += 15;
+      parkingReasons.push('railway transfer');
+    }
+    if (hasTourismRoute) {
+      parkingEstimate += 20;
+      parkingReasons.push('tourism route');
+    }
+    if (stopCount > 0) {
+      parkingEstimate += stopCount * 15;
+      parkingReasons.push(`${stopCount} stops`);
+    }
 
-    return roundMoney(parking);
+    return {
+      estimatedAmount: roundMoney(parkingEstimate),
+      reasons: parkingReasons,
+      note: 'Parking charges will be collected at destination based on actual usage'
+    };
+  }
+
+  function estimateParkingCharge({
+    pickup,
+    dropoff,
+    routeData,
+    stops,
+    tripPlan,
+    serviceType
+  }) {
+    return 0;
   }
 
   function pushUniqueState(list, stateName) {
@@ -1591,6 +1632,15 @@
     });
     const tollCharge = roundMoney(tollDetails.amount || 0);
 
+    const parkingChargeDetails = calculateParkingChargeDetails({
+      pickup,
+      dropoff,
+      routeData,
+      stops,
+      tripPlan,
+      serviceType: tripServiceType
+    });
+
     const parkingCharge = estimateParkingCharge({
       pickup,
       dropoff,
@@ -1627,7 +1677,7 @@
     const paymentMethod = normalizeKey(rawInput.paymentMethod || 'cash');
     const paymentFeeRate = PAYMENT_FEE_RATES[paymentMethod] || 0;
     const paymentFee = roundMoney((subtotal + tollCharge + parkingCharge + stateTax + nightCharge) * paymentFeeRate);
-    const gstTotal = roundMoney((subtotal + tollCharge + parkingCharge + stateTax + nightCharge + paymentFee) * 0.05);
+    const gstTotal = 0;
     const grossTotal = roundMoney(subtotal + tollCharge + parkingCharge + stateTax + nightCharge + paymentFee + gstTotal);
     const competitiveAdjustment = estimateCompetitiveMarketAdjustment({
       pickup,
@@ -1689,6 +1739,9 @@
       tollUsedReturnRate: tollDetails.usedReturnRate,
       tollRequiresAdminReview: Boolean(tollDetails.requiresAdminReview),
       parkingCharge,
+      parkingEstimatedAmount: parkingChargeDetails.estimatedAmount,
+      parkingReasons: parkingChargeDetails.reasons,
+      parkingCustomerNote: parkingChargeDetails.note,
       stateTax,
       stateTaxSource: stateTaxDetails.source,
       stateTaxDataVersion: stateTaxDetails.dataVersion,
