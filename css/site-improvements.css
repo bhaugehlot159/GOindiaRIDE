@@ -1,0 +1,661 @@
+/**
+ * GO India RIDE - Site-Wide Improvements
+ * Professional taxi website enhancements:
+ * - Mobile hamburger menu
+ * - WhatsApp floating button
+ * - Testimonials visible
+ * - General UX polish
+ * Applied globally without breaking existing styles.
+ */
+
+/* ============================================================
+   1. MOBILE HAMBURGER MENU
+   ============================================================ */
+
+/* Hamburger button — hidden on desktop */
+.navbar-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(240,180,79,0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.navbar-hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.navbar-hamburger.is-open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.navbar-hamburger.is-open span:nth-child(2) {
+    opacity: 0;
+}
+.navbar-hamburger.is-open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 640px) {
+    body.home-international .navbar-hamburger {
+        display: flex !important;
+        order: -1;
+    }
+
+    /* Mobile nav drawer */
+    body.home-international .navbar-links {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9998;
+        background: rgba(8,12,18,0.97) !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        padding: 80px 24px 32px !important;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        gap: 0 !important;
+    }
+
+    body.home-international .navbar-links.nav-open {
+        transform: translateX(0) !important;
+    }
+
+    /* Show all nav links in mobile drawer */
+    body.home-international .navbar-links > a {
+        display: flex !important;
+        align-items: center;
+        padding: 1rem 0 !important;
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        text-decoration: none;
+    }
+
+    body.home-international .navbar-links > a:hover {
+        color: #f0b44f !important;
+    }
+
+    body.home-international .auth-buttons {
+        margin-top: 1.5rem;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    body.home-international .auth-buttons .btn-login,
+    body.home-international .auth-buttons .btn-signup,
+    body.home-international .auth-buttons .btn-admin,
+    html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-login,
+    html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-signup,
+    html body.goi-global-theme.home-international nav.navbar.navbar .auth-buttons .btn-admin {
+        width: 100% !important;
+        min-height: 52px !important;
+        font-size: 1rem !important;
+        border-radius: 10px !important;
+        justify-content: center !important;
+        padding: 0.85rem 1rem !important;
+    }
+
+    body.home-international .auth-buttons .btn-signup {
+        background: #f0b44f !important;
+        color: #080c12 !important;
+        border-color: #f0b44f !important;
+    }
+
+    body.home-international .auth-buttons .btn-admin i {
+        display: inline-flex !important;
+    }
+
+    /* Close button inside nav */
+    .nav-close-btn {
+        position: absolute !important;
+        top: 18px !important;
+        right: 18px !important;
+        width: 40px !important;
+        height: 40px !important;
+        background: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+        color: #ffffff !important;
+        font-size: 1.2rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        z-index: 9999 !important;
+    }
+
+    /* Prevent body scroll when nav open */
+    body.nav-drawer-open {
+        overflow: hidden;
+    }
+}
+
+/* ============================================================
+   2. WHATSAPP FLOATING BUTTON (All pages)
+   ============================================================ */
+
+.wa-float-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 9990;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #25d366;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 50px;
+    padding: 12px 18px 12px 14px;
+    box-shadow: 0 6px 24px rgba(37,211,102,0.45);
+    font-family: Inter, "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+    font-weight: 800;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: wa-pulse 2.5s infinite;
+}
+
+.wa-float-btn:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 10px 32px rgba(37,211,102,0.55);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.wa-float-btn i {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.wa-float-label {
+    white-space: nowrap;
+}
+
+@keyframes wa-pulse {
+    0%, 100% { box-shadow: 0 6px 24px rgba(37,211,102,0.45); }
+    50%       { box-shadow: 0 6px 32px rgba(37,211,102,0.7); }
+}
+
+@media (max-width: 480px) {
+    .wa-float-btn {
+        bottom: 16px;
+        right: 14px;
+        padding: 12px;
+        border-radius: 50%;
+        width: 52px;
+        height: 52px;
+        justify-content: center;
+    }
+    .wa-float-label {
+        display: none;
+    }
+}
+
+/* ============================================================
+   3. TESTIMONIALS SECTION — always visible
+   ============================================================ */
+
+body.home-international .home-testimonials-band[hidden] {
+    display: block !important;
+}
+
+body.home-international .home-testimonials-band {
+    display: block !important;
+}
+
+/* Static testimonial cards when JS hasn't loaded */
+.home-story-static-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+@media (max-width: 860px) {
+    .home-story-static-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 540px) {
+    .home-story-static-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.home-story-card-static {
+    background: #ffffff;
+    border: 1px solid #d8e2df;
+    border-radius: 8px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.home-story-rating-static {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #fff5dc;
+    color: #7a4a00;
+    padding: 0.32rem 0.62rem;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 0.88rem;
+    width: fit-content;
+}
+
+.home-story-text {
+    color: #0d1b2a;
+    line-height: 1.6;
+    margin: 0;
+    flex: 1;
+}
+
+.home-story-author {
+    color: #536271;
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-top: auto;
+}
+
+.home-story-meta-text {
+    display: block;
+    color: #536271;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* ============================================================
+   4. HOMEPAGE — Safety actions responsive fix
+   ============================================================ */
+
+body.home-international .home-safety-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 1rem;
+    max-width: 560px;
+}
+
+body.home-international .home-safety-action {
+    display: flex !important;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 56px;
+    padding: 0.6rem 0.75rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    text-decoration: none;
+    color: #0d1b2a;
+}
+
+body.home-international .home-safety-action strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: #0d1b2a;
+}
+
+body.home-international .home-safety-action small {
+    display: block;
+    font-size: 0.72rem;
+    color: #536271;
+}
+
+body.home-international .home-safety-action i {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+body.home-international .home-safety-action.home-safety-sos {
+    background: rgba(185,28,28,0.08);
+    border-color: rgba(185,28,28,0.25);
+}
+
+body.home-international .home-safety-action.home-safety-sos i,
+body.home-international .home-safety-action.home-safety-sos strong {
+    color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+    body.home-international .home-safety-actions {
+        grid-template-columns: 1fr !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ============================================================
+   5. BOOKING CARD — mobile tweak
+   ============================================================ */
+
+@media (max-width: 640px) {
+    body.home-international .home-booking-card {
+        margin-top: 1.5rem;
+    }
+    body.home-international .home-service-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* ============================================================
+   6. TRUST STRIP — show on mobile too
+   ============================================================ */
+
+body.home-international .home-trust-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.2rem;
+    align-items: center;
+}
+
+body.home-international .home-trust-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #536271;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid #d8e2df;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+}
+
+body.home-international .home-trust-row span i {
+    color: #f0b44f;
+}
+
+/* ============================================================
+   7. FOOTER — mobile responsive
+   ============================================================ */
+
+@media (max-width: 480px) {
+    body.home-international .footer-content {
+        grid-template-columns: 1fr !important;
+    }
+    body.home-international .footer-bottom {
+        text-align: center !important;
+    }
+}
+
+/* ============================================================
+   8. ROUTE CARDS — mobile
+   ============================================================ */
+
+@media (max-width: 480px) {
+    body.home-international .home-route-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    body.home-international .home-route-card {
+        min-height: 120px;
+    }
+}
+
+/* ============================================================
+   9. QUICK BOOKING PAGE — mobile improvements
+   ============================================================ */
+
+@media (max-width: 480px) {
+    .booking-hero {
+        padding-top: 70px;
+    }
+    .booking-panel {
+        border-radius: 12px 12px 0 0;
+    }
+    .primary-booking-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ============================================================
+   10. GENERAL UTILITY — smooth scroll anchor offset
+   ============================================================ */
+
+html {
+    scroll-padding-top: 80px;
+}
+
+/* ============================================================
+   11. GOZO/SAVAARI-STYLE: HOW BOOKING WORKS BAND
+   (book-cab.html)
+   ============================================================ */
+
+.booking-how-band {
+    background: #f4f7f6;
+    border-top: 1px solid #dfe8e4;
+    padding: 3rem 0;
+}
+
+.booking-how-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 40px);
+}
+
+.booking-how-inner h2 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #0d1b2a;
+    margin: 0 0 1.75rem;
+    text-align: center;
+}
+
+.booking-how-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: none;
+}
+
+.booking-how-steps li {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    background: #ffffff;
+    border: 1px solid #dfe8e4;
+    border-radius: 10px;
+    padding: 1.1rem;
+}
+
+.how-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #080c12;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.booking-how-steps li div strong {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #0d1b2a;
+    margin-bottom: 0.3rem;
+}
+
+.booking-how-steps li div p {
+    font-size: 0.82rem;
+    color: #536271;
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+    .booking-how-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 500px) {
+    .booking-how-steps {
+        grid-template-columns: 1fr;
+    }
+    .booking-how-inner h2 {
+        font-size: 1.25rem;
+        text-align: left;
+    }
+}
+
+/* ============================================================
+   12. GOZO/SAVAARI-STYLE: VEHICLE CARD GRID (book-cab.html)
+   Professional vehicle selector with visual cards
+   ============================================================ */
+
+/* Override the plain vehicle-row to look like Gozo/Savaari */
+.vehicle-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.vehicle-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 82px;
+    gap: 4px;
+    padding: 10px 8px;
+    color: #536271;
+    background: #ffffff;
+    border: 1.5px solid #d7e2de;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: center;
+}
+
+.vehicle-card i {
+    font-size: 1.55rem;
+    color: #a08040;
+    margin-bottom: 2px;
+}
+
+.vehicle-card strong {
+    display: block;
+    color: #0d1b2a;
+    font-size: 0.88rem;
+    font-weight: 900;
+}
+
+.vehicle-card span {
+    display: block;
+    font-size: 0.72rem;
+    color: #7a8784;
+    font-weight: 700;
+}
+
+.vehicle-card .vc-fare {
+    display: block;
+    font-size: 0.72rem;
+    color: #2a6649;
+    font-weight: 900;
+    margin-top: 2px;
+}
+
+.vehicle-card.is-active {
+    background: #fffaed;
+    border-color: #f0b44f;
+    border-width: 2px;
+    color: #0d1b2a;
+}
+
+.vehicle-card.is-active i {
+    color: #c87a00;
+}
+
+.vehicle-card:hover:not(.is-active) {
+    border-color: #a0b8b0;
+    background: #f7fbf9;
+}
+
+/* ============================================================
+   13. SAVAARI-STYLE: Fare transparency note under fare strip
+   ============================================================ */
+
+.fare-transparency-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #edfaf3;
+    border: 1px solid #b7e2cc;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: #1a5738;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.fare-transparency-note i {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #1a8a52;
+}
+
+/* ============================================================
+   14. RATING BADGE (Gozo-style near submit button)
+   ============================================================ */
+
+.rating-trust-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    margin-bottom: 4px;
+    border-top: 1px solid #dce8e4;
+    border-bottom: 1px solid #dce8e4;
+    margin-top: 10px;
+}
+
+.rating-trust-strip .rtb {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #10201e;
+}
+
+.rating-trust-strip .rtb i {
+    color: #d97706;
+}
+
+.rating-trust-strip .rtb.green i {
+    color: #1a8a52;
+}

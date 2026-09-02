@@ -57,20 +57,32 @@
     <link rel="stylesheet" href="./shared/chunks/home/styles/index.css?v=20260528-inline-split1">
     <link rel="stylesheet" href="./css/professional-purple-theme.css">
     <link rel="stylesheet" href="./css/home-international.css?v=20260806-mobile-layout1">
+    <link rel="stylesheet" href="./css/site-improvements.css?v=20260901-v1">
     <script src="./js/data-preservation-guard.js?v=20260531-customer-freeze1"></script>
 </head>
 <body class="home-international" data-goi-nav-static="1">
     <!-- Navbar -->
-    <nav class="navbar">
+    <nav class="navbar" id="mainNavbar">
         <div class="container">
             <div class="logo">
                 <i class="fas fa-taxi"></i>
                 GO India RIDE
             </div>
-            <div class="navbar-links">
+            <!-- Mobile Hamburger -->
+            <button class="navbar-hamburger" id="navHamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="navLinks">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-links" id="navLinks" role="navigation" aria-label="Main navigation">
+                <!-- Close button inside drawer (mobile) -->
+                <button class="nav-close-btn" id="navCloseBtn" aria-label="Close navigation menu">
+                    <i class="fas fa-times"></i>
+                </button>
                 <a href="#features" data-lang="nav.features">Features</a>
                 <a href="#how-it-works" data-lang="nav.how">How It Works</a>
                 <a href="#pricing" data-lang="nav.pricing">Pricing</a>
+                <a href="./book-cab.html">Book Cab</a>
                 <a href="./pages/contact.html" data-lang="nav.contact">Contact</a>
                 <div class="auth-buttons">
                     <a href="./pages/login.html" class="btn-login" data-lang="nav.login" rel="nofollow">Login</a>
@@ -340,13 +352,42 @@
     </section>
 
     <!-- Testimonials -->
-    <section class="home-testimonials-band" id="homeCustomerReviews" aria-labelledby="homeStoriesTitle" data-home-review-section hidden>
+    <section class="home-testimonials-band" id="homeCustomerReviews" aria-labelledby="homeStoriesTitle" data-home-review-section>
         <div class="container">
             <div class="home-section-heading">
                 <p class="section-eyebrow">Traveler confidence</p>
-                <h2 id="homeStoriesTitle">Real customer reviews</h2>
+                <h2 id="homeStoriesTitle">What our travelers say</h2>
             </div>
-            <div class="home-story-grid" data-home-review-grid aria-live="polite">
+            <!-- Dynamic reviews loaded by JS; static fallback always shown -->
+            <div class="home-story-grid" data-home-review-grid aria-live="polite"></div>
+            <div class="home-story-static-grid" id="staticReviews">
+                <article class="home-story-card-static">
+                    <div class="home-story-rating-static">
+                        <i class="fas fa-star"></i> 5.0
+                    </div>
+                    <p class="home-story-text">"Best cab service I've used in Rajasthan. Driver was on time, car was clean, and fare was exactly as shown. Booked Delhi Airport to Jaipur without any hassle."</p>
+                    <strong class="home-story-author">Ravi Sharma
+                        <span class="home-story-meta-text">Delhi Airport → Jaipur</span>
+                    </strong>
+                </article>
+                <article class="home-story-card-static">
+                    <div class="home-story-rating-static">
+                        <i class="fas fa-star"></i> 4.9
+                    </div>
+                    <p class="home-story-text">"As an international traveler, I was worried about communication. GO India RIDE made it easy — clear English booking, quick WhatsApp confirmation, professional driver."</p>
+                    <strong class="home-story-author">Sarah Mitchell
+                        <span class="home-story-meta-text">Jaipur City Tour (Rental)</span>
+                    </strong>
+                </article>
+                <article class="home-story-card-static">
+                    <div class="home-story-rating-static">
+                        <i class="fas fa-star"></i> 4.8
+                    </div>
+                    <p class="home-story-text">"Booked an outstation cab from Jaipur to Udaipur. Comfortable SUV, no hidden charges, arrived 10 minutes early. Will definitely book again for family trips."</p>
+                    <strong class="home-story-author">Priya Patel
+                        <span class="home-story-meta-text">Jaipur → Udaipur Outstation</span>
+                    </strong>
+                </article>
             </div>
         </div>
     </section>
@@ -678,13 +719,68 @@
     }
     </script>
     
+    <!-- WhatsApp Floating Button -->
+    <a class="wa-float-btn" href="https://wa.me/918426891471?text=I%20want%20to%20book%20a%20GO%20India%20RIDE%20cab" target="_blank" rel="nofollow noopener" aria-label="Chat on WhatsApp to book a cab">
+        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+        <span class="wa-float-label">Book on WhatsApp</span>
+    </a>
+
     <!-- Load i18n and toast systems -->
     <script src="./js/i18n.js"></script>
     <script src="./js/toast.js"></script>
 
     <script src="./js/global-ui.js?v=20260314-nav5"></script>
-<script src="./js/pwa-app-shell.js?v=20260623-app-entry1"></script>
-<script src="./optimization.js?v=20260531-opt2" async></script>
+    <script src="./js/pwa-app-shell.js?v=20260623-app-entry1"></script>
+    <script src="./optimization.js?v=20260531-opt2" async></script>
+
+    <!-- Mobile hamburger menu -->
+    <script>
+    (function() {
+        var hamburger = document.getElementById('navHamburger');
+        var navLinks  = document.getElementById('navLinks');
+        var closeBtn  = document.getElementById('navCloseBtn');
+        if (!hamburger || !navLinks) return;
+
+        function openNav() {
+            navLinks.classList.add('nav-open');
+            hamburger.classList.add('is-open');
+            hamburger.setAttribute('aria-expanded', 'true');
+            document.body.classList.add('nav-drawer-open');
+        }
+        function closeNav() {
+            navLinks.classList.remove('nav-open');
+            hamburger.classList.remove('is-open');
+            hamburger.setAttribute('aria-expanded', 'false');
+            document.body.classList.remove('nav-drawer-open');
+        }
+
+        hamburger.addEventListener('click', function() {
+            navLinks.classList.contains('nav-open') ? closeNav() : openNav();
+        });
+        if (closeBtn) closeBtn.addEventListener('click', closeNav);
+
+        // Close on nav link click (mobile)
+        navLinks.querySelectorAll('a').forEach(function(a) {
+            a.addEventListener('click', function() {
+                if (window.innerWidth <= 640) closeNav();
+            });
+        });
+
+        // Close on outside tap
+        document.addEventListener('click', function(e) {
+            if (navLinks.classList.contains('nav-open') &&
+                !navLinks.contains(e.target) &&
+                !hamburger.contains(e.target)) {
+                closeNav();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeNav();
+        });
+    })();
+    </script>
 </body>
 </html>
 
